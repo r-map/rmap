@@ -1,7 +1,6 @@
-/**@file i2c-wind-config.h */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -29,10 +28,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * MODULE
 *********************************************************************/
 /*!
-\def MODULE_VERSION
-\brief Module version.
+\def MODULE_MAIN_VERSION
+\brief Module main version.
 */
-#define MODULE_VERSION                                  (3)
+#define MODULE_MAIN_VERSION                           (3)
+
+/*!
+\def MODULE_MINOR_VERSION
+\brief Module minor version.
+*/
+#define MODULE_MINOR_VERSION                          (7)
+
+/*!
+\def MODULE_CONFIGURATION_VERSION
+\brief Module version of compatibile configuration. If you change it, you have to reconfigure.
+*/
+#define MODULE_CONFIGURATION_VERSION                  (2)
 
 /*!
 \def MODULE_TYPE
@@ -48,12 +59,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Oneshot mode for default.
 */
 #define CONFIGURATION_DEFAULT_IS_ONESHOT                (false)
-
-/*!
-\def CONFIGURATION_DEFAULT_IS_CONTINUOUS
-\brief Continuous mode for default.
-*/
-#define CONFIGURATION_DEFAULT_IS_CONTINUOUS             (true)
 
 /*!
 \def CONFIGURATION_DEFAULT_I2C_ADDRESS
@@ -147,6 +152,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define UART_RX_BUFFER_LENGTH                           (40)
 #endif
 
+/*!
+\def SDCARD_CHIP_SELECT_PIN
+\brief Chip select for SDcard SPI.
+*/#define SDCARD_CHIP_SELECT_PIN 7
+
+/*!
+\def SPI_SPEED
+\brief Clock speed for SPI and SDcard.
+*/
+#define SPI_SPEED SD_SCK_MHZ(4)
+
 /*********************************************************************
 * POWER DOWN
 *********************************************************************/
@@ -167,17 +183,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Enable or disable timer1.
 */
 #define USE_TIMER_1                                     (true)
-
-/*!
-\def SDCARD_CHIP_SELECT_PIN
-\brief Chip select for SDcard SPI.
-*/#define SDCARD_CHIP_SELECT_PIN 7
-
-/*!
-\def SPI_SPEED
-\brief Clock speed for SPI and SDcard.
-*/
-#define SPI_SPEED SD_SCK_MHZ(4)
 
 /*********************************************************************
 * WATCHDOG
@@ -368,5 +373,12 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief number of read.
 */
 #define WIND_RETRY_MAX                                  (600)
+
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)
+
 
 #endif

@@ -1,4 +1,3 @@
-/**@file i2c-wind.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -31,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <avr/wdt.h>
 #include <i2c_utility.h>
 #include <rmap_utility.h>
+#include <sdcard_utility.h>
 #if (USE_JSON)
 #include <json_utility.h>
 #endif
@@ -52,11 +52,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief EEPROM saved configuration.
 */
 typedef struct {
-   uint8_t module_version;             //!< module version
+   uint8_t module_main_version;        //!< module main version
+   uint8_t module_configuration_version;   //!< module configuration version
    uint8_t module_type;                //!< module type
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   bool is_continuous;                 //!< enable or disable continuous mode
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
@@ -114,8 +114,9 @@ typedef struct {
 \brief Readable data through i2c bus.
 */
 typedef struct {
-  uint8_t module_type;                 //!< module version
-  uint8_t module_version;              //!< module type
+   uint8_t module_type;                //!< module type
+   uint8_t module_main_version;        //!< module main version
+   uint8_t module_minor_version;       //!< module minor version
   report_t wind;
 } readable_data_t;
 
@@ -126,7 +127,6 @@ typedef struct {
 typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   bool is_continuous;                 //!< enable or disable continuous mode
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
@@ -231,6 +231,12 @@ volatile uint8_t readable_data_length;
 volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 
 /*!
+\var lastcommand
+\brief last command received.
+*/
+volatile uint8_t lastcommand;
+
+/*!
 \var i2c_error
 \brief Number of i2c error.
 */
@@ -247,6 +253,19 @@ volatile uint8_t ready_tasks_count;
 \brief System time (in millisecond) when the system has awakened from power down.
 */
 uint32_t awakened_event_occurred_time_ms;
+
+/*!
+\var inside_transaction
+\brief Status of command transaction.
+*/
+volatile bool inside_transaction;
+
+/*!
+\var transaction_time
+\brief Timer counter variable for compute command transaction timeout.
+*/
+volatile uint16_t transaction_time;
+
 
 /*!
 \var is_start
@@ -266,11 +285,6 @@ bool is_stop;
 */
 bool is_oneshot;
 
-/*!
-\var is_continuous
-\brief Received command is in continuous mode.
-*/
-bool is_continuous;
 
 /*!
 \var is_test
@@ -523,12 +537,12 @@ template<typename buffer_g, typename length_v, typename value_v> void bufferRese
 template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value);
 
 /*!
-\fn void samples_processing()
+\fn void make_report (bool init=false)
 \brief Main routine for processing the samples to calculate an observation.
 \return void.
 */
-void samples_processing();
-void make_report();
+void make_report (bool init=false);
+
 void getSDFromUV (float, float, float *, float *);
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES)

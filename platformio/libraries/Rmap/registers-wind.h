@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_WIND_DEFAULT_ADDRESS                  (0x45)
 
 /*!
+\def I2C_TH_COMMAND_NONE
+\brief NO command for i2c-th module.
+*/
+#define I2C_WIND_COMMAND_NONE                     (0x00)
+
+/*!
 \def I2C_WIND_COMMAND_SAVE
 \brief Save command for i2c-wind module.
 */

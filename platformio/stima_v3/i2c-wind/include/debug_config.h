@@ -56,7 +56,7 @@ LOG_LEVEL_NOTICE
 LOG_LEVEL_TRACE
 LOG_LEVEL_VERBOSE
 */
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
+#define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
 /*!
 \def DEBUG_MEMORY
@@ -64,35 +64,6 @@ LOG_LEVEL_VERBOSE
 */
 #define DEBUG_MEMORY                      (0)
 
-/*!
-\def LCD_TRACE_LEVEL_OFF
-\brief Debug level for print error message on lcd interface.
-*/
-#define LCD_TRACE_LEVEL_OFF               (0)
-
-/*!
-\def LCD_TRACE_LEVEL_ERROR
-\brief Debug level for print error message on lcd.
-*/
-#define LCD_TRACE_LEVEL_ERROR             (1)
-
-/*!
-\def LCD_TRACE_LEVEL_WARNING
-\brief Debug level for print detailed informations message on serial interface.
-*/
-#define LCD_TRACE_LEVEL_WARNING           (2)
-
-/*!
-\def LCD_TRACE_LEVEL_INFO
-\brief Debug level for print informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_INFO              (3)
-
-/*!
-\def LCD_TRACE_LEVEL_DEBUG
-\brief Debug level for print verbose informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_DEBUG             (4)
 
 /*!
 \def OK_STRING
@@ -141,11 +112,5 @@ LOG_LEVEL_VERBOSE
 \brief "SAVE" string message.
 */
 #define SAVE_STRING                       ("SAVE")
-
-/*!
-\def STIMA_LCD_TRACE_LEVEL
-\brief Lcd trace level debug for stima sketch.
-*/
-#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
 
 #endif

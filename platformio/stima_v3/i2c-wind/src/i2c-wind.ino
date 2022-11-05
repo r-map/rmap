@@ -1,7 +1,5 @@
-/**@file i2c-wind.ino */
-
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -59,56 +57,64 @@ void setup() {
 */
 void loop() {
   switch (state) {
-    case INIT:
-      init_tasks();
-      init_sensors();
-      wdt_reset();
-      state = TASKS_EXECUTION;
+  case INIT:
+    init_tasks();
+    init_sensors();
+    wdt_reset();
+    state = TASKS_EXECUTION;
     break;
+    
+  #if (USE_POWER_DOWN)
+  case ENTER_POWER_DOWN:
+    #if (ENABLE_SDCARD_LOGGING)   
+    logFile.flush();
+    #endif
+    Serial.flush();	
+    //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
+    init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+    state = TASKS_EXECUTION;
+    break;
+  #endif
 
-    #if (USE_POWER_DOWN)
-    case ENTER_POWER_DOWN:
-      //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
-      init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
-      state = TASKS_EXECUTION;
-    break;
+  case TASKS_EXECUTION:
+
+    #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
+    if (is_event_wind_task) {
+      wind_task();
+      wdt_reset();
+    }
     #endif
 
-    case TASKS_EXECUTION:
-      // I2C Bus Check
-      if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-        LOGT(F("Restart I2C BUS"));
-        init_wire();
-        wdt_reset();
-      }
+    if (is_event_command_task) {
+      command_task();
+      wdt_reset();
+    }
 
-      #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
-      if (is_event_wind_task) {
-        wind_task();
-        wdt_reset();
-      }
-      #endif
-
-      if (is_event_command_task) {
-        command_task();
-        wdt_reset();
-      }
-
-      if (ready_tasks_count == 0) {
-        wdt_reset();
-        state = END;
-      }
+    // I2C Bus Check
+    if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+      LOGE(F("Restart I2C BUS"));
+      init_wire();
+      wdt_reset();
+    }
+    
+    noInterrupts();
+    if (ready_tasks_count == 0) {
+      wdt_reset();
+      state = END;
+    }
+    interrupts();	
     break;
-
-    case END:
-      #if (USE_POWER_DOWN)
-      state = ENTER_POWER_DOWN;
-      #else
-      state = TASKS_EXECUTION;
-      #endif
+    
+  case END:
+    #if (USE_POWER_DOWN)
+    state = ENTER_POWER_DOWN;
+    #else
+    state = TASKS_EXECUTION;
+    #endif
     break;
   }
 }
+
 
 void logPrefix(Print* _logOutput) {
   char m[12];
@@ -120,7 +126,7 @@ void logPrefix(Print* _logOutput) {
 
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
-  //_logOutput->flush();  // we use this to flush every log message
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 void init_logging(){
@@ -135,8 +141,13 @@ void init_logging(){
     Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
     Serial.println   (F("Wiring is correct and a card is present."));
-    Serial.println   (F("The FAT type of the volume: "));
+    Serial.print     (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
+
+    // remove firmware to do not redo update the next reboot
+    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
+      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
+    }
   }
   
   logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
@@ -154,6 +165,7 @@ void init_logging(){
   Log.setSuffix(logSuffix);
 }
 
+
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
   if (millis() - *time_ms > debouncing_ms) {
     *time_ms = millis();
@@ -169,9 +181,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
     noInterrupts ();
     sleep_enable();
 
-    //! turn off brown-out
-    // MCUCR = bit (BODS) | bit (BODSE);
-    // MCUCR = bit (BODS);
     interrupts ();
 
     sleep_cpu();
@@ -197,19 +206,24 @@ void init_buffers() {
   readable_data_read_ptr = &readable_data_1;
   readable_data_write_ptr = &readable_data_2;
   writable_data_ptr = &writable_data;
-
+  
   readable_data_write_ptr->module_type = MODULE_TYPE;
-  readable_data_write_ptr->module_version = MODULE_VERSION;
-
+  readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
+  readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
+  memset((void *) &readable_data_write_ptr->wind, UINT8_MAX, sizeof(report_t));
+  
+  //! copy readable_data_write in readable_data_read
+  copy_buffers();
+  
   reset_samples_buffer();
-  reset_report_buffer();
-
-  //! copy readable_data_2 in readable_data_1
-  memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+  reset_data(readable_data_write_ptr);
+  
+  readable_data_address=0xFF;
+  readable_data_length=0;
+  make_report(true);
 }
 
 void init_tasks() {
-  noInterrupts();
 
   //! no tasks ready
   ready_tasks_count = 0;
@@ -221,17 +235,17 @@ void init_tasks() {
 
   wind_state = WIND_INIT;
 
-  is_oneshot = false;
-  is_continuous = false;
+  lastcommand=I2C_WIND_COMMAND_NONE;
   is_start = false;
   is_stop = false;
   is_test = false;
-
-  interrupts();
+  transaction_time = 0;
+  inside_transaction = false;
 }
 
 void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
+  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 
   #if (USE_SENSOR_DED || USE_SENSOR_DES)
   pinMode(WIND_POWER_PIN, OUTPUT);
@@ -252,10 +266,7 @@ void init_pins() {
 }
 
 void init_wire() {
-  if (i2c_error > 0) {
     i2c_error = 0;
-  }
-
   Wire.end();
   Wire.begin(configuration.i2c_address);
   Wire.setClock(I2C_BUS_CLOCK);
@@ -264,6 +275,9 @@ void init_wire() {
 }
 
 void init_spi() {
+#if (ENABLE_SDCARD_LOGGING)      
+  SPI.begin();
+#endif
 }
 
 void init_rtc() {
@@ -271,15 +285,16 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  timer_counter_ms = 0;
   start_timer();
 }
 
 void start_timer() {
   TCCR1A = 0x00;                //!< Normal timer operation
-  TCCR1B = 0x05;                //!< 1:1024 prescaler
+  TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+  timer_counter_s = 0;
+  timer_counter_ms = 0;
   TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
 
@@ -299,17 +314,16 @@ void init_system() {
 
   //! main loop state
   state = INIT;
-  i2c_error = 0;
 }
 
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
   LOGN(F("--> type: %s"), stima_name);
-  LOGN(F("--> version: %d"), configuration.module_version);
-  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+  LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
+  LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
   LOGN(F("--> adc voltage offset +: %f"), configuration.adc_voltage_offset_1);
   LOGN(F("--> adc voltage offset *: %f"), configuration.adc_voltage_offset_2);
   LOGN(F("--> adc voltage min: %f mV"), configuration.adc_voltage_min);
@@ -320,11 +334,11 @@ void save_configuration(bool is_default) {
   if (is_default) {
     LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
-    configuration.module_version = MODULE_VERSION;
+    configuration.module_main_version = MODULE_MAIN_VERSION;
+    configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
     configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
-    configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
-
+    
     #if (USE_SENSOR_DES || USE_SENSOR_DED)
     configuration.adc_voltage_offset_1 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1;
     configuration.adc_voltage_offset_2 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2;
@@ -344,7 +358,6 @@ void save_configuration(bool is_default) {
     LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
-    configuration.is_continuous = writable_data.is_continuous;
     configuration.adc_voltage_offset_1 = writable_data.adc_voltage_offset_1;
     configuration.adc_voltage_offset_2 = writable_data.adc_voltage_offset_2;
     configuration.adc_voltage_min = writable_data.adc_voltage_min;
@@ -361,7 +374,7 @@ void load_configuration() {
   //! read configuration from eeprom
   ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
 
-  if (configuration.module_type != MODULE_TYPE || configuration.module_version != MODULE_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+  if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
@@ -369,14 +382,24 @@ void load_configuration() {
     print_configuration();
   }
 
+  wdt_reset();
+  
+  if (!configuration.is_oneshot) {
+    LOGN(F("--> samples every %d ms: "),SENSORS_SAMPLE_TIME_MS);
+  }
+  
+  wdt_reset();
+  
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
-  writable_data.is_continuous = configuration.is_continuous;
+  writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;
+  writable_data.adc_voltage_offset_2 = configuration.adc_voltage_offset_2;
+  writable_data.adc_voltage_min = configuration.adc_voltage_min;
+  writable_data.adc_voltage_max = configuration.adc_voltage_max;
 }
 
 void init_sensors () {
-  if (configuration.is_continuous) {
-    LOGN(F(""));
+  if (!configuration.is_oneshot) {
     LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
     LOGN(F("--> max %l samples error in %l minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
     LOGN(F("--> max %l samples error in 10 minutes"), WMO_REPORT_SAMPLE_ERROR_MAX);
@@ -387,12 +410,12 @@ void init_sensors () {
     LOGN(F("dc: direction sample count"));
     LOGN(F("speed: sensor speed"));
     LOGN(F("dir: sensor direction"));
-    LOGT(F("ua: average u component over 10'"));
-    LOGT(F("va: average v component over 10'"));
+    LOGN(F("ua: average u component over 10'"));
+    LOGN(F("va: average v component over 10'"));
     LOGN(F("vs10: vectorial average speed over 10'"));
     LOGN(F("vd10: vectorial average speed over 10'"));
-    LOGT(F("ub: average u component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    LOGT(F("vb: average v component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("ub: average u component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("vb: average v component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
     LOGN(F("vsr: vectorial average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
     LOGN(F("vdr: vectorial average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
     LOGN(F("ss: scalar average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
@@ -407,11 +430,8 @@ void init_sensors () {
     LOGN(F("C10: %% of sample <= 10.0 m/s "));
     LOGN(F("CXX: %% of sample > 10.0 m/s "));
 
-    #if (LOG_LEVEL < LOG_LEVEL_TRACE)
-    LOGN(F("sc\tdc\tspeed\tdir\tvs10\tvd10\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
-    #else
-    LOGT(F("sc\tdc\tspeed\tdir\tua\tva\tvs10\tvd10\tub\tvb\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
-    #endif
+    LOGN(F("sc\tdc\tspeed\tdir\tua\tva\tvs10\tvd10\tub\tvb\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
+
     #elif (USE_SENSOR_DES)
     LOGN(F("sc\tss\tC1\tC2\tC4\tC7\tC10\tCXX\ttotal"));
     #elif (USE_SENSOR_DED)
@@ -428,35 +448,45 @@ void init_sensors () {
 ISR(TIMER1_OVF_vect) {
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
-
+  
   //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
   timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
   timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
-
+  
   // if ((timer_counter_s >= I2C_DELAY_FOR_SET_I2C_ERROR_S) && (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT))) {
   if (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT)) {
     i2c_error++;
   }
 
-  #if (USE_SENSOR_DES)
-  if (executeTimerTaskEach(timer_counter_ms, SENSORS_ACQ_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
+  if (inside_transaction) {
+    //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
+    transaction_time += TIMER1_INTERRUPT_TIME_MS;
+    
+    if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
+      transaction_time = 0;
+      inside_transaction = false;
+    }
+  }
+  
+#if (USE_SENSOR_DES)
+  if (executeTimerTaskEach(timer_counter_ms, SENSORS_ACQ_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
     noInterrupts();
     wind_speed = wind_speed_count;
     wind_speed_count = 0;
     interrupts();
   }
-  #endif
+#endif
 
-  #if (USE_SENSOR_DED || USE_SENSOR_DES)
-  if (executeTimerTaskEach(timer_counter_ms, SENSORS_WARMUP_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
+#if (USE_SENSOR_DED || USE_SENSOR_DES)
+  if (executeTimerTaskEach(timer_counter_ms, SENSORS_WARMUP_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
     if (isWindOff()) {
       windPowerOn();
     }
   }
-  #endif
-
-  #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
-  if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
+#endif
+    
+#if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
+  if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
     if (!is_event_wind_task) {
       noInterrupts();
       is_event_wind_task = true;
@@ -464,13 +494,13 @@ ISR(TIMER1_OVF_vect) {
       interrupts();
     }
   }
-  #endif
-
+#endif
+    
   //! reset timer_counter_ms if it has become larger than TIMER_COUNTER_VALUE_MAX_MS
   if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
     timer_counter_ms = 0;
   }
-
+  
   if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
     timer_counter_s = 0;
   }
@@ -480,23 +510,30 @@ void i2c_request_interrupt_handler() {
   if (readable_data_length) {
     //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
     Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
-    //! write crc8
     Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-  } else {
-    Wire.write(UINT16_MAX);
+    //! write crc8
+    //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
   }
+
+  readable_data_address=0xFF;
+  readable_data_length=0;
+  inside_transaction = false;
+ 
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
   bool is_i2c_data_ok = false;
-
-  readable_data_length = 0;
 
   // read rx_data_length bytes of data from i2c bus
   for (uint8_t i = 0; i < rx_data_length; i++) {
     i2c_rx_data[i] = Wire.read();
   }
 
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    // attention: logging inside ISR !
+    //LOGN(F("No CRC: size %d"),rx_data_length);
+  } else   
   //! check crc: ok
   if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
     rx_data_length--;
@@ -508,20 +545,24 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
       // length (in bytes) of data to be read in readable_data_read_ptr
       readable_data_length = i2c_rx_data[1];
+      // attention: logging inside ISR !
+      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
+      //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
+	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
+	lastcommand=i2c_rx_data[1];    // record command to be executed
         is_event_command_task = true;
         ready_tasks_count++;
       }
-      interrupts();
+      //interrupts();
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
-      rx_data_length -= 2;
+      rx_data_length -= 1;
 
       if (i2c_rx_data[0] == I2C_WIND_ADDRESS_ADDRESS && rx_data_length == I2C_WIND_ADDRESS_LENGTH) {
         is_i2c_data_ok = true;
@@ -536,12 +577,15 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 2];
+          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
         }
       }
     }
   } else {
+    readable_data_address=0xFF;
     readable_data_length = 0;
+    // attention: logging inside ISR !
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
@@ -621,84 +665,137 @@ void getSDFromUV (float u, float v, float *speed, float *direction) {
 
 #define calcFrequencyPercent(classx, count)   (classx / count * 100.0)
 
-void make_report () {
-  uint16_t valid_count_a = 0;
-  uint16_t error_count_a = 0;
+void make_report  (bool init) {
+  
+  static uint16_t valid_count_a;
+  static uint16_t error_count_a;
 
-  uint16_t valid_count_b = 0;
-  uint16_t error_count_b = 0;
+  static uint16_t valid_count_b;
+  static uint16_t error_count_b;
 
-  uint16_t valid_count_speed = 0;
-  uint16_t error_count_speed = 0;
+  static uint16_t valid_count_speed;
+  static uint16_t error_count_speed;
 
-  uint16_t valid_count_o = 0;
-  uint16_t error_count_o = 0;
+  static uint16_t valid_count_o;
+  static uint16_t error_count_o;
 
-  uint16_t valid_count_c = 0;
-  uint16_t error_count_c = 0;
+  static uint16_t valid_count_c;
+  static uint16_t error_count_c;
 
-  float ua = 0;
-  float va = 0;
+  static float ua;
+  static float va;
 
-  float ub = 0;
-  float vb = 0;
+  static float ub;
+  static float vb;
 
-  float uc = 0;
-  float vc = 0;
+  static float uc;
+  static float vc;
 
-  float vavg10_speed = 0;
-  float vavg10_direction = 0;
+  static float vavg10_speed;
+  static float vavg10_direction;
 
-  float vavg_speed = 0;
-  float vavg_direction = 0;
+  static float vavg_speed;
+  static float vavg_direction;
 
-  float peak_gust_speed = -1.0;
-  float peak_gust_direction = 0;
+  static float peak_gust_speed;
+  static float peak_gust_direction;
 
-  float vavg_speed_o = -1.0;
-  float vavg_direction_o = 0;
+  static float vavg_speed_o;
+  static float vavg_direction_o;
 
-  float long_gust_speed = -1.0;
-  float long_gust_direction = 0;
+  static float long_gust_speed;
+  static float long_gust_direction;
 
-  float avg_speed = 0;
+  static float avg_speed;
 
-  float class_1 = 0;
-  float class_2 = 0;
-  float class_3 = 0;
-  float class_4 = 0;
-  float class_5 = 0;
-  float class_6 = 0;
-
-  #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-  bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, SAMPLES_COUNT);
-  #endif
-
-  #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-  bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, SAMPLES_COUNT);
-  #endif
+  static float class_1;
+  static float class_2;
+  static float class_3;
+  static float class_4;
+  static float class_5;
+  static float class_6;
 
   uint16_t sample_count = RMAP_REPORT_SAMPLES_COUNT;
 
-  #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-  if (wind_speed_samples.count < sample_count) {
-    sample_count = wind_speed_samples.count;
+  if (init) {
+  
+    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
+    bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, SAMPLES_COUNT);
+    #endif
+
+    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
+    bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, SAMPLES_COUNT);
+    #endif
+
+    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
+    if (wind_speed_samples.count < sample_count) {
+      sample_count = wind_speed_samples.count;
+    }
+    #endif
+
+    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
+    if (wind_direction_samples.count < sample_count) {
+      sample_count = wind_direction_samples.count;
+    }
+    #endif
+
+    #if (USE_SENSORS_COUNT == 0)
+    sample_count = 0;
+    #endif
+
+    valid_count_a = 0;
+    error_count_a = 0;
+    
+    valid_count_b = 0;
+    error_count_b = 0;
+    
+    valid_count_speed = 0;
+    error_count_speed = 0;
+    
+    valid_count_o = 0;
+    error_count_o = 0;
+
+    valid_count_c = 0;
+    error_count_c = 0;
+
+    ua = 0;
+    va = 0;
+    
+    ub = 0;
+    vb = 0;
+    
+    uc = 0;
+    vc = 0;
+    
+    vavg10_speed = 0;
+    vavg10_direction = 0;
+    
+    vavg_speed = 0;
+    vavg_direction = 0;
+    
+    peak_gust_speed = -1.0;
+    peak_gust_direction = 0;
+    
+    vavg_speed_o = -1.0;
+    vavg_direction_o = 0;
+    
+    long_gust_speed = -1.0;
+    long_gust_direction = 0;
+    
+    avg_speed = 0;
+    
+    class_1 = 0;
+    class_2 = 0;
+    class_3 = 0;
+    class_4 = 0;
+    class_5 = 0;
+    class_6 = 0;
   }
-  #endif
 
-  #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-  if (wind_direction_samples.count < sample_count) {
-    sample_count = wind_direction_samples.count;
-  }
-  #endif
-
-  #if (USE_SENSORS_COUNT == 0)
-  sample_count = 0;
-  #endif
-
+  
   for (uint16_t i = 0; i < sample_count; i++) {
     bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT_MAX) == 0);
-
+    
     #if (USE_SENSOR_DES || USE_SENSOR_GWS)
     float speed = bufferReadBack<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT);
 
@@ -863,11 +960,6 @@ void make_report () {
   #endif
 }
 
-void samples_processing() {
-  reset_report_buffer();
-  make_report();
-}
-
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 void windPowerOff () {
   digitalWrite(WIND_POWER_PIN, LOW);
@@ -999,7 +1091,7 @@ void wind_task () {
       addValue<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT, wind_speed);
       #endif
 
-      samples_processing();
+      make_report();
 
       wind_state = WIND_END;
       LOGV(F("WIND_ELABORATE --> WIND_END"));
@@ -1058,7 +1150,10 @@ void wind_task () {
     case WIND_READING:
       if (Serial1.available()) {
         uart_rx_buffer_length = Serial1.readBytes(uart_rx_buffer, UART_RX_BUFFER_LENGTH);
-        wind_state = WIND_ELABORATE;
+	for (uint8_t i = 0; i < uart_rx_buffer_length; i++) {
+	  LOGV(F("windsonic data:%c"),uart_rx_buffer[i]);
+	}
+	wind_state = WIND_ELABORATE;
         LOGV(F("WIND_READING --> WIND_ELABORATE"));
       }
       else if (++retry <= WIND_RETRY_MAX) {
@@ -1069,6 +1164,7 @@ void wind_task () {
         LOGV(F("WIND_READING --> WIND_READING"));
       }
       else {
+	LOGE(F("error reading windsonic data"));
         is_error = true;
         wind_state = WIND_ELABORATE;
         LOGV(F("WIND_READING --> WIND_ELABORATE"));
@@ -1081,12 +1177,15 @@ void wind_task () {
         direction = UINT16_MAX;
       }
       else {
-        windsonic_interpreter(&speed, &direction);
+        bool crc_ok=windsonic_interpreter(&speed, &direction);
+	LOGV(F("windsonic crc: %T"),crc_ok);
       }
 
+      LOGN(F("windsonic data: %D , %D"),speed,direction);
+      
       addValue<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT, speed);
       addValue<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT, direction);
-      samples_processing();
+      make_report();
 
       wind_state = WIND_END;
       LOGV(F("WIND_ELABORATE --> WIND_END"));
@@ -1202,9 +1301,11 @@ bool windsonic_interpreter (float *speed, float *direction) {
 #endif
 
 void exchange_buffers() {
+   noInterrupts();
   readable_data_temp_ptr = readable_data_write_ptr;
   readable_data_write_ptr = readable_data_read_ptr;
   readable_data_read_ptr = readable_data_temp_ptr;
+   interrupts();
 }
 
 void reset_samples_buffer() {
@@ -1222,168 +1323,156 @@ void reset_samples_buffer() {
   #endif
 }
 
-void reset_report_buffer () {
-  readable_data_write_ptr->wind.vavg10_speed = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.vavg10_direction = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.vavg_speed = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.vavg_direction = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.avg_speed = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.peak_gust_speed = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.peak_gust_direction = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.long_gust_speed = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.long_gust_direction = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_1 = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_2 = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_3 = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_4 = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_5 = (float) UINT16_MAX;
-  readable_data_write_ptr->wind.class_6 = (float) UINT16_MAX;
+void reset_data(volatile readable_data_t *ptr) {
+  ptr->wind.vavg10_speed = (float) UINT16_MAX;
+  ptr->wind.vavg10_direction = (float) UINT16_MAX;
+  ptr->wind.vavg_speed = (float) UINT16_MAX;
+  ptr->wind.vavg_direction = (float) UINT16_MAX;
+  ptr->wind.avg_speed = (float) UINT16_MAX;
+  ptr->wind.peak_gust_speed = (float) UINT16_MAX;
+  ptr->wind.peak_gust_direction = (float) UINT16_MAX;
+  ptr->wind.long_gust_speed = (float) UINT16_MAX;
+  ptr->wind.long_gust_direction = (float) UINT16_MAX;
+  ptr->wind.class_1 = (float) UINT16_MAX;
+  ptr->wind.class_2 = (float) UINT16_MAX;
+  ptr->wind.class_3 = (float) UINT16_MAX;
+  ptr->wind.class_4 = (float) UINT16_MAX;
+  ptr->wind.class_5 = (float) UINT16_MAX;
+  ptr->wind.class_6 = (float) UINT16_MAX;
 }
 
 void command_task() {
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  char buffer[30];
-  #endif
 
-  switch(i2c_rx_data[1]) {
-    case I2C_WIND_COMMAND_ONESHOT_START:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT START");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
-      is_start = true;
-      is_stop = false;
-      is_test = false;
-      commands();
+  switch(lastcommand) {
+  case I2C_WIND_COMMAND_ONESHOT_START:
+    LOGN(F("Execute [ ONESHOT START ]"));
+    is_start = true;
+    is_stop = false;
+    is_test = false;
+    commands();
     break;
-
-    case I2C_WIND_COMMAND_ONESHOT_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT STOP");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
-      is_start = false;
-      is_stop = true;
-      is_test = false;
-      commands();
+    
+  case I2C_WIND_COMMAND_ONESHOT_STOP:
+    LOGN(F("Execute [ ONESHOT STOP ]"));
+    is_start = false;
+    is_stop = true;
+    is_test = false;
+    commands();
+    inside_transaction = true;
     break;
-
-    case I2C_WIND_COMMAND_ONESHOT_START_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT START-STOP");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
-      is_start = true;
-      is_stop = true;
-      is_test = false;
-      commands();
+    
+  case I2C_WIND_COMMAND_ONESHOT_START_STOP:
+    LOGN(F("Execute [ ONESHOT START-STOP ]"));
+    is_start = true;
+    is_stop = true;
+    is_test = false;
+    commands();
+    inside_transaction = true;
     break;
-
-    case I2C_WIND_COMMAND_CONTINUOUS_START:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS START");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
-      is_start = true;
-      is_stop = false;
-      is_test = false;
-      commands();
+    
+  case I2C_WIND_COMMAND_CONTINUOUS_START:
+    LOGN(F("Execute [ CONTINUOUS START ]"));
+    is_start = true;
+    is_stop = false;
+    is_test = false;
+    commands();
     break;
-
-    case I2C_WIND_COMMAND_CONTINUOUS_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS STOP");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
-      is_start = false;
-      is_stop = true;
-      is_test = false;
-      commands();
+    
+  case I2C_WIND_COMMAND_CONTINUOUS_STOP:
+    LOGN(F("Execute [ CONTINUOUS STOP ]"));
+    is_start = false;
+    is_stop = true;
+    is_test = false;
+    commands();
+    inside_transaction = true;
     break;
-
-    case I2C_WIND_COMMAND_CONTINUOUS_START_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS START-STOP");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
-      is_start = true;
-      is_stop = true;
-      is_test = false;
-      commands();
+	 
+  case I2C_WIND_COMMAND_CONTINUOUS_START_STOP:
+    LOGN(F("Execute [ CONTINUOUS START-STOP ]"));
+    is_start = true;
+    is_stop = true;
+    is_test = false;
+    commands();
+    inside_transaction = true;
     break;
-
-    case I2C_WIND_COMMAND_TEST_READ:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "TEST READ");
-      #endif
-      is_test = true;
-      tests();
+    
+  case I2C_WIND_COMMAND_TEST_READ:
+    LOGN(F("Execute [ TEST READ ]"));
+    //is_start = true;
+    is_stop = false;
+    is_test = true;
+    commands();
     break;
-
-    case I2C_WIND_COMMAND_SAVE:
-      LOGV(F("Execute command [ SAVE ]"));
-      save_configuration(CONFIGURATION_CURRENT);
-      init_wire();
+    
+  case I2C_WIND_COMMAND_SAVE:
+    is_start = false;
+    is_stop = false;
+    LOGN(F("Execute command [ SAVE ]"));
+    save_configuration(CONFIGURATION_CURRENT);
+    init_wire();
     break;
+    
+  default:
+    LOGN(F("Ignore unknow command"));
+    
   }
-
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    LOGV(F("Execute [ %s ]"), buffer);
-  }
-  else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    LOGV(F("Ignore [ %s ]"), buffer);
-  }
-  #endif
 
   noInterrupts();
   is_event_command_task = false;
   ready_tasks_count--;
+  lastcommand =I2C_WIND_COMMAND_NONE;
   interrupts();
+}
+
+void copy_buffers() {
+   //! copy readable_data_2 in readable_data_1
+   noInterrupts();
+   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+   interrupts();
 }
 
 void commands() {
-  noInterrupts();
-
   //! CONTINUOUS START
-  if (configuration.is_continuous && is_continuous && is_start && !is_stop) {
+  if (inside_transaction) return;
+  
+  //! CONTINUOUS TEST
+  if (!configuration.is_oneshot && is_start && !is_stop && is_test) {
+    copy_buffers();
+    //exchange_buffers();
+  }
+  //! CONTINUOUS START
+  else if (!configuration.is_oneshot && is_start && !is_stop && !is_test) {
+
+    stop_timer();
     reset_samples_buffer();
-    reset_report_buffer();
+    reset_data(readable_data_write_ptr);
+    make_report(true);
+    start_timer();
   }
   //! CONTINUOUS STOP
-  else if (configuration.is_continuous && is_continuous && !is_start && is_stop) {
-    exchange_buffers();
+  else if (!configuration.is_oneshot && !is_start && is_stop) {
+    copy_buffers();
+    //exchange_buffers();
   }
   //! CONTINUOUS START-STOP
-  else if (configuration.is_continuous && is_continuous && is_start && is_stop) {
+  else if (!configuration.is_oneshot && is_start && is_stop) {
+    stop_timer();
     exchange_buffers();
+    reset_samples_buffer();
+    reset_data(readable_data_write_ptr);
+    make_report(true);
+    start_timer();
   }
   //! ONESHOT START
-  else if (configuration.is_oneshot && is_oneshot && is_start && !is_stop) {
+  else if (configuration.is_oneshot && is_start && !is_stop) {
+    reset_samples_buffer();
+    //! ONESHOT STOP
+    noInterrupts();
+    if (!is_event_wind_task) {
+      is_event_wind_task = true;
+      ready_tasks_count++;
+    }
+    interrupts();
   }
-  //! ONESHOT STOP
-  else if (configuration.is_oneshot && is_oneshot && !is_start && is_stop) {
-  }
-  //! ONESHOT START-STOP
-  else if (configuration.is_oneshot && is_oneshot && is_start && is_stop) {
-  }
-
-  interrupts();
 }
-
-void tests() {
-  noInterrupts();
-
-  //! TEST
-  if (is_test) {
-    exchange_buffers();
-  }
-
-  interrupts();
-}
+  
