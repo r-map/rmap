@@ -202,12 +202,15 @@
   #define TIMER_SERVO           TIM7
 #endif
 
+// Enable Serial
+#define ENABLE_HWSERIAL1
+
+// Define Serial (Serial1, Serial2, Serial3, ecc.. Serial1 is named Serial)
 #ifndef SERIAL_UART_INSTANCE
-  #define SERIAL_UART_INSTANCE    4   // Connected to ST-Link - USART 4
+  #define SERIAL_UART_INSTANCE  1
 #endif
 
-// Default pin used for generic 'Serial' instance
-// Mandatory for Firmata
+// Define Serial pin for RX and TX (USART4)
 #ifndef PIN_SERIAL_RX
   #define PIN_SERIAL_RX         PA1
 #endif
