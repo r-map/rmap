@@ -40,57 +40,59 @@ void SupervisorTask::Run()
   
   while (true)
   {
-    switch (state)
-    {
-    case SUPERVISOR_STATE_INIT:
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-      state = SUPERVISOR_STATE_CHECK_OPERATION;
-      break;
+    Serial.println("Supervisor");
+    DelayUntil(Ticks::MsToTicks(1000));
+    // switch (state)
+    // {
+    // case SUPERVISOR_STATE_INIT:
+    //   TRACE_VERBOSE(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+    //   state = SUPERVISOR_STATE_CHECK_OPERATION;
+    //   break;
 
-    case SUPERVISOR_STATE_CHECK_OPERATION:
-      if (!is_configuration_loaded)
-      {
-        TRACE_VERBOSE(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
-        state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
-      }
-      else {
-        // TEST FLASH
-        uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // case SUPERVISOR_STATE_CHECK_OPERATION:
+    //   if (!is_configuration_loaded)
+    //   {
+    //     TRACE_VERBOSE(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
+    //     state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
+    //   }
+    //   else {
+    //     // // TEST FLASH
+    //     // uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    //     // uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         
-        BSP_QSPI_Init();
-        while (BSP_QSPI_GetStatus() != QSPI_OK);
-        BSP_QSPI_Erase_Block(0);
-        BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
-        BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
+    //     // BSP_QSPI_Init();
+    //     // while (BSP_QSPI_GetStatus() != QSPI_OK);
+    //     // BSP_QSPI_Erase_Block(0);
+    //     // BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
+    //     // BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
 
-        for (uint8_t i=0; i<10; i++) {
-          TRACE_INFO(F("%d "), read[i]);
-        }
-        TRACE_INFO(F("\r\n"));
+    //     // for (uint8_t i=0; i<10; i++) {
+    //     //   TRACE_INFO(F("%d "), read[i]);
+    //     // }
+    //     // TRACE_INFO(F("\r\n"));
 
-        Suspend();
-      }
-      break;
+    //     Suspend();
+    //   }
+    //   break;
 
-    case SUPERVISOR_STATE_LOAD_CONFIGURATION:
-      LoadConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock);
-      is_configuration_loaded = true;
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
-      state = SUPERVISOR_STATE_END;
-      break;
+    // case SUPERVISOR_STATE_LOAD_CONFIGURATION:
+    //   // LoadConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock);
+    //   is_configuration_loaded = true;
+    //   TRACE_VERBOSE(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
+    //   state = SUPERVISOR_STATE_END;
+    //   break;
 
-    case SUPERVISOR_STATE_SAVE_CONFIGURATION:
-      SaveConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock, CONFIGURATION_CURRENT);
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
-      state = SUPERVISOR_STATE_END;
-      break;
+    // case SUPERVISOR_STATE_SAVE_CONFIGURATION:
+    //   // SaveConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock, CONFIGURATION_CURRENT);
+    //   TRACE_VERBOSE(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
+    //   state = SUPERVISOR_STATE_END;
+    //   break;
     
-    case SUPERVISOR_STATE_END:
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-      state = SUPERVISOR_STATE_CHECK_OPERATION;
-      break;
-    }
+    // case SUPERVISOR_STATE_END:
+    //   TRACE_VERBOSE(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+    //   state = SUPERVISOR_STATE_CHECK_OPERATION;
+    //   break;
+    // }
   }
 }
 

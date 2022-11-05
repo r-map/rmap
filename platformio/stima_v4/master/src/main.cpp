@@ -28,13 +28,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 void setup() {
   osInitKernel();
 
-  // STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
+  // Initializing basic hardware's configuration
   SetupSystemPeripheral();
-
   init_debug(115200);
-
-  // init_wire();
-
+  init_wire();
   init_pins();
   init_tasks();
   // init_sensors();
@@ -60,9 +57,13 @@ void setup() {
 
   TRACE_INFO(F("Initialization HW Base done\r\n"));
 
+  ProvaParam_t provaParam = {};
+
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
+  #if (ENABLE_I2C1)
   supervisorParam.wireLock = wireLock;
+  #endif
   supervisorParam.configurationLock = configurationLock;
 
   // LedParam_t ledParam1 = {LED1_PIN, 100, 900};
@@ -103,11 +104,10 @@ void setup() {
   // static EthernetTask eth_task("ETH TASK", 100, OS_TASK_PRIORITY_03, ethernetParam);
   // static MqttTask mqtt_task("MQTT TASK", 1024, OS_TASK_PRIORITY_02, mqttParam);
 
-  // Startup Schedulher
-  ProvaParam_t provaParam = {};
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-
   static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
+
+  // Startup Schedulher
   Thread::StartScheduler();
 }
 
@@ -117,10 +117,9 @@ void loop() {
 }
 
 void init_tasks() {
-  #if (HARDWARE_I2C == ENABLE)
+  #if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
   #endif
-
   configurationLock = new BinarySemaphore(true);
 }
 
@@ -128,11 +127,14 @@ void init_sensors () {
 }
 
 void init_wire() {
-  #if (HARDWARE_I2C == ENABLE)
-  // Wire.setSCL(I2C1_SCL);
-  // Wire.setSDA(I2C1_SDA);
-  // Wire.begin();
-  // Wire.setClock(I2C1_BUS_CLOCK_HZ);
+  #if (ENABLE_I2C1)
+  Wire.begin();
+  Wire.setClock(I2C1_BUS_CLOCK_HZ);
+  #endif
+
+  #if (ENABLE_I2C2)
+  Wire2.begin();
+  Wire2.setClock(I2C2_BUS_CLOCK_HZ);
   #endif
 }
 

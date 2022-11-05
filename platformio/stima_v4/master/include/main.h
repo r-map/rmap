@@ -30,10 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rmap_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
-
-#if (HARDWARE_I2C == ENABLE)
 #include <Wire.h>
-#endif
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -76,8 +73,12 @@ using namespace cpp_freertos;
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
-#if (HARDWARE_I2C == ENABLE)
+#if (ENABLE_I2C1)
 BinarySemaphore *wireLock;
+#endif
+
+#if (ENABLE_I2C2)
+BinarySemaphore *wire2Lock;
 #endif
 
 BinarySemaphore *configurationLock;

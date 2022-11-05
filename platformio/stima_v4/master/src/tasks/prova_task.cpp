@@ -34,7 +34,7 @@ ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 
 void ProvaTask::Run() {
   while (true) {
-    TRACE_INFO(F("Prova Task...\r\n"));
+    TRACE_INFO("Prova\r\n");
     DelayUntil(Ticks::MsToTicks(1000));
   }
 }

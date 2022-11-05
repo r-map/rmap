@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "debug.h"
 
 typedef struct {
+  int x;
 } ProvaParam_t;
 
 class ProvaTask : public cpp_freertos::Thread {
