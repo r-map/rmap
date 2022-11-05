@@ -411,6 +411,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverAdt7420::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -627,6 +628,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverHih6100::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -825,6 +827,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverHyt2X1::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1104,6 +1107,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverDw1::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1355,6 +1359,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverRain::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1806,6 +1811,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverTh::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2197,6 +2203,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length, bool is_tes
 #if (USE_JSON)
 void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverDigitecoPower::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2604,6 +2611,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverWind::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2954,7 +2962,8 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
 #if (USE_JSON)
 void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverSolarRadiation::get(values, length, is_test);
-
+  json_buffer[0]='\0';
+  
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
@@ -3524,6 +3533,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverOpc::get(values, length, is_test);
+  json_buffer[0]='\0';
   uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
@@ -3848,6 +3858,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverLeaf::get(values, length, is_test);
+  json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
