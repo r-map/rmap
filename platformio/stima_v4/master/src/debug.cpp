@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "debug.h"
 
 void init_debug(uint32_t baudrate) {
-  Serial4.begin(baudrate);
+  Serial.begin(baudrate);
 }
 
 /**
