@@ -58,24 +58,24 @@
 #define AT25SF641_DUMMY_CYCLES_READ           1
 #define AT25SF641_DUMMY_CYCLES_READ_QUAD      4
 
-#define AT25SF641_BULK_ERASE_MAX_TIME         25000
+#define AT25SF641_BULK_ERASE_MAX_TIME         40000
 #define AT25SF641_SECTOR_ERASE_MAX_TIME       3000
-#define AT25SF641_BLOCK_ERASE_MAX_TIME    		300
+#define AT25SF641_BLOCK_ERASE_MAX_TIME        300
 
-/**
+ /**
   * @brief  AT25SF641 Commands
   */
-/* Reset Operations */
-//#define RESET_ENABLE_CMD                     0x66
-//#define RESET_MEMORY_CMD                     0x99
+ /* Reset Operations */
+ //#define RESET_ENABLE_CMD                     0x66
+ //#define RESET_MEMORY_CMD                     0x99
 
-/* Identification Commands */
-//#define READ_ID_CMD                          0x9E
-//#define READ_ID_CMD2                         0x9F
-//#define MULTIPLE_IO_READ_ID_CMD              0xAF
-//#define READ_SERIAL_FLASH_DISCO_PARAM_CMD    0x5A
+ /* Identification Commands */
+ //#define READ_ID_CMD                          0x9E
+ //#define READ_ID_CMD2                         0x9F
+ //#define MULTIPLE_IO_READ_ID_CMD              0xAF
+ //#define READ_SERIAL_FLASH_DISCO_PARAM_CMD    0x5A
 
-/* Read Commands */
+ /* Read Commands */
 #define READ_CMD                             0x03
 #define FAST_READ_CMD                        0x0B
 #define DUAL_OUT_FAST_READ_CMD               0x3B

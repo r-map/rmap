@@ -26,6 +26,7 @@
 
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
+#define ENABLE_QSPI           (true)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -40,6 +41,10 @@
 #if (ENABLE_I2C2)
 #define I2C2_BUS_CLOCK_HZ     (100000L)
 extern TwoWire Wire2;
+#endif
+
+#if (ENABLE_QSPI)
+extern QSPI_HandleTypeDef hqspi;
 #endif
 
 // // Automatic module MSP_Weak Init & DeInit
@@ -70,7 +75,7 @@ extern TwoWire Wire2;
 //   #define _HW_MSP_I2C1_PRIVATE
 //   #define _HW_MSP_I2C2_PRIVATE
 //   #define _HW_MSP_LPTIM_PRIVATE
-//   #define _HW_MSP_QSPI_PRIVATE
+  // #define _HW_MSP_QSPI_PRIVATE
 //   #define _HW_MSP_RNG_PRIVATE
 //   #define _HW_MSP_RTC_PRIVATE
 //   #define _HW_MSP_SD_PRIVATE
@@ -96,9 +101,9 @@ extern TwoWire Wire2;
 //   #ifdef _HW_SETUP_LPTIM_PRIVATE
 //     #define _HW_MSP_LPTIM_PRIVATE
 //   #endif
-//   #ifdef _HW_SETUP_QSPI_PRIVATE
-//     #define _HW_MSP_QSPI_PRIVATE
-//   #endif
+  // #ifdef _HW_SETUP_QSPI_PRIVATE
+  //   #define _HW_MSP_QSPI_PRIVATE
+  // #endif
 //   #ifdef _HW_SETUP_RNG_PRIVATE
 //     #define _HW_MSP_RNG_PRIVATE
 //   #endif
@@ -291,9 +296,9 @@ extern TwoWire Wire2;
 // extern UART_HandleTypeDef huart4;
 // #endif
 
-// #ifdef __cplusplus
-// extern "C" {
-// #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
@@ -338,13 +343,11 @@ void SetupSystemPeripheral(void);
 // void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim);
 // #endif
 
-// #ifdef _HW_SETUP_QSPI_PRIVATE
-// void MX_QUADSPI_Init(void);
-// #endif
-// #ifdef _HW_MSP_QSPI_PRIVATE
-// void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
-// void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
-// #endif
+#if (ENABLE_QSPI)
+void MX_QUADSPI_Init(void);
+void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
+void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
+#endif
 
 // #ifdef _HW_SETUP_RNG_PRIVATE
 // void MX_RNG_Init(void);
@@ -400,13 +403,8 @@ void SetupSystemPeripheral(void);
 // void HAL_UART_MspDeInit(UART_HandleTypeDef* huart);
 // #endif
 
-// #ifdef _USE_FREERTOS_LOW_POWER
-// void xTaskSleepPrivate(TickType_t *xExpectedIdleTime);
-// void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime);
-// #endif
-
-// #ifdef __cplusplus
-// }
-// #endif
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __MODULE_MASTER_HAL_H
