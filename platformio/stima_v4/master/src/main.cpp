@@ -116,10 +116,14 @@ void setup() {
 void loop() {
 }
 
-void init_tasks() {
-  #if (ENABLE_I2C1)
+void init_tasks()
+{
+#if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
-  #endif
+#endif
+#if (ENABLE_I2C2)
+  wire2Lock = new BinarySemaphore(true);
+#endif
   configurationLock = new BinarySemaphore(true);
 }
 
