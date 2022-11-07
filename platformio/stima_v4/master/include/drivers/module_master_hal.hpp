@@ -25,15 +25,7 @@
 #define __MODULE_MASTER_HAL_H
 
 #define ENABLE_I2C1           (true)
-#define ENABLE_I2C2           (false)
-
-#if (ENABLE_I2C1)
-#define I2C1_BUS_CLOCK_HZ     (100000L)
-#endif
-
-#if (ENABLE_I2C2)
-#define I2C2_BUS_CLOCK_HZ     (100000L)
-#endif
+#define ENABLE_I2C2           (true)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -41,6 +33,14 @@
 #define I2C_MAX_ERROR_COUNT   (3)
 #endif
 
+#if (ENABLE_I2C1)
+#define I2C1_BUS_CLOCK_HZ     (100000L)
+#endif
+
+#if (ENABLE_I2C2)
+#define I2C2_BUS_CLOCK_HZ     (100000L)
+extern TwoWire Wire2;
+#endif
 
 // // Automatic module MSP_Weak Init & DeInit
 // #define _HW_MSP_AUTO_PRIVATE
