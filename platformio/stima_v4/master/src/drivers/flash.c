@@ -101,6 +101,120 @@ static QSPI_StatusTypeDef QSPI_WriteDisable(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_DisableContinuousMode(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_AutoPollingMemReady(QSPI_HandleTypeDef *hqspi, uint32_t Timeout);
 
+
+extern void QUADSPI_IRQHandler(void)
+{
+  HAL_QSPI_IRQHandler(&hqspi);
+}
+
+volatile int a=0;
+void local_cb() {
+  a++;
+}
+
+extern void HAL_QSPI_ErrorCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+  local_cb();
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_QSPI_ErrorCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_AbortCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_AbortCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+  local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_CmdCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_RxCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_TxCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_RxHalfCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_RxHalfCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_TxHalfCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_QSPI_TxHalfCpltCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_FifoThresholdCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_QSPI_FIFOThresholdCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_QSPI_StatusMatchCallback could be implemented in the user file
+   */
+}
+
+extern void HAL_QSPI_TimeOutCallback(QSPI_HandleTypeDef *hqspi)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hqspi);
+local_cb();
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_QSPI_TimeOutCallback could be implemented in the user file
+   */
+}
+
+
+
+
 /**
   * @brief  Initializes the QSPI interface.
   * @retval QSPI memory status
@@ -1136,98 +1250,4 @@ static QSPI_StatusTypeDef QSPI_AutoPollingMemReady(QSPI_HandleTypeDef *hqspi, ui
   sConfig.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
 	return BSP_QSPI_AutoPolling(hqspi, &sCommand, &sConfig, Timeout);
-}
-
-
-/**
-  * @brief  Transfer Error callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_ErrorCallback(QSPI_HandleTypeDef *hqspi)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hqspi);
-
-	// osEventFlagsSet(ETH452_qspi_event, QSPI_FLAG_TE);
-}
-
-/**
-  * @brief  Abort completed callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_AbortCpltCallback(QSPI_HandleTypeDef *hqspi)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hqspi);
-
-  /* NOTE: This function should not be modified, when the callback is needed,
-           the HAL_QSPI_AbortCpltCallback could be implemented in the user file
-   */
-}
-
-/**
-  * @brief  Command completed callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
-{
-  UNUSED(hqspi);
-
-	// osEventFlagsSet(ETH452_qspi_event, QSPI_FLAG_TC);
-}
-
-/**
-  * @brief  Rx Transfer completed callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
-{
-  UNUSED(hqspi);
-
-	// osEventFlagsSet(ETH452_qspi_event, QSPI_FLAG_TC);
-}
-
-/**
-  * @brief  Tx Transfer completed callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hqspi);
-
-	// osEventFlagsSet(ETH452_qspi_event, QSPI_FLAG_TC);
-}
-
-/**
-  * @brief  Status Match callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hqspi);
-
-	// osEventFlagsSet(ETH452_qspi_event, QSPI_FLAG_SM);
-}
-
-/**
-  * @brief  Timeout callback.
-  * @param  hqspi : QSPI handle
-  * @retval None
-  */
-void HAL_QSPI_TimeOutCallback(QSPI_HandleTypeDef *hqspi)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hqspi);
-
-  /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_QSPI_TimeOutCallback could be implemented in the user file
-   */
 }

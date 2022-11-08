@@ -40,8 +40,9 @@ void SupervisorTask::Run()
   
   while (true)
   {
-    Serial.println("Supervisor");
-    DelayUntil(Ticks::MsToTicks(1000));
+    TRACE_INFO(F("Supervisor"));
+    // Serial.println("Supervisor");
+    DelayUntil(Ticks::MsToTicks(990));
     // switch (state)
     // {
     // case SUPERVISOR_STATE_INIT:
