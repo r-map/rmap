@@ -77,8 +77,9 @@ void setup() {
 
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
-  #if (ENABLE_I2C1)
-  supervisorParam.wireLock = wireLock;
+  #if (ENABLE_I2C2)
+  supervisorParam.wire = &Wire2;
+  supervisorParam.wireLock = wire2Lock;
   #endif
   supervisorParam.configurationLock = configurationLock;
 
@@ -132,10 +133,14 @@ void setup() {
 void loop() {
 }
 
-void init_tasks() {
-  #if (ENABLE_I2C1)
+void init_tasks()
+{
+#if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
-  #endif
+#endif
+#if (ENABLE_I2C2)
+  wire2Lock = new BinarySemaphore(true);
+#endif
   configurationLock = new BinarySemaphore(true);
 }
 
