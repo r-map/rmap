@@ -102,10 +102,10 @@ static QSPI_StatusTypeDef QSPI_DisableContinuousMode(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_AutoPollingMemReady(QSPI_HandleTypeDef *hqspi, uint32_t Timeout);
 
 
-extern void QUADSPI_IRQHandler(void)
-{
-  HAL_QSPI_IRQHandler(&hqspi);
-}
+// extern void QUADSPI_IRQHandler(void)
+// {
+//   HAL_QSPI_IRQHandler(&hqspi);
+// }
 
 volatile int a=0;
 void local_cb() {

@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "drivers/flash.h"
 
-extern QSPI_HandleTypeDef hqspi;
+// extern QSPI_HandleTypeDef hqspi;
 
 void setup() {
   osInitKernel();
@@ -78,7 +78,7 @@ void setup() {
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
   #if (ENABLE_I2C2)
-  supervisorParam.wire = &Wire2;
+  //supervisorParam.wire = &Wire2;
   supervisorParam.wireLock = wire2Lock;
   #endif
   supervisorParam.configurationLock = configurationLock;

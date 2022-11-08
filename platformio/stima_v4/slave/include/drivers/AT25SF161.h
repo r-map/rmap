@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    AT25SF641.h
+  * @file    AT25SF161.h
   * @author  AL
-  * @brief   This file contains all the description of the AT25SF641 QSPI memory.
+  * @brief   This file contains all the description of the AT25SF161 QSPI memory.
   ******************************************************************************
   * @attention
   *
@@ -13,8 +13,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __AT25SF641_H
-#define __AT25SF641_H
+#ifndef __AT25SF161_H
+#define __AT25SF161_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -30,11 +30,11 @@
   * @{
   */
 
-/** @addtogroup AT25SF641
+/** @addtogroup AT25SF161
   * @{
   */
 
-/** @defgroup AT25SF641_Exported_Types
+/** @defgroup AT25SF161_Exported_Types
   * @{
   */
 
@@ -42,28 +42,28 @@
   * @}
   */
 
-/** @defgroup AT25SF641_Exported_Constants
+/** @defgroup AT25SF161_Exported_Constants
   * @{
   */
 
 /**
-  * @brief  AT25SF641 Configuration
+  * @brief  AT25SF161 Configuration
   */
-#define AT25SF641_FLASH_SIZE                  0x800000 	/* 64 MBits => 8MBytes */
-#define AT25SF641_SECTOR64_SIZE								0x10000		/* 128 sectors of 64KBytes */
-#define AT25SF641_SECTOR_SIZE                 0x8000   	/* 256 sectors of 32KBytes */
-#define AT25SF641_BLOCK_SIZE 			            0x1000    /* 2048 blocks of 4kBytes */
-#define AT25SF641_PAGE_SIZE                   0x100     /* 32768 pages of 256 bytes */
+#define AT25SF161_FLASH_SIZE                  0x200000 	/* 16 MBits => 2MBytes */
+#define AT25SF161_SECTOR64_SIZE								0x10000		/* 32 sectors of 64KBytes */
+#define AT25SF161_SECTOR_SIZE                 0x8000   	/* 64 sectors of 32KBytes */
+#define AT25SF161_BLOCK_SIZE 			            0x1000    /* 512 blocks of 4kBytes */
+#define AT25SF161_PAGE_SIZE                   0x100     /* 8192 pages of 256 bytes */
 
-#define AT25SF641_DUMMY_CYCLES_READ           1
-#define AT25SF641_DUMMY_CYCLES_READ_QUAD      4
+#define AT25SF161_DUMMY_CYCLES_READ           1
+#define AT25SF161_DUMMY_CYCLES_READ_QUAD      4
 
-#define AT25SF641_BULK_ERASE_MAX_TIME         25000
-#define AT25SF641_SECTOR_ERASE_MAX_TIME       3000
-#define AT25SF641_BLOCK_ERASE_MAX_TIME    		300
+#define AT25SF161_BULK_ERASE_MAX_TIME         25000
+#define AT25SF161_SECTOR_ERASE_MAX_TIME       3000
+#define AT25SF161_BLOCK_ERASE_MAX_TIME    		300
 
 /**
-  * @brief  AT25SF641 Commands
+  * @brief  AT25SF161 Commands
   */
 /* Reset Operations */
 //#define RESET_ENABLE_CMD                     0x66
@@ -118,26 +118,26 @@
 
 
 /**
-  * @brief  AT25SF641 Registers
+  * @brief  AT25SF161 Registers
   */
 /* Status Register byte 1 (command READ_STATUS_REG_CMD) */
-#define AT25SF641_SR_BUSY                     ((uint32_t)0x0001)  /*!< Device busy */
-#define AT25SF641_SR_WEL	                    ((uint32_t)0x0002)  /*!< Write enable latch */
-#define AT25SF641_SR_BLOCKPR                  ((uint32_t)0x005C)  /*!< Block protected against program and erase operations */
-#define AT25SF641_SR_PRBOTTOM                 ((uint32_t)0x0020)  /*!< Protected memory area defined by BLOCKPR starts from top or bottom */
-#define AT25SF641_SR_SRP0		                  ((uint32_t)0x0080)  /*!< Status register protection bit 0 */
+#define AT25SF161_SR_BUSY                     ((uint32_t)0x0001)  /*!< Device busy */
+#define AT25SF161_SR_WEL	                    ((uint32_t)0x0002)  /*!< Write enable latch */
+#define AT25SF161_SR_BLOCKPR                  ((uint32_t)0x005C)  /*!< Block protected against program and erase operations */
+#define AT25SF161_SR_PRBOTTOM                 ((uint32_t)0x0020)  /*!< Protected memory area defined by BLOCKPR starts from top or bottom */
+#define AT25SF161_SR_SRP0		                  ((uint32_t)0x0080)  /*!< Status register protection bit 0 */
 /* Status Register byte 2 (command READ_STATUS2_REG_CMD) */
-#define AT25SF641_SR_SRP1		                  ((uint32_t)0x0100)  /*!< Status register protection bit 1 */
-#define AT25SF641_SR_QE			                  ((uint32_t)0x0200)  /*!< Quad Enable */
-#define AT25SF641_SR_LB			                  ((uint32_t)0x3800)  /*!< Lock security register */
-#define AT25SF641_SR_CMP		                  ((uint32_t)0x4000)  /*!< Complement Block Protection */
-#define AT25SF641_FS_ERSUS                   	((uint32_t)0x8000)  /*!< Erase operation suspended */
+#define AT25SF161_SR_SRP1		                  ((uint32_t)0x0100)  /*!< Status register protection bit 1 */
+#define AT25SF161_SR_QE			                  ((uint32_t)0x0200)  /*!< Quad Enable */
+#define AT25SF161_SR_LB			                  ((uint32_t)0x3800)  /*!< Lock security register */
+#define AT25SF161_SR_CMP		                  ((uint32_t)0x4000)  /*!< Complement Block Protection */
+#define AT25SF161_FS_ERSUS                   	((uint32_t)0x8000)  /*!< Erase operation suspended */
 
 /**
   * @}
   */
 
-/** @defgroup AT25SF641_Exported_Functions
+/** @defgroup AT25SF161_Exported_Functions
   * @{
   */
 /**
@@ -160,6 +160,6 @@
 }
 #endif
 
-#endif /* __AT25SF641_H */
+#endif /* __AT25SF161_H */
 
 /***************END OF FILE**********/

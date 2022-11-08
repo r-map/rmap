@@ -44,9 +44,9 @@ TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 // #ifdef _HW_SETUP_LPTIM_PRIVATE
 // LPTIM_HandleTypeDef hlptim1;
 // #endif
-// #ifdef _HW_SETUP_QSPI_PRIVATE
-// QSPI_HandleTypeDef hqspi;
-// #endif
+#ifdef _HW_SETUP_QSPI_PRIVATE
+QSPI_HandleTypeDef hqspi;
+#endif
 // #ifdef _HW_SETUP_RNG_PRIVATE
 // RNG_HandleTypeDef hrng;
 // #endif
@@ -172,9 +172,9 @@ void SetupSystemPeripheral(void) {
 //   #ifdef _HW_SETUP_I2C2_PRIVATE
 //   MX_I2C2_Init();
 //   #endif
-//   #ifdef _HW_SETUP_QSPI_PRIVATE
-//   MX_QUADSPI_Init();
-//   #endif
+  #ifdef _HW_SETUP_QSPI_PRIVATE
+  MX_QUADSPI_Init();
+  #endif
 //   #ifdef _HW_SETUP_RTC_PRIVATE
 //   MX_RTC_Init();
 //   #endif
@@ -420,40 +420,40 @@ void SetupSystemPeripheral(void) {
 // }
 // #endif
 
-// #ifdef _HW_SETUP_QSPI_PRIVATE
-// /**
-//   * @brief QUADSPI Initialization Function
-//   * @param None
-//   * @retval None
-//   */
-// extern "C" void MX_QUADSPI_Init(void)
-// {
-//   /* USER CODE BEGIN QUADSPI_Init 0 */
+#ifdef _HW_SETUP_QSPI_PRIVATE
+/**
+  * @brief QUADSPI Initialization Function
+  * @param None
+  * @retval None
+  */
+extern "C" void MX_QUADSPI_Init(void)
+{
+  /* USER CODE BEGIN QUADSPI_Init 0 */
 
-//   /* USER CODE END QUADSPI_Init 0 */
+  /* USER CODE END QUADSPI_Init 0 */
 
-//   /* USER CODE BEGIN QUADSPI_Init 1 */
+  /* USER CODE BEGIN QUADSPI_Init 1 */
 
-//   /* USER CODE END QUADSPI_Init 1 */
-//   /* QUADSPI parameter configuration*/
-//   hqspi.Instance = QUADSPI;
-//   hqspi.Init.ClockPrescaler = 1;  // 255
-//   hqspi.Init.FifoThreshold = 4;     // 1
-//   hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
-//   hqspi.Init.FlashSize = 22;
-//   hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
-//   hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
-//   hqspi.Init.FlashID = QSPI_FLASH_ID_1;
-//   hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
-//   if (HAL_QSPI_Init(&hqspi) != HAL_OK)
-//   {
-//     Error_Handler();
-//   }
-//   /* USER CODE BEGIN QUADSPI_Init 2 */
+  /* USER CODE END QUADSPI_Init 1 */
+  /* QUADSPI parameter configuration*/
+  hqspi.Instance = QUADSPI;
+  hqspi.Init.ClockPrescaler = 1;  // 255
+  hqspi.Init.FifoThreshold = 4;     // 1
+  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
+  hqspi.Init.FlashSize = 21;
+  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+  hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
+  hqspi.Init.FlashID = QSPI_FLASH_ID_1;
+  hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
+  if (HAL_QSPI_Init(&hqspi) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN QUADSPI_Init 2 */
 
-//   /* USER CODE END QUADSPI_Init 2 */
-// }
-// #endif
+  /* USER CODE END QUADSPI_Init 2 */
+}
+#endif
 
 // #ifdef _HW_SETUP_RNG_PRIVATE
 // /**
@@ -1224,93 +1224,102 @@ void SetupSystemPeripheral(void) {
 // }
 // #endif
 
-// #ifdef _HW_MSP_QSPI_PRIVATE
-// /**
-// * @brief QSPI MSP Initialization
-// * This function configures the hardware resources used in this example
-// * @param hqspi: QSPI handle pointer
-// * @retval None
-// */
-// extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
-// {
-//   GPIO_InitTypeDef GPIO_InitStruct = {0};
-//   if(hqspi->Instance==QUADSPI)
-//   {
-//   /* USER CODE BEGIN QUADSPI_MspInit 0 */
+#ifdef _HW_MSP_QSPI_PRIVATE
+/**
+* @brief QSPI MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hqspi: QSPI handle pointer
+* @retval None
+*/
+extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(hqspi->Instance==QUADSPI)
+  {
+  /* USER CODE BEGIN QUADSPI_MspInit 0 */
 
-//   /* USER CODE END QUADSPI_MspInit 0 */
-//     /* Peripheral clock enable */
-//     __HAL_RCC_QSPI_CLK_ENABLE();
+  /* USER CODE END QUADSPI_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_QSPI_CLK_ENABLE();
 
-//     __HAL_RCC_QSPI_FORCE_RESET();
-//     __HAL_RCC_QSPI_RELEASE_RESET();
+    __HAL_RCC_QSPI_FORCE_RESET();
+    __HAL_RCC_QSPI_RELEASE_RESET();
 
-//     __HAL_RCC_GPIOA_CLK_ENABLE();
-//     __HAL_RCC_GPIOB_CLK_ENABLE();
-//     /**QUADSPI GPIO Configuration
-//     PA2     ------> QUADSPI_BK1_NCS
-//     PA3     ------> QUADSPI_CLK
-//     PA6     ------> QUADSPI_BK1_IO3
-//     PA7     ------> QUADSPI_BK1_IO2
-//     PB0     ------> QUADSPI_BK1_IO1
-//     PB1     ------> QUADSPI_BK1_IO0
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
-//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**QUADSPI GPIO Configuration
+    PA2     ------> QUADSPI_BK1_NCS
+    PA3     ------> QUADSPI_CLK
+    PA6     ------> QUADSPI_BK1_IO3
+    PA7     ------> QUADSPI_BK1_IO2
+    PB0     ------> QUADSPI_BK1_IO1
+    PB1     ------> QUADSPI_BK1_IO0
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP; // GPIO_MODE_AF_OD
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-//     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
-//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP; // GPIO_MODE_AF_OD
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-//   /* USER CODE BEGIN QUADSPI_MspInit 1 */
+  /* USER CODE BEGIN QUADSPI_MspInit 1 */
 
-//   /* USER CODE END QUADSPI_MspInit 1 */
-//   }
+  /* USER CODE END QUADSPI_MspInit 1 */
+  }
 
-// }
+  HAL_NVIC_SetPriority(QUADSPI_IRQn, 0x0F, 0);
+  HAL_NVIC_EnableIRQ(QUADSPI_IRQn);
+}
 
-// /**
-// * @brief QSPI MSP De-Initialization
-// * This function freeze the hardware resources used in this example
-// * @param hqspi: QSPI handle pointer
-// * @retval None
-// */
-// void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
-// {
-//   if(hqspi->Instance==QUADSPI)
-//   {
-//   /* USER CODE BEGIN QUADSPI_MspDeInit 0 */
+/**
+* @brief QSPI MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hqspi: QSPI handle pointer
+* @retval None
+*/
+void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
+{
+  if(hqspi->Instance==QUADSPI)
+  {
+  /* USER CODE BEGIN QUADSPI_MspDeInit 0 */
 
-//   /* USER CODE END QUADSPI_MspDeInit 0 */
-//     /* Peripheral clock disable */
-//     __HAL_RCC_QSPI_CLK_DISABLE();
+   HAL_NVIC_DisableIRQ(QUADSPI_IRQn);
 
-//     /**QUADSPI GPIO Configuration
-//     PA2     ------> QUADSPI_BK1_NCS
-//     PA3     ------> QUADSPI_CLK
-//     PA6     ------> QUADSPI_BK1_IO3
-//     PA7     ------> QUADSPI_BK1_IO2
-//     PB0     ------> QUADSPI_BK1_IO1
-//     PB1     ------> QUADSPI_BK1_IO0
-//     */
-//     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7);
+  /* USER CODE END QUADSPI_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_QSPI_CLK_DISABLE();
 
-//     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1);
+    /**QUADSPI GPIO Configuration
+    PA2     ------> QUADSPI_BK1_NCS
+    PA3     ------> QUADSPI_CLK
+    PA6     ------> QUADSPI_BK1_IO3
+    PA7     ------> QUADSPI_BK1_IO2
+    PB0     ------> QUADSPI_BK1_IO1
+    PB1     ------> QUADSPI_BK1_IO0
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7);
 
-//   /* USER CODE BEGIN QUADSPI_MspDeInit 1 */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1);
 
-//   /* USER CODE END QUADSPI_MspDeInit 1 */
-//   }
+  /* USER CODE BEGIN QUADSPI_MspDeInit 1 */
 
-// }
-// #endif
+  __QSPI_FORCE_RESET();
+  __QSPI_RELEASE_RESET();
+
+  /* Disable the QuadSPI memory interface clock */
+  __QSPI_CLK_DISABLE();
+  /* USER CODE END QUADSPI_MspDeInit 1 */
+  }
+
+}
+#endif
 
 // #ifdef _HW_MSP_RNG_PRIVATE
 // /**

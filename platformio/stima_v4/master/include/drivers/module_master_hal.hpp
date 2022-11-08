@@ -24,9 +24,9 @@
 #ifndef __MODULE_MASTER_HAL_H
 #define __MODULE_MASTER_HAL_H
 
-#define ENABLE_I2C1           (true)
-#define ENABLE_I2C2           (true)
-#define ENABLE_QSPI           (true)
+// #define ENABLE_I2C1           (true)
+// #define ENABLE_I2C2           (true)
+// #define ENABLE_QSPI           (true)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
