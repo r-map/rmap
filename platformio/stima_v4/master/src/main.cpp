@@ -25,6 +25,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "main.h"
 
+#include "drivers/flash.h"
+
+extern QSPI_HandleTypeDef hqspi;
+
 void setup() {
   osInitKernel();
 
@@ -38,6 +42,18 @@ void setup() {
   // init_sdcard();
   // init_registers();
   // init_can();
+
+  // uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  // uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  
+  // BSP_QSPI_Init();
+  // read[0] = 1;
+  // hqspi.State = HAL_QSPI_STATE_READY;
+  // while (BSP_QSPI_GetStatus() != QSPI_OK);
+  // BSP_QSPI_Erase_Block(0);
+  // BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
+  // BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
+
 
   error_t error = NO_ERROR;
 
