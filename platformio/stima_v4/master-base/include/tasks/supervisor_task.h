@@ -29,9 +29,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
 #include "ticks.hpp"
+
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#include <Wire.h>
 #include "drivers/eeprom.h"
-#include "debug.h"
-#include "Wire.h"
+#endif
+
+#include "debug_F.h"
 
 typedef enum
 {

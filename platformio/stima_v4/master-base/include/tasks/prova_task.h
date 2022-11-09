@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
 #include "ticks.hpp"
-#include "debug.h"
+#include "debug_F.h"
 
 typedef struct {
   int x;
