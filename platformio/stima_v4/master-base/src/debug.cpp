@@ -51,7 +51,7 @@ void print_debug(const char *fmt, ...)
    va_end(args);
 }
 
-void print_debug(const __FlashStringHelper *fmt, ...)
+void print_debug_F(const __FlashStringHelper *fmt, ...)
 {
    va_list args;
    va_start(args, fmt);
@@ -66,7 +66,7 @@ void print_debug(const __FlashStringHelper *fmt, ...)
  * @param[in] data Pointer to the data array
  * @param[in] length Number of bytes to display
  **/
-void print_debug_array(const char *prepend, const void *data, size_t length)
+void print_debug_array_F(const char *prepend, const void *data, size_t length)
 {
    for (uint8_t i = 0; i < length; i++)
    {

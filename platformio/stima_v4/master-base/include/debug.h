@@ -26,10 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //Dependencies
 #include <stdio.h>
+#include <stdint.h>
 #include <Arduino.h>
 #include "compiler_port.h"
-#include "local_typedef.h"
-#include "debug_config.h"
 
 #define OK_STRING           "OK"
 #define NO_STRING           "NO"
@@ -54,11 +53,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 void print_debug(const char *fmt, ...);
-void print_debug(const __FlashStringHelper *fmt, ...);
+void print_debug_F(const __FlashStringHelper *fmt, ...);
 
 //Trace output redirection
 #ifndef TRACE_PRINTF
 #define TRACE_PRINTF(...) print_debug(__VA_ARGS__)
+#endif
+
+#ifndef TRACE_PRINTF_F
+#define TRACE_PRINTF_F(...) print_debug_F(__VA_ARGS__)
 #endif
 
 #ifndef TRACE_ARRAY
@@ -72,6 +75,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 //Debugging macros
 #if (TRACE_LEVEL >= TRACE_LEVEL_FATAL)
    #define TRACE_FATAL(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_FATAL_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_FATAL_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_FATAL_MPI(p, a) TRACE_MPI(p, a)
 #else
@@ -82,6 +86,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_ERROR)
    #define TRACE_ERROR(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_ERROR_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_ERROR_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_ERROR_MPI(p, a) TRACE_MPI(p, a)
 #else
@@ -92,6 +97,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_WARNING)
    #define TRACE_WARNING(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_WARNING_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_WARNING_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_WARNING_MPI(p, a) TRACE_MPI(p, a)
 #else
@@ -102,6 +108,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_INFO)
    #define TRACE_INFO(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_INFO_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_INFO_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_INFO_NET_BUFFER(p, b, o, n)
    #define TRACE_INFO_MPI(p, a) TRACE_MPI(p, a)
@@ -114,6 +121,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_DEBUG)
    #define TRACE_DEBUG(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_DEBUG_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_DEBUG_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_DEBUG_NET_BUFFER(p, b, o, n)
    #define TRACE_DEBUG_MPI(p, a) TRACE_MPI(p, a)
@@ -126,6 +134,7 @@ void print_debug(const __FlashStringHelper *fmt, ...);
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
    #define TRACE_VERBOSE(...) TRACE_PRINTF(__VA_ARGS__)
+   #define TRACE_VERBOSE_F(...) TRACE_PRINTF_F(__VA_ARGS__)
    #define TRACE_VERBOSE_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
    #define TRACE_VERBOSE_NET_BUFFER(p, b, o, n)
    #define TRACE_VERBOSE_MPI(p, a) TRACE_MPI(p, a)

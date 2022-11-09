@@ -42,14 +42,14 @@ void SupervisorTask::Run()
     switch (state)
     {
     case SUPERVISOR_STATE_INIT:
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
       state = SUPERVISOR_STATE_CHECK_OPERATION;
       break;
 
     case SUPERVISOR_STATE_CHECK_OPERATION:
       if (!is_configuration_loaded)
       {
-        TRACE_VERBOSE(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
         state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
       }
       else {
@@ -60,18 +60,18 @@ void SupervisorTask::Run()
     case SUPERVISOR_STATE_LOAD_CONFIGURATION:
       LoadConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock);
       is_configuration_loaded = true;
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
       state = SUPERVISOR_STATE_END;
       break;
 
     case SUPERVISOR_STATE_SAVE_CONFIGURATION:
       SaveConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock, CONFIGURATION_CURRENT);
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_END\r\n"));
       state = SUPERVISOR_STATE_END;
       break;
     
     case SUPERVISOR_STATE_END:
-      TRACE_VERBOSE(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
       state = SUPERVISOR_STATE_CHECK_OPERATION;
       break;
     }
@@ -89,11 +89,11 @@ void SupervisorTask::LoadConfiguration(configuration_t *configuration, BinarySem
 
   if (configuration->module_type != MODULE_TYPE || configuration->module_main_version != MODULE_MAIN_VERSION)
   {
-    SaveConfiguration(configuration, lock, DEFAULT_CONFIGURATION);
+    SaveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
   }
   else
   {
-    TRACE_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+    TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), OK_STRING);
     PrintConfiguration(configuration, lock);
   }
 }
@@ -103,14 +103,14 @@ void SupervisorTask::PrintConfiguration(configuration_t *configuration, BinarySe
   if (lock->Take()) {
     char stima_name[20];
     getStimaNameByType(stima_name, configuration->module_type);
-    TRACE_INFO(F("--> type: %s\r\n"), stima_name);
-    TRACE_INFO(F("--> main version: %u\r\n"), configuration->module_main_version);
-    TRACE_INFO(F("--> minor version: %u\r\n"), configuration->module_minor_version);
-    // TRACE_INFO(F("--> acquisition delay: %u [ms]\r\n"), configuration.sensor_acquisition_delay_ms);
+    TRACE_INFO_F(F("--> type: %s\r\n"), stima_name);
+    TRACE_INFO_F(F("--> main version: %u\r\n"), configuration->module_main_version);
+    TRACE_INFO_F(F("--> minor version: %u\r\n"), configuration->module_minor_version);
+    // TRACE_INFO_F(F("--> acquisition delay: %u [ms]\r\n"), configuration.sensor_acquisition_delay_ms);
 
-    // TRACE_INFO(F("--> %u configured sensors\r\n"), configuration.sensors_count);
+    // TRACE_INFO_F(F("--> %u configured sensors\r\n"), configuration.sensors_count);
     // for (uint8_t i=0; i<configuration.sensors_count; i++) {
-    //   TRACE_INFO(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, configuration.sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
+    //   TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, configuration.sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
     // }
     lock->Give();
   }
@@ -122,7 +122,7 @@ void SupervisorTask::SaveConfiguration(configuration_t *configuration, BinarySem
   {
     if (is_default)
     {
-      TRACE_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+      TRACE_INFO_F(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
       configuration->module_main_version = MODULE_MAIN_VERSION;
       configuration->module_minor_version = MODULE_MINOR_VERSION;
       configuration->module_type = MODULE_TYPE;
@@ -130,7 +130,7 @@ void SupervisorTask::SaveConfiguration(configuration_t *configuration, BinarySem
     }
     else
     {
-      TRACE_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+      TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), OK_STRING);
     }
 
     //! write configuration to eeprom

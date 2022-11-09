@@ -45,7 +45,7 @@ void setup() {
   //   TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
   // }
 
-  TRACE_INFO(F("Initialization HW Base done\r\n"));
+  TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
   ProvaParam_t provaParam = {};
 
@@ -58,7 +58,7 @@ void setup() {
   supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SUPERVISOR TASK", 1000, OS_TASK_PRIORITY_01, supervisorParam);
+  static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
 
   // Startup Schedulher
   Thread::StartScheduler();

@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
+#include "debug_config.h"
 #include "rmap_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
@@ -36,19 +37,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "semaphore.hpp"
 #include "queue.hpp"
 
-#include "debug.h"
-
-// #include "register.hpp"
-// #include "bxcan.h"
-// #include "module_config.hpp"
-
-// #include "tasks/led_task.h"
-// #include "tasks/hardware_task.h"
-// #include "tasks/ethernet_task.h"
-// #include "tasks/mqtt_task.h"
-// #include "tasks/can_task.h"
 #include "tasks/prova_task.h"
 #include "tasks/supervisor_task.h"
+
+#include "debug.h"
 
 using namespace cpp_freertos;
 

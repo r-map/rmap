@@ -24,8 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _SUPERVISOR_TASK_H
 #define _SUPERVISOR_TASK_H
 
-#define DEFAULT_CONFIGURATION (1)
-
+#include "debug_config.h"
 #include "local_typedef.h"
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
