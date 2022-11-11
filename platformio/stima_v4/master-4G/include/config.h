@@ -54,10 +54,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_I2C2 (true)
 #define ENABLE_QSPI (false)
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-#define ENABLE_HWSERIAL2
-#endif
-
 // #define SAMPLES_COUNT_MAX                 (3600)
 // #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 // #define OBSERVATRIONS_TIME_S              (60)

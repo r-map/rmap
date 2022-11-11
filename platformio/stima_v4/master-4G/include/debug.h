@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <stdint.h>
 #include <Arduino.h>
-#include "compiler_port.h"
+#include "os_port.h"
 
 #define OK_STRING           "OK"
 #define NO_STRING           "NO"

@@ -1,4 +1,4 @@
-/**@file debug_config.h */
+/**@file debug.cpp */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -20,16 +20,39 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
+#include <stdarg.h>
+#include "debug.h"
 
-#ifndef _DEBUG_CONFIG_H
-#define _DEBUG_CONFIG_H
+void print_debug(const char *fmt, ...)
+{
+   va_list args;
+   va_start(args, fmt);
+   vfprintf(stdout, fmt, args);
+   va_end(args);
+}
 
-#define STIMA_TRACE_LEVEL              TRACE_LEVEL_OFF
-#define LED_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
-#define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
-#define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_OFF
-#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_OFF
-#define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_OFF
-#define PROVA_TASK_TRACE_LEVEL         TRACE_LEVEL_OFF
-
-#endif
+/**
+ * @brief Display the contents of an array
+ * @param[in] stream Pointer to a FILE object that identifies an output stream
+ * @param[in] prepend String to prepend to the left of each line
+ * @param[in] data Pointer to the data array
+ * @param[in] length Number of bytes to display
+ **/
+void print_debug_array(const char *prepend, const void *data, size_t length)
+{
+   for (uint8_t i = 0; i < length; i++)
+   {
+      // Beginning of a new line?
+      if ((i % 16) == 0)
+      {
+         print_debug("%s", prepend);
+      }
+      // Display current data byte
+      print_debug("%02" PRIX8 " ", *((uint8_t *)data + i));
+      // End of current line?
+      if ((i % 16) == 15 || i == (length - 1))
+      {
+         print_debug("\r\n");
+      }
+   }
+}

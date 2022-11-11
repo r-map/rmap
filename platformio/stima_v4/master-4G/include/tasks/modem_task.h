@@ -26,17 +26,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
-// #include "hardware_config.h"
-// #include "net_config.h"
-// #include "core/net.h"
-// #include "drivers/spi/arduino_spi_driver.h"
-// #include "drivers/eth/enc28j60_driver.h"
-
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "drivers/module_master_hal.hpp"
+#include "core/net.h"
+#include "ppp/ppp.h"
+#include "http/http_client.h"
+#include "tls.h"
+#include "tls_cipher_suites.h"
+#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+#include "rng/trng.h"
+#include "rng/yarrow.h"
+#include "drivers/modem/sim7600.h"
+#include "drivers/uart/arduino_uart_driver.h"
 #include "debug_F.h"
 
 typedef enum {
@@ -46,7 +51,7 @@ typedef enum {
 } ModemState_t;
 
 typedef struct {
-  // NetInterface *interface;
+  NetInterface *interface;
   // MacAddr macAddr;
   // #if (IPV4_SUPPORT == ENABLED)
   // #if (APP_USE_DHCP_CLIENT == DISABLED)

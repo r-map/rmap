@@ -15,6 +15,7 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+#include "config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include "STM32FreeRTOSConfig_extra.h"
@@ -23,10 +24,6 @@
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_MASTER_HAL_H
 #define __MODULE_MASTER_HAL_H
-
-#define ENABLE_I2C1           (true)
-#define ENABLE_I2C2           (true)
-#define ENABLE_QSPI           (false)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>

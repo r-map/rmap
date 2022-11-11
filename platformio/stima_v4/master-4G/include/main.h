@@ -32,6 +32,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
 
+#include "core/net.h"
+#include "ppp/ppp.h"
+// #include "http/http_client.h"
+// #include "tls.h"
+// #include "tls_cipher_suites.h"
+#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+#include "rng/trng.h"
+#include "rng/yarrow.h"
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #endif
@@ -71,6 +80,12 @@ BinarySemaphore *wire2Lock;
 BinarySemaphore *configurationLock;
 configuration_t configuration;
 
+PppSettings pppSettings;
+PppContext pppContext;
+// HttpClientContext httpClientContext;
+YarrowContext yarrowContext;
+uint8_t seed[32];
+
 /*!
 \fn void print_configuration(void)
 \brief Print current configuration.
@@ -98,8 +113,9 @@ void init_wire(void);
 void init_sdcard(void);
 void init_registers(void);
 void init_can(void);
-bool CAN_HW_Init(void);
 void init_tasks(void);
 void init_sensors(void);
+void init_net(void);
+bool CAN_HW_Init(void);
 
 #endif
