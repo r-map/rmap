@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -585,7 +585,7 @@ error_t tlsReadRecord(TlsContext *context, uint8_t *data,
                   if(context->earlyDataLen <= context->maxEarlyDataSize)
                   {
                      //Debug message
-                     TRACE_INFO("Discarding early data (%" PRIuSIZE " bytes)...\r\n",
+                     TRACE_INFO("Discarding early data (%" PRIu16 " bytes)...\r\n",
                         ntohs(record->length));
 
                      //Prepare to receive the next TLS record

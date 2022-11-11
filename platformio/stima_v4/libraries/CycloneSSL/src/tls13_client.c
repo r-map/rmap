@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -225,19 +225,19 @@ error_t tls13ParseHelloRetryRequest(TlsContext *context,
       tlsGetVersionName(ntohs(message->serverVersion)));
 
    //Server random value
-   TRACE_INFO("  random\r\n");
-   TRACE_INFO_ARRAY("    ", message->random, 32);
+   TRACE_DEBUG("  random\r\n");
+   TRACE_DEBUG_ARRAY("    ", message->random, 32);
 
    //Session identifier
-   TRACE_INFO("  sessionId\r\n");
-   TRACE_INFO_ARRAY("    ", message->sessionId, message->sessionIdLen);
+   TRACE_DEBUG("  sessionId\r\n");
+   TRACE_DEBUG_ARRAY("    ", message->sessionId, message->sessionIdLen);
 
    //Cipher suite identifier
    TRACE_INFO("  cipherSuite = 0x%04" PRIX16 " (%s)\r\n",
       cipherSuite, tlsGetCipherSuiteName(cipherSuite));
 
    //Compression method
-   TRACE_INFO("  legacyCompressMethod = 0x%02" PRIX8 "\r\n", compressMethod);
+   TRACE_DEBUG("  legacyCompressMethod = 0x%02" PRIX8 "\r\n", compressMethod);
 
    //The legacy_version field must be set to 0x0303, which is the version
    //number for TLS 1.2
@@ -385,7 +385,8 @@ error_t tls13ParseHelloRetryRequest(TlsContext *context,
 #if (TLS13_MIDDLEBOX_COMPAT_SUPPORT == ENABLED)
    //The middlebox compatibility mode improves the chance of successfully
    //connecting through middleboxes
-   if(context->state == TLS_STATE_SERVER_HELLO)
+   if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM &&
+      context->state == TLS_STATE_SERVER_HELLO)
    {
       //In middlebox compatibility mode, the client sends a dummy
       //ChangeCipherSpec record immediately before its second flight
@@ -727,9 +728,10 @@ error_t tls13ParseNewSessionTicket(TlsContext *context,
             return ERROR_FAILURE;
 
          //Calculate the PSK associated with the ticket
-         error = tls13HkdfExpandLabel(hashAlgo, context->resumptionMasterSecret,
-            hashAlgo->digestSize, "resumption", message->ticketNonce,
-            message->ticketNonceLen, context->ticketPsk, hashAlgo->digestSize);
+         error = tls13HkdfExpandLabel(context->transportProtocol, hashAlgo,
+            context->resumptionMasterSecret, hashAlgo->digestSize, "resumption",
+            message->ticketNonce, message->ticketNonceLen, context->ticketPsk,
+            hashAlgo->digestSize);
          //Any error to report?
          if(error)
             return error;

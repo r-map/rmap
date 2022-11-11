@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -104,8 +104,9 @@ error_t tls13SendKeyUpdate(TlsContext *context)
          }
 
          //Compute the next generation of application traffic secret
-         error = tls13HkdfExpandLabel(hash, appTrafficSecret, hash->digestSize,
-            "traffic upd", NULL, 0, appTrafficSecret, hash->digestSize);
+         error = tls13HkdfExpandLabel(context->transportProtocol, hash,
+            appTrafficSecret, hash->digestSize, "traffic upd", NULL, 0,
+            appTrafficSecret, hash->digestSize);
       }
       else
       {
@@ -241,8 +242,9 @@ error_t tls13ParseKeyUpdate(TlsContext *context, const Tls13KeyUpdate *message,
    }
 
    //Compute the next generation of application traffic secret
-   error = tls13HkdfExpandLabel(hash, appTrafficSecret, hash->digestSize,
-      "traffic upd", NULL, 0, appTrafficSecret, hash->digestSize);
+   error = tls13HkdfExpandLabel(context->transportProtocol, hash,
+      appTrafficSecret, hash->digestSize, "traffic upd", NULL, 0,
+      appTrafficSecret, hash->digestSize);
    //Any error to report?
    if(error)
       return error;

@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -57,6 +57,7 @@ error_t tls13FormatServerSupportedVersionsExtension(TlsContext *context,
    uint8_t *p, size_t *written)
 {
    size_t n;
+   uint16_t version;
    TlsExtension *extension;
 
    //Add the SupportedVersions extension
@@ -64,8 +65,22 @@ error_t tls13FormatServerSupportedVersionsExtension(TlsContext *context,
    //Type of the extension
    extension->type = HTONS(TLS_EXT_SUPPORTED_VERSIONS);
 
+#if (DTLS_SUPPORT == ENABLED)
+   //DTLS protocol?
+   if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM)
+   {
+      //Retrieve the selected DTLS version
+      version = dtlsTranslateVersion(context->version);
+   }
+   else
+#endif
+   {
+      //Retrieve the selected TLS version
+      version = context->version;
+   }
+
    //The extension contains the selected version value
-   STORE16BE(context->version, extension->value);
+   STORE16BE(version, extension->value);
 
    //The extension data field contains a 16-bit unsigned integer
    n = sizeof(uint16_t);

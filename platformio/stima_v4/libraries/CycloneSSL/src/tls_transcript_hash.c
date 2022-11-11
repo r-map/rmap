@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -467,8 +467,9 @@ error_t tlsComputeVerifyData(TlsContext *context, TlsConnectionEnd entity,
 
          //The key used to compute the Finished message is computed from the
          //base key using HKDF
-         error = tls13HkdfExpandLabel(hashAlgo, baseKey, hashAlgo->digestSize,
-            "finished", NULL, 0, finishedKey, hashAlgo->digestSize);
+         error = tls13HkdfExpandLabel(context->transportProtocol, hashAlgo,
+            baseKey, hashAlgo->digestSize, "finished", NULL, 0, finishedKey,
+            hashAlgo->digestSize);
 
          //Check status code
          if(!error)

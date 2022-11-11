@@ -31,7 +31,7 @@
  * is designed to prevent eavesdropping, tampering, or message forgery
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -994,19 +994,19 @@ error_t tlsParseServerHello(TlsContext *context,
       tlsGetVersionName(ntohs(message->serverVersion)));
 
    //Server random value
-   TRACE_INFO("  random\r\n");
-   TRACE_INFO_ARRAY("    ", message->random, 32);
+   TRACE_DEBUG("  random\r\n");
+   TRACE_DEBUG_ARRAY("    ", message->random, 32);
 
    //Session identifier
-   TRACE_INFO("  sessionId\r\n");
-   TRACE_INFO_ARRAY("    ", message->sessionId, message->sessionIdLen);
+   TRACE_DEBUG("  sessionId\r\n");
+   TRACE_DEBUG_ARRAY("    ", message->sessionId, message->sessionIdLen);
 
    //Cipher suite identifier
    TRACE_INFO("  cipherSuite = 0x%04" PRIX16 " (%s)\r\n",
       cipherSuite, tlsGetCipherSuiteName(cipherSuite));
 
    //Compression method
-   TRACE_INFO("  compressMethod = 0x%02" PRIX8 "\r\n", compressMethod);
+   TRACE_DEBUG("  compressMethod = 0x%02" PRIX8 "\r\n", compressMethod);
 
    //The CRIME exploit takes advantage of TLS compression, so conservative
    //implementations do not accept compression at the TLS level
@@ -1283,7 +1283,8 @@ error_t tlsParseServerHello(TlsContext *context,
 #if (TLS13_MIDDLEBOX_COMPAT_SUPPORT == ENABLED)
       //The middlebox compatibility mode improves the chance of successfully
       //connecting through middleboxes
-      if(context->state == TLS_STATE_SERVER_HELLO)
+      if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM &&
+         context->state == TLS_STATE_SERVER_HELLO)
       {
          //In middlebox compatibility mode, the client sends a dummy
          //ChangeCipherSpec record immediately before its second flight
@@ -1690,9 +1691,13 @@ error_t tlsParseCertificateRequest(TlsContext *context,
       //SignatureAlgorithms extension also applies to signatures appearing
       //in certificates (RFC 8446, section 4.2.3)
       if(extensions.certSignAlgoList != NULL)
+      {
          supportedCertSignAlgos = extensions.certSignAlgoList;
+      }
       else
+      {
          supportedCertSignAlgos = extensions.signAlgoList;
+      }
    }
    else
 #endif

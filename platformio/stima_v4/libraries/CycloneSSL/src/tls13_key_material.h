@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _TLS13_KEY_MATERIAL_H
@@ -40,9 +40,10 @@ extern "C" {
 #endif
 
 //TLS 1.3 related functions
-error_t tls13HkdfExpandLabel(const HashAlgo *hash, const uint8_t *secret,
-   size_t secretLen, const char_t *label, const uint8_t *context,
-   size_t contextLen, uint8_t *output, size_t outputLen);
+error_t tls13HkdfExpandLabel(TlsTransportProtocol transportProtocol,
+   const HashAlgo *hash, const uint8_t *secret, size_t secretLen,
+   const char_t *label, const uint8_t *context, size_t contextLen,
+   uint8_t *output, size_t outputLen);
 
 error_t tls13DeriveSecret(TlsContext *context, const uint8_t *secret,
    size_t secretLen, const char_t *label, const char_t *message,

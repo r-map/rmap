@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -1615,7 +1615,6 @@ error_t tlsSelectEcdheGroup(TlsContext *context,
       //choose any one of the elliptic curves it supports
       if(tlsGetCurveInfo(context, TLS_GROUP_SECP256R1) != NULL)
       {
-
          //Select secp256r1 elliptic curve
          context->namedGroup = TLS_GROUP_SECP256R1;
          error = NO_ERROR;

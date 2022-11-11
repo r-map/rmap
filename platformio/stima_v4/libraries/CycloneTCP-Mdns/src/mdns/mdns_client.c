@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -37,7 +37,6 @@
 #include "ipv6/ipv6_misc.h"
 #include "mdns/mdns_client.h"
 #include "mdns/mdns_responder.h"
-#include "mdns/mdns_common.h"
 #include "dns/dns_debug.h"
 #include "debug.h"
 
@@ -86,7 +85,7 @@ error_t mdnsClientResolve(NetInterface *interface, const char_t *name,
       }
       else
       {
-         //Host name resolution is in progress...
+         //Host name resolution is in progress
          error = ERROR_IN_PROGRESS;
       }
    }

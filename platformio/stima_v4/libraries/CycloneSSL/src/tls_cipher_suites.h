@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _TLS_CIPHER_SUITES_H
@@ -404,9 +404,9 @@ typedef enum
    TLS_ECCPWD_WITH_AES_128_CCM_SHA256            = 0xC0B2, //RFC 8492
    TLS_ECCPWD_WITH_AES_256_CCM_SHA384            = 0xC0B3, //RFC 8492
 
-   TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC  = 0xC100, //RFC draft
-   TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC       = 0xC101, //RFC draft
-   TLS_GOSTR341112_256_WITH_28147_CNT_IMIT       = 0xC102, //RFC draft
+   TLS_GOSTR341112_256_WITH_KUZNYECHIK_CTR_OMAC  = 0xC100, //RFC 9189
+   TLS_GOSTR341112_256_WITH_MAGMA_CTR_OMAC       = 0xC101, //RFC 9189
+   TLS_GOSTR341112_256_WITH_28147_CNT_IMIT       = 0xC102, //RFC 9189
 
    TLS_AES_128_GCM_SHA256                        = 0x1301, //RFC 8446
    TLS_AES_256_GCM_SHA384                        = 0x1302, //RFC 8446
@@ -415,8 +415,8 @@ typedef enum
    TLS_CHACHA20_POLY1305_SHA256                  = 0x1303, //RFC 8446
    TLS_SM4_GCM_SM3                               = 0x00C6, //RFC 8998
    TLS_SM4_CCM_SM3                               = 0x00C7, //RFC 8998
-   TLS_SHA256_SHA256                             = 0xC0B4, //RFC draft
-   TLS_SHA384_SHA384                             = 0xC0B5, //RFC draft
+   TLS_SHA256_SHA256                             = 0xC0B4, //RFC 9150
+   TLS_SHA384_SHA384                             = 0xC0B5, //RFC 9150
 
    TLS_EMPTY_RENEGOTIATION_INFO_SCSV             = 0x00FF, //RFC 5746
    TLS_FALLBACK_SCSV                             = 0x5600  //RFC 7507

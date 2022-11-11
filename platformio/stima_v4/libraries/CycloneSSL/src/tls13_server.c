@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -102,14 +102,22 @@ error_t tls13SendHelloRetryRequest(TlsContext *context)
    if(error == NO_ERROR || error == ERROR_WOULD_BLOCK || error == ERROR_TIMEOUT)
    {
 #if (TLS13_MIDDLEBOX_COMPAT_SUPPORT == ENABLED)
-      //In middlebox compatibility mode, the server sends a dummy ChangeCipherSpec
-      //record immediately after its first handshake message. This may either be
-      //after a ServerHello or a HelloRetryRequest
-      context->state = TLS_STATE_SERVER_CHANGE_CIPHER_SPEC_2;
-#else
-      //Wait for the second updated ClientHello
-      context->state = TLS_STATE_CLIENT_HELLO_2;
+      //DTLS implementations do not use the "compatibility mode" and must
+      //not send ChangeCipherSpec messages (refer to RFC 9147, section 5)
+      if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM)
+      {
+         //In middlebox compatibility mode, the server sends a dummy
+         //ChangeCipherSpec record immediately after its first handshake
+         //message. This may either be after a ServerHello or a
+         //HelloRetryRequest
+         context->state = TLS_STATE_SERVER_CHANGE_CIPHER_SPEC_2;
+      }
+      else
 #endif
+      {
+         //Wait for the second updated ClientHello
+         context->state = TLS_STATE_CLIENT_HELLO_2;
+      }
    }
 
    //Return status code

@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -553,8 +553,9 @@ error_t tlsExportKeyingMaterial(TlsContext *context, const char_t *label,
          if(!error)
          {
             //Export keying material
-            error = tls13HkdfExpandLabel(hash, secret, hash->digestSize,
-               "exporter", digest, hash->digestSize, output, outputLen);
+            error = tls13HkdfExpandLabel(context->transportProtocol, hash,
+               secret, hash->digestSize, "exporter", digest, hash->digestSize,
+               output, outputLen);
          }
       }
       else

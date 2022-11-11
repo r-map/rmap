@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _DTLS_MISC_H
@@ -34,6 +34,7 @@
 //DTLS version numbers
 #define DTLS_VERSION_1_0 0xFEFF
 #define DTLS_VERSION_1_2 0xFEFD
+#define DTLS_VERSION_1_3 0xFEFC
 
 //DTLS support
 #ifndef DTLS_SUPPORT

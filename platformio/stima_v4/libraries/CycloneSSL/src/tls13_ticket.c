@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -323,9 +323,10 @@ error_t tls13GenerateTicket(TlsContext *context,
       return ERROR_FAILURE;
 
    //Compute the PSK associated with the ticket
-   error = tls13HkdfExpandLabel(hashAlgo, context->resumptionMasterSecret,
-      hashAlgo->digestSize, "resumption", message->ticketNonce,
-      message->ticketNonceLen, state->ticketPsk, hashAlgo->digestSize);
+   error = tls13HkdfExpandLabel(context->transportProtocol, hashAlgo,
+      context->resumptionMasterSecret, hashAlgo->digestSize, "resumption",
+      message->ticketNonce, message->ticketNonceLen, state->ticketPsk,
+      hashAlgo->digestSize);
    //Any error?
    if(error)
       return error;

@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -118,6 +118,11 @@ uint16_t dtlsTranslateVersion(uint16_t version)
       //DTLS 1.2 is defined as a series of deltas from TLS 1.2
       version = DTLS_VERSION_1_2;
    }
+   else if(version == TLS_VERSION_1_3)
+   {
+      //DTLS 1.3 is defined as a series of deltas from TLS 1.3
+      version = DTLS_VERSION_1_3;
+   }
    else
    {
       //DTLS 1.0 is defined as a series of deltas from TLS 1.1
@@ -192,7 +197,9 @@ error_t dtlsVerifyCookie(TlsContext *context, const DtlsCookie *cookie,
 
          //Allocate a memory block to hold the cookie
          if(context->cookie == NULL)
+         {
             context->cookie = tlsAllocMem(context->cookieLen);
+         }
 
          //Successful memory allocation?
          if(context->cookie != NULL)

@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _FS_PORT_H
@@ -129,8 +129,8 @@ typedef struct
 #elif defined(__linux__) || defined(__FreeBSD__)
    #include "fs_port_posix.h"
 //Custom port?
-#elif defined(USE_SDFAT)
-   #include "fs_port_sdfat.h"
+#elif defined(USE_CUSTOM_FS)
+   #include "fs_port_custom.h"
 #endif
 
 //C++ guard

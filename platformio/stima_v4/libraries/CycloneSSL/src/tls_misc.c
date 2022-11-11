@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -779,8 +779,9 @@ error_t tlsInitEncryptionEngine(TlsContext *context,
       if(hashAlgo != NULL)
       {
          //Calculate the write key
-         error = tls13HkdfExpandLabel(hashAlgo, secret, hashAlgo->digestSize,
-            "key", NULL, 0, encryptionEngine->encKey, cipherSuite->encKeyLen);
+         error = tls13HkdfExpandLabel(context->transportProtocol, hashAlgo,
+            secret, hashAlgo->digestSize, "key", NULL, 0,
+            encryptionEngine->encKey, cipherSuite->encKeyLen);
 
          //Debug message
          TRACE_DEBUG("Write Key:\r\n");
@@ -790,8 +791,9 @@ error_t tlsInitEncryptionEngine(TlsContext *context,
          if(!error)
          {
             //Calculate the write IV
-            error = tls13HkdfExpandLabel(hashAlgo, secret, hashAlgo->digestSize,
-               "iv", NULL, 0, encryptionEngine->iv, cipherSuite->fixedIvLen);
+            error = tls13HkdfExpandLabel(context->transportProtocol, hashAlgo,
+               secret, hashAlgo->digestSize, "iv", NULL, 0,
+               encryptionEngine->iv, cipherSuite->fixedIvLen);
          }
 
          //Debug message
@@ -892,8 +894,7 @@ void tlsFreeEncryptionEngine(TlsEncryptionEngine *encryptionEngine)
    if(encryptionEngine->cipherContext != NULL)
    {
       //Erase cipher context
-      osMemset(encryptionEngine->cipherContext, 0,
-         encryptionEngine->cipherAlgo->contextSize);
+      encryptionEngine->cipherAlgo->deinit(encryptionEngine->cipherContext);
 
       //Release memory
       tlsFreeMem(encryptionEngine->cipherContext);
@@ -1079,13 +1080,15 @@ error_t tlsReadEcPoint(const EcDomainParameters *params,
 /**
  * @brief Convert TLS version to string representation
  * @param[in] version Version number
- * @return Cipher suite name
+ * @return String representation
  **/
 
 const char_t *tlsGetVersionName(uint16_t version)
 {
+   const char_t *s;
+
    //TLS versions
-   static const char_t *label[] =
+   static const char_t *const label[] =
    {
       "SSL 3.0",
       "TLS 1.0",
@@ -1094,26 +1097,44 @@ const char_t *tlsGetVersionName(uint16_t version)
       "TLS 1.3",
       "DTLS 1.0",
       "DTLS 1.2",
+      "DTLS 1.3",
       "Unknown"
    };
 
    //Check current version
-   if(version == SSL_VERSION_3_0)
-      return label[0];
-   else if(version == TLS_VERSION_1_0)
-      return label[1];
-   else if(version == TLS_VERSION_1_1)
-      return label[2];
-   else if(version == TLS_VERSION_1_2)
-      return label[3];
-   else if(version == TLS_VERSION_1_3)
-      return label[4];
-   else if(version == DTLS_VERSION_1_0)
-      return label[5];
-   else if(version == DTLS_VERSION_1_2)
-      return label[6];
-   else
-      return label[7];
+   switch(version)
+   {
+   case SSL_VERSION_3_0:
+      s = label[0];
+      break;
+   case TLS_VERSION_1_0:
+      s = label[1];
+      break;
+   case TLS_VERSION_1_1:
+      s = label[2];
+      break;
+   case TLS_VERSION_1_2:
+      s = label[3];
+      break;
+   case TLS_VERSION_1_3:
+      s = label[4];
+      break;
+   case DTLS_VERSION_1_0:
+      s = label[5];
+      break;
+   case DTLS_VERSION_1_2:
+      s = label[6];
+      break;
+   case DTLS_VERSION_1_3:
+      s = label[7];
+      break;
+   default:
+      s = label[8];
+      break;
+   }
+
+   //Return the string representation
+   return s;
 }
 
 
@@ -1315,7 +1336,9 @@ const EcCurveInfo *tlsGetCurveInfo(TlsContext *context, uint16_t namedCurve)
 
       //Check whether the use of the elliptic curve is restricted
       if(i >= context->numSupportedGroups)
+      {
          curveInfo = NULL;
+      }
    }
 
    //Return elliptic curve domain parameters, if any
@@ -1477,7 +1500,9 @@ size_t tlsComputeEncryptionOverhead(TlsEncryptionEngine *encryptionEngine,
    {
       //TLS 1.1 and 1.2 use an explicit IV
       if(encryptionEngine->version >= TLS_VERSION_1_1)
+      {
          n += encryptionEngine->recordIvLen;
+      }
 
       //Padding is added to force the length of the plaintext to be an
       //integral multiple of the cipher's block length

@@ -31,7 +31,7 @@
  * is designed to prevent eavesdropping, tampering, or message forgery
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -157,7 +157,8 @@ error_t tlsSendServerHello(TlsContext *context)
       {
 #if (TLS13_MIDDLEBOX_COMPAT_SUPPORT == ENABLED)
          //First handshake message sent by the server?
-         if(context->state == TLS_STATE_SERVER_HELLO)
+         if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM &&
+            context->state == TLS_STATE_SERVER_HELLO)
          {
             //In middlebox compatibility mode, the server must send a dummy
             //ChangeCipherSpec record immediately after its first handshake

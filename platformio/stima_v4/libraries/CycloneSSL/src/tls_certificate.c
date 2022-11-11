@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -2008,7 +2008,9 @@ error_t tlsCheckKeyUsage(const X509CertificateInfo *certInfo,
             //The keyEncipherment bit must be asserted when the subject public
             //key is used for enciphering private or secret keys
             if((keyUsage->bitmap & X509_KEY_USAGE_KEY_ENCIPHERMENT) == 0)
+            {
                error = ERROR_BAD_CERTIFICATE;
+            }
          }
          else if(keyExchMethod == TLS_KEY_EXCH_DHE_RSA ||
             keyExchMethod == TLS_KEY_EXCH_DHE_DSS ||
@@ -2021,7 +2023,9 @@ error_t tlsCheckKeyUsage(const X509CertificateInfo *certInfo,
             //key is used for verifying digital signatures, other than signatures
             //on certificates and CRLs
             if((keyUsage->bitmap & X509_KEY_USAGE_DIGITAL_SIGNATURE) == 0)
+            {
                error = ERROR_BAD_CERTIFICATE;
+            }
          }
          else
          {
@@ -2034,7 +2038,9 @@ error_t tlsCheckKeyUsage(const X509CertificateInfo *certInfo,
          //key is used for verifying digital signatures, other than signatures
          //on certificates and CRLs
          if((keyUsage->bitmap & X509_KEY_USAGE_DIGITAL_SIGNATURE) == 0)
+         {
             error = ERROR_BAD_CERTIFICATE;
+         }
       }
    }
 
@@ -2049,13 +2055,17 @@ error_t tlsCheckKeyUsage(const X509CertificateInfo *certInfo,
       {
          //Make sure the certificate can be used for server authentication
          if((extKeyUsage->bitmap & X509_EXT_KEY_USAGE_SERVER_AUTH) == 0)
+         {
             error = ERROR_BAD_CERTIFICATE;
+         }
       }
       else
       {
          //Make sure the certificate can be used for client authentication
          if((extKeyUsage->bitmap & X509_EXT_KEY_USAGE_CLIENT_AUTH) == 0)
+         {
             error = ERROR_BAD_CERTIFICATE;
+         }
       }
    }
 

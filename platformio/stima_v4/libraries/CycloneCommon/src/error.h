@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _ERROR_H
@@ -289,6 +289,7 @@ typedef enum
 
    ERROR_ALREADY_RUNNING,
    ERROR_UNKOWN_KEY,
+   ERROR_UNKNOWN_TYPE,
 
    ERROR_NO_MATCH,
    ERROR_PARTIAL_MATCH

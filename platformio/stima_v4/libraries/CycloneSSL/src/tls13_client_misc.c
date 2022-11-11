@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -264,13 +264,20 @@ error_t tls13SendEarlyData(TlsContext *context, const void *data,
          error = tlsInitTranscriptHash(context);
 
 #if (TLS13_MIDDLEBOX_COMPAT_SUPPORT == ENABLED)
-         //In middlebox compatibility mode, the client sends a dummy
-         //ChangeCipherSpec record immediately before its second flight
-         context->state = TLS_STATE_CLIENT_CHANGE_CIPHER_SPEC;
-#else
-         //The client can send its second flight
-         context->state = TLS_STATE_CLIENT_HELLO_2;
+         //DTLS implementations do not use the "compatibility mode" and must
+         //not send ChangeCipherSpec messages (refer to RFC 9147, section 5)
+         if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM)
+         {
+            //In middlebox compatibility mode, the client sends a dummy
+            //ChangeCipherSpec record immediately before its second flight
+            context->state = TLS_STATE_CLIENT_CHANGE_CIPHER_SPEC;
+         }
+         else
 #endif
+         {
+            //The client can send its second flight
+            context->state = TLS_STATE_CLIENT_HELLO_2;
+         }
       }
       else if(context->state == TLS_STATE_CLIENT_CHANGE_CIPHER_SPEC)
       {

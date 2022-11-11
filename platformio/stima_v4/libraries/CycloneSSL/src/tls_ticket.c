@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -175,6 +175,11 @@ error_t tlsEncryptTicket(TlsContext *context, const uint8_t *plaintext,
       error = gcmInit(&ticketContext->gcmContext, AES_CIPHER_ALGO,
          &ticketContext->aesContext);
    }
+   else
+   {
+      //Failed to initialize AES context
+      state = NULL;
+   }
 
    //Check status code
    if(!error)
@@ -187,6 +192,12 @@ error_t tlsEncryptTicket(TlsContext *context, const uint8_t *plaintext,
       error = gcmEncrypt(&ticketContext->gcmContext, iv, TLS_TICKET_IV_SIZE,
          state->keyName, TLS_TICKET_KEY_NAME_SIZE, data, data, plaintextLen,
          tag, TLS_TICKET_TAG_SIZE);
+   }
+
+   //Erase AES context
+   if(state != NULL)
+   {
+      aesDeinit(&ticketContext->aesContext);
    }
 
    //Release exclusive access to the ticket encryption context
@@ -296,6 +307,11 @@ error_t tlsDecryptTicket(TlsContext *context, const uint8_t *ciphertext,
       error = gcmInit(&ticketContext->gcmContext, AES_CIPHER_ALGO,
          &ticketContext->aesContext);
    }
+   else
+   {
+      //Failed to initialize AES context
+      state = NULL;
+   }
 
    //Check status code
    if(!error)
@@ -304,6 +320,12 @@ error_t tlsDecryptTicket(TlsContext *context, const uint8_t *ciphertext,
       error = gcmDecrypt(&ticketContext->gcmContext, iv, TLS_TICKET_IV_SIZE,
          state->keyName, TLS_TICKET_KEY_NAME_SIZE, data, plaintext,
          *plaintextLen, tag, TLS_TICKET_TAG_SIZE);
+   }
+
+   //Erase AES context
+   if(state != NULL)
+   {
+      aesDeinit(&ticketContext->aesContext);
    }
 
    //Release exclusive access to the ticket encryption context

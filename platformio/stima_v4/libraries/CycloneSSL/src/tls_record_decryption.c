@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -39,9 +39,7 @@
 #include "tls_record_encryption.h"
 #include "tls_misc.h"
 #include "cipher_mode/cbc.h"
-#include "aead/ccm.h"
-#include "aead/gcm.h"
-#include "aead/chacha20_poly1305.h"
+#include "aead/aead_algorithms.h"
 #include "debug.h"
 
 //Check TLS library configuration

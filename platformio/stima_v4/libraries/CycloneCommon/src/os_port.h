@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _OS_PORT_H
@@ -278,11 +278,11 @@
 
 //Delay routines
 #ifndef usleep
-   // #define usleep(delay) {volatile uint32_t n = delay * 4; while(n > 0) n--;}
+   #define usleep(delay) {volatile uint32_t n = delay * 4; while(n > 0) n--;}
 #endif
 
 #ifndef sleep
-   // #define sleep(delay) {volatile uint32_t n = delay * 4000; while(n > 0) n--;}
+   #define sleep(delay) {volatile uint32_t n = delay * 4000; while(n > 0) n--;}
 #endif
 
 #endif

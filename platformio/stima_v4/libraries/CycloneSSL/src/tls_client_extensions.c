@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -113,32 +113,50 @@ error_t tlsFormatClientSupportedVersionsExtension(TlsContext *context,
       if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM)
       {
          //Check whether DTLS 1.2 is supported
-         if(context->versionMax >= TLS_VERSION_1_2 && context->versionMin <= TLS_VERSION_1_2)
+         if(context->versionMax >= TLS_VERSION_1_2 &&
+            context->versionMin <= TLS_VERSION_1_2)
+         {
             supportedVersionList->value[n++] = HTONS(DTLS_VERSION_1_2);
+         }
 
          //Check whether DTLS 1.0 is supported
-         if(context->versionMax >= TLS_VERSION_1_1 && context->versionMin <= TLS_VERSION_1_1)
+         if(context->versionMax >= TLS_VERSION_1_1 &&
+            context->versionMin <= TLS_VERSION_1_1)
+         {
             supportedVersionList->value[n++] = HTONS(DTLS_VERSION_1_0);
+         }
       }
       else
 #endif
       //TLS protocol?
       {
          //Check whether TLS 1.3 is supported
-         if(context->versionMax >= TLS_VERSION_1_3 && context->versionMin <= TLS_VERSION_1_3)
+         if(context->versionMax >= TLS_VERSION_1_3 &&
+            context->versionMin <= TLS_VERSION_1_3)
+         {
             supportedVersionList->value[n++] = HTONS(TLS_VERSION_1_3);
+         }
 
          //Check whether TLS 1.2 is supported
-         if(context->versionMax >= TLS_VERSION_1_2 && context->versionMin <= TLS_VERSION_1_2)
+         if(context->versionMax >= TLS_VERSION_1_2 &&
+            context->versionMin <= TLS_VERSION_1_2)
+         {
             supportedVersionList->value[n++] = HTONS(TLS_VERSION_1_2);
+         }
 
          //Check whether TLS 1.1 is supported
-         if(context->versionMax >= TLS_VERSION_1_1 && context->versionMin <= TLS_VERSION_1_1)
+         if(context->versionMax >= TLS_VERSION_1_1 &&
+            context->versionMin <= TLS_VERSION_1_1)
+         {
             supportedVersionList->value[n++] = HTONS(TLS_VERSION_1_1);
+         }
 
          //Check whether TLS 1.0 is supported
-         if(context->versionMax >= TLS_VERSION_1_0 && context->versionMin <= TLS_VERSION_1_0)
+         if(context->versionMax >= TLS_VERSION_1_0 &&
+            context->versionMin <= TLS_VERSION_1_0)
+         {
             supportedVersionList->value[n++] = HTONS(TLS_VERSION_1_0);
+         }
       }
 
       //Compute the length, in bytes, of the list

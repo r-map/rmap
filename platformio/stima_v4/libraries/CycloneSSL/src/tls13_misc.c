@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -225,8 +225,8 @@ error_t tls13ComputePskBinder(TlsContext *context, const void *clientHello,
 
    //The PskBinderEntry is computed in the same way as the Finished message
    //but with the base key being the binder key
-   error = tls13HkdfExpandLabel(hash, key, hash->digestSize, "finished",
-      NULL, 0, key, hash->digestSize);
+   error = tls13HkdfExpandLabel(context->transportProtocol, hash, key,
+      hash->digestSize, "finished", NULL, 0, key, hash->digestSize);
    //Any error to report?
    if(error)
       return error;

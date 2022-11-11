@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 #ifndef _TLS_H
@@ -47,12 +47,12 @@ struct _TlsEncryptionEngine;
 #include "tls13_misc.h"
 #include "dtls_misc.h"
 #include "mac/hmac.h"
+#include "aead/aead_algorithms.h"
 #include "pkc/rsa.h"
 #include "pkc/dsa.h"
 #include "ecc/ecdsa.h"
 #include "pkc/dh.h"
 #include "ecc/ecdh.h"
-#include "aead/gcm.h"
 #include "pkix/x509_common.h"
 
 
@@ -83,13 +83,13 @@ struct _TlsEncryptionEngine;
 #endif
 
 //Version string
-#define CYCLONE_SSL_VERSION_STRING "2.1.4"
+#define CYCLONE_SSL_VERSION_STRING "2.1.8"
 //Major version
 #define CYCLONE_SSL_MAJOR_VERSION 2
 //Minor version
 #define CYCLONE_SSL_MINOR_VERSION 1
 //Revision number
-#define CYCLONE_SSL_REV_NUMBER 4
+#define CYCLONE_SSL_REV_NUMBER 8
 
 //TLS version numbers
 #define SSL_VERSION_3_0 0x0300
@@ -716,7 +716,7 @@ struct _TlsEncryptionEngine;
 
 //Maximum acceptable size for Diffie-Hellman prime modulus
 #ifndef TLS_MAX_DH_MODULUS_SIZE
-   #define TLS_MAX_DH_MODULUS_SIZE 4096
+   #define TLS_MAX_DH_MODULUS_SIZE 2048
 #elif (TLS_MAX_DH_MODULUS_SIZE < TLS_MIN_DH_MODULUS_SIZE)
    #error TLS_MAX_DH_MODULUS_SIZE parameter is not valid
 #endif
@@ -751,7 +751,7 @@ struct _TlsEncryptionEngine;
 
 //Maximum size for premaster secret
 #ifndef TLS_PREMASTER_SECRET_SIZE
-   #define TLS_PREMASTER_SECRET_SIZE 256
+   #define TLS_PREMASTER_SECRET_SIZE (TLS_MAX_DH_MODULUS_SIZE / 8)
 #elif (TLS_PREMASTER_SECRET_SIZE < 48)
    #error TLS_PREMASTER_SECRET_SIZE parameter is not valid
 #endif
@@ -951,7 +951,8 @@ typedef enum
    TLS_TYPE_HANDSHAKE          = 22,
    TLS_TYPE_APPLICATION_DATA   = 23,
    TLS_TYPE_HEARTBEAT          = 24,
-   TLS_TYPE_ACK                = 25  //RFC draft
+   TLS_TYPE_TLS12_CID          = 25,
+   TLS_TYPE_ACK                = 26
 } TlsContentType;
 
 
@@ -961,26 +962,30 @@ typedef enum
 
 typedef enum
 {
-   TLS_TYPE_HELLO_REQUEST        = 0,
-   TLS_TYPE_CLIENT_HELLO         = 1,
-   TLS_TYPE_SERVER_HELLO         = 2,
-   TLS_TYPE_HELLO_VERIFY_REQUEST = 3,
-   TLS_TYPE_NEW_SESSION_TICKET   = 4,
-   TLS_TYPE_END_OF_EARLY_DATA    = 5,
-   TLS_TYPE_HELLO_RETRY_REQUEST  = 6,
-   TLS_TYPE_ENCRYPTED_EXTENSIONS = 8,
-   TLS_TYPE_CERTIFICATE          = 11,
-   TLS_TYPE_SERVER_KEY_EXCHANGE  = 12,
-   TLS_TYPE_CERTIFICATE_REQUEST  = 13,
-   TLS_TYPE_SERVER_HELLO_DONE    = 14,
-   TLS_TYPE_CERTIFICATE_VERIFY   = 15,
-   TLS_TYPE_CLIENT_KEY_EXCHANGE  = 16,
-   TLS_TYPE_FINISHED             = 20,
-   TLS_TYPE_CERTIFICATE_URL      = 21,
-   TLS_TYPE_CERTIFICATE_STATUS   = 22,
-   TLS_TYPE_SUPPLEMENTAL_DATA    = 23,
-   TLS_TYPE_KEY_UPDATE           = 24,
-   TLS_TYPE_MESSAGE_HASH         = 254
+   TLS_TYPE_HELLO_REQUEST          = 0,
+   TLS_TYPE_CLIENT_HELLO           = 1,
+   TLS_TYPE_SERVER_HELLO           = 2,
+   TLS_TYPE_HELLO_VERIFY_REQUEST   = 3,
+   TLS_TYPE_NEW_SESSION_TICKET     = 4,
+   TLS_TYPE_END_OF_EARLY_DATA      = 5,
+   TLS_TYPE_HELLO_RETRY_REQUEST    = 6,
+   TLS_TYPE_ENCRYPTED_EXTENSIONS   = 8,
+   TLS_TYPE_REQUEST_CONNECTION_ID  = 9,
+   TLS_TYPE_NEW_CONNECTION_ID      = 10,
+   TLS_TYPE_CERTIFICATE            = 11,
+   TLS_TYPE_SERVER_KEY_EXCHANGE    = 12,
+   TLS_TYPE_CERTIFICATE_REQUEST    = 13,
+   TLS_TYPE_SERVER_HELLO_DONE      = 14,
+   TLS_TYPE_CERTIFICATE_VERIFY     = 15,
+   TLS_TYPE_CLIENT_KEY_EXCHANGE    = 16,
+   TLS_TYPE_FINISHED               = 20,
+   TLS_TYPE_CERTIFICATE_URL        = 21,
+   TLS_TYPE_CERTIFICATE_STATUS     = 22,
+   TLS_TYPE_SUPPLEMENTAL_DATA      = 23,
+   TLS_TYPE_KEY_UPDATE             = 24,
+   TLS_TYPE_COMPRESSED_CERTIFICATE = 25,
+   TLS_TYPE_EKT_KEY                = 26,
+   TLS_TYPE_MESSAGE_HASH           = 254
 } TlsMessageType;
 
 
@@ -1019,6 +1024,7 @@ typedef enum
    TLS_ALERT_ACCESS_DENIED                   = 49,
    TLS_ALERT_DECODE_ERROR                    = 50,
    TLS_ALERT_DECRYPT_ERROR                   = 51,
+   TLS_ALERT_TOO_MANY_CIDS_REQUESTED         = 52,
    TLS_ALERT_EXPORT_RESTRICTION              = 60,
    TLS_ALERT_PROTOCOL_VERSION                = 70,
    TLS_ALERT_INSUFFICIENT_SECURITY           = 71,
@@ -1089,8 +1095,9 @@ typedef enum
 typedef enum
 {
    TLS_CERT_FORMAT_X509           = 0,
-   TLS_CERT_FORMAT_OPEN_PGP       = 1,
-   TLS_CERT_FORMAT_RAW_PUBLIC_KEY = 2
+   TLS_CERT_FORMAT_OPENPGP        = 1,
+   TLS_CERT_FORMAT_RAW_PUBLIC_KEY = 2,
+   TLS_CERT_FORMAT_1609DOT2       = 3
 } TlsCertificateFormat;
 
 
@@ -1111,6 +1118,8 @@ typedef enum
    TLS_CERT_ECDSA_SIGN       = 64,
    TLS_CERT_RSA_FIXED_ECDH   = 65,
    TLS_CERT_ECDSA_FIXED_ECDH = 66,
+   TLS_CERT_GOST_SIGN256     = 67,
+   TLS_CERT_GOST_SIGN512     = 68,
    TLS_CERT_RSA_PSS_SIGN     = 256, //For internal use only
    TLS_CERT_ED25519_SIGN     = 257, //For internal use only
    TLS_CERT_ED448_SIGN       = 258  //For internal use only
@@ -1155,8 +1164,8 @@ typedef enum
    TLS_SIGN_ALGO_ECDSA_BRAINPOOLP256R1_TLS13_SHA256 = 26,
    TLS_SIGN_ALGO_ECDSA_BRAINPOOLP384R1_TLS13_SHA384 = 27,
    TLS_SIGN_ALGO_ECDSA_BRAINPOOLP512R1_TLS13_SHA512 = 28,
-   TLS_SIGN_ALGO_GOSTR34102012_256                  = 64, //RFC draft
-   TLS_SIGN_ALGO_GOSTR34102012_512                  = 65  //RFC draft
+   TLS_SIGN_ALGO_GOSTR34102012_256                  = 64,
+   TLS_SIGN_ALGO_GOSTR34102012_512                  = 65
 } TlsSignatureAlgo;
 
 
@@ -1190,9 +1199,17 @@ typedef enum
    TLS_EXT_PADDING                   = 21,
    TLS_EXT_ENCRYPT_THEN_MAC          = 22,
    TLS_EXT_EXTENDED_MASTER_SECRET    = 23,
+   TLS_EXT_TOKEN_BINDING             = 24,
    TLS_EXT_CACHED_INFO               = 25,
+   TLS_EXT_COMPRESS_CERTIFICATE      = 27,
    TLS_EXT_RECORD_SIZE_LIMIT         = 28,
+   TLS_EXT_PWD_PROTECT               = 29,
+   TLS_EXT_PWD_CLEAR                 = 30,
+   TLS_EXT_PASSWORD_SALT             = 31,
+   TLS_EXT_TICKET_PINNING            = 32,
+   TLS_EXT_TLS_CERT_WITH_EXTERN_PSK  = 33,
    TLS_EXT_SESSION_TICKET            = 35,
+   TLS_EXT_SUPPORTED_EKT_CIPHERS     = 39,
    TLS_EXT_PRE_SHARED_KEY            = 41,
    TLS_EXT_EARLY_DATA                = 42,
    TLS_EXT_SUPPORTED_VERSIONS        = 43,
@@ -1203,6 +1220,12 @@ typedef enum
    TLS_EXT_POST_HANDSHAKE_AUTH       = 49,
    TLS_EXT_SIGNATURE_ALGORITHMS_CERT = 50,
    TLS_EXT_KEY_SHARE                 = 51,
+   TLS_EXT_TRANSPARENCY_INFO         = 52,
+   TLS_EXT_CONNECTION_ID             = 54,
+   TLS_EXT_EXTERNAL_ID_HASH          = 55,
+   TLS_EXT_EXTERNAL_SESSION_ID       = 56,
+   TLS_EXT_QUIC_TRANSPORT_PARAMETERS = 57,
+   TLS_EXT_DNSSEC_CHAIN              = 59,
    TLS_EXT_RENEGOTIATION_INFO        = 65281
 } TlsExtensionType;
 
@@ -1270,14 +1293,14 @@ typedef enum
    TLS_GROUP_BRAINPOOLP256R1_TLS13 = 31,    //RFC 8734
    TLS_GROUP_BRAINPOOLP384R1_TLS13 = 32,    //RFC 8734
    TLS_GROUP_BRAINPOOLP512R1_TLS13 = 33,    //RFC 8734
-   TLS_GROUP_GC256A                = 34,    //RFC draft
-   TLS_GROUP_GC256B                = 35,    //RFC draft
-   TLS_GROUP_GC256C                = 36,    //RFC draft
-   TLS_GROUP_GC256D                = 37,    //RFC draft
-   TLS_GROUP_GC512A                = 38,    //RFC draft
-   TLS_GROUP_GC512B                = 39,    //RFC draft
-   TLS_GROUP_GC512C                = 40,    //RFC draft
-   TLS_GROUP_SM2                   = 41,    //RFC draft
+   TLS_GROUP_GC256A                = 34,    //RFC 9189
+   TLS_GROUP_GC256B                = 35,    //RFC 9189
+   TLS_GROUP_GC256C                = 36,    //RFC 9189
+   TLS_GROUP_GC256D                = 37,    //RFC 9189
+   TLS_GROUP_GC512A                = 38,    //RFC 9189
+   TLS_GROUP_GC512B                = 39,    //RFC 9189
+   TLS_GROUP_GC512C                = 40,    //RFC 9189
+   TLS_GROUP_SM2                   = 41,    //RFC 8998
    TLS_GROUP_FFDHE2048             = 256,   //RFC 7919
    TLS_GROUP_FFDHE3072             = 257,   //RFC 7919
    TLS_GROUP_FFDHE4096             = 258,   //RFC 7919
@@ -2323,12 +2346,12 @@ struct _TlsContext
    size_t rxDatagramPos;
    uint16_t rxRecordVersion;                 ///<Version of the incoming record
 
-#if (DTLS_REPLAY_DETECTION_SUPPORT == ENABLED)
-   bool_t replayDetectionEnabled;           ///<Anti-replay mechanism enabled
-   uint32_t replayWindow[(DTLS_REPLAY_WINDOW_SIZE + 31) / 32];
+   TlsEncryptionEngine prevEncryptionEngine;
 #endif
 
-   TlsEncryptionEngine prevEncryptionEngine;
+#if (DTLS_SUPPORT == ENABLED && DTLS_REPLAY_DETECTION_SUPPORT == ENABLED)
+   bool_t replayDetectionEnabled;           ///<Anti-replay mechanism enabled
+   uint32_t replayWindow[(DTLS_REPLAY_WINDOW_SIZE + 31) / 32];
 #endif
 };
 

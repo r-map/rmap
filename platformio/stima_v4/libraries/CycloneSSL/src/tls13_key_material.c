@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.4
+ * @version 2.1.8
  **/
 
 //Switch to the appropriate trace level
@@ -48,6 +48,7 @@
 
 /**
  * @brief HKDF-Expand-Label function
+ * @param[in] transportProtocol Transport protocol (TLS or DTLS)
  * @param[in] hash Hash function used by HKDF
  * @param[in] secret Pointer to the secret
  * @param[in] secretLen Length of the secret
@@ -59,14 +60,16 @@
  * @return Error code
  **/
 
-error_t tls13HkdfExpandLabel(const HashAlgo *hash, const uint8_t *secret,
-   size_t secretLen, const char_t *label, const uint8_t *context,
-   size_t contextLen, uint8_t *output, size_t outputLen)
+error_t tls13HkdfExpandLabel(TlsTransportProtocol transportProtocol,
+   const HashAlgo *hash, const uint8_t *secret, size_t secretLen,
+   const char_t *label, const uint8_t *context, size_t contextLen,
+   uint8_t *output, size_t outputLen)
 {
    error_t error;
    size_t n;
    size_t labelLen;
    uint8_t *hkdfLabel;
+   const char_t *prefix;
 
    //Check parameters
    if(label == NULL)
@@ -89,11 +92,29 @@ error_t tls13HkdfExpandLabel(const HashAlgo *hash, const uint8_t *secret,
    //Successful memory allocation?
    if(hkdfLabel != NULL)
    {
+#if (DTLS_SUPPORT == ENABLED)
+      //DTLS protocol?
+      if(transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM)
+      {
+         //For DTLS 1.3, the label prefix shall be "dtls13". This ensures key
+         //separation between DTLS 1.3 and TLS 1.3. Note that there is no
+         //trailing space (refer to RFC 9147, section 5.9)
+         prefix = "dtls13";
+      }
+      else
+#endif
+      //TLS protocol?
+      {
+         //For TLS 1.3, the label prefix shall be "tls13 " (refer to RFC 8446,
+         //section 7.1)
+         prefix = "tls13 ";
+      }
+
       //Format the HkdfLabel structure
       hkdfLabel[0] = MSB(outputLen);
       hkdfLabel[1] = LSB(outputLen);
       hkdfLabel[2] = (uint8_t) (labelLen + 6);
-      osMemcpy(hkdfLabel + 3, "tls13 ", 6);
+      osMemcpy(hkdfLabel + 3, prefix, 6);
       osMemcpy(hkdfLabel + 9, label, labelLen);
       hkdfLabel[labelLen + 9] = (uint8_t) contextLen;
       osMemcpy(hkdfLabel + labelLen + 10, context, contextLen);
@@ -103,7 +124,8 @@ error_t tls13HkdfExpandLabel(const HashAlgo *hash, const uint8_t *secret,
       TRACE_DEBUG_ARRAY("  ", hkdfLabel, n);
 
       //Compute HKDF-Expand(Secret, HkdfLabel, Length)
-      error = hkdfExpand(hash, secret, secretLen, hkdfLabel, n, output, outputLen);
+      error = hkdfExpand(hash, secret, secretLen, hkdfLabel, n, output,
+         outputLen);
 
       //Release previously allocated memory
       tlsFreeMem(hkdfLabel);
@@ -168,8 +190,8 @@ error_t tls13DeriveSecret(TlsContext *context, const uint8_t *secret,
       if(!error)
       {
          //Compute HKDF-Expand-Label(Secret, Label, Transcript-Hash, Hash.length)
-         error = tls13HkdfExpandLabel(hash, secret, secretLen, label, digest,
-            hash->digestSize, output, outputLen);
+         error = tls13HkdfExpandLabel(context->transportProtocol, hash, secret,
+            secretLen, label, digest, hash->digestSize, output, outputLen);
       }
    }
    else
@@ -492,6 +514,16 @@ error_t tls13GenerateHandshakeTrafficKeys(TlsContext *context)
       context->serverHsTrafficSecret, hash->digestSize);
 #endif
 
+#if (DTLS_SUPPORT == ENABLED)
+   //DTLS protocol?
+   if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM)
+   {
+      //Because each epoch resets the sequence number space, a separate sliding
+      //window is needed for each epoch (refer to RFC 9147, section 4.5.1)
+      dtlsInitReplayWindow(context);
+   }
+#endif
+
    //In all handshakes, the server must send the EncryptedExtensions message
    //immediately after the ServerHello message
    context->state = TLS_STATE_ENCRYPTED_EXTENSIONS;
@@ -630,14 +662,29 @@ error_t tls13GenerateServerAppTrafficKeys(TlsContext *context)
       context->exporterMasterSecret, hash->digestSize);
 #endif
 
+#if (DTLS_SUPPORT == ENABLED)
+   //DTLS protocol?
+   if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM &&
+      context->entity == TLS_CONNECTION_END_CLIENT)
+   {
+      //Because each epoch resets the sequence number space, a separate sliding
+      //window is needed for each epoch (refer to RFC 9147, section 4.5.1)
+      dtlsInitReplayWindow(context);
+   }
+#endif
+
    //Check whether TLS operates as a client or a server
    if(context->entity == TLS_CONNECTION_END_CLIENT)
    {
-      //If the server sent an EarlyData extension, the client must send an
-      //EndOfEarlyData message after receiving the server Finished
-      if(context->earlyDataEnabled && context->earlyDataExtReceived)
+      //In DTLS 1.3, the EndOfEarlyData message is omitted both from the wire
+      //and the handshake transcript. Because DTLS records have epochs,
+      //EndOfEarlyData is not necessary to determine when the early data is
+      //complete (refer to RFC 9147, section 5.6)
+      if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_STREAM &&
+         context->earlyDataEnabled && context->earlyDataExtReceived)
       {
-         //Send a EndOfEarlyData message to the server
+         //If the server sent an EarlyData extension, the client must send an
+         //EndOfEarlyData message after receiving the server Finished
          context->state = TLS_STATE_END_OF_EARLY_DATA;
       }
       else
@@ -758,6 +805,17 @@ error_t tls13GenerateClientAppTrafficKeys(TlsContext *context)
    osMemset(context->clientEarlyTrafficSecret, 0, TLS13_MAX_HKDF_DIGEST_SIZE);
    osMemset(context->clientHsTrafficSecret, 0, TLS13_MAX_HKDF_DIGEST_SIZE);
    osMemset(context->serverHsTrafficSecret, 0, TLS13_MAX_HKDF_DIGEST_SIZE);
+
+#if (DTLS_SUPPORT == ENABLED)
+   //DTLS protocol?
+   if(context->transportProtocol == TLS_TRANSPORT_PROTOCOL_DATAGRAM &&
+      context->entity == TLS_CONNECTION_END_SERVER)
+   {
+      //Because each epoch resets the sequence number space, a separate sliding
+      //window is needed for each epoch (refer to RFC 9147, section 4.5.1)
+      dtlsInitReplayWindow(context);
+   }
+#endif
 
 #if (TLS_TICKET_SUPPORT == ENABLED)
    //Check whether session ticket mechanism is enabled
