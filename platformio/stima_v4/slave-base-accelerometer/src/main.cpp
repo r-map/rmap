@@ -3,10 +3,9 @@
 #include "main.h"
 
 void setup() {
-  // osInitKernel();
-
-  accelerometer_t config_accelerometer;
-  configuration_t config_module;
+  // Static for Freertos local visibility
+  static accelerometer_t config_accelerometer;
+  static configuration_t config_module;
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
@@ -46,6 +45,7 @@ void setup() {
   // {
   //   TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
   // }
+  delay(500);
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -53,23 +53,23 @@ void setup() {
 
   AccelerometerParam_t accelerometerParam;
   accelerometerParam.configuration = &config_accelerometer;
-#if (ENABLE_I2C2)
-  accelerometerParam.wire = &Wire2;
-  accelerometerParam.wireLock = wire2Lock;
+#if (ENABLE_I2C1)
+  accelerometerParam.wire = &Wire;
+  accelerometerParam.wireLock = wireLock;
 #endif
   accelerometerParam.configurationLock = configurationLock;
 
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &config_module;
-#if (ENABLE_I2C2)
-  supervisorParam.wire = &Wire2;
-  supervisorParam.wireLock = wire2Lock;
+#if (ENABLE_I2C1)
+  supervisorParam.wire = &Wire;
+  supervisorParam.wireLock = wireLock;
 #endif
   supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
   static AccelerometerTask accelerometer_task("ACCELEROMETER TASK", 400, OS_TASK_PRIORITY_01, accelerometerParam);
-  static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
+  static SupervisorTask supervisor_task("SUPERVISOR TASK", 200, OS_TASK_PRIORITY_01, supervisorParam);
 
   // Startup Schedulher
   Thread::StartScheduler();

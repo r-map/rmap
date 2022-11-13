@@ -42,7 +42,11 @@ Accelerometer::Accelerometer(TwoWire *_wire, BinarySemaphore *_wireLock, uint8_t
 	wireLock = _wireLock;
 	i2c_address = _i2c_address;
   // Reset scroll filter array;
-  memset(raw_scroll, 0xFF, sizeof(raw_scroll));
+  for(uint8_t scrl=0; scrl<ARR_REG_FILTER; scrl++) {
+    raw_scroll[0][scrl] = INT16_MAX;
+    raw_scroll[1][scrl] = INT16_MAX;
+    raw_scroll[2][scrl] = INT16_MAX;
+  }
 }
 
 /**
@@ -114,15 +118,30 @@ int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t l
 void Accelerometer::push_raw_data(int16_t *data_raw)
 {
   // Scroll Value
-  for(u_int8_t i=0; i<(ARR_REG_FILTER-1); i++) {
-    raw_scroll[0][i+1] = raw_scroll[0][i];
-    raw_scroll[1][i+1] = raw_scroll[1][i];
-    raw_scroll[2][i+1] = raw_scroll[2][i];
+  for(u_int8_t i = (ARR_REG_FILTER-1); i>0; i--) {
+    raw_scroll[0][i] = raw_scroll[0][i-1];
+    raw_scroll[1][i] = raw_scroll[1][i-1];
+    raw_scroll[2][i] = raw_scroll[2][i-1];
   }
   // Add New
   raw_scroll[0][0] = data_raw[0];
   raw_scroll[1][0] = data_raw[1];
   raw_scroll[2][0] = data_raw[2];
+}
+
+/// @brief Get mean value from scroll filter raw array
+/// @param request coordinate to get
+/// @return raw_data filtered
+int16_t Accelerometer::get_raw_mean(coordinate request) {
+  uint32_t tmp_data = 0;
+  uint8_t tmp_count = 0;
+  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
+    if((raw_scroll[request][i]>=-16000) && (raw_scroll[request][i]<=16000)) {
+      tmp_data += raw_scroll[request][i];
+      tmp_count++;
+    }
+  }
+  return (int16_t) (tmp_data / tmp_count);
 }
 
 /// @brief Read istant value accelerometer scaled on 2G to mg
@@ -138,11 +157,7 @@ float_t Accelerometer::iis328dq_from_fs2_to_mg(int16_t lsb)
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs2_to_mg(coordinate request)
 {
-  uint32_t tmp_data = 0;
-  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
-    tmp_data += raw_scroll[request][i];
-  }
-  return ((float_t)tmp_data * 0.98f / (16.0f * (float_t)ARR_REG_FILTER));
+  return ((float_t)get_raw_mean(request) * 0.98f / 16.0f);
 }
 
 /// @brief Read istant value accelerometer scaled on 4G to mg
@@ -158,11 +173,7 @@ float_t Accelerometer::iis328dq_from_fs4_to_mg(int16_t lsb)
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs4_to_mg(coordinate request)
 {
-  uint32_t tmp_data = 0;
-  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
-    tmp_data += raw_scroll[request][i];
-  }
-  return ((float_t)tmp_data * 1.95f / (16.0f * (float_t)ARR_REG_FILTER));
+  return ((float_t)get_raw_mean(request) * 1.95f / 16.0f);
 }
 
 /// @brief Read istant value accelerometer scaled on 8G to mg
@@ -178,11 +189,7 @@ float_t Accelerometer::iis328dq_from_fs8_to_mg(int16_t lsb)
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs8_to_mg(coordinate request)
 {
-  uint32_t tmp_data = 0;
-  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
-    tmp_data += raw_scroll[request][i];
-  }
-  return ((float_t)tmp_data * 3.91f / (16.0f * (float_t)ARR_REG_FILTER));
+  return ((float_t)get_raw_mean(request) * 3.91f / 16.0f);
 }
 
 /// @brief Read istant value accelerometer scaled 0-100% to inclinometer value
@@ -190,7 +197,7 @@ float_t Accelerometer::iis328dq_from_fs8_to_mg(coordinate request)
 /// @return float conversion to inclinometer value
 float_t Accelerometer::iis328dq_from_fsx_to_inc(int16_t lsb)
 {
-  return ((float_t)lsb / 16384.0f);
+  return ((float_t)lsb / 16000.0f);
 }
 
 /// @brief Read from sroll mean accelerometer scaled 0-100% to inclinometer value
@@ -198,11 +205,7 @@ float_t Accelerometer::iis328dq_from_fsx_to_inc(int16_t lsb)
 /// @return float conversion to inclinometer value
 float_t Accelerometer::iis328dq_from_fsx_to_inc(coordinate request)
 {
-  uint32_t tmp_data = 0;
-  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
-    tmp_data += raw_scroll[request][i];
-  }
-  return ((float_t)tmp_data / (16384.0f * (float_t)ARR_REG_FILTER));
+  return ((float_t)get_raw_mean(request) / 16000.0f);
 }
 
 /**

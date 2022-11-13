@@ -38,15 +38,14 @@
 #include "thread.hpp"
 #include "semaphore.hpp"
 #include "Wire.h"
-// #include <stdint.h>
-// #include <stddef.h>
-// #include <math.h>
 
 using namespace cpp_freertos;
 
 /** IIS328DQ Accelerometer
   * I2C Device Address 8 bit format  depends from BIT SA0 -> 0x18 - 0x19 */
 #define ACCELEROMETER_IIS328DQ_I2C_ADDR_DEFAULT     (0x19)
+#define ACCELEROMETER_WAIT_CHECK_HARDWARE           (5)
+#define ACCELEROMETER_MAX_CHECK_ATTEMPT             (5)
 /** Device Identification (Who am I) **/
 #define IIS328DQ_ID            0x32
 
@@ -391,6 +390,7 @@ public:
   int32_t iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t len);
 
   void push_raw_data(int16_t *data_raw);
+  int16_t get_raw_mean(coordinate request);
 
   float_t iis328dq_from_fs2_to_mg(int16_t lsb);
   float_t iis328dq_from_fs2_to_mg(coordinate request);
@@ -659,7 +659,7 @@ private:
   TwoWire *wire;
   BinarySemaphore *wireLock;
   uint8_t i2c_address;
-  uint16_t raw_scroll[3][ARR_REG_FILTER];
+  int16_t raw_scroll[3][ARR_REG_FILTER];
 };
 
 #endif /* _ACCELEROMETR_H */

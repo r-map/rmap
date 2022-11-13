@@ -48,7 +48,8 @@ typedef enum
   ACCELEROMETER_STATE_READ,
   ACCELEROMETER_STATE_POWER_DOWN,
   ACCELEROMETER_STATE_SAVE_CONFIGURATION,
-  ACCELEROMETER_STATE_WAIT_FOREVER  
+  ACCELEROMETER_STATE_WAIT_FOREVER,
+  ACCELEROMETER_STATE_HARDWARE_FAIL
 } AccelerometerState_t;
 
 typedef struct {
@@ -79,11 +80,12 @@ private:
   float value_z;
 
   void PrintConfiguration(accelerometer_t *configuration, BinarySemaphore *lock);
-  void LoadConfiguration(accelerometer_t *configuration, BinarySemaphore *lock);
+  bool LoadConfiguration(accelerometer_t *configuration, BinarySemaphore *lock);
   void SaveConfiguration(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default);
+  void Calibrate(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default);
   bool CheckModule(BinarySemaphore *lock);
   void SetupModule(accelerometer_t *configuration, BinarySemaphore *lock);
-  void ReadModule(accelerometer_t *configuration, BinarySemaphore *lock);
+  bool ReadModule(accelerometer_t *configuration, BinarySemaphore *lock);
   void PowerDownModule(accelerometer_t *configuration, BinarySemaphore *lock);
 
 };

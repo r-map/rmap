@@ -53,8 +53,7 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 			wire->beginTransmission(i2c_address);
 			wire->write(address >> 8);
 			wire->write(address & 0xFF);
-			byte *adr = address + buffer;
-			wire->write(adr, length);
+			wire->write(buffer, length);
 			wire->endTransmission();
 		}
 		else

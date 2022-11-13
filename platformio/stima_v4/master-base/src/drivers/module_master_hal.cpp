@@ -875,45 +875,34 @@ extern "C" void MX_QUADSPI_Init(void)
 // /**
 //   * Initializes the Global MSP.
 //   */
-// extern "C" void HAL_MspInit(void)
-// {
-//   /* USER CODE BEGIN MspInit 0 */
+extern "C" void HAL_MspInit(void)
+{
+  /* USER CODE BEGIN MspInit 0 */
 
-//   /* USER CODE END MspInit 0 */
-//   PWR_PVDTypeDef sConfigPVD = {0};
+  /* USER CODE END MspInit 0 */
+  PWR_PVDTypeDef sConfigPVD = {0};
 
-//   __HAL_RCC_SYSCFG_CLK_ENABLE();
-//   __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_RCC_SYSCFG_CLK_ENABLE();
+  __HAL_RCC_PWR_CLK_ENABLE();
 
-//   /* System interrupt init*/
-//   // #ifdef USE_STM32_FREERTOS
-//   /* PendSV_IRQn interrupt configuration */
-//   HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
-//   // #else
-//   /* SVCall_IRQn interrupt configuration */
-//   // HAL_NVIC_SetPriority(SVCall_IRQn, 13, 0);
-//   /* PendSV_IRQn interrupt configuration */
-//   // HAL_NVIC_SetPriority(PendSV_IRQn, 14, 0);
-//   // #endif
+  /** PVD Configuration
+  */
+  sConfigPVD.PVDLevel = PWR_PVDLEVEL_0;
+  sConfigPVD.Mode = PWR_PVD_MODE_NORMAL;
+  HAL_PWR_ConfigPVD(&sConfigPVD);
 
-//   /** PVD Configuration
-//   */
-//   sConfigPVD.PVDLevel = PWR_PVDLEVEL_0;
-//   sConfigPVD.Mode = PWR_PVD_MODE_NORMAL;
-//   HAL_PWR_ConfigPVD(&sConfigPVD);
+  /** Enable the PVD Output
+  */
+  HAL_PWR_EnablePVD();
 
-//   /** Enable the PVD Output
-//   */
-//   HAL_PWR_EnablePVD();
+  /* USER CODE BEGIN MspInit 1 */
 
-//   /* USER CODE BEGIN MspInit 1 */
+  /** Configure the main VBAT regulator mode
+  */
+  HAL_PWREx_EnableBatteryCharging(PWR_BATTERY_CHARGING_RESISTOR_5);
 
-//   /** Configure the main VBAT regulator mode
-//   */
-//   HAL_PWREx_EnableBatteryCharging(PWR_BATTERY_CHARGING_RESISTOR_5);
-
-//   /* USER CODE END MspInit 1 */
-// }
+  /* USER CODE END MspInit 1 */
+}
 
 // #ifdef _HW_MSP_CAN_PRIVATE
 // /**
