@@ -1,0 +1,61 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2021, CC BY-SA 4.0, Arpae https://www.arpae.it
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-11-14 14:02+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../videotutorial/videotutorial.rst:2
+msgid "Videotutorial"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:5
+msgid "Su temi generali"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:7
+#: ../../videotutorial/videotutorial.rst:15
+msgid "video 1"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:8
+msgid "just `click here <../_static/generali_video1.html>`_ now!"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:12
+msgid "StimaWifi"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:16
+msgid "just `click here <../_static/stimawifi_video1.html>`_ now!"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:19
+msgid "video 2"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:20
+msgid "just `click here <../_static/stimawifi_video2.html>`_ now!"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:23
+msgid "video 3"
+msgstr ""
+
+#: ../../videotutorial/videotutorial.rst:24
+msgid "just `click here <../_static/stimawifi_video3.html>`_ now!"
+msgstr ""
+
