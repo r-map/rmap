@@ -25,28 +25,28 @@ TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 #endif
 
 // Non utilizzo FreRTOS LOW_Power per il Debugging
-// #ifdef _USE_FREERTOS_LOW_POWER
-// #define _EXIT_SLEEP_FOR_DEBUGGING
-// #endif
+#ifdef _USE_FREERTOS_LOW_POWER
+#define _EXIT_SLEEP_FOR_DEBUGGING
+#endif
 
-// /* Private Hardware_Handler istance initialization ---------------------------------------*/
-// #ifdef _HW_SETUP_CAN_PRIVATE
-// CAN_HandleTypeDef hcan1;
-// #endif
-// #ifdef _HW_SETUP_CRC_PRIVATE
-// CRC_HandleTypeDef hcrc;
-// #endif
-// #ifdef _HW_SETUP_LPTIM_PRIVATE
-// LPTIM_HandleTypeDef hlptim1;
-// #endif
+/* Private Hardware_Handler istance initialization ---------------------------------------*/
+#ifdef _HW_SETUP_CAN_PRIVATE
+CAN_HandleTypeDef hcan1;
+#endif
+#ifdef _HW_SETUP_CRC_PRIVATE
+CRC_HandleTypeDef hcrc;
+#endif
+#ifdef _HW_SETUP_LPTIM_PRIVATE
+LPTIM_HandleTypeDef hlptim1;
+#endif
 #if (ENABLE_QSPI)
 QSPI_HandleTypeDef hqspi;
 FLASH_OBProgramInitTypeDef OBInit;		// flash option bytes copy
 #endif
-// #ifdef _HW_SETUP_RNG_PRIVATE
-// RNG_HandleTypeDef hrng;
-// #endif
-// /* Private Hardware_Handler istance initialization ---------------------------------------*/
+#ifdef _HW_SETUP_RNG_PRIVATE
+RNG_HandleTypeDef hrng;
+#endif
+/* Private Hardware_Handler istance initialization ---------------------------------------*/
 
 // /*******************************************************************************************
 // ********************************************************************************************

@@ -26,7 +26,7 @@
 
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
-#define ENABLE_QSPI           (false)
+#define ENABLE_QSPI           (true)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -53,12 +53,9 @@ extern QSPI_HandleTypeDef hqspi;
 // #define _HW_SETUP_ADC_PRIVATE
 // #define _HW_SETUP_CAN_PRIVATE
 // #define _HW_SETUP_CRC_PRIVATE
-// #define _HW_SETUP_I2C_PRIVATE
 // #define _HW_SETUP_LPTIM_PRIVATE
-// #define _HW_SETUP_QSPI_PRIVATE
-// #define _HW_SETUP_RTC_PRIVATE
+#define _HW_SETUP_QSPI_PRIVATE
 // #define _HW_SETUP_SPI_PRIVATE
-// #define _HW_SETUP_UART_PRIVATE
 
 // ******************************************************************************
 
@@ -177,11 +174,6 @@ extern CAN_HandleTypeDef hcan1;
 extern CRC_HandleTypeDef hcrc;
 #endif
 
-#ifdef _HW_SETUP_I2C_PRIVATE
-extern I2C_HandleTypeDef hi2c1;
-extern I2C_HandleTypeDef hi2c2;
-#endif
-
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 extern LPTIM_HandleTypeDef hlptim1;
 #endif
@@ -190,18 +182,10 @@ extern LPTIM_HandleTypeDef hlptim1;
 extern QSPI_HandleTypeDef hqspi;
 #endif
 
-#ifdef _HW_SETUP_RTC_PRIVATE
-extern RTC_HandleTypeDef hrtc;
-#endif
-
 #ifdef _HW_SETUP_SPI_PRIVATE
 extern SPI_HandleTypeDef hspi1;
 #endif
 
-#ifdef _HW_SETUP_UART_PRIVATE
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-#endif
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
 #ifdef __cplusplus
@@ -210,46 +194,35 @@ extern "C" {
 
 void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
-// void HAL_MspInit(void);
+void HAL_MspInit(void);
 
-// #ifdef _HW_SETUP_GPIO_PRIVATE
-// void MX_GPIO_Init(void);
-// #endif
+#ifdef _HW_SETUP_GPIO_PRIVATE
+void MX_GPIO_Init(void);
+#endif
 
-// #ifdef _HW_SETUP_CAN_PRIVATE
-// void MX_CAN1_Init(void);
-// #endif
-// #ifdef _HW_MSP_CAN_PRIVATE
-// void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
-// void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
-// #endif
+#ifdef _HW_SETUP_CAN_PRIVATE
+void MX_CAN1_Init(void);
+#endif
+#ifdef _HW_MSP_CAN_PRIVATE
+void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
+#endif
 
-// #ifdef _HW_SETUP_CRC_PRIVATE
-// void MX_CRC_Init(void);
-// #endif
-// #ifdef _HW_MSP_CRC_PRIVATE
-// void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc);
-// void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc);
-// #endif
+#ifdef _HW_SETUP_CRC_PRIVATE
+void MX_CRC_Init(void);
+#endif
+#ifdef _HW_MSP_CRC_PRIVATE
+void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc);
+void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc);
+#endif
 
-// #ifdef _HW_SETUP_I2C1_PRIVATE
-// void MX_I2C1_Init(void);
-// #endif
-// #ifdef _HW_SETUP_I2C2_PRIVATE
-// void MX_I2C2_Init(void);
-// #endif
-// #if defined(_HW_MSP_I2C1_PRIVATE) || defined(_HW_MSP_I2C2_PRIVATE)
-// void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c);
-// void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c);
-// #endif
-
-// #ifdef _HW_SETUP_LPTIM_PRIVATE
-// void MX_LPTIM1_Init(void);
-// #endif
-// #ifdef _HW_MSP_LPTIM_PRIVATE
-// void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim);
-// void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim);
-// #endif
+#ifdef _HW_SETUP_LPTIM_PRIVATE
+void MX_LPTIM1_Init(void);
+#endif
+#ifdef _HW_MSP_LPTIM_PRIVATE
+void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim);
+void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim);
+#endif
 
 #if (ENABLE_QSPI)
 void MX_QUADSPI_Init(void);
@@ -257,59 +230,29 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
 void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
 #endif
 
-// #ifdef _HW_SETUP_RNG_PRIVATE
-// void MX_RNG_Init(void);
-// #endif
-// #ifdef _HW_MSP_RNG_PRIVATE
-// void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng);
-// void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng);
-// #endif
+#ifdef _HW_SETUP_RNG_PRIVATE
+void MX_RNG_Init(void);
+#endif
+#ifdef _HW_MSP_RNG_PRIVATE
+void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng);
+void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng);
+#endif
 
-// #ifdef _HW_SETUP_RTC_PRIVATE
-// void MX_RTC_Init(void);
-// #endif
-// #ifdef _HW_MSP_RTC_PRIVATE
-// void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc);
-// void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc);
-// #endif
+#ifdef _HW_SETUP_SPI_PRIVATE
+void MX_SPI1_Init(void);
+#endif
+#ifdef _HW_MSP_SPI_PRIVATE
+void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi);
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi);
+#endif
 
-// #ifdef _HW_SETUP_SD_PRIVATE
-// void MX_SDMMC1_SD_Init(void);
-// #endif
-// #ifdef _HW_MSP_SD_PRIVATE
-// void HAL_SD_MspInit(SD_HandleTypeDef* hsd);
-// void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd);
-// #endif
-
-// #ifdef _HW_SETUP_SPI_PRIVATE
-// void MX_SPI1_Init(void);
-// #endif
-// #ifdef _HW_MSP_SPI_PRIVATE
-// void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi);
-// void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi);
-// #endif
-
-// #ifdef _HW_SETUP_TIM3_PRIVATE
-// void MX_TIM3_Init(void);
-// #endif
-// #ifdef _HW_MSP_TIM3_PRIVATE
-// void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder);
-// void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder);
-// #endif
-
-// #ifdef _HW_SETUP_UART1_PRIVATE
-// void MX_USART1_UART_Init(void);
-// #endif
-// #ifdef _HW_SETUP_UART2_PRIVATE
-// void MX_USART2_UART_Init(void);
-// #endif
-// #ifdef _HW_SETUP_UART4_PRIVATE
-// void MX_UART4_Init(void);
-// #endif
-// #if defined(_HW_SETUP_UART1_PRIVATE) || defined(_HW_SETUP_UART2_PRIVATE) || defined(_HW_SETUP_UART4_PRIVATE)
-// void HAL_UART_MspInit(UART_HandleTypeDef* huart);
-// void HAL_UART_MspDeInit(UART_HandleTypeDef* huart);
-// #endif
+#ifdef _HW_SETUP_TIM3_PRIVATE
+void MX_TIM3_Init(void);
+#endif
+#ifdef _HW_MSP_TIM3_PRIVATE
+void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder);
+void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder);
+#endif
 
 #ifdef __cplusplus
 }
