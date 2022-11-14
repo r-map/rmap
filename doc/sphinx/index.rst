@@ -13,6 +13,7 @@ Benvenuti alla documentazione di RMAP e Stima
    stima_v3/stima_v3
    stima_wifi/stima_wifi_howto
    server_rmap/server_rmap
+   videotutorial/videotutorial
 
 
 * :ref:`genindex`
