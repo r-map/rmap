@@ -564,7 +564,7 @@ modificare il file /etc/selinux/config::
 
   SELINUX=disabled
 
-scaricare il file `/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/tmpfiles.d/rmap.conf>`_
+scaricare il file `/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/tmpfiles.d/rmap.conf>`__
 
 ::
 
@@ -577,7 +577,7 @@ scaricare il file `/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/
    mkdir /var/log/rmap
    chown -R rmap:rmap /var/log/rmap
 
-scaricare il file `/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rmap/rmap-site.cfg>`_
+scaricare il file `/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rmap/rmap-site.cfg>`__
 
 cambiare la password dell'utente amministratore.
 
@@ -591,7 +591,7 @@ Mosquitto
    chown mosquitto:mosquitto /rmap/mosquitto
 
    
-scaricare il file `/etc/mosquitto/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/mosquitto/conf.d/rmap.conf>`_
+scaricare il file `/etc/mosquitto/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/mosquitto/conf.d/rmap.conf>`__
 
 
 cancellare tutto il contenuto del file /etc/mosquitto/mosquitto.conf e sostituirlo con le seguenti righe:
@@ -616,11 +616,11 @@ Rabbitmq
 
    dnf install rabbitmq-server
 
-scaricare il file `/etc/rabbitmq/enabled_plugins <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/enabled_plugins>`_
+scaricare il file `/etc/rabbitmq/enabled_plugins <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/enabled_plugins>`__
 
-scaricare il file `/etc/rabbitmq/rabbitmq-env.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`_
+scaricare il file `/etc/rabbitmq/rabbitmq-env.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`__
 
-scaricare il file `/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq.config>`_
+scaricare il file `/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq.config>`__
 
 
 Installare il certificato ssl/tls per il dominio del server in:
@@ -654,9 +654,9 @@ Monit
    
    yum install monit
 
-scaricare il file `/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monitrc>`_
+scaricare il file `/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monitrc>`__
 
-scaricare il file `/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monit.d/rmap>`_
+scaricare il file `/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monit.d/rmap>`__
 
 ::
 
