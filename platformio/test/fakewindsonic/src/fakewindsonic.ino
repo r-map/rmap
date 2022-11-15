@@ -72,14 +72,18 @@ L'unità di musura della velocità è m/s
 #define ROTATION_VELOCITY   20.D
 
 // constant u component
-#define CONSTANT_U_VELOCITY 5.D
+//#define CONSTANT_U_VELOCITY 5.D
+#define CONSTANT_U_VELOCITY 0.D
 // random u component
-#define RANDOM_U_VELOCITY   random(-10,11)*0.1D
+//#define RANDOM_U_VELOCITY   random(-1000,1001)*0.01D
+#define RANDOM_U_VELOCITY   0.0D
 
 // constant v component
-#define CONSTANT_V_VELOCITY 5.D
+//#define CONSTANT_V_VELOCITY 5.D
+#define CONSTANT_V_VELOCITY 0.D
 // random v component
-#define RANDOM_V_VELOCITY   random(-10,11)*0.1D
+//#define RANDOM_V_VELOCITY   random(-1000,1001)*0.01D
+#define RANDOM_V_VELOCITY   0.0D
 
 // create plot graph with plot library
 //#define PLOT 1
@@ -159,8 +163,8 @@ void message(void){
   LOGV("hourly cycle: %D\n",hourlyu);
   LOGV(F("value: %D\n"),u);
   
-  int basev = 10;
-  double rndv = RANDOM_U_VELOCITY;
+  int basev = CONSTANT_V_VELOCITY;;
+  double rndv = RANDOM_V_VELOCITY;
   double hourlyv =   cos(au)*ROTATION_VELOCITY; // fase 90 gradi ripetto a u
 
   // simulate wind with constant + random + rotating components
