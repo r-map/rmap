@@ -130,24 +130,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIND_SPEED_MIN                                  (0.0)
 
 #define GWS_SERIAL_BAUD                                 (9600)
-#define GWS_SERIAL_TIMEOUT_MS                           (8)
-#define GWS_ACQUISITION_COUNT_FOR_POWER_RESET           (100)
-
-#define GWS_STX_INDEX                                   (0)
-#define GWS_ETX_INDEX                                   (19)
-
-#define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
-
-#define GWS_DIRECTION_INDEX                             (3)
-#define GWS_DIRECTION_LENGTH                            (3)
-#define GWS_SPEED_INDEX                                 (7)
-#define GWS_SPEED_LENGTH                                (6)
-#define GWS_CRC_INDEX                                   (20)
-#define GWS_CRC_LENGTH                                  (2)
-#define STX_VALUE                                       (2)
-#define ETX_VALUE                                       (3)
-#define CR_VALUE                                        (13)
-#define LF_VALUE                                        (10)
+#define GWS_SERIAL_TIMEOUT_MS                           (0)
 
 #define UART_RX_BUFFER_LENGTH                           (40)
 #endif
@@ -349,6 +332,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief power on delay.
 */
 #define WIND_POWER_ON_DELAY_MS                          (5000)
+
+
+/*!
+\def WIND_POWER_RESPONSE_DELAY_MS
+\brief windsonic poll mode delay for response (millisec).
+*/
+#define WIND_POWER_RESPONSE_DELAY_MS                    (150)
 
 /*!
 \def WIND_READ_DELAY_MS

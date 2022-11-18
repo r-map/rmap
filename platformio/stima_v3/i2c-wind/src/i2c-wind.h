@@ -320,7 +320,6 @@ volatile uint16_t timer_counter_s;
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 volatile bool is_wind_on;
-uint8_t wind_acquisition_count;
 #endif
 
 #if (USE_SENSOR_DES)
