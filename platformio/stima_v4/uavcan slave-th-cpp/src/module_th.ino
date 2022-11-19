@@ -845,8 +845,12 @@ void setup(void) {
     //            STARTUP SERIAL-COMMUNICATION 
     // *****************************************************
     Serial.begin(115200);
+    Serial.flush();
+    // Security HAL_Start_Hw Security
+    delay(1);
     // Wait for serial port to connect
-    while (!Serial) {}
+    while (!Serial) {        
+    }
     Serial.println(F("Start RS232 Monitor"));
 
     // *****************************************************
@@ -861,11 +865,13 @@ void setup(void) {
     // *****************************************************
     //      STARTUP LIBRERIA SD/MEM REGISTER COLLEGATA
     // *****************************************************
+    #ifndef USE_STIMA4_E2P
     if (!setupSd(PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_SS, 18)) {
         Serial.println(F("Initialization SD card error"));
-        LOCAL_ASSERT(false);
+        assert(false);
     }
     Serial.println(F("Initialization SD card done"));
+    #endif
 
     // ********************************************************************************
     //    FIXED REGISTER_INIT, FARE INIT OPZIONALE x REGISTRI FISSI ECC. E/O INVAR.
@@ -889,6 +895,8 @@ void setup(void) {
         LOCAL_ASSERT(false);
     }
     Serial.println(F("Initialization CAN BUS done"));
+    // Delay Start security HAL_Configuration
+    delay(5);
 
     // Led Low Init Setup OK
     digitalWrite(LED_BUILTIN, LOW);
