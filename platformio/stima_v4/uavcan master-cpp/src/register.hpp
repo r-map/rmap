@@ -34,6 +34,24 @@
 extern "C" {
 #endif
 
+#ifndef USE_STIMA4_E2P
+// SETUP SD Mode SdFat Library Mode
+bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, const uint32_t sCS, const int speedMHZ);
+#endif
+
+// #define TEST_PERFORM_E2
+#ifdef USE_STIMA4_E2P
+    #ifdef TEST_PERFORM_E2
+    void perform_init(void);
+    void perform_write(void);
+    #else
+    #define perform_init()      void(0)
+    #define perform_start(x)    void(0)
+    #define perform_add(x)      void(0)
+    #define perform_write()     void(0)
+    #endif
+#endif
+
 // SETUP SD Mode SdFat Library Mode
 bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, const uint32_t sCS, const int speedMHZ);
 

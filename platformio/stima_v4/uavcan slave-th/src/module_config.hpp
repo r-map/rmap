@@ -1,3 +1,6 @@
+// Assert Locali
+#define LOCAL_ASSERT    assert
+
 #define KILO 1000L
 #define MEGA ((int64_t)KILO * KILO)
 
