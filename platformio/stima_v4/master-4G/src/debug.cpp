@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include "debug_F.h"
+#include "debug.h"
 
 int_t fputc(int_t c, FILE *stream)
 {
@@ -41,6 +41,15 @@ int_t fputc(int_t c, FILE *stream)
 
 void init_debug(uint32_t baudrate) {
   Serial.begin(baudrate);
+  while (!Serial);
+}
+
+void print_debug(const char *fmt, ...)
+{
+   va_list args;
+   va_start(args, fmt);
+   vfprintf(stdout, fmt, args);
+   va_end(args);
 }
 
 void print_debug_F(const __FlashStringHelper *fmt, ...)

@@ -37,4 +37,53 @@ typedef struct {
    uint8_t observation_time_s;                        //!< observations time in seconds
 } configuration_t;
 
+typedef struct
+{
+   struct {
+      bool is_loaded;
+      bool is_saved;
+   } configuration;
+
+   struct {
+      bool is_connected;
+      bool is_connection_ongoing;
+      bool is_ntp_synchronized;
+      bool is_ntp_sync_ongoing;
+   } connection;
+} system_status_t;
+
+typedef struct
+{
+   struct
+   {
+      bool do_load;
+      bool do_save;
+   } configuration;
+
+   struct
+   {
+      bool do_connect;
+      bool do_disconnect;
+      bool do_ntp_sync;
+      bool do_mqtt_connect;
+   } connection;
+} system_request_t;
+
+typedef struct
+{
+   struct
+   {
+      bool done_loaded;
+      bool done_saved;
+   } configuration;
+
+   struct
+   {
+      bool done_connected;
+      bool done_disconnected;
+      bool done_ntp_synchronized;
+      bool done_mqtt_connect;
+   } connection;
+} system_response_t;
+
 #endif

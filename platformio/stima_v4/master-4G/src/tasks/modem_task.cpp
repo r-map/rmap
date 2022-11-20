@@ -25,170 +25,200 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/modem_task.h"
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-
 using namespace cpp_freertos;
 
-ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam) : Thread(taskName, stackSize, priority), ModemParam(modemParam) {
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+
+ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam) : Thread(taskName, stackSize, priority), param(modemParam)
+{
   state = MODEM_STATE_INIT;
   Start();
 };
 
 void ModemTask::Run() {
-  // error_t error;
+  error_t error;
+  sim7600_status_t status;
+  system_request_t request;
+  system_response_t response;
 
-  digitalWrite(PIN_GSM_EN_POW, HIGH);
-  digitalWrite(PIN_GSM_PW_KEY, HIGH);
-  DelayUntil(Ticks::MsToTicks(500));
-  digitalWrite(PIN_GSM_PW_KEY, LOW);
-  Serial2.begin(115200);
+  memset(&request, 0, sizeof(system_request_t));
+  memset(&response, 0, sizeof(system_response_t));
 
   while (true)
   {
-    if (Serial2.available())
+    switch (state)
     {
-      Serial.write(Serial2.read());
+    case MODEM_STATE_INIT:
+      // Configure the first network interface
+      interface = &netInterface[INTERFACE_0_INDEX];
+
+      // Get default PPP settings
+      pppGetDefaultSettings(&pppSettings);
+      // Select the underlying interface
+      pppSettings.interface = interface;
+      // Default async control character map
+      pppSettings.accm = 0x00000000;
+      // Allowed authentication protocols
+      pppSettings.authProtocol = PPP_AUTH_PROTOCOL_PAP | PPP_AUTH_PROTOCOL_CHAP_MD5;
+
+      // Initialize PPP
+      error = pppInit(&pppContext, &pppSettings);
+      // Any error to report?
+      if (error)
+      {
+        // Debug message
+        TRACE_ERROR_F(F("Failed to initialize PPP!\r\n"));
+        Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
+        break;
+      }
+
+      // Set interface name
+      netSetInterfaceName(interface, INTERFACE_0_NAME);
+      // Select the relevant UART driver
+      netSetUartDriver(interface, &uartDriver);
+
+      // Initialize network interface
+      error = netConfigInterface(interface);
+      // Any error to report?
+      if (error)
+      {
+        // Debug message
+        TRACE_ERROR_F(F("Failed to configure interface %s!\r\n"), interface->name);
+        Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
+        break;
+      }
+
+      sim7600 = SIM7600(interface, PIN_GSM_EN_POW, PIN_GSM_PW_KEY, PIN_GSM_RI);
+
+      TRACE_VERBOSE_F(F("MODEM_STATE_INIT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      state = MODEM_STATE_WAIT_NET_EVENT;
+      break;
+
+    case MODEM_STATE_WAIT_NET_EVENT:
+      // wait connection request
+      if (param.systemRequestQueue->Dequeue(&request, portMAX_DELAY))
+      {
+        // do connection
+        if (request.connection.do_connect)
+        {
+          TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
+          state = MODEM_STATE_SWITCH_ON;
+        }
+        else if (request.connection.do_disconnect)
+        {
+          TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_DISCONNECT\r\n"));
+          state = MODEM_STATE_DISCONNECT;
+        }
+        else
+        {
+          TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> ??? Condizione non gestita!!!\r\n"));
+          Thread::Suspend();
+        }
+      }
+      // do something else with non-blocking wait ....
+      break;
+
+    case MODEM_STATE_SWITCH_ON:
+      status = sim7600.switchOn();
+      Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_SWITCH_OFF;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_SETUP\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_END\r\n"));
+      }
+      // Wait...
+      break;
+
+    case MODEM_STATE_SETUP:
+      // status = sim7600.setup();
+      Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_CONFIGURE;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_CONFIGURE\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_END\r\n"));
+      }
+      break;
+    
+    case MODEM_STATE_CONFIGURE:
+      Thread::Suspend();
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_CONNECT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONFIGURE -> MODEM_STATE_CONNECT\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONFIGURE -> MODEM_STATE_END\r\n"));
+      }
+    break;
+
+    case MODEM_STATE_CONNECT:
+      // status = sim7600.connect("internet.wind");
+      // Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_WAIT_NET_EVENT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
+      }
+      break;
+
+    case MODEM_STATE_DISCONNECT:
+      // status = sim7600.disconnect();
+      // Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_SWITCH_OFF;
+        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_END\r\n"));
+      }
+      break;
+
+    case MODEM_STATE_SWITCH_OFF:
+      status = sim7600.switchOff();
+      Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+
+      if (status == SIM7600_OK)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_OFF -> MODEM_STATE_END\r\n"));
+      }
+      else if (status == SIM7600_ERROR)
+      {
+        state = MODEM_STATE_END;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_OFF -> MODEM_STATE_END\r\n"));
+      }
+      break;
+
+    case MODEM_STATE_END:
+      Thread::Suspend();
+      state = MODEM_STATE_WAIT_NET_EVENT;
+      TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      break;
     }
-    if (Serial.available())
-    {
-      Serial2.write(Serial.read());
-    }
-    // DelayUntil(Ticks::MsToTicks(1));
-    // switch (state)
-    // {
-    // case MODEM_STATE_INIT:
-    //   TRACE_INFO_F(F("Modem %s\r\n"), "TASK");
-    //   Thread::Suspend();
-    //   // // Set interface name
-    //   // netSetInterfaceName(ModemParam.interface, APP_IF_NAME);
-    //   // // Set host name
-    //   // netSetHostname(ModemParam.interface, APP_HOST_NAME);
-    //   // // Set host MAC address
-    //   // macStringToAddr(APP_MAC_ADDR, &ModemParam.macAddr);
-    //   // netSetMacAddr(ModemParam.interface, &ModemParam.macAddr);
-    //   // // Select the relevant spi driver
-    //   // netSetSpiDriver(ModemParam.interface, &spiDriver);
-    //   // // Select the relevant ext int driver
-    //   // // netSetExtIntDriver(ModemParam.interface, &extIntDriver);
-    //   // // Select the relevant network adapter
-    //   // netSetDriver(ModemParam.interface, &enc28j60Driver);
-
-    //   // // Initialize network interface
-    //   // error = netConfigInterface(ModemParam.interface);
-    //   // // Any error to report?
-    //   // if (error) {
-    //   //   // Debug message
-    //   //   TRACE_ERROR("Failed to configure interface %s!\r\n", ModemParam.interface->name);
-    //   // }
-
-    //   // #if (IPV4_SUPPORT == ENABLED)
-    //   // #if (APP_USE_DHCP_CLIENT == ENABLED)
-    //   // // Get default settings
-    //   // dhcpClientGetDefaultSettings(&ModemParam.dhcpClientSettings);
-    //   // // Set the network interface to be configured by DHCP
-    //   // ModemParam.dhcpClientSettings.interface = ModemParam.interface;
-    //   // // Disable rapid commit option
-    //   // ModemParam.dhcpClientSettings.rapidCommit = FALSE;
-
-    //   // // DHCP client initialization
-    //   // error = dhcpClientInit(&ModemParam.dhcpClientContext, &ModemParam.dhcpClientSettings);
-    //   // // Failed to initialize DHCP client?
-    //   // if (error)
-    //   // {
-    //   //   // Debug message
-    //   //   TRACE_ERROR("Failed to initialize DHCP client!\r\n");
-    //   // }
-
-    //   // // Start DHCP client
-    //   // error = dhcpClientStart(&ModemParam.dhcpClientContext);
-    //   // // Failed to start DHCP client?
-    //   // if (error)
-    //   // {
-    //   //   // Debug message
-    //   //   TRACE_ERROR("Failed to start DHCP client!\r\n");
-    //   // }
-    //   // #else
-    //   // // Set IPv4 host address
-    //   // ipv4StringToAddr(APP_IPV4_HOST_ADDR, &ModemParam.ipv4Addr);
-    //   // ipv4SetHostAddr(ModemParam.interface, ModemParam.ipv4Addr);
-
-    //   // // Set subnet mask
-    //   // ipv4StringToAddr(APP_IPV4_SUBNET_MASK, &ModemParam.ipv4Addr);
-    //   // ipv4SetSubnetMask(ModemParam.interface, ModemParam.ipv4Addr);
-
-    //   // // Set default gateway
-    //   // ipv4StringToAddr(APP_IPV4_DEFAULT_GATEWAY, &ModemParam.ipv4Addr);
-    //   // ipv4SetDefaultGateway(ModemParam.interface, ModemParam.ipv4Addr);
-
-    //   // // Set primary and secondary DNS servers
-    //   // ipv4StringToAddr(APP_IPV4_PRIMARY_DNS, &ModemParam.ipv4Addr);
-    //   // ipv4SetDnsServer(ModemParam.interface, 0, ModemParam.ipv4Addr);
-    //   // ipv4StringToAddr(APP_IPV4_SECONDARY_DNS, &ModemParam.ipv4Addr);
-    //   // ipv4SetDnsServer(ModemParam.interface, 1, ModemParam.ipv4Addr);
-    //   // #endif
-    //   // #endif
-
-    //   // #if (IPV6_SUPPORT == ENABLED)
-    //   // #if (APP_USE_SLAAC == ENABLED)
-    //   // // Get default settings
-    //   // slaacGetDefaultSettings(&ModemParam.slaacSettings);
-    //   // // Set the network interface to be configured
-    //   // ModemParam.slaacSettings.interface = ModemParam.interface;
-
-    //   // // SLAAC initialization
-    //   // error = slaacInit(&ModemParam.slaacContext, &ModemParam.slaacSettings);
-    //   // // Failed to initialize SLAAC?
-    //   // if (error)
-    //   // {
-    //   //   // Debug message
-    //   //   TRACE_ERROR("Failed to initialize SLAAC!\r\n");
-    //   // }
-
-    //   // // Start IPv6 address autoconfiguration process
-    //   // error = slaacStart(&ModemParam.slaacContext);
-    //   // // Failed to start SLAAC process?
-    //   // if (error)
-    //   // {
-    //   //   // Debug message
-    //   //   TRACE_ERROR("Failed to start SLAAC!\r\n");
-    //   // }
-    //   // #else
-    //   // // Set link-local address
-    //   // ipv6StringToAddr(APP_IPV6_LINK_LOCAL_ADDR, &ModemParam.ipv6Addr);
-    //   // ipv6SetLinkLocalAddr(ModemParam.interface, &ModemParam.ipv6Addr);
-
-    //   // // Set IPv6 prefix
-    //   // ipv6StringToAddr(APP_IPV6_PREFIX, &ModemParam.ipv6Addr);
-    //   // ipv6SetPrefix(ModemParam.interface, 0, &ModemParam.ipv6Addr, APP_IPV6_PREFIX_LENGTH);
-
-    //   // // Set global address
-    //   // ipv6StringToAddr(APP_IPV6_GLOBAL_ADDR, &ModemParam.ipv6Addr);
-    //   // ipv6SetGlobalAddr(ModemParam.interface, 0, &ModemParam.ipv6Addr);
-
-    //   // // Set default router
-    //   // ipv6StringToAddr(APP_IPV6_ROUTER, &ModemParam.ipv6Addr);
-    //   // ipv6SetDefaultRouter(ModemParam.interface, 0, &ModemParam.ipv6Addr);
-
-    //   // // Set primary and secondary DNS servers
-    //   // ipv6StringToAddr(APP_IPV6_PRIMARY_DNS, &ModemParam.ipv6Addr);
-    //   // ipv6SetDnsServer(ModemParam.interface, 0, &ModemParam.ipv6Addr);
-    //   // ipv6StringToAddr(APP_IPV6_SECONDARY_DNS, &ModemParam.ipv6Addr);
-    //   // ipv6SetDnsServer(ModemParam.interface, 1, &ModemParam.ipv6Addr);
-    //   // #endif
-    //   // #endif
-
-    //   state = MODEM_STATE_EVENT_HANDLER;
-    //   break;
-
-    //   case MODEM_STATE_EVENT_HANDLER:
-    //     // // Thread::Suspend();
-    //     // enc28j60IrqHandler(ModemParam.interface);
-    //     // Delay(Ticks::MsToTicks(ModemParam.tickHandlerMs));
-    //   break;
-
-    //   case MODEM_STATE_END:
-    //   break;
-    //   }
   }
 }
 

@@ -16,6 +16,7 @@
   */
 /* USER CODE END Header */
 #include "config.h"
+#include "stima_config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include "STM32FreeRTOSConfig_extra.h"
@@ -196,7 +197,7 @@ extern QSPI_HandleTypeDef hqspi;
 #define PIN_GSM_EN_POW  PIN_UP27_PD4
 #define PIN_GSM_RX0     PIN_UP27_PD0    // PIN_UART2_RX
 #define PIN_GSM_TX0     PIN_UP27_PD1    // PIN_UART2_TX
-#define PIN_7600E_RI    PIN_UP27_PD2
+#define PIN_GSM_RI      PIN_UP27_PD2
 
 // CLOCK
 #define PIN_SWDIO       PA13

@@ -45,14 +45,14 @@ void print_debug_array(const char *prepend, const void *data, size_t length)
       // Beginning of a new line?
       if ((i % 16) == 0)
       {
-         print_debug("%s", prepend);
+         TRACE_PRINTF("%s", prepend);
       }
       // Display current data byte
-      print_debug("%02" PRIX8 " ", *((uint8_t *)data + i));
+      TRACE_PRINTF("%02" PRIX8 " ", *((const uint8_t *)data + i));
       // End of current line?
       if ((i % 16) == 15 || i == (length - 1))
       {
-         print_debug("\r\n");
+         TRACE_PRINTF("\r\n");
       }
    }
 }

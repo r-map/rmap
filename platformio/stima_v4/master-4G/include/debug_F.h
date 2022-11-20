@@ -31,7 +31,7 @@ void print_debug_F(const __FlashStringHelper *fmt, ...);
 
 //Trace output redirection
 #ifndef TRACE_PRINTF_F
-#define TRACE_PRINTF_F(...) print_debug_F(__VA_ARGS__)
+#define TRACE_PRINTF_F(...) osSuspendAllTasks(), print_debug_F(__VA_ARGS__), osResumeAllTasks()
 #endif
 
 //Debugging macros
@@ -73,7 +73,7 @@ void print_debug_F(const __FlashStringHelper *fmt, ...);
 
 //C++ guard
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 // C++ guard

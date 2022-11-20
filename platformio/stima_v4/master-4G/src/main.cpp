@@ -1,3 +1,26 @@
+/**@file main.cpp */
+
+/*********************************************************************
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+authors:
+Marco Baldinetti <marco.baldinetti@alling.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
+**********************************************************************/
+
 #define TRACE_LEVEL STIMA_TRACE_LEVEL
 
 #include "main.h"
@@ -7,26 +30,15 @@ void setup() {
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
-  init_debug(115200);
+  init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
   init_pins();
   init_tasks();
   init_sensors();
-  init_net();
+  init_net(&yarrowContext, seed, sizeof(seed));
   // init_sdcard();
   // init_registers();
   // init_can();
-
-  // uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  // uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-  // BSP_QSPI_Init();
-  // read[0] = 1;
-  // hqspi.State = HAL_QSPI_STATE_READY;
-  // while (BSP_QSPI_GetStatus() != QSPI_OK);
-  // BSP_QSPI_Erase_Block(0);
-  // BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
-  // BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -34,15 +46,23 @@ void setup() {
 
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
+  supervisorParam.system_status = &system_status;
 #if (ENABLE_I2C2)
   supervisorParam.wire = &Wire2;
   supervisorParam.wireLock = wire2Lock;
 #endif
   supervisorParam.configurationLock = configurationLock;
+  supervisorParam.systemStatusLock = systemStatusLock;
+  supervisorParam.systemStatusQueue = systemStatusQueue;
+  supervisorParam.systemRequestQueue = systemRequestQueue;
+  supervisorParam.systemResponseQueue = systemResponseQueue;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   ModemParam_t modemParam;
-  modemParam.interface = &netInterface[0];
+  modemParam.configuration = &configuration;
+  modemParam.systemStatusQueue = systemStatusQueue;
+  modemParam.systemRequestQueue = systemRequestQueue;
+  modemParam.systemResponseQueue = systemResponseQueue;
 #endif
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
@@ -60,19 +80,22 @@ void loop() {
 
 void init_pins()
 {
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  pinMode(PIN_GSM_EN_POW, OUTPUT);
-  pinMode(PIN_GSM_PW_KEY, OUTPUT);
-  pinMode(PIN_7600E_RI, INPUT);
-
-  digitalWrite(PIN_GSM_EN_POW, LOW);
-  digitalWrite(PIN_GSM_PW_KEY, LOW);
-#endif
 }
 
 void init_tasks()
 {
+  memset(&configuration, 0, sizeof(configuration_t));
+  memset(&system_status, 0, sizeof(system_status_t));
+
   configurationLock = new BinarySemaphore(true);
+  systemStatusLock = new BinarySemaphore(true);
+
+  systemStatusQueue = new Queue(SYSTEM_STATUS_QUEUE_LENGTH, sizeof(system_status_t));
+
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM) || (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH))
+  systemRequestQueue = new Queue(SYSTEM_REQUEST_QUEUE_LENGTH, sizeof(system_request_t));
+  systemResponseQueue = new Queue(SYSTEM_RESPONSE_QUEUE_LENGTH, sizeof(system_response_t));
+#endif
 }
 
 void init_sensors()
@@ -94,7 +117,8 @@ void init_wire()
 #endif
 }
 
-void init_net() {
+bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
+{
   error_t error = NO_ERROR;
 
   // Initialize hardware cryptographic accelerator
@@ -103,40 +127,47 @@ void init_net() {
   if (error)
   {
     // Debug message
-    TRACE_ERROR("Failed to initialize hardware crypto accelerator!\r\n");
+    TRACE_ERROR_F(F("Failed to initialize hardware crypto accelerator!\r\n"));
+    return error;
   }
 
-  //Generate a random seed
-   error = trngGetRandomData(seed, sizeof(seed));
-   //Any error to report?
-   if (error)
-   {
-      //Debug message
-      TRACE_ERROR("Failed to generate random data!\r\n");
-   }
+  // Generate a random seed
+  error = trngGetRandomData(seed, seed_length);
+  // Any error to report?
+  if (error)
+  {
+    // Debug message
+    TRACE_ERROR_F(F("Failed to generate random data!\r\n"));
+    return error;
+  }
 
-   //PRNG initialization
-   error = yarrowInit(&yarrowContext);
-   //Any error to report?
-   if (error)
-   {
-      //Debug message
-      TRACE_ERROR("Failed to initialize PRNG!\r\n");
-   }
+  // PRNG initialization
+  error = yarrowInit(yarrowContext);
+  // Any error to report?
+  if (error)
+  {
+    // Debug message
+    TRACE_ERROR_F(F("Failed to initialize PRNG!\r\n"));
+    return error;
+  }
 
-   //Properly seed the PRNG
-   error = yarrowSeed(&yarrowContext, seed, sizeof(seed));
-   //Any error to report?
-   if (error)
-   {
-      //Debug message
-      TRACE_ERROR("Failed to seed PRNG!\r\n");
-   }
+  // Properly seed the PRNG
+  error = yarrowSeed(yarrowContext, seed, seed_length);
+  // Any error to report?
+  if (error)
+  {
+    // Debug message
+    TRACE_ERROR_F(F("Failed to seed PRNG!\r\n"));
+    return error;
+  }
 
   // // TCP/IP stack initialization
   error = netInit();
   if (error)
   {
-    TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
+    TRACE_ERROR_F(F("Failed to initialize TCP/IP stack!\r\n"));
+    return error;
   }
+
+  return error;
 }
