@@ -24,9 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include "hardware_config.h"
 #include "sensors_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
 
 /*********************************************************************
 * MODULE

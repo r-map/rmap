@@ -51,10 +51,10 @@ void setup() {
 
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
-#if (ENABLE_I2C2)
+  #if (ENABLE_I2C2)
   supervisorParam.wire = &Wire2;
   supervisorParam.wireLock = wire2Lock;
-#endif
+  #endif
   supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
