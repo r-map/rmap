@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include "rmap_utility.h"
+#include "stima_utility.h"
 
 void getStimaNameByType(char *name, uint8_t type) {
   switch (type) {

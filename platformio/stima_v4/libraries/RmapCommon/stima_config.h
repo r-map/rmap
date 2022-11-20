@@ -1,4 +1,4 @@
-/**@file rmap_utility.h */
+/**@file stima_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,11 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _STIMA_H
-#define _STIMA_H
-
-#include <cstdint>
-#include <cstring>
+#ifndef _STIMA_CONFIG_H
+#define _STIMA_CONFIG_H
 
 /*!
 \def CONFIGURATION_CURRENT
@@ -158,14 +155,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief The module'name for acquiring radiation sensor.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("i2c-radiation")
-
-/*!
-\fn void getStimaNameByType(char *name, uint8_t type)
-\brief Return a STIMA's name starting from a module type stored in configuration.
-\param[out] *name STIMA's name.
-\param[in] *type module type stored in configuration.
-\return void.
-*/
-void getStimaNameByType(char *name, uint8_t type);
 
 #endif
