@@ -92,11 +92,17 @@ void loop() {
 
     // I2C Bus Check
     if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-      LOGE(F("Restart I2C BUS"));
+      LOGE(F("Restart I2C BUS by errorcount"));
       init_wire();
       wdt_reset();
     }
-    
+
+    if (i2c_time >= I2C_MAX_TIME) {
+      LOGN(F("Restart I2C BUS"));
+      init_wire();
+      wdt_reset();
+    }
+
     noInterrupts();
     if (ready_tasks_count == 0) {
       wdt_reset();
@@ -265,6 +271,7 @@ void init_pins() {
 
 void init_wire() {
   i2c_error = 0;
+  i2c_time = 0;  
   Wire.end();
   Wire.begin(configuration.i2c_address);
   Wire.setClock(I2C_BUS_CLOCK);
@@ -291,7 +298,6 @@ void start_timer() {
   TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
-  timer_counter_s = 0;
   timer_counter_ms = 0;
   TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
@@ -383,7 +389,7 @@ void load_configuration() {
   wdt_reset();
   
   if (!configuration.is_oneshot) {
-    LOGN(F("--> samples every %d ms: "),SENSORS_SAMPLE_TIME_MS);
+    LOGN(F("--> samples every %d ms"),SENSORS_SAMPLE_TIME_MS);
   }
   
   wdt_reset();
@@ -398,11 +404,6 @@ void load_configuration() {
 
 void init_sensors () {
   if (!configuration.is_oneshot) {
-    LOGN(F("--> acquiring %d~%d samples in %d minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
-    LOGN(F("--> max %d samples error in %d minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
-    LOGN(F("--> max %d samples error in 10 minutes"), WMO_REPORT_SAMPLE_ERROR_MAX);
-    LOGN(F("--> max %d samples error in %d minutes (report)"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-
     #if (USE_SENSOR_GWS)
     LOGN(F("sc: speed sample count"));
     LOGN(F("dc: direction sample count"));
@@ -446,16 +447,11 @@ void init_sensors () {
 ISR(TIMER1_OVF_vect) {
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
+  i2c_time+=TIMER1_INTERRUPT_TIME_MS/1000;
   
   //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
   timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
-  timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
   
-  // if ((timer_counter_s >= I2C_DELAY_FOR_SET_I2C_ERROR_S) && (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT))) {
-  //if (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT)) {
-  i2c_error++;
-  //}
-
   if (inside_transaction) {
     //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
     transaction_time += TIMER1_INTERRUPT_TIME_MS;
@@ -468,10 +464,8 @@ ISR(TIMER1_OVF_vect) {
   
 #if (USE_SENSOR_DES)
   if (executeTimerTaskEach(timer_counter_ms, SENSORS_ACQ_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
-    noInterrupts();
     wind_speed = wind_speed_count;
     wind_speed_count = 0;
-    interrupts();
   }
 #endif
 
@@ -486,10 +480,8 @@ ISR(TIMER1_OVF_vect) {
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
   if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
     if (!is_event_wind_task) {
-      noInterrupts();
       is_event_wind_task = true;
       ready_tasks_count++;
-      interrupts();
     }
   }
 #endif
@@ -499,9 +491,6 @@ ISR(TIMER1_OVF_vect) {
     timer_counter_ms = 0;
   }
   
-  if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
-    timer_counter_s = 0;
-  }
 }
 
 void i2c_request_interrupt_handler() {
@@ -588,6 +577,15 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   }
 }
 
+// reset of buffer (no data) setting all data to missing
+template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
+  memset(buffer->value, UINT8_MAX, length * sizeof(value_v));
+  buffer->count = 0;
+  buffer->read_ptr = buffer->value;
+  buffer->write_ptr = buffer->value;
+}
+
+// legge dato puntato e incrementa puntatore
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length) {
   value_v value = *buffer->read_ptr;
 
@@ -599,6 +597,7 @@ template<typename buffer_g, typename length_v, typename value_v> value_v bufferR
   return value;
 }
 
+// legge dato puntato e decrementa puntatore
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length) {
   value_v value = *buffer->read_ptr;
 
@@ -610,14 +609,8 @@ template<typename buffer_g, typename length_v, typename value_v> value_v bufferR
   return value;
 }
 
-template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value) {
-  *buffer->write_ptr = value;
-}
 
-template<typename buffer_g> void bufferPtrReset(buffer_g *buffer) {
-  buffer->read_ptr = buffer->value;
-}
-
+// setta il puntatore di lettura sul dato ultimo scritto
 template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length) {
   if (buffer->write_ptr == buffer->value) {
     buffer->read_ptr = buffer->value+length-1;
@@ -625,6 +618,7 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
   else buffer->read_ptr = buffer->write_ptr-1;
 }
 
+// used by addValue
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length) {
   if (buffer->count < length) {
     buffer->count++;
@@ -635,13 +629,7 @@ template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *bu
   } else buffer->write_ptr = buffer->value;
 }
 
-template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
-  memset(buffer->value, UINT8_MAX, length * sizeof(value_v));
-  buffer->count = 0;
-  buffer->read_ptr = buffer->value;
-  buffer->write_ptr = buffer->value;
-}
-
+// add a value at the end of the circular buffer
 template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value) {
   *buffer->write_ptr = (value_v) value;
   incrementBuffer<buffer_g, length_v>(buffer, length);
@@ -661,25 +649,17 @@ void getSDFromUV (float u, float v, float *speed, float *direction) {
   }
 }
 
-#define calcFrequencyPercent(classx, count)   (classx / count * 100.0)
-
 void make_report  (bool init) {
-  
-  static uint16_t valid_count_a;
-  static uint16_t error_count_a;
 
-  static uint16_t valid_count_b;
-  static uint16_t error_count_b;
+  static uint16_t valid_count;
+  static uint16_t error_count;
 
   static uint16_t valid_count_speed;
   static uint16_t error_count_speed;
 
-  static uint16_t valid_count_o;
-  static uint16_t error_count_o;
-
-  static uint16_t valid_count_c;
-  static uint16_t error_count_c;
-
+  static uint16_t valid_count_direction;
+  static uint16_t error_count_direction;
+  
   static float ua;
   static float va;
 
@@ -706,40 +686,25 @@ void make_report  (bool init) {
 
   static float avg_speed;
 
-  static float class_1;
-  static float class_2;
-  static float class_3;
-  static float class_4;
-  static float class_5;
-  static float class_6;
-
-  uint16_t sample_count = RMAP_REPORT_SAMPLES_COUNT;
+  static uint16_t class_1_count;
+  static uint16_t class_2_count;
+  static uint16_t class_3_count;
+  static uint16_t class_4_count;
+  static uint16_t class_5_count;
+  static uint16_t class_6_count;
 
   if (init) {
-  
-    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-    bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, SAMPLES_COUNT);
-    #endif
 
-    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-    bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, SAMPLES_COUNT);
-    #endif
+    reset_samples_buffer();
 
+    valid_count = 0;
+    error_count = 0;
 
-    valid_count_a = 0;
-    error_count_a = 0;
-    
-    valid_count_b = 0;
-    error_count_b = 0;
-    
     valid_count_speed = 0;
     error_count_speed = 0;
     
-    valid_count_o = 0;
-    error_count_o = 0;
-
-    valid_count_c = 0;
-    error_count_c = 0;
+    valid_count_direction = 0;
+    error_count_direction = 0;
 
     ua = 0;
     va = 0;
@@ -767,196 +732,167 @@ void make_report  (bool init) {
     
     avg_speed = 0;
     
-    class_1 = 0;
-    class_2 = 0;
-    class_3 = 0;
-    class_4 = 0;
-    class_5 = 0;
-    class_6 = 0;
+    class_1_count = 0;
+    class_2_count = 0;
+    class_3_count = 0;
+    class_4_count = 0;
+    class_5_count = 0;
+    class_6_count = 0;
   }
 
-
+  uint16_t speed=UINT16_MAX;
+  uint16_t direction=UINT16_MAX;
+  
   #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-  if (wind_speed_samples.count < sample_count) {
-    sample_count = wind_speed_samples.count;
-  }
+  speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
-  
+
   #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-  if (wind_direction_samples.count < sample_count) {
-    sample_count = wind_direction_samples.count;
-  }
-  #endif
+  direction = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  #endif    
+
+  LOGN(F("bufferreadback data: %d , %d"),speed,direction);
   
-  #if (USE_SENSORS_COUNT == 0)
-  sample_count = 0;
-  #endif
-
-  LOGN(F("sample count: %d"), sample_count);
-  
-  for (uint16_t i = 0; i < sample_count; i++) {
-    bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT_MAX) == 0);
-    
-    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-    float speed = bufferReadBack<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT);
-
-    if (speed < CALM_WIND_MAX_MS) {
-      speed = WIND_SPEED_MIN;
-    }
-    #endif
-
-    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-    float direction = bufferReadBack<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT);
-
-    if (speed < CALM_WIND_MAX_MS) {
-      direction = WIND_DIRECTION_MIN;
-    }
-    #endif
-
-    if (i == 0) {
-      #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-      LOGN(F("%d\t%d\t%D\t%D"), wind_speed_samples.count, wind_direction_samples.count, speed, direction);
-      #elif (USE_SENSOR_DES)
-      LOGN(F("%d\t%D"), wind_speed_samples.count, speed);
-      #elif (USE_SENSOR_DED)
-      LOGN(F("%d\t%D"), wind_direction_samples.count, direction);
-      #endif
-    }
-
-    #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-    if (i < WMO_REPORT_SAMPLES_COUNT) {
-      if (ISVALID(speed) && ISVALID(direction)) {
-        valid_count_a++;
-        ua += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count_a;
-        va += ((float) (-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count_a;
-      }
-      else {
-        error_count_a++;
-      }
-    }
-
-    if (ISVALID(speed) && ISVALID(direction)) {
-      valid_count_b++;
-      valid_count_c++;
-
-      ub += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ub) / valid_count_b;
-      vb += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vb) / valid_count_b;
-
-      uc += ((float) (-speed * sin(DEG_TO_RAD * direction)) - uc) / valid_count_c;
-      vc += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vc) / valid_count_c;
-
-      if (speed >= peak_gust_speed) {
-        peak_gust_speed = speed;
-        peak_gust_direction = direction;
-      }
-    }
-    else {
-      error_count_b++;
-      error_count_c++;
-    }
-    #endif
-
-    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-    if (ISVALID(speed)) {
-      valid_count_speed++;
+  if (ISVALID(speed)) {
+    valid_count_speed++;
+    if (speed < CALM_WIND_MAX_MS*100.) {
+      speed = WIND_SPEED_MIN*100.;
+      
       avg_speed += (speed - avg_speed) / valid_count_speed;
-
-      if (speed < WIND_CLASS_1_MAX) {
-        class_1++;
+      
+      if (speed < WIND_CLASS_1_MAX*100.) {
+	class_1_count++;
       }
-      else if (speed < WIND_CLASS_2_MAX) {
-        class_2++;
+      else if (speed < WIND_CLASS_2_MAX*100.) {
+	class_2_count++;
       }
-      else if (speed < WIND_CLASS_3_MAX) {
-        class_3++;
+      else if (speed < WIND_CLASS_3_MAX*100.) {
+	class_3_count++;
       }
-      else if (speed < WIND_CLASS_4_MAX) {
-        class_4++;
+      else if (speed < WIND_CLASS_4_MAX*100.) {
+	class_4_count++;
       }
-      else if (speed < WIND_CLASS_5_MAX) {
-        class_5++;
+      else if (speed < WIND_CLASS_5_MAX*100.) {
+	class_5_count++;
       }
       else {
-        class_6++;
+	class_6_count++;
       }
-    }
-    else {
+      
+    }else{
       error_count_speed++;
     }
-    #endif
+  }
 
-    #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-    if (is_new_observation) {
-      if (valid_count_c && (error_count_c <= OBSERVATION_SAMPLE_ERROR_MAX)) {
-        valid_count_o++;
-        getSDFromUV(uc, vc, &vavg_speed_o, &vavg_direction_o);
+  if (ISVALID(direction)) {
+    valid_count_direction++;      
+  }else{
+    error_count_direction++;
+  }
 
-        if (vavg_speed_o >= long_gust_speed) {
-          long_gust_speed = vavg_speed_o;
-          long_gust_direction = vavg_direction_o;
-        }
-      }
-      else {
-        error_count_o++;
-      }
+  if (ISVALID(speed) && ISVALID(direction)) {
+    valid_count++;
+      
+    ua += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count;
+    va += ((float) (-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count;
+    
+    ub += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ub) / valid_count;
+    vb += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vb) / valid_count;
+    
+    uc += ((float) (-speed * sin(DEG_TO_RAD * direction)) - uc) / valid_count;
+    vc += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vc) / valid_count;
+    
+    if (speed >= peak_gust_speed) {
+      peak_gust_speed = speed;
+      peak_gust_direction = direction;
+    }
 
-      uc = 0;
-      vc = 0;
-      vavg_speed_o = 0;
-      vavg_direction_o = 0;
-      valid_count_c = 0;
-      error_count_c = 0;
+    getSDFromUV(uc, vc, &vavg_speed_o, &vavg_direction_o);
+  
+    if (vavg_speed_o >= long_gust_speed) {
+      long_gust_speed = vavg_speed_o;
+      long_gust_direction = vavg_direction_o;
+    }
+  } else {
+    error_count++;
+  }
+
+  uint16_t count = valid_count+error_count;
+  
+  // elaborate WMO wind (mean in the last period)
+  
+  for (uint16_t i = 0; i < count; i++) {  
+    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
+    speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+    
+    if (speed < CALM_WIND_MAX_MS*100.) {
+      speed = WIND_SPEED_MIN*100.;
     }
     #endif
-  }
+    
+    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
+    direction = bufferReadBack<sample_t, uint16_t, float>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+    
+    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
+    if (speed < CALM_WIND_MAX_MS*100.) {
+      direction = WIND_DIRECTION_MIN*100.;
+    }
+    #endif
 
-  #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-  if ((valid_count_a >= WMO_REPORT_SAMPLE_VALID_MIN) && (error_count_a <= WMO_REPORT_SAMPLE_ERROR_MAX)) {
-    getSDFromUV(ua, va, &vavg10_speed, &vavg10_direction);
-    readable_data_write_ptr->wind.vavg10_speed = vavg10_speed;
-    readable_data_write_ptr->wind.vavg10_direction = round(vavg10_direction);
-  }
+    // TODO
 
-  if ((valid_count_b >= RMAP_REPORT_SAMPLE_VALID_MIN) && (error_count_b <= RMAP_REPORT_SAMPLE_ERROR_MAX)) {
-    getSDFromUV(ub, vb, &vavg_speed, &vavg_direction);
-    readable_data_write_ptr->wind.vavg_speed = vavg_speed;
-    readable_data_write_ptr->wind.vavg_direction = round(vavg_direction);
-    readable_data_write_ptr->wind.peak_gust_speed = peak_gust_speed;
-    readable_data_write_ptr->wind.peak_gust_direction = round(peak_gust_direction);
-  }
-
-  if ((valid_count_o >= RMAP_REPORT_VALID_MIN) && (error_count_o <= RMAP_REPORT_ERROR_MAX)) {
-    readable_data_write_ptr->wind.long_gust_speed = long_gust_speed;
-    readable_data_write_ptr->wind.long_gust_direction = round(long_gust_direction);
   }
   #endif
+  
+  if (count > ((RMAP_REPORT_SAMPLE_MIN_TIME*1000Lu)/SENSORS_SAMPLE_TIME_MS)){
+    if((float(error_count) / float(count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
+      
+      uint8_t class_1 = round(float(class_1_count) / float(count));
+      uint8_t class_2 = round(float(class_2_count) / float(count));
+      uint8_t class_3 = round(float(class_3_count) / float(count));
+      uint8_t class_4 = round(float(class_4_count) / float(count));
+      uint8_t class_5 = round(float(class_5_count) / float(count));
+      uint8_t class_6 = round(float(class_6_count) / float(count));
+      
+      // write in readable registers
+    
+      #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
+      getSDFromUV(ua, va, &vavg10_speed, &vavg10_direction);
+      readable_data_write_ptr->wind.vavg10_speed = vavg10_speed/100.;
+      readable_data_write_ptr->wind.vavg10_direction = round(vavg10_direction);
+      
+      getSDFromUV(ub, vb, &vavg_speed, &vavg_direction);
+      readable_data_write_ptr->wind.vavg_speed = vavg_speed/100.;
+      readable_data_write_ptr->wind.vavg_direction = round(vavg_direction);
+      readable_data_write_ptr->wind.peak_gust_speed = peak_gust_speed/100.;
+      readable_data_write_ptr->wind.peak_gust_direction = round(peak_gust_direction);
+      
+      readable_data_write_ptr->wind.long_gust_speed = long_gust_speed/100.;
+      readable_data_write_ptr->wind.long_gust_direction = round(long_gust_direction);
+      #endif
+      
+      #if (USE_SENSOR_DES || USE_SENSOR_GWS)
+      readable_data_write_ptr->wind.avg_speed = avg_speed/100.;
+      readable_data_write_ptr->wind.class_1 = class_1;
+      readable_data_write_ptr->wind.class_2 = class_2;
+      readable_data_write_ptr->wind.class_3 = class_3;
+      readable_data_write_ptr->wind.class_4 = class_4;
+      readable_data_write_ptr->wind.class_5 = class_5;
+      readable_data_write_ptr->wind.class_6 = class_6;
+      #endif
 
-  #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-  if ((valid_count_speed >= RMAP_REPORT_SAMPLE_VALID_MIN) && (error_count_speed <= RMAP_REPORT_SAMPLE_ERROR_MAX)) {
-    class_1 = calcFrequencyPercent(class_1, valid_count_speed);
-    class_2 = calcFrequencyPercent(class_2, valid_count_speed);
-    class_3 = calcFrequencyPercent(class_3, valid_count_speed);
-    class_4 = calcFrequencyPercent(class_4, valid_count_speed);
-    class_5 = calcFrequencyPercent(class_5, valid_count_speed);
-    class_6 = calcFrequencyPercent(class_6, valid_count_speed);
-
-    readable_data_write_ptr->wind.avg_speed = avg_speed;
-    readable_data_write_ptr->wind.class_1 = round(class_1);
-    readable_data_write_ptr->wind.class_2 = round(class_2);
-    readable_data_write_ptr->wind.class_3 = round(class_3);
-    readable_data_write_ptr->wind.class_4 = round(class_4);
-    readable_data_write_ptr->wind.class_5 = round(class_5);
-    readable_data_write_ptr->wind.class_6 = round(class_6);
+    }else{
+      LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), valid_count,error_count);
+    }
   }
-  #endif
-
-  #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"), ua, va, readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction, ub, vb, readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction, readable_data_write_ptr->wind.avg_speed, readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction, readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction, readable_data_write_ptr->wind.class_1, readable_data_write_ptr->wind.class_2, readable_data_write_ptr->wind.class_3, readable_data_write_ptr->wind.class_4, readable_data_write_ptr->wind.class_5, readable_data_write_ptr->wind.class_6);
-  #elif (USE_SENSOR_DES)
+      
+#if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
+      LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"), ua, va, readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction, ub, vb, readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction, readable_data_write_ptr->wind.avg_speed, readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction, readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction, readable_data_write_ptr->wind.class_1, readable_data_write_ptr->wind.class_2, readable_data_write_ptr->wind.class_3, readable_data_write_ptr->wind.class_4, readable_data_write_ptr->wind.class_5, readable_data_write_ptr->wind.class_6);
+#elif (USE_SENSOR_DES)
   LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D"), readable_data_write_ptr->vavg_speed, readable_data_write_ptr->wind.class_1, readable_data_write_ptr->wind.class_2, readable_data_write_ptr->wind.class_3, readable_data_write_ptr->wind.class_4, readable_data_write_ptr->wind.class_5, readable_data_write_ptr->wind.class_6);
   #elif (USE_SENSOR_DED)
   LOGN(F("\r\n"));
-  #endif
+#endif
 }
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
@@ -980,7 +916,7 @@ void wind_speed_interrupt_handler() {
 
 float getWindSpeed (float count) {
   float value = (count / SENSORS_ACQ_TIME_MS * 1000.0 / WIND_SPEED_HZ_TURN);
-  value = value * WIND_SPEED_MAX / WIND_SPEED_HZ_MAX;
+  value = value * WIND_SPEED_MAX / WIND_SPEED_HZ_MAX *100.;
   return value;
 }
 #endif
@@ -1080,12 +1016,14 @@ void wind_task () {
     case WIND_ELABORATE:
       #if (USE_SENSOR_DED)
       wind_direction = getWindDirection(wind_direction);
-      addValue<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT, wind_direction);
+      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, wind_direction);
       #endif
 
       #if (USE_SENSOR_DES)
       wind_speed = getWindSpeed(wind_speed);
-      addValue<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT, wind_speed);
+      bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+      addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, wind_speed);
       #endif
 
       make_report();
@@ -1116,11 +1054,12 @@ void wind_task () {
 #if (USE_SENSOR_GWS)
 void wind_task () {
   static bool is_error;
+  static uint8_t error_count=0;
   static wind_state_t state_after_wait;
   static uint32_t delay_ms;
   static uint32_t start_time_ms;
-  float speed;
-  float direction;
+  uint16_t speed;
+  uint16_t direction;
 
   switch (wind_state) {
     case WIND_INIT:
@@ -1181,10 +1120,12 @@ void wind_task () {
 	}
       }
 
-      LOGN(F("windsonic data: %D , %D"),speed,direction);
+      LOGN(F("windsonic data: %d , %d"),speed,direction);
       
-      addValue<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT, speed);
-      addValue<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT, direction);
+      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, speed);
+      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, direction);
       make_report();
 
       wind_state = WIND_END;
@@ -1193,16 +1134,20 @@ void wind_task () {
 
     case WIND_END:
       if (is_error) {
-	//ATTENTION here all is blocking!
-        windPowerOff();
-	delay(1000);
-	wdt_reset();
-        windPowerOn();
-        delay(WIND_POWER_ON_DELAY_MS);
-	wdt_reset();
-	Serial1.setTimeout(500);
-	configureWindsonic();
-	Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);	
+	error_count++;
+	if (error_count >= GWS_ERROR_COUNT_MAX){
+	  error_count=0;
+	  //ATTENTION here all is blocking!
+	  windPowerOff();
+	  delay(1000);
+	  wdt_reset();
+	  windPowerOn();
+	  delay(WIND_POWER_ON_DELAY_MS);
+	  wdt_reset();
+	  Serial1.setTimeout(500);
+	  configureWindsonic();
+	  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
+	}
       }
       noInterrupts();
       is_event_wind_task = false;
@@ -1314,7 +1259,7 @@ void configureWindsonic(void){
   flush();  
 }
 
-bool windsonic_interpreter (float *speed, float *direction) {
+bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
 
   #define GWS_STX_INDEX                                   (0)
   #define GWS_ETX_INDEX                                   (19)
@@ -1346,7 +1291,6 @@ bool windsonic_interpreter (float *speed, float *direction) {
 
   uint8_t offset;
 
-  
   if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) &&
       (uart_rx_buffer[GWS_ETX_INDEX] == ETX_VALUE) &&
       (uart_rx_buffer[uart_rx_buffer_length-2] == CR_VALUE) &&
@@ -1357,7 +1301,7 @@ bool windsonic_interpreter (float *speed, float *direction) {
 
     memset(tempstr, 0, GWS_SPEED_LENGTH+1);
     strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
-    *direction = (float) atof(tempstr);
+    *direction = (uint16_t) atoi(tempstr);
 
   } else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) &&
 	     (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET] == ETX_VALUE) &&
@@ -1398,7 +1342,7 @@ bool windsonic_interpreter (float *speed, float *direction) {
   
   memset(tempstr, 0, GWS_SPEED_LENGTH+1);
   strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_SPEED_INDEX-offset), GWS_SPEED_LENGTH);
-  *speed = (float) atof(tempstr);
+  *speed = (uint16_t) (atof(tempstr)*100.);
   
   if (*direction < WIND_DIRECTION_MIN) {
     *direction = WIND_DIRECTION_MIN;
@@ -1407,9 +1351,9 @@ bool windsonic_interpreter (float *speed, float *direction) {
     *direction = UINT16_MAX;
   }
   
-  if (*speed < CALM_WIND_MAX_MS) {
+  if (*speed < CALM_WIND_MAX_MS*100.) {
     *speed = WIND_SPEED_MIN;
-  } else if (*speed > WIND_SPEED_MAX) {
+  } else if (*speed > WIND_SPEED_MAX*100.) {
     *speed = UINT16_MAX;
   }
 
@@ -1428,16 +1372,16 @@ void exchange_buffers() {
 
 void reset_samples_buffer() {
   #if (USE_SENSOR_DES)
-  bufferReset<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT);
+  bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
 
   #if (USE_SENSOR_DED)
-  bufferReset<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT);
+  bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
 
   #if (USE_SENSOR_GWS)
-  bufferReset<sample_t, uint16_t, float>(&wind_speed_samples, SAMPLES_COUNT);
-  bufferReset<sample_t, uint16_t, float>(&wind_direction_samples, SAMPLES_COUNT);
+  bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
 }
 

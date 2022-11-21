@@ -146,6 +146,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SPI_SPEED SD_SCK_MHZ(4)
 
+/*!
+\def I2C_MAX_TIME
+\brief Max i2c time in seconds before i2c restart.
+*/
+#define I2C_MAX_TIME             (180)
+
 /*********************************************************************
 * POWER DOWN
 *********************************************************************/
@@ -188,7 +194,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 
 #if (USE_SENSOR_DES || USE_SENSOR_DED)
 /*!
-\def SENSORS_SAMPLE_TIME_MS
+\def SENSORS_SAMPLE_TIME_MS<
 \brief Milliseconds for sampling sensors: 100 - 60000 [ms] must be integer multiple of TIMER1_INTERRUPT_TIME_MS !!!
 */
 #define SENSORS_ACQ_TIME_MS                             (2000)
@@ -202,52 +208,16 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #endif
 
 /*!
-\def OBSERVATION_SAMPLES_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
+\def WMO_REPORT_SAMPLES_COUNT
+\brief Sample count for generate WMO standard wind (verctorial mean in 10').
 */
-#define OBSERVATION_SAMPLES_COUNT_MIN                   ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
-
-#if ((OBSERVATIONS_MINUTES * 60) % (SENSORS_SAMPLE_TIME_MS / 1000) == 0)
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                   (OBSERVATION_SAMPLES_COUNT_MIN)
-#else
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                   (OBSERVATION_SAMPLES_COUNT_MIN + 1)
-#endif
-
-#define RMAP_REPORT_SAMPLE_VALID                        (true)
-
-#define RMAP_REPORT_SAMPLES_COUNT                       (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * OBSERVATION_SAMPLES_COUNT_MAX)
-#define WMO_REPORT_SAMPLES_COUNT                        (10 * OBSERVATION_SAMPLES_COUNT_MAX)
+#define WMO_REPORT_SAMPLES_COUNT                        (size_t)((10000L*60L)/SENSORS_SAMPLE_TIME_MS)
 
 /*!
-\def OBSERVATION_SAMPLE_ERROR_MAX
-\brief Maximum invalid sample count for generate a valid observations.
+\def GWS_ERROR_COUNT_MAX
+\brief Maximum error readeng GWS sensor before sensor reset and configuration.
 */
-#define OBSERVATION_SAMPLE_ERROR_MAX                    ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT_MAX / 2)))
-#define OBSERVATION_SAMPLE_VALID_MIN                    ((uint16_t)(OBSERVATION_SAMPLES_COUNT_MAX - OBSERVATION_SAMPLE_ERROR_MAX))
-
-#define RMAP_REPORT_SAMPLE_ERROR_MAX                    ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_ERROR_MAX))
-#define WMO_REPORT_SAMPLE_ERROR_MAX                     ((uint16_t)(10 * OBSERVATION_SAMPLE_ERROR_MAX))
-
-#if (RMAP_REPORT_SAMPLE_VALID)
-#define RMAP_REPORT_SAMPLE_VALID_MIN                    (OBSERVATION_SAMPLE_VALID_MIN)
-#define WMO_REPORT_SAMPLE_VALID_MIN                     (OBSERVATION_SAMPLE_VALID_MIN)
-#else
-#define RMAP_REPORT_SAMPLE_VALID_MIN                    ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_VALID_MIN))
-#define WMO_REPORT_SAMPLE_VALID_MIN                     ((uint16_t)(10 * OBSERVATION_SAMPLE_VALID_MIN))
-#endif
-
-#define RMAP_REPORT_ERROR_MAX                           ((uint16_t)(STATISTICAL_DATA_COUNT - 1))
-#define RMAP_REPORT_VALID_MIN                           ((uint16_t)(STATISTICAL_DATA_COUNT - RMAP_REPORT_ERROR_MAX))
-
-#define SAMPLES_COUNT                                   ((60000 / SENSORS_SAMPLE_TIME_MS * STATISTICAL_DATA_COUNT) + 10)
+#define GWS_ERROR_COUNT_MAX                             (10)
 
 #define WIND_CLASS_1_MAX                                (1.0)
 #define WIND_CLASS_2_MAX                                (2.0)
@@ -270,6 +240,19 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * SENSORS
 *********************************************************************/
+
+/*!
+\def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
+\brief Sample maximum error in percent for one observation.
+*/
+#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC             (10.)
+
+/*!
+\def RMAP_REPORT_SAMPLE_MIN_TIME
+\brief Sample minimun time for elaborate one observation (seconds).
+*/
+#define RMAP_REPORT_SAMPLE_MIN_TIME                   (60)
+
 /*!
 \def USE_SENSORS_COUNT
 \brief Sensors count.
@@ -316,7 +299,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Maximum timer1 counter value for timed tasks.
 */
 #define TIMER_COUNTER_VALUE_MAX_MS                    (SENSORS_SAMPLE_TIME_MS)
-#define TIMER_COUNTER_VALUE_MAX_S                     (60)
 
 /*********************************************************************
 * TASKS

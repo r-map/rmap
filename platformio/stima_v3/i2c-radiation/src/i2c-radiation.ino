@@ -295,7 +295,7 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-   start_timer();
+  //start_timer();
 }
 
 void start_timer() {
@@ -601,7 +601,7 @@ void make_report (bool init) {
       samples_error_count++;
     }
   }
-  LOGN("samples_count: %d ; sample: %d  ; average: %d",samples_count,sample,average);
+  LOGN("samples_count: %d; error_count: %d; sample: %d; average: %d",samples_count,samples_error_count,sample,average);
 }
 
 
@@ -688,7 +688,7 @@ void solar_radiation_task () {
 
       readable_data_write_ptr->solar_radiation.sample = sample;
 
-      if (samples_count > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
+      if (is_start && samples_count > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{
@@ -819,12 +819,12 @@ void solar_radiation_task_hr () {
 				  , configuration.adc_analog_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 
 	sample=round(value);
-	readable_data_write_ptr->solar_radiation.sample = sample;
 
       } else {
 	sample=INT16_MAX;
       }
 
+      readable_data_write_ptr->solar_radiation.sample = sample;
       LOGN(F("%D [ %s ]"), value, is_error ? ERROR_STRING : OK_STRING);
 
       
@@ -835,7 +835,7 @@ void solar_radiation_task_hr () {
     case SOLAR_RADIATION_HR_PROCESS:
 
       make_report();
-      if (samples_count > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
+      if (is_start && samples_count > ((RMAP_REPORT_SAMPLE_MIN_TIME*1000Lu)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{

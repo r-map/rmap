@@ -68,10 +68,10 @@ typedef struct {
 \brief samples data
 */
 typedef struct {
-  float value[SAMPLES_COUNT];        //!< samples buffer
+  uint16_t value[WMO_REPORT_SAMPLES_COUNT];        //!< samples buffer
   uint16_t count;                              //!< samples counter
-  float *read_ptr;                             //!< reader pointer
-  float *write_ptr;                            //!< writer pointer
+  uint16_t *read_ptr;                             //!< reader pointer
+  uint16_t *write_ptr;                            //!< writer pointer
 } sample_t;
 
 /*!
@@ -243,6 +243,12 @@ volatile uint8_t lastcommand;
 volatile uint8_t i2c_error;
 
 /*!
+\var i2c_time
+\brief Time in seconds from last I2C reset.
+*/
+volatile uint8_t i2c_time;
+
+/*!
 \var ready_tasks_count
 \brief Number of tasks ready to execute.
 */
@@ -306,17 +312,10 @@ sample_t wind_direction_samples;
 #endif
 
 /*!
-\var samples_count
-\brief Number of samples to be acquired for make one observation.
-*/
-// uint8_t samples_count;
-
-/*!
 \var timer_counter_ms
 \brief Timer counter variable for execute timed task with time multiple of base Timer1 time.
 */
 volatile uint16_t timer_counter_ms;
-volatile uint16_t timer_counter_s;
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 volatile bool is_wind_on;
@@ -324,7 +323,7 @@ volatile bool is_wind_on;
 
 #if (USE_SENSOR_DES)
 volatile uint32_t wind_speed_count;
-volatile float wind_speed;
+volatile uint16_t wind_speed;
 #endif
 
 /*!
@@ -566,7 +565,7 @@ float getWindSpeed (float count);
 void windPowerOff(void);
 void windPowerOn(void);
 void serial1_reset(void);
-bool windsonic_interpreter (float *speed, float *direction);
+bool windsonic_interpreter (uint16_t *speed, uint16_t *direction);
 
 uint16_t uart_rx_buffer_length;
 uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
