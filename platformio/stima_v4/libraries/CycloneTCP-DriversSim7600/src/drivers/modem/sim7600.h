@@ -315,43 +315,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def BER_MIN
 \brief Minimum value of BER.
 */
-#define BER_MIN                                   (0)
+#define BER_MIN                                    (0)
 
 /*!
 \def BER_MAX
 \brief Maximum value of BER.
 */
-#define BER_MAX                                   (7)
+#define BER_MAX                                    (7)
 
 /*!
 \def BER_UNKNOWN
 \brief Unknown value of BER.
 */
-#define BER_UNKNOWN                               (99)
+#define BER_UNKNOWN                                (99)
 
 /*!
-\def SIM7600_CGATT_RESPONSE_TIME_MAX_MS
-\brief Maximum CGATT AT command response time in milliseconds.
+\def SIM7600_AT_NETOPEN_RESPONSE_TIME_MAX_MS
+\brief Maximum NETOPEN AT command response time in milliseconds.
 */
-#define SIM7600_CGATT_RESPONSE_TIME_MAX_MS                (10000)
-
-/*!
-\def SIM7600_CIICR_RESPONSE_TIME_MAX_MS
-\brief Maximum CIICR AT command response time in milliseconds.
-*/
-#define SIM7600_CIICR_RESPONSE_TIME_MAX_MS                (85000)
-
-/*!
-\def SIM7600_CIPSTART_RESPONSE_TIME_MAX_MS
-\brief Maximum CIPSTART AT command response time in milliseconds.
-*/
-#define SIM7600_CIPSTART_RESPONSE_TIME_MAX_MS             (160000)
-
-/*!
-\def SIM7600_CIPSHUT_RESPONSE_TIME_MAX_MS
-\brief Maximum CIPSHUT AT command response time in milliseconds.
-*/
-#define SIM7600_CIPSHUT_RESPONSE_TIME_MAX_MS              (65000)
+#define SIM7600_AT_NETOPEN_RESPONSE_TIME_MAX_MS    (120000)
 
 /*!
 \def found(str, check)
@@ -370,12 +352,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Return IMEI of simcard.
 */
 #define getImei(imei)                                    (getGsn(imei))
-
-/*!
-\def getIp(ip)
-\brief Return IP.
-*/
-#define getIp(ip)                                        (getCifsr(ip))
 
 /*!
 \def isGprsAttached(is_attached)
@@ -434,18 +410,16 @@ typedef enum {
 \enum sim7600_connection_start_state_t
 \brief Main loop finite state machine.
 */
-typedef enum {
-   SIM7600_CONNECTION_START_INIT,                      //!< init task variables
-   SIM7600_CONNECTION_START_CHECK_GPRS,                //!< check if sim7600 is attached to gprs
-   SIM7600_CONNECTION_START_ATTACH_GPRS,               //!< if not, attach it to gprs
-   SIM7600_CONNECTION_START_SINGLE_IP,                 //!< enable single ip mode
-   SIM7600_CONNECTION_START_TRANSPARENT_MODE,          //!< enable trasparent mode
-   SIM7600_CONNECTION_START_TRANSPARENT_MODE_CONFIG,   //!< configuring trasparent mode
-   SIM7600_CONNECTION_START_APN_USERNAME_PASSWORD,     //!< settting apn, username and password
-   SIM7600_CONNECTION_START_CONNECT,                   //!< starting up connection
-   SIM7600_CONNECTION_START_GET_IP,                    //!< get connection ip
-   SIM7600_CONNECTION_START_END,                       //!< performs end operations and deactivate task
-   SIM7600_CONNECTION_START_WAIT_STATE                 //!< non-blocking waiting time
+typedef enum
+{
+   SIM7600_CONNECTION_START_INIT,    //!< init task variables
+   SIM7600_CONNECTION_START_SET_PDP, //!< check if sim7600 is attached to gprs
+   SIM7600_CONNECTION_START_CONNECT, //!< starting up connection
+   SIM7600_CONNECTION_START_GET_IP,  //!< get connection ip
+   SIM7600_CONNECTION_START_END,     //!< performs end operations and deactivate task
+   #ifndef USE_FREERTOS
+   SIM7600_CONNECTION_START_WAIT_STATE //!< non-blocking waiting time
+   #endif
 } sim7600_connection_start_state_t;
 
 /*!
@@ -493,10 +467,8 @@ typedef enum
 {
    SIM7600_STATE_NONE = 0b00000000,             //!< default state at power on
    SIM7600_STATE_ON = 0b00000001,               //!< module is on
-   SIM7600_STATE_INITIALIZED = 0b00000010,      //!< module is initialized TODO: eliminare
-   SIM7600_STATE_SETTED = 0b00000100,           //!< module is is setted
-   SIM7600_STATE_REGISTERED = 0b00001000,       //!< module is is registered on network
-   SIM7600_STATE_CONNECTED = 0b00010000,        //!< module is is connected
+   SIM7600_STATE_SETTED = 0b00000010,           //!< module is is setted
+   SIM7600_STATE_CONNECTED = 0b00000100,        //!< module is is connected
 #ifndef USE_FREERTOS
    SIM7600_AT_WAIT_STATE //!< non-blocking waiting time
 #endif
@@ -552,13 +524,6 @@ public:
    bool isOn();
 
    /*!
-   \fn bool isInitialized()
-   \brief Check if sim7600 is initialized.
-   \return true if it is initialized, false otherwise.
-   */
-   bool isInitialized();
-
-   /*!
    \fn bool isSetted()
    \brief Check if sim7600 is setted.
    \return true if it is setted, false otherwise.
@@ -566,11 +531,11 @@ public:
    bool isSetted();
 
    /*!
-   \fn bool isRegistered()
-   \brief Check if sim7600 is registered on network.
-   \return true if it is registered, false otherwise.
+   \fn bool isConnected()
+   \brief Check if sim7600 is connected on network.
+   \return true if it is connecteded, false otherwise.
    */
-   bool isRegistered();
+   bool isConnected();
 
    /*!
    \fn void setSerial(HardwareSerial *serial, uin32_t _low_baud_rate, uin32_t _high_baud_rate)
@@ -654,20 +619,11 @@ public:
    void getLastCsq(uint8_t *rssi, uint8_t *ber);
   
    /*!
-   \fn sim7600_status_t getCgatt(bool *is_attached)
-   \brief Send CGATT AT command for check if gprs is attached.
-   \param[out] *is_attached pointer to bool variable indicating if gprs is attach (true) or not (false).
+   \fn sim7600_status_t sendAtIpaddr()
+   \brief Send IPADDRE AT command for reading IP.
    \return sim7600 status on each call.
    */
-   sim7600_status_t getCgatt(bool *is_attached);
-
-   /*!
-   \fn sim7600_status_t getCifsr(char *ip)
-   \brief Send CIFSR AT command for reading IP.
-   \param[out] *ip pointer to char buffer containing ip.
-   \return sim7600 status on each call.
-   */
-   sim7600_status_t getCifsr(char *ip);
+   sim7600_status_t sendAtIpaddr();
 
    /*!
    \fn sim7600_status_t switchOn()
@@ -692,14 +648,14 @@ public:
    sim7600_status_t setup();
 
    /*!
-   \fn sim7600_status_t startConnection(const char *apn, const char *username, const char *password)
+   \fn sim7600_status_t connect(const char *apn)
    \brief Execute start connection sequence.
    \param[in] *apn apn for simcard network operation
    \param[in] *username username for simcard network operation
    \param[in] *password password for simcard network operation
    \return sim7600 status on each call.
    */
-   sim7600_status_t startConnection(const char *apn, const char *username, const char *password);
+   sim7600_status_t connect(const char *apn);
 
    /*!
    \fn sim7600_status_t connection(const char *tipo, const char *server, const int port)
@@ -709,21 +665,21 @@ public:
    \param[in] port connection port.
    \return sim7600 status on each call.
    */
-   sim7600_status_t connection(const char *tipo, const char *server, const int port);
+   // sim7600_status_t connection(const char *tipo, const char *server, const int port);
 
    /*!
-   \fn sim7600_status_t stopConnection()
+   \fn sim7600_status_t disconnect()
    \brief Execute stop connection sequence.
    \return sim7600 status on each call.
    */
-   sim7600_status_t stopConnection();
+   sim7600_status_t disconnect();
 
    /*!
    \fn sim7600_status_t exitTransparentMode()
    \brief Execute exiting trasparent mode sequence.
    \return sim7600 status on each call.
    */
-   sim7600_status_t exitTransparentMode();
+   // sim7600_status_t exitTransparentMode();
 
    /*!
    \fn void cleanInput()
@@ -934,16 +890,10 @@ private:
    uint8_t cereg_stat;
 
    /*!
-    \var sim7600_imei
-    \brief sim7600 IMEI.
-    */
-   char sim7600_imei[16];
-
-   /*!
     \var sim7600_ip
     \brief sim7600 IP of the active connection.
     */
-   char sim7600_ip[16];
+   char sim7600_ip[SIM7600_IP_LENGTH];
 };
 
 #endif
