@@ -40,6 +40,7 @@ void ModemTask::Run() {
   sim7600_status_t status;
   system_request_t request;
   system_response_t response;
+  Ipv4Addr ipv4Addr;
 
   memset(&request, 0, sizeof(system_request_t));
   memset(&response, 0, sizeof(system_response_t));
@@ -141,8 +142,8 @@ void ModemTask::Run() {
 
       if (status == SIM7600_OK)
       {
-        state = MODEM_STATE_CONFIGURE;
-        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_CONFIGURE\r\n"));
+        state = MODEM_STATE_CONNECT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_CONNECT\r\n"));
       }
       else if (status == SIM7600_ERROR)
       {
@@ -150,27 +151,44 @@ void ModemTask::Run() {
         TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_END\r\n"));
       }
       break;
-    
-    case MODEM_STATE_CONFIGURE:
-      Thread::Suspend();
-      if (status == SIM7600_OK)
-      {
-        state = MODEM_STATE_CONNECT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_CONFIGURE -> MODEM_STATE_CONNECT\r\n"));
-      }
-      else if (status == SIM7600_ERROR)
-      {
-        state = MODEM_STATE_END;
-        TRACE_VERBOSE_F(F("MODEM_STATE_CONFIGURE -> MODEM_STATE_END\r\n"));
-      }
-    break;
 
     case MODEM_STATE_CONNECT:
-      // status = sim7600.connect("internet.wind");
-      // Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      status = sim7600.connect("internet.wind");
+      Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
       {
+        // Clear local IPv4 address
+        ipv4StringToAddr("0.0.0.0", &ipv4Addr);
+        ipv4SetHostAddr(interface, ipv4Addr);
+
+        // Clear peer IPv4 address
+        ipv4StringToAddr("0.0.0.0", &ipv4Addr);
+        ipv4SetDefaultGateway(interface, ipv4Addr);
+
+        // Set primary DNS server
+        ipv4StringToAddr(PPP0_PRIMARY_DNS, &ipv4Addr);
+        ipv4SetDnsServer(interface, 0, ipv4Addr);
+
+        // Set secondary DNS server
+        ipv4StringToAddr(PPP0_SECONDARY_DNS, &ipv4Addr);
+        ipv4SetDnsServer(interface, 1, ipv4Addr);
+
+        // Set username and password
+        pppSetAuthInfo(interface, "", "");
+
+        // Debug message
+        TRACE_INFO_F(F("Establishing PPP connection...\r\n"));
+
+        // Establish a PPP connection
+        error = pppConnect(interface);
+        // Any error to report?
+        if (error)
+        {
+          state = MODEM_STATE_DISCONNECT;
+          TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
+        }
+
         state = MODEM_STATE_WAIT_NET_EVENT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       }
@@ -182,6 +200,7 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_DISCONNECT:
+      Thread::Suspend();
       // status = sim7600.disconnect();
       // Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
