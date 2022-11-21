@@ -302,9 +302,9 @@ void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
 // void HAL_MspInit(void);
 
-// #ifdef _HW_SETUP_GPIO_PRIVATE
-// void MX_GPIO_Init(void);
-// #endif
+#ifdef _HW_SETUP_GPIO_PRIVATE
+void MX_GPIO_Init(void);
+#endif
 
 // #ifdef _HW_SETUP_CAN_PRIVATE
 // void MX_CAN1_Init(void);
