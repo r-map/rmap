@@ -55,6 +55,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_I2C1              (true)
 #define ENABLE_I2C2              (true)
 #define ENABLE_QSPI              (false)
+#define _HW_SETUP_GPIO_PRIVATE
 
 #define PPP0_INTERFACE_NAME      ("ppp0")
 #define ETH0_INTERFACE_NAME      ("eth0")

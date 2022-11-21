@@ -88,7 +88,7 @@ void ModemTask::Run() {
         break;
       }
 
-      sim7600 = SIM7600(interface, PIN_GSM_EN_POW, PIN_GSM_PW_KEY, PIN_GSM_RI);
+      sim7600 = SIM7600(interface, PPP0_BAUD_RATE_DEFAULT, PPP0_BAUD_RATE_MAX, PIN_GSM_EN_POW, PIN_GSM_PW_KEY, PIN_GSM_RI);
 
       TRACE_VERBOSE_F(F("MODEM_STATE_INIT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       state = MODEM_STATE_WAIT_NET_EVENT;
@@ -124,7 +124,7 @@ void ModemTask::Run() {
 
       if (status == SIM7600_OK)
       {
-        state = MODEM_STATE_SWITCH_OFF;
+        state = MODEM_STATE_SETUP;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_SETUP\r\n"));
       }
       else if (status == SIM7600_ERROR)
@@ -136,7 +136,7 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_SETUP:
-      // status = sim7600.setup();
+      status = sim7600.setup();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
