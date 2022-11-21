@@ -424,6 +424,7 @@ typedef enum {
    SIM7600_SETUP_GET_SIGNAL_QUALITY,    //!< get signal quality
    SIM7600_SETUP_CHANGE_BAUD_RATE,
    SIM7600_SETUP_SET_PHONE_FUNCTIONALITY,
+   SIM7600_SETUP_ENABLE_NETWORK,
    SIM7600_SETUP_WAIT_NETWORK,          //!< wait for network availability
    SIM7600_SETUP_END,                   //!< performs end operations and deactivate task
    SIM7600_SETUP_WAIT_STATE             //!< non-blocking waiting time
