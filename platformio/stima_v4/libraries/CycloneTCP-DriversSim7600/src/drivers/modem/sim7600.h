@@ -126,6 +126,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_CONNECTION_TCP                            ("TCP")
 
 /*!
+\def SIM7600_AT_CREG_MODE
+\brief CREG mode.
+*/
+#define SIM7600_AT_CREG_MODE                             (1)
+
+/*!
+\def SIM7600_AT_CGREG_MODE
+\brief CGREG mode.
+*/
+#define SIM7600_AT_CGREG_MODE                            (2)
+
+/*!
+\def SIM7600_AT_CEREG_MODE
+\brief CEREG mode.
+*/
+#define SIM7600_AT_CEREG_MODE                            (3)
+
+/*!
 \def SIM7600_AT_DEFAULT_TIMEOUT_MS
 \brief Default AT command response timeout in milliseconds.
 */
@@ -190,6 +208,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Waiting time in milliseconds for setting up connection.
 */
 #define SIM7600_WAIT_FOR_CONNECTION_DELAY_MS              (2000)
+
+/*!
+\def SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS
+\brief Waiting time in milliseconds for getting uart reconfiguration.
+*/
+#define SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS          (1000)
 
 /*!
 \def SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS
@@ -258,40 +282,52 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_IMEI_LENGTH                               (20)
 
 /*!
-\def SIM7600_RSSI_MIN
+\def RSSI_MIN
 \brief Minimum value of RSSI (low signal).
 */
-#define SIM7600_RSSI_MIN                                  (0)
+#define RSSI_MIN                                  (0)
 
 /*!
-\def SIM7600_RSSI_MAX
+\def RSSI_MAX
 \brief Minimum value of RSSI (high signal).
 */
-#define SIM7600_RSSI_MAX                                  (199)
+#define RSSI_MAX                                  (199)
 
 /*!
-\def SIM7600_RSSI_UNKNOWN
+\def RSSI_UNKNOWN
 \brief Unknown value of RSSI.
 */
-#define SIM7600_RSSI_UNKNOWN                              (199)
+#define RSSI_UNKNOWN                              (199)
 
 /*!
-\def SIM7600_BER_MIN
+\def CREG_N_UNKNOWN
+\brief Unknown value of CREG N.
+*/
+#define CREG_N_UNKNOWN                             (255)
+
+/*!
+\def CREG_STAT_UNKNOWN
+\brief Unknown value of CREG STAT.
+*/
+#define CREG_STAT_UNKNOWN                          (255)
+
+/*!
+\def BER_MIN
 \brief Minimum value of BER.
 */
-#define SIM7600_BER_MIN                                   (0)
+#define BER_MIN                                   (0)
 
 /*!
-\def SIM7600_BER_MAX
+\def BER_MAX
 \brief Maximum value of BER.
 */
-#define SIM7600_BER_MAX                                   (7)
+#define BER_MAX                                   (7)
 
 /*!
-\def SIM7600_BER_UNKNOWN
+\def BER_UNKNOWN
 \brief Unknown value of BER.
 */
-#define SIM7600_BER_UNKNOWN                               (99)
+#define BER_UNKNOWN                               (99)
 
 /*!
 \def SIM7600_CGATT_RESPONSE_TIME_MAX_MS
@@ -342,18 +378,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define getIp(ip)                                        (getCifsr(ip))
 
 /*!
-\def getNetworkStatus(n, stat)
-\brief Return network status.
-*/
-#define getNetworkStatus(n, stat)                        (getCreg(n, stat))
-
-/*!
-\def getSignalQuality(rssi, ber)
-\brief Return signal quality.
-*/
-#define getSignalQuality(rssi, ber)                      (getCsq(rssi, ber))
-
-/*!
 \def isGprsAttached(is_attached)
 \brief Check if gprs is attached.
 */
@@ -398,6 +422,8 @@ typedef enum {
    SIM7600_SETUP_RESET,                 //!< reset sim7600 to default state
    SIM7600_SETUP_ECHO_MODE,             //!< disable sim7600 echo mode
    SIM7600_SETUP_GET_SIGNAL_QUALITY,    //!< get signal quality
+   SIM7600_SETUP_CHANGE_BAUD_RATE,
+   SIM7600_SETUP_SET_PHONE_FUNCTIONALITY,
    SIM7600_SETUP_WAIT_NETWORK,          //!< wait for network availability
    SIM7600_SETUP_END,                   //!< performs end operations and deactivate task
    SIM7600_SETUP_WAIT_STATE             //!< non-blocking waiting time
@@ -466,7 +492,7 @@ typedef enum
 {
    SIM7600_STATE_NONE = 0b00000000,             //!< default state at power on
    SIM7600_STATE_ON = 0b00000001,               //!< module is on
-   SIM7600_STATE_INITIALIZED = 0b00000010,      //!< module is initialized
+   SIM7600_STATE_INITIALIZED = 0b00000010,      //!< module is initialized TODO: eliminare
    SIM7600_STATE_SETTED = 0b00000100,           //!< module is is setted
    SIM7600_STATE_REGISTERED = 0b00001000,       //!< module is is registered on network
    SIM7600_STATE_CONNECTED = 0b00010000,        //!< module is is connected
@@ -510,12 +536,12 @@ public:
    SIM7600();
    
    #ifndef USE_FREERTOS
-   SIM7600(HardwareSerial *serial, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
-   #endif
+   SIM7600(HardwareSerial *serial, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
+#endif
    
    #ifdef USE_FREERTOS
-   SIM7600(NetInterface *_interface, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
-   #endif
+   SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
+#endif
 
    /*!
    \fn bool isOn()
@@ -546,14 +572,15 @@ public:
    bool isRegistered();
 
    /*!
-   \fn void setSerial(HardwareSerial *serial, uint32_t _baud_rate)
+   \fn void setSerial(HardwareSerial *serial, uin32_t _low_baud_rate, uin32_t _high_baud_rate)
    \brief Set serial port for sim7600.
    \param[in] *serial pointer to serial stream.
-   \param[in] _baud_rate baud rate for serial stream.
+   \param[in] _low_baud_rate baud rate for serial stream.
+   \param[in] _high_baud_rate baud rate for serial stream.
    \return void.
    */
    #ifndef USE_FREERTOS
-   void setSerial(HardwareSerial *serial, uint32_t _baud_rate = SIM7600_DEFAULT_BAUDRATE);
+   void setSerial(HardwareSerial *serial, uin32_t _low_baud_rate, uin32_t _high_baud_rate);
    #endif
 
    /*!
@@ -574,6 +601,12 @@ public:
    \param[in] _ring_inicator_pin input ring indicator for module.
    */
    void setPins(uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_inicator_pin);
+
+   void initPins();
+   /*!
+   \fn void initPins()
+   \brief Init module pins.
+   */
 
    /*!
    \fn void init()
@@ -596,23 +629,20 @@ public:
    sim7600_status_t getGsn(char *imei);
 
    /*!
-   \fn sim7600_status_t getCreg(uint8_t *n, uint8_t *stat)
+   \fn sim7600_status_t sendAtCxreg()
    \brief Send CREG AT command for reading network status.
-   \param[out] *n pointer to variable containing n value.
-   \param[out] *stat pointer to variable containing stat value.
    \return sim7600 status on each call.
    */
-   sim7600_status_t getCreg(uint8_t *n, uint8_t *stat);
-
+   sim7600_status_t sendAtCxreg(uint8_t cxreg_mode = SIM7600_AT_CREG_MODE);
 
    /*!
-   \fn sim7600_status_t getCsq(uint8_t *rssi, uint8_t *ber)
+   \fn sim7600_status_t sendAtCsq(uint8_t *rssi, uint8_t *ber)
    \brief Send CSQ AT command for reading signal quality.
    \param[out] *rssi pointer to variable containing rssi value.
    \param[out] *ber pointer to variable containing ber value.
    \return sim7600 status on each call.
    */
-   sim7600_status_t getCsq(uint8_t *rssi, uint8_t *ber);
+   sim7600_status_t sendAtCsq();
 
    /*!
    \fn void getLastCsq(uint8_t *rssi, uint8_t *ber)
@@ -757,10 +787,16 @@ private:
    sim7600_status_t switchModem(bool is_switching_on);
 
    /*!
-   \var baud_rate
+   \var low_baud_rate
    \brief baud rate for serial port of sim7600.
    */
-   uint32_t baud_rate;
+   uint32_t low_baud_rate;
+
+   /*!
+   \var high_baud_rate
+   \brief baud rate for serial port of sim7600.
+   */
+   uint32_t high_baud_rate;
 
    /*!
    \var interface
@@ -849,16 +885,52 @@ private:
    sim7600_exit_transparent_mode_state_t sim7600_exit_transparent_mode_state;
 
    /*!
-   \var sim7600_rssi
+   \var rssi
    \brief sim7600 rssi of the active connection.
    */
-   uint8_t sim7600_rssi;
+   uint8_t rssi;
 
    /*!
-    \var sim7600_ber
+    \var ber
     \brief sim7600 ber of the active connection.
     */
-   uint8_t sim7600_ber;
+   uint8_t ber;
+
+   /*!
+    \var creg_n
+    \brief sim7600 creg_n of the active connection.
+    */
+   uint8_t creg_n;
+
+   /*!
+    \var creg_stat
+    \brief sim7600 creg_stat of the active connection.
+    */
+   uint8_t creg_stat;
+
+   /*!
+    \var cgreg_n
+    \brief sim7600 cgreg_n of the active connection.
+    */
+   uint8_t cgreg_n;
+
+   /*!
+    \var cgreg_stat
+    \brief sim7600 cgreg_stat of the active connection.
+    */
+   uint8_t cgreg_stat;
+
+   /*!
+    \var cereg_n
+    \brief sim7600 cereg_n of the active connection.
+    */
+   uint8_t cereg_n;
+
+   /*!
+    \var cereg_stat
+    \brief sim7600 cereg_stat of the active connection.
+    */
+   uint8_t cereg_stat;
 
    /*!
     \var sim7600_imei

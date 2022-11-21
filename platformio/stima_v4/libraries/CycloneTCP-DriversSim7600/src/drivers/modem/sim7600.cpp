@@ -30,9 +30,11 @@ SIM7600::SIM7600()
 }
 
 #ifndef USE_FREERTOS
-SIM7600::SIM7600(HardwareSerial *serial, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin)
+SIM7600::SIM7600(HardwareSerial *serial, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin)
 {
    modem = serial;
+   low_baud_rate = _low_baud_rate;
+   high_baud_rate = _high_baud_rate;
    enable_power_pin = _enable_power_pin;
    power_pin = _power_pin;
    ring_indicator_pin = _ring_indicator_pin;
@@ -41,9 +43,11 @@ SIM7600::SIM7600(HardwareSerial *serial, uint8_t _enable_power_pin, uint8_t _pow
 #endif
 
 #ifdef USE_FREERTOS
-SIM7600::SIM7600(NetInterface *_interface, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin)
+SIM7600::SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin)
 {
    interface = _interface;
+   low_baud_rate = _low_baud_rate;
+   high_baud_rate = _high_baud_rate;
    enable_power_pin = _enable_power_pin;
    power_pin = _power_pin;
    ring_indicator_pin = _ring_indicator_pin;
@@ -51,7 +55,7 @@ SIM7600::SIM7600(NetInterface *_interface, uint8_t _enable_power_pin, uint8_t _p
 }
 #endif
 
-void SIM7600::init()
+void SIM7600::initPins()
 {
    pinMode(enable_power_pin, OUTPUT);
    pinMode(power_pin, OUTPUT);
@@ -59,7 +63,10 @@ void SIM7600::init()
 
    digitalWrite(enable_power_pin, LOW);
    digitalWrite(power_pin, LOW);
+}
 
+void SIM7600::init()
+{
    state = SIM7600_STATE_NONE;
    sim7600_at_state = SIM7600_AT_INIT;
    sim7600_power_state = SIM7600_POWER_INIT;
@@ -69,14 +76,25 @@ void SIM7600::init()
    sim7600_connection_state = SIM7600_CONNECTION_INIT;
    sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_INIT;
    sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_INIT;
-   sim7600_rssi = SIM7600_RSSI_UNKNOWN;
-   sim7600_ber = SIM7600_BER_UNKNOWN;
+   rssi = RSSI_UNKNOWN;
+   ber = BER_UNKNOWN;
+   creg_n = CREG_N_UNKNOWN;
+   creg_stat = CREG_STAT_UNKNOWN;
+   cgreg_n = CREG_N_UNKNOWN;
+   cgreg_stat = CREG_STAT_UNKNOWN;
+   cereg_n = CREG_N_UNKNOWN;
+   cereg_stat = CREG_STAT_UNKNOWN;
 
    delay_ms = SIM7600_GENERIC_STATE_DELAY_MS;
 
-#ifndef USE_FREERTOS
-   modem->begin(baud_rate);
-#endif
+   #ifndef USE_FREERTOS
+   modem->begin(low_baud_rate);
+   #else
+   uartDeInit();
+   uartInitConfig(low_baud_rate);
+   #endif
+
+   initPins();
 }
 
 bool SIM7600::isOn()
@@ -308,10 +326,20 @@ sim7600_status_t SIM7600::switchModem(bool is_switching_on)
       // retry
       else if ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX)
       {
+         digitalWrite(enable_power_pin, LOW);
+         digitalWrite(power_pin, LOW);
          is_error = false;
          sim7600_status = SIM7600_BUSY;
+
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_POWER_ENABLE;
+         sim7600_power_state = SIM7600_POWER_WAIT_STATE;
+         #else
          sim7600_power_state = SIM7600_POWER_ENABLE;
+         #endif
          TRACE_VERBOSE_F(F("SIM7600_POWER_END -> SIM7600_POWER_ENABLE\r\n"));
+         delay_ms = SIM7600_POWER_ON_STABILIZATION_DELAY_MS;
       }
       // fail
       else
@@ -557,10 +585,11 @@ void SIM7600::setPins(uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ri
 }
 
 #ifndef USE_FREERTOS
-void SIM7600::setSerial(HardwareSerial *serial, uint32_t _baud_rate)
+void SIM7600::setSerial(HardwareSerial *serial, uint32_t _low_baud_rate, uint32_t _high_baud_rate)
 {
    modem = serial;
-   baud_rate = _baud_rate;
+   low_baud_rate = _low_baud_rate;
+   high_baud_rate = _high_baud_rate;
 }
 #endif
 
@@ -592,74 +621,109 @@ void SIM7600::setInterface(NetInterface *_interface)
 //    return at_command_status;
 // }
 
-// sim7600_status_t SIM7600::getCreg(uint8_t *n, uint8_t *stat) {
-//    sim7600_status_t at_command_status;
+sim7600_status_t SIM7600::sendAtCxreg(uint8_t cxreg_mode)
+{
+   sim7600_status_t at_command_status;
 
-//    if (!isInitialized())
-//       return SIM7600_ERROR;
+   if (cxreg_mode == SIM7600_AT_CREG_MODE)
+   {
+      at_command_status = sendAtCommand("AT+CREG=2", buffer_ext, sizeof(buffer_ext), "+CREG", AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+   }
+   else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+   {
+      at_command_status = sendAtCommand("AT+CGREG=2", buffer_ext, sizeof(buffer_ext), "+CGREG", AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+   }
+   else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+   {
+      at_command_status = sendAtCommand("AT+CEREG=2", buffer_ext, sizeof(buffer_ext), "+CEREG", AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+   }
 
-//    unsigned int nn,statstat;
+   if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   {
+      if (sscanf(buffer_ext, "+CREG: %d,%d", &creg_n, &creg_stat) != 2)
+      {
+         at_command_status == SIM7600_ERROR;
+      }
+   }
+   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CGREG_MODE))
+   {
+      if (sscanf(buffer_ext, "+CGREG: %d,%d", &cgreg_n, &cgreg_stat) != 2)
+      {
+         at_command_status == SIM7600_ERROR;
+      }
+   }
+   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CEREG_MODE))
+   {
+      if (sscanf(buffer_ext, "+CEREG: %d,%d", &cereg_n, &cereg_stat) != 2)
+      {
+         at_command_status == SIM7600_ERROR;
+      }
+   }
 
-//    at_command_status = sendAtCommand("AT+CREG?\r\n", buffer_ext);
+   if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   {
+      creg_n = CREG_N_UNKNOWN;
+      creg_stat = CREG_STAT_UNKNOWN;
+   }
+   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   {
+      cgreg_n = CREG_N_UNKNOWN;
+      cgreg_stat = CREG_STAT_UNKNOWN;
+   }
+   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   {
+      cereg_n = CREG_N_UNKNOWN;
+      cereg_stat = CREG_STAT_UNKNOWN;
+   }
 
-//    if (at_command_status == SIM7600_OK) {
-//      if (sscanf(buffer_ext, "+CREG: %d,%d", &nn, &statstat) != 2) {
-//        //if (sscanf(buffer_ext, "+CREG: %hhu,%hhu", n, stat) != 2) {
-//        at_command_status = SIM7600_ERROR;
-//        *n = 0;
-//        *stat = 0;
-//      }else{
-//        *n=nn;
-//        *stat=statstat;
-//      }
-//    } else {
-//      *n = 0;
-//      *stat = 0;
-//    }
+   if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   {
+      TRACE_VERBOSE_F(F("%s +CREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), creg_n, creg_stat);
+   }
+   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CGREG_MODE))
+   {
+      TRACE_VERBOSE_F(F("%s +CGREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), cgreg_n, cgreg_stat);
+   }
+   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CEREG_MODE))
+   {
+      TRACE_VERBOSE_F(F("%s +CEREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), cereg_n, cereg_stat);
+   }
 
-//    if (at_command_status != SIM7600_BUSY) {
-//       TRACE_VERBOSE_F(F("SIM7600 CREG [ %s ] [ %d,%d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), nn, statstat);
-//    }
+   return at_command_status;
+}
 
-//    return at_command_status;
-// }
+sim7600_status_t SIM7600::sendAtCsq()
+{
+   sim7600_status_t at_command_status;
 
-// sim7600_status_t SIM7600::getCsq(uint8_t *rssi, uint8_t *ber) {
-//    sim7600_status_t at_command_status;
-//    unsigned int rssirssi, berber;
+   at_command_status = sendAtCommand("AT+CSQ\r\n", buffer_ext, sizeof(buffer_ext), "+CSQ:", AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//    if (!isInitialized())
-//       return SIM7600_ERROR;
+   if (at_command_status == SIM7600_OK)
+   {
+      if (sscanf(buffer_ext, "+CSQ: %d,%d", &rssi, &ber) != 2)
+      {
+         at_command_status == SIM7600_ERROR;
+      }
+   }
 
-//    at_command_status = sendAtCommand("AT+CSQ\r\n", buffer_ext);
+   if (at_command_status == SIM7600_ERROR)
+   {
+      rssi = RSSI_UNKNOWN;
+      ber = BER_UNKNOWN;
+   }
 
-//    if (at_command_status == SIM7600_OK) {
-//      //if (sscanf(buffer_ext, "+CSQ: %hhu,%hhu", rssi, ber) != 2) {
-//      if (sscanf(buffer_ext, "+CSQ: %d,%d", &rssirssi, &berber) != 2) {
-//        at_command_status = SIM7600_ERROR;
-//        *rssi = SIM7600_RSSI_UNKNOWN;
-//        *ber = SIM7600_BER_UNKNOWN;
-//      } else {
-//        *rssi=rssirssi;
-//        *ber=berber;
-//      }
-//    } else {
-//       *rssi = SIM7600_RSSI_UNKNOWN;
-//       *ber = SIM7600_BER_UNKNOWN;
-//    }
+   if (at_command_status != SIM7600_BUSY) {
+      TRACE_VERBOSE_F(F("%s CSQ [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), rssi, ber);
+   }
 
-//    if (at_command_status != SIM7600_BUSY) {
-//       TRACE_VERBOSE_F(F("SIM7600 CSQ [ %s ] [ %d,%d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), rssirssi, berber);
-//    }
-
-//    return at_command_status;
-// }
+   return at_command_status;
+}
 
 
 
 // void SIM7600::getLastCsq(uint8_t *rssi, uint8_t *ber) {
-//   *rssi=sim7600_rssi;
-//   *ber=sim7600_ber;
+//   *rssi=rssi;
+//   *ber=ber;
 // }
 
 
@@ -846,180 +910,316 @@ void SIM7600::setInterface(NetInterface *_interface)
 //    return sim7600_status;
 // }
 
-// sim7600_status_t SIM7600::setup()
-// {
-//    static uint8_t retry;
-//    static sim7600_setup_state_t state_after_wait;
-//    static uint32_t start_time_ms;
-//    static sim7600_status_t sim7600_status;
-//    static bool is_error;
-//    static bool is_registered;
-//    sim7600_status_t at_command_status;
-//    uint8_t n;
-//    uint8_t stat;
+sim7600_status_t SIM7600::setup()
+{
+   static uint8_t retry;
+   static sim7600_status_t sim7600_status;
+   static bool is_error;
+   static bool is_registered;
+   sim7600_status_t at_command_status;
+   static uint8_t cxreg_mode;
+   uint8_t stat = 0;
 
-//    switch (sim7600_setup_state) {
+   #ifndef USE_FREERTOS
+   static sim7600_setup_state_t state_after_wait;
+   static uint32_t start_time_ms;
+   #endif
 
-//       case SIM7600_SETUP_INIT:
-//          retry = 0;
-//          is_error = false;
-//          sim7600_status = SIM7600_BUSY;
+   delay_ms = SIM7600_GENERIC_STATE_DELAY_MS;
 
-//          // is baud set?
-//          if (isInitialized()) {
-//             sim7600_setup_state = SIM7600_SETUP_RESET;
-//          }
-//          else {
-//             is_error = true;
-//             sim7600_setup_state = SIM7600_SETUP_END;
-//          }
-//          break;
+   switch (sim7600_setup_state)
+   {
+   case SIM7600_SETUP_INIT:
+      retry = 0;
+      is_error = false;
+      cxreg_mode = SIM7600_AT_CREG_MODE;
+      sim7600_status = SIM7600_BUSY;
 
-//       case SIM7600_SETUP_RESET:
-//          // reset to factory default
-//          at_command_status = sendAtCommand("AT&F\r\n", buffer_ext);
+      if (isOn())
+      {
+         sim7600_setup_state = SIM7600_SETUP_RESET;
+      }
+      else
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
+      break;
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             start_time_ms = millis();
-//             delay_ms = SIM7600_WAIT_FOR_SETUP_DELAY_MS;
-//             state_after_wait = SIM7600_SETUP_ECHO_MODE;
-//             sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (at_command_status == SIM7600_ERROR) {
-//             is_error = true;
-//             sim7600_setup_state = SIM7600_SETUP_END;
-//          }
+   case SIM7600_SETUP_RESET:
+      // reset to factory default
+      at_command_status = sendAtCommand("AT&F\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//          if (at_command_status != SIM7600_BUSY) {
-//             TRACE_INFO_F(F("SIM7600 reset to factory default [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
-//          }
-//          break;
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_ECHO_MODE;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_ECHO_MODE;
+         #endif
+         // delay_ms = SIM7600_WAIT_FOR_SETUP_DELAY_MS;
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
 
-//       case SIM7600_SETUP_ECHO_MODE:
-//          // echo mode off
-//          at_command_status = sendAtCommand("ATE0\r\n", buffer_ext);
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s reset to factory default [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
+      break;
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             start_time_ms = millis();
-//             delay_ms = SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS;
-//             state_after_wait = SIM7600_SETUP_GET_SIGNAL_QUALITY;
-//             sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (at_command_status == SIM7600_ERROR) {
-//             is_error = true;
-//             sim7600_setup_state = SIM7600_SETUP_END;
-//          }
+   case SIM7600_SETUP_ECHO_MODE:
+      // echo mode off
+      at_command_status = sendAtCommand("ATE0\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//          if (at_command_status != SIM7600_BUSY) {
-//             TRACE_INFO_F(F("SIM7600 echo mode off [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
-//          }
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_CHANGE_BAUD_RATE;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_CHANGE_BAUD_RATE;
+         #endif
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
 
-//          // wait...
-//          break;
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s echo mode off [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
 
-//       case SIM7600_SETUP_GET_SIGNAL_QUALITY:
-//          at_command_status = getSignalQuality(&sim7600_rssi, &sim7600_ber);
+      // wait...
+      break;
+   
+   case SIM7600_SETUP_CHANGE_BAUD_RATE:
+      // change baud rate
+      snprintf(buffer_ext2, sizeof(buffer_ext2), "AT+IPR=%d\r\n", high_baud_rate);
+      at_command_status = sendAtCommand(buffer_ext2, buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//          // success or fail: dont care
-//          if (at_command_status == SIM7600_OK || at_command_status == SIM7600_ERROR) {
-//             sim7600_setup_state = SIM7600_SETUP_WAIT_NETWORK;
-//          }
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         uartDeInit();
+         uartInitConfig(high_baud_rate);
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_SET_PHONE_FUNCTIONALITY;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_SET_PHONE_FUNCTIONALITY;
+         #endif
+         delay_ms = SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS;
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
 
-//          if (at_command_status != SIM7600_BUSY) {
-// 	   TRACE_INFO_F(F("SIM7600 signal [ %s ] [ rssi %d, ber %d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)sim7600_rssi, (int)sim7600_ber);
-//          }
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s change baud rate to [ %d ] [ %s ]\r\n"), SIM7600_NAME, high_baud_rate, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
 
-//          // wait
-//          break;
+      // wait...
+      break;
 
-//       case SIM7600_SETUP_WAIT_NETWORK:
-//          is_registered = false;
+   case SIM7600_SETUP_SET_PHONE_FUNCTIONALITY:
+      at_command_status = sendAtCommand("AT+CFUN=1\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//          at_command_status = getNetworkStatus(&n, &stat);
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         #endif
+         delay_ms = SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS;
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             switch (stat) {
-//                case 0:
-//                   is_registered = false;
-//                   TRACE_INFO_F(F("SIM7600 NOT registered... [ %s ]"), ERROR_STRING);
-//                   break;
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s set full phone functionallity [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
 
-//                case 1:
-//                   is_registered = true;
-//                   TRACE_INFO_F(F("SIM7600 network registered... [ %s ]"), OK_STRING);
-//                   break;
+      // wait
+      break;
 
-//                case 2:
-//                   is_registered = false;
-//                   TRACE_INFO_F(F("SIM7600 searching network..."));
-//                   break;
+   case SIM7600_SETUP_GET_SIGNAL_QUALITY:
+      at_command_status = sendAtCsq();
 
-//                case 3:
-//                   is_registered = false;
-//                   TRACE_INFO_F(F("SIM7600 network registration denied... [ %s ]"), ERROR_STRING);
-//                   break;
+      // success or fail: dont care
+      if (at_command_status == SIM7600_OK || at_command_status == SIM7600_ERROR)
+      {
+         sim7600_setup_state = SIM7600_SETUP_WAIT_NETWORK;
+      }
 
-//                case 4:
-//                   is_registered = false;
-//                   TRACE_INFO_F(F("SIM7600 unknown network..."));
-//                   break;
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s signal [ %s ] [ rssi %d, ber %d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), rssi, ber);
+      }
 
-//                case 5:
-//                   is_registered = true;
-//                   TRACE_INFO_F(F("SIM7600 network registered (roaming)... [ %s ]"), OK_STRING);
-//                   break;
-//             }
-//          }
+      // wait
+      break;
 
-//          // success
-//          if (at_command_status == SIM7600_OK && is_registered) {
-//             retry = 0;
-//             sim7600_setup_state = SIM7600_SETUP_END;
-//          }
-//          // retry
-//          else if (at_command_status == SIM7600_OK && !is_registered && (++retry) < SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX) {
-//             start_time_ms = millis();
-//             delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
-//             state_after_wait = SIM7600_SETUP_WAIT_NETWORK;
-//             sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (at_command_status == SIM7600_ERROR || retry >= SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX) {
-//             retry = 0;
-//             is_error = true;
-//             sim7600_setup_state = SIM7600_SETUP_END;
-//          }
-//          // wait
-//          break;
+   case SIM7600_SETUP_WAIT_NETWORK:
+      is_registered = false;
 
-//       case SIM7600_SETUP_END:
-//          if (is_error) {
-//             sim7600_status = SIM7600_ERROR;
-//             state &= ~SIM7600_STATE_SETTED;
-//          }
-//          else {
-//             sim7600_status = SIM7600_OK;
-//             state |= SIM7600_STATE_SETTED;
-//          }
+      at_command_status = sendAtCxreg(cxreg_mode);
 
-//          sim7600_setup_state = SIM7600_SETUP_INIT;
-//          TRACE_INFO_F(F("SIM7600 setup... [ %s ]"), printStatus(sim7600_status, OK_STRING, FAIL_STRING));
-//          break;
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         if (cxreg_mode == SIM7600_AT_CREG_MODE)
+         {
+            stat = creg_stat;
+         }
+         else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+         {
+            stat = cgreg_stat;
+         }
+         else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+         {
+            stat = cereg_stat;
+         }
 
-//       case SIM7600_SETUP_WAIT_STATE:
-//          if (millis() - start_time_ms > delay_ms) {
-//             sim7600_setup_state = state_after_wait;
-//          }
-//          break;
-//    }
+         switch (stat)
+         {
+         case 0:
+            is_registered = false;
+            TRACE_INFO_F(F("%s NOT registered... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
+            break;
 
-//    return sim7600_status;
-// }
+         case 1:
+            is_registered = true;
+            TRACE_INFO_F(F("%s network registered... [ %s ]\r\n"), SIM7600_NAME, OK_STRING);
+            break;
+
+         case 2:
+            is_registered = false;
+            TRACE_INFO_F(F("%s searching network...\r\n"), SIM7600_NAME);
+            break;
+
+         case 3:
+            is_registered = false;
+            TRACE_INFO_F(F("%s network registration denied... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
+            break;
+
+         case 4:
+            is_registered = false;
+            TRACE_INFO_F(F("%s unknown network...\r\n"));
+            break;
+
+         case 5:
+            is_registered = true;
+            TRACE_INFO_F(F("%s network registered (roaming)... [ %s ]\r\n"), SIM7600_NAME, OK_STRING);
+            break;
+
+         case 6:
+            is_registered = false;
+            TRACE_INFO_F(F("%s network registered only for SMS... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
+            break;
+
+         case 7:
+            is_registered = false;
+            TRACE_INFO_F(F("%s network registered (roaming) only for SMS... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
+            break;
+
+         case 8:
+            is_registered = false;
+            TRACE_INFO_F(F("%s network registered only for emergency... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
+            break;
+         }
+      }
+
+      // success
+      if ((at_command_status == SIM7600_OK) && is_registered)
+      {
+         retry = 0;
+         cxreg_mode++;
+         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+         {
+            sim7600_setup_state = SIM7600_SETUP_END;
+         }
+      }
+      // retry
+      else if ((at_command_status == SIM7600_OK) && !is_registered && (++retry) < SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_WAIT_NETWORK;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_WAIT_NETWORK;
+         #endif
+         delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
+      }
+      // fail
+      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX))
+      {
+         retry = 0;
+         cxreg_mode++;
+         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+         {
+            is_error = true;
+            sim7600_setup_state = SIM7600_SETUP_END;
+         }
+      }
+      // wait
+      break;
+
+   case SIM7600_SETUP_END:
+      if (is_error)
+      {
+         sim7600_status = SIM7600_ERROR;
+         state = (sim7600_state_t)(state & ~SIM7600_STATE_SETTED);
+      }
+      else
+      {
+         sim7600_status = SIM7600_OK;
+         state = (sim7600_state_t)(state | SIM7600_STATE_SETTED);
+      }
+
+      sim7600_setup_state = SIM7600_SETUP_INIT;
+      TRACE_INFO_F(F("%s setup... [ %s ]\r\n"), SIM7600_NAME, printStatus(sim7600_status, OK_STRING, FAIL_STRING));
+      break;
+
+   #ifndef USE_FREERTOS
+   case SIM7600_SETUP_WAIT_STATE:
+      if (millis() - start_time_ms > delay_ms)
+      {
+         sim7600_setup_state = state_after_wait;
+      }
+      break;
+   #endif
+   }
+
+   return sim7600_status;
+}
 
 // sim7600_status_t SIM7600::startConnection(const char *apn, const char *username, const char *password) {
 //    static uint8_t retry;
@@ -1442,8 +1642,8 @@ void SIM7600::setInterface(NetInterface *_interface)
 //       case SIM7600_CONNECTION_STOP_END:
 //          sim7600_status = (is_error ? SIM7600_ERROR : SIM7600_OK);
 //          sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_INIT;
-// 	 sim7600_rssi = SIM7600_RSSI_UNKNOWN;
-// 	 sim7600_ber = SIM7600_BER_UNKNOWN;
+// 	 rssi = RSSI_UNKNOWN;
+// 	 ber = BER_UNKNOWN;
 //          TRACE_INFO_F(F("SIM7600 stop connection... [ %s ]"), printStatus(sim7600_status, OK_STRING, FAIL_STRING));
 //          break;
 
