@@ -544,7 +544,7 @@ sim7600_status_t SIM7600::sendAtCommand(const char *command, char *response, siz
          }
          else
          {
-            TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
+            // TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
             is_error = true;
             sim7600_at_state = SIM7600_AT_END;
          }
@@ -768,7 +768,7 @@ sim7600_status_t SIM7600::sendAtIpaddr() {
 
    if (at_command_status != SIM7600_BUSY)
    {
-      TRACE_VERBOSE_F(F("%s IP Address [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
+      TRACE_VERBOSE_F(F("%s IP address [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
    }
 
    return at_command_status;
@@ -1252,7 +1252,7 @@ sim7600_status_t SIM7600::setup()
 
          case 4:
             is_registered = false;
-            TRACE_INFO_F(F("%s unknown network...\r\n"));
+            TRACE_INFO_F(F("%s unknown network... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
             break;
 
          case 5:
@@ -1483,7 +1483,7 @@ sim7600_status_t SIM7600::connect(const char *apn)
 
       if (at_command_status != SIM7600_BUSY)
       {
-         TRACE_INFO_F(F("%s IP address... [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
+         TRACE_INFO_F(F("%s IP address... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
       }
 
       // wait...
@@ -1502,7 +1502,7 @@ sim7600_status_t SIM7600::connect(const char *apn)
       }
       
       sim7600_connection_start_state = SIM7600_CONNECTION_START_INIT;
-      TRACE_INFO_F(F("%s start connection... [ %s ]\r\n"), printStatus(sim7600_status, OK_STRING, ERROR_STRING));
+      TRACE_INFO_F(F("%s start connection... [ %s ]\r\n"), SIM7600_NAME, printStatus(sim7600_status, OK_STRING, ERROR_STRING));
       break;
 
    #ifndef USE_FREERTOS
