@@ -65,7 +65,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define INTERFACE_0_INDEX        (0)
 #define PPP0_TIMEOUT_MS          (10000)
 #define PPP0_BAUD_RATE_DEFAULT   (115200)
-#define PPP0_BAUD_RATE_MAX       (3686400)
+#define PPP0_BAUD_RATE_MAX       (921600)
 #define PPP0_PRIMARY_DNS         ("8.8.8.8")
 #define PPP0_SECONDARY_DNS       ("8.8.4.4")
 

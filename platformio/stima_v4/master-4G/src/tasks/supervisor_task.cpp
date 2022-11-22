@@ -39,14 +39,14 @@ void SupervisorTask::Run()
   system_request_t request;
   system_response_t response;
 
-  memset(&request, 0, sizeof(system_request_t));
-  memset(&response, 0, sizeof(system_response_t));
-
-  bool is_saved = false;
-  bool is_loaded = false;
-
   while (true)
   {
+    bool is_saved = false;
+    bool is_loaded = false;
+
+    memset(&request, 0, sizeof(system_request_t));
+    memset(&response, 0, sizeof(system_response_t));
+
     switch (state)
     {
     case SUPERVISOR_STATE_INIT:
@@ -155,11 +155,12 @@ void SupervisorTask::Run()
     
     case SUPERVISOR_STATE_CHECK_CONNECTION:
       // wait connection
-      if (param.systemResponseQueue->Dequeue(&response, portMAX_DELAY))
+      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
         // ok connected
         if (response.connection.done_connected)
         {
+          param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = true;
           param.system_status->connection.is_connection_ongoing = false;
@@ -170,8 +171,9 @@ void SupervisorTask::Run()
           state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
         }
         // error: not connected
-        else
+        else if (!response.connection.done_connected)
         {
+          param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connection_ongoing = false;
@@ -180,6 +182,11 @@ void SupervisorTask::Run()
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_END\r\n"));
           state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
+        }
+        // other
+        else
+        {
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
         }
       }
       // do something else with non-blocking wait ....
@@ -208,11 +215,12 @@ void SupervisorTask::Run()
 
     case SUPERVISOR_STATE_DO_NTP_SYNC:
       // wait ntp to be sync
-      if (param.systemResponseQueue->Dequeue(&response, portMAX_DELAY))
+      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
         // ok ntp synchronized
         if (response.connection.done_ntp_synchronized)
         {
+          param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_ntp_sync_ongoing = false;
           param.system_status->connection.is_ntp_synchronized = true;
@@ -224,8 +232,9 @@ void SupervisorTask::Run()
           state = SUPERVISOR_STATE_CHECK_OPERATION;
         }
         // error: not connected
-        else
+        else if (!response.connection.done_ntp_synchronized)
         {
+          param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_ntp_sync_ongoing = false;
           param.system_status->connection.is_ntp_synchronized = false;
@@ -234,6 +243,11 @@ void SupervisorTask::Run()
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP_SYNC -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
           state = SUPERVISOR_STATE_CHECK_OPERATION;
+        }
+        // other
+        else
+        {
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
         }
       }
       // do something else with non-blocking wait ....

@@ -163,8 +163,8 @@
 //PPP support
 #define PPP_SUPPORT ENABLED
 //PAP authentication support
-#define PAP_SUPPORT ENABLED
+#define PAP_SUPPORT DISABLED
 //CHAP authentication support
-#define CHAP_SUPPORT ENABLED
+#define CHAP_SUPPORT DISABLED
 
 #endif

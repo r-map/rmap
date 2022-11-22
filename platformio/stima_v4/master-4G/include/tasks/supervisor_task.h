@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "ticks.hpp"
 #include "queue.hpp"
 
+#define SUPERVISOR_TASK_WAIT_DELAY_MS           (10)
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)
 

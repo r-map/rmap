@@ -36,17 +36,18 @@ ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 };
 
 void ModemTask::Run() {
+  bool is_error;
   error_t error;
   sim7600_status_t status;
   system_request_t request;
   system_response_t response;
   Ipv4Addr ipv4Addr;
 
-  memset(&request, 0, sizeof(system_request_t));
-  memset(&response, 0, sizeof(system_response_t));
-
   while (true)
   {
+    memset(&request, 0, sizeof(system_request_t));
+    memset(&response, 0, sizeof(system_response_t));
+
     switch (state)
     {
     case MODEM_STATE_INIT:
@@ -59,8 +60,6 @@ void ModemTask::Run() {
       pppSettings.interface = interface;
       // Default async control character map
       pppSettings.accm = 0x00000000;
-      // Allowed authentication protocols
-      pppSettings.authProtocol = PPP_AUTH_PROTOCOL_PAP | PPP_AUTH_PROTOCOL_CHAP_MD5;
 
       // Initialize PPP
       error = pppInit(&pppContext, &pppSettings);
@@ -68,7 +67,7 @@ void ModemTask::Run() {
       if (error)
       {
         // Debug message
-        TRACE_ERROR_F(F("Failed to initialize PPP!\r\n"));
+        TRACE_ERROR_F(F("Failed to initialize PPP... [ %s ]\r\n"), ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
       }
@@ -84,7 +83,7 @@ void ModemTask::Run() {
       if (error)
       {
         // Debug message
-        TRACE_ERROR_F(F("Failed to configure interface %s!\r\n"), interface->name);
+        TRACE_ERROR_F(F("Failed to configure interface %s [ %s ]\r\n"), interface->name, ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
       }
@@ -96,24 +95,29 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_WAIT_NET_EVENT:
+      is_error = false;
+
       // wait connection request
-      if (param.systemRequestQueue->Dequeue(&request, portMAX_DELAY))
+      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
       {
         // do connection
         if (request.connection.do_connect)
         {
+          param.systemRequestQueue->Dequeue(&request, 0);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
           state = MODEM_STATE_SWITCH_ON;
         }
+        // do disconnect
         else if (request.connection.do_disconnect)
         {
+          param.systemRequestQueue->Dequeue(&request, 0);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_DISCONNECT\r\n"));
           state = MODEM_STATE_DISCONNECT;
         }
+        // other
         else
         {
-          TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> ??? Condizione non gestita!!!\r\n"));
-          Thread::Suspend();
+          Delay(Ticks::MsToTicks(MODEM_TASK_WAIT_DELAY_MS));
         }
       }
       // do something else with non-blocking wait ....
@@ -130,8 +134,9 @@ void ModemTask::Run() {
       }
       else if (status == SIM7600_ERROR)
       {
-        state = MODEM_STATE_END;
-        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_END\r\n"));
+        is_error = true;
+        state = MODEM_STATE_SWITCH_OFF;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       // Wait...
       break;
@@ -147,63 +152,75 @@ void ModemTask::Run() {
       }
       else if (status == SIM7600_ERROR)
       {
-        state = MODEM_STATE_END;
-        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_END\r\n"));
+        is_error = true;
+        state = MODEM_STATE_SWITCH_OFF;
+        TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       break;
 
     case MODEM_STATE_CONNECT:
-      status = sim7600.connect("internet.wind");
+      status = sim7600.connect("internet.wind", "*99#");
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
       {
-        // Clear local IPv4 address
-        ipv4StringToAddr("0.0.0.0", &ipv4Addr);
-        ipv4SetHostAddr(interface, ipv4Addr);
-
-        // Clear peer IPv4 address
-        ipv4StringToAddr("0.0.0.0", &ipv4Addr);
-        ipv4SetDefaultGateway(interface, ipv4Addr);
-
-        // Set primary DNS server
-        ipv4StringToAddr(PPP0_PRIMARY_DNS, &ipv4Addr);
-        ipv4SetDnsServer(interface, 0, ipv4Addr);
-
-        // Set secondary DNS server
-        ipv4StringToAddr(PPP0_SECONDARY_DNS, &ipv4Addr);
-        ipv4SetDnsServer(interface, 1, ipv4Addr);
-
-        // Set username and password
-        pppSetAuthInfo(interface, "", "");
-
-        // Debug message
-        TRACE_INFO_F(F("Establishing PPP connection...\r\n"));
-
-        // Establish a PPP connection
-        error = pppConnect(interface);
-        // Any error to report?
-        if (error)
-        {
-          TRACE_ERROR_F(F("Failed to established PPP connection!\r\n"));
-          state = MODEM_STATE_DISCONNECT;
-          TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
-        }
-
-        state = MODEM_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+        Delay(Ticks::MsToTicks(5000));
+        state = MODEM_STATE_CONNECTED;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_CONNECTED\r\n"));
       }
       else if (status == SIM7600_ERROR)
       {
+        is_error = true;
         state = MODEM_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
       }
       break;
 
+    case MODEM_STATE_CONNECTED:
+      // Clear local IPv4 address
+      ipv4StringToAddr("0.0.0.0", &ipv4Addr);
+      ipv4SetHostAddr(interface, ipv4Addr);
+
+      // Clear peer IPv4 address
+      ipv4StringToAddr("0.0.0.0", &ipv4Addr);
+      ipv4SetDefaultGateway(interface, ipv4Addr);
+
+      // Set primary DNS server
+      ipv4StringToAddr(PPP0_PRIMARY_DNS, &ipv4Addr);
+      ipv4SetDnsServer(interface, 0, ipv4Addr);
+
+      // Set secondary DNS server
+      ipv4StringToAddr(PPP0_SECONDARY_DNS, &ipv4Addr);
+      ipv4SetDnsServer(interface, 1, ipv4Addr);
+
+      // Set username and password
+      pppSetAuthInfo(interface, "", "");
+
+      // Establish a PPP connection
+      error = pppConnect(interface);
+      // Any error to report?
+      if (!error)
+      {
+        TRACE_INFO_F(F("Establishing PPP connection... [ %s ]\r\n"), OK_STRING);
+        response.connection.done_connected = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
+        state = MODEM_STATE_WAIT_NET_EVENT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      }
+      else
+      {
+        is_error = true;
+        TRACE_ERROR_F(F("Failed to established PPP connection... [ %s ]\r\n"), ERROR_STRING);
+        state = MODEM_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_DISCONNECT\r\n"));
+      }
+      break;
+
     case MODEM_STATE_DISCONNECT:
       Thread::Suspend();
-      // status = sim7600.disconnect();
-      // Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      status = sim7600.disconnect();
+      Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
       {
@@ -212,8 +229,9 @@ void ModemTask::Run() {
       }
       else if (status == SIM7600_ERROR)
       {
-        state = MODEM_STATE_END;
-        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_END\r\n"));
+        is_error = true;
+        state = MODEM_STATE_SWITCH_OFF;
+        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       break;
 
@@ -228,13 +246,19 @@ void ModemTask::Run() {
       }
       else if (status == SIM7600_ERROR)
       {
+        is_error = true;
         state = MODEM_STATE_END;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_OFF -> MODEM_STATE_END\r\n"));
       }
       break;
 
     case MODEM_STATE_END:
-      Thread::Suspend();
+      if (is_error)
+      {
+        response.connection.done_connected = false;
+        param.systemResponseQueue->Enqueue(&response, 0);
+      }
+
       state = MODEM_STATE_WAIT_NET_EVENT;
       TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       break;
