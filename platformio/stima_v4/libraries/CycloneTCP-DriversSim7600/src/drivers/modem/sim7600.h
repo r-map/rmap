@@ -33,181 +33,121 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def SIM7600_NAME
 \brief name of sim7600
 */
-#define SIM7600_NAME                                     ("SIM7600")
+#define SIM7600_NAME                                        ("SIM7600")
 
 /*!
 \def SIM7600_AT_TX_CMD_DEBUG_PREFIX
 \brief string prefix for printing AT command on debug interface
 */
-#define SIM7600_AT_TX_CMD_DEBUG_PREFIX                    (">>")
+#define SIM7600_AT_TX_CMD_DEBUG_PREFIX                      (">>")
 
 /*!
 \def SIM7600_AT_RX_CMD_DEBUG_PREFIX
 \brief string prefix for printing AT command on debug interface
 */
-#define SIM7600_AT_RX_CMD_DEBUG_PREFIX                    ("<<")
+#define SIM7600_AT_RX_CMD_DEBUG_PREFIX                      ("<<")
 
 /*!
 \def SIM7600_BUFFER_LENGTH
 \brief Length of sim7600 buffer.
 */
-#define SIM7600_BUFFER_LENGTH                             (150)
+#define SIM7600_BUFFER_LENGTH                               (150)
 
 /*!
 \def SIM7600_DEFAULT_BAUDRATE
 \brief default baudrade.
 */
-#define SIM7600_DEFAULT_BAUDRATE                         (115200)
+#define SIM7600_DEFAULT_BAUDRATE                            (115200)
 
 /*!
 \def AT_OK_STRING
 \brief AT command: ok message.
 */
-#define AT_OK_STRING                                     ("OK")
+#define AT_OK_STRING                                        ("OK")
 
 /*!
 \def AT_ERROR_STRING
 \brief AT command: error message.
 */
-#define AT_ERROR_STRING                                  ("ERROR")
+#define AT_ERROR_STRING                                     ("ERROR")
 
 /*!
 \def AT_PB_DONE_STRING
 \brief AT command: pb done message.
 */
-#define AT_PB_DONE_STRING                                ("PB DONE")
+#define AT_PB_DONE_STRING                                   ("PB DONE")
 
 /*!
 \def AT_CONNECT_OK_STRING
 \brief AT command: on connect message.
 */
-#define AT_CONNECT_OK_STRING                             ("CONNECT")
-
-/*!
-\def AT_CONNECT_FAIL_STRING
-\brief AT command: connect fail message.
-*/
-#define AT_CONNECT_FAIL_STRING                           ("CONNECT FAIL")
-
-/*!
-\def AT_CIPCLOSE_OK_STRING
-\brief AT command: cip close message.
-*/
-#define AT_CIPCLOSE_OK_STRING                            ("CLOSE OK")
-
-/*!
-\def AT_CIPCLOSE_ERROR_STRING
-\brief AT command: cip close error message.
-*/
-#define AT_CIPCLOSE_ERROR_STRING                         ("ERROR")
-
-/*!
-\def AT_CIPSHUT_OK_STRING
-\brief AT command: cip shiut ok message.
-*/
-#define AT_CIPSHUT_OK_STRING                             ("SHUT OK")
-
-/*!
-\def AT_CIPSHUT_ERROR_STRING
-\brief AT command: cip shut error message.
-*/
-#define AT_CIPSHUT_ERROR_STRING                          ("ERROR")
-
-/*!
-\def SIM7600_CONNECTION_UDP
-\brief UDP type.
-*/
-#define SIM7600_CONNECTION_UDP                            ("UDP")
-
-/*!
-\def SIM7600_CONNECTION_TCP
-\brief TCP type.
-*/
-#define SIM7600_CONNECTION_TCP                            ("TCP")
+#define AT_CONNECT_OK_STRING                                ("CONNECT")
 
 /*!
 \def SIM7600_AT_CREG_MODE
 \brief CREG mode.
 */
-#define SIM7600_AT_CREG_MODE                             (1)
+#define SIM7600_AT_CREG_MODE                                (1)
 
 /*!
 \def SIM7600_AT_CGREG_MODE
 \brief CGREG mode.
 */
-#define SIM7600_AT_CGREG_MODE                            (2)
+#define SIM7600_AT_CGREG_MODE                               (2)
 
 /*!
 \def SIM7600_AT_CEREG_MODE
 \brief CEREG mode.
 */
-#define SIM7600_AT_CEREG_MODE                            (3)
+#define SIM7600_AT_CEREG_MODE                               (3)
+
+/*!
+\def SIM7600_AT_CXREG_MODE_MAX
+\brief C[X]REG mode max.
+*/
+#define SIM7600_AT_CXREG_MODE_MAX                           (SIM7600_AT_CGREG_MODE)
 
 /*!
 \def SIM7600_AT_DEFAULT_TIMEOUT_MS
 \brief Default AT command response timeout in milliseconds.
 */
-#define SIM7600_AT_DEFAULT_TIMEOUT_MS                     (10000)
+#define SIM7600_AT_DEFAULT_TIMEOUT_MS                       (10000)
 
 /*!
 \def SIM7600_AT_DELAY_MS
 \brief Waiting time in milliseconds between two AT command.
 */
-#define SIM7600_AT_DELAY_MS                               (10)
+#define SIM7600_AT_DELAY_MS                                 (10)
 
 /*!
 \def SIM7600_GENERIC_RETRY_COUNT_MAX
 \brief Number of retry in case of error.
 */
-#define SIM7600_GENERIC_RETRY_COUNT_MAX                   (3)
+#define SIM7600_GENERIC_RETRY_COUNT_MAX                     (3)
 
 /*!
 \def SIM7600_GENERIC_WAIT_DELAY_MS
 \brief Waiting time in milliseconds between two retry in milliseconds.
 */
-#define SIM7600_GENERIC_WAIT_DELAY_MS                     (3000)
+#define SIM7600_GENERIC_WAIT_DELAY_MS                       (3000)
 
 /*!
 \def SIM7600_GENERIC_STATE_DELAY_MS
 \brief Waiting time in milliseconds between two machine state.
 */
-#define SIM7600_GENERIC_STATE_DELAY_MS                   (10)
+#define SIM7600_GENERIC_STATE_DELAY_MS                      (10)
 
 /*!
 \def SIM7600_WAIT_FOR_NETWORK_DELAY_MS
 \brief Waiting time in milliseconds network availability.
 */
-#define SIM7600_WAIT_FOR_NETWORK_DELAY_MS                 (5000)
+#define SIM7600_WAIT_FOR_NETWORK_DELAY_MS                   (5000)
 
 /*!
 \def SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX
 \brief Max number of retry for checking network availability.
 */
-#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX          (8)
-
-/*!
-\def SIM7600_WAIT_FOR_SETUP_DELAY_MS
-\brief Waiting time in milliseconds for sim7600 setup.
-*/
-#define SIM7600_WAIT_FOR_SETUP_DELAY_MS                   (5000)
-
-/*!
-\def SIM7600_WAIT_FOR_AUTOBAUD_DELAY_MS
-\brief Waiting time in milliseconds for autobaud.
-*/
-#define SIM7600_WAIT_FOR_AUTOBAUD_DELAY_MS                (3000)
-
-/*!
-\def SIM7600_WAIT_FOR_ATTACH_GPRS_DELAY_MS
-\brief Waiting time in milliseconds for attaching gprs.
-*/
-#define SIM7600_WAIT_FOR_ATTACH_GPRS_DELAY_MS             (5000)
-
-/*!
-\def SIM7600_WAIT_FOR_CONNECTION_DELAY_MS
-\brief Waiting time in milliseconds for setting up connection.
-*/
-#define SIM7600_WAIT_FOR_CONNECTION_DELAY_MS              (2000)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX            (8)
 
 /*!
 \def SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS
@@ -219,7 +159,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS
 \brief Waiting time in milliseconds for getting signal quality.
 */
-#define SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS      (3000)
+#define SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS        (3000)
 
 /*!
 \def SIM7600_POWER_ON_STABILIZATION_DELAY_MS
@@ -252,112 +192,76 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_WAIT_FOR_POWER_OFF_DELAY_MS                 (30000)
 
 /*!
-\def SIM7600_WAIT_FOR_EXIT_TRANSPARENT_MODE_DELAY_MS
-\brief Waiting time in milliseconds for exiting trasparent mode.
-*/
-#define SIM7600_WAIT_FOR_EXIT_TRANSPARENT_MODE_DELAY_MS   (1000)
-
-/*!
 \def SIM7600_POWER_OFF_BY_SWITCH
 \brief Execute sim7600 poweroff by pulling down relative pin.
 */
-#define SIM7600_POWER_OFF_BY_SWITCH                       (0x01)
+#define SIM7600_POWER_OFF_BY_SWITCH                         (0x01)
 
 /*!
 \def SIM7600_POWER_OFF_BY_AT_COMMAND
 \brief Execute sim7600 poweroff by sending relative AT command.
 */
-#define SIM7600_POWER_OFF_BY_AT_COMMAND                   (0x02)
-
-/*!
-\def SIM7600_IP_LENGTH
-\brief Length of IP string buffer.
-*/
-#define SIM7600_IP_LENGTH                                 (16)
-
-/*!
-\def SIM7600_IMEI_LENGTH
-\brief Length of IMEI string buffer.
-*/
-#define SIM7600_IMEI_LENGTH                               (20)
+#define SIM7600_POWER_OFF_BY_AT_COMMAND                     (0x02)
 
 /*!
 \def RSSI_MIN
 \brief Minimum value of RSSI (low signal).
 */
-#define RSSI_MIN                                  (0)
+#define RSSI_MIN                                            (0)
 
 /*!
 \def RSSI_MAX
 \brief Minimum value of RSSI (high signal).
 */
-#define RSSI_MAX                                  (199)
+#define RSSI_MAX                                            (199)
 
 /*!
 \def RSSI_UNKNOWN
 \brief Unknown value of RSSI.
 */
-#define RSSI_UNKNOWN                              (199)
+#define RSSI_UNKNOWN                                        (199)
 
 /*!
 \def CREG_N_UNKNOWN
 \brief Unknown value of CREG N.
 */
-#define CREG_N_UNKNOWN                             (255)
+#define CREG_N_UNKNOWN                                      (255)
 
 /*!
 \def CREG_STAT_UNKNOWN
 \brief Unknown value of CREG STAT.
 */
-#define CREG_STAT_UNKNOWN                          (255)
+#define CREG_STAT_UNKNOWN                                   (255)
 
 /*!
 \def BER_MIN
 \brief Minimum value of BER.
 */
-#define BER_MIN                                    (0)
+#define BER_MIN                                             (0)
 
 /*!
 \def BER_MAX
 \brief Maximum value of BER.
 */
-#define BER_MAX                                    (7)
+#define BER_MAX                                             (7)
 
 /*!
 \def BER_UNKNOWN
 \brief Unknown value of BER.
 */
-#define BER_UNKNOWN                                (99)
-
-/*!
-\def SIM7600_AT_NETOPEN_RESPONSE_TIME_MAX_MS
-\brief Maximum NETOPEN AT command response time in milliseconds.
-*/
-#define SIM7600_AT_NETOPEN_RESPONSE_TIME_MAX_MS    (120000)
+#define BER_UNKNOWN                                         (99)
 
 /*!
 \def found(str, check)
 \brief Return true or false if check string is found in str string.
 */
-#define found(str, check)                                (strstr(str, check))
+#define found(str, check)                                   (strstr(str, check))
 
 /*!
 \def printStatus(status, ok, error)
 \brief Check if status is ok and print relative message.
 */
-#define printStatus(status, ok, error)                   (status == SIM7600_OK ? ok : error)
-
-/*!
-\def getImei(imei)
-\brief Return IMEI of simcard.
-*/
-#define getImei(imei)                                    (getGsn(imei))
-
-/*!
-\def isGprsAttached(is_attached)
-\brief Check if gprs is attached.
-*/
-#define isGprsAttached(is_attached)                      (getCgatt(is_attached))
+#define printStatus(status, ok, error)                      (status == SIM7600_OK ? ok : error)
 
 /*!
 \enum sim7600_power_state_t
@@ -413,9 +317,9 @@ typedef enum {
 typedef enum
 {
    SIM7600_CONNECTION_START_INIT,    //!< init task variables
-   SIM7600_CONNECTION_START_SET_PDP, //!< check if sim7600 is attached to gprs
+   SIM7600_CONNECTION_START_PDP, //!< check if sim7600 is attached to gprs
+   SIM7600_CONNECTION_START_PDP_AUTH, //!< starting up connection
    SIM7600_CONNECTION_START_CONNECT, //!< starting up connection
-   SIM7600_CONNECTION_START_GET_IP,  //!< get connection ip
    SIM7600_CONNECTION_START_END,     //!< performs end operations and deactivate task
    #ifndef USE_FREERTOS
    SIM7600_CONNECTION_START_WAIT_STATE //!< non-blocking waiting time
@@ -423,41 +327,19 @@ typedef enum
 } sim7600_connection_start_state_t;
 
 /*!
-\enum sim7600_connection_state_t
-\brief Main loop finite state machine.
-*/
-typedef enum {
-   SIM7600_CONNECTION_INIT,             //!< init task variables
-   SIM7600_CONNECTION_OPEN,             //!< open udp or tcp socket
-   SIM7600_CONNECTION_CHECK_STATUS,     //!< check socket status
-   SIM7600_CONNECTION_END,              //!< performs end operations and deactivate task
-   SIM7600_CONNECTION_WAIT_STATE        //!< non-blocking waiting time
-} sim7600_connection_state_t;
-
-/*!
 \enum sim7600_connection_stop_state_t
 \brief Main loop finite state machine.
 */
-typedef enum {
+typedef enum
+{
    SIM7600_CONNECTION_STOP_INIT,                       //!< init task variables
-   SIM7600_CONNECTION_STOP_SWITCH_TO_COMMAND_MODE,     //!< exit transparent mode
-   SIM7600_CONNECTION_STOP_CLOSE,                      //!< close socket
+   SIM7600_CONNECTION_STOP_HANGUP,                      //!< close socket
    SIM7600_CONNECTION_STOP_CLOSE_PDP,                  //!< close pdp context
-   SIM7600_CONNECTION_STOP_DETACH_GPRS,                //!< detach gprs
    SIM7600_CONNECTION_STOP_END,                        //!< performs end operations and deactivate task
+   #ifndef USE_FREERTOS
    SIM7600_CONNECTION_STOP_WAIT_STATE                  //!< non-blocking waiting time
+   #endif
 } sim7600_connection_stop_state_t;
-
-/*!
-\enum sim7600_exit_transparent_mode_state_t
-\brief Main loop finite state machine.
-*/
-typedef enum {
-   SIM7600_EXIT_TRANSPARENT_MODE_INIT,                    //!< init task variables
-   SIM7600_EXIT_TRANSPARENT_MODE_SEND_ESCAPE_SEQUENCE,    //!< send escape sequence for exiting transparent mode
-   SIM7600_EXIT_TRANSPARENT_MODE_END,                     //!< performs end operations and deactivate task
-   SIM7600_EXIT_TRANSPARENT_MODE_WAIT_STATE               //!< non-blocking waiting time
-} sim7600_exit_transparent_mode_state_t;
 
 /*!
 \enum sim7600_state_t
@@ -469,9 +351,9 @@ typedef enum
    SIM7600_STATE_ON = 0b00000001,               //!< module is on
    SIM7600_STATE_SETTED = 0b00000010,           //!< module is is setted
    SIM7600_STATE_CONNECTED = 0b00000100,        //!< module is is connected
-#ifndef USE_FREERTOS
+   #ifndef USE_FREERTOS
    SIM7600_AT_WAIT_STATE //!< non-blocking waiting time
-#endif
+   #endif
 } sim7600_state_t;
 
 /*!
@@ -587,14 +469,6 @@ public:
    uint32_t getDelayMs();
 
    /*!
-   \fn sim7600_status_t getGsn(char *imei)
-   \brief Send GSN AT command for reading simcard IMEI.
-   \param[out] *imei pointer to char buffer containing imei.
-   \return sim7600 status on each call.
-   */
-   sim7600_status_t getGsn(char *imei);
-
-   /*!
    \fn sim7600_status_t sendAtCxreg()
    \brief Send CREG AT command for reading network status.
    \return sim7600 status on each call.
@@ -609,21 +483,6 @@ public:
    \return sim7600 status on each call.
    */
    sim7600_status_t sendAtCsq();
-
-   /*!
-   \fn void getLastCsq(uint8_t *rssi, uint8_t *ber)
-   \brief return signal quality when connected.
-   \param[out] *rssi pointer to variable containing rssi value.
-   \param[out] *ber pointer to variable containing ber value.
-   */
-   void getLastCsq(uint8_t *rssi, uint8_t *ber);
-  
-   /*!
-   \fn sim7600_status_t sendAtIpaddr()
-   \brief Send IPADDRE AT command for reading IP.
-   \return sim7600 status on each call.
-   */
-   sim7600_status_t sendAtIpaddr();
 
    /*!
    \fn sim7600_status_t switchOn()
@@ -648,14 +507,13 @@ public:
    sim7600_status_t setup();
 
    /*!
-   \fn sim7600_status_t connect(const char *apn)
+   \fn sim7600_status_t connect(const char *apn, const char *number)
    \brief Execute start connection sequence.
    \param[in] *apn apn for simcard network operation
-   \param[in] *username username for simcard network operation
-   \param[in] *password password for simcard network operation
+   \param[in] *number number for simcard network operation
    \return sim7600 status on each call.
    */
-   sim7600_status_t connect(const char *apn);
+   sim7600_status_t connect(const char *apn, const char *number);
 
    /*!
    \fn sim7600_status_t connection(const char *tipo, const char *server, const int port)
@@ -675,30 +533,11 @@ public:
    sim7600_status_t disconnect();
 
    /*!
-   \fn sim7600_status_t exitTransparentMode()
-   \brief Execute exiting trasparent mode sequence.
-   \return sim7600 status on each call.
-   */
-   // sim7600_status_t exitTransparentMode();
-
-   /*!
    \fn void cleanInput()
    \brief Clear read serial port stream.
    \return void.
    */
    void cleanInput();
-
-   /*!
-   \fn uint8_t receive(char *rx_buffer, const char *at_ok_string = AT_OK_STRING, const char *at_error_string = AT_ERROR_STRING)
-   \brief Read serial port stream and check if response message is a success message or error message.
-   \param[out] *rx_buffer pointer to readed data buffer.
-   \param[in] *at_ok_string success message.
-   \param[in] *at_error_string error message.
-   \return number of bytes readed from stream.
-   */
-   #ifndef USE_FREERTOS
-   uint8_t receive(char *rx_buffer, const char *at_ok_string = AT_OK_STRING, const char *at_error_string = AT_ERROR_STRING);
-   #endif
 
    /*!
    \fn sendAtCommand(const char *command, char *buf, const char *at_ok_string = AT_OK_STRING, const char *at_error_string = AT_ERROR_STRING, uint32_t timeout_ms = SIM7600_AT_DEFAULT_TIMEOUT_MS)
@@ -818,12 +657,6 @@ private:
    sim7600_connection_start_state_t sim7600_connection_start_state;
 
    /*!
-   \var sim7600_connection_state
-   \brief sim7600 connection sequence state.
-   */
-   sim7600_connection_state_t sim7600_connection_state;
-
-   /*!
    \var sim7600_at_state
    \brief sim7600 at sequence state.
    */
@@ -834,12 +667,6 @@ private:
    \brief sim7600 connection stop sequence state.
    */
    sim7600_connection_stop_state_t sim7600_connection_stop_state;
-
-   /*!
-   \var sim7600_exit_transparent_mode_state
-   \brief sim7600 exit transparent mode sequence state.
-   */
-   sim7600_exit_transparent_mode_state_t sim7600_exit_transparent_mode_state;
 
    /*!
    \var rssi
@@ -888,12 +715,6 @@ private:
     \brief sim7600 cereg_stat of the active connection.
     */
    uint8_t cereg_stat;
-
-   /*!
-    \var sim7600_ip
-    \brief sim7600 IP of the active connection.
-    */
-   char sim7600_ip[SIM7600_IP_LENGTH];
 };
 
 #endif

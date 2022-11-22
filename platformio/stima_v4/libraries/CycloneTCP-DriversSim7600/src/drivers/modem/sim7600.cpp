@@ -73,9 +73,8 @@ void SIM7600::init()
    sim7600_power_off_state = SIM7600_POWER_OFF_INIT;
    sim7600_setup_state = SIM7600_SETUP_INIT;
    sim7600_connection_start_state = SIM7600_CONNECTION_START_INIT;
-   sim7600_connection_state = SIM7600_CONNECTION_INIT;
    sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_INIT;
-   sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_INIT;
+
    rssi = RSSI_UNKNOWN;
    ber = BER_UNKNOWN;
    creg_n = CREG_N_UNKNOWN;
@@ -169,11 +168,23 @@ sim7600_status_t SIM7600::switchOff(uint8_t power_off_method)
       break;
 
    case SIM7600_POWER_OFF_END:
+      rssi = RSSI_UNKNOWN;
+      ber = BER_UNKNOWN;
+      creg_n = CREG_N_UNKNOWN;
+      creg_stat = CREG_STAT_UNKNOWN;
+      cgreg_n = CREG_N_UNKNOWN;
+      cgreg_stat = CREG_STAT_UNKNOWN;
+      cereg_n = CREG_N_UNKNOWN;
+      cereg_stat = CREG_STAT_UNKNOWN;
+
       uartDeInit();
       uartInitConfig(low_baud_rate);
+      
       digitalWrite(enable_power_pin, LOW);
       digitalWrite(power_pin, LOW);
+      
       state = SIM7600_STATE_NONE;
+
       TRACE_INFO_F(F("%s switching OFF... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(SIM7600_OK, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
       sim7600_power_off_state = SIM7600_POWER_OFF_INIT;
       at_command_status = SIM7600_OK;
@@ -359,61 +370,6 @@ sim7600_status_t SIM7600::switchModem(bool is_switching_on)
    return sim7600_status;
 }
 
-// uint8_t SIM7600::receive(char *rx_buffer, const char *at_ok_string, const char *at_error_string) {
-//    memset(rx_buffer, 0, SIM7600_BUFFER_LENGTH);
-//    uint8_t rx_buffer_length = 0;
-//    bool is_responce_ok = false;
-//    bool is_responce_error = false;
-//    char *write_ptr = rx_buffer;
-//    char readed_char;
-
-//    uint32_t start_time_ms = millis();
-// // check ms timeout: set to 50 for slow baud rate
-//    while ((millis() - start_time_ms <= 5) && (rx_buffer_length < (SIM7600_BUFFER_LENGTH - 1)) && !is_responce_ok && !is_responce_error) {
-//       if (modem->available()) {
-//          start_time_ms = millis();
-
-//          readed_char = modem->read();
-
-//          if (readed_char == '\r' || readed_char == '\n') {
-//             if (rx_buffer_length > 2) {
-//                *write_ptr++ = ' ';
-//                rx_buffer_length++;
-//             }
-//          }
-//          else {
-//             *write_ptr++ = readed_char;
-//             rx_buffer_length++;
-
-//             *write_ptr = '\0';
-
-//             if (at_ok_string) {
-//                is_responce_ok = found(rx_buffer, at_ok_string);
-//             }
-
-//             if (at_error_string && !is_responce_ok){
-//                is_responce_error = found(rx_buffer, at_error_string);
-//             }
-//          }
-//       }
-//    }
-
-//    if (rx_buffer[rx_buffer_length-2] == ' ') {
-//       rx_buffer_length -= 2;
-//       rx_buffer[rx_buffer_length] = '\0';
-//    }
-
-//    if (is_responce_error) {
-//       rx_buffer_length = 0;
-//    }
-
-//    if (rx_buffer_length) {
-//      TRACE_DEBUG_F(F("SIM7600<-- %s"), rx_buffer);
-//    }
-
-//    return rx_buffer_length;
-// }
-
 void SIM7600::cleanInput () {
    #ifndef USE_FREERTOS
    while (modem->available()) {
@@ -596,27 +552,6 @@ void SIM7600::setInterface(NetInterface *_interface)
 }
 #endif
 
-// sim7600_status_t SIM7600::getGsn(char *imei) {
-//    sim7600_status_t at_command_status;
-
-//    if (!isInitialized())
-//       return SIM7600_ERROR;
-
-//    at_command_status = sendAtCommand("AT+GSN\r\n", buffer_ext);
-
-//    if (at_command_status == SIM7600_OK) {
-//       if (sscanf(buffer_ext, "%s", imei) != 1) {
-//          at_command_status = SIM7600_ERROR;
-//       }
-//    }
-
-//    if (at_command_status != SIM7600_BUSY) {
-//       TRACE_VERBOSE_F(F("SIM7600 IMEI [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), imei);
-//    }
-
-//    return at_command_status;
-// }
-
 sim7600_status_t SIM7600::sendAtCxreg(uint8_t cxreg_mode)
 {
    sim7600_status_t at_command_status;
@@ -714,205 +649,6 @@ sim7600_status_t SIM7600::sendAtCsq()
 
    return at_command_status;
 }
-
-
-
-// void SIM7600::getLastCsq(uint8_t *rssi, uint8_t *ber) {
-//   *rssi=rssi;
-//   *ber=ber;
-// }
-
-
-// sim7600_status_t SIM7600::getCgatt(bool *is_attached) {
-//    sim7600_status_t at_command_status;
-
-//    unsigned int is_gprs_attached = 0;
-
-//    if (!isInitialized())
-//       return SIM7600_ERROR;
-
-//    at_command_status = sendAtCommand("AT+CGATT?\r\n", buffer_ext);
-
-//    if (at_command_status == SIM7600_OK) {
-//       if (sscanf(buffer_ext, "+CGATT: %d", &is_gprs_attached) != 1) {
-//          at_command_status = SIM7600_ERROR;
-// 	 is_gprs_attached=0;
-//       }
-//    }
-//    *is_attached = (bool) is_gprs_attached;
-
-//    if (at_command_status != SIM7600_BUSY) {
-//       TRACE_VERBOSE_F(F("SIM7600 CGATT [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *is_attached ? YES_STRING : NO_STRING);
-//    }
-
-//    return at_command_status;
-// }
-
-sim7600_status_t SIM7600::sendAtIpaddr() {
-   sim7600_status_t at_command_status;
-
-   at_command_status = sendAtCommand("AT+IPADDR\r\n", buffer_ext, sizeof(buffer_ext), "+IPADDR:", AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
-
-   if (at_command_status == SIM7600_OK)
-   {
-      if (sscanf(buffer_ext, "+IPADDR: %s", sim7600_ip) != 1)
-      {
-         at_command_status == SIM7600_ERROR;
-      }
-   }
-
-   if (at_command_status == SIM7600_ERROR)
-   {
-      strcpy(sim7600_ip, "X.X.X.X");
-   }
-
-   if (at_command_status != SIM7600_BUSY)
-   {
-      TRACE_VERBOSE_F(F("%s IP address [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
-   }
-
-   return at_command_status;
-}
-
-// sim7600_status_t SIM7600::exitTransparentMode() {
-//    static uint32_t start_time_ms;
-//    static sim7600_exit_transparent_mode_state_t state_after_wait;
-//    static sim7600_status_t sim7600_status;
-//    static sim7600_status_t at_command_status;
-//    static bool is_error;
-
-//    switch (sim7600_exit_transparent_mode_state) {
-
-//       case SIM7600_EXIT_TRANSPARENT_MODE_INIT:
-//          is_error = false;
-//          sim7600_status = SIM7600_BUSY;
-
-//          // wait 1 second
-//          delay_ms = SIM7600_WAIT_FOR_EXIT_TRANSPARENT_MODE_DELAY_MS;
-//          start_time_ms = millis();
-//          state_after_wait = SIM7600_EXIT_TRANSPARENT_MODE_SEND_ESCAPE_SEQUENCE;
-//          sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_WAIT_STATE;
-//          break;
-
-//       case SIM7600_EXIT_TRANSPARENT_MODE_SEND_ESCAPE_SEQUENCE:
-//          at_command_status = sendAtCommand("+++", buffer_ext);
-
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             // wait 1 second
-//             delay_ms = SIM7600_WAIT_FOR_EXIT_TRANSPARENT_MODE_DELAY_MS;
-//             start_time_ms = millis();
-//             state_after_wait = SIM7600_EXIT_TRANSPARENT_MODE_END;
-//             sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_WAIT_STATE;
-//          }
-//          else if (at_command_status == SIM7600_ERROR) {
-//             is_error = true;
-//             sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_END;
-//          }
-//          // wait...
-//          break;
-
-//       case SIM7600_EXIT_TRANSPARENT_MODE_END:
-//          sim7600_status = (is_error ? SIM7600_ERROR : SIM7600_OK);
-//          sim7600_exit_transparent_mode_state = SIM7600_EXIT_TRANSPARENT_MODE_INIT;
-//          TRACE_VERBOSE_F(F("SIM7600 switch to command mode [ %s ]"), sim7600_status == SIM7600_OK ? OK_STRING : FAIL_STRING);
-//          break;
-
-//       case SIM7600_EXIT_TRANSPARENT_MODE_WAIT_STATE:
-//          if (millis() - start_time_ms > delay_ms) {
-//             sim7600_exit_transparent_mode_state = state_after_wait;
-//          }
-//          break;
-//    }
-
-//    return sim7600_status;
-// }
-
-// sim7600_status_t SIM7600::connection(const char *tipo, const char *server, const int port) {
-//    static uint32_t start_time_ms;
-//    static sim7600_connection_state_t state_after_wait;
-//    static sim7600_status_t sim7600_status;
-//    static sim7600_status_t at_command_status;
-//    static bool is_error;
-//    static uint8_t rx_data_length;
-
-//    switch (sim7600_connection_state) {
-
-//       case SIM7600_CONNECTION_INIT:
-//          rx_data_length = 0;
-//          is_error = false;
-//          sim7600_status = SIM7600_BUSY;
-
-//          if (isInitialized()) {
-//             start_time_ms = millis();
-//             delay_ms = SIM7600_WAIT_FOR_CONNECTION_DELAY_MS;
-//             sim7600_connection_state = SIM7600_CONNECTION_WAIT_STATE;
-//             state_after_wait = SIM7600_CONNECTION_OPEN;
-//             snprintf(buffer_ext2, SIM7600_BUFFER_LENGTH, "AT+CIPSTART=\"%s\",\"%s\",\"%i\"\r\n", tipo, server, port);
-//          }
-//          else {
-//             is_error = true;
-//             sim7600_connection_state = SIM7600_CONNECTION_END;
-//          }
-
-//          break;
-
-//       case SIM7600_CONNECTION_OPEN:
-//          at_command_status = sendAtCommand(buffer_ext2, buffer_ext, AT_OK_STRING, AT_ERROR_STRING, SIM7600_CIPSTART_RESPONSE_TIME_MAX_MS);
-
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             sim7600_connection_state = SIM7600_CONNECTION_CHECK_STATUS;
-//          }
-//          // fail
-//          else if (at_command_status == SIM7600_ERROR) {
-//             is_error = true;
-//             sim7600_connection_state = SIM7600_CONNECTION_END;
-//          }
-//          // wait...
-//          break;
-
-//       case SIM7600_CONNECTION_CHECK_STATUS:
-//          if (start_time_ms == 0) {
-//             start_time_ms = millis();
-//          }
-
-//          rx_data_length = receive(buffer_ext, NULL, NULL);
-
-//          // fail
-//          if (rx_data_length && found(buffer_ext, AT_CONNECT_FAIL_STRING)) {
-//             LOGE(F("SIM7600 %s status... [ %s ] [ %s ]"), tipo, ERROR_STRING, buffer_ext);
-//             is_error = true;
-//             sim7600_connection_state = SIM7600_CONNECTION_END;
-//          }
-//          // success
-//          else if (rx_data_length && found(buffer_ext, AT_CONNECT_OK_STRING)) {
-//             TRACE_INFO_F(F("SIM7600 %s status... [ %s ] [ %s ]"), tipo, OK_STRING, buffer_ext);
-//             sim7600_connection_state = SIM7600_CONNECTION_END;
-//          }
-//          // timeout fail
-//          else if (millis() - start_time_ms > SIM7600_CIPSTART_RESPONSE_TIME_MAX_MS) {
-//             LOGE(F("SIM7600 %s status... [ %s ]"), tipo, ERROR_STRING);
-//             is_error = true;
-//             sim7600_connection_state = SIM7600_CONNECTION_END;
-//          }
-//          // wait...
-//          break;
-
-//       case SIM7600_CONNECTION_END:
-//          sim7600_status = (is_error ? SIM7600_ERROR : SIM7600_OK);
-//          sim7600_connection_state = SIM7600_CONNECTION_INIT;
-//          break;
-
-//       case SIM7600_CONNECTION_WAIT_STATE:
-//          if (millis() - start_time_ms > delay_ms) {
-//             sim7600_connection_state = state_after_wait;
-//          }
-//          break;
-//    }
-
-//    return sim7600_status;
-// }
 
 sim7600_status_t SIM7600::setup()
 {
@@ -1148,8 +884,8 @@ sim7600_status_t SIM7600::setup()
       {
          retry = 0;
          cxreg_mode++;
-         
-         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+
+         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
          {
             cxreg_mode = SIM7600_AT_CREG_MODE;
             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
@@ -1176,7 +912,7 @@ sim7600_status_t SIM7600::setup()
          retry = 0;
          cxreg_mode++;
 
-         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
          {
             cxreg_mode = SIM7600_AT_CREG_MODE;
             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
@@ -1284,7 +1020,7 @@ sim7600_status_t SIM7600::setup()
          retry = 0;
          cxreg_mode++;
 
-         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
          {
             sim7600_setup_state = SIM7600_SETUP_END;
             delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
@@ -1310,7 +1046,7 @@ sim7600_status_t SIM7600::setup()
          retry = 0;
          cxreg_mode++;
 
-         if (cxreg_mode > SIM7600_AT_CEREG_MODE)
+         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
          {
             is_error = !is_almost_one_registered;
             sim7600_setup_state = SIM7600_SETUP_END;
@@ -1353,7 +1089,7 @@ sim7600_status_t SIM7600::setup()
    return sim7600_status;
 }
 
-sim7600_status_t SIM7600::connect(const char *apn)
+sim7600_status_t SIM7600::connect(const char *apn, const char *number)
 {
    static uint8_t retry;
    static sim7600_status_t sim7600_status;
@@ -1376,7 +1112,7 @@ sim7600_status_t SIM7600::connect(const char *apn)
 
       if (isSetted())
       {
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_SET_PDP;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_PDP;
       }
       else
       {
@@ -1385,7 +1121,7 @@ sim7600_status_t SIM7600::connect(const char *apn)
       }
       break;
 
-   case SIM7600_CONNECTION_START_SET_PDP:
+   case SIM7600_CONNECTION_START_PDP:
       snprintf(buffer_ext2, SIM7600_BUFFER_LENGTH, "AT+CGDCONT=1,\"IP\",\"%s\"\r\n", apn);
       at_command_status = sendAtCommand(buffer_ext2, buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
@@ -1393,14 +1129,14 @@ sim7600_status_t SIM7600::connect(const char *apn)
       if (at_command_status == SIM7600_OK)
       {
          retry = 0;
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_CONNECT;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_PDP_AUTH;
       }
       // retry
       else if ((at_command_status == SIM7600_ERROR) && (++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX)
       {
          #ifndef USE_FREERTOS
          start_time_ms = millis();
-         state_after_wait = SIM7600_CONNECTION_START_SET_PDP;
+         state_after_wait = SIM7600_CONNECTION_START_PDP;
          sim7600_connection_start_state = SIM7600_CONNECTION_START_WAIT_STATE;
          #endif
          delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
@@ -1420,14 +1156,49 @@ sim7600_status_t SIM7600::connect(const char *apn)
       // wait...
       break;
 
-   case SIM7600_CONNECTION_START_CONNECT:
-      at_command_status = sendAtCommand("AT+NETOPEN\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_NETOPEN_RESPONSE_TIME_MAX_MS);
+   case SIM7600_CONNECTION_START_PDP_AUTH:
+      at_command_status = sendAtCommand("AT+CGAUTH=1,0\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
       // success
       if (at_command_status == SIM7600_OK)
       {
          retry = 0;
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_GET_IP;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_CONNECT;
+      }
+      // retry
+      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_CONNECTION_START_TRANSPARENT;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_WAIT_STATE;
+         #endif
+         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
+      }
+      // fail
+      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         is_error = true;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_END;
+      }
+
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s set PDP authentication... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
+
+      // wait...
+      break;
+
+   case SIM7600_CONNECTION_START_CONNECT:
+      snprintf(buffer_ext2, SIM7600_BUFFER_LENGTH, "ATD%s\r\n", number);
+      at_command_status = sendAtCommand(buffer_ext2, buffer_ext, sizeof(buffer_ext), AT_CONNECT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         retry = 0;
+         sim7600_connection_start_state = SIM7600_CONNECTION_START_END;
       }
       // retry
       else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
@@ -1449,41 +1220,6 @@ sim7600_status_t SIM7600::connect(const char *apn)
       if (at_command_status != SIM7600_BUSY)
       {
          TRACE_INFO_F(F("%s setting up connection... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
-      }
-
-      // wait...
-      break;
-
-   case SIM7600_CONNECTION_START_GET_IP:
-      at_command_status = sendAtIpaddr();
-
-      // success
-      if (at_command_status == SIM7600_OK)
-      {
-         retry = 0;
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_END;
-      }
-      // retry
-      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
-      {
-         #ifndef USE_FREERTOS
-         start_time_ms = millis();
-         state_after_wait = SIM7600_CONNECTION_START_GET_IP;
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_WAIT_STATE;
-         #endif
-         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-      }
-      // fail
-      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_GENERIC_RETRY_COUNT_MAX))
-      {
-         retry = 0;
-         is_error = true;
-         sim7600_connection_start_state = SIM7600_CONNECTION_START_END;
-      }
-
-      if (at_command_status != SIM7600_BUSY)
-      {
-         TRACE_INFO_F(F("%s IP address... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), sim7600_ip);
       }
 
       // wait...
@@ -1518,201 +1254,97 @@ sim7600_status_t SIM7600::connect(const char *apn)
    return sim7600_status;
 }
 
-// sim7600_status_t SIM7600::disconnect() {
-//    static uint8_t retry;
-//    static sim7600_connection_stop_state_t state_after_wait;
-//    static uint32_t delay_ms;
-//    static uint32_t start_time_ms;
-//    static sim7600_status_t sim7600_status;
-//    static bool is_error;
-//    sim7600_status_t at_command_status;
+sim7600_status_t SIM7600::disconnect() {
+   static uint8_t retry;
+   static sim7600_status_t sim7600_status;
+   sim7600_status_t at_command_status;
+   static bool is_error;
+   static bool is_attached;
 
-//    switch (sim7600_connection_stop_state) {
+   #ifndef USE_FREERTOS
+   static sim7600_connection_start_state_t state_after_wait;
+   static uint32_t start_time_ms;
+   #endif
 
-//       case SIM7600_CONNECTION_STOP_INIT:
-//          retry = 0;
-//          is_error = false;
-//          sim7600_status = SIM7600_BUSY;
+   switch (sim7600_connection_stop_state)
+   {
+   case SIM7600_CONNECTION_STOP_INIT:
+      retry = 0;
+      is_error = false;
+      sim7600_status = SIM7600_BUSY;
 
-//          sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_SWITCH_TO_COMMAND_MODE;
-//          break;
+      sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_HANGUP;
+      break;
 
-//       case SIM7600_CONNECTION_STOP_SWITCH_TO_COMMAND_MODE:
-//          at_command_status = exitTransparentMode();
+   case SIM7600_CONNECTION_STOP_HANGUP:
+      at_command_status = sendAtCommand("ATH\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             retry = 0;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_CLOSE;
-//          }
-//          // retry
-//          else if (at_command_status == SIM7600_ERROR && (++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-//             start_time_ms = millis();
-//             state_after_wait = SIM7600_CONNECTION_STOP_SWITCH_TO_COMMAND_MODE;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (sim7600_status == SIM7600_ERROR || retry >= SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             retry = 0;
-//             is_error = true;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
-//          }
-//          // wait
-//          break;
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         retry = 0;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
+      }
+      // retry
+      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_CONNECTION_STOP_HANGUP;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_START_WAIT_STATE;
+         #endif
+         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
+      }
+      // fail
+      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         is_error = true;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
+      }
 
-//       case SIM7600_CONNECTION_STOP_CLOSE:
-//          at_command_status = sendAtCommand("AT+CIPCLOSE=0\r\n", buffer_ext, AT_CIPCLOSE_OK_STRING, AT_CIPCLOSE_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s close connection... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             retry = 0;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_CLOSE_PDP;
-//          }
-//          // retry
-//          else if (at_command_status == SIM7600_ERROR && (++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-//             start_time_ms = millis();
-//             state_after_wait = SIM7600_CONNECTION_STOP_CLOSE;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (sim7600_status == SIM7600_ERROR || retry >= SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             is_error = true;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
-//          }
+      // wait...
+      break;
 
-//          if (at_command_status != SIM7600_BUSY) {
-//             TRACE_INFO_F(F("SIM7600 stop connection... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
-//          }
+   case SIM7600_CONNECTION_STOP_END:
+      if (is_error)
+      {
+         sim7600_status = SIM7600_ERROR;
+         state = (sim7600_state_t)(state & ~SIM7600_STATE_CONNECTED);
+      }
+      else
+      {
+         sim7600_status = SIM7600_OK;
+         state = (sim7600_state_t)(state & ~SIM7600_STATE_CONNECTED);
+      }
 
-//          // wait
-//          break;
+      sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_INIT;
 
-//       case SIM7600_CONNECTION_STOP_CLOSE_PDP:
-//          at_command_status = sendAtCommand("AT+CIPSHUT\r\n", buffer_ext, AT_CIPSHUT_OK_STRING, AT_CIPSHUT_ERROR_STRING, SIM7600_CIPSHUT_RESPONSE_TIME_MAX_MS);
+      rssi = RSSI_UNKNOWN;
+      ber = BER_UNKNOWN;
+      creg_n = CREG_N_UNKNOWN;
+      creg_stat = CREG_STAT_UNKNOWN;
+      cgreg_n = CREG_N_UNKNOWN;
+      cgreg_stat = CREG_STAT_UNKNOWN;
+      cereg_n = CREG_N_UNKNOWN;
+      cereg_stat = CREG_STAT_UNKNOWN;
 
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             retry = 0;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_DETACH_GPRS;
-//          }
-//          // retry
-//          else if (at_command_status == SIM7600_ERROR && (++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-//             start_time_ms = millis();
-//             state_after_wait = SIM7600_CONNECTION_STOP_DETACH_GPRS;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (sim7600_status == SIM7600_ERROR || retry >= SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             is_error = true;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
-//          }
+      TRACE_INFO_F(F("%s disconnect... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      break;
 
-//          if (at_command_status != SIM7600_BUSY) {
-//             TRACE_INFO_F(F("SIM7600 PDP close... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
-//          }
+   #ifndef USE_FREERTOS
+   case SIM7600_CONNECTION_STOP_WAIT_STATE:
+      if (millis() - start_time_ms > delay_ms)
+      {
+         sim7600_connection_stop_state = state_after_wait;
+      }
+      break;
+   #endif
+   }
 
-//          // wait
-//          break;
-
-//       case SIM7600_CONNECTION_STOP_DETACH_GPRS:
-//          at_command_status = sendAtCommand("AT+CGATT=0\r\n", buffer_ext, AT_OK_STRING, AT_ERROR_STRING, SIM7600_CGATT_RESPONSE_TIME_MAX_MS);
-
-//          // success
-//          if (at_command_status == SIM7600_OK) {
-//             retry = 0;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
-//          }
-//          // retry
-//          else if (at_command_status == SIM7600_ERROR && (++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-//             start_time_ms = millis();
-//             state_after_wait = SIM7600_CONNECTION_STOP_DETACH_GPRS;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_WAIT_STATE;
-//          }
-//          // fail
-//          else if (sim7600_status == SIM7600_ERROR || retry >= SIM7600_GENERIC_RETRY_COUNT_MAX) {
-//             is_error = true;
-//             sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
-//          }
-
-//          if (at_command_status != SIM7600_BUSY) {
-//             TRACE_INFO_F(F("SIM7600 detach GPRS... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
-//          }
-
-//          // wait...
-//          break;
-
-//       case SIM7600_CONNECTION_STOP_END:
-//          sim7600_status = (is_error ? SIM7600_ERROR : SIM7600_OK);
-//          sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_INIT;
-// 	 rssi = RSSI_UNKNOWN;
-// 	 ber = BER_UNKNOWN;
-//          TRACE_INFO_F(F("SIM7600 stop connection... [ %s ]"), printStatus(sim7600_status, OK_STRING, FAIL_STRING));
-//          break;
-
-//       case SIM7600_CONNECTION_STOP_WAIT_STATE:
-//          if (millis() - start_time_ms > delay_ms) {
-//             sim7600_connection_stop_state = state_after_wait;
-//          }
-//          break;
-//    }
-
-//    return sim7600_status;
-// }
-
-// // *****************************************************************************
-// // etherclient compatibility
-// // *****************************************************************************
-
-// sim7600Client::sim7600Client() {}
-
-// int sim7600Client::connect(IPAddress ip, int port) {
-//    char server[16];
-//    sprintf(server, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-//    return connection(SIM7600_CONNECTION_TCP, server, port);
-// }
-
-// int sim7600Client::connect(const char *server, int port) {
-//    return (int) connection(SIM7600_CONNECTION_TCP, server, port);
-// }
-
-// uint8_t sim7600Client::connected() {
-//    return isHttpInitialized();
-// }
-
-// int sim7600Client::available() {
-//    return modem->available();
-// }
-
-// int sim7600Client::read() {
-//    return modem->read();
-// }
-
-// int sim7600Client::readBytes(char *buffer, size_t size) {
-//   return modem->readBytes(buffer, size);
-// }
-
-// int sim7600Client::readBytes(uint8_t *buffer, size_t size) {
-//   return modem->readBytes(buffer, size);
-// }
-
-// void sim7600Client::setTimeout(uint32_t timeout_ms) {
-//    modem->setTimeout(timeout_ms);
-// }
-
-// size_t sim7600Client::write(uint8_t buffer) {
-//    return modem->write(buffer);
-// }
-
-// size_t sim7600Client::write(const uint8_t *buffer, size_t size) {
-//    return modem->write(buffer, size);
-// }
-
-// void sim7600Client::flush() {
-// }
-
-// void sim7600Client::stop() {
-// }
+   return sim7600_status;
+}
