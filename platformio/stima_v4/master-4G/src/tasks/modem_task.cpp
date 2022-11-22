@@ -185,6 +185,7 @@ void ModemTask::Run() {
         // Any error to report?
         if (error)
         {
+          TRACE_ERROR_F(F("Failed to established PPP connection!\r\n"));
           state = MODEM_STATE_DISCONNECT;
           TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
         }
