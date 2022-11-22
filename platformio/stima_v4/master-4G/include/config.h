@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define _CONFIG_H
 
 #include "sensors_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
 
 /*********************************************************************
 * MODULE
@@ -50,31 +50,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define CONFIGURATION_EEPROM_ADDRESS (0)
 
-#define ENABLE_I2C1 (true)
-#define ENABLE_I2C2 (true)
-#define ENABLE_QSPI (false)
+#define SERIAL_DEBUG_BAUD_RATE   (115200)
 
-// #define SAMPLES_COUNT_MAX                 (3600)
-// #define SENSORS_ACQUISITION_DELAY_MS      (4000)
-// #define OBSERVATRIONS_TIME_S              (60)
-// #define REPORTS_TIME_S                    (900)
-//
-// #define ELABORATE_DATA_QUEUE_LENGTH       (4)
-// #define REQUEST_DATA_QUEUE_LENGTH         (1)
-// #define REPORT_DATA_QUEUE_LENGTH          (1)
-//
-// #define TEMPERATURE_MAIN_INDEX            (0)
-// #define HUMIDITY_MAIN_INDEX               (1)
-// #define TEMPERATURE_REDUNDANT_INDEX       (2)
-// #define HUMIDITY_REDUNDANT_INDEX          (3)
-// #define RAIN_INDEX                        (4)
-//
-// #define MAX_VALID_TEMPERATURE             (100.0)
-// #define MIN_VALID_TEMPERATURE             (-50.0)
-// #define MAX_VALID_HUMIDITY                (100.0)
-// #define MIN_VALID_HUMIDITY                (0.0)
-//
-// #define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
-// #define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+#define ENABLE_I2C1              (true)
+#define ENABLE_I2C2              (true)
+#define ENABLE_QSPI              (false)
+#define _HW_SETUP_GPIO_PRIVATE
+
+#define PPP0_INTERFACE_NAME      ("ppp0")
+#define ETH0_INTERFACE_NAME      ("eth0")
+
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+#define INTERFACE_0_NAME         PPP0_INTERFACE_NAME
+#define INTERFACE_0_INDEX        (0)
+#define PPP0_TIMEOUT_MS          (10000)
+#define PPP0_BAUD_RATE_DEFAULT   (115200)
+#define PPP0_BAUD_RATE_MAX       (921600)
+#define PPP0_PRIMARY_DNS         ("8.8.8.8")
+#define PPP0_SECONDARY_DNS       ("8.8.4.4")
+
+#elif (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
+#define INTERFACE_0_NAME         ETH0_INTERFACE
+#define INTERFACE_0_INDEX        (0)
+#endif
+
+#define SYSTEM_REQUEST_QUEUE_LENGTH       (1)
+#define SYSTEM_RESPONSE_QUEUE_LENGTH      (1)
+#define SYSTEM_STATUS_QUEUE_LENGTH        (1)
 
 #endif

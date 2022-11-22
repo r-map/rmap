@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define _PROVA_TASK_H
 
 #include "debug_config.h"
-#include "STM32FreeRTOS.h"
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "debug_F.h"
@@ -46,7 +46,7 @@ private:
   char taskName[configMAX_TASK_NAME_LEN];
   uint16_t stackSize;
   uint8_t priority;
-  ProvaParam_t ProvaParam;
+  ProvaParam_t param;
 };
 
 #endif

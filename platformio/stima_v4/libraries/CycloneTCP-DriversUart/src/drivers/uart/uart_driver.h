@@ -1,4 +1,4 @@
-/**@file prova_task.cpp */
+/**@file uart_driver.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,20 +21,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL PROVA_TASK_TRACE_LEVEL
+#ifndef _UART_DRIVER_H
+#define _UART_DRIVER_H
 
-#include "tasks/prova_task.h"
+#define UART_DRIVER_BAUD_RATE_DEFAULT (115200)
 
-using namespace cpp_freertos;
+#include "config.h"
+#include "stima_config.h"
+#include <stdint.h>
+#include "core/net.h"
+#include "ppp/ppp_hdlc.h"
 
-ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), param(provaParam)
-{
-  Start();
-};
+//C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void ProvaTask::Run() {
-  while (true) {
-    TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
-    DelayUntil(Ticks::MsToTicks(1000));
-  }
+//UART driver
+extern const UartDriver uartDriver;
+
+//External interrupt related functions
+error_t uartInitConfig(uint32_t baud);
+error_t uartInit(void);
+error_t uartDeInit(void);
+void uartEnableIrq(void);
+void uartDisableIrq(void);
+void uartStartTx(void);
+
+//C++ guard
+#ifdef __cplusplus
 }
+#endif
+
+#endif

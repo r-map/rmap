@@ -127,8 +127,8 @@ extern "C" void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_SYSCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
@@ -157,55 +157,72 @@ extern "C" void SystemClock_Config(void)
 
 /// @brief Startup PeripheralConfig Local Board
 /// @param  none
-void SetupSystemPeripheral(void) {
-//   #ifdef _HW_SETUP_GPIO_PRIVATE
-//   MX_GPIO_Init();
-//   #endif
-//   #ifdef _HW_SETUP_CAN_PRIVATE
-//   MX_CAN1_Init();
-//   #endif
-//   #ifdef _HW_SETUP_CRC_PRIVATE
-//   MX_CRC_Init();
-//   #endif
-//   #ifdef _HW_SETUP_I2C1_PRIVATE
-//   MX_I2C1_Init();
-//   #endif
-//   #ifdef _HW_SETUP_I2C2_PRIVATE
-//   MX_I2C2_Init();
-//   #endif
-  #if (ENABLE_QSPI)
+void SetupSystemPeripheral(void)
+{
+#ifdef _HW_SETUP_GPIO_PRIVATE
+  MX_GPIO_Init();
+#endif
+  //   #ifdef _HW_SETUP_CAN_PRIVATE
+  //   MX_CAN1_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_CRC_PRIVATE
+  //   MX_CRC_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_I2C1_PRIVATE
+  //   MX_I2C1_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_I2C2_PRIVATE
+  //   MX_I2C2_Init();
+  //   #endif
+#if (ENABLE_QSPI)
   MX_QUADSPI_Init();
-  #endif
-//   #ifdef _HW_SETUP_RTC_PRIVATE
-//   MX_RTC_Init();
-//   #endif
-//   #ifdef _HW_SETUP_UART1_PRIVATE
-//   MX_USART1_UART_Init();
-//   #endif
-//   #ifdef _HW_SETUP_UART2_PRIVATE
-//   MX_USART2_UART_Init();
-//   #endif
-//   #ifdef _HW_SETUP_UART4_PRIVATE
-//   MX_UART4_Init();
-//   #endif
-//   #ifdef _HW_SETUP_LPTIM_PRIVATE
-//   MX_LPTIM1_Init();
-//   #endif
-//   #ifdef _HW_SETUP_RNG_PRIVATE
-//   MX_RNG_Init();
-//   #endif
-//   #ifdef _HW_SETUP_TIM3_PRIVATE
-//   MX_TIM3_Init();
-//   #endif
-//   #ifdef _HW_SETUP_I2C1_PRIVATE
-//   MX_I2C1_Init();
-//   #endif
-//   #ifdef _HW_SETUP_I2C2_PRIVATE
-//   MX_I2C1_Init();
-//   #endif
-//   #ifdef _HW_SETUP_SPI_PRIVATE
-//   MX_SPI1_Init();
-//   #endif
+#endif
+  //   #ifdef _HW_SETUP_RTC_PRIVATE
+  //   MX_RTC_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_UART1_PRIVATE
+  //   MX_USART1_UART_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_UART2_PRIVATE
+  //   MX_USART2_UART_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_UART4_PRIVATE
+  //   MX_UART4_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_LPTIM_PRIVATE
+  //   MX_LPTIM1_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_RNG_PRIVATE
+  //   MX_RNG_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_TIM3_PRIVATE
+  //   MX_TIM3_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_I2C1_PRIVATE
+  //   MX_I2C1_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_I2C2_PRIVATE
+  //   MX_I2C1_Init();
+  //   #endif
+  //   #ifdef _HW_SETUP_SPI_PRIVATE
+  //   MX_SPI1_Init();
+  //   #endif
+
+  /** USART2 GPIO Configuration
+     PD5     ------> USART2_TX
+     PD6     ------> USART2_RX
+     */
+  __HAL_RCC_GPIOD_FORCE_RESET();
+  __HAL_RCC_GPIOD_RELEASE_RESET();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
 
 // /*******************************************************************************************
@@ -792,80 +809,96 @@ extern "C" void MX_QUADSPI_Init(void)
 // }
 // #endif
 
-// #ifdef _HW_SETUP_GPIO_PRIVATE
-// /**
-//   * @brief GPIO Initialization Function
-//   * @param None
-//   * @retval None
-//   */
-// extern "C" void MX_GPIO_Init(void)
-// {
-//   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+#ifdef _HW_SETUP_GPIO_PRIVATE
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+extern "C" void MX_GPIO_Init(void)
+{
+  /** USART2 GPIO Configuration
+     PD5     ------> USART2_TX
+     PD6     ------> USART2_RX
+     */
+  __HAL_RCC_GPIOD_FORCE_RESET();
+  __HAL_RCC_GPIOD_RELEASE_RESET();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
-//   /* GPIO Ports Clock Enable */
-//   //clock
-//   __HAL_RCC_GPIOE_CLK_ENABLE();
-//   __HAL_RCC_GPIOC_CLK_ENABLE();
-//   __HAL_RCC_GPIOH_CLK_ENABLE();
-//   __HAL_RCC_GPIOA_CLK_ENABLE();
-//   __HAL_RCC_GPIOB_CLK_ENABLE();
-//   __HAL_RCC_GPIOD_CLK_ENABLE();
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_2|LL_GPIO_PIN_5|LL_GPIO_PIN_7|LL_GPIO_PIN_8
-//                           |LL_GPIO_PIN_9|LL_GPIO_PIN_10|LL_GPIO_PIN_11|LL_GPIO_PIN_12
-//                           |LL_GPIO_PIN_13|LL_GPIO_PIN_14|LL_GPIO_PIN_15|LL_GPIO_PIN_0
-//                           |LL_GPIO_PIN_1;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+  // LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_13|LL_GPIO_PIN_0|LL_GPIO_PIN_1|LL_GPIO_PIN_2
-//                           |LL_GPIO_PIN_3|LL_GPIO_PIN_4|LL_GPIO_PIN_5|LL_GPIO_PIN_6
-//                           |LL_GPIO_PIN_7;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  // /* GPIO Ports Clock Enable */
+  // //clock
+  // __HAL_RCC_GPIOE_CLK_ENABLE();
+  // __HAL_RCC_GPIOC_CLK_ENABLE();
+  // __HAL_RCC_GPIOH_CLK_ENABLE();
+  // __HAL_RCC_GPIOA_CLK_ENABLE();
+  // __HAL_RCC_GPIOB_CLK_ENABLE();
+  // __HAL_RCC_GPIOD_CLK_ENABLE();
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_0|LL_GPIO_PIN_1|LL_GPIO_PIN_3;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_2|LL_GPIO_PIN_5|LL_GPIO_PIN_7|LL_GPIO_PIN_8
+  //                         |LL_GPIO_PIN_9|LL_GPIO_PIN_10|LL_GPIO_PIN_11|LL_GPIO_PIN_12
+  //                         |LL_GPIO_PIN_13|LL_GPIO_PIN_14|LL_GPIO_PIN_15|LL_GPIO_PIN_0
+  //                         |LL_GPIO_PIN_1;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_4|LL_GPIO_PIN_15;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_13|LL_GPIO_PIN_0|LL_GPIO_PIN_1|LL_GPIO_PIN_2
+  //                         |LL_GPIO_PIN_3|LL_GPIO_PIN_4|LL_GPIO_PIN_5|LL_GPIO_PIN_6
+  //                         |LL_GPIO_PIN_7;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_2|LL_GPIO_PIN_11|LL_GPIO_PIN_12|LL_GPIO_PIN_13
-//                           |LL_GPIO_PIN_15|LL_GPIO_PIN_9;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_0|LL_GPIO_PIN_1|LL_GPIO_PIN_3;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_8|LL_GPIO_PIN_9|LL_GPIO_PIN_10|LL_GPIO_PIN_11
-//                           |LL_GPIO_PIN_12|LL_GPIO_PIN_13|LL_GPIO_PIN_14|LL_GPIO_PIN_15
-//                           |LL_GPIO_PIN_7;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   LL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_4|LL_GPIO_PIN_15;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-//   /**/
-//   GPIO_InitStruct.Pin = LL_GPIO_PIN_8;
-//   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-//   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-//   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-//   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-//   GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
-//   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_2|LL_GPIO_PIN_11|LL_GPIO_PIN_12|LL_GPIO_PIN_13
+  //                         |LL_GPIO_PIN_15|LL_GPIO_PIN_9;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-// }
-// #endif
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_8|LL_GPIO_PIN_9|LL_GPIO_PIN_10|LL_GPIO_PIN_11
+  //                         |LL_GPIO_PIN_12|LL_GPIO_PIN_13|LL_GPIO_PIN_14|LL_GPIO_PIN_15
+  //                         |LL_GPIO_PIN_7;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // LL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  // /**/
+  // GPIO_InitStruct.Pin = LL_GPIO_PIN_8;
+  // GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  // GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  // GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  // GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  // GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+  // LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+}
+#endif
 
 // /*******************************************************************************************
 // ********************************************************************************************

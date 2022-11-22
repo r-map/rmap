@@ -1,4 +1,4 @@
-/**@file prova_task.cpp */
+/**@file stima_utility.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,20 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL PROVA_TASK_TRACE_LEVEL
+#ifndef _STIMA_UTILITY_H
+#define _STIMA_UTILITY_H
 
-#include "tasks/prova_task.h"
+#include <cstdint>
+#include <cstring>
+#include "stima_config.h"
 
-using namespace cpp_freertos;
+/*!
+\fn void getStimaNameByType(char *name, uint8_t type)
+\brief Return a STIMA's name starting from a module type stored in configuration.
+\param[out] *name STIMA's name.
+\param[in] *type module type stored in configuration.
+\return void.
+*/
+void getStimaNameByType(char *name, uint8_t type);
 
-ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), param(provaParam)
-{
-  Start();
-};
-
-void ProvaTask::Run() {
-  while (true) {
-    TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
-    DelayUntil(Ticks::MsToTicks(1000));
-  }
-}
+#endif

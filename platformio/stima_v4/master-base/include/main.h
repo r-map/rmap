@@ -27,7 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define __STDC_LIMIT_MACROS
 
 #include "debug_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
+#include "stima_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
 #include <Wire.h>

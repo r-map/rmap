@@ -28,15 +28,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "config.h"
 #include "debug_config.h"
-#include "rmap_utility.h"
+#include "stima_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
 
+#include <STM32FreeRTOS.h>
+#include "thread.hpp"
+#include "semaphore.hpp"
+#include "queue.hpp"
+
 #include "core/net.h"
-#include "ppp/ppp.h"
-// #include "http/http_client.h"
-// #include "tls.h"
-// #include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
 #include "rng/trng.h"
 #include "rng/yarrow.h"
@@ -44,11 +45,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #endif
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
 
 #include "tasks/prova_task.h"
 #include "tasks/supervisor_task.h"
@@ -77,14 +73,19 @@ BinarySemaphore *wireLock;
 BinarySemaphore *wire2Lock;
 #endif
 
-BinarySemaphore *configurationLock;
-configuration_t configuration;
+Queue *systemStatusQueue;
+Queue *systemRequestQueue;
+Queue *systemResponseQueue;
 
-PppSettings pppSettings;
-PppContext pppContext;
-// HttpClientContext httpClientContext;
+BinarySemaphore *configurationLock;
+BinarySemaphore *systemStatusLock;
+
+configuration_t configuration;
+system_status_t system_status;
+
 YarrowContext yarrowContext;
-uint8_t seed[32];
+#define SEED_LENGTH (32)
+uint8_t seed[SEED_LENGTH];
 
 /*!
 \fn void print_configuration(void)
@@ -115,7 +116,7 @@ void init_registers(void);
 void init_can(void);
 void init_tasks(void);
 void init_sensors(void);
-void init_net(void);
+bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
 bool CAN_HW_Init(void);
 
 #endif

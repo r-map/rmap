@@ -24,50 +24,68 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _MODEM_TASK_H
 #define _MODEM_TASK_H
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-
 #include "debug_config.h"
 #include "local_typedef.h"
-#include "STM32FreeRTOS.h"
+
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+
+#define MODEM_TASK_WAIT_DELAY_MS          (10)
+#define MODEM_TASK_GENERIC_RETRY_DELAY_MS (5000)
+#define MODEM_TASK_GENERIC_RETRY          (3)
+
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"
 #include "ppp/ppp.h"
-#include "http/http_client.h"
+// #include "http/http_client.h"
 #include "tls.h"
 #include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
 #include "rng/trng.h"
 #include "rng/yarrow.h"
 #include "drivers/modem/sim7600.h"
-#include "drivers/uart/arduino_uart_driver.h"
+#include "drivers/uart/uart_driver.h"
 #include "debug_F.h"
 
-typedef enum {
-   MODEM_STATE_INIT,
-   MODEM_STATE_EVENT_HANDLER,
-   MODEM_STATE_END
+typedef enum
+{
+  MODEM_STATE_INIT,
+  MODEM_STATE_WAIT_NET_EVENT,
+  MODEM_STATE_SWITCH_ON,
+  MODEM_STATE_SETUP,
+  MODEM_STATE_CONNECT,
+  MODEM_STATE_CONNECTED,
+  MODEM_STATE_DISCONNECT,
+  MODEM_STATE_SWITCH_OFF,
+  MODEM_STATE_END
 } ModemState_t;
 
-typedef struct {
-  NetInterface *interface;
-  // MacAddr macAddr;
-  // #if (IPV4_SUPPORT == ENABLED)
-  // #if (APP_USE_DHCP_CLIENT == DISABLED)
-  // Ipv4Addr ipv4Addr;
-  // #endif
-  // #endif
-  // #if (IPV6_SUPPORT == ENABLED)
-  // #if (APP_USE_SLAAC == DISABLED)
-  // Ipv6Addr ipv6Addr;
-  // #endif
-  // #endif
-  // DhcpClientSettings dhcpClientSettings;
-  // DhcpClientContext dhcpClientContext;
-  // SlaacSettings slaacSettings;
-  // SlaacContext slaacContext;
-  // uint16_t tickHandlerMs;
+// typedef enum
+// {
+//   GSM_INIT,                //!< init task variables
+//   GSM_SWITCH_ON,           //!< gsm power on
+//   GSM_AUTOBAUD,            //!< gsm autobaud procedure
+//   GSM_SETUP,               //!< gsm setup
+//   GSM_START_CONNECTION,    //!< gsm open connection
+//   GSM_CHECK_OPERATION,     //!< check operations (ntp or mqtt)
+//   GSM_OPEN_UDP_SOCKET,     //!< open udp socket for ntp sync
+//   GSM_SUSPEND,             //!< wait other tasks for complete its operations with gsm
+//   GSM_STOP_CONNECTION,     //!< gsm close connection
+//   GSM_WAIT_FOR_SWITCH_OFF, //!< wait gsm for power off
+//   GSM_SWITCH_OFF,          //!< gsm power off
+//   GSM_END,                 //!< performs end operations and deactivate task
+//   GSM_WAIT_STATE           //!< non-blocking waiting time
+// } gsm_state_t;
+
+typedef struct
+{
+  configuration_t *configuration;
+  cpp_freertos::Queue *systemStatusQueue;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
 } ModemParam_t;
 
 class ModemTask : public cpp_freertos::Thread {
@@ -83,7 +101,13 @@ private:
   uint16_t stackSize;
   uint8_t priority;
   ModemState_t state;
-  ModemParam_t ModemParam;
+  ModemParam_t param;
+
+  SIM7600 sim7600;
+  NetInterface *interface;
+  PppSettings pppSettings;
+  PppContext pppContext;
+  // HttpClientContext httpClientContext;
 };
 
 #endif
