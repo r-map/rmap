@@ -132,9 +132,9 @@ error_t uartDeInit(void)
    // HAL_GPIO_DeInit(GPIOD, GPIO_PIN_5 | GPIO_PIN_6);
 
    // /* Peripheral clock disable */
-   // __HAL_RCC_USART2_FORCE_RESET();
-   // __HAL_RCC_USART2_RELEASE_RESET();
-   // __HAL_RCC_USART2_CLK_DISABLE();
+   __HAL_RCC_USART2_FORCE_RESET();
+   __HAL_RCC_USART2_RELEASE_RESET();
+   __HAL_RCC_USART2_CLK_DISABLE();
 
    // __HAL_RCC_GPIOD_FORCE_RESET();
    // __HAL_RCC_GPIOD_RELEASE_RESET();
