@@ -123,6 +123,13 @@ extern QSPI_HandleTypeDef hqspi;
 #define PIN_ANALOG_04   PC3
 #define PIN_ANALOG_09   PA4     // Power Controller Consumation
 
+// DIAG PIN (LED + BUTTON COME TEST NUCLEO)
+// Commentare per escludere la funzionalità
+#define HFLT_PIN  PIN_OUT1  // N.C. in Module_Power -> Output Signal Fault_Handler
+#define LED1_PIN  PIN_OUT2  // LED 1 Nucleo Simulator
+#define LED2_PIN  PIN_OUT3  // LED 2 Nucleo Simulator
+#define USER_INP  PIN_IN2   // BTN_I Nucleo Simulator
+
 // *****************************
 
 // PIN NAMED STM32CUBE GPIO_INIT
