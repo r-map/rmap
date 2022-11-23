@@ -208,10 +208,36 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #endif
 
 /*!
-\def WMO_REPORT_SAMPLES_COUNT
-\brief Sample count for generate WMO standard wind (verctorial mean in 10').
+\def WMO_REPORT_SAMPLES_TIME
+\brief Sample time for generate WMO standard wind (verctorial mean) (minutes).
 */
-#define WMO_REPORT_SAMPLES_COUNT                        (size_t)((10000L*60L)/SENSORS_SAMPLE_TIME_MS)
+#define WMO_REPORT_SAMPLES_TIME                        (10)
+
+/*!
+\def WMO_REPORT_SAMPLES_COUNT
+\brief Sample count for generate WMO standard wind (verctorial mean).
+*/
+#define WMO_REPORT_SAMPLES_COUNT                        (size_t)((WMO_REPORT_SAMPLES_TIME*1000Lu*60Lu)/SENSORS_SAMPLE_TIME_MS)
+
+/*!
+\def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
+\brief Sample maximum error in percent for one observation.
+*/
+#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC               (10.)
+
+/*!
+\def LONG_GUST_SAMPLES_TIME
+\brief Sample time for elaborate long gust (seconds).
+*/
+#define LONG_GUST_SAMPLES_TIME                         (60)
+
+
+/*!
+\def LONG_GUST_SAMPLES_COUNT
+\brief Sample count for generate long gust.
+*/
+#define LONG_GUST_SAMPLES_COUNT                        (size_t)((LONG_GUST_SAMPLES_TIME*1000Lu)/SENSORS_SAMPLE_TIME_MS)
+
 
 /*!
 \def GWS_ERROR_COUNT_MAX
@@ -240,18 +266,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * SENSORS
 *********************************************************************/
-
-/*!
-\def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
-\brief Sample maximum error in percent for one observation.
-*/
-#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC             (10.)
-
-/*!
-\def RMAP_REPORT_SAMPLE_MIN_TIME
-\brief Sample minimun time for elaborate one observation (seconds).
-*/
-#define RMAP_REPORT_SAMPLE_MIN_TIME                   (60)
 
 /*!
 \def USE_SENSORS_COUNT

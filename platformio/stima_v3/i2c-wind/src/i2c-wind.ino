@@ -220,6 +220,9 @@ void init_buffers() {
   
   //! copy readable_data_write in readable_data_read
   copy_buffers();
+
+  cb_direction.init(WMO_REPORT_SAMPLES_COUNT);
+  cb_speed.init(WMO_REPORT_SAMPLES_COUNT);
   
   reset_samples_buffer();
   reset_data(readable_data_write_ptr);
@@ -577,6 +580,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   }
 }
 
+/*
 // reset of buffer (no data) setting all data to missing
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
   memset(buffer->value, UINT8_MAX, length * sizeof(value_v));
@@ -634,6 +638,7 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
   *buffer->write_ptr = (value_v) value;
   incrementBuffer<buffer_g, length_v>(buffer, length);
 }
+*/
 
 void getSDFromUV (float u, float v, float *speed, float *direction) {
   *speed = sqrt(u*u + v*v);
@@ -744,44 +749,43 @@ void make_report  (bool init) {
   uint16_t direction=UINT16_MAX;
   
   #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-  speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  //speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  speed = cb_speed.peek(0);
   #endif
 
   #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-  direction = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  //direction = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  direction = cb_speed.peek(0);
   #endif    
 
-  LOGN(F("bufferreadback data: %d , %d"),speed,direction);
+  LOGN(F("circular buffer peek: %d , %d"),speed,direction);
   
   if (ISVALID(speed)) {
     valid_count_speed++;
-    if (speed < CALM_WIND_MAX_MS*100.) {
-      speed = WIND_SPEED_MIN*100.;
       
-      avg_speed += (speed - avg_speed) / valid_count_speed;
+    avg_speed += (speed - avg_speed) / valid_count_speed;
       
-      if (speed < WIND_CLASS_1_MAX*100.) {
-	class_1_count++;
-      }
-      else if (speed < WIND_CLASS_2_MAX*100.) {
-	class_2_count++;
-      }
-      else if (speed < WIND_CLASS_3_MAX*100.) {
-	class_3_count++;
-      }
-      else if (speed < WIND_CLASS_4_MAX*100.) {
-	class_4_count++;
-      }
-      else if (speed < WIND_CLASS_5_MAX*100.) {
-	class_5_count++;
-      }
-      else {
-	class_6_count++;
-      }
-      
-    }else{
-      error_count_speed++;
+    if (speed < WIND_CLASS_1_MAX*100.) {
+      class_1_count++;
     }
+    else if (speed < WIND_CLASS_2_MAX*100.) {
+      class_2_count++;
+    }
+    else if (speed < WIND_CLASS_3_MAX*100.) {
+      class_3_count++;
+    }
+    else if (speed < WIND_CLASS_4_MAX*100.) {
+      class_4_count++;
+    }
+    else if (speed < WIND_CLASS_5_MAX*100.) {
+      class_5_count++;
+    }
+    else {
+      class_6_count++;
+    }
+      
+  }else{
+    error_count_speed++;
   }
 
   if (ISVALID(direction)) {
@@ -821,30 +825,23 @@ void make_report  (bool init) {
   
   // elaborate WMO wind (mean in the last period)
   
-  for (uint16_t i = 0; i < count; i++) {  
-    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-    speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  //for (uint16_t i = 0; i < count; i++) {  
+  for (uint16_t i = 0; i < WMO_REPORT_SAMPLES_COUNT; i++) {  
+    //speed = bufferReadBack<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+    speed = cb_speed.peek(-i);
+    //direction = bufferReadBack<sample_t, uint16_t, float>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+    direction = cb_direction.peek(-i);
     
-    if (speed < CALM_WIND_MAX_MS*100.) {
-      speed = WIND_SPEED_MIN*100.;
-    }
-    #endif
-    
-    #if (USE_SENSOR_DED || USE_SENSOR_GWS)
-    direction = bufferReadBack<sample_t, uint16_t, float>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-    
-    #if (USE_SENSOR_DES || USE_SENSOR_GWS)
-    if (speed < CALM_WIND_MAX_MS*100.) {
-      direction = WIND_DIRECTION_MIN*100.;
-    }
-    #endif
-
     // TODO
 
   }
-  #endif
+
+/*    TODO
+  if (directionnn == 0) directionnn=360;                    // traslate 0 -> 360
+  if (speeddd == WIND_SPEED_MIN*100.) directionnn=0;        // wind calm
+*/
   
-  if (count > ((RMAP_REPORT_SAMPLE_MIN_TIME*1000Lu)/SENSORS_SAMPLE_TIME_MS)){
+  if (count > LONG_GUST_SAMPLES_COUNT){
     if((float(error_count) / float(count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
       
       uint8_t class_1 = round(float(class_1_count) / float(count));
@@ -1016,14 +1013,16 @@ void wind_task () {
     case WIND_ELABORATE:
       #if (USE_SENSOR_DED)
       wind_direction = getWindDirection(wind_direction);
-      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-      addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, wind_direction);
+      //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      //addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, wind_direction);
+      cb_directionm.autoput(wind_direction);
       #endif
 
       #if (USE_SENSOR_DES)
       wind_speed = getWindSpeed(wind_speed);
-      bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
-      addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, wind_speed);
+      //bufferPtrResetBack<sample_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+      //addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, wind_speed);
+      cb_speed.autoput(wind_speed);
       #endif
 
       make_report();
@@ -1079,6 +1078,31 @@ void wind_task () {
 	  flush();
 	  is_error=true;
 	}
+
+	/*
+	  When in the Polled mode, an output is only generated when the host system sends a Poll 
+	  signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
+	  letter A - Z.
+	  The commands available in this mode are:
+	  Description                       Command            WindSonic response
+	  WindSonic Unit Identifier         A ..... Z          Wind speed output generated
+	  Enable Polled mode                ?                  (None)
+	  Disable Polled mode               !                  (None)
+	  Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
+	  Enter Configuration mode          *<N>               CONFIGURATION MODE
+	  
+	  Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
+	  ID's A to F and KMNP are not used as these characters can be present in the data string.
+	  
+	  It is suggested that in polled mode the following sequence is used for every poll for 
+	  information.
+	  ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
+	  A-Z Appropriate unit designator sent to retrieve a line of data.
+	  ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
+	  
+	  When in polled mode the system will respond to the data command within 130mS with the 
+	  last valid data sample as calculated by the Output rate (P Mode Setting).
+	*/
 	
 	Serial1.print("?Q!\n");
         delay_ms = WIND_POWER_RESPONSE_DELAY_MS;
@@ -1122,10 +1146,14 @@ void wind_task () {
 
       LOGN(F("windsonic data: %d , %d"),speed,direction);
       
-      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-      addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, speed);
-      bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-      addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, direction);
+      //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      //addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, speed);
+      //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+      //addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, direction);
+
+      cb_speed.autoput(speed);      
+      cb_direction.autoput(direction);      
+      
       make_report();
 
       wind_state = WIND_END;
@@ -1261,6 +1289,41 @@ void configureWindsonic(void){
 
 bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
 
+  /* sample messages:
+     Q,,000.03,M,00,2D
+     Q,,000.04,M,00,2A
+     Q,349,000.05,M,00,15
+     Q,031,000.06,M,00,1A
+     Q,103,000.06,M,00,1A
+     
+
+     Gill format Polar, Continuous (Default format)
+     
+     <STX>Q, 229, 002.74, M, 00, <ETX>16
+     
+     Where:
+     <STX> = Start of string character (ASCII value 2)
+     WindSonic node address = Unit identifier
+     Wind direction = Wind Direction
+     Wind speed = Wind Speed
+     Units = Units of measure (knots, m/s etc)
+     Status = Anemometer status code (see Section 11.5 for further details)
+     <ETX> = End of string character (ASCII value 3)
+     Checksum = This is the EXCLUSIVE OR of the bytes between (and not including) the <STX> and <ETX> characters.
+     <CR> ASCII character
+     <LF> ASCII characte
+     
+     The Status code is sent as part of each wind measurement message 
+     Code  Status                 Condition
+     00    OK                     Sufficient samples in average period
+     01    Axis 1 failed          Insufficient samples in average period on U axis
+     02    Axis 2 failed          Insufficient samples in average period on V axis
+     04    Axis 1 and 2 failed    Insufficient samples in average period on both axes
+     08    NVM error              NVM checksum failed
+     09    ROM error              ROM checksum failed
+     
+  */
+  
   #define GWS_STX_INDEX                                   (0)
   #define GWS_ETX_INDEX                                   (19)
 
@@ -1299,10 +1362,6 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
     LOGV(F("windsonic message with direction"));    
     offset = 0;
 
-    memset(tempstr, 0, GWS_SPEED_LENGTH+1);
-    strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
-    *direction = (uint16_t) atoi(tempstr);
-
   } else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) &&
 	     (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET] == ETX_VALUE) &&
 	     (uart_rx_buffer[uart_rx_buffer_length-2] == CR_VALUE) &&
@@ -1310,7 +1369,6 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
 
     LOGV(F("windsonic message without direction"));    
     offset = GWS_WITHOUT_DIRECTION_OFFSET;
-    *direction = WIND_DIRECTION_MIN;
 
   }else{
     LOGE(F("error in windsonic message"));
@@ -1333,6 +1391,23 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
   // check status
   memset(tempstr, 0, GWS_SPEED_LENGTH+1);
   strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_STATUS_INDEX-offset), GWS_STATUS_LENGTH);
+
+  if (strncmp(tempstr,"01",2)){
+    LOGV(F("Axis 1 failed: Insufficient samples in average period on U axis"));
+  }
+  if (strncmp(tempstr,"02",2)){
+    LOGN(F("Axis 2 failed: Insufficient samples in average period on V axis"));
+  }
+  if (strncmp(tempstr,"04",2)){
+    LOGN(F("Axis 1 and 2 failed: Insufficient samples in average period on both axes"));
+  }
+  if (strncmp(tempstr,"08",2)){
+    LOGN(F("NVM error: NVM checksum failed"));
+  }
+  if (strncmp(tempstr,"09",2)){
+    LOGN(F("ROM error: ROM checksum failed"));
+  }
+
   //uint8_t status = (uint8_t) atoi(tempstr);
   int status =strncmp(tempstr,"00",2);
   if (status != 0) {
@@ -1340,22 +1415,59 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
     return false;
   }
   
+  /*   check units
+       Metres per second (default) M
+       Knots                       N
+       Miles per hour              P
+       Kilometres per hour         K
+	 Feet per minute             F
+  */
+  memset(tempstr, 0, GWS_SPEED_LENGTH+1);
+  strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_SPEED_INDEX+GWS_SPEED_LENGTH-offset), 1);
+  if (strncmp(tempstr,"M",1) != 0) {
+    LOGE(F("units error in windsonic message"));
+    return false;
+  }
+
+  if(offset == 0){
+    memset(tempstr, 0, GWS_SPEED_LENGTH+1);
+    strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
+    *direction = (uint16_t) atoi(tempstr);
+  } else {
+     *direction = WIND_DIRECTION_MIN;
+  }
+  
   memset(tempstr, 0, GWS_SPEED_LENGTH+1);
   strncpy(tempstr, (const char *)(uart_rx_buffer+GWS_SPEED_INDEX-offset), GWS_SPEED_LENGTH);
   *speed = (uint16_t) (atof(tempstr)*100.);
-  
-  if (*direction < WIND_DIRECTION_MIN) {
-    *direction = WIND_DIRECTION_MIN;
-  }
-  else if (*direction > WIND_DIRECTION_MAX) {
+
+
+  // check with extreme values
+  if (*direction < WIND_DIRECTION_MIN || *direction > WIND_DIRECTION_MAX) {
     *direction = UINT16_MAX;
   }
+  if (*speed < WIND_SPEED_MIN || *direction > WIND_SPEED_MAX) {
+    *direction = UINT16_MAX;
+  }
+
+  /*
+    Low Wind Speeds (below 0.05ms)
+    Whilst the wind speed is below 0.05 metres/sec, the wind direction will not be calculated.
+    In both CSV mode and in Fixed Field mode, Channel 2 wind direction output
+    will freeze at
+    the last known valid direction value until a new valid value can be calculated.
+    The above applies with the K command set for K50. If K for instance is set for 100 then the
+    above applies at 0.1m/s.
+  */
   
   if (*speed < CALM_WIND_MAX_MS*100.) {
-    *speed = WIND_SPEED_MIN;
+    *speed = WIND_SPEED_MIN*100.;                         // set calm when speed too low
   } else if (*speed > WIND_SPEED_MAX*100.) {
-    *speed = UINT16_MAX;
+    *speed = UINT16_MAX;                                  // wind speed missed when too big
   }
+
+  if (*direction == 0) *direction=360;                    // traslate 0 -> 360
+  if (*speed == WIND_SPEED_MIN*100.) *direction=0;        // wind calm
 
   return true;
   
@@ -1363,25 +1475,29 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
 #endif
 
 void exchange_buffers() {
-   noInterrupts();
+  noInterrupts();
   readable_data_temp_ptr = readable_data_write_ptr;
   readable_data_write_ptr = readable_data_read_ptr;
   readable_data_read_ptr = readable_data_temp_ptr;
-   interrupts();
+  interrupts();
 }
 
 void reset_samples_buffer() {
   #if (USE_SENSOR_DES)
-  bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  cb_speed.clear();
+  //bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
 
   #if (USE_SENSOR_DED)
-  bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  cb_direction.clear();
+  //bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
   #endif
 
   #if (USE_SENSOR_GWS)
-  bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
-  bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  //bufferReset<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT);
+  //bufferReset<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
+  cb_speed.clear();
+  cb_direction.clear();
   #endif
 }
 

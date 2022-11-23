@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <SdFat.h>
 #include <StreamUtils.h>
 #include <ArduinoLog.h>
+#include "IntBuffer.h"
 
 /*********************************************************************
 * TYPEDEF
@@ -63,16 +64,18 @@ typedef struct {
    float adc_voltage_max;
 } configuration_t;
 
+/*
 /*!
 \struct sample_t
 \brief samples data
-*/
+
 typedef struct {
   uint16_t value[WMO_REPORT_SAMPLES_COUNT];        //!< samples buffer
   uint16_t count;                              //!< samples counter
   uint16_t *read_ptr;                             //!< reader pointer
   uint16_t *write_ptr;                            //!< writer pointer
 } sample_t;
+*/
 
 /*!
 \struct report_t
@@ -299,16 +302,21 @@ bool is_oneshot;
 bool is_test;
 
 #if (USE_SENSOR_DES)
-sample_t wind_speed_samples;
+//sample_t wind_speed_samples;
+IntBuffer cb_speed;
 #endif
 
 #if (USE_SENSOR_DED)
-sample_t wind_direction_samples;
+//sample_t wind_direction_samples;
+IntBuffer cb_direction;
 #endif
 
 #if (USE_SENSOR_GWS)
-sample_t wind_speed_samples;
-sample_t wind_direction_samples;
+IntBuffer cb_speed;
+IntBuffer cb_direction;
+
+//sample_t wind_speed_samples;
+//sample_t wind_direction_samples;
 #endif
 
 /*!
@@ -525,6 +533,7 @@ void reset_report_buffer(void);
 */
 void exchange_buffers(void);
 
+/*
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value);
@@ -533,6 +542,7 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value);
+*/
 
 /*!
 \fn void make_report (bool init=false)
