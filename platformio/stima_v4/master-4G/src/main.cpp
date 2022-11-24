@@ -68,7 +68,7 @@ void setup() {
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
   static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("MODEM TASK", 100, OS_TASK_PRIORITY_01, modemParam);
+  static ModemTask modem_task("MODEM TASK", 4096, OS_TASK_PRIORITY_01, modemParam);
 #endif
 
   // Startup Schedulher

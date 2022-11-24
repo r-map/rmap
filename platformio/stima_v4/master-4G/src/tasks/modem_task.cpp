@@ -159,12 +159,12 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_CONNECT:
-      status = sim7600.connect("internet.wind", "*99#");
+      status = sim7600.connect("apn.fastweb.it", "*99#");
+      // status = sim7600.connect("internet.wind", "*99***1#");
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
       {
-        Delay(Ticks::MsToTicks(5000));
         state = MODEM_STATE_CONNECTED;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_CONNECTED\r\n"));
       }
@@ -218,7 +218,6 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_DISCONNECT:
-      Thread::Suspend();
       status = sim7600.disconnect();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 

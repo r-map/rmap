@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"
 #include "ppp/ppp.h"
-// #include "http/http_client.h"
+#include "http/http_client.h"
 #include "tls.h"
 #include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
@@ -94,6 +94,7 @@ public:
   ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t ModemParam);
 
 protected:
+  NetInterface *interface;
   virtual void Run();
 
 private:
@@ -104,7 +105,6 @@ private:
   ModemParam_t param;
 
   SIM7600 sim7600;
-  NetInterface *interface;
   PppSettings pppSettings;
   PppContext pppContext;
   // HttpClientContext httpClientContext;
