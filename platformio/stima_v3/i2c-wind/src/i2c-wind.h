@@ -1,4 +1,3 @@
-
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
@@ -63,19 +62,6 @@ typedef struct {
    float adc_voltage_min;
    float adc_voltage_max;
 } configuration_t;
-
-/*
-/*!
-\struct sample_t
-\brief samples data
-
-typedef struct {
-  uint16_t value[WMO_REPORT_SAMPLES_COUNT];        //!< samples buffer
-  uint16_t count;                              //!< samples counter
-  uint16_t *read_ptr;                             //!< reader pointer
-  uint16_t *write_ptr;                            //!< writer pointer
-} sample_t;
-*/
 
 /*!
 \struct report_t
@@ -302,21 +288,16 @@ bool is_oneshot;
 bool is_test;
 
 #if (USE_SENSOR_DES)
-//sample_t wind_speed_samples;
 IntBuffer cb_speed;
 #endif
 
 #if (USE_SENSOR_DED)
-//sample_t wind_direction_samples;
 IntBuffer cb_direction;
 #endif
 
 #if (USE_SENSOR_GWS)
 IntBuffer cb_speed;
 IntBuffer cb_direction;
-
-//sample_t wind_speed_samples;
-//sample_t wind_direction_samples;
 #endif
 
 /*!

@@ -664,32 +664,22 @@ void make_report  (bool init) {
 
   static uint16_t valid_count_direction;
   static uint16_t error_count_direction;
+
+  static float avg_speed;
   
-  static float ua;
-  static float va;
-
-  static float ub;
-  static float vb;
-
-  static float uc;
-  static float vc;
-
   static float vavg10_speed;
   static float vavg10_direction;
 
+  static float ua;
+  static float va;
   static float vavg_speed;
   static float vavg_direction;
 
   static float peak_gust_speed;
   static float peak_gust_direction;
 
-  static float vavg_speed_o;
-  static float vavg_direction_o;
-
   static float long_gust_speed;
   static float long_gust_direction;
-
-  static float avg_speed;
 
   static uint16_t class_1_count;
   static uint16_t class_2_count;
@@ -711,32 +701,22 @@ void make_report  (bool init) {
     valid_count_direction = 0;
     error_count_direction = 0;
 
+    avg_speed = 0.;
     ua = 0;
     va = 0;
-    
-    ub = 0;
-    vb = 0;
-    
-    uc = 0;
-    vc = 0;
     
     vavg10_speed = 0;
     vavg10_direction = 0;
     
-    vavg_speed = 0;
+    vavg_speed = 0.;
     vavg_direction = 0;
     
     peak_gust_speed = -1.0;
     peak_gust_direction = 0;
     
-    vavg_speed_o = -1.0;
-    vavg_direction_o = 0;
-    
     long_gust_speed = -1.0;
     long_gust_direction = 0;
-    
-    avg_speed = 0;
-    
+     
     class_1_count = 0;
     class_2_count = 0;
     class_3_count = 0;
@@ -763,7 +743,7 @@ void make_report  (bool init) {
   if (ISVALID(speed)) {
     valid_count_speed++;
       
-    avg_speed += (speed - avg_speed) / valid_count_speed;
+    avg_speed += (float(speed) - avg_speed) / valid_count_speed;
       
     if (speed < WIND_CLASS_1_MAX*100.) {
       class_1_count++;
@@ -783,7 +763,6 @@ void make_report  (bool init) {
     else {
       class_6_count++;
     }
-      
   }else{
     error_count_speed++;
   }
@@ -797,21 +776,18 @@ void make_report  (bool init) {
   if (ISVALID(speed) && ISVALID(direction)) {
     valid_count++;
       
-    ua += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count;
-    va += ((float) (-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count;
-    
-    ub += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ub) / valid_count;
-    vb += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vb) / valid_count;
-    
-    uc += ((float) (-speed * sin(DEG_TO_RAD * direction)) - uc) / valid_count;
-    vc += ((float) (-speed * cos(DEG_TO_RAD * direction)) - vc) / valid_count;
+    ua += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ua) / float(valid_count);
+    va += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - va) / float(valid_count);
     
     if (speed >= peak_gust_speed) {
       peak_gust_speed = speed;
       peak_gust_direction = direction;
     }
 
-    getSDFromUV(uc, vc, &vavg_speed_o, &vavg_direction_o);
+    float vavg_speed_o;
+    float vavg_direction_o;
+  
+    getSDFromUV(ua, va, &vavg_speed_o, &vavg_direction_o);
   
     if (vavg_speed_o >= long_gust_speed) {
       long_gust_speed = vavg_speed_o;
@@ -824,6 +800,9 @@ void make_report  (bool init) {
   uint16_t count = valid_count+error_count;
   
   // elaborate WMO wind (mean in the last period)
+
+  float ub = 0.;
+  float vb = 0.;
   
   //for (uint16_t i = 0; i < count; i++) {  
   for (uint16_t i = 0; i < WMO_REPORT_SAMPLES_COUNT; i++) {  
@@ -832,14 +811,18 @@ void make_report  (bool init) {
     //direction = bufferReadBack<sample_t, uint16_t, float>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
     direction = cb_direction.peek(-i);
     
-    // TODO
+    ub += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ub) / float(valid_count);
+    vb += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - vb) / float(valid_count);
 
   }
 
-/*    TODO
-  if (directionnn == 0) directionnn=360;                    // traslate 0 -> 360
-  if (speeddd == WIND_SPEED_MIN*100.) directionnn=0;        // wind calm
-*/
+  float vavg_speed_o;
+  float vavg_direction_o;
+  
+  getSDFromUV(ub, vb, &vavg_speed_o, &vavg_direction_o);
+  
+  if (vavg_direction_o == 0) vavg_direction_o=360;                    // traslate 0 -> 360
+  if (vavg_speed_o == WIND_SPEED_MIN*100.) vavg_direction_o=0;        // wind calm
   
   if (count > LONG_GUST_SAMPLES_COUNT){
     if((float(error_count) / float(count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
@@ -854,6 +837,7 @@ void make_report  (bool init) {
       // write in readable registers
     
       #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
+
       getSDFromUV(ua, va, &vavg10_speed, &vavg10_direction);
       readable_data_write_ptr->wind.vavg10_speed = vavg10_speed/100.;
       readable_data_write_ptr->wind.vavg10_direction = round(vavg10_direction);
@@ -884,7 +868,18 @@ void make_report  (bool init) {
   }
       
 #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-      LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"), ua, va, readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction, ub, vb, readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction, readable_data_write_ptr->wind.avg_speed, readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction, readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction, readable_data_write_ptr->wind.class_1, readable_data_write_ptr->wind.class_2, readable_data_write_ptr->wind.class_3, readable_data_write_ptr->wind.class_4, readable_data_write_ptr->wind.class_5, readable_data_write_ptr->wind.class_6);
+      LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"),
+	   ua, va, readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction,
+	   ub, vb, readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction,
+	   readable_data_write_ptr->wind.avg_speed,
+	   readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction,
+	   readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction,
+	   readable_data_write_ptr->wind.class_1,
+	   readable_data_write_ptr->wind.class_2,
+	   readable_data_write_ptr->wind.class_3,
+	   readable_data_write_ptr->wind.class_4,
+	   readable_data_write_ptr->wind.class_5,
+	   readable_data_write_ptr->wind.class_6);
 #elif (USE_SENSOR_DES)
   LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D"), readable_data_write_ptr->vavg_speed, readable_data_write_ptr->wind.class_1, readable_data_write_ptr->wind.class_2, readable_data_write_ptr->wind.class_3, readable_data_write_ptr->wind.class_4, readable_data_write_ptr->wind.class_5, readable_data_write_ptr->wind.class_6);
   #elif (USE_SENSOR_DED)

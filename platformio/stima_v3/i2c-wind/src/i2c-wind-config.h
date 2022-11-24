@@ -245,12 +245,17 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define GWS_ERROR_COUNT_MAX                             (10)
 
+// wind class definition
 #define WIND_CLASS_1_MAX                                (1.0)
 #define WIND_CLASS_2_MAX                                (2.0)
 #define WIND_CLASS_3_MAX                                (4.0)
 #define WIND_CLASS_4_MAX                                (7.0)
 #define WIND_CLASS_5_MAX                                (10.0)
 
+/*!
+\def CALM_WIND_MAX_MS
+\brief speed limit value for wind calm (m/s).
+*/
 #if (USE_SENSOR_DES)
 #define CALM_WIND_MAX_MS                                (0.3)
 #endif
@@ -343,22 +348,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define WIND_READ_DELAY_MS                              (2)
 
 /*!
-\def WIND_READ_DELAY_MS
-\brief Reading delay.
-*/
-#define WIND_RETRY_DELAY_MS                             (2)
-
-/*!
 \def WIND_READ_COUNT
 \brief number of read.
 */
 #define WIND_READ_COUNT                                 (10)
-
-/*!
-\def WIND_READ_COUNT
-\brief number of read.
-*/
-#define WIND_RETRY_MAX                                  (600)
 
 /*!
 \def TRANSACTION_TIMEOUT_MS
