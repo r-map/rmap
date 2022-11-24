@@ -67,7 +67,7 @@ void ModemTask::Run() {
       if (error)
       {
         // Debug message
-        TRACE_ERROR_F(F("Failed to initialize PPP... [ %s ]\r\n"), ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to initialize PPP... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
       }
@@ -83,7 +83,7 @@ void ModemTask::Run() {
       if (error)
       {
         // Debug message
-        TRACE_ERROR_F(F("Failed to configure interface %s [ %s ]\r\n"), interface->name, ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to configure interface %s [ %s ]\r\n"), Thread::GetName().c_str(), interface->name, ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
       }
@@ -201,7 +201,7 @@ void ModemTask::Run() {
       // Any error to report?
       if (!error)
       {
-        TRACE_INFO_F(F("Establishing PPP connection... [ %s ]\r\n"), OK_STRING);
+        TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
         response.connection.done_connected = true;
         param.systemResponseQueue->Enqueue(&response, 0);
 
@@ -211,7 +211,7 @@ void ModemTask::Run() {
       else
       {
         is_error = true;
-        TRACE_ERROR_F(F("Failed to established PPP connection... [ %s ]\r\n"), ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to established PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         state = MODEM_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_DISCONNECT\r\n"));
       }

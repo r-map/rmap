@@ -80,9 +80,6 @@ protected:
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   SupervisorState_t state;
   SupervisorParam_t param;
   EEprom eeprom;

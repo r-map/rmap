@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
-#define MODEM_TASK_WAIT_DELAY_MS          (10)
+#define MODEM_TASK_WAIT_DELAY_MS          (100)
 #define MODEM_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define MODEM_TASK_GENERIC_RETRY          (3)
 
@@ -98,9 +98,6 @@ protected:
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   ModemState_t state;
   ModemParam_t param;
 
