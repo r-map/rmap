@@ -165,7 +165,7 @@ void SupervisorTask::Run()
           param.system_status->connection.is_connected = true;
           param.system_status->connection.is_connection_ongoing = false;
           param.systemStatusLock->Give();
-          TRACE_INFO_F(F("%s Connection [ %s ]\r\n"), taskName, OK_STRING);
+          TRACE_INFO_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION_TYPE\r\n"));
           state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
@@ -178,7 +178,7 @@ void SupervisorTask::Run()
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connection_ongoing = false;
           param.systemStatusLock->Give();
-          TRACE_ERROR_F(F("%s Connection [ %s ]\r\n"), taskName, ERROR_STRING);
+          TRACE_ERROR_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_END\r\n"));
           state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
@@ -226,7 +226,7 @@ void SupervisorTask::Run()
           param.system_status->connection.is_ntp_synchronized = true;
           param.systemStatusLock->Give();
 
-          TRACE_INFO_F(F("%s NTP synchronization [ %s ]\r\n"), taskName, OK_STRING);
+          TRACE_INFO_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP_SYNC -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
           state = SUPERVISOR_STATE_CHECK_OPERATION;
@@ -239,7 +239,7 @@ void SupervisorTask::Run()
           param.system_status->connection.is_ntp_sync_ongoing = false;
           param.system_status->connection.is_ntp_synchronized = false;
           param.systemStatusLock->Give();
-          TRACE_ERROR_F(F("%s NTP synchronization [ %s ]\r\n"), taskName, ERROR_STRING);
+          TRACE_ERROR_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP_SYNC -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
           state = SUPERVISOR_STATE_CHECK_OPERATION;

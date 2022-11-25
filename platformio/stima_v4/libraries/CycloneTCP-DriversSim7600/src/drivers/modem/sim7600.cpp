@@ -880,8 +880,22 @@ sim7600_status_t SIM7600::setup()
          at_command_status = sendAtCommand("AT+CEREG=2\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
       }
 
-      if (at_command_status == SIM7600_OK)
+      // success or fail
+      if (at_command_status != SIM7600_BUSY)
       {
+         if (cxreg_mode == SIM7600_AT_CREG_MODE)
+         {
+            TRACE_INFO_F(F("%s enable CREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+         }
+         else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+         {
+            TRACE_INFO_F(F("%s enable CGREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+         }
+         else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+         {
+            TRACE_INFO_F(F("%s enable CEREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+         }
+
          retry = 0;
          cxreg_mode++;
 
@@ -905,39 +919,6 @@ sim7600_status_t SIM7600::setup()
          sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
          #endif
          delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-      }
-      // fail
-      else if (at_command_status == SIM7600_ERROR)
-      {
-         retry = 0;
-         cxreg_mode++;
-
-         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
-         {
-            cxreg_mode = SIM7600_AT_CREG_MODE;
-            delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
-            sim7600_setup_state = SIM7600_SETUP_WAIT_NETWORK;
-         }
-         else
-         {
-            at_command_status = SIM7600_BUSY;
-         }
-      }
-
-      if (at_command_status != SIM7600_BUSY)
-      {
-         if (cxreg_mode == SIM7600_AT_CREG_MODE)
-         {
-            TRACE_INFO_F(F("%s enable CREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
-         }
-         else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
-         {
-            TRACE_INFO_F(F("%s enable CGREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
-         }
-         else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
-         {
-            TRACE_INFO_F(F("%s enable CEREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
-         }
       }
 
       // wait

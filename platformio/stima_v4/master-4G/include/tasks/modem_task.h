@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
-#define MODEM_TASK_WAIT_DELAY_MS          (10)
+#define MODEM_TASK_WAIT_DELAY_MS          (100)
 #define MODEM_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define MODEM_TASK_GENERIC_RETRY          (3)
 
@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"
 #include "ppp/ppp.h"
-// #include "http/http_client.h"
+#include "http/http_client.h"
 #include "tls.h"
 #include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
@@ -94,17 +94,14 @@ public:
   ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t ModemParam);
 
 protected:
+  NetInterface *interface;
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   ModemState_t state;
   ModemParam_t param;
 
   SIM7600 sim7600;
-  NetInterface *interface;
   PppSettings pppSettings;
   PppContext pppContext;
   // HttpClientContext httpClientContext;

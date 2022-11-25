@@ -43,9 +43,6 @@ protected:
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   ProvaParam_t param;
 };
 
