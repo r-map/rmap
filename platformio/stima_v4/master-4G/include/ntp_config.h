@@ -1,4 +1,4 @@
-/**@file debug_config.h */
+/**@file ntp_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,16 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _DEBUG_CONFIG_H
-#define _DEBUG_CONFIG_H
+#ifndef _NTP_CONFIG_H
+#define _NTP_CONFIG_H
 
-#define STIMA_TRACE_LEVEL              TRACE_LEVEL_INFO
-#define LED_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
-#define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
-#define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_VERBOSE
-#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
-#define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_VERBOSE
-#define PROVA_TASK_TRACE_LEVEL         TRACE_LEVEL_INFO
-#define SIM7600_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
+/*!
+\def NTP_SERVER_LENGTH
+\brief Length in bytes for ntp server data buffer.
+*/
+#define NTP_SERVER_LENGTH     (30)
+
+/*!
+\def NTP_DEFAULT_SERVER
+\brief Default NTP server.
+*/
+#define NTP_DEFAULT_SERVER    ("it.pool.ntp.org")
 
 #endif

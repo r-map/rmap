@@ -44,8 +44,9 @@ EEprom::EEprom(TwoWire *_wire, BinarySemaphore *_wireLock, uint8_t _i2c_address)
 
 bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 {
-	bool status = true;
-	if (wireLock->Take(Ticks::MsToTicks(1000)))
+	bool status = false;
+
+	if (wireLock->Take())
 	{
 		wire->beginTransmission(i2c_address);
 		if (wire->endTransmission() == 0)
@@ -54,17 +55,12 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 			wire->write(address >> 8);
 			wire->write(address & 0xFF);
 			wire->write(buffer, length);
-			wire->endTransmission();
-		}
-		else
-		{
-			status = false;
+			if (wire->endTransmission() == 0)
+			{
+				status = true;
+			}
 		}
 		wireLock->Give();
-	}
-	else
-	{
-		status = false;
 	}
 	return status;
 }
@@ -78,8 +74,9 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
  */
 bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 {
-	bool status = true;
-	if (wireLock->Take(Ticks::MsToTicks(1000)))
+	bool status = false;
+	
+	if (wireLock->Take())
 	{
 		wire->beginTransmission(i2c_address);
 		if (wire->endTransmission() == 0)
@@ -90,26 +87,18 @@ bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 			if (wire->endTransmission() == 0)
 			{
 				wire->requestFrom((uint8_t)i2c_address, length);
-				for (uint8_t i = 0; i < length; ++i)
+				if (wire->available() == length)
 				{
-					buffer[i] = wire->read();
+					for (uint8_t i = 0; i < length; ++i)
+					{
+						buffer[i] = wire->read();
+					}
+					status = true;
 				}
-				wire->endTransmission();
 			}
-			else
-			{
-				status = false;
-			}
-		}
-		else
-		{
-			status = false;
 		}
 		wireLock->Give();
 	}
-	else
-	{
-		status = false;
-	}
+
 	return status;
 }

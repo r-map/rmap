@@ -103,6 +103,13 @@ void ModemTask::Run() {
         // do connection
         if (request.connection.do_connect)
         {
+          param.configurationLock->Take();
+          strSafeCopy(apn, param.configuration->gsm_apn, GSM_APN_LENGTH);
+          strSafeCopy(number, param.configuration->gsm_number, GSM_NUMBER_LENGTH);
+          strSafeCopy(username, param.configuration->gsm_username, GSM_USERNAME_LENGTH);
+          strSafeCopy(password, param.configuration->gsm_password, GSM_PASSWORD_LENGTH);
+          param.configurationLock->Give();
+
           param.systemRequestQueue->Dequeue(&request, 0);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
           state = MODEM_STATE_SWITCH_ON;
@@ -159,8 +166,7 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_CONNECT:
-      status = sim7600.connect("apn.fastweb.it", "*99#");
-      // status = sim7600.connect("internet.wind", "*99***1#");
+      status = sim7600.connect(apn, number);
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
 
       if (status == SIM7600_OK)
@@ -194,7 +200,7 @@ void ModemTask::Run() {
       ipv4SetDnsServer(interface, 1, ipv4Addr);
 
       // Set username and password
-      pppSetAuthInfo(interface, "", "");
+      pppSetAuthInfo(interface, username, password);
 
       // Establish a PPP connection
       error = pppConnect(interface);

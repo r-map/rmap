@@ -44,8 +44,8 @@ void SupervisorTask::Run()
     bool is_saved = false;
     bool is_loaded = false;
 
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
+    osMemset(&request, 0, sizeof(system_request_t));
+    osMemset(&response, 0, sizeof(system_response_t));
 
     switch (state)
     {
@@ -54,19 +54,7 @@ void SupervisorTask::Run()
 
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
-      break;
-
-    case SUPERVISOR_STATE_CHECK_OPERATION:
-      if (param.system_status->configuration.is_loaded && !param.system_status->connection.is_ntp_synchronized)
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      }
-      else
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
-        Suspend();
-      }
+      // saveConfiguration(configuration, configurationLock, CONFIGURATION_DEFAULT);
       break;
 
     case SUPERVISOR_STATE_LOAD_CONFIGURATION:
@@ -95,6 +83,19 @@ void SupervisorTask::Run()
 
         // gestire condizione di errore di lettura della configurazione
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
+        Suspend();
+      }
+      break;
+    
+    case SUPERVISOR_STATE_CHECK_OPERATION:
+      if (param.system_status->configuration.is_loaded && !param.system_status->connection.is_ntp_synchronized)
+      {
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+      }
+      else
+      {
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
       break;
@@ -263,71 +264,187 @@ void SupervisorTask::Run()
 
 bool SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySemaphore *lock)
 {
-  bool error = false;
+  bool status = true;
 
   //! read configuration from eeprom
   if (lock->Take())
   {
-    error = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+    // error = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+    // for (size_t i = 0; i < sizeof(configuration_t); i++)
+    // {
+    //   uint8_t *ptr = (uint8_t *) configuration;
+    //   status &= eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, &ptr[i], sizeof(uint8_t));
+    // }
+
     lock->Give();
   }
 
   if (configuration->module_type != MODULE_TYPE || configuration->module_main_version != MODULE_MAIN_VERSION)
   {
-    error = saveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
-  }
-  else
-  {
-    TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), OK_STRING);
-    printConfiguration(configuration, lock);
+    status = saveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
   }
 
-  return error;
+  TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
+  printConfiguration(configuration, lock);
+
+  return status;
 }
 
 void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySemaphore *lock)
 {
   if (lock->Take()) {
     char stima_name[20];
-    getStimaNameByType(stima_name, configuration->module_type);
-    TRACE_INFO_F(F("--> type: %s\r\n"), stima_name);
-    TRACE_INFO_F(F("--> main version: %u\r\n"), configuration->module_main_version);
-    TRACE_INFO_F(F("--> minor version: %u\r\n"), configuration->module_minor_version);
-    // TRACE_INFO_F(F("--> acquisition delay: %u [ms]\r\n"), configuration.sensor_acquisition_delay_ms);
+    char topic[MQTT_ROOT_TOPIC_LENGTH];
 
-    // TRACE_INFO_F(F("--> %u configured sensors\r\n"), configuration.sensors_count);
-    // for (uint8_t i=0; i<configuration.sensors_count; i++) {
-    //   TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, configuration.sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
-    // }
+    getStimaNameByType(stima_name, configuration->module_type);
+    TRACE_INFO_F(F("-> type: %s\r\n"), stima_name);
+    TRACE_INFO_F(F("-> main version: %u\r\n"), configuration->module_main_version);
+    TRACE_INFO_F(F("-> minor version: %u\r\n"), configuration->module_minor_version);
+    TRACE_INFO_F(F("-> constant data: %d\r\n"), configuration->constantdata_count);
+    
+    for (uint8_t i = 0; i < configuration->constantdata_count; i++)
+    {
+      TRACE_INFO_F(F("--> cd %d:/t%s : %s"), i, configuration->constantdata[i].btable, configuration->constantdata[i].value);
+    }
+
+    TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
+
+    for (uint8_t i = 0; i < configuration->sensors_count; i++)
+    {
+      TRACE_INFO_F(F("--> %u: %s-%s\r\n"), i + 1, configuration->sensors[i].driver, configuration->sensors[i].type);
+    }
+
+    TRACE_INFO_F(F("-> data report every %d seconds\r\n"), configuration->report_s);
+    TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), configuration->observation_s);
+    TRACE_INFO_F(F("-> data level: %s\r\n"), configuration->data_level);
+    TRACE_INFO_F(F("-> ident: %s\r\n"), configuration->ident);
+    TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), configuration->longitude, configuration->latitude);
+    TRACE_INFO_F(F("-> network: %s\r\n"), configuration->network);
+
+    #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
+    TRACE_INFO_F(F("-> dhcp: %s\r\n"), configuration->is_dhcp_enable ? "on" : "off");
+    TRACE_INFO_F(F("-> ethernet mac: %02X:%02X:%02X:%02X:%02X:%02X\r\n"), configuration->ethernet_mac[0], configuration->ethernet_mac[1], configuration->ethernet_mac[2], configuration->ethernet_mac[3], configuration->ethernet_mac[4], configuration->ethernet_mac[5]);
+    #endif
+
+    #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+    TRACE_INFO_F(F("-> gsm apn: %s\r\n"), configuration->gsm_apn);
+    TRACE_INFO_F(F("-> gsm number: %s\r\n"), configuration->gsm_number);
+    TRACE_INFO_F(F("-> gsm username: %s\r\n"), configuration->gsm_username);
+    TRACE_INFO_F(F("-> gsm password: %s\r\n"), configuration->gsm_password);
+    #endif
+
+    #if (USE_NTP)
+    TRACE_INFO_F(F("-> ntp server: %s\r\n"), configuration->ntp_server);
+    #endif
+
+    #if (USE_MQTT)
+    TRACE_INFO_F(F("-> mqtt server: %s\r\n"), configuration->mqtt_server);
+    TRACE_INFO_F(F("-> mqtt port: %d\r\n"), configuration->mqtt_port);    
+    TRACE_INFO_F(F("-> mqtt username: %s\r\n"), configuration->mqtt_username);
+    TRACE_INFO_F(F("-> mqtt password: %s\r\n"), configuration->mqtt_password);
+    TRACE_INFO_F(F("-> station slug: %s\r\n"), configuration->stationslug);
+    TRACE_INFO_F(F("-> board slug: %s\r\n"), configuration->boardslug);
+    TRACE_INFO_F(F("-> client psk key "));
+    TRACE_INFO_ARRAY("", configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
+    TRACE_INFO_F(F("-> mqtt root topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->data_level, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, DATA_LEVEL_MAINT, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, DATA_LEVEL_RPC, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+    #endif
+
     lock->Give();
   }
 }
 
 bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default)
 {
-  bool error = false;
+  bool status = true;
 
   if (lock->Take())
   {
     if (is_default)
     {
-      TRACE_INFO_F(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+      osMemset(configuration, 0, sizeof(configuration_t));
+
       configuration->module_main_version = MODULE_MAIN_VERSION;
       configuration->module_minor_version = MODULE_MINOR_VERSION;
       configuration->module_type = MODULE_TYPE;
-      // configuration.sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
-    }
-    else
-    {
-      TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+
+      configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
+      configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
+
+      strSafeCopy(configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
+      strSafeCopy(configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
+      strSafeCopy(configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
+
+      configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
+      configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;
+
+      #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
+      char temp_string[20];
+      configuration->is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
+      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_MAC);
+      macStringToArray(configuration->ethernet_mac, temp_string);
+      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_IP);
+      ipStringToArray(configuration->ip, temp_string);
+      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_NETMASK);
+      ipStringToArray(configuration->netmask, temp_string);
+      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_GATEWAY);
+      ipStringToArray(configuration->gateway, temp_string);
+      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_PRIMARY_DNS);
+      ipStringToArray(configuration->primary_dns, temp_string);
+      #endif
+
+      #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+      strSafeCopy(configuration->gsm_apn, CONFIGURATION_DEFAULT_GSM_APN, GSM_APN_LENGTH);
+      strSafeCopy(configuration->gsm_number, CONFIGURATION_DEFAULT_GSM_NUMBER, GSM_NUMBER_LENGTH);
+      strSafeCopy(configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
+      strSafeCopy(configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
+      #endif
+
+      #if (USE_NTP)
+      strSafeCopy(configuration->ntp_server, CONFIGURATION_DEFAULT_NTP_SERVER, NTP_SERVER_LENGTH);
+      #endif
+
+      #if (USE_MQTT)
+      configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
+      strSafeCopy(configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
+      strSafeCopy(configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
+      strSafeCopy(configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
+      strSafeCopy(configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
+      strSafeCopy(configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
+      #endif
+
+      // TODO: da rimuovere da qui in avanti
+      #if (USE_MQTT)
+      uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
+      osMemcpy(configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
+
+      strSafeCopy(configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
+      strSafeCopy(configuration->stationslug, "stimav4", STATIONSLUG_LENGTH);
+      strSafeCopy(configuration->boardslug, "stima4", BOARDSLUG_LENGTH);
+      #endif
     }
 
     //! write configuration to eeprom
-    error = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+    // error = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+
+    // for (size_t i = 0; i < sizeof(configuration_t); i++)
+    // {
+    //   uint8_t *ptr = (uint8_t *) configuration;
+    //   status &= eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, &ptr[i], sizeof(uint8_t));
+    // }
+
+    if (is_default)
+    {
+      TRACE_INFO_F(F("Save default configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
+    }
+    else
+    {
+      TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
+    }
+
     lock->Give();
   }
 
-  printConfiguration(configuration, lock);
-
-  return error;
+  return status;
 }

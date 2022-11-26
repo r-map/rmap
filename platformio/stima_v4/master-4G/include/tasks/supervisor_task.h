@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
+#include "str.h"
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"

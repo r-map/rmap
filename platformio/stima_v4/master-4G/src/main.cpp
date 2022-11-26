@@ -60,15 +60,25 @@ void setup() {
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   ModemParam_t modemParam;
   modemParam.configuration = &configuration;
+  modemParam.configurationLock = configurationLock;
   modemParam.systemStatusQueue = systemStatusQueue;
   modemParam.systemRequestQueue = systemRequestQueue;
   modemParam.systemResponseQueue = systemResponseQueue;
 #endif
 
+#if (USE_MQTT)
+  MqttParam_t mqttParam;
+  mqttParam.yarrowContext = &yarrowContext;
+#endif
+
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_01, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_01, modemParam);
+  static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
+#endif
+
+#if (USE_MQTT)
+  // static MqttTask mqtt_task("MqttTask", 1024, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   // Startup Schedulher

@@ -1,4 +1,4 @@
-/**@file debug_config.h */
+/**@file constantdata_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,16 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _DEBUG_CONFIG_H
-#define _DEBUG_CONFIG_H
+#ifndef CONSTANTDATA_CONFIG_H
+#define CONSTANTDATA_CONFIG_H
 
-#define STIMA_TRACE_LEVEL              TRACE_LEVEL_INFO
-#define LED_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
-#define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
-#define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_VERBOSE
-#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
-#define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_VERBOSE
-#define PROVA_TASK_TRACE_LEVEL         TRACE_LEVEL_INFO
-#define SIM7600_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
+/*!
+\def CONSTANTDATA_BTABLE_LENGTH
+\brief Maximum lenght of btable code plus terminator that describe one constant data.
+*/
+#define CONSTANTDATA_BTABLE_LENGTH                    (7)
+
+/*!
+\def CONSTANTDATA_VALUE_LENGTH
+\brief Maximum lenght of value plus terminator for one constant data.
+*/
+#define CONSTANTDATA_VALUE_LENGTH                    (33)
 
 #endif

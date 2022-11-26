@@ -28,6 +28,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <float.h>
 #include <limits>
 
+/*!
+\def DRIVER_LENGTH
+\brief Sensor driver's buffer length.
+*/
+#define DRIVER_LENGTH (5)
+
+/*!
+\def TYPE_LENGTH
+\brief Sensor type's buffer length.
+*/
+#define TYPE_LENGTH (5)
+
 typedef int32_t rmapdata_t;
 
 #define RMAPDATA_MAX            (std::numeric_limits<rmapdata_t>::max())
@@ -43,12 +55,6 @@ typedef int32_t rmapdata_t;
 #define ISVALID_INT8(v)         ((int8_t) v != INT8_MAX)
 #define ISVALID_FLOAT(v)        ((float) v != FLT_MAX)
 #define ISVALID_RMAPDATA(v)     ((rmapdata_t) v != RMAPDATA_MAX)
-
-typedef struct {
-  char type[4];           //!< sensor type
-  uint8_t i2c_address;    //!< i2c address of sensor
-  bool is_redundant;      //!< if true it is used as redundant sensors in order to check one other main sensor
-} sensor_configuration_t;
 
 typedef struct {
   rmapdata_t value;       //!< sensor acquired value

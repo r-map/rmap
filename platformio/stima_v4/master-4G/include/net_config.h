@@ -171,4 +171,19 @@
 //CHAP authentication support
 #define CHAP_SUPPORT DISABLED
 
+// LLMNR responder support
+#define LLMNR_RESPONDER_SUPPORT ENABLED
+
+// WebSocket support
+#define WEB_SOCKET_SUPPORT DISABLED
+// Support for WebSocket connections over TLS
+#define WEB_SOCKET_TLS_SUPPORT DISABLED
+
+// MQTT client support
+#define MQTT_CLIENT_SUPPORT ENABLED
+// MQTT over TLS
+#define MQTT_CLIENT_TLS_SUPPORT ENABLED
+// MQTT over WebSocket
+#define MQTT_CLIENT_WS_SUPPORT DISABLED
+
 #endif

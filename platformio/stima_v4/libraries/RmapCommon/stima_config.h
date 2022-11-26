@@ -156,4 +156,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("i2c-radiation")
 
+#define DATA_LEVEL_SAMPLE  ("sample")
+#define DATA_LEVEL_REPORT  ("report")
+#define DATA_LEVEL_MAINT   ("maint")
+#define DATA_LEVEL_RPC     ("rpc")
+
+#define NETWORK_FIXED      ("fixed")
+#define NETWORK_MOBILE     ("mobile")
+#define NETWORK_TEST       ("test")
+
 #endif

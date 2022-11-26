@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "debug_config.h"
 #include "local_typedef.h"
+#include "str.h"
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
@@ -40,12 +41,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"
 #include "ppp/ppp.h"
-#include "http/http_client.h"
-#include "tls.h"
-#include "tls_cipher_suites.h"
-#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
-#include "rng/trng.h"
-#include "rng/yarrow.h"
+// #include "tls.h"
+// #include "tls_cipher_suites.h"
+// #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+// #include "rng/trng.h"
+// #include "rng/yarrow.h"
 #include "drivers/modem/sim7600.h"
 #include "drivers/uart/uart_driver.h"
 #include "debug_F.h"
@@ -63,26 +63,10 @@ typedef enum
   MODEM_STATE_END
 } ModemState_t;
 
-// typedef enum
-// {
-//   GSM_INIT,                //!< init task variables
-//   GSM_SWITCH_ON,           //!< gsm power on
-//   GSM_AUTOBAUD,            //!< gsm autobaud procedure
-//   GSM_SETUP,               //!< gsm setup
-//   GSM_START_CONNECTION,    //!< gsm open connection
-//   GSM_CHECK_OPERATION,     //!< check operations (ntp or mqtt)
-//   GSM_OPEN_UDP_SOCKET,     //!< open udp socket for ntp sync
-//   GSM_SUSPEND,             //!< wait other tasks for complete its operations with gsm
-//   GSM_STOP_CONNECTION,     //!< gsm close connection
-//   GSM_WAIT_FOR_SWITCH_OFF, //!< wait gsm for power off
-//   GSM_SWITCH_OFF,          //!< gsm power off
-//   GSM_END,                 //!< performs end operations and deactivate task
-//   GSM_WAIT_STATE           //!< non-blocking waiting time
-// } gsm_state_t;
-
 typedef struct
 {
   configuration_t *configuration;
+  cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::Queue *systemStatusQueue;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
@@ -104,7 +88,11 @@ private:
   SIM7600 sim7600;
   PppSettings pppSettings;
   PppContext pppContext;
-  // HttpClientContext httpClientContext;
+
+  char apn[GSM_APN_LENGTH];
+  char number[GSM_NUMBER_LENGTH];
+  char username[GSM_USERNAME_LENGTH];
+  char password[GSM_PASSWORD_LENGTH];
 };
 
 #endif
