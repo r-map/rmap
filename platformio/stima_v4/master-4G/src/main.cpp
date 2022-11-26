@@ -80,7 +80,9 @@ void setup() {
 #if (USE_MQTT)
   MqttParam_t mqttParam;
   mqttParam.configuration = &configuration;
+  // mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
+  // mqttParam.systemStatusLock = systemStatusLock;
   // mqttParam.systemStatusQueue = systemStatusQueue;
   mqttParam.systemRequestQueue = systemRequestQueue;
   mqttParam.systemResponseQueue = systemResponseQueue;
@@ -89,16 +91,17 @@ void setup() {
 
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
   static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
+
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
-  static NtpTask mqtt_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_MQTT)
-  // static MqttTask mqtt_task("MqttTask", 1024, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 1000, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   // Startup Schedulher
@@ -157,7 +160,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
   if (error)
   {
     // Debug message
-    TRACE_ERROR_F(F("Failed to initialize hardware crypto accelerator!\r\n"));
+    TRACE_ERROR_F(F("Failed to initialize hardware crypto accelerator %s\r\n"), ERROR_STRING);
     return error;
   }
 
@@ -167,7 +170,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
   if (error)
   {
     // Debug message
-    TRACE_ERROR_F(F("Failed to generate random data!\r\n"));
+    TRACE_ERROR_F(F("Failed to generate random data %s\r\n"), ERROR_STRING);
     return error;
   }
 
@@ -177,7 +180,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
   if (error)
   {
     // Debug message
-    TRACE_ERROR_F(F("Failed to initialize PRNG!\r\n"));
+    TRACE_ERROR_F(F("Failed to initialize PRNG %s\r\n"), ERROR_STRING);
     return error;
   }
 
@@ -187,7 +190,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
   if (error)
   {
     // Debug message
-    TRACE_ERROR_F(F("Failed to seed PRNG!\r\n"));
+    TRACE_ERROR_F(F("Failed to seed PRNG %s\r\n"), ERROR_STRING);
     return error;
   }
 
@@ -195,7 +198,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
   error = netInit();
   if (error)
   {
-    TRACE_ERROR_F(F("Failed to initialize TCP/IP stack!\r\n"));
+    TRACE_ERROR_F(F("Failed to initialize TCP/IP stack %s\r\n"), ERROR_STRING);
     return error;
   }
 

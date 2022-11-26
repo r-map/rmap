@@ -66,7 +66,7 @@ void print_debug(const char *fmt, ...);
 #endif
 
 #ifndef TRACE_MPI
-   // #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
+   #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
 #endif
 
 //Debugging macros

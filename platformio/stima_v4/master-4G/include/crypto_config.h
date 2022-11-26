@@ -32,7 +32,7 @@
 #define _CRYPTO_CONFIG_H
 
 //Desired trace level (for debugging purposes)
-#define CRYPTO_TRACE_LEVEL TRACE_LEVEL_INFO
+#define CRYPTO_TRACE_LEVEL TRACE_LEVEL_OFF
 
 // True random number generator
 #define STM32L4XX_CRYPTO_TRNG_SUPPORT ENABLED

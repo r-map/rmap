@@ -33,6 +33,8 @@
 
 #include "debug_config.h"
 
+#define TLS_TRACE_LEVEL TRACE_LEVEL_OFF
+
 //TLS support
 #define TLS_SUPPORT ENABLED
 //DTLS support

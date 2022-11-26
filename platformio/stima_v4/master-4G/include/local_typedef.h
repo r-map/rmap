@@ -124,14 +124,20 @@ typedef struct
 
 typedef struct
 {
-   uint32_t datetime;
+   struct
+   {
+      uint32_t system_time;
+      uint32_t next_ptr_time_for_sensors_reading;
+   } datetime;
 
-   struct {
+   struct
+   {
       bool is_loaded;
       bool is_saved;
    } configuration;
 
-   struct {
+   struct
+   {
       bool is_connected;
       bool is_connection_ongoing;
       bool is_disconnected;

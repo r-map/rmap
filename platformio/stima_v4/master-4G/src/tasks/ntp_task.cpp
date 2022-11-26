@@ -86,7 +86,7 @@ void NtpTask::Run() {
       break;
 
     case NTP_STATE_DO_NTP_SYNC:
-      TRACE_INFO_F(F("%s Resolving NTP server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
+      TRACE_INFO_F(F("%s Resolving ntp server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
 
       // Resolve NTP server name
       error = getHostByName(NULL, param.configuration->ntp_server, &ipAddr, 0);
@@ -97,7 +97,7 @@ void NtpTask::Run() {
         state = NTP_STATE_END;
         TRACE_VERBOSE_F(F("NTP_STATE_DO_NTP_SYNC -> NTP_STATE_END\r\n"));
 
-        TRACE_ERROR_F(F("%s Failed to resolve NTP server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
+        TRACE_ERROR_F(F("%s Failed to resolve ntp server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
         break;
       }
 
@@ -133,14 +133,14 @@ void NtpTask::Run() {
 
         // system date and time
         param.systemStatusLock->Take();
-        param.system_status->datetime = (uint32_t) unixTime;
+        param.system_status->datetime.system_time = (uint32_t) unixTime;
         param.systemStatusLock->Give();
 
         // Convert Unix timestamp to date
         convertUnixTimeToDate(unixTime, &date);
 
         // Debug message
-        TRACE_INFO_F(F("%s NTP current date/time [ %d ] %s\r\n"), Thread::GetName().c_str(), (uint32_t)unixTime, formatDate(&date, NULL));
+        TRACE_INFO_F(F("%s ntp current date/time [ %d ] %s\r\n"), Thread::GetName().c_str(), (uint32_t)unixTime, formatDate(&date, NULL));
 
         state = NTP_STATE_END;
         TRACE_VERBOSE_F(F("NTP_STATE_DO_NTP_SYNC -> NTP_STATE_END\r\n"));
@@ -150,7 +150,7 @@ void NtpTask::Run() {
         // Retrieve kiss code
         kissCode = sntpClientGetKissCode(&sntpClientContext);
 
-        TRACE_ERROR_F(F("%s NTP received kiss code: '%c%c%c%c' [ %s ]\r\n"), Thread::GetName().c_str(), (kissCode >> 24) & 0xFF, (kissCode >> 16) & 0xFF, (kissCode >> 8) & 0xFF, kissCode & 0xFF, ERROR_STRING);
+        TRACE_ERROR_F(F("%s ntp received kiss code: '%c%c%c%c' [ %s ]\r\n"), Thread::GetName().c_str(), (kissCode >> 24) & 0xFF, (kissCode >> 16) & 0xFF, (kissCode >> 8) & 0xFF, kissCode & 0xFF, ERROR_STRING);
 
         is_error = true;
         state = NTP_STATE_END;
@@ -158,7 +158,7 @@ void NtpTask::Run() {
       }
       else
       {
-        TRACE_ERROR_F(F("%s Failed to retrieve NTP timestamp [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to retrieve ntp timestamp [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
         is_error = true;
         state = NTP_STATE_END;
