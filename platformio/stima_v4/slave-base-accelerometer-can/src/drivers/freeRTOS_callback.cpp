@@ -25,7 +25,7 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "drivers/module_slave_hal.hpp"
