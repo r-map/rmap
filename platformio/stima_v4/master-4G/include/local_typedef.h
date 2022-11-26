@@ -124,6 +124,8 @@ typedef struct
 
 typedef struct
 {
+   uint32_t datetime;
+
    struct {
       bool is_loaded;
       bool is_saved;
@@ -132,6 +134,8 @@ typedef struct
    struct {
       bool is_connected;
       bool is_connection_ongoing;
+      bool is_disconnected;
+      bool is_disconnection_ongoing;
       bool is_ntp_synchronized;
       bool is_ntp_sync_ongoing;
       bool is_mqtt_connected;

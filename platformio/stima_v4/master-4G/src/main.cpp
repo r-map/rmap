@@ -53,7 +53,7 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
-  supervisorParam.systemStatusQueue = systemStatusQueue;
+  // supervisorParam.systemStatusQueue = systemStatusQueue;
   supervisorParam.systemRequestQueue = systemRequestQueue;
   supervisorParam.systemResponseQueue = systemResponseQueue;
 
@@ -61,13 +61,29 @@ void setup() {
   ModemParam_t modemParam;
   modemParam.configuration = &configuration;
   modemParam.configurationLock = configurationLock;
-  modemParam.systemStatusQueue = systemStatusQueue;
+  // modemParam.systemStatusQueue = systemStatusQueue;
   modemParam.systemRequestQueue = systemRequestQueue;
   modemParam.systemResponseQueue = systemResponseQueue;
 #endif
 
+#if (USE_NTP)
+  NtpParam_t ntpParam;
+  ntpParam.configuration = &configuration;
+  ntpParam.system_status = &system_status;
+  ntpParam.configurationLock = configurationLock;
+  ntpParam.systemStatusLock = systemStatusLock;
+  // ntpParam.systemStatusQueue = systemStatusQueue;
+  ntpParam.systemRequestQueue = systemRequestQueue;
+  ntpParam.systemResponseQueue = systemResponseQueue;
+#endif
+
 #if (USE_MQTT)
   MqttParam_t mqttParam;
+  mqttParam.configuration = &configuration;
+  mqttParam.configurationLock = configurationLock;
+  // mqttParam.systemStatusQueue = systemStatusQueue;
+  mqttParam.systemRequestQueue = systemRequestQueue;
+  mqttParam.systemResponseQueue = systemResponseQueue;
   mqttParam.yarrowContext = &yarrowContext;
 #endif
 
@@ -75,6 +91,10 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
+#endif
+
+#if (USE_NTP)
+  static NtpTask mqtt_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_MQTT)

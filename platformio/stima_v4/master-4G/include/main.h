@@ -53,6 +53,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/modem_task.h"
 #endif
 
+#if (USE_NTP)
+#include "tasks/ntp_task.h"
+#endif
+
 #if (USE_MQTT)
 #include "tasks/mqtt_task.h"
 #endif

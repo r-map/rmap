@@ -56,7 +56,9 @@ typedef enum
   SUPERVISOR_STATE_REQUEST_CONNECTION,
   SUPERVISOR_STATE_CHECK_CONNECTION,
   SUPERVISOR_STATE_CHECK_CONNECTION_TYPE,
-  SUPERVISOR_STATE_DO_NTP_SYNC,
+  SUPERVISOR_STATE_DO_NTP,
+  SUPERVISOR_STATE_DO_MQTT,
+  SUPERVISOR_STATE_REQUEST_DISCONNECTION,
   SUPERVISOR_STATE_END
 } SupervisorState_t;
 
@@ -66,7 +68,7 @@ typedef struct {
   BinarySemaphore *wireLock;
   BinarySemaphore *configurationLock;
   BinarySemaphore *systemStatusLock;
-  Queue *systemStatusQueue;
+  // Queue *systemStatusQueue;
   Queue *systemRequestQueue;
   Queue *systemResponseQueue;
   TwoWire *wire;
@@ -84,9 +86,7 @@ private:
   SupervisorState_t state;
   SupervisorParam_t param;
   EEprom eeprom;
-
-  uint8_t retry;
-  
+    
   void printConfiguration(configuration_t *configuration, BinarySemaphore *lock);
   bool loadConfiguration(configuration_t *configuration, BinarySemaphore *lock);
   bool saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default);

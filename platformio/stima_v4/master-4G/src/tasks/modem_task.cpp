@@ -36,6 +36,7 @@ ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 };
 
 void ModemTask::Run() {
+  uint8_t retry;
   bool is_error;
   error_t error;
   sim7600_status_t status;
@@ -51,6 +52,9 @@ void ModemTask::Run() {
     switch (state)
     {
     case MODEM_STATE_INIT:
+      retry = 0;
+      is_error = false;
+
       // Configure the first network interface
       interface = &netInterface[INTERFACE_0_INDEX];
 
@@ -63,10 +67,11 @@ void ModemTask::Run() {
 
       // Initialize PPP
       error = pppInit(&pppContext, &pppSettings);
-      // Any error to report?
+      // useful for debug
       if (error)
       {
-        // Debug message
+        is_error = true;
+
         TRACE_ERROR_F(F("%s Failed to initialize PPP... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
@@ -79,10 +84,11 @@ void ModemTask::Run() {
 
       // Initialize network interface
       error = netConfigInterface(interface);
-      // Any error to report?
+      // useful for debug
       if (error)
       {
-        // Debug message
+        is_error = true;
+
         TRACE_ERROR_F(F("%s Failed to configure interface %s [ %s ]\r\n"), Thread::GetName().c_str(), interface->name, ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
@@ -96,6 +102,7 @@ void ModemTask::Run() {
 
     case MODEM_STATE_WAIT_NET_EVENT:
       is_error = false;
+      retry = 0;
 
       // wait connection request
       if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
@@ -142,6 +149,7 @@ void ModemTask::Run() {
       else if (status == SIM7600_ERROR)
       {
         is_error = true;
+
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
@@ -160,6 +168,7 @@ void ModemTask::Run() {
       else if (status == SIM7600_ERROR)
       {
         is_error = true;
+
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
@@ -177,6 +186,7 @@ void ModemTask::Run() {
       else if (status == SIM7600_ERROR)
       {
         is_error = true;
+
         state = MODEM_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
       }
@@ -205,21 +215,22 @@ void ModemTask::Run() {
       // Establish a PPP connection
       error = pppConnect(interface);
       // Any error to report?
-      if (!error)
+      if (error)
+      {
+        is_error = true;
+
+        TRACE_ERROR_F(F("%s Failed to established PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        state = MODEM_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_DISCONNECT\r\n"));
+      }
+      else
       {
         TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
         response.connection.done_connected = true;
         param.systemResponseQueue->Enqueue(&response, 0);
 
         state = MODEM_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
-      }
-      else
-      {
-        is_error = true;
-        TRACE_ERROR_F(F("%s Failed to established PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        state = MODEM_STATE_DISCONNECT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_DISCONNECT\r\n"));
+        TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       }
       break;
 
@@ -229,12 +240,13 @@ void ModemTask::Run() {
 
       if (status == SIM7600_OK)
       {
+        is_error = false;
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       else if (status == SIM7600_ERROR)
       {
-        is_error = true;
+        is_error = false;
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
@@ -246,26 +258,41 @@ void ModemTask::Run() {
 
       if (status == SIM7600_OK)
       {
+        is_error = false;
         state = MODEM_STATE_END;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_OFF -> MODEM_STATE_END\r\n"));
       }
       else if (status == SIM7600_ERROR)
       {
-        is_error = true;
+        is_error = false;
         state = MODEM_STATE_END;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_OFF -> MODEM_STATE_END\r\n"));
       }
       break;
 
     case MODEM_STATE_END:
-      if (is_error)
-      {
-        response.connection.done_connected = false;
-        param.systemResponseQueue->Enqueue(&response, 0);
-      }
+      response.connection.done_disconnected = true;
+      param.systemResponseQueue->Enqueue(&response, 0);
 
-      state = MODEM_STATE_WAIT_NET_EVENT;
-      TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      // ok
+      if (!is_error)
+      {
+        state = MODEM_STATE_WAIT_NET_EVENT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      }
+      // retry
+      else if ((++retry) < MODEM_TASK_GENERIC_RETRY)
+      {
+        Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
+        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_SWITCH_ON\r\n"));
+        state = MODEM_STATE_SWITCH_ON;
+      }
+      // error
+      else
+      {
+        state = MODEM_STATE_WAIT_NET_EVENT;
+        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+      }
       break;
     }
   }
