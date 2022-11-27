@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <SdFat.h>
 #include <StreamUtils.h>
 #include <ArduinoLog.h>
-#include "IntBuffer.h"
+#include <CircularBuffer.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -288,16 +288,16 @@ bool is_oneshot;
 bool is_test;
 
 #if (USE_SENSOR_DES)
-IntBuffer cb_speed;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_speed;
 #endif
 
 #if (USE_SENSOR_DED)
-IntBuffer cb_direction;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_direction;
 #endif
 
 #if (USE_SENSOR_GWS)
-IntBuffer cb_speed;
-IntBuffer cb_direction;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_speed;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_direction;
 #endif
 
 /*!

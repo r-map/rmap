@@ -189,8 +189,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * WIND SENSORS
 *********************************************************************/
-// observations with processing every 1-10 minutes (minutes for processing sampling)
-// report every 5-60 minutes (> OBSERVATIONS_MINUTES)
 
 #if (USE_SENSOR_DES || USE_SENSOR_DED)
 /*!
@@ -204,14 +202,17 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #endif
 
 #if (USE_SENSOR_GWS)
-#define SENSORS_SAMPLE_TIME_MS                          (4000)
+  // for 644pa
+  #define SENSORS_SAMPLE_TIME_MS                          (2000)
+  // for 1284p
+  //#define SENSORS_SAMPLE_TIME_MS                          (1000)
 #endif
 
 /*!
 \def WMO_REPORT_SAMPLES_TIME
 \brief Sample time for generate WMO standard wind (verctorial mean) (minutes).
 */
-#define WMO_REPORT_SAMPLES_TIME                        (10)
+#define WMO_REPORT_SAMPLES_TIME                         (10)
 
 /*!
 \def WMO_REPORT_SAMPLES_COUNT
