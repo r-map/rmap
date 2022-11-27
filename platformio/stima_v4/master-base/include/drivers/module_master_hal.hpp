@@ -42,6 +42,7 @@
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (false)
+#define ENABLE_SIM7600E       (true)
 
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (true)
@@ -76,16 +77,17 @@ extern CAN_HandleTypeDef hcan1;
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 
-// #define _HW_SETUP_GPIO_PRIVATE
 // #define _HW_SETUP_CAN_PRIVATE
 // #define _HW_SETUP_CRC_PRIVATE
 // #define _HW_SETUP_LPTIM_PRIVATE
-#define _HW_SETUP_QSPI_PRIVATE
 // #define _HW_SETUP_RNG_PRIVATE
 // #define _HW_SETUP_SD_PRIVATE
-// #define _HW_SETUP_TIM3_PRIVATE
 // #define _HW_SETUP_UART2_PRIVATE
 
+#if (ENABLE_SIM7600E)
+  // SIM7600 Using local driver UART2
+  #undef _HW_SETUP_UART2_PRIVATE
+#endif
 // ******************************************************************************
 
 // PIN NAMED STM32 ARDUINO GPIO_INIT
@@ -154,7 +156,7 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_GSM_EN_POW  PIN_UP27_PD4
 #define PIN_GSM_RX0     PIN_UP27_PD0    // PIN_UART2_RX
 #define PIN_GSM_TX0     PIN_UP27_PD1    // PIN_UART2_TX
-#define PIN_7600E_RI    PIN_UP27_PD2
+#define PIN_GSM_RI      PIN_UP27_PD2
 
 // CLOCK
 #define PIN_SWDIO       PA13
@@ -228,11 +230,11 @@ extern CAN_HandleTypeDef hcan1;
 #define GSM_RingInd_Pin   GPIO_PIN_2
 #define GSM_PowerEn_Pin   GPIO_PIN_4
 #define GSM_PowerKey_Pin  GPIO_PIN_5
-#define MMC1_GPIO_Port    GPIOD
+#define GSM_GPIO_Port     GPIOD
 
-// // ******************************************************************************
+// ******************************************************************************
 
-// // Data Istance and Prototype Function Extern "C"
+// Data Istance and Prototype Function Extern "C"
 
 void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
@@ -256,9 +258,6 @@ extern RNG_HandleTypeDef hrng;
 #endif
 #ifdef _HW_SETUP_SD_PRIVATE
 extern SD_HandleTypeDef hsd1;
-#endif
-#ifdef _HW_SETUP_TIM3_PRIVATE
-extern TIM_HandleTypeDef htim3;
 #endif
 #ifdef _HW_SETUP_UART2_PRIVATE
 extern UART_HandleTypeDef huart2;
@@ -304,14 +303,6 @@ void MX_SDMMC1_SD_Init(void);
 #ifdef _HW_MSP_SD_PRIVATE
 void HAL_SD_MspInit(SD_HandleTypeDef* hsd);
 void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd);
-#endif
-
-#ifdef _HW_SETUP_TIM3_PRIVATE
-void MX_TIM3_Init(void);
-#endif
-#ifdef _HW_MSP_TIM3_PRIVATE
-void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder);
-void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder);
 #endif
 
 #ifdef _HW_SETUP_UART2_PRIVATE

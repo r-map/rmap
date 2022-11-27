@@ -1,22 +1,33 @@
-// /**
-//   ******************************************************************************
-//   * @file    freeRTOS_callback.cpp
-//   * @brief   freeRTOS_callback hal configuration
-//   ******************************************************************************
-//   * @attention
-//   *
-//   * This software is distributed under the terms of the MIT License.
-//   * Progetto RMAP - STIMA V4
-//   * Hardware Config, STIMAV4 MASTER Board - Rev.1.00
-//   * Copyright (C) 2022 Digiteco s.r.l.
-//   * Author: Gasperini Moreno <m.gasperini@digiteco.it>
-//   *
-//   ******************************************************************************
-// **/
-
-// #include <Arduino.h>
-// #include "FreeRTOS.h"
-// #include "task.h"
+/**
+  ******************************************************************************
+  * @file    freeRTOS_callback.cpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   CallBack Freertos and Handler base system function
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
+#include "FreeRTOS.h"
+#include "task.h"
 #include "drivers/module_master_hal.hpp"
 
 // /*******************************************************************************************
@@ -24,12 +35,6 @@
 //                 Freertos Param Config and CallBack __Weak Function Redefinition
 // ********************************************************************************************
 // *******************************************************************************************/
-
-// Local prototype Static
-static void delayMS(uint32_t millis);
-static void buzzerStimaV4(int n);
-
-// Implementation
 
 #ifdef _USE_FREERTOS_LOW_POWER
 
@@ -63,16 +68,16 @@ static void delayMS(uint32_t millis) {
 
 /// @brief Buzzer Redefiniton Segnalazione LedBlink con Buzzer
 /// @param n Numero di iterazioni per segnalazione
-static void buzzerStimaV4(int n) {
-  #ifdef PIN_BUZZER
+static void faultStimaV4(int n) {
+  #ifdef HFLT_PIN
   __disable_irq();
-  pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(HFLT_PIN, OUTPUT);
   for (;;) {
     int i;
     for (i = 0; i < n; i++) {
-      digitalWrite(PIN_BUZZER, 1);
+      digitalWrite(HFLT_PIN, 1);
       delayMS(300);
-      digitalWrite(PIN_BUZZER, 0);
+      digitalWrite(HFLT_PIN, 0);
       delayMS(300);
     }
     delayMS(2000);
@@ -94,7 +99,7 @@ static void buzzerStimaV4(int n) {
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
   (void) pcTaskName;
   (void) pxTask;
-  buzzerStimaV4(3);
+  faultStimaV4(3);
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
 
@@ -106,31 +111,31 @@ volatile uint32_t exceptionInt = 0;
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void hard_fault_isr() {
   //printf("Hard fault isr\n");
-  buzzerStimaV4(4);
+  faultStimaV4(4);
 }
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void HardFault_Handler() {
   exceptionInt++;
-  buzzerStimaV4(4);
+  faultStimaV4(4);
   NVIC_SystemReset();
 }
 
 /** Bus fault - blink five short flashes every two seconds */
 extern "C" void bus_fault_isr() {
-  buzzerStimaV4(5);
+  faultStimaV4(5);
 }
 /** Bus fault - blink five short flashes every two seconds */
 extern "C" void BusFault_Handler() {
-  buzzerStimaV4(5);
+  faultStimaV4(5);
 }
 
 /** Usage fault - blink six short flashes every two seconds */
 extern "C" void usage_fault_isr() {
-  buzzerStimaV4(6);
+  faultStimaV4(6);
 }
 /** Usage fault - blink six short flashes every two seconds */
 extern "C" void UsageFault_Handler() {
-  buzzerStimaV4(6);
+  faultStimaV4(6);
 }
 
 // #endif

@@ -25,7 +25,7 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
 
 #include "drivers/module_master_hal.hpp"
 #include "stm32l4xx_ll_system.h"
@@ -55,21 +55,15 @@ QSPI_HandleTypeDef hqspi;
 #ifdef _HW_SETUP_RNG_PRIVATE
 RNG_HandleTypeDef hrng;
 #endif
-#ifdef _HW_SETUP_RTC_PRIVATE
-RTC_HandleTypeDef hrtc;
-#endif
 #ifdef _HW_SETUP_SD_PRIVATE
 SD_HandleTypeDef hsd1;
-#endif
-#ifdef _HW_SETUP_TIM3_PRIVATE
-TIM_HandleTypeDef htim3;
 #endif
 #ifdef _HW_SETUP_UART2_PRIVATE
 UART_HandleTypeDef huart2;
 #endif
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
-// /*******************************************************************************************
+// ********************************************************************************************
 // ********************************************************************************************
 //                       System clock and peripheral base local SETUP
 // ********************************************************************************************
@@ -202,9 +196,6 @@ void SetupSystemPeripheral(void) {
   #ifdef _HW_SETUP_RNG_PRIVATE
   MX_RNG_Init();
   #endif
-  #ifdef _HW_SETUP_TIM3_PRIVATE
-  MX_TIM3_Init();
-  #endif
 
 	/* Abilito la carica del supercap */
 	HAL_PWREx_EnableBatteryCharging(PWR_BATTERY_CHARGING_RESISTOR_5);
@@ -212,7 +203,7 @@ void SetupSystemPeripheral(void) {
 }
 
 
-// /*******************************************************************************************
+// ********************************************************************************************
 // ********************************************************************************************
 //                    System base Hardware Istance and private Initialization
 // ********************************************************************************************
@@ -433,57 +424,6 @@ extern "C" void MX_SDMMC1_SD_Init(void)
 }
 #endif
 
-#ifdef _HW_SETUP_TIM3_PRIVATE
-/**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
-extern "C" void MX_TIM3_Init(void)
-{
-
-  /* USER CODE BEGIN TIM3_Init 0 */
-
-  /* USER CODE END TIM3_Init 0 */
-
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 0;
-  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
-
-  /* USER CODE END TIM3_Init 2 */
-
-}
-#endif
-
 #ifdef _HW_SETUP_UART2_PRIVATE
 /**
   * @brief USART2 Initialization Function
@@ -578,7 +518,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MMC1_Detect_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(MMC1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* Unused PCx (esclude UPIN27) */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_2|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_13;
@@ -645,6 +585,19 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  #if (ENABLE_SIM7600E)
+  /** USART2 GPIO Configuration to 7600E
+    PD5     ------> USART2_TX
+    PD6     ------> USART2_RX
+  */
+  GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  #endif
+
   /* Unused PDx (esclude UPIN27) */
   GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
                           |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
@@ -654,7 +607,7 @@ void MX_GPIO_Init(void)
 
 }
 
-// /*******************************************************************************************
+// ********************************************************************************************
 // ********************************************************************************************
 //                                PRIVATE HAL_MspInit_XXModule
 // ********************************************************************************************
@@ -920,7 +873,7 @@ extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
   /* USER CODE BEGIN QUADSPI_MspInit 1 */
 
     /* QUADSPI interrupt Init */
-    HAL_NVIC_SetPriority(QUADSPI_IRQn, 7, 0);
+    HAL_NVIC_SetPriority(QUADSPI_IRQn, QSPI_NVIC_INT_PREMPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(QUADSPI_IRQn);
 
     /* USER CODE END QUADSPI_MspInit 1 */
@@ -1117,73 +1070,6 @@ extern "C" void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
   /* USER CODE BEGIN SDMMC1_MspDeInit 1 */
 
   /* USER CODE END SDMMC1_MspDeInit 1 */
-  }
-
-}
-#endif
-
-#ifdef _HW_MSP_TIM3_PRIVATE
-/**
-* @brief TIM_Encoder MSP Initialization
-* This function configures the hardware resources used in this example
-* @param htim_encoder: TIM_Encoder handle pointer
-* @retval None
-*/
-extern "C" void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(htim_encoder->Instance==TIM3)
-  {
-  /* USER CODE BEGIN TIM3_MspInit 0 */
-
-  /* USER CODE END TIM3_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM3_CLK_ENABLE();
-
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    /**TIM3 GPIO Configuration
-    PE3     ------> TIM3_CH1
-    PE4     ------> TIM3_CH2
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN TIM3_MspInit 1 */
-
-  /* USER CODE END TIM3_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief TIM_Encoder MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param htim_encoder: TIM_Encoder handle pointer
-* @retval None
-*/
-extern "C" void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
-{
-  if(htim_encoder->Instance==TIM3)
-  {
-  /* USER CODE BEGIN TIM3_MspDeInit 0 */
-
-  /* USER CODE END TIM3_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM3_CLK_DISABLE();
-
-    /**TIM3 GPIO Configuration
-    PE3     ------> TIM3_CH1
-    PE4     ------> TIM3_CH2
-    */
-    HAL_GPIO_DeInit(GPIOE, GPIO_PIN_3|GPIO_PIN_4);
-
-  /* USER CODE BEGIN TIM3_MspDeInit 1 */
-
-  /* USER CODE END TIM3_MspDeInit 1 */
   }
 
 }
