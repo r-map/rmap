@@ -229,7 +229,6 @@ void init_buffers() {
   readable_data_address=0xFF;
   readable_data_length=0;
   make_report(true);
-  elaborate_circular_buffer(true);
   }
 
 void init_tasks() {
@@ -643,8 +642,11 @@ void getSDFromUV (float u, float v, uint16_t *speed, uint16_t *direction) {
     *direction = *direction % 360;
   }
   
-  if (*direction == 0) *direction = 360;
-  
+  if (*speed < CALM_WIND_MAX_MS*100.) {
+    *speed = 0;
+    *direction=0;        // wind calm
+  } else if (*direction == 0) *direction = 360;  // traslate 0 -> 360
+ 
 }
 
 void print_registers(void){
@@ -694,7 +696,10 @@ void make_report  (bool init) {
   
   static uint16_t peak_gust_speed;
   static uint16_t peak_gust_direction;
-    
+
+  static uint16_t long_gust_speed;
+  static uint16_t long_gust_direction;
+  
   static uint16_t class_1_count;
   static uint16_t class_2_count;
   static uint16_t class_3_count;
@@ -724,6 +729,9 @@ void make_report  (bool init) {
     peak_gust_speed = 0;
     peak_gust_direction = 0;
     
+    long_gust_speed = 0;
+    long_gust_direction = 0;
+
     class_1_count = 0;
     class_2_count = 0;
     class_3_count = 0;
@@ -753,6 +761,9 @@ void make_report  (bool init) {
     avg_speed += (float(speed) - avg_speed) / valid_count_speed;
 
     if (speed > peak_gust_speed) peak_gust_speed = speed;
+    if (peak_gust_speed < CALM_WIND_MAX_MS*100.) {
+      peak_gust_speed = 0;
+    }
     
     if (speed < WIND_CLASS_1_MAX*100.) {
       class_1_count++;
@@ -812,6 +823,11 @@ void make_report  (bool init) {
     if (speed == peak_gust_speed) {
       peak_gust_direction = direction;    // add direction to long gust
     }
+
+    if (peak_gust_speed < CALM_WIND_MAX_MS*100.) {
+      peak_gust_direction=0;        // wind calm
+    } else if (peak_gust_direction == 0) peak_gust_direction = 360;  // traslate 0 -> 360
+  
     
     ua += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ua) / float(valid_count);
     va += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - va) / float(valid_count);
@@ -829,55 +845,40 @@ void make_report  (bool init) {
   } else {
     error_count++;
   }
-}
 
 
-void elaborate_circular_buffer(bool init){
-
-  static uint16_t long_gust_speed;
-  static uint16_t long_gust_direction;
-
-  if (init) {
-
-    long_gust_speed = 0;
-    long_gust_direction = 0;
-
-    return;
-  }
-
-
-  uint16_t speed=UINT16_MAX;
-  uint16_t direction=UINT16_MAX;
-  
   // elaborate 60" wind mean in the last period
   
   float ub = 0.;
   float vb = 0.;
-  uint16_t valid_count=0;
+  uint16_t valid_countb=0;
   uint16_t cb_error_count=max((int16_t)(LONG_GUST_SAMPLES_COUNT - cb_speed.size()),0);
 
   for (uint16_t i = 0; i < min(LONG_GUST_SAMPLES_COUNT,cb_speed.size()); i++) {  
     speed = cb_speed[i];
     direction = cb_direction[i];
-    valid_count++;
+    valid_countb++;
     LOGV("%d, long gust speed:%d    direction:%d",i, speed,direction);
     if (ISVALID(speed) && ISVALID(direction)) {
-      ub += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ub) / float(valid_count);
-      vb += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - vb) / float(valid_count);
+      ub += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ub) / float(valid_countb);
+      vb += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - vb) / float(valid_countb);
       
     } else {
       cb_error_count++;
     }
   }
 
-  //LOGE("%d , %d  ,%D",LONG_GUST_SAMPLES_COUNT,cb_error_count,RMAP_REPORT_SAMPLE_ERROR_MAX_PERC);
-  
   if((float(cb_error_count) / float(LONG_GUST_SAMPLES_COUNT) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){   
     getSDFromUV(ub, vb, &speed, &direction);
     
     if (speed > long_gust_speed) {
       long_gust_speed = speed;
       long_gust_direction = direction;
+
+      if (long_gust_speed < CALM_WIND_MAX_MS*100.) {
+	long_gust_speed = 0;
+	long_gust_direction=0;        // wind calm
+      } else if (long_gust_direction == 0) long_gust_direction = 360;  // traslate 0 -> 360      
     }
 
     readable_data_write_ptr->wind.long_gust_speed = long_gust_speed/100.;
@@ -887,12 +888,24 @@ void elaborate_circular_buffer(bool init){
     LOGE(F("long gust error rate -> total: %d ; bad: %d"), LONG_GUST_SAMPLES_COUNT,cb_error_count);
   }
 
+  // activate for debug porpouse
+  // but in normal activities use too much resources
+  //elaborate_circular_buffer();
+  
+}
+
+
+void elaborate_circular_buffer(void){
+
+  uint16_t speed=UINT16_MAX;
+  uint16_t direction=UINT16_MAX;
+  
   // elaborate WMO wind (mean in the last period)
   
-  ub = 0.;
-  vb = 0.;
-  valid_count=0;
-  cb_error_count=max((int16_t)WMO_REPORT_SAMPLES_COUNT-cb_speed.size(),0);
+  float ub = 0.;
+  float vb = 0.;
+  uint16_t valid_count=0;
+  uint16_t cb_error_count=max((int16_t)WMO_REPORT_SAMPLES_COUNT-cb_speed.size(),0);
   
 for (uint16_t i = 0; i < cb_speed.size(); i++) {  
     speed = cb_speed[i];
@@ -911,8 +924,6 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
   if((float(cb_error_count) / float(WMO_REPORT_SAMPLES_COUNT) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){   
     
     getSDFromUV(ub, vb, &speed, &direction);
-    if (direction == 0) direction=360;                    // traslate 0 -> 360
-    if (speed == WIND_SPEED_MIN*100.) direction=0;        // wind calm
 
     readable_data_write_ptr->wind.vavg10_speed = speed/100.;
     readable_data_write_ptr->wind.vavg10_direction = direction;
@@ -921,9 +932,6 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
     LOGE(F("WMO error rate -> total: %d ; bad: %d"), WMO_REPORT_SAMPLES_COUNT,cb_error_count);
   }
 }
-
-
-
 
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
@@ -1181,11 +1189,6 @@ void wind_task () {
 
       LOGV(F("windsonic data: %d , %d"),speed,direction);
       
-      //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-      //addValue<sample_t, uint16_t, uint16_t>(&wind_speed_samples, WMO_REPORT_SAMPLES_COUNT, speed);
-      //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
-      //addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, direction);
-
       cb_speed.unshift(speed);      
       cb_direction.unshift(direction);      
       
@@ -1496,14 +1499,10 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
     above applies at 0.1m/s.
   */
   
-  if (*speed < CALM_WIND_MAX_MS*100.) {
-    *speed = WIND_SPEED_MIN*100.;                         // set calm when speed too low
-  } else if (*speed > WIND_SPEED_MAX*100.) {
-    *speed = UINT16_MAX;                                  // wind speed missed when too big
-  }
-
-  if (*direction == 0) *direction=360;                    // traslate 0 -> 360
-  if (*speed == WIND_SPEED_MIN*100.) *direction=0;        // wind calm
+  if (*speed == CALM_WIND_MAX_MS*100.) {
+    *speed = 0;
+    *direction=0;        // wind calm
+  }else if (*direction == 0) *direction = 360;  // traslate 0 -> 360
 
   return true;
   
@@ -1658,7 +1657,6 @@ void commands() {
     stop_timer();
     reset_samples_buffer();
     make_report(true);
-    elaborate_circular_buffer(true);
     start_timer();
   }
   //! CONTINUOUS STOP
@@ -1674,7 +1672,6 @@ void commands() {
     exchange_buffers();
     reset_samples_buffer();
     make_report(true);
-    elaborate_circular_buffer(true);
     start_timer();
   }
   //! ONESHOT START

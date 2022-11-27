@@ -534,11 +534,11 @@ void make_report (bool init=false);
 
 
 /*!
-\fn void elaborate_circular_buffer (bool init=false)
+\fn void elaborate_circular_buffer (void)
 \brief Main routine for processing the samples in circular buffer to calculate an observation.
 \return void.
 */
-void elaborate_circular_buffer(bool init=false);
+void elaborate_circular_buffer(void);
 
 
 void getSDFromUV (float, float, float *, float *);
