@@ -532,6 +532,15 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 */
 void make_report (bool init=false);
 
+
+/*!
+\fn void elaborate_circular_buffer (bool init=false)
+\brief Main routine for processing the samples in circular buffer to calculate an observation.
+\return void.
+*/
+void elaborate_circular_buffer(bool init=false);
+
+
 void getSDFromUV (float, float, float *, float *);
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES)

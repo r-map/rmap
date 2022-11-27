@@ -229,7 +229,8 @@ void init_buffers() {
   readable_data_address=0xFF;
   readable_data_length=0;
   make_report(true);
-}
+  elaborate_circular_buffer(true);
+  }
 
 void init_tasks() {
 
@@ -407,31 +408,23 @@ void load_configuration() {
 void init_sensors () {
   if (!configuration.is_oneshot) {
     #if (USE_SENSOR_GWS)
-    LOGN(F("sc: speed sample count"));
-    LOGN(F("dc: direction sample count"));
-    LOGN(F("speed: sensor speed"));
-    LOGN(F("dir: sensor direction"));
-    LOGN(F("ua: average u component over 10'"));
-    LOGN(F("va: average v component over 10'"));
-    LOGN(F("vs10: vectorial average speed"));
-    LOGN(F("vd10: vectorial average direction"));
-    LOGN(F("ub: average u component"));
-    LOGN(F("vb: average v component"));
-    LOGN(F("vsr: vectorial average speed"));
-    LOGN(F("vdr: vectorial average direction'"));
-    LOGN(F("ss: scalar average speed"));
-    LOGN(F("pgs: peak gust speed"));
-    LOGN(F("pgd: peak gust direction"));
-    LOGN(F("lgs: long gust speed'"));
-    LOGN(F("lgd: long gust direction'"));
-    LOGN(F("C1: %% of sample <= 1.0 m/s "));
-    LOGN(F("C2: %% of sample <= 2.0 m/s "));
-    LOGN(F("C4: %% of sample <= 4.0 m/s "));
-    LOGN(F("C7: %% of sample <= 7.0 m/s "));
-    LOGN(F("C10: %% of sample <= 10.0 m/s "));
-    LOGN(F("CXX: %% of sample > 10.0 m/s "));
+    LOGN(F("wmos:  vectorial average speed"));
+    LOGN(F("wmod:  vectorial average direction"));
+    LOGN(F("vas:   vectorial average speed"));
+    LOGN(F("vad:   vectorial average direction'"));
+    LOGN(F("sas:   scalar average speed"));
+    LOGN(F("pgs:   peak gust speed"));
+    LOGN(F("pgd:   peak gust direction"));
+    LOGN(F("lgs:   long gust speed'"));
+    LOGN(F("lgd:   long gust direction'"));
+    LOGN(F("C1:    %% of sample <= 1.0 m/s "));
+    LOGN(F("C2:    %% of sample <= 2.0 m/s "));
+    LOGN(F("C4:    %% of sample <= 4.0 m/s "));
+    LOGN(F("C7:    %% of sample <= 7.0 m/s "));
+    LOGN(F("C10:   %% of sample <= 10.0 m/s "));
+    LOGN(F("CXX:   %% of sample > 10.0 m/s "));
 
-    LOGN(F("sc\tdc\tspeed\tdir\tua\tva\tvs10\tvd10\tub\tvb\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
+    LOGN(F("wmos\twmod\tvas\tvad\tsas\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
 
     #elif (USE_SENSOR_DES)
     LOGN(F("sc\tss\tC1\tC2\tC4\tC7\tC10\tCXX\ttotal"));
@@ -654,6 +647,35 @@ void getSDFromUV (float u, float v, uint16_t *speed, uint16_t *direction) {
   
 }
 
+void print_registers(void){
+    #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
+  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"),
+       readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction,
+       readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction,
+       readable_data_write_ptr->wind.avg_speed,
+       readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction,
+       readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction,
+       readable_data_write_ptr->wind.class_1,
+       readable_data_write_ptr->wind.class_2,
+       readable_data_write_ptr->wind.class_3,
+       readable_data_write_ptr->wind.class_4,
+       readable_data_write_ptr->wind.class_5,
+       readable_data_write_ptr->wind.class_6);
+  #elif (USE_SENSOR_DES)
+  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D"),
+       readable_data_write_ptr->vavg_speed,
+       readable_data_write_ptr->wind.class_1,
+       readable_data_write_ptr->wind.class_2,
+       readable_data_write_ptr->wind.class_3,
+       readable_data_write_ptr->wind.class_4,
+       readable_data_write_ptr->wind.class_5,
+       readable_data_write_ptr->wind.class_6);
+  #elif (USE_SENSOR_DED)
+  LOGN(F("\r\n"));
+  #endif
+}
+
+
 void make_report  (bool init) {
 
   static uint16_t valid_count;
@@ -672,10 +694,7 @@ void make_report  (bool init) {
   
   static uint16_t peak_gust_speed;
   static uint16_t peak_gust_direction;
-  
-  static uint16_t long_gust_speed;
-  static uint16_t long_gust_direction;
-  
+    
   static uint16_t class_1_count;
   static uint16_t class_2_count;
   static uint16_t class_3_count;
@@ -704,9 +723,6 @@ void make_report  (bool init) {
     
     peak_gust_speed = 0;
     peak_gust_direction = 0;
-    
-    long_gust_speed = 0;
-    long_gust_direction = 0;
     
     class_1_count = 0;
     class_2_count = 0;
@@ -802,9 +818,10 @@ void make_report  (bool init) {
 
     if((float(error_count) / float(valid_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){   
       getSDFromUV(ua, va, &speed, &direction);
-      readable_data_write_ptr->wind.vavg10_speed = speed/100.;
-      readable_data_write_ptr->wind.vavg10_direction = direction;
 
+      readable_data_write_ptr->wind.vavg_speed = speed/100.;
+      readable_data_write_ptr->wind.vavg_direction = direction;
+      
       readable_data_write_ptr->wind.peak_gust_direction = peak_gust_direction;
       
     }
@@ -812,24 +829,41 @@ void make_report  (bool init) {
   } else {
     error_count++;
   }
+}
 
+
+void elaborate_circular_buffer(bool init){
+
+  static uint16_t long_gust_speed;
+  static uint16_t long_gust_direction;
+
+  if (init) {
+
+    long_gust_speed = 0;
+    long_gust_direction = 0;
+
+    return;
+  }
+
+
+  uint16_t speed=UINT16_MAX;
+  uint16_t direction=UINT16_MAX;
+  
   // elaborate 60" wind mean in the last period
   
   float ub = 0.;
   float vb = 0.;
+  uint16_t valid_count=0;
   uint16_t cb_error_count=max((int16_t)(LONG_GUST_SAMPLES_COUNT - cb_speed.size()),0);
 
   for (uint16_t i = 0; i < min(LONG_GUST_SAMPLES_COUNT,cb_speed.size()); i++) {  
     speed = cb_speed[i];
     direction = cb_direction[i];
+    valid_count++;
     LOGV("%d, long gust speed:%d    direction:%d",i, speed,direction);
     if (ISVALID(speed) && ISVALID(direction)) {
       ub += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ub) / float(valid_count);
       vb += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - vb) / float(valid_count);
-      
-      getSDFromUV(ub, vb, &speed, &direction);
-      readable_data_write_ptr->wind.vavg_speed = speed/100.;
-      readable_data_write_ptr->wind.vavg_direction = direction;
       
     } else {
       cb_error_count++;
@@ -857,6 +891,7 @@ void make_report  (bool init) {
   
   ub = 0.;
   vb = 0.;
+  valid_count=0;
   cb_error_count=max((int16_t)WMO_REPORT_SAMPLES_COUNT-cb_speed.size(),0);
   
 for (uint16_t i = 0; i < cb_speed.size(); i++) {  
@@ -865,6 +900,7 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
     LOGV("%d, wmo speed:%d    direction:%d",i,speed,direction);
     
     if (ISVALID(speed) && ISVALID(direction)) {    
+      valid_count++;
       ub += ((-float(speed) * sin(DEG_TO_RAD * float(direction))) - ub) / float(valid_count);
       vb += ((-float(speed) * cos(DEG_TO_RAD * float(direction))) - vb) / float(valid_count);
     } else {
@@ -877,37 +913,18 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
     getSDFromUV(ub, vb, &speed, &direction);
     if (direction == 0) direction=360;                    // traslate 0 -> 360
     if (speed == WIND_SPEED_MIN*100.) direction=0;        // wind calm
+
+    readable_data_write_ptr->wind.vavg10_speed = speed/100.;
+    readable_data_write_ptr->wind.vavg10_direction = direction;
     
   }else{
     LOGE(F("WMO error rate -> total: %d ; bad: %d"), WMO_REPORT_SAMPLES_COUNT,cb_error_count);
   }
-  
-  #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"),
-       ua/100., va/100., readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction,
-       ub, vb, readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction,
-       readable_data_write_ptr->wind.avg_speed,
-       readable_data_write_ptr->wind.peak_gust_speed, readable_data_write_ptr->wind.peak_gust_direction,
-       readable_data_write_ptr->wind.long_gust_speed, readable_data_write_ptr->wind.long_gust_direction,
-       readable_data_write_ptr->wind.class_1,
-       readable_data_write_ptr->wind.class_2,
-       readable_data_write_ptr->wind.class_3,
-       readable_data_write_ptr->wind.class_4,
-       readable_data_write_ptr->wind.class_5,
-       readable_data_write_ptr->wind.class_6);
-  #elif (USE_SENSOR_DES)
-  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D"),
-       readable_data_write_ptr->vavg_speed,
-       readable_data_write_ptr->wind.class_1,
-       readable_data_write_ptr->wind.class_2,
-       readable_data_write_ptr->wind.class_3,
-       readable_data_write_ptr->wind.class_4,
-       readable_data_write_ptr->wind.class_5,
-       readable_data_write_ptr->wind.class_6);
-  #elif (USE_SENSOR_DED)
-  LOGN(F("\r\n"));
-  #endif
 }
+
+
+
+
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 void windPowerOff () {
@@ -1043,7 +1060,8 @@ void wind_task () {
       #endif
 
       make_report();
-
+      print_registers();
+      
       wind_state = WIND_END;
       LOGV(F("WIND_ELABORATE --> WIND_END"));
     break;
@@ -1172,7 +1190,8 @@ void wind_task () {
       cb_direction.unshift(direction);      
       
       make_report();
-
+      print_registers();
+      
       wind_state = WIND_END;
       LOGV(F("WIND_ELABORATE --> WIND_END"));
     break;
@@ -1639,19 +1658,23 @@ void commands() {
     stop_timer();
     reset_samples_buffer();
     make_report(true);
+    elaborate_circular_buffer(true);
     start_timer();
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {
+    elaborate_circular_buffer();
     copy_buffers();
     //exchange_buffers();
   }
   //! CONTINUOUS START-STOP
   else if (!configuration.is_oneshot && is_start && is_stop) {
     stop_timer();
+    elaborate_circular_buffer();
     exchange_buffers();
     reset_samples_buffer();
     make_report(true);
+    elaborate_circular_buffer(true);
     start_timer();
   }
   //! ONESHOT START
