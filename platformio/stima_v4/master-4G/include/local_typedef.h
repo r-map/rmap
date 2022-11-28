@@ -63,10 +63,11 @@ typedef struct
 
 typedef struct
 {
-   uint8_t address;                             //!< address of sensor
-   uint8_t node;                                //!< sensor's node
-   char driver[DRIVER_LENGTH];                  //!< sensor's string driver
-   char type[TYPE_LENGTH];                      //!< sensor type
+   uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
+   uint8_t can_port_id;             //!< port for uavcan services
+   uint8_t can_publish_id;          //!< port for uavcan data publication
+   char driver[DRIVER_LENGTH];      //!< sensor's string driver
+   char type[TYPE_LENGTH];          //!< sensor type
 } sensor_configuration_t;
 
 typedef struct
