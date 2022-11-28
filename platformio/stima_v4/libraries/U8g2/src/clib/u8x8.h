@@ -109,11 +109,11 @@
 /*==========================================*/
 /* Includes */
 
-
 #include <stdint.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <limits.h>
+
 
 #if defined(__GNUC__) && defined(__AVR__)
 #include <avr/pgmspace.h>
@@ -215,15 +215,6 @@ typedef struct u8x8_tile_struct u8x8_tile_t;
 typedef uint8_t (*u8x8_msg_cb)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 typedef uint16_t (*u8x8_char_cb)(u8x8_t *u8x8, uint8_t b);
 
-
-
-
-//struct u8x8_mcd_struct
-//{
-//  u8x8_msg_cb cb;		/* current callback function */
-//  u8x8_t *u8g2;		/* pointer to the u8g2 parent to minimize the number of args */
-//  u8x8_mcd_t *next;
-//};
 
 struct u8x8_tile_struct
 {
@@ -341,6 +332,9 @@ struct u8x8_display_info_struct
 
 struct u8x8_struct
 {
+  // Pointer wire && Semaphore FreeRTOS
+  void *wirePtr;
+  void *wireLockPtr;
   const u8x8_display_info_t *display_info;
   u8x8_char_cb next_cb; /*  procedure, which will be used to get the next char from the string */
   u8x8_msg_cb display_cb;

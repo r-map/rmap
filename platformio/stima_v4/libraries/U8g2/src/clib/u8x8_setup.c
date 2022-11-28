@@ -144,4 +144,3 @@ void u8x8_Setup(u8x8_t *u8x8, u8x8_msg_cb display_cb, u8x8_msg_cb cad_cb, u8x8_m
   /* setup display info */
   u8x8_SetupMemory(u8x8);
 }
-

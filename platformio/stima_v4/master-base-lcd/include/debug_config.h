@@ -70,5 +70,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_OFF
 #define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_VERBOSE
 #define PROVA_TASK_TRACE_LEVEL         TRACE_LEVEL_INFO
+#define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
 
 #endif

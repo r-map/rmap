@@ -2,9 +2,6 @@
 
 #include <Arduino.h>
 #include "main.h"
-#include <U8g2lib.h>
-
-U8G2_SH1108_128X160_F_2ND_HW_I2C u8g2(U8G2_R1);
 
 void setup() {
 
@@ -38,17 +35,24 @@ void setup() {
   //   TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
   // }
 
-  u8g2.begin();
-  // Test Display Output
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Hello World!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
+  // u8g2.begin();
+  // // Test Display Output
+  // u8g2.clearBuffer();					// clear the internal memory
+  // u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
+  // u8g2.drawStr(0,10,"Hello World!");	// write something to the internal memory
+  // u8g2.sendBuffer();					// transfer internal memory to the display
 
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
   ProvaParam_t provaParam = {};
+
+  LCDParam_t lcdParam;
+  lcdParam.configuration = &configuration;
+  #if (ENABLE_I2C2)
+  lcdParam.wire = &Wire2;
+  lcdParam.wireLock = wire2Lock;
+  #endif
 
   // SupervisorParam_t supervisorParam;
   // supervisorParam.configuration = &configuration;
@@ -59,6 +63,7 @@ void setup() {
   // supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
+  static LCDTask supervisor_task("LCD TASK", 100, OS_TASK_PRIORITY_01, lcdParam);
   // static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
 
   // Startup Schedulher
