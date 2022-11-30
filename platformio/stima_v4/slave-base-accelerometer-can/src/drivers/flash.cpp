@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    Flash.cpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   flash QSPI ETH452 AT256F161 header file
+  * @brief   flash QSPI ETH452 AT256F161 cpp file
   ******************************************************************************
   * @attention
   *

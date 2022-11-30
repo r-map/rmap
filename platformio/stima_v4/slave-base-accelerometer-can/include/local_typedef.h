@@ -28,6 +28,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "typedef.h"
 #include "drivers/accelerometer.h"
 
+typedef struct
+{
+   uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
+   uint8_t can_port_id;             //!< port for uavcan services
+   uint8_t can_publish_id;          //!< port for uavcan data publication
+   char driver[DRIVER_LENGTH];      //!< sensor's string driver
+   char type[TYPE_LENGTH];          //!< sensor type
+} sensor_configuration_t;
+
 typedef struct {
    uint8_t module_main_version;                       //!< module main version
    uint8_t module_minor_version;                      //!< module minor version

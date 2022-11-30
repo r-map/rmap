@@ -25,7 +25,7 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
  
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef _ACCELEROMETER_H

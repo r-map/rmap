@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_slave_hal.hpp"
 #include "debug_config.h"
 #include "canard_config.hpp"
-#include "rmap_utility.h"
+//#include "rmap_utility.h"
 #include "task_util.h"
 #include <Wire.h>
 

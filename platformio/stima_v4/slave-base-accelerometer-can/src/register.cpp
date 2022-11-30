@@ -920,25 +920,29 @@ void eeprom_register_set(uint8_t reg_numb, uint8_t *reg_name, uint8_t *data, siz
 }
 
 /// @brief Ritorna il prossimo indice (se esiste) valido nella sezione memoria Cypal dedicata
-/// @param start_register indirizzo di partenza nel campo di validità [MEM_UAVCAN_MAX_REG]
-/// @return next_register address nella sezione EEprom Cypal Dedicata
-uint8_t eeprom_register_get_next_id(uint8_t start_register) {
+/// @param [IN/OUT] current_register indirizzo di partenza nel campo di validità [MEM_UAVCAN_MAX_REG]
+/// @return None
+void eeprom_register_get_next_id(uint8_t *current_register) {
     perform_start(14);
     uint8_t register_index[MEM_UAVCAN_MAX_REG];
-    // Nessun registro oltre soglia
-    if(start_register>=MEM_UAVCAN_MAX_REG) {
-        return MEM_UAVCAN_REG_UNDEF;
-    }
+    // Controllo se richiesto avvio dall'inizio della coda... get_next(MAX)...
+    bool is_first = (*current_register==MEM_UAVCAN_REG_UNDEF);
     // Continuo alla ricerca del prossimo register se esiste
     memory_read_block(MEM_UAVCAN_GET_ADDR_FLAG(), register_index, MEM_UAVCAN_MAX_REG);
-    for(; start_register<MEM_UAVCAN_MAX_REG; start_register++) {
-        if(register_index[start_register] == start_register) {
-            perform_add(14);
-            return start_register;
+    while((*current_register<MEM_UAVCAN_MAX_REG) || (is_first))
+    {
+        // Starting attempt        
+        if(is_first)
+            *current_register = 0;
+        else
+            (*current_register)++;
+        is_first = false;
+        if(register_index[*current_register] == *current_register) {
+            // Found... exit
+            break;
         }
     }
     perform_add(14);
-    return false;
 }
 
 /// @brief Aggiunge un registro alla configurazione CYPAL/STIMAV4
@@ -1083,21 +1087,26 @@ uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index) {
     perform_start(19);
     uavcan_register_Name_1_0 out = {0};
     uavcan_register_Name_1_0_initialize_(&out);
-    char register_name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_] = {0};
-    uint8_t reg_number = 0;
+    // N.B. Get starting list from first data Next of MEM_UAVCAN_REG_UNDEF -> = 0
+    // Get First...
+    if(index > MEM_UAVCAN_LEN_NAME_REG)
+        return out;
+    uint8_t reg_current = MEM_UAVCAN_REG_UNDEF;
+    eeprom_register_get_next_id(&reg_current);
     uint8_t reg_index = 0;
-    while(reg_number<=MEM_UAVCAN_MAX_REG) {
-        reg_number = eeprom_register_get_next_id(reg_number);
-        if(reg_number!=MEM_UAVCAN_REG_UNDEF) {
-            reg_index++;
-            // Index Exact
-            if(reg_index==index) {
-                uint8_t _reg_name[MEM_UAVCAN_LEN_NAME_REG];
-                eeprom_register_get_name_from_index(reg_number, _reg_name);
-                out.name.count = nunavutChooseMin(strlen((char*)_reg_name), uavcan_register_Name_1_0_name_ARRAY_CAPACITY_);
-                memcpy(out.name.elements, register_name, out.name.count);
-            }
+    while(reg_current<=MEM_UAVCAN_MAX_REG) {
+        // Index Exact
+        if(reg_index==index) {
+            uint8_t _reg_name[MEM_UAVCAN_LEN_NAME_REG] = {0};
+            eeprom_register_get_name_from_index(reg_current, _reg_name);
+            out.name.count = nunavutChooseMin(strlen((char*)_reg_name), uavcan_register_Name_1_0_name_ARRAY_CAPACITY_);
+            memcpy(out.name.elements, _reg_name, out.name.count);
+            break;
         }
+        // Get Next register E2prom
+        eeprom_register_get_next_id(&reg_current);
+        // Set next Id register list contiguos UAVCAN
+        reg_index++;
     }
     perform_add(19);
     return out;
