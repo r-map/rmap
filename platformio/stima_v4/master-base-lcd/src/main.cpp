@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include "main.h"
 
+#include "drivers/eeprom.h"
+
 void setup() {
 
   // Initializing basic hardware's configuration
@@ -35,14 +37,6 @@ void setup() {
   //   TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
   // }
 
-  // u8g2.begin();
-  // // Test Display Output
-  // u8g2.clearBuffer();					// clear the internal memory
-  // u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  // u8g2.drawStr(0,10,"Hello World!");	// write something to the internal memory
-  // u8g2.sendBuffer();					// transfer internal memory to the display
-
-
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
   ProvaParam_t provaParam = {};
@@ -54,6 +48,22 @@ void setup() {
   lcdParam.wireLock = wire2Lock;
   #endif
 
+  // EEprom eprom(lcdParam.wire, lcdParam.wireLock);
+  // static uint8_t write[100] = {0};
+  // static uint8_t read[100] = {0};
+
+  // for(uint8_t i = 0; i < 100; i++) {
+  //   write[i] = 50 + i;
+  // }
+
+  // eprom.Write(0, write, 100);
+  // eprom.Read(0, read, 100);
+
+  // for(uint8_t i = 0; i < 100; i++) {
+  //   Serial.println(read[i]);
+  // }
+  // read[0]=100;
+
   // SupervisorParam_t supervisorParam;
   // supervisorParam.configuration = &configuration;
   // #if (ENABLE_I2C2)
@@ -63,7 +73,7 @@ void setup() {
   // supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-  static LCDTask supervisor_task("LCD TASK", 100, OS_TASK_PRIORITY_01, lcdParam);
+  static LCDTask lcd_task("LCD TASK", 100, OS_TASK_PRIORITY_01, lcdParam);
   // static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
 
   // Startup Schedulher
