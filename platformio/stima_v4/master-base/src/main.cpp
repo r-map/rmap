@@ -2,30 +2,22 @@
 
 #include "main.h"
 
+static Queue *requestDataQueue;
+static Queue *reportDataQueue;
+
 void setup() {
-  // osInitKernel();
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
+
   init_debug(115200);
   init_wire();
-  // init_pins();
+  init_pins();
   init_tasks();
   init_sensors();
   // init_sdcard();
   // init_registers();
   // init_can();
-
-  // uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  // uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-  // BSP_QSPI_Init();
-  // read[0] = 1;
-  // hqspi.State = HAL_QSPI_STATE_READY;
-  // while (BSP_QSPI_GetStatus() != QSPI_OK);
-  // BSP_QSPI_Erase_Block(0);
-  // BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
-  // BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
 
   // error_t error = NO_ERROR;
 
@@ -49,6 +41,21 @@ void setup() {
 
   ProvaParam_t provaParam = {};
 
+  LCDParam_t lcdParam;
+  lcdParam.configuration = &configuration;
+  #if (ENABLE_I2C2)
+  lcdParam.wire = &Wire2;
+  lcdParam.wireLock = wire2Lock;
+  #endif
+
+  CanParam_t can_param;
+  can_param.requestDataQueue = requestDataQueue;
+  can_param.reportDataQueue = reportDataQueue;
+  #if (ENABLE_I2C2)
+  can_param.wire = &Wire2;
+  can_param.wireLock = wire2Lock;
+  #endif
+
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
   #if (ENABLE_I2C2)
@@ -58,6 +65,8 @@ void setup() {
   supervisorParam.configurationLock = configurationLock;
 
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
+  static LCDTask lcd_task("LCD TASK", 100, OS_TASK_PRIORITY_01, lcdParam);
+  static CanTask can_task("CAN TASK", 12000, OS_TASK_PRIORITY_02, can_param);
   static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
 
   // Startup Schedulher
@@ -67,8 +76,36 @@ void setup() {
 void loop() {
 }
 
+void input_pin_encoder_A() {
+  Serial.print("ENC_A Event: ");
+  Serial.print(digitalRead(PIN_ENCODER_A));
+  Serial.print(digitalRead(PIN_ENCODER_B));
+  Serial.print(digitalRead(PIN_ENCODER_INT));
+}
+
+void input_pin_encoder_B() {
+  Serial.print("ENC_B Event: ");
+  Serial.print(digitalRead(PIN_ENCODER_A));
+  Serial.print(digitalRead(PIN_ENCODER_B));
+  Serial.print(digitalRead(PIN_ENCODER_INT));
+}
+
+void input_pin_encoder_C() {
+  Serial.print("ENC_ENT Event: ");
+  Serial.print(digitalRead(PIN_ENCODER_A));
+  Serial.print(digitalRead(PIN_ENCODER_B));
+  Serial.print(digitalRead(PIN_ENCODER_INT));
+}
+
 void init_pins()
 {
+  // Attach interrrupt
+  attachInterrupt(PIN_ENCODER_A, input_pin_encoder_A, CHANGE);
+  attachInterrupt(PIN_ENCODER_B, input_pin_encoder_B, CHANGE);
+  attachInterrupt(PIN_ENCODER_INT, input_pin_encoder_C, CHANGE);
+  // Enable Encoder && Display
+  digitalWrite(PIN_ENCODER_EN5, 1);
+  digitalWrite(PIN_DSP_POWER, 1);
 }
 
 void init_tasks()

@@ -497,6 +497,7 @@ class U8G2_NULL : public U8G2 {
 
 /* generated code (codebuild), u8g2 project */
 class U8G2_SH1108_128X160_F_FREERTOS_HW_I2C : public U8G2 {
+  public: U8G2_SH1108_128X160_F_FREERTOS_HW_I2C() : U8G2() {}
   public: U8G2_SH1108_128X160_F_FREERTOS_HW_I2C(const u8g2_cb_t *rotation, TwoWire *u8g2_wire, BinarySemaphore *u8g2_wireLock, uint8_t reset = U8X8_PIN_NONE) : U8G2() {
     u8g2.u8x8.wireLockPtr = u8g2_wireLock;
     u8g2.u8x8.wirePtr = u8g2_wire;

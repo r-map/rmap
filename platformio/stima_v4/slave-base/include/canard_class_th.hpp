@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    canard_class.hpp
+  * @file    canard_class_th.hpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Uavcan Canard Class LibCanard, bxCan, o1Heap
   ******************************************************************************

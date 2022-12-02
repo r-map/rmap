@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    Flash.cpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   flash QSPI ETH452 AT256F641 header file
+  * @brief   flash QSPI ETH452 AT256F641 source file
   ******************************************************************************
   * @attention
   *
@@ -25,7 +25,7 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
 
 #include "drivers/module_master_hal.hpp"
 #include "drivers/flash.h"

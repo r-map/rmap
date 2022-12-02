@@ -41,7 +41,7 @@
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
-#define ENABLE_CAN            (false)
+#define ENABLE_CAN            (true)
 #define ENABLE_SIM7600E       (true)
 
 // HW Diag PIN redefine
@@ -71,9 +71,6 @@ extern QSPI_HandleTypeDef hqspi;
 extern CAN_HandleTypeDef hcan1;
 #define CAN_NVIC_INT_PREMPT_PRIORITY 8
 #endif
-
-// INIT HW PRIVATE BOARD/ISTANCE CFG
-// #define _HW_MSP_AUTO_PRIVATE
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 

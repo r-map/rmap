@@ -29,10 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 typedef struct
 {
-   uint8_t address;            //!< address of sensor
-   uint8_t node;               //!< sensor's node
-   char driver[DRIVER_LENGTH]; //!< sensor's string driver
-   char type[TYPE_LENGTH];     //!< sensor type
+   uint8_t address;                             //!< address of sensor
+   uint8_t node;                                //!< sensor's node
+   char driver[DRIVER_LENGTH];                  //!< sensor's string driver
+   char type[TYPE_LENGTH];                      //!< sensor type
 } sensor_configuration_t;
 
 typedef struct {

@@ -912,7 +912,6 @@ void CanTask::Run() {
                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
 
                 // Attiva il callBack su RX Messaggio Canard sulla funzione interna processReceivedTransfer
-                //clCanard.setReceiveMessage_CB(&this->processReceivedTransfer(), (void *) &param);
                 clCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
