@@ -1,39 +1,49 @@
-// *************************************************************************************************
-// **********     Funzioni ed utility generiche per gestione Classe UAVCAN e O1Heap       **********
-// *************************************************************************************************
+/**
+  ******************************************************************************
+  * @file    canard_class_th.cpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Uavcan Canard Class LibCanard, bxCan, o1Heap
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
-// This software is distributed under the terms of the MIT License.
-// Copyright (C) 2022 Digiteco s.r.l.
-// Author: Gasperini Moreno <m.gasperini@digiteco.it>
-
+#include "drivers/module_slave_hal.hpp"
 #include "canard_class_th.hpp"
 #include "canard_config.hpp"
 #include "bxcan.h"
 
-// ***************** ISR READ RX CAN_BUS, BUFFER RX SETUP ISR, CALLBACK *****************
-// Gestita come coda FIFO (In sostituzione interrupt bxCAN non funzionante correttamente)
-
-// Call Back Opzionale RX_FIFO0 CAN_IFACE (hcan), Usare con più servizi di INT per discriminare
-// Abilitabile in CAN1_RX0_IRQHandler, chiamando -> HAL_CAN_IRQHandler(&CAN_Handle)
-// extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-// {
-//    CallBack CODE Here... (quello Interno CAN1_RX0_IRQHandler)
-// }
-
-// INTERRUPT_HANDLER CAN RX (Non modificare extern "C", in C++ non gestirebbe l'ingresso in ISR)
-// Callback più veloce e leggera possibile come ISR Routine
+// Callback per ISR Routine HAL STM32
 /// @brief ISR di sistema CAN1_RX0_IRQHandler HAL_CAN_IRQHandler STM32
 /// @param  None
 canardClass::CanardRxQueue *__CAN1_RX0_IRQHandler_PTR;
 extern "C" void CAN1_RX0_IRQHandler(void) {
-    // -> Chiamata opzionale di Handler Call_Back CAN_Handle
-    // La sua chiamata in CAN1_RX0_IRQHandler abilita il CB succesivo
-    // -> HAL_CAN_IRQHandler(&CAN_Handle);
-    // <- HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-    // In questo caso è possibile discriminare con *hcan altre opzioni/stati
-    // In Stima V4 non è necessario altra CB, bxCANPop gestisce il MSG_IN a suo modo
-    // Inserisco il messaggio in un BUFFER Circolare di CanardFrame che vengono gestiti
-    // nel software al momento opportuno, per non incorrere in perdite di frame in RX
+    HAL_CAN_IRQHandler(&hcan1);
+}
+
+// ***************** ISR READ RX CAN_BUS, BUFFER RX SETUP ISR, CALLBACK *****************
+// Gestita come coda FIFO (In sostituzione interrupt bxCAN non funzionante correttamente)
+extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
     uint8_t testElement = __CAN1_RX0_IRQHandler_PTR->wr_ptr + 1;
     if(testElement >= CAN_RX_QUEUE_CAPACITY) testElement = 0;
     // Leggo il messaggio già pronto per libreria CANARD (Frame) e Inserisco in Buffer RX

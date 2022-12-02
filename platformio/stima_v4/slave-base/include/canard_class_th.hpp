@@ -1,19 +1,37 @@
-// *************************************************************************************************
-// **********     Funzioni ed utility generiche per gestione Classe UAVCAN e O1Heap       **********
-// *************************************************************************************************
-
-// This software is distributed under the terms of the MIT License.
-// Progetto RMAP - STIMA V4
-// canardClass Slave, Rev.1.00 del 29/09/2022
-// Copyright (C) 2022 Digiteco s.r.l.
-// Author: Gasperini Moreno <m.gasperini@digiteco.it>
+/**
+  ******************************************************************************
+  * @file    canard_class.hpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Uavcan Canard Class LibCanard, bxCan, o1Heap
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"
 // Arduino
 #include <Arduino.h>
 // Libcanard
-#include "register.hpp"
 #include <o1heap.h>
 #include <canard.h>
 // Namespace UAVCAN
@@ -29,6 +47,9 @@
 // Namespace RMAP
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>
+
+#ifndef _CANARD_CLASS_H
+#define _CANARD_CLASS_H
 
 class canardClass {
 
@@ -397,3 +418,5 @@ class canardClass {
         CanardRxSubscription _rxSubscription[MAX_SUBSCRIPTION];
         uint8_t _rxSubscriptionIdx;
 };
+
+#endif

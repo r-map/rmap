@@ -26,10 +26,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
-#include "debug_config.h"
-#include "rmap_utility.h"
-#include "task_util.h"
+#include "assert.h"
 #include "drivers/module_slave_hal.hpp"
+#include "debug_config.h"
+#include "canard_config.hpp"
+//#include "rmap_utility.h"
+#include "task_util.h"
 #include <Wire.h>
 
 #include <STM32FreeRTOS.h>
@@ -38,6 +40,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "queue.hpp"
 
 #include "tasks/prova_task.h"
+#include "tasks/accelerometer_task.h"
+#include "tasks/can_task.h"
 #include "tasks/supervisor_task.h"
 
 #include "debug_F.h"
@@ -47,21 +51,6 @@ using namespace cpp_freertos;
 /*********************************************************************
 * TYPEDEF
 *********************************************************************/
-
-
-/*********************************************************************
-* GLOBAL VARIABLE
-*********************************************************************/
-#if (ENABLE_I2C1)
-BinarySemaphore *wireLock;
-#endif
-
-#if (ENABLE_I2C2)
-BinarySemaphore *wire2Lock;
-#endif
-
-BinarySemaphore *configurationLock;
-configuration_t configuration;
 
 /*!
 \fn void print_configuration(void)
@@ -88,10 +77,6 @@ void save_configuration(bool);
 void init_pins(void);
 void init_wire(void);
 void init_sdcard(void);
-void init_registers(void);
-void init_can(void);
-bool CAN_HW_Init(void);
-void init_tasks(void);
 void init_sensors(void);
 
 #endif

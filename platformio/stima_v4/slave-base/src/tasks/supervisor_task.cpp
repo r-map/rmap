@@ -83,7 +83,11 @@ void SupervisorTask::LoadConfiguration(configuration_t *configuration, BinarySem
   //! read configuration from eeprom
   if (lock->Take())
   {
-    eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+    if(eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t))) {
+      TRACE_INFO_F(F("Reading datalogger cfg from E2PROM... [ %s ]\r\n"), OK_STRING);    
+    } else {
+      TRACE_INFO_F(F("Reading datalogger cfg from E2PROM... [ %s ]\r\n"), ERROR_STRING);    
+    }
     lock->Give();
   }
 

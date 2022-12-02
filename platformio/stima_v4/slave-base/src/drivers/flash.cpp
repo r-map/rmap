@@ -25,7 +25,7 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
 
 #include "drivers/module_slave_hal.hpp"
 #include "drivers/flash.h"

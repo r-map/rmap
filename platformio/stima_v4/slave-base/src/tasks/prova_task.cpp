@@ -24,8 +24,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TRACE_LEVEL PROVA_TASK_TRACE_LEVEL
 
 #include "tasks/prova_task.h"
+#include "drivers/flash.h"
+#include "drivers/module_slave_hal.hpp"
 
 using namespace cpp_freertos;
+
+Flash testFlash(&hqspi);
+static uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+static uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), ProvaParam(provaParam)
 {
@@ -33,8 +39,37 @@ ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 };
 
 void ProvaTask::Run() {
+  bool first = true;
+  bool msgOk = false;
+  Delay(500);
+  // TRACE_INFO_F(F("Running TEST Flash"));
   while (true) {
-    TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
+  //   if(first) {
+  //     first = false;
+  //     if (testFlash.BSP_QSPI_Init() != Flash::QSPI_OK)
+  //       Error_Handler();
+  //     Flash::QSPI_StatusTypeDef sts = testFlash.BSP_QSPI_GetStatus();
+  //     if (sts) Error_Handler();
+  //     if (testFlash.BSP_QSPI_Erase_Block(0))
+  //       Error_Handler();
+  //     sts = testFlash.BSP_QSPI_GetStatus();
+  //     if (testFlash.BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10))
+  //       Error_Handler();
+  //     if (testFlash.BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10))
+  //       Error_Handler();
+  //     // Working in MemoryMapped Mode at 0x9000000
+  //     if (testFlash.BSP_QSPI_EnableMemoryMappedMode())
+  //       Error_Handler();
+  //     msgOk = true;
+  //     first = false;
+  //   } else {
+  //     if(msgOk) {
+  //       msgOk = false;
+  //       TRACE_INFO_F(F("TEST Flash OK!!!!"));
+  //     }
+  //     else
+         TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
+  //   }
     DelayUntil(Ticks::MsToTicks(1000));
   }
 }

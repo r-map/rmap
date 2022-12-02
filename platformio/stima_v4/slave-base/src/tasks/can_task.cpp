@@ -1,81 +1,87 @@
-/**@file can_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
-authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    can_task.cpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Uavcan over CanBus cpp_Freertos source file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL CAN_TASK_TRACE_LEVEL
 
 #include "tasks/can_task.h"
 
+using namespace cpp_freertos;
+
 // ***************************************************************************************************
 // **********             Funzioni ed utility generiche per gestione UAVCAN                 **********
 // ***************************************************************************************************
 
-/// @brief enum for Mode Power CanBus Controller
-enum CAN_ModePower {
-    CAN_INIT,
-    CAN_NORMAL,
-    CAN_LISTEN_ONLY,
-    CAN_SLEEP
-};
-
 /// @brief Enable Power CAN_Circuit TJA1443
 /// @param ModeCan (Mode TYPE CAN_BUS)
-void HW_CAN_Power(CAN_ModePower ModeCan) {
-    // INIT State o setup from WakeUP
-    if(ModeCan == CAN_INIT) {
-        // A LOW-to-HIGH transition on pin STB_N will clear the UVNOM flag
-        digitalWrite(PIN_CAN_EN, LOW);
-        digitalWrite(PIN_CAN_STB, LOW);
-        // Wakeup security, from unknown state Min 5 uS from Sleep to Listen
-        delayMicroseconds(10);
-        digitalWrite(PIN_CAN_EN, HIGH);
-        digitalWrite(PIN_CAN_STB, HIGH);
-    }
+void CanTask::HW_CAN_Power(CAN_ModePower ModeCan) {
     // Normal Mode (TX/RX Full functionally)
-    if(ModeCan == CAN_NORMAL) {
-        digitalWrite(PIN_CAN_EN, HIGH);
-        digitalWrite(PIN_CAN_STB, HIGH);
-    }
-    // Listen Mode (Only RX circuit enabled)
-    if(ModeCan == CAN_LISTEN_ONLY) {
-        digitalWrite(PIN_CAN_EN, HIGH);
-        digitalWrite(PIN_CAN_STB, HIGH);
-        // Wakeup minimo 5 uS from Sleep to Listen
-        delayMicroseconds(10);
-        digitalWrite(PIN_CAN_EN, LOW);
+    if(ModeCan == CAN_ModePower::CAN_INIT) {
+        canPower = ModeCan;
         digitalWrite(PIN_CAN_STB, LOW);
+        digitalWrite(PIN_CAN_STB, LOW);
+        // Waiting min of 5 uS for Full Operational Setup bxCan && Hal_Can_Init
+        delayMicroseconds(10);
+        digitalWrite(PIN_CAN_STB, HIGH);
+        digitalWrite(PIN_CAN_EN, HIGH);
+    }
+    // Exit if state is the same
+    if (canPower != ModeCan) return;
+    // Normal Mode (TX/RX Full functionally)
+    if(ModeCan == CAN_ModePower::CAN_NORMAL) {
+        digitalWrite(PIN_CAN_STB, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(PIN_CAN_EN, HIGH);
+        // Waiting min of 65 uS for Full Operational External CAN Power Circuit
+        // Perform secure WakeUp Timer with 100 uS
+        delayMicroseconds(90);
+    }
+    // Listen Mode (Only RX circuit enabled for first paket data)
+    if(ModeCan == CAN_ModePower::CAN_LISTEN_ONLY) {
+        digitalWrite(PIN_CAN_EN, LOW);
+        delayMicroseconds(10);
+        digitalWrite(PIN_CAN_STB, HIGH);
     }
     // Sleep (Turn OFF HW and enter sleep mode TJA1443)
-    if(ModeCan == CAN_SLEEP) {
-        digitalWrite(PIN_CAN_EN, HIGH);
+    if(ModeCan == CAN_ModePower::CAN_SLEEP) {
         digitalWrite(PIN_CAN_STB, LOW);
+        delayMicroseconds(10);
+        digitalWrite(PIN_CAN_EN, HIGH);
     }
+    // Saving state
+    canPower = ModeCan;
 }
 
 // Ritorna unique-ID 128-bit del nodo locale. E' utilizzato in uavcan.node.GetInfo.Response e durante
 // plug-and-play node-ID allocation da uavcan.pnp.NodeIDAllocationData. SerialNumber, Produttore..
 // Dovrebbe essere verificato in uavcan.node.GetInfo.Response per la verifica non sia cambiato Nodo.
 // Al momento vengono inseriti 2 BYTE fissi, altri eventuali, che Identificano il Tipo Modulo
-static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_])
+void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_])
 {
     // A real hardware node would read its unique-ID from some hardware-specific source (typically stored in ROM).
     // This example is a software-only node so we store the unique-ID in a (read-only) register instead.
@@ -90,14 +96,14 @@ static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_A
     {
         value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
-    registerRead("uavcan.node.unique_id", &value);
+    clRegister.read("uavcan.node.unique_id", &value);
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&value) &&
            value.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
     memcpy(&out[0], &value.unstructured.value, uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
 }
 
 /// Legge il subjectID per il modulo corrente per la risposta al servizio di gestione dati.
-static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name) {
+CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name) {
     // Deduce the register name from port name e modeAccess
     char register_name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_] = {0};
     // In funzione del modo imposta il registro corretto
@@ -123,7 +129,7 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
     val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
 
     // Read the register with defensive self-checks.
-    registerRead(&register_name[0], &val);
+    clRegister.read(&register_name[0], &val);
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
     const uint16_t result = val.natural16.value.elements[0];
 
@@ -150,7 +156,7 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
     uavcan_register_Value_1_0_select_string_(&val);
     val._string.value.count = nunavutChooseMin(strlen(type_name), uavcan_primitive_String_1_0_value_ARRAY_CAPACITY_);
     memcpy(&val._string.value.elements[0], type_name, val._string.value.count);
-    registerWrite(&register_name[0], &val);  // Unconditionally overwrite existing value because it's read-only.
+    clRegister.write(&register_name[0], &val);  // Unconditionally overwrite existing value because it's read-only.
 
     return result;
 }
@@ -166,7 +172,7 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
 // TODO: Collegare al modulo sensor_drive per il modulo corrente
 // NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
-rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore, const report_t *report) {
+rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValueExample(uint8_t const sensore, const report_t *report) {
     rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
     switch (sensore) {
@@ -199,12 +205,12 @@ rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore, const 
 }
 
 /// Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
-static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param) {
+void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
-    if ((!clsCanard.is_canard_node_anonymous()) &&
-        (clsCanard.publisher_enabled.module_th) &&
-        (clsCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
+    if ((!clCanard.is_canard_node_anonymous()) &&
+        (clCanard.publisher_enabled.module_th) &&
+        (clCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
         rmap_module_TH_1_0 module_th_msg = {0};
 
         request_data_t request_data;
@@ -227,13 +233,13 @@ static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param) {
         // Preparo i dati e metadati fissi
         // TODO: Aggiorna i valori mobili
         module_th_msg.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
-        module_th_msg.ITH.metadata = clsCanard.module_th.ITH.metadata;
+        module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
-        module_th_msg.MTH.metadata = clsCanard.module_th.MTH.metadata;
+        module_th_msg.MTH.metadata = clCanard.module_th.MTH.metadata;
         module_th_msg.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
-        module_th_msg.NTH.metadata = clsCanard.module_th.NTH.metadata;
+        module_th_msg.NTH.metadata = clCanard.module_th.NTH.metadata;
         module_th_msg.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
-        module_th_msg.XTH.metadata = clsCanard.module_th.XTH.metadata;
+        module_th_msg.XTH.metadata = clCanard.module_th.XTH.metadata;
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
@@ -243,12 +249,12 @@ static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param) {
             const CanardTransferMetadata meta = {
                 .priority = CanardPrioritySlow,
                 .transfer_kind = CanardTransferKindMessage,
-                .port_id = clsCanard.port_id.publisher_module_th,
+                .port_id = clCanard.port_id.publisher_module_th,
                 .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id = (CanardTransferID)(clsCanard.next_transfer_id.module_th()),  // Increment!
+                .transfer_id = (CanardTransferID)(clCanard.next_transfer_id.module_th()),  // Increment!
             };
             // Messaggio rapido 1/4 di secondo dal timeStamp Sincronizzato
-            clsCanard.send(MEGA / 4, &meta, serialized_size, &serialized[0]);
+            clCanard.send(MEGA / 4, &meta, serialized_size, &serialized[0]);
         }
     }
 }
@@ -259,27 +265,27 @@ static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param) {
 
 // Plug and Play Slave, Versione 1.0 compatibile con CAN_CLASSIC MTU 8
 // Messaggi anonimi CAN non sono consentiti se messaggi > LUNGHEZZA MTU disponibile
-static void processMessagePlugAndPlayNodeIDAllocation(canardClass &clsCanard,
+void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
                                                       const uavcan_pnp_NodeIDAllocationData_1_0* const msg) {
     // msg->unique_id_hash RX non gestito, è valido GetUniqueID Unificato per entrambe versioni V1 e V2
     if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX) {
         printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
-        clsCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
+        clCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
         // Store the value into the non-volatile storage.
         uavcan_register_Value_1_0 reg = {0};
         uavcan_register_Value_1_0_select_natural16_(&reg);
         reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
         reg.natural16.value.count = 1;
-        registerWrite("uavcan.node.id", &reg);
+        clRegister.write("uavcan.node.id", &reg);
         // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
-        clsCanard.rxUnSubscribe(CanardTransferKindMessage,
+        clCanard.rxUnSubscribe(CanardTransferKindMessage,
                                 uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
     }
     // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
 }
 
 // Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
-static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(canardClass &clsCanard, const uavcan_node_ExecuteCommand_Request_1_1* req,
+uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(canardClass &clCanard, const uavcan_node_ExecuteCommand_Request_1_1* req,
                                                                             uint8_t remote_node) {
     uavcan_node_ExecuteCommand_Response_1_1 resp = {0};
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
@@ -293,26 +299,26 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
-            clsCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
+            clCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
                                                 req->parameter.count, true);
-            clsCanard.flag.set_local_fw_uploading(true);
+            clCanard.flag.set_local_fw_uploading(true);
             Serial.print(F("Firmware update request from node id: "));
-            Serial.println(clsCanard.master.file.get_server_node());
+            Serial.println(clCanard.master.file.get_server_node());
             Serial.print(F("Filename to download: "));
-            Serial.println(clsCanard.master.file.get_name());
+            Serial.println(clCanard.master.file.get_name());
             // Avvio la funzione con OK
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
         {
-            registerDoFactoryReset();
+            clRegister.doFactoryReset();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART:
         {
-            clsCanard.flag.request_system_restart();
+            clCanard.flag.request_system_restart();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -329,13 +335,13 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         case canardClass::Command_Private::download_file:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
-            clsCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
+            clCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
                                                 req->parameter.count, false);
-            clsCanard.flag.set_local_fw_uploading(true);
+            clCanard.flag.set_local_fw_uploading(true);
             Serial.print(F("File standard update request from node id: "));
-            Serial.println(clsCanard.master.file.get_server_node());
+            Serial.println(clCanard.master.file.get_server_node());
             Serial.print(F("Filename to download: "));
-            Serial.println(clsCanard.master.file.get_name());
+            Serial.println(clCanard.master.file.get_name());
             // Avvio la funzione con OK
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -343,7 +349,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         case canardClass::Command_Private::enable_publish_rmap:
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clsCanard.publisher_enabled.module_th = true;
+            clCanard.publisher_enabled.module_th = true;
             Serial.println(F("ATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -351,7 +357,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         case canardClass::Command_Private::disable_publish_rmap:
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clsCanard.publisher_enabled.module_th = false;
+            clCanard.publisher_enabled.module_th = false;
             Serial.println(F("DISATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -359,14 +365,14 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         case canardClass::Command_Private::enable_publish_port_list:
         {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
-            clsCanard.publisher_enabled.port_list = true;
+            clCanard.publisher_enabled.port_list = true;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
         case canardClass::Command_Private::disable_publish_port_list:
         {
             // Disabilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
-            clsCanard.publisher_enabled.port_list = false;
+            clCanard.publisher_enabled.port_list = false;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -386,7 +392,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
 }
 
 // Chiamate gestioni dati remote da master (yakut o altro servizio di controllo)
-static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardClass &clsCanard, rmap_service_module_TH_Request_1_0* req, CanParam_t *param) {
+rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_TH_Request_1_0* req, CanParam_t *param) {
     rmap_service_module_TH_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
@@ -483,16 +489,16 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardCla
 
     // Copio i metadati fissi
     // TODO: aggiornare i metadati mobili
-    resp.ITH.metadata = clsCanard.module_th.ITH.metadata;
-    resp.MTH.metadata = clsCanard.module_th.MTH.metadata;;
-    resp.NTH.metadata = clsCanard.module_th.NTH.metadata;
-    resp.XTH.metadata = clsCanard.module_th.XTH.metadata;
+    resp.ITH.metadata = clCanard.module_th.ITH.metadata;
+    resp.MTH.metadata = clCanard.module_th.MTH.metadata;;
+    resp.NTH.metadata = clCanard.module_th.NTH.metadata;
+    resp.XTH.metadata = clCanard.module_th.XTH.metadata;
 
     return resp;
 }
 
 // Accesso ai registri UAVCAN risposta a richieste
-static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req) {
+uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req) {
     char name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + 1] = {0};
     LOCAL_ASSERT(req->name.name.count < sizeof(name));
     memcpy(&name[0], req->name.name.elements, req->name.name.count);
@@ -503,17 +509,17 @@ static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const ua
     // If we're asked to write a new value, do it now:
     if (!uavcan_register_Value_1_0_is_empty_(&req->value)) {
         uavcan_register_Value_1_0_select_empty_(&resp.value);
-        registerRead(&name[0], &resp.value);
+        clRegister.read(&name[0], &resp.value);
         // If such register exists and it can be assigned from the request value:
-        if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && registerAssign(&resp.value, &req->value)) {
-            registerWrite(&name[0], &resp.value);
+        if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && clRegister.assign(&resp.value, &req->value)) {
+            clRegister.write(&name[0], &resp.value);
         }
     }
 
     // Regardless of whether we've just wrote a value or not, we need to read the current one and return it.
     // The client will determine if the write was successful or not by comparing the request value with response.
     uavcan_register_Value_1_0_select_empty_(&resp.value);
-    registerRead(&name[0], &resp.value);
+    clRegister.read(&name[0], &resp.value);
 
     // Currently, all registers we implement are mutable and persistent. This is an acceptable simplification,
     // but more advanced implementations will need to differentiate between them to support advanced features like
@@ -528,7 +534,7 @@ static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const ua
 }
 
 // Risposta a uavcan.node.GetInfo which Info Node (nome, versione, uniqueID di verifica ecc...)
-static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo() {
+uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
     uavcan_node_GetInfo_Response_1_0 resp = {0};
     resp.protocol_version.major = CANARD_CYPHAL_SPECIFICATION_VERSION_MAJOR;
     resp.protocol_version.minor = CANARD_CYPHAL_SPECIFICATION_VERSION_MINOR;
@@ -556,7 +562,7 @@ static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo() {
 // Chiamata direttamente nel main loop in ricezione dalla coda RX
 // Richiama le funzioni qui sopra di preparazione e risposta alle richieste
 // ******************************************************************************************
-static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer, void *param) {
+void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTransfer* const transfer, void *param) {
     // Gestione dei Messaggi in ingresso
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
     {
@@ -572,7 +578,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                     // Entro in OnLine se precedentemente arrivo dall'OffLine
                     // ed eseguo eventuali operazioni di entrata in attività se necessario
                     // Opzionale Controllo ONLINE direttamente dal messaggio Interno
-                    // if (!clsCanard.master.heartbeat.is_online()) {
+                    // if (!clCanard.master.heartbeat.is_online()) {
                         // Il master è entrato in modalità ONLine e gestisco
                         // Serial.println(F("Master controller ONLINE !!! Starting application..."));
                     // }
@@ -585,8 +591,8 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                     Serial.println(remoteVSC.powerMode);
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set canard_us local per controllo NodoOffline (validità area di OnLine)
-                    clsCanard.master.heartbeat.set_online(MASTER_OFFLINE_TIMEOUT_US);
-                    clsCanard.flag.set_local_power_mode(remoteVSC.powerMode);
+                    clCanard.master.heartbeat.set_online(MASTER_OFFLINE_TIMEOUT_US);
+                    clCanard.flag.set_local_power_mode(remoteVSC.powerMode);
                 }
             }
         }
@@ -603,11 +609,11 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                     bool isSyncronized = false;
                     CanardMicrosecond timestamp_synchronized_us;
                     // Controllo coerenza messaggio per consentire e verificare l'aggiornamento timestamp
-                    if(clsCanard.master.timestamp.check_valid_syncronization(
+                    if(clCanard.master.timestamp.check_valid_syncronization(
                             transfer->metadata.transfer_id,
                             msg.previous_transmission_timestamp_microsecond)) {
                         // Leggo il time stamp sincronizzato da gestire per Setup RTC
-                        timestamp_synchronized_us = clsCanard.master.timestamp.get_timestamp_syncronized(
+                        timestamp_synchronized_us = clCanard.master.timestamp.get_timestamp_syncronized(
                             transfer->timestamp_usec,
                             msg.previous_transmission_timestamp_microsecond);
                         isSyncronized = true;
@@ -616,7 +622,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                         Serial.println(transfer->timestamp_usec);
                     }
                     // Aggiorna i temporizzatori locali per il prossimo controllo
-                    CanardMicrosecond last_message_diff_us = clsCanard.master.timestamp.update_timestamp_message(
+                    CanardMicrosecond last_message_diff_us = clCanard.master.timestamp.update_timestamp_message(
                         transfer->timestamp_usec, msg.previous_transmission_timestamp_microsecond);
                     // Stampa e/o SETUP RTC
                     if (isSyncronized) {
@@ -640,7 +646,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             size_t size = transfer->payload_size;
             uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
             if (uavcan_pnp_NodeIDAllocationData_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                processMessagePlugAndPlayNodeIDAllocation(clsCanard, &msg);
+                processMessagePlugAndPlayNodeIDAllocation(clCanard, &msg);
             }
         }
         else
@@ -652,7 +658,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
     {
         // Gestione delle richieste esterne
-        if (transfer->metadata.port_id == clsCanard.port_id.service_module_th) {
+        if (transfer->metadata.port_id == clCanard.port_id.service_module_th) {
             // Richiesta ai dati e metodi di sensor drive
             rmap_service_module_TH_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
@@ -660,14 +666,14 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             // The request object is empty so we don't bother deserializing it. Just send the response.
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
-                rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clsCanard, &req, (CanParam_t *) param);
+                rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
                 // Serialize and publish the message:
                 uint8_t serialized[rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
                 const int8_t res = rmap_service_module_TH_Response_1_0_serialize_(&module_th_resp, &serialized[0], &serialized_size);
                 if (res >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clsCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -680,7 +686,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             const int8_t res = uavcan_node_GetInfo_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size);
             if (res >= 0) {
                 // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                clsCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
             }
         }
         else if (transfer->metadata.port_id == uavcan_register_Access_1_0_FIXED_PORT_ID_)
@@ -694,7 +700,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_register_Access_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clsCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -703,12 +709,12 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             uavcan_register_List_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
             if (uavcan_register_List_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                const uavcan_register_List_Response_1_0 resp = {.name = registerGetNameByIndex(req.index)};
+                const uavcan_register_List_Response_1_0 resp = {.name = clRegister.getNameByIndex(req.index)};
                 uint8_t serialized[uavcan_register_List_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_register_List_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clsCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -718,12 +724,12 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             size_t size = transfer->payload_size;
             Serial.println(F("<<-- Ricevuto comando esterno"));
             if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(clsCanard, &req, transfer->metadata.remote_node_id);
+                const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(clCanard, &req, transfer->metadata.remote_node_id);
                 uint8_t serialized[uavcan_node_ExecuteCommand_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_node_ExecuteCommand_Response_1_1_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clsCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -740,23 +746,24 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             // E' una sicurezza per il controllo dell'upload, ed evità errori di interprete
             // Inoltre non accetta messaggi extra standard UAVCAN, necessarià prima la CALL al comando
             // SEtFirmwareUpload o SetFileUpload, che impostano il node_id, resettato su EOF dalla classe
-            if (clsCanard.master.file.get_server_node() == transfer->metadata.remote_node_id) {
+            if (clCanard.master.file.get_server_node() == transfer->metadata.remote_node_id) {
                 uavcan_file_Read_Response_1_1 resp  = {0};
                 size_t                         size = transfer->payload_size;
                 if (uavcan_file_Read_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                    if(clsCanard.master.file.is_firmware()) {
+                    if(clCanard.master.file.is_firmware()) {
                         Serial.print(F("RX FIRMWARE READ BLOCK LEN: "));
                     } else {
                         Serial.print(F("RX FILE READ BLOCK LEN: "));
                     }
                     Serial.println(resp.data.value.count);
                     // Save Data in File at Block Position (Init = Rewrite file...)
-                    putDataFile(clsCanard.master.file.get_name(), clsCanard.master.file.is_firmware(), clsCanard.master.file.is_first_data_block(),
-                                resp.data.value.elements, resp.data.value.count);
+                    // TODO: Flash
+                    // putDataFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
+                    //              resp.data.value.elements, resp.data.value.count);
                     // Reset pending command (Comunico request/Response Serie di comandi OK!!!)
                     // Uso l'Overload con controllo di EOF (-> EOF se msgLen != UAVCAN_BLOCK_DEFAULT [256 Bytes])
                     // Questo Overload gestisce in automatico l'offset del messaggio, per i successivi blocchi
-                    clsCanard.master.file.reset_pending(resp.data.value.count);
+                    clCanard.master.file.reset_pending(resp.data.value.count);
                 }
             } else {
                 // Errore Nodo non settato...
@@ -771,24 +778,106 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
     }
 }
 
-using namespace cpp_freertos;
-
+/// *********************************************************************************************
+/// @brief Main TASK && INIT TASK --- UAVCAN
+/// *********************************************************************************************
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam) {
+  
+  // Setup register mode
+  clRegister = EERegister(param.wire, param.wireLock);
+
+  // FullChip Power Mode after Startup
+  // Resume from LowPower or reset the controller TJA1443ATK
+  // Need FullPower for bxCan Programming (Otherwise Handler_Error()!)
+  HW_CAN_Power(CAN_ModePower::CAN_INIT);
+
+  // REGISTER_INIT && Fixed Optional Setup Reset
+  #ifdef INIT_REGISTER
+  // Inizializzazione fissa dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
+  clRegister.setup(true);
+  #else
+  // Default dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
+  // Creazione dei registri standard base se non esistono
+  clRegister.setup(false);
+  #endif
+
+  TRACE_INFO_F(F("Starting CAN Configuration"));
+  // *******************         CANARD SETUP TIMINGS AND SPEED        *******************
+  // CAN BITRATE Dinamico su LoadRegister (CAN_FD 2xREG natural32 0=Speed, 1=0 (Not Used))
+  uavcan_register_Value_1_0 val = {0};
+  uavcan_register_Value_1_0_select_natural32_(&val);
+  val.natural32.value.count       = 2;
+  val.natural32.value.elements[0] = CAN_BIT_RATE;
+  val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+  clRegister.read("uavcan.can.bitrate", &val);
+  LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
+
+  // Dynamic BIT RATE Change CAN Speed to CAN_BIT_RATE (register default/defined)
+  BxCANTimings timings;
+  bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
+  if (!result) {
+      TRACE_INFO_F(F("Error redefinition bxCANComputeTimings, try loading default..."));
+      val.natural32.value.count       = 2;
+      val.natural32.value.elements[0] = CAN_BIT_RATE;
+      val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+      clRegister.write("uavcan.can.bitrate", &val);
+      result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
+      if (!result) {
+          TRACE_INFO_F(F("Error initialization bxCANComputeTimings"));
+          LOCAL_ASSERT(false);
+          return;
+      }
+  }
+
+  // Configurea bxCAN speed && mode
+  result = bxCANConfigure(0, timings, false);
+  if (!result) {
+      TRACE_INFO_F(F("Error initialization bxCANConfigure"));
+      LOCAL_ASSERT(false);
+      return;
+  }
+  // *******************     CANARD SETUP TIMINGS AND SPEED COMPLETE   *******************
+
+  // Check error starting CAN
+  if (HAL_CAN_Start(&hcan1) != HAL_OK) {
+      TRACE_INFO_F(F("CAN startup ERROR!!!"));
+      LOCAL_ASSERT(false);
+      return;
+  }
+
+  // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
+      TRACE_INFO_F(F("Error initialization interrupt CAN base"));
+      LOCAL_ASSERT(false);
+      return;
+  }
+  // Setup Priority e CB CAN_IRQ_RX Enable
+  HAL_NVIC_SetPriority(CAN1_RX0_IRQn, CAN_NVIC_INT_PREMPT_PRIORITY, 0);
+  HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+
+  // Setup Complete
+  TRACE_INFO_F(F("CAN Configuration complete..."));
+
+  // Run Task Init
   state = INIT;
   Start();
 };
 
+/// @brief RUN Task
 void CanTask::Run() {
 
     // Data Local Task (Class + Registro)
     // Avvia l'istanza alla classe State_Canard ed inizializza Ram, Buffer e variabili base
-    canardClass clsCanard;
+    canardClass clCanard;
     uavcan_register_Value_1_0 val = {0};
 
     // LoopTimer Publish
     CanardMicrosecond last_pub_rmap_data;
     CanardMicrosecond last_pub_heartbeat;
     CanardMicrosecond last_pub_port_list;
+
+    uint32_t test_millis = millis();
+    bool bLowPower = false;
 
     // TODO: Eliminare
     bool ledShow;
@@ -818,21 +907,19 @@ void CanTask::Run() {
         switch (state) {
             // Setup Class CB and NodeId
             case INIT:
-                // FullChip Power Mode after Startup
-                HW_CAN_Power(CAN_ModePower::CAN_INIT);
-            
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
                 // Segnale al Master necessità di impostazioni ev. parametri, Data/Ora ecc..
-                clsCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
+                clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
 
                 // Attiva il callBack su RX Messaggio Canard sulla funzione interna processReceivedTransfer
-                clsCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
+                //clCanard.setReceiveMessage_CB(&this->processReceivedTransfer(), (void *) &param);
+                clCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
-                // Restore the node-ID from the corresponding standard register. Default to anonymous.
+                // Restore the node-ID from the corresponding standard clRegister. Default to anonymous.
                 #ifdef NODE_SLAVE_ID
                 // Canard Slave NODE ID Fixed dal defined value in module_config
-                clsCanard.set_canard_node_id((CanardNodeID)NODE_SLAVE_ID);
+                clCanard.set_canard_node_id((CanardNodeID)NODE_SLAVE_ID);
                 #else
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
@@ -840,7 +927,7 @@ void CanTask::Run() {
                 registerRead("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
-                    clsCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
+                    clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
                 }
                 #endif
 
@@ -848,14 +935,14 @@ void CanTask::Run() {
                 // It simply keeps a human-readable description of the node that should be empty by default.
                 uavcan_register_Value_1_0_select_string_(&val);
                 val._string.value.count = 0;
-                registerRead("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+                clRegister.read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
-                clsCanard.port_id.publisher_module_th =
+                clCanard.port_id.publisher_module_th =
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
                         "TH.data_and_metadata", rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-                clsCanard.port_id.service_module_th =
+                clCanard.port_id.service_module_th =
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
                         "TH.service_data_and_metadata", rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
@@ -873,68 +960,68 @@ void CanTask::Run() {
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX;
-                registerRead("rmap.module.TH.metadata.Level.L1", &val);
+                clRegister.read("rmap.module.TH.metadata.Level.L1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.level.L1.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.level.L1.value = val.natural16.value.elements[0];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX;
-                registerRead("rmap.module.TH.metadata.Level.L2", &val);
+                clRegister.read("rmap.module.TH.metadata.Level.L2", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.level.L2.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.level.L2.value = val.natural16.value.elements[0];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX;
-                registerRead("rmap.module.TH.metadata.Level.LevelType1", &val);
+                clRegister.read("rmap.module.TH.metadata.Level.LevelType1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX;
-                registerRead("rmap.module.TH.metadata.Level.LevelType2", &val);
+                clRegister.read("rmap.module.TH.metadata.Level.LevelType2", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX;
-                registerRead("rmap.module.TH.metadata.Timerange.P1", &val);
+                clRegister.read("rmap.module.TH.metadata.Timerange.P1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                clsCanard.module_th.ITH.metadata.timerange.P2 = 900;
-                clsCanard.module_th.MTH.metadata.timerange.P2 = 900;
-                clsCanard.module_th.NTH.metadata.timerange.P2 = 900;
-                clsCanard.module_th.XTH.metadata.timerange.P2 = 900;
+                clCanard.module_th.ITH.metadata.timerange.P2 = 900;
+                clCanard.module_th.MTH.metadata.timerange.P2 = 900;
+                clCanard.module_th.NTH.metadata.timerange.P2 = 900;
+                clCanard.module_th.XTH.metadata.timerange.P2 = 900;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT8_MAX;
-                registerRead("rmap.module.TH.metadata.Timerange.Pindicator", &val);
+                clRegister.read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural16.value.count == 1));
-                clsCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clsCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clsCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clsCanard.module_th.XTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
+                clCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
+                clCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
+                clCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
+                clCanard.module_th.XTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
 
                 // Passa alle sottoscrizioni
                 state = SETUP;
@@ -946,9 +1033,9 @@ void CanTask::Run() {
             case SETUP:
 
                 // Plug and Play Versione 1_0 CAN_CLASSIC senza nodo ID valido
-                if (clsCanard.is_canard_node_anonymous()) {
+                if (clCanard.is_canard_node_anonymous()) {
                     // PnP over Classic CAN, use message v1.0
-                    if (!clsCanard.rxSubscribe(CanardTransferKindMessage,
+                    if (!clCanard.rxSubscribe(CanardTransferKindMessage,
                                             uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
                                             uavcan_pnp_NodeIDAllocationData_1_0_EXTENT_BYTES_,
                                             CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -957,7 +1044,7 @@ void CanTask::Run() {
                 }
 
                 // Service Client: -> Verifica della presenza Heartbeat del MASTER [Networks OffLine]
-                if (!clsCanard.rxSubscribe(CanardTransferKindMessage,
+                if (!clCanard.rxSubscribe(CanardTransferKindMessage,
                                         uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_,
                                         uavcan_node_Heartbeat_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -965,7 +1052,7 @@ void CanTask::Run() {
                 }
 
                 // Service Client: -> Sincronizzazione timestamp Microsecond del MASTER [su base time local]
-                if (!clsCanard.rxSubscribe(CanardTransferKindMessage,
+                if (!clCanard.rxSubscribe(CanardTransferKindMessage,
                                         uavcan_time_Synchronization_1_0_FIXED_PORT_ID_,
                                         uavcan_time_Synchronization_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -973,7 +1060,7 @@ void CanTask::Run() {
                 }
 
                 // Service servers: -> Risposta per GetNodeInfo richiesta esterna master (Yakut, Altri)
-                if (!clsCanard.rxSubscribe(CanardTransferKindRequest,
+                if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         uavcan_node_GetInfo_1_0_FIXED_PORT_ID_,
                                         uavcan_node_GetInfo_Request_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -981,7 +1068,7 @@ void CanTask::Run() {
                 }
 
                 // Service servers: -> Risposta per ExecuteCommand richiesta esterna master (Yakut, Altri)
-                if (!clsCanard.rxSubscribe(CanardTransferKindRequest,
+                if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         uavcan_node_ExecuteCommand_1_1_FIXED_PORT_ID_,
                                         uavcan_node_ExecuteCommand_Request_1_1_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -989,7 +1076,7 @@ void CanTask::Run() {
                 }
 
                 // Service servers: -> Risposta per Accesso ai registri richiesta esterna master (Yakut, Altri)
-                if (!clsCanard.rxSubscribe(CanardTransferKindRequest,
+                if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         uavcan_register_Access_1_0_FIXED_PORT_ID_,
                                         uavcan_register_Access_Request_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -999,7 +1086,7 @@ void CanTask::Run() {
                 // Service servers: -> Risposta per Lista dei registri richiesta esterna master (Yakut, Altri)
                 // Time OUT Canard raddoppiato per elenco registri (Con molte Call vado in TimOut)
                 // Con raddoppio del tempo Default problema risolto
-                if (!clsCanard.rxSubscribe(CanardTransferKindRequest,
+                if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         uavcan_register_List_1_0_FIXED_PORT_ID_,
                                         uavcan_register_List_Request_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -1007,15 +1094,15 @@ void CanTask::Run() {
                 }
 
                 // Service servers: -> Risposta per dati e metadati sensore modulo corrente da master (Yakut, Altri)
-                if (!clsCanard.rxSubscribe(CanardTransferKindRequest,
-                                        clsCanard.port_id.service_module_th,
+                if (!clCanard.rxSubscribe(CanardTransferKindRequest,
+                                        clCanard.port_id.service_module_th,
                                         rmap_service_module_TH_Request_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
 
                 // Service client: -> Risposta per Read (Receive) File local richiesta esterna (Yakut, Altri)
-                if (!clsCanard.rxSubscribe(CanardTransferKindResponse,
+                if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                         uavcan_file_Read_1_1_FIXED_PORT_ID_,
                                         uavcan_file_Read_Response_1_1_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
@@ -1024,12 +1111,12 @@ void CanTask::Run() {
 
                 // Avvio il modulo UAVCAN in modalità operazionale normale
                 // Eventuale SET Flag dopo acquisizione di configurazioni e/o parametri da Remoto
-                clsCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_OPERATIONAL);
+                clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_OPERATIONAL);
 
                 // Set START Timetable LOOP RX/TX. Set Canard microsecond start, per le sincronizzazioni
-                clsCanard.getMicros(clsCanard.start_syncronization);
-                last_pub_rmap_data = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * (TIME_PUBLISH_MODULE_DATA + random(50) / 100);
-                last_pub_heartbeat = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * (TIME_PUBLISH_HEARTBEAT + random(100) / 100);
+                clCanard.getMicros(clCanard.start_syncronization);
+                last_pub_rmap_data = clCanard.getMicros(clCanard.syncronized_time) + MEGA * (TIME_PUBLISH_MODULE_DATA + random(50) / 100);
+                last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * (TIME_PUBLISH_HEARTBEAT + random(100) / 100);
                 last_pub_port_list = last_pub_heartbeat + MEGA * (0.5);
 
                 // Passo alla gestione Main
@@ -1042,7 +1129,7 @@ void CanTask::Run() {
             case STANDBY:
 
                 // Set Canard microsecond corrente monotonic, per le attività temporanee di ciclo
-                clsCanard.getMicros(clsCanard.start_syncronization);
+                clCanard.getMicros(clCanard.start_syncronization);
 
                 // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED sincronizzati)
                 // Test con reboot e successiva risincronizzazione automatica (FAKE RTC!!!!)
@@ -1051,7 +1138,7 @@ void CanTask::Run() {
                 // E' utilizzabile come RTC_FAKE e/o come Setup Perfetto per regolazione RTC al cambio del secondo
                 // RTC Infatti non permette la regolazione dei microsecondi, e questa tecnica lo consente
                 // Verifico LED al secondo... su timeSTamp sincronizzato remoto
-                if((clsCanard.master.timestamp.get_timestamp_syncronized() / MEGA) % 2) {
+                if((clCanard.master.timestamp.get_timestamp_syncronized() / MEGA) % 2) {
                     digitalWrite(LED2_PIN, HIGH);
                 } else {
                     digitalWrite(LED2_PIN, LOW);
@@ -1065,7 +1152,7 @@ void CanTask::Run() {
                 // Check eventuale Nodo Master OFFLINE (Ultimo comando sempre perchè posso)
                 // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
                 // Entro in OffLine ed eseguo eventuali operazioni di entrata
-                if (clsCanard.master.heartbeat.is_online()) {
+                if (clCanard.master.heartbeat.is_online()) {
                     // Solo quando passo da OffLine ad OnLine controllo con VarLocale
                     if (masterOnline != true) {
                         Serial.println(F("Master controller ONLINE !!! -> OnLineFunction()"));
@@ -1074,13 +1161,13 @@ void CanTask::Run() {
                     masterOnline = true;
                     // **************************************************************************
                     //            STATO MODULO (Decisionale in funzione di stato remoto)
-                    // Gestione continuativa del modulo di acquisizione master.clsCanard (flag remoto)
+                    // Gestione continuativa del modulo di acquisizione master.clCanard (flag remoto)
                     // **************************************************************************
                     // TODO: SOLO CODICE DI ESEMPIO DA GESTIRE
                     // Il master comunica nell'HeartBeat il proprio stato che viene gestito qui se OnLine
                     // Gestione attività (es. risparmio energetico, altro in funzione di codice remoto)
                     /*
-                    switch (clsCanard.master.state) {
+                    switch (clCanard.master.state) {
                         case 01:
                             // Risparmio energetico
                             // -> Entro in risparmio energetico
@@ -1109,48 +1196,49 @@ void CanTask::Run() {
 
                 // Verifica file download in corso (entro se in download)
                 // Attivato da ricezione comando appropriato rxFile o rxFirmware
-                if(clsCanard.master.file.download_request()) {
-                    if(clsCanard.master.file.is_firmware())
+                if(clCanard.master.file.download_request()) {
+                    if(clCanard.master.file.is_firmware())
                         // Set Flag locale per comunicazione HeartBeat... uploading OK in corso
                         // Utilizzo locale per blocco procedure, sleep ecc. x Uploading
-                        clsCanard.flag.set_local_fw_uploading(true);
+                        clCanard.flag.set_local_fw_uploading(true);
                     // Controllo eventuale timeOut del comando o RxBlocco e gestisco le Retry
                     // Verifica TimeOUT Occurs per File download
-                    if(clsCanard.master.file.event_timeout()) {
+                    if(clCanard.master.file.event_timeout()) {
                         Serial.println(F("Time OUT File... event occurs"));
                         // Gestione Retry previste dal comando per poi abbandonare
                         uint8_t retry; // In overload x LOGGING
-                        if(clsCanard.master.file.next_retry(&retry)) {
+                        if(clCanard.master.file.next_retry(&retry)) {
                             Serial.print(F("Next Retry File read: "));
                             Serial.println(retry);
                         } else {
                             Serial.println(F("MAX Retry File occurs, download file ABORT !!!"));
-                            clsCanard.master.file.download_end();
+                            clCanard.master.file.download_end();
                         }
                     }
                     // Se messaggio in pending non faccio niente è attendo la fine del comando in run
                     // In caso di errore subentrerà il TimeOut e verrà essere gestita la retry
-                    if(!clsCanard.master.file.is_pending()) {
+                    if(!clCanard.master.file.is_pending()) {
                         // Fine pending, con messaggio OK. Verifico se EOF o necessario altro blocco
-                        if(clsCanard.master.file.is_download_complete()) {
-                            if(clsCanard.master.file.is_firmware()) {
+                        if(clCanard.master.file.is_download_complete()) {
+                            if(clCanard.master.file.is_firmware()) {
                                 Serial.println(F("RX FIRMWARE COMPLETED !!!"));
                             } else {
                                 Serial.println(F("RX FILE COMPLETED !!!"));
                             }
-                            Serial.println(clsCanard.master.file.get_name());
+                            Serial.println(clCanard.master.file.get_name());
                             Serial.print(F("Size: "));
-                            Serial.print(getDataFileInfo(clsCanard.master.file.get_name(), clsCanard.master.file.is_firmware()));
+                            // TODO: FLASH File
+                            // Serial.print(getDataFileInfo(clCanard.master.file.get_name(), clCanard.master.file.is_firmware()));
                             Serial.println(F(" (bytes)"));
                             // Nessun altro evento necessario, chiudo File e stati
                             // procedo all'aggiornamento Firmware dopo le verifiche di conformità
                             // Ovviamente se si tratta di un file firmware
-                            clsCanard.master.file.download_end();
+                            clCanard.master.file.download_end();
                             // Comunico a HeartBeat (Yakut o Altri) l'avvio dell'aggiornamento (se il file è un firmware...)
                             // Per Yakut Pubblicare un HeartBeat prima dell'Avvio quindi con il flag
-                            // clsCanard.local_node.file.updating_run = true >> HeartBeat Counica Upgrade...
-                            if(clsCanard.master.file.is_firmware()) {
-                                clsCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_SOFTWARE_UPDATE);
+                            // clCanard.local_node.file.updating_run = true >> HeartBeat Counica Upgrade...
+                            if(clCanard.master.file.is_firmware()) {
+                                clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_SOFTWARE_UPDATE);
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo
                             // di HeartBeat (svuotamento coda), quindi attendiamo 2/3 secondi poi via
@@ -1158,7 +1246,7 @@ void CanTask::Run() {
                             // FirmwareUpgrade(*NameFile)... -> Fra 2/3 secondi dopo HeartBeat
                         } else {
                             // Avvio prima request o nuovo blocco (Set Flag e TimeOut)
-                            // Prima request (clsCanard.local_node.file.offset == 0)
+                            // Prima request (clCanard.local_node.file.offset == 0)
                             // Firmmware Posizione blocco gestito automaticamente in sequenza Request/Read
                             // Gestione retry (incremento su TimeOut/Error) Automatico in Init/Request-Response
                             // Esco se raggiunga un massimo numero di retry x Frame... sopra
@@ -1167,7 +1255,7 @@ void CanTask::Run() {
                             // Altrimenti se inferiore o (0 Compreso) il trasferimento file termina.
                             // Se = 0 il blocco finale non viene considerato ma serve per il protocollo
                             // Se l'ultimo buffer dovesse essere pieno discrimina l'eventualità di MaxBuf==Eof
-                            clsCanard.master_file_read_block_pending(NODE_GETFILE_TIMEOUT_US);
+                            clCanard.master_file_read_block_pending(NODE_GETFILE_TIMEOUT_US);
                         }
                     }
                 }
@@ -1178,27 +1266,27 @@ void CanTask::Run() {
                 // *************************** RMAP DATA PUBLISHER **************************
                 // Pubblica i dati del nodo corrente se configurata e abilitata la funzione
                 // Ovviamente il nodo non può essere anonimo per la pubblicazione...
-                if ((!clsCanard.is_canard_node_anonymous()) &&
-                    (clsCanard.publisher_enabled.module_th) &&
-                    (clsCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
-                    if (clsCanard.getMicros(clsCanard.syncronized_time) >= last_pub_rmap_data)
+                if ((!clCanard.is_canard_node_anonymous()) &&
+                    (clCanard.publisher_enabled.module_th) &&
+                    (clCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
+                    if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_rmap_data)
                     {
                         // Update publisher
                         last_pub_rmap_data += MEGA * TIME_PUBLISH_MODULE_DATA;
                         // Funzione locale privata
-                        publish_rmap_data(clsCanard, &param);
+                        publish_rmap_data(clCanard, &param);
                     }
                 }
 
                 // ************************* HEARTBEAT DATA PUBLISHER ***********************
-                if (clsCanard.getMicros(clsCanard.syncronized_time) >= last_pub_heartbeat) {
-                    if(clsCanard.is_canard_node_anonymous()) {
+                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat) {
+                    if(clCanard.is_canard_node_anonymous()) {
                         #ifdef LOG_HEARTBEAT
                         Serial.print(F("Publish SLAVE PNP Request Message -->> ["));
                         Serial.print(TIME_PUBLISH_PNP_REQUEST);
                         Serial.println(F(" sec + Rnd * 1 sec...]"));
                         #endif
-                        clsCanard.slave_pnp_send_request();
+                        clCanard.slave_pnp_send_request();
                         last_pub_heartbeat += MEGA * (TIME_PUBLISH_PNP_REQUEST + random(100) / 100);
                     } else {
                         #ifdef LOG_HEARTBEAT
@@ -1206,14 +1294,14 @@ void CanTask::Run() {
                         Serial.print(TIME_PUBLISH_HEARTBEAT);
                         Serial.println(F(" sec]"));
                         #endif
-                        clsCanard.slave_heartbeat_send_message();
+                        clCanard.slave_heartbeat_send_message();
                         // Update publisher
                         last_pub_heartbeat += MEGA * TIME_PUBLISH_HEARTBEAT;
                     }
                 }
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
-                if (clsCanard.getMicros(clsCanard.syncronized_time) >= last_pub_port_list) {
+                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
                     #ifdef LOG_LISTPORT
                     Serial.print(F("Publish Local PORT LIST -->> ["));
                     Serial.print(TIME_PUBLISH_PORT_LIST);
@@ -1221,7 +1309,7 @@ void CanTask::Run() {
                     #endif
                     last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
                     // Update publisher
-                    clsCanard.slave_servicelist_send_message();
+                    clCanard.slave_servicelist_send_message();
                 }
 
                 // Utilizzato per blinking Led (TX/RX)
@@ -1234,33 +1322,35 @@ void CanTask::Run() {
                 // ***************************************************************************
                 // Transmit pending frames, avvia la trasmissione gestita da canard a priorità.
                 // Il metodo può essere chiamato direttamente in preparazione messaggio x coda
-                if (clsCanard.transmitQueueDataPresent()) {
+                if (clCanard.transmitQueueDataPresent()) {
                     #ifdef LED_ON_CAN_DATA_TX
                     digitalWrite(LED2_PIN, HIGH);
                     #endif
-                    clsCanard.transmitQueue();
+                    clCanard.transmitQueue();
+                    test_millis = millis();
+                    bLowPower = false;
                 }
 
                 // ***************************************************************************
                 //   Gestione Coda messaggi in ricezione (ciclo di caricamento messaggi)
                 // ***************************************************************************
                 // Gestione con Intererupt RX Only esterna (verifica dati in coda gestionale)
-                if (clsCanard.receiveQueueDataPresent()) {
+                if (clCanard.receiveQueueDataPresent()) {
                     #ifdef LED_ON_CAN_DATA_RX
                     digitalWrite(LED2_PIN, HIGH);
                     #endif
                     // Log Packet
                     #ifdef LOG_RX_PACKET
                     char logMsg[50];
-                    clsCanard.receiveQueue(logMsg);
+                    clCanard.receiveQueue(logMsg);
                     Serial.println(logMsg);
                     #else
-                    clsCanard.receiveQueue();
+                    clCanard.receiveQueue();
                     #endif
                 }
 
                 // Request Reboot
-                if (clsCanard.flag.is_requested_system_restart()) {
+                if (clCanard.flag.is_requested_system_restart()) {
                     // TODO: Save param...
                     NVIC_SystemReset();
                 }
@@ -1277,7 +1367,7 @@ void CanTask::Run() {
         #ifdef LOG_STACK_USAGE
         if(stackTimer++>100) {
           stackTimer = 0;
-          TRACE_VERBOSE(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+          TRACE_VERBOSE_F(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
         }
         #endif
 
