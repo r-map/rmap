@@ -214,7 +214,7 @@ void SetupSystemPeripheral(void) {
   * @param None
   * @retval None
   */
-extern "C" void MX_CAN1_Init(void)
+void MX_CAN1_Init(void)
 {
   CAN_FilterTypeDef CAN_FilterInitStruct;
 
@@ -259,7 +259,7 @@ extern "C" void MX_CAN1_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_CRC_Init(void)
+void MX_CRC_Init(void)
 {
 
   /* USER CODE BEGIN CRC_Init 0 */
@@ -292,7 +292,7 @@ extern "C" void MX_CRC_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_LPTIM1_Init(void)
+void MX_LPTIM1_Init(void)
 {
 
   /* USER CODE BEGIN LPTIM1_Init 0 */
@@ -328,7 +328,7 @@ extern "C" void MX_LPTIM1_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_QUADSPI_Init(void)
+void MX_QUADSPI_Init(void)
 {
   /* USER CODE BEGIN QUADSPI_Init 0 */
 
@@ -364,7 +364,7 @@ extern "C" void MX_QUADSPI_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_RNG_Init(void)
+void MX_RNG_Init(void)
 {
 
   /* USER CODE BEGIN RNG_Init 0 */
@@ -392,7 +392,7 @@ extern "C" void MX_RNG_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_SDMMC1_SD_Init(void)
+void MX_SDMMC1_SD_Init(void)
 {
 
   /* USER CODE BEGIN SDMMC1_Init 0 */
@@ -430,7 +430,7 @@ extern "C" void MX_SDMMC1_SD_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_USART2_UART_Init(void)
+void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */

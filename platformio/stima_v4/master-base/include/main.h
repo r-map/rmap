@@ -39,7 +39,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "queue.hpp"
 
 #include "tasks/prova_task.h"
+#include "tasks/can_task.h"
 #include "tasks/supervisor_task.h"
+#include "tasks/lcd_task.h"
 
 #include "debug_F.h"
 

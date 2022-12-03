@@ -24,9 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include "hardware_config.h"
 #include "sensors_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
+#include "stima_utility.h"
 
 /*********************************************************************
 * MODULE
@@ -50,6 +50,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_TH)
 
 #define CONFIGURATION_EEPROM_ADDRESS         (0)
+#define ACCELEROMETER_EEPROM_ADDRESS         (100)
+#define REGISTER_EEPROM_ADDRESS              (120)
 
 // #define SAMPLES_COUNT_MAX                 (3600)
 // #define SENSORS_ACQUISITION_DELAY_MS      (4000)
