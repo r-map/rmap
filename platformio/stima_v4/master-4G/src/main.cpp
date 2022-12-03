@@ -53,15 +53,15 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
-  // supervisorParam.systemStatusQueue = systemStatusQueue;
   supervisorParam.systemRequestQueue = systemRequestQueue;
   supervisorParam.systemResponseQueue = systemResponseQueue;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   ModemParam_t modemParam;
   modemParam.configuration = &configuration;
+  modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
-  // modemParam.systemStatusQueue = systemStatusQueue;
+  modemParam.systemStatusLock = systemStatusLock;
   modemParam.systemRequestQueue = systemRequestQueue;
   modemParam.systemResponseQueue = systemResponseQueue;
 #endif
@@ -72,18 +72,26 @@ void setup() {
   ntpParam.system_status = &system_status;
   ntpParam.configurationLock = configurationLock;
   ntpParam.systemStatusLock = systemStatusLock;
-  // ntpParam.systemStatusQueue = systemStatusQueue;
   ntpParam.systemRequestQueue = systemRequestQueue;
   ntpParam.systemResponseQueue = systemResponseQueue;
+#endif
+
+#if (USE_HTTP)
+  HttpParam_t httpParam;
+  httpParam.configuration = &configuration;
+  httpParam.system_status = &system_status;
+  httpParam.configurationLock = configurationLock;
+  httpParam.systemStatusLock = systemStatusLock;
+  httpParam.systemRequestQueue = systemRequestQueue;
+  httpParam.systemResponseQueue = systemResponseQueue;
 #endif
 
 #if (USE_MQTT)
   MqttParam_t mqttParam;
   mqttParam.configuration = &configuration;
-  // mqttParam.system_status = &system_status;
+  mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
-  // mqttParam.systemStatusLock = systemStatusLock;
-  // mqttParam.systemStatusQueue = systemStatusQueue;
+  mqttParam.systemStatusLock = systemStatusLock;
   mqttParam.systemRequestQueue = systemRequestQueue;
   mqttParam.systemResponseQueue = systemResponseQueue;
   mqttParam.yarrowContext = &yarrowContext;
@@ -98,6 +106,10 @@ void setup() {
 
 #if (USE_NTP)
   static NtpTask ntp_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
+#endif
+
+#if (USE_HTTP)
+  static HttpTask http_task("HttpTask", 1000, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)

@@ -57,6 +57,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/ntp_task.h"
 #endif
 
+#if (USE_HTTP)
+#include "tasks/http_task.h"
+#endif
+
 #if (USE_MQTT)
 #include "tasks/mqtt_task.h"
 #endif
@@ -64,11 +68,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "debug_F.h"
 
 using namespace cpp_freertos;
-
-/*********************************************************************
-* TYPEDEF
-*********************************************************************/
-
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -92,7 +91,6 @@ configuration_t configuration;
 system_status_t system_status;
 
 YarrowContext yarrowContext;
-#define SEED_LENGTH (32)
 uint8_t seed[SEED_LENGTH];
 
 /*!

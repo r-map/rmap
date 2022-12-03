@@ -95,6 +95,7 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
 
 void MqttTask::Run()
 {
+  uint8_t retry;
   bool is_error;
   error_t error;
   system_request_t request;
@@ -115,17 +116,12 @@ void MqttTask::Run()
     switch (state)
     {
     case MQTT_STATE_INIT:
-      error = mqttClientInit(&mqttClientContext);
-      if (error)
-      {
-        TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-      }
-
       state = MQTT_STATE_WAIT_NET_EVENT;
       TRACE_VERBOSE_F(F("MQTT_STATE_INIT -> MQTT_STATE_WAIT_NET_EVENT\r\n"));
       break;
 
     case MQTT_STATE_WAIT_NET_EVENT:
+      retry = 0;
       is_error = false;
 
       // wait connection request
@@ -159,6 +155,16 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_CONNECT:
+      error = mqttClientInit(&mqttClientContext);
+      if (error)
+      {
+        TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+      }
+      
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connecting = true;
+      param.systemStatusLock->Give();
+
       TRACE_INFO_F(F("%s Resolving mqtt server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
       // Resolve MQTT server name
       error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
@@ -166,7 +172,7 @@ void MqttTask::Run()
       {
         is_error = true;
 
-        TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
+        TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
 
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
@@ -225,7 +231,7 @@ void MqttTask::Run()
       {
         is_error = true;
 
-        TRACE_ERROR_F(F("%s Failed to connect to mqtt server %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
+        TRACE_ERROR_F(F("%s Failed to connect to mqtt server %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
 
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
         state = MQTT_STATE_DISCONNECT;
@@ -241,6 +247,15 @@ void MqttTask::Run()
       // Any error to report?
       //  if(error)
       //   break;
+
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = true;
+      param.system_status->connection.is_mqtt_connecting = false;
+      param.system_status->connection.is_mqtt_publishing = true;
+      param.systemStatusLock->Give();
+
+      response.connection.done_mqtt_connected = true;
+      param.systemResponseQueue->Enqueue(&response, 0);
 
       // Successful connection?
       state = MQTT_STATE_PUBLISH;
@@ -261,11 +276,18 @@ void MqttTask::Run()
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
       }
-       // pubblica ogni 5 secondi
-       Delay(Ticks::MsToTicks(5000));
+
+      // pubblica ogni 5 secondi
+      Delay(Ticks::MsToTicks(5000));
       break;
 
     case MQTT_STATE_DISCONNECT:
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = false;
+      param.system_status->connection.is_mqtt_disconnecting = true;
+      param.system_status->connection.is_mqtt_publishing = false;
+      param.systemStatusLock->Give();
+      
       mqttClientClose(&mqttClientContext);
       TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
@@ -274,9 +296,44 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_END:
-      mqttClientDeinit(&mqttClientContext);
-      state = MQTT_STATE_INIT;
-      TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      // ok
+      if (!is_error)
+      {
+        response.connection.done_mqtt_disconnected = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_mqtt_disconnecting = false;
+        param.system_status->connection.is_mqtt_disconnected = true;
+        param.systemStatusLock->Give();
+
+        mqttClientDeinit(&mqttClientContext);
+        state = MQTT_STATE_INIT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      }
+      // retry
+      else if ((++retry) < MQTT_TASK_GENERIC_RETRY)
+      {
+        Delay(Ticks::MsToTicks(MQTT_TASK_GENERIC_RETRY_DELAY_MS));
+
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_CONNECT\r\n"));
+        state = MQTT_STATE_CONNECT;
+      }
+      // error
+      else
+      {
+        response.connection.done_mqtt_disconnected = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_mqtt_disconnecting = false;
+        param.system_status->connection.is_mqtt_disconnected = true;
+        param.systemStatusLock->Give();
+
+        mqttClientDeinit(&mqttClientContext);
+        state = MQTT_STATE_INIT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      }
       break;
     }
   }

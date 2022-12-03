@@ -225,6 +225,17 @@ void ModemTask::Run() {
       }
       else
       {
+        param.systemStatusLock->Take();
+        param.system_status->modem.ber = sim7600.getBer();
+        param.system_status->modem.rssi = sim7600.getRssi();
+        param.system_status->modem.creg_n = sim7600.getCregN();
+        param.system_status->modem.creg_stat = sim7600.getCregStat();
+        param.system_status->modem.cgreg_n = sim7600.getCgregN();
+        param.system_status->modem.cgreg_stat = sim7600.getCgregStat();
+        param.system_status->modem.cereg_n = sim7600.getCeregN();
+        param.system_status->modem.cereg_stat = sim7600.getCeregStat();
+        param.systemStatusLock->Give();
+
         TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
         response.connection.done_connected = true;
         param.systemResponseQueue->Enqueue(&response, 0);

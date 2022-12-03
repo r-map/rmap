@@ -24,32 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _LOCAL_TYPEDEF_H
 #define _LOCAL_TYPEDEF_H
 
-#include "config.h"
-#include "mqtt_config.h"
-#include "ntp_config.h"
-#include "gsm_config.h"
-#include "ethernet_config.h"
-#include "constantdata_config.h"
+#include "local_typedef_config.h"
 #include "typedef.h"
-
-/*!
-\def CONSTANTDATA_BTABLE_LENGTH
-\brief Maximum lenght of btable code plus terminator that describe one constant data.
-*/
-#define CONSTANTDATA_BTABLE_LENGTH (7)
-
-/*!
-\def CONSTANTDATA_VALUE_LENGTH
-\brief Maximum lenght of value plus terminator for one constant data.
-*/
-#define CONSTANTDATA_VALUE_LENGTH (33)
-
-#define DATA_LEVEL_LENGTH  (20)
-#define NETWORK_LENGTH     (20)
-#define IDENT_LENGTH       (20)
-
-#define CLIENT_PSK_KEY_LENGTH (16)
-#define CLIENT_PSK_IDENTITY_LENGTH (MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH)
 
 /*!
 \struct sensordata_t
@@ -140,16 +116,37 @@ typedef struct
    struct
    {
       bool is_connected;
-      bool is_connection_ongoing;
+      bool is_connecting;
       bool is_disconnected;
-      bool is_disconnection_ongoing;
+      bool is_disconnecting;
+
       bool is_ntp_synchronized;
-      bool is_ntp_sync_ongoing;
+      bool is_ntp_synchronizing;
+
       bool is_mqtt_connected;
-      bool is_mqtt_connection_ongoing;
+      bool is_mqtt_connecting;
+      bool is_mqtt_publishing;
       bool is_mqtt_disconnected;
-      bool is_mqtt_disconnection_ongoing;
+      bool is_mqtt_disconnecting;
+      
+      bool is_http_configuration_updated;
+      bool is_http_configuration_updating;
+      bool is_http_firmware_upgraded;
+      bool is_http_firmware_upgrading;
    } connection;
+
+   struct
+   {
+      uint8_t rssi;
+      uint8_t ber;
+      uint8_t creg_n;
+      uint8_t creg_stat;
+      uint8_t cgreg_n;
+      uint8_t cgreg_stat;
+      uint8_t cereg_n;
+      uint8_t cereg_stat;
+   } modem;
+
 } system_status_t;
 
 typedef struct
@@ -164,9 +161,14 @@ typedef struct
    {
       bool do_connect;
       bool do_disconnect;
+
       bool do_ntp_sync;
+
       bool do_mqtt_connect;
       bool do_mqtt_disconnect;
+
+      bool do_http_get_configuration;
+      bool do_http_get_firmware;
    } connection;
 } system_request_t;
 
@@ -182,10 +184,17 @@ typedef struct
    {
       bool done_connected;
       bool done_disconnected;
+
       bool done_ntp_synchronized;
+
       bool done_mqtt_connected;
       bool done_mqtt_disconnected;
+      
+      bool done_http_configuration_getted;
+      bool done_http_firmware_getted;
    } connection;
+
+   uint16_t number_of_mqtt_data_sent;
 } system_response_t;
 
 #endif

@@ -1,4 +1,4 @@
-/**@file constantdata_config.h */
+/**@file http_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,47 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef CONSTANTDATA_CONFIG_H
-#define CONSTANTDATA_CONFIG_H
+#ifndef _HTTP_CONFIG_H
+#define _HTTP_CONFIG_H
 
-/*!
-\def CONSTANTDATA_BTABLE_LENGTH
-\brief Maximum lenght of btable code plus terminator that describe one constant data.
-*/
-#define CONSTANTDATA_BTABLE_LENGTH                    (7)
+#define HTTP_PORT                (80)
 
-/*!
-\def CONSTANTDATA_VALUE_LENGTH
-\brief Maximum lenght of value plus terminator for one constant data.
-*/
-#define CONSTANTDATA_VALUE_LENGTH                    (33)
+#define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 
-#define DATA_LEVEL_LENGTH  (20)
-#define NETWORK_LENGTH     (20)
-#define IDENT_LENGTH       (20)
+#define HTTP_BUFFER_SIZE         (128)
 
-/*!
-\def STATIONSLUG_LENGTH
-\brief Length in bytes for station slug.
-*/
-#define STATIONSLUG_LENGTH (30)
-
-/*!
-\def BOARDSLUG_LENGTH
-\brief Length in bytes for board slug.
-*/
-#define BOARDSLUG_LENGTH (30)
-
-/*!
-\def DEFAULT_STATIONSLUG
-\brief Default station slug.
-*/
-#define DEFAULT_STATIONSLUG ("")
-
-/*!
-\def DEFAULT_BOARDSLUG
-\brief Default board slug.
-*/
-#define DEFAULT_BOARDSLUG ("")
+#define HTTP_USER_AGENTS_LENGTH  (STIMA_MODULE_NAME_LENGTH + 10)
 
 #endif

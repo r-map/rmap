@@ -1,4 +1,4 @@
-/**@file constantdata_config.h */
+/**@file local_typedef_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,47 +21,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef CONSTANTDATA_CONFIG_H
-#define CONSTANTDATA_CONFIG_H
+#ifndef _LOCAL_TYPEDEF_CONFIG_H
+#define _LOCAL_TYPEDEF_CONFIG_H
 
-/*!
-\def CONSTANTDATA_BTABLE_LENGTH
-\brief Maximum lenght of btable code plus terminator that describe one constant data.
-*/
-#define CONSTANTDATA_BTABLE_LENGTH                    (7)
+#include "config.h"
+#include "constantdata_config.h"
+#include "mqtt_config.h"
+#include "http_config.h"
+#include "ntp_config.h"
+#include "gsm_config.h"
+#include "ethernet_config.h"
 
-/*!
-\def CONSTANTDATA_VALUE_LENGTH
-\brief Maximum lenght of value plus terminator for one constant data.
-*/
-#define CONSTANTDATA_VALUE_LENGTH                    (33)
-
-#define DATA_LEVEL_LENGTH  (20)
-#define NETWORK_LENGTH     (20)
-#define IDENT_LENGTH       (20)
-
-/*!
-\def STATIONSLUG_LENGTH
-\brief Length in bytes for station slug.
-*/
-#define STATIONSLUG_LENGTH (30)
-
-/*!
-\def BOARDSLUG_LENGTH
-\brief Length in bytes for board slug.
-*/
-#define BOARDSLUG_LENGTH (30)
-
-/*!
-\def DEFAULT_STATIONSLUG
-\brief Default station slug.
-*/
-#define DEFAULT_STATIONSLUG ("")
-
-/*!
-\def DEFAULT_BOARDSLUG
-\brief Default board slug.
-*/
-#define DEFAULT_BOARDSLUG ("")
+#define CLIENT_PSK_KEY_LENGTH (16)
+#define CLIENT_PSK_IDENTITY_LENGTH (MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH)
 
 #endif

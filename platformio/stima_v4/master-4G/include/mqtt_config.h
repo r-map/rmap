@@ -100,18 +100,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_PASSWORD_LENGTH (30)
 
 /*!
-\def STATIONSLUG_LENGTH
-\brief Length in bytes for station slug.
-*/
-#define STATIONSLUG_LENGTH (30)
-
-/*!
-\def BOARDSLUG_LENGTH
-\brief Length in bytes for board slug.
-*/
-#define BOARDSLUG_LENGTH (30)
-
-/*!
 \def MQTT_TIMEOUT_MS
 \brief Timeout in milliseconds for mqtt stack.
 */
@@ -160,18 +148,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Default MQTT password.
 */
 #define MQTT_DEFAULT_PASSWORD ("")
-
-/*!
-\def DEFAULT_STATIONSLUG
-\brief Default station slug.
-*/
-#define DEFAULT_STATIONSLUG ("")
-
-/*!
-\def DEFAULT_BOARDSLUG
-\brief Default board slug.
-*/
-#define DEFAULT_BOARDSLUG ("")
 
 /*!
 \def MQTT_STATUS_TOPIC

@@ -56,8 +56,6 @@ void NtpTask::Run() {
     switch (state)
     {
     case NTP_STATE_INIT:
-      sntpClientInit(&sntpClientContext);
-
       TRACE_VERBOSE_F(F("NTP_STATE_INIT -> NTP_STATE_WAIT_NET_EVENT\r\n"));
       state = NTP_STATE_WAIT_NET_EVENT;
       break;
@@ -86,6 +84,12 @@ void NtpTask::Run() {
       break;
 
     case NTP_STATE_DO_NTP_SYNC:
+      sntpClientInit(&sntpClientContext);
+
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_ntp_synchronizing = true;
+      param.systemStatusLock->Give();
+      
       TRACE_INFO_F(F("%s Resolving ntp server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
 
       // Resolve NTP server name
@@ -102,7 +106,7 @@ void NtpTask::Run() {
       }
 
       // Set timeout value for blocking operations
-      error = sntpClientSetTimeout(&sntpClientContext, 20000);
+      error = sntpClientSetTimeout(&sntpClientContext, SNTP_CLIENT_TIMEOUT_MS);
       // Any error to report?
       if (error)
       {
@@ -173,9 +177,14 @@ void NtpTask::Run() {
         response.connection.done_ntp_synchronized = true;
         param.systemResponseQueue->Enqueue(&response, 0);
 
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_ntp_synchronizing = false;
+        param.system_status->connection.is_ntp_synchronized = true;
+        param.systemStatusLock->Give();
+
         sntpClientDeinit(&sntpClientContext);
-        state = NTP_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_WAIT_NET_EVENT\r\n"));
+        state = NTP_STATE_INIT;
+        TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
       }
       // retry
       else if ((++retry) < NTP_TASK_GENERIC_RETRY)
@@ -190,9 +199,14 @@ void NtpTask::Run() {
         response.connection.done_ntp_synchronized = false;
         param.systemResponseQueue->Enqueue(&response, 0);
 
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_ntp_synchronizing = false;
+        param.system_status->connection.is_ntp_synchronized = false;
+        param.systemStatusLock->Give();
+
         sntpClientDeinit(&sntpClientContext);
-        state = NTP_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_WAIT_NET_EVENT\r\n"));
+        state = NTP_STATE_INIT;
+        TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
       }
       break;
     }

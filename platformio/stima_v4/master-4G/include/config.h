@@ -87,6 +87,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define USE_MQTT  (true)
 #define USE_NTP   (true)
+#define USE_HTTP  (true)
 
 /*!
 \def USE_CONSTANTDATA_COUNT
@@ -257,5 +258,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define CONFIGURATION_DEFAULT_GSM_PASSWORD (GSM_DEFAULT_PASSWORD)
 #endif
+
+#define SEED_LENGTH (32)
 
 #endif

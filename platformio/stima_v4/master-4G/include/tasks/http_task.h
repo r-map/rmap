@@ -1,4 +1,4 @@
-/**@file modem_task.h */
+/**@file http_task.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,18 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MODEM_TASK_H
-#define _MODEM_TASK_H
+#ifndef _HTTP_TASK_H
+#define _HTTP_TASK_H
 
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "str.h"
+#include "stima_utility.h"
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+#if (USE_HTTP)
 
-#define MODEM_TASK_WAIT_DELAY_MS          (100)
-#define MODEM_TASK_GENERIC_RETRY_DELAY_MS (5000)
-#define MODEM_TASK_GENERIC_RETRY          (3)
+#define HTTP_TASK_WAIT_DELAY_MS (100)
+#define HTTP_TASK_GENERIC_RETRY_DELAY_MS (5000)
+#define HTTP_TASK_GENERIC_RETRY (3)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -40,60 +41,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"
-#include "ppp/ppp.h"
-// #include "tls.h"
-// #include "tls_cipher_suites.h"
-// #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
-// #include "rng/trng.h"
-// #include "rng/yarrow.h"
-#include "drivers/modem/sim7600.h"
-#include "drivers/uart/uart_driver.h"
+#include "http/http_client.h"
 #include "debug_F.h"
 
 typedef enum
 {
-  MODEM_STATE_INIT,
-  MODEM_STATE_WAIT_NET_EVENT,
-  MODEM_STATE_SWITCH_ON,
-  MODEM_STATE_SETUP,
-  MODEM_STATE_CONNECT,
-  MODEM_STATE_CONNECTED,
-  MODEM_STATE_DISCONNECT,
-  MODEM_STATE_SWITCH_OFF,
-  MODEM_STATE_END
-} ModemState_t;
+  HTTP_STATE_INIT,
+  HTTP_STATE_WAIT_NET_EVENT,
+  HTTP_STATE_SEND_REQUEST,
+  HTTP_STATE_GET_RESPONSE,
+  HTTP_STATE_END
+} HttpState_t;
 
-typedef struct
-{
+typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
-} ModemParam_t;
+} HttpParam_t;
 
-class ModemTask : public cpp_freertos::Thread {
+class HttpTask : public cpp_freertos::Thread {
 
 public:
-  ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t ModemParam);
+  HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam);
 
 protected:
-  NetInterface *interface;
+  char_t http_buffer[HTTP_BUFFER_SIZE];
+  size_t http_buffer_length;
   virtual void Run();
 
 private:
-  ModemState_t state;
-  ModemParam_t param;
-
-  SIM7600 sim7600;
-  PppSettings pppSettings;
-  PppContext pppContext;
-
-  char apn[GSM_APN_LENGTH];
-  char number[GSM_NUMBER_LENGTH];
-  char username[GSM_USERNAME_LENGTH];
-  char password[GSM_PASSWORD_LENGTH];
+  HttpState_t state;
+  HttpParam_t param;
+  HttpClientContext httpClientContext;
 };
 
 #endif

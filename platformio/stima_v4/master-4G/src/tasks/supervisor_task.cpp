@@ -95,8 +95,14 @@ void SupervisorTask::Run()
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
         state = SUPERVISOR_STATE_REQUEST_CONNECTION;
       }
-      // 2 configuration ok, ntp ok -> do mqtt sync
-      else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && !param.system_status->connection.is_mqtt_connected)
+      // 2 configuration ok, ntp ok -> do http configuration update
+      else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && !param.system_status->connection.is_http_configuration_updated)
+      {
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+      }
+      // 3 configuration ok, ntp ok, http configuration updated -> do mqtt sync
+      else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && param.system_status->connection.is_http_configuration_updated && !param.system_status->connection.is_mqtt_connected)
       {
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
         state = SUPERVISOR_STATE_REQUEST_CONNECTION;
@@ -153,7 +159,7 @@ void SupervisorTask::Run()
         request.connection.do_connect = true;
         
         param.systemStatusLock->Take();
-        param.system_status->connection.is_connection_ongoing = true;
+        param.system_status->connection.is_connecting = true;
         param.systemStatusLock->Give();
         
         param.systemRequestQueue->Enqueue(&request, 0);
@@ -172,7 +178,7 @@ void SupervisorTask::Run()
           param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = true;
-          param.system_status->connection.is_connection_ongoing = false;
+          param.system_status->connection.is_connecting = false;
           param.systemStatusLock->Give();
           TRACE_INFO_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
@@ -185,7 +191,7 @@ void SupervisorTask::Run()
           param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
-          param.system_status->connection.is_connection_ongoing = false;
+          param.system_status->connection.is_connecting = false;
           param.systemStatusLock->Give();
           TRACE_ERROR_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
@@ -204,10 +210,6 @@ void SupervisorTask::Run()
     case SUPERVISOR_STATE_CHECK_CONNECTION_TYPE:
       if (!param.system_status->connection.is_ntp_synchronized)
       {
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_ntp_sync_ongoing = true;
-        param.systemStatusLock->Give();
-
         // Request ntp sync
         request.connection.do_ntp_sync = true;
         param.systemRequestQueue->Enqueue(&request, 0);
@@ -215,12 +217,17 @@ void SupervisorTask::Run()
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> SUPERVISOR_STATE_DO_NTP\r\n"));
         state = SUPERVISOR_STATE_DO_NTP;
       }
+      else if (!param.system_status->connection.is_http_configuration_updated)
+      {
+        // Request configuration update by http request
+        request.connection.do_http_get_configuration = true;
+        param.systemRequestQueue->Enqueue(&request, 0);
+
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> SUPERVISOR_STATE_DO_HTTP\r\n"));
+        state = SUPERVISOR_STATE_DO_HTTP;
+      }
       else if (!param.system_status->connection.is_mqtt_connected)
       {
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_mqtt_connection_ongoing = true;
-        param.systemStatusLock->Give();
-
         // Request mqtt connection
         request.connection.do_mqtt_connect = true;
         param.systemRequestQueue->Enqueue(&request, 0);
@@ -243,11 +250,6 @@ void SupervisorTask::Run()
         if (response.connection.done_ntp_synchronized)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          param.systemStatusLock->Take();
-          param.system_status->connection.is_ntp_sync_ongoing = false;
-          param.system_status->connection.is_ntp_synchronized = true;
-          param.systemStatusLock->Give();
-
           TRACE_INFO_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
@@ -257,10 +259,6 @@ void SupervisorTask::Run()
         else if (!response.connection.done_ntp_synchronized)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          param.systemStatusLock->Take();
-          param.system_status->connection.is_ntp_sync_ongoing = false;
-          param.system_status->connection.is_ntp_synchronized = false;
-          param.systemStatusLock->Give();
           TRACE_ERROR_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
@@ -274,7 +272,38 @@ void SupervisorTask::Run()
       }
       // do something else with non-blocking wait ....
       break;
-    
+
+    case SUPERVISOR_STATE_DO_HTTP:
+      // wait http to be connected
+      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
+      {
+        // ok http gettet configuration or firmware
+        if (response.connection.done_http_configuration_getted || response.connection.done_http_firmware_getted)
+        {
+          param.systemResponseQueue->Dequeue(&response, 0);
+          TRACE_INFO_F(F("%s HTTP connected [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CHECK_OPERATION;
+        }
+        // error: http not gettet configuration or firmware
+        else if (!response.connection.done_http_configuration_getted && !response.connection.done_http_firmware_getted)
+        {
+          param.systemResponseQueue->Dequeue(&response, 0);
+          TRACE_ERROR_F(F("%s HTTP connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CHECK_OPERATION;
+        }
+        // other
+        else
+        {
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+        }
+      }
+      // do something else with non-blocking wait ....
+      break;
+
     case SUPERVISOR_STATE_DO_MQTT:
       // wait mqtt to be connected
       if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
@@ -283,11 +312,6 @@ void SupervisorTask::Run()
         if (response.connection.done_mqtt_connected)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          param.systemStatusLock->Take();
-          param.system_status->connection.is_mqtt_connection_ongoing = false;
-          param.system_status->connection.is_mqtt_connected = true;
-          param.systemStatusLock->Give();
-
           TRACE_INFO_F(F("%s MQTT connected [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
@@ -297,10 +321,6 @@ void SupervisorTask::Run()
         else if (!response.connection.done_mqtt_connected)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          param.systemStatusLock->Take();
-          param.system_status->connection.is_mqtt_connection_ongoing = false;
-          param.system_status->connection.is_mqtt_connected = false;
-          param.systemStatusLock->Give();
           TRACE_ERROR_F(F("%s MQTT connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
@@ -328,7 +348,7 @@ void SupervisorTask::Run()
         request.connection.do_disconnect = true;
 
         param.systemStatusLock->Take();
-        param.system_status->connection.is_disconnection_ongoing = true;
+        param.system_status->connection.is_disconnecting = true;
         param.systemStatusLock->Give();
 
         param.systemRequestQueue->Enqueue(&request, 0);
@@ -376,7 +396,7 @@ bool SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
 void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySemaphore *lock)
 {
   if (lock->Take()) {
-    char stima_name[20];
+    char stima_name[STIMA_MODULE_NAME_LENGTH];
     char topic[MQTT_ROOT_TOPIC_LENGTH];
 
     getStimaNameByType(stima_name, configuration->module_type);
