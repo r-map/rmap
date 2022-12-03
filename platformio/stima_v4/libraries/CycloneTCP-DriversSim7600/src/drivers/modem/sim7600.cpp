@@ -529,6 +529,46 @@ uint32_t SIM7600::getDelayMs()
    return delay_ms;
 }
 
+uint8_t SIM7600::getRssi()
+{
+   return rssi;
+}
+
+uint8_t SIM7600::getBer()
+{
+   return ber;
+}
+
+uint8_t SIM7600::getCregN()
+{
+   return creg_n;
+}
+
+uint8_t SIM7600::getCregStat()
+{
+   return creg_stat;
+}
+
+uint8_t SIM7600::getCgregN()
+{
+   return cgreg_n;
+}
+
+uint8_t SIM7600::getCgregStat()
+{
+   return cgreg_stat;
+}
+
+uint8_t SIM7600::getCeregN()
+{
+   return cereg_n;
+}
+
+uint8_t SIM7600::getCeregStat()
+{
+   return cereg_stat;
+}
+
 void SIM7600::setPins(uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin)
 {
    enable_power_pin = _enable_power_pin;

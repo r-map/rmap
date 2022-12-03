@@ -165,4 +165,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define NETWORK_MOBILE     ("mobile")
 #define NETWORK_TEST       ("test")
 
+#define STIMA_MODULE_NAME_LENGTH                   (20)
+
 #endif

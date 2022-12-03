@@ -469,6 +469,54 @@ public:
    uint32_t getDelayMs();
 
    /*!
+   \fn uint8_t getRssi()
+   \brief get sim7600 rssi of the active connection.
+   */
+   uint8_t getRssi();
+
+   /*!
+    \fn uint8_t getBer()
+    \brief get sim7600 ber of the active connection.
+    */
+   uint8_t getBer();
+
+   /*!
+    \fn uint8_t getCregN()
+    \brief get sim7600 creg n of the active connection.
+    */
+   uint8_t getCregN();
+
+   /*!
+    \fn uint8_t getCregStat()
+    \brief get sim7600 creg stat of the active connection.
+    */
+   uint8_t getCregStat();
+
+   /*!
+    \fn uint8_t getCgregN()
+    \brief get sim7600 cgreg n of the active connection.
+    */
+   uint8_t getCgregN();
+
+   /*!
+    \fn uint8_t getCgregStat()
+    \brief get sim7600 cgreg stat of the active connection.
+    */
+   uint8_t getCgregStat();
+
+   /*!
+    \fn uint8_t getCeregN()
+    \brief get sim7600 cereg n of the active connection.
+    */
+   uint8_t getCeregN();
+
+   /*!
+    \fn uint8_t getCeregStat()
+    \brief get sim7600 cereg stat of the active connection.
+    */
+   uint8_t getCeregStat();
+
+   /*!
    \fn sim7600_status_t sendAtCxreg()
    \brief Send CREG AT command for reading network status.
    \return sim7600 status on each call.

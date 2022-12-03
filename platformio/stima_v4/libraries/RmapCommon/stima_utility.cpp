@@ -23,50 +23,52 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "stima_utility.h"
 
-void getStimaNameByType(char *name, uint8_t type) {
-  switch (type) {
-    case STIMA_MODULE_TYPE_MASTER_ETH:
-    strcpy(name, STIMA_MODULE_NAME_MASTER_ETH);
+void getStimaNameByType(char *name, uint8_t type)
+{
+  switch (type)
+  {
+  case STIMA_MODULE_TYPE_MASTER_ETH:
+    strncpy(name, STIMA_MODULE_NAME_MASTER_ETH, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_MASTER_GSM:
-    strcpy(name, STIMA_MODULE_NAME_MASTER_GSM);
+  case STIMA_MODULE_TYPE_MASTER_GSM:
+    strncpy(name, STIMA_MODULE_NAME_MASTER_GSM, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_RAIN:
-    strcpy(name, STIMA_MODULE_NAME_RAIN);
+  case STIMA_MODULE_TYPE_RAIN:
+    strncpy(name, STIMA_MODULE_NAME_RAIN, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_TH:
-    strcpy(name, STIMA_MODULE_NAME_TH);
+  case STIMA_MODULE_TYPE_TH:
+    strncpy(name, STIMA_MODULE_NAME_TH, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_THR:
-    strcpy(name, STIMA_MODULE_NAME_THR);
+  case STIMA_MODULE_TYPE_THR:
+    strncpy(name, STIMA_MODULE_NAME_THR, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_OPC:
-    strcpy(name, STIMA_MODULE_NAME_OPC);
+  case STIMA_MODULE_TYPE_OPC:
+    strncpy(name, STIMA_MODULE_NAME_OPC, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_LEAF:
-    strcpy(name, STIMA_MODULE_NAME_LEAF);
+  case STIMA_MODULE_TYPE_LEAF:
+    strncpy(name, STIMA_MODULE_NAME_LEAF, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_WIND:
-    strcpy(name, STIMA_MODULE_NAME_WIND);
+  case STIMA_MODULE_TYPE_WIND:
+    strncpy(name, STIMA_MODULE_NAME_WIND, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
-    strcpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION);
+  case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+    strncpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    case STIMA_MODULE_TYPE_GAS:
-    strcpy(name, STIMA_MODULE_NAME_GAS);
+  case STIMA_MODULE_TYPE_GAS:
+    strncpy(name, STIMA_MODULE_NAME_GAS, STIMA_MODULE_NAME_LENGTH);
     break;
 
-    default:
-    strcpy(name, "ERROR");
+  default:
+    strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
     break;
-  }
+    }
 }
