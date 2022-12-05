@@ -24,8 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TRACE_LEVEL SUPERVISOR_TASK_TRACE_LEVEL
 
 #include "tasks/supervisor_task.h"
-#include "drivers/flash.h"
-
 
 using namespace cpp_freertos;
 

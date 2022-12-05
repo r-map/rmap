@@ -24,9 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include "hardware_config.h"
 #include "sensors_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
+#include "stima_utility.h"
 
 /*********************************************************************
 * MODULE
@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MODULE_TYPE
 \brief Type of module. It is defined in registers.h.
 */
-#define MODULE_TYPE       (STIMA_MODULE_TYPE_TH)
+#define MODULE_TYPE       (STIMA_MODULE_TYPE_POWER_MPPT)
 
 #define CONFIGURATION_EEPROM_ADDRESS         (0)
 #define ACCELEROMETER_EEPROM_ADDRESS         (100)

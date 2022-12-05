@@ -25,7 +25,8 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
+*/
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "drivers/module_slave_hal.hpp"
@@ -84,7 +85,7 @@ static void faultStimaV4(int n) {
   }
 #else
   while(1);
-#endif // PIN_BUZZER
+#endif // HFLT_PIN
 }
 //------------------------------------------------------------------------------
 
@@ -103,9 +104,6 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
 
-// Exception Internal
-volatile uint32_t exceptionInt = 0;
-
 //------------------------------------------------------------------------------
 // catch exceptions
 /** Hard fault - blink four short flash every two seconds */
@@ -115,7 +113,6 @@ extern "C" void hard_fault_isr() {
 }
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void HardFault_Handler() {
-  exceptionInt++;
   faultStimaV4(4);
   NVIC_SystemReset();
 }

@@ -73,10 +73,10 @@ extern CAN_HandleTypeDef hcan1;
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 
-// #define _HW_SETUP_GPIO_PRIVATE
 // #define _HW_SETUP_ADC_PRIVATE
 // #define _HW_SETUP_CRC_PRIVATE
 // #define _HW_SETUP_LPTIM_PRIVATE
+// #define _HW_SETUP_RNG_PRIVATE
 
 // ******************************************************************************
 
@@ -203,10 +203,6 @@ extern CRC_HandleTypeDef hcrc;
 
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 extern LPTIM_HandleTypeDef hlptim1;
-#endif
-
-#ifdef _HW_SETUP_SPI_PRIVATE
-extern SPI_HandleTypeDef hspi1;
 #endif
 
 /* Private Hardware_Handler istance initialization ---------------------------------------*/

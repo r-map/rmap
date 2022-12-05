@@ -1,32 +1,49 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    module_slave_hal.hpp
-  * @brief   module_slave hal configuration
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Interface STM32 hardware_hal STIMAV4 Header config
   ******************************************************************************
   * @attention
   *
-  * This software is distributed under the terms of the MIT License.
-  * Progetto RMAP - STIMA V4
-  * Hardware Config, STIMAV4 SLAVE Board - Rev.1.00
-  * Copyright (C) 2022 Digiteco s.r.l.
-  * Author: Gasperini Moreno <m.gasperini@digiteco.it>
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
   *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
   ******************************************************************************
-  */
-/* USER CODE END Header */
+*/
+
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include "STM32FreeRTOSConfig_extra.h"
-// #include "task.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_SLAVE_HAL_H
 #define __MODULE_SLAVE_HAL_H
 
+#define USE_HAL_DRIVER        (true)
+
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (false)
 #define ENABLE_QSPI           (true)
+#define ENABLE_CAN            (true)
+
+// HW Diag PIN redefine
+#define ENABLE_DIAG_PIN       (false)   // No DIAG Pin in MPPT
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -45,15 +62,20 @@ extern TwoWire Wire2;
 
 #if (ENABLE_QSPI)
 extern QSPI_HandleTypeDef hqspi;
+#define QSPI_NVIC_INT_PREMPT_PRIORITY 7
+#endif
+
+#if (ENABLE_CAN)
+extern CAN_HandleTypeDef hcan1;
+#define CAN_NVIC_INT_PREMPT_PRIORITY 8
 #endif
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 
-// #define _HW_SETUP_GPIO_PRIVATE
-// #define _HW_SETUP_CAN_PRIVATE
 // #define _HW_SETUP_CRC_PRIVATE
 // #define _HW_SETUP_LPTIM_PRIVATE
 #define _HW_SETUP_QSPI_PRIVATE
+// #define _HW_SETUP_RNG_PRIVATE
 
 // ******************************************************************************
 
@@ -74,12 +96,14 @@ extern QSPI_HandleTypeDef hqspi;
 #define PIN_USART1_TX   PA10
 #define PIN_USART1_RX   PA9
 
+#if (ENABLE_DIAG_PIN)
 // DIAG PIN (LED + BUTTON COME TEST NUCLEO)
 // Commentare per escludere la funzionalità
-#define HFLT_PIN  PIN_OUT1  // N.C. in Module_Power -> Output Signal Fault_Handler
-#define LED1_PIN  PIN_OUT2  // LED 1 Nucleo Simulator
-#define LED2_PIN  PIN_OUT3  // LED 2 Nucleo Simulator
-#define USER_INP  PIN_IN2   // BTN_I Nucleo Simulator
+// #define HFLT_PIN  // N.C. in Module_Power -> Output Signal Fault_Handler
+// #define LED1_PIN  // LED 1 Nucleo Simulator
+// #define LED2_PIN  // LED 2 Nucleo Simulator
+// #define USER_INP  // BTN_I Nucleo Simulator
+#endif
 
 // *****************************
 
@@ -93,32 +117,12 @@ extern QSPI_HandleTypeDef hqspi;
 
 // Data Istance and Prototype Function Extern "C"
 
-#ifdef _HW_SETUP_ADC_PRIVATE
-extern ADC_HandleTypeDef hadc1;
-#endif
-
-#ifdef _HW_SETUP_CAN_PRIVATE
-extern CAN_HandleTypeDef hcan1;
-#endif
-
 #ifdef _HW_SETUP_CRC_PRIVATE
 extern CRC_HandleTypeDef hcrc;
 #endif
 
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 extern LPTIM_HandleTypeDef hlptim1;
-#endif
-
-#ifdef _HW_SETUP_QSPI_PRIVATE
-extern QSPI_HandleTypeDef hqspi;
-#endif
-
-#ifdef _HW_SETUP_RTC_PRIVATE
-extern RTC_HandleTypeDef hrtc;
-#endif
-
-#ifdef _HW_SETUP_SPI_PRIVATE
-extern SPI_HandleTypeDef hspi1;
 #endif
 
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
@@ -130,15 +134,10 @@ extern "C" {
 void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
 void HAL_MspInit(void);
-
-#ifdef _HW_SETUP_GPIO_PRIVATE
 void MX_GPIO_Init(void);
-#endif
 
-#ifdef _HW_SETUP_CAN_PRIVATE
+#if (ENABLE_CAN)
 void MX_CAN1_Init(void);
-#endif
-#ifdef _HW_MSP_CAN_PRIVATE
 void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
 #endif
@@ -171,38 +170,6 @@ void MX_RNG_Init(void);
 #ifdef _HW_MSP_RNG_PRIVATE
 void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng);
 void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng);
-#endif
-
-#ifdef _HW_SETUP_RTC_PRIVATE
-void MX_RTC_Init(void);
-#endif
-#ifdef _HW_MSP_RTC_PRIVATE
-void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc);
-void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc);
-#endif
-
-#ifdef _HW_SETUP_SD_PRIVATE
-void MX_SDMMC1_SD_Init(void);
-#endif
-#ifdef _HW_MSP_SD_PRIVATE
-void HAL_SD_MspInit(SD_HandleTypeDef* hsd);
-void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd);
-#endif
-
-#ifdef _HW_SETUP_SPI_PRIVATE
-void MX_SPI1_Init(void);
-#endif
-#ifdef _HW_MSP_SPI_PRIVATE
-void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi);
-void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi);
-#endif
-
-#ifdef _HW_SETUP_TIM3_PRIVATE
-void MX_TIM3_Init(void);
-#endif
-#ifdef _HW_MSP_TIM3_PRIVATE
-void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder);
-void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder);
 #endif
 
 #ifdef __cplusplus
