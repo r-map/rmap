@@ -36,16 +36,16 @@ Accelerometer::Accelerometer()
 {
 }
 
-Accelerometer::Accelerometer(TwoWire *_wire, BinarySemaphore *_wireLock, uint8_t _i2c_address)
+Accelerometer::Accelerometer(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 {
-	wire = _wire;
-	wireLock = _wireLock;
-	i2c_address = _i2c_address;
+	_wire = wire;
+	_wireLock = wireLock;
+	_i2c_address = i2c_address;
   // Reset scroll filter array;
   for(uint8_t scrl=0; scrl<ARR_REG_FILTER; scrl++) {
-    raw_scroll[0][scrl] = INT16_MAX;
-    raw_scroll[1][scrl] = INT16_MAX;
-    raw_scroll[2][scrl] = INT16_MAX;
+    _raw_scroll[0][scrl] = INT16_MAX;
+    _raw_scroll[1][scrl] = INT16_MAX;
+    _raw_scroll[2][scrl] = INT16_MAX;
   }
 }
 
@@ -61,19 +61,19 @@ Accelerometer::Accelerometer(TwoWire *_wire, BinarySemaphore *_wireLock, uint8_t
 int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
-	if (wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(1000)))
 	{
     /* Read multiple command */
     reg |= 0x80;
-    Wire.beginTransmission(i2c_address);
-    Wire.write(reg);
-    Wire.endTransmission();
-    Wire.beginTransmission(i2c_address);
-    Wire.requestFrom(i2c_address, len);
+    _wire->beginTransmission(_i2c_address);
+    _wire->write(reg);
+    _wire->endTransmission();
+    _wire->beginTransmission(_i2c_address);
+    _wire->requestFrom(_i2c_address, len);
     for(uint8_t i=0; i<len; i++)
-      *(data + i) = Wire.read();
-    Wire.endTransmission();
-		wireLock->Give();
+      *(data + i) = _wire->read();
+    _wire->endTransmission();
+		_wireLock->Give();
     return 0;
   } else 
     return 1;
@@ -91,16 +91,16 @@ int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t le
 int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
-	if (wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(1000)))
 	{
     // /* Write multiple command */
     reg|=0x80;
-    Wire.beginTransmission(i2c_address);
-    Wire.write(reg);
+    _wire->beginTransmission(_i2c_address);
+    _wire->write(reg);
     for(uint8_t i=0; i<len; i++)
-      Wire.write(*(data + i));
-    Wire.endTransmission();
-		wireLock->Give();
+      _wire->write(*(data + i));
+    _wire->endTransmission();
+		_wireLock->Give();
     return 0;
   } else
     return 1;
@@ -119,14 +119,14 @@ void Accelerometer::push_raw_data(int16_t *data_raw)
 {
   // Scroll Value
   for(u_int8_t i = (ARR_REG_FILTER-1); i>0; i--) {
-    raw_scroll[0][i] = raw_scroll[0][i-1];
-    raw_scroll[1][i] = raw_scroll[1][i-1];
-    raw_scroll[2][i] = raw_scroll[2][i-1];
+    _raw_scroll[0][i] = _raw_scroll[0][i-1];
+    _raw_scroll[1][i] = _raw_scroll[1][i-1];
+    _raw_scroll[2][i] = _raw_scroll[2][i-1];
   }
   // Add New
-  raw_scroll[0][0] = data_raw[0];
-  raw_scroll[1][0] = data_raw[1];
-  raw_scroll[2][0] = data_raw[2];
+  _raw_scroll[0][0] = data_raw[0];
+  _raw_scroll[1][0] = data_raw[1];
+  _raw_scroll[2][0] = data_raw[2];
 }
 
 /// @brief Get mean value from scroll filter raw array
@@ -136,8 +136,8 @@ int16_t Accelerometer::get_raw_mean(coordinate request) {
   uint32_t tmp_data = 0;
   uint8_t tmp_count = 0;
   for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
-    if((raw_scroll[request][i]>=-16000) && (raw_scroll[request][i]<=16000)) {
-      tmp_data += raw_scroll[request][i];
+    if((_raw_scroll[request][i]>=-16000) && (_raw_scroll[request][i]<=16000)) {
+      tmp_data += _raw_scroll[request][i];
       tmp_count++;
     }
   }

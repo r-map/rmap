@@ -656,10 +656,10 @@ public:
 
 protected:
 private:
-  TwoWire *wire;
-  BinarySemaphore *wireLock;
-  uint8_t i2c_address;
-  int16_t raw_scroll[3][ARR_REG_FILTER];
+  TwoWire *_wire;
+  BinarySemaphore *_wireLock;
+  uint8_t _i2c_address;
+  int16_t _raw_scroll[3][ARR_REG_FILTER];
 };
 
 #endif /* _ACCELEROMETR_H */
