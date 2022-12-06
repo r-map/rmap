@@ -112,6 +112,8 @@ extern CAN_HandleTypeDef hcan1;
 #define STB_CAN_GPIO_Port GPIOB
 #define EN_CAN_Pin        GPIO_PIN_12
 #define EN_CAN_GPIO_Port  GPIOC
+#define LTC_SMB_ALERT_Pin GPIO_PIN_2
+#define LTC_SMB_GPIO_Port GPIOA
 
 // ******************************************************************************
 

@@ -1,6 +1,7 @@
 #define TRACE_LEVEL STIMA_TRACE_LEVEL
 
 #include "main.h"
+#include "drivers/mppt.h"
 
 void setup() {
 
@@ -16,6 +17,8 @@ void setup() {
   static Queue *elaborataDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
+
+  Mppt chgBatt;
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
@@ -61,6 +64,16 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
 
+  // Test Mppt
+  uint16_t data;
+  chgBatt = Mppt(supervisorParam.wire, supervisorParam.wireLock);
+  /* Test LTC4015 Command */
+  Serial.print("LTC4015_VIN: ");
+  Serial.println(chgBatt.get_V_IN());
+  Serial.print("LTC4015_VSYS: ");
+  Serial.println(chgBatt.get_V_SYS());
+
+  // Start Task
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
   static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_02, can_param);
   static SupervisorTask supervisor_task("SUPERVISOR TASK", 200, OS_TASK_PRIORITY_01, supervisorParam);
