@@ -66,10 +66,10 @@ void setup() {
   canParam.systemResponseQueue = systemResponseQueue;
   // canParam.requestDataQueue = requestDataQueue;
   // canParam.reportDataQueue = reportDataQueue;
-// #if (ENABLE_I2C2)
-//   canParam.wire = &Wire2;
-//   canParam.wireLock = wire2Lock;
-// #endif
+#if (ENABLE_I2C2)
+  canParam.wire = &Wire2;
+  canParam.wireLock = wire2Lock;
+#endif
 #endif
 
   SupervisorParam_t supervisorParam;
@@ -131,7 +131,7 @@ void setup() {
   static LCDTask lcd_task("LcdTask", 100, OS_TASK_PRIORITY_01, lcdParam);
 
 #if (ENABLE_CAN)
-  // static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
