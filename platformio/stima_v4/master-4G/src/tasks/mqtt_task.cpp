@@ -101,12 +101,6 @@ void MqttTask::Run()
   system_request_t request;
   system_response_t response;
   IpAddr ipAddr;
-  char topic[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
-  char sensors_topic[MQTT_SENSOR_TOPIC_LENGTH];
-  char message[MQTT_MESSAGE_LENGTH];
-  
-  // TODO: da rimuovere
-  strSafeCopy(sensors_topic, "254,0,0/265,0,-,-/B01213", MQTT_SENSOR_TOPIC_LENGTH);
 
   while (true)
   {
@@ -188,7 +182,7 @@ void MqttTask::Run()
         MqttYarrowContext = param.yarrowContext;
         MqttClientPSKKey = param.configuration->client_psk_key;
 
-        // username/stationslug/boardslug
+        // Set PSK identity
         snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
 
         // MQTT over TLS
@@ -206,12 +200,10 @@ void MqttTask::Run()
       mqttClientSetKeepAlive(&mqttClientContext, MQTT_KEEP_ALIVE_S);
 
       // Set client identifier
-      if (strlen(clientIdentifier))
-      {
-        mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
-      }
+      snprintf(clientIdentifier, sizeof(clientIdentifier), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
 
-      // Set user name and password
+      // Set username and password
       if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
       {
         mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
@@ -221,11 +213,11 @@ void MqttTask::Run()
       if (strlen(MQTT_ON_ERROR_MESSAGE))
       {
         snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s", RMAP_PROCOTOL_VERSION, DATA_LEVEL_MAINT, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-        mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, isWillMsgRetain);
+        mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
 
       // Establish connection with the MQTT server
-      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, isCleanSession);
+      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, false);
       // Any error to report?
       if (error)
       {
@@ -239,14 +231,20 @@ void MqttTask::Run()
       }
       else
       {
+        // publish connection message
+        snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+        error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_CONNECT_MESSAGE, strlen(MQTT_ON_CONNECT_MESSAGE), qos, true, NULL);
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_CONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
+
+
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       }
 
       // Subscribe to the desired topics
-      //  error = mqttClientSubscribe(&mqttClientContext, "board/leds/+", qos, NULL);
-      // Any error to report?
-      //  if(error)
-      //   break;
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      error = mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
+
+      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
 
       param.systemStatusLock->Take();
       param.system_status->connection.is_mqtt_connected = true;
@@ -263,12 +261,14 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_PUBLISH:
-      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->data_level, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
-
-      // snprintf(topic, sizeof(topic), "1/report/userv4//1112345,4412345/test/254,0,0/265,0,-,-/B01213");
+      // TODO: da recuperare da SD Card
+      strSafeCopy(sensors_topic, "254,0,0/265,0,-,-/B01213", MQTT_SENSOR_TOPIC_LENGTH);
       snprintf(message, sizeof(message), "msg from ppp");
 
-      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, isPublishRetain, NULL);
+      // Set topic
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->data_level, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
+
+      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
       TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
       if (error)
       {
@@ -287,7 +287,15 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_disconnecting = true;
       param.system_status->connection.is_mqtt_publishing = false;
       param.systemStatusLock->Give();
-      
+
+      // publish disconnection message
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_DISCONNECT_MESSAGE, strlen(MQTT_ON_DISCONNECT_MESSAGE), qos, true, NULL);
+      if (!error)
+      {
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
+      }
+
       mqttClientClose(&mqttClientContext);
       TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
@@ -340,7 +348,7 @@ void MqttTask::Run()
 }
 
 /**
- * @brief Publish callback function
+ * @brief Subscriber callback function
  * @param[in] context Pointer to the MQTT client context
  * @param[in] topic Topic name
  * @param[in] message Message payload
@@ -350,15 +358,15 @@ void MqttTask::Run()
  * @param[in] retain This flag specifies if the message is to be retained
  * @param[in] packetId Packet identifier
  **/
-void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId) {
-  //Debug message
-  TRACE_INFO_F(F("PUBLISH packet received...\r\n"));
-  TRACE_INFO_F(F("  Dup: %u\r\n"), dup);
-  TRACE_INFO_F(F("  QoS: %u\r\n"), qos);
-  TRACE_INFO_F(F("  Retain: %u\r\n"), retain);
-  TRACE_INFO_F(F("  Packet Identifier: %u\r\n"), packetId);
-  TRACE_INFO_F(F("  Topic: %s\r\n"), topic);
-  TRACE_INFO_F(F("  Message (%" PRIuSIZE " bytes):\r\n"), length);
+void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
+{
+  TRACE_INFO_F(F("MQTT packet received...\r\n"));
+  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
+  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
+  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
+  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
+  TRACE_INFO_F(F("Topic: %s\r\n"), topic);
+  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_ARRAY("    ", message, length);
 }
 
@@ -368,7 +376,8 @@ void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const 
  * @param[in] tlsContext Pointer to the TLS context
  * @return Error code
  **/
-error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext) {
+error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
+{
   error_t error;
 
   //Debug message

@@ -101,13 +101,10 @@ private:
   MqttTransportProtocol transportProtocol;
   MqttQosLevel qos;
 
-  bool isCleanSession;
-  bool isWillMsgRetain;
-  bool isPublishRetain;
-
+  char topic[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
+  char sensors_topic[MQTT_SENSOR_TOPIC_LENGTH];
+  char message[MQTT_MESSAGE_LENGTH];
   char clientIdentifier[MQTT_CLIENT_ID_LENGTH];
-  char willTopic[MQTT_WILL_TOPIC_LENGTH];
-  char willMsg[MQTT_WILL_MSG_LENGTH];
 };
 
 #endif

@@ -450,9 +450,9 @@ void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySe
     TRACE_INFO_F(F("-> client psk key "));
     TRACE_INFO_ARRAY("", configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
     TRACE_INFO_F(F("-> mqtt root topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->data_level, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
-    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, DATA_LEVEL_MAINT, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
-    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, DATA_LEVEL_RPC, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
-    #endif
+    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->mqtt_maint_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->mqtt_rpc_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+#endif
 
     lock->Give();
   }
@@ -513,11 +513,13 @@ bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
       strSafeCopy(configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
       strSafeCopy(configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
       strSafeCopy(configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
+      strSafeCopy(configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
+      strSafeCopy(configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
       strSafeCopy(configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
       strSafeCopy(configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
       #endif
 
-      // TODO: da rimuovere da qui in avanti
+      // TODO: da rimuovere
       #if (USE_MQTT)
       uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
       osMemcpy(configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);

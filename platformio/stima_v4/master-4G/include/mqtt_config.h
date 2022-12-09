@@ -129,13 +129,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_DEFAULT_MAINT_TOPIC
 \brief Default MQTT maint topic.
 */
-#define MQTT_DEFAULT_MAINT_TOPIC ("test")
+#define MQTT_DEFAULT_MAINT_TOPIC ("maint")
 
 /*!
 \def MQTT_DEFAULT_SUBSCRIBE_TOPIC
 \brief Default MQTT subscibe topic.
 */
-#define MQTT_DEFAULT_RPC_TOPIC ("test")
+#define MQTT_DEFAULT_RPC_TOPIC ("rpc")
+
+/*!
+\def MQTT_RPC_COM_TOPIC
+\brief MQTT subscibe path for server to stations message.
+*/
+#define MQTT_RPC_COM_TOPIC ("com")
+
+/*!
+\def MQTT_RPC_RES_TOPIC
+\brief MQTT subscibe path for stations to server response.
+*/
+#define MQTT_RPC_RES_TOPIC ("res")
 
 /*!
 \def MQTT_DEFAULT_USERNAME
@@ -159,7 +171,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_ON_CONNECT_MESSAGE
 \brief MQTT on connect message.
 */
-#define MQTT_ON_CONNECT_MESSAGE ("{\"v\":\"conn\",\"s\":%d,\"m\":%d}")
+#define MQTT_ON_CONNECT_MESSAGE ("{\"v\":\"conn\"}")
 
 /*!
 \def MQTT_ON_DISCONNECT_MESSAGE
