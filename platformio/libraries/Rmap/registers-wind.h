@@ -101,74 +101,98 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_WIND_TYPE_ADDRESS                     (I2C_READ_REGISTER_START_ADDRESS)
 
 /*!
-\def I2C_WIND_VERSION_LENGTH
-\brief length of the version variable for i2c-wind module.
+\def I2C_WIND_MAIN_VERSION_LENGTH
+\brief length of the main version variable for i2c-wind module.
 */
-#define I2C_WIND_VERSION_LENGTH                   (0x01)
+#define I2C_WIND_MAIN_VERSION_LENGTH                   (0x01)
 
 /*!
-\def I2C_WIND_VERSION_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\def I2C_WIND_MAIN_VERSION_ADDRESS
+\brief address of the main version variable for i2c-wind module.
 */
-#define I2C_WIND_VERSION_ADDRESS                  (I2C_WIND_TYPE_ADDRESS + I2C_WIND_TYPE_LENGTH)
+#define I2C_WIND_MAIN_VERSION_ADDRESS                  (I2C_WIND_TYPE_ADDRESS + I2C_WIND_TYPE_LENGTH)
+
+/*!
+\def I2C_WIND_MINOR_VERSION_LENGTH
+\brief length of the minor version variable for i2c-wind module.
+*/
+#define I2C_WIND_MINOR_VERSION_LENGTH                   (0x01)
+
+/*!
+\def I2C_WIND_MINOR_VERSION_ADDRESS
+\brief address of the minor version variable for i2c-wind module.
+*/
+#define I2C_WIND_MINOR_VERSION_ADDRESS                  (I2C_WIND_MAIN_VERSION_ADDRESS + I2C_WIND_MAIN_VERSION_LENGTH)
+
+/*!
+\def I2C_WIND_SAMPLE_LENGTH
+\brief length of the speed and direction SAMPLE variables for i2c-wind module.
+*/
+#define I2C_WIND_SAMPLE_LENGTH                    (2 * 0x02)
+
+/*!
+\def I2C_WIND_SAMPLE_ADDRESS
+\brief address  of the speed and direction SAMPLE variables for i2c-wind module.
+*/
+#define I2C_WIND_SAMPLE_ADDRESS                   (I2C_WIND_MINOR_VERSION_ADDRESS + I2C_WIND_MINOR_VERSION_LENGTH)
 
 /*!
 \def I2C_WIND_VAVG10_LENGTH
-\brief length of the version variable for i2c-wind module.
+\brief length of the speed and direction WIND_VAVG10 variables for i2c-wind module.
 */
-#define I2C_WIND_VAVG10_LENGTH                    (2 * 0x04)
+#define I2C_WIND_VAVG10_LENGTH                    (2 * 0x02)
 
 /*!
 \def I2C_WIND_VAVG10_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\brief address  of the speed and direction WIND_VAVG10 variables for i2c-wind module.
 */
-#define I2C_WIND_VAVG10_ADDRESS                   (I2C_WIND_VERSION_ADDRESS + I2C_WIND_VERSION_LENGTH)
+#define I2C_WIND_VAVG10_ADDRESS                   (I2C_WIND_SAMPLE_ADDRESS + I2C_WIND_SAMPLE_LENGTH)
 
 /*!
 \def I2C_WIND_VAVG_LENGTH
-\brief length of the version variable for i2c-wind module.
+\brief  length of the speed and direction WIND_VAVG10 variables for i2c-wind module.
 */
-#define I2C_WIND_VAVG_LENGTH                      (2 * 0x04)
+#define I2C_WIND_VAVG_LENGTH                      (2 * 0x02)
 
 /*!
 \def I2C_WIND_VAVG_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\brief address  of the speed and direction WIND_VAVG variables for i2c-wind module.
 */
 #define I2C_WIND_VAVG_ADDRESS                     (I2C_WIND_VAVG10_ADDRESS + I2C_WIND_VAVG10_LENGTH)
 
 /*!
 \def I2C_WIND_GUST_SPEED_LENGTH
-\brief length of the version variable for i2c-wind module.
+\brief length peak and long gust speed  variables for i2c-wind module.
 */
-#define I2C_WIND_GUST_SPEED_LENGTH                      (2 * 0x04)
+#define I2C_WIND_GUST_SPEED_LENGTH                      (2 * 0x02)
 
 /*!
 \def I2C_WIND_GUST_SPEED_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\brief address peak and long gust speed  variables for i2c-wind module.
 */
 #define I2C_WIND_GUST_SPEED_ADDRESS                     (I2C_WIND_VAVG_ADDRESS + I2C_WIND_VAVG_LENGTH)
 
 /*!
 \def I2C_WIND_SPEED_LENGTH
-\brief length of the version variable for i2c-wind module.
+\brief length of the average speed for i2c-wind module.
 */
-#define I2C_WIND_SPEED_LENGTH                     (1 * 0x04)
+#define I2C_WIND_SPEED_LENGTH                     (0x02)
 
 /*!
 \def I2C_WIND_SPEED_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\brief address of the average speed variable for i2c-wind module.
 */
 #define I2C_WIND_SPEED_ADDRESS                    (I2C_WIND_GUST_SPEED_ADDRESS + I2C_WIND_GUST_SPEED_LENGTH)
 
 /*!
 \def I2C_WIND_CLASS_LENGTH
-\brief length of the version variable for i2c-wind module.
+\brief length of the wind class for i2c-wind module.
 */
-#define I2C_WIND_CLASS_LENGTH                     (6 * 0x04)
+#define I2C_WIND_CLASS_LENGTH                     (6 * 0x01)
 
 /*!
 \def I2C_WIND_CLASS_ADDRESS
-\brief address of the version variable for i2c-wind module.
+\brief address of the wind class variables for i2c-wind module.
 */
 #define I2C_WIND_CLASS_ADDRESS                    (I2C_WIND_SPEED_ADDRESS + I2C_WIND_SPEED_LENGTH)
 
@@ -176,7 +200,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_WIND_GUST_DIRECTION_LENGTH
 \brief length of the version variable for i2c-wind module.
 */
-#define I2C_WIND_GUST_DIRECTION_LENGTH                     (2 * 0x04)
+#define I2C_WIND_GUST_DIRECTION_LENGTH                     (2 * 0x02)
 
 /*!
 \def I2C_WIND_GUST_DIRECTION_ADDRESS

@@ -203,9 +203,9 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 
 #if (USE_SENSOR_GWS)
   // for 644pa
-  #define SENSORS_SAMPLE_TIME_MS                          (2000)
+  //#define SENSORS_SAMPLE_TIME_MS                          (2000)
   // for 1284p
-  //#define SENSORS_SAMPLE_TIME_MS                          (1000)
+  #define SENSORS_SAMPLE_TIME_MS                          (1000)
 #endif
 
 /*!

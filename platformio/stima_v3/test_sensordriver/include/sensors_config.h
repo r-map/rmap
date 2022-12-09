@@ -97,37 +97,44 @@ Max value here is 10
 \def USE_SENSOR_DSA
 \brief Enable if you want average Global Solar Radiation sensor.
 */
-#define USE_SENSOR_DSA              (true)
+#define USE_SENSOR_DSA              (false)
 
 /*!
 \def USE_SENSOR_DWA
-\brief Enable if you want vectorial average Wind Speed and Direction over 10'.
+\brief Enable if you want vectorial average Wind Speed and Direction over 10' (WMO).
 */
-#define USE_SENSOR_DWA              (false)
+#define USE_SENSOR_DWA              (true)
 
 /*!
 \def USE_SENSOR_DWB
 \brief Enable if you want vectorial average Wind Speed and Direction over report time.
 */
-#define USE_SENSOR_DWB              (false)
+#define USE_SENSOR_DWB              (true)
 
 /*!
 \def USE_SENSOR_DWC
-\brief Enable if you want gust Wind Speed and Direction over report time.
+\brief Enable if you want gust and long gust Wind Speed over report time.
 */
-#define USE_SENSOR_DWC              (false)
+#define USE_SENSOR_DWC              (true)
 
 /*!
 \def USE_SENSOR_DWD
 \brief Enable if you want average Wind Speed over report time.
 */
-#define USE_SENSOR_DWD              (false)
+#define USE_SENSOR_DWD              (true)
 
 /*!
 \def USE_SENSOR_DWE
-\brief Enable if you want class Wind Speed over report time.
+\brief Enable if you want frequency class Wind Speed over report time.
 */
-#define USE_SENSOR_DWE              (false)
+#define USE_SENSOR_DWE              (true)
+
+/*!
+\def USE_SENSOR_DWF
+\brief Enable if you want gust and long gust Wind Direction over report time.
+*/
+#define USE_SENSOR_DWF              (true)
+
 
 /*!
 \def USE_SENSOR_OA2

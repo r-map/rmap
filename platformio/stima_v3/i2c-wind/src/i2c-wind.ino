@@ -536,7 +536,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       if (!is_event_command_task) {
 	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
 	lastcommand=i2c_rx_data[1];    // record command to be executed
-        is_event_command_task = true;
+        is_event_command_task = true;  // activate command task
         ready_tasks_count++;
       }
       //interrupts();
@@ -558,9 +558,15 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
+	  //LOGN("write DATA %d:%d",i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i, i2c_rx_data[i + 1]);
+          ((uint8_t *)(writable_data_ptr))[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
         }
       }
+      /*
+      else{
+	LOGE("wrong rxdata address: %d length %d",i2c_rx_data[0],rx_data_length);
+      }
+      */
     }
   } else {
     readable_data_address=0xFF;
@@ -651,7 +657,8 @@ void getSDFromUV (float u, float v, uint16_t *speed, uint16_t *direction) {
 
 void print_registers(void){
     #if ((USE_SENSOR_DES && USE_SENSOR_DED) || USE_SENSOR_GWS)
-  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D\t%D"),
+  LOGN(F("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d"),
+       readable_data_write_ptr->wind.sample_speed, readable_data_write_ptr->wind.sample_direction,
        readable_data_write_ptr->wind.vavg10_speed, readable_data_write_ptr->wind.vavg10_direction,
        readable_data_write_ptr->wind.vavg_speed, readable_data_write_ptr->wind.vavg_direction,
        readable_data_write_ptr->wind.avg_speed,
@@ -664,7 +671,7 @@ void print_registers(void){
        readable_data_write_ptr->wind.class_5,
        readable_data_write_ptr->wind.class_6);
   #elif (USE_SENSOR_DES)
-  LOGN(F("%D\t%D\t%D\t%D\t%D\t%D\t%D"),
+  LOGN(F("%d\t%d\t%d\t%d\t%d\t%d\t%d"),
        readable_data_write_ptr->vavg_speed,
        readable_data_write_ptr->wind.class_1,
        readable_data_write_ptr->wind.class_2,
@@ -756,6 +763,9 @@ void make_report  (bool init) {
   LOGV(F("circular buffer peek: %d , %d"),speed,direction);
   
   if (ISVALID(speed)) {
+
+    readable_data_write_ptr->wind.sample_speed = round(speed/10.);
+
     valid_count_speed++;
 
     avg_speed += (float(speed) - avg_speed) / valid_count_speed;
@@ -787,8 +797,8 @@ void make_report  (bool init) {
 
     if((float(error_count) / float(valid_count_speed) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){   
 
-      readable_data_write_ptr->wind.peak_gust_speed = peak_gust_speed/100.;
-      readable_data_write_ptr->wind.avg_speed = avg_speed/100.;
+      readable_data_write_ptr->wind.peak_gust_speed = round(peak_gust_speed/10.);
+      readable_data_write_ptr->wind.avg_speed = round(avg_speed/10.);
     
       uint8_t class_1 = round(float(class_1_count) / float(valid_count_speed)*100.);
       uint8_t class_2 = round(float(class_2_count) / float(valid_count_speed)*100.);
@@ -812,6 +822,7 @@ void make_report  (bool init) {
   }
   
   if (ISVALID(direction)) {
+    readable_data_write_ptr->wind.sample_direction = direction;
     valid_count_direction++;      
   }else{
     error_count_direction++;
@@ -835,7 +846,7 @@ void make_report  (bool init) {
     if((float(error_count) / float(valid_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){   
       getSDFromUV(ua, va, &speed, &direction);
 
-      readable_data_write_ptr->wind.vavg_speed = speed/100.;
+      readable_data_write_ptr->wind.vavg_speed = round(speed/10.);
       readable_data_write_ptr->wind.vavg_direction = direction;
       
       readable_data_write_ptr->wind.peak_gust_direction = peak_gust_direction;
@@ -881,7 +892,7 @@ void make_report  (bool init) {
       } else if (long_gust_direction == 0) long_gust_direction = 360;  // traslate 0 -> 360      
     }
 
-    readable_data_write_ptr->wind.long_gust_speed = long_gust_speed/100.;
+    readable_data_write_ptr->wind.long_gust_speed = round(long_gust_speed/10.);
     readable_data_write_ptr->wind.long_gust_direction = long_gust_direction;
     
   }else{
@@ -925,7 +936,7 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
     
     getSDFromUV(ub, vb, &speed, &direction);
 
-    readable_data_write_ptr->wind.vavg10_speed = speed/100.;
+    readable_data_write_ptr->wind.vavg10_speed = round(speed/10.);
     readable_data_write_ptr->wind.vavg10_direction = direction;
     
   }else{
@@ -1535,21 +1546,23 @@ void reset_samples_buffer() {
 }
 
 void reset_data(volatile readable_data_t *ptr) {
-  ptr->wind.vavg10_speed = (float) UINT16_MAX;
-  ptr->wind.vavg10_direction = (float) UINT16_MAX;
-  ptr->wind.vavg_speed = (float) UINT16_MAX;
-  ptr->wind.vavg_direction = (float) UINT16_MAX;
-  ptr->wind.avg_speed = (float) UINT16_MAX;
-  ptr->wind.peak_gust_speed = (float) UINT16_MAX;
-  ptr->wind.peak_gust_direction = (float) UINT16_MAX;
-  ptr->wind.long_gust_speed = (float) UINT16_MAX;
-  ptr->wind.long_gust_direction = (float) UINT16_MAX;
-  ptr->wind.class_1 = (float) UINT16_MAX;
-  ptr->wind.class_2 = (float) UINT16_MAX;
-  ptr->wind.class_3 = (float) UINT16_MAX;
-  ptr->wind.class_4 = (float) UINT16_MAX;
-  ptr->wind.class_5 = (float) UINT16_MAX;
-  ptr->wind.class_6 = (float) UINT16_MAX;
+  ptr->wind.sample_speed = UINT16_MAX;
+  ptr->wind.sample_direction = UINT16_MAX;
+  ptr->wind.vavg10_speed = UINT16_MAX;
+  ptr->wind.vavg10_direction = UINT16_MAX;
+  ptr->wind.vavg_speed = UINT16_MAX;
+  ptr->wind.vavg_direction = UINT16_MAX;
+  ptr->wind.avg_speed = UINT16_MAX;
+  ptr->wind.peak_gust_speed = UINT16_MAX;
+  ptr->wind.peak_gust_direction = UINT16_MAX;
+  ptr->wind.long_gust_speed = UINT16_MAX;
+  ptr->wind.long_gust_direction = UINT16_MAX;
+  ptr->wind.class_1 = UINT8_MAX;
+  ptr->wind.class_2 = UINT8_MAX;
+  ptr->wind.class_3 = UINT8_MAX;
+  ptr->wind.class_4 = UINT8_MAX;
+  ptr->wind.class_5 = UINT8_MAX;
+  ptr->wind.class_6 = UINT8_MAX;
 }
 
 void command_task() {
@@ -1643,7 +1656,6 @@ void copy_buffers() {
 }
 
 void commands() {
-  //! CONTINUOUS START
   if (inside_transaction) return;
   
   //! CONTINUOUS TEST
@@ -1661,6 +1673,7 @@ void commands() {
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {
+    stop_timer();
     elaborate_circular_buffer();
     copy_buffers();
     //exchange_buffers();

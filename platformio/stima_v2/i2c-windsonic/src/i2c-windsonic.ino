@@ -1,7 +1,7 @@
 /**********************************************************************
 Copyright (C) 2016  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
-Paolo Paruno <p.patruno@iperbole.bologna.it>
+Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
