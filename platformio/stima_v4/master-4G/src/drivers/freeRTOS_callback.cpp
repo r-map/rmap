@@ -84,7 +84,7 @@ static void faultStimaV4(int n) {
   }
 #else
   while(1);
-#endif // PIN_BUZZER
+#endif // HFLT_PIN
 }
 //------------------------------------------------------------------------------
 

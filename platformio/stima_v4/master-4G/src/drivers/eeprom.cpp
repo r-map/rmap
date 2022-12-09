@@ -50,7 +50,7 @@ EEprom::EEprom(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 bool EEprom::Write(uint16_t address, uint8_t value)
 {
 	bool status = true;
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		_wire->beginTransmission(_i2c_address);
 		if (_wire->endTransmission() == 0)
@@ -61,7 +61,8 @@ bool EEprom::Write(uint16_t address, uint8_t value)
 			_wire->write(value);
 			_wire->endTransmission();
 			// Look time for write min 1.4 mS (On Byte)
-			delay(WR_TIME_MS);
+			vTaskDelay(WR_TIME_MS);
+			// delay(WR_TIME_MS);
 		}
 		else
 		{
@@ -87,7 +88,7 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 	bool status = true;	// status ok
 	bool eot = false;	// end of transmission
 	uint16_t iByte = 0;	// index byte to send
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		while((eot == false)&&(status == true)) {
 			_wire->beginTransmission(_i2c_address);
@@ -109,7 +110,8 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 				// Test other data to write or eot
 				eot = iByte >= length;
 				// Look time for write min 3.6 mS (On Page)
-				delay(WR_TIME_MS);
+				vTaskDelay(WR_TIME_MS);
+				// delay(WR_TIME_MS);
 			}
 			else
 			{
@@ -134,7 +136,7 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 bool EEprom::Read(uint16_t address, uint8_t *value)
 {
 	bool status = true;
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		_wire->beginTransmission(_i2c_address);
 		if (_wire->endTransmission() == 0)
@@ -172,7 +174,7 @@ bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 	bool status = true;
 	bool eor = false;
 	uint16_t iIdx = 0;
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		// Loop to end of receive total byte
 		// Block read divise for PAGESIZE maxreceive bytes

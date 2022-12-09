@@ -54,19 +54,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define MODULE_TYPE (STIMA_MODULE_TYPE_MASTER_GSM)
 
+#define USE_HAL_DRIVER        (true)
+
+// HW device
+#define ENABLE_I2C1           (true)
+#define ENABLE_I2C2           (true)
+#define ENABLE_QSPI           (true)
+#define ENABLE_CAN            (false)
+
+#define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+
+// HW Diag PIN redefine
+#define ENABLE_DIAG_PIN       (true)
+
 #define CONFIGURATION_EEPROM_ADDRESS (0)
 
 #define SERIAL_DEBUG_BAUD_RATE   (115200)
-
-#define USE_HAL_DRIVER           (true)
-
-#define ENABLE_DIAG_PIN          (true)
-
-#define ENABLE_I2C1              (true)
-#define ENABLE_I2C2              (true)
-#define ENABLE_SIM7600E          (true)
-#define ENABLE_QSPI              (true)
-#define ENABLE_CAN               (false)
 
 #define PPP0_INTERFACE_NAME      ("ppp0")
 #define ETH0_INTERFACE_NAME      ("eth0")

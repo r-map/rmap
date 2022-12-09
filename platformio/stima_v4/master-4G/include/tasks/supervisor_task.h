@@ -66,12 +66,12 @@ typedef enum
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
-  BinarySemaphore *wireLock;
-  BinarySemaphore *configurationLock;
-  BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
   // Queue *systemStatusQueue;
-  Queue *systemRequestQueue;
-  Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
   TwoWire *wire;
 } SupervisorParam_t;
 
@@ -87,7 +87,7 @@ private:
   SupervisorState_t state;
   SupervisorParam_t param;
   EEprom eeprom;
-    
+
   void printConfiguration(configuration_t *configuration, BinarySemaphore *lock);
   bool loadConfiguration(configuration_t *configuration, BinarySemaphore *lock);
   bool saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default);

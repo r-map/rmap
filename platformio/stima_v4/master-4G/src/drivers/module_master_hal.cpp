@@ -148,8 +148,8 @@ extern "C" void SystemClock_Config(void)
 
 /// @brief Startup PeripheralConfig Local Board
 /// @param  none
-void SetupSystemPeripheral(void)
-{
+void SetupSystemPeripheral(void) {
+
   FLASH_OBProgramInitTypeDef OBInit;		// flash option bytes copy
 
 	/* get flash option bytes */
@@ -200,26 +200,8 @@ void SetupSystemPeripheral(void)
 	/* Abilito la carica del supercap */
 	HAL_PWREx_EnableBatteryCharging(PWR_BATTERY_CHARGING_RESISTOR_5);
 
-  // TODO: DA RIVERIFICARE
-  #if (ENABLE_SIM7600E)
-  /** USART2 GPIO Configuration
-     PD5     ------> USART2_TX
-     PD6     ------> USART2_RX
-     */
-  __HAL_RCC_GPIOD_FORCE_RESET();
-  __HAL_RCC_GPIOD_RELEASE_RESET();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-  #endif
-
 }
+
 
 // ********************************************************************************************
 // ********************************************************************************************
@@ -232,7 +214,7 @@ void SetupSystemPeripheral(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_CAN1_Init(void)
+void MX_CAN1_Init(void)
 {
   CAN_FilterTypeDef CAN_FilterInitStruct;
 
@@ -277,7 +259,7 @@ extern "C" void MX_CAN1_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_CRC_Init(void)
+void MX_CRC_Init(void)
 {
 
   /* USER CODE BEGIN CRC_Init 0 */
@@ -310,7 +292,7 @@ extern "C" void MX_CRC_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_LPTIM1_Init(void)
+void MX_LPTIM1_Init(void)
 {
 
   /* USER CODE BEGIN LPTIM1_Init 0 */
@@ -346,7 +328,7 @@ extern "C" void MX_LPTIM1_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_QUADSPI_Init(void)
+void MX_QUADSPI_Init(void)
 {
   /* USER CODE BEGIN QUADSPI_Init 0 */
 
@@ -375,13 +357,14 @@ extern "C" void MX_QUADSPI_Init(void)
 }
 #endif
 
+
 #ifdef _HW_SETUP_RNG_PRIVATE
 /**
   * @brief RNG Initialization Function
   * @param None
   * @retval None
   */
-extern "C" void MX_RNG_Init(void)
+void MX_RNG_Init(void)
 {
 
   /* USER CODE BEGIN RNG_Init 0 */
@@ -409,7 +392,7 @@ extern "C" void MX_RNG_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_SDMMC1_SD_Init(void)
+void MX_SDMMC1_SD_Init(void)
 {
 
   /* USER CODE BEGIN SDMMC1_Init 0 */
@@ -447,7 +430,7 @@ extern "C" void MX_SDMMC1_SD_Init(void)
   * @param None
   * @retval None
   */
-extern "C" void MX_USART2_UART_Init(void)
+void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */
@@ -624,7 +607,6 @@ void MX_GPIO_Init(void)
 
 }
 
-
 // ********************************************************************************************
 // ********************************************************************************************
 //                                PRIVATE HAL_MspInit_XXModule
@@ -762,6 +744,28 @@ extern "C" void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc)
   /* USER CODE BEGIN CRC_MspInit 1 */
 
   /* USER CODE END CRC_MspInit 1 */
+  }
+
+}
+
+/**
+* @brief CRC MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hcrc: CRC handle pointer
+* @retval None
+*/
+extern "C" void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
+{
+  if(hcrc->Instance==CRC)
+  {
+  /* USER CODE BEGIN CRC_MspDeInit 0 */
+
+  /* USER CODE END CRC_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_CRC_CLK_DISABLE();
+  /* USER CODE BEGIN CRC_MspDeInit 1 */
+
+  /* USER CODE END CRC_MspDeInit 1 */
   }
 
 }

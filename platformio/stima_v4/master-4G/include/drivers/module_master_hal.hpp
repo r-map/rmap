@@ -1,26 +1,36 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    module_master_hal.hpp
-  * @brief   module_master hal configuration
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Interface STM32 hardware_hal STIMAV4 Header config
   ******************************************************************************
   * @attention
   *
-  * This software is distributed under the terms of the MIT License.
-  * Progetto RMAP - STIMA V4
-  * Hardware Config, STIMAV4 MASTER Board - Rev.1.00
-  * Copyright (C) 2022 Digiteco s.r.l.
-  * Author: Gasperini Moreno <m.gasperini@digiteco.it>
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
   *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
   ******************************************************************************
-  */
-/* USER CODE END Header */
+*/
+
 #include "config.h"
-#include "stima_config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include "STM32FreeRTOSConfig_extra.h"
-// #include "task.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_MASTER_HAL_H
@@ -50,9 +60,6 @@ extern QSPI_HandleTypeDef hqspi;
 extern CAN_HandleTypeDef hcan1;
 #define CAN_NVIC_INT_PREMPT_PRIORITY 8
 #endif
-
-// INIT HW PRIVATE BOARD/ISTANCE CFG
-// #define _HW_MSP_AUTO_PRIVATE
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 
