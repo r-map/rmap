@@ -38,6 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 #include "core/net.h"

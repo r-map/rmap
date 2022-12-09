@@ -1,36 +1,35 @@
 /**
-  ******************************************************************************
-  * @file    module_master_hal.hpp
-  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   Interface STM32 hardware_hal STIMAV4 Header config
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
-  * All rights reserved.</center></h2>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-  * as published by the Free Software Foundation; either version 2
-  * of the License, or (at your option) any later version.
-  * 
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  * 
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  * <http://www.gnu.org/licenses/>.
-  * 
-  ******************************************************************************
-*/
+ ******************************************************************************
+ * @file    module_master_hal.hpp
+ * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+ * @brief   Interface STM32 hardware_hal STIMAV4 Header config
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+ * All rights reserved.</center></h2>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************
+ */
 
 #include "config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
-#include "STM32FreeRTOSConfig_extra.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_MASTER_HAL_H
@@ -38,16 +37,9 @@
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
-#define I2C_MAX_DATA_LENGTH   (32)
-#define I2C_MAX_ERROR_COUNT   (3)
-#endif
-
-#if (ENABLE_I2C1)
-#define I2C1_BUS_CLOCK_HZ     (100000L)
 #endif
 
 #if (ENABLE_I2C2)
-#define I2C2_BUS_CLOCK_HZ     (100000L)
 extern TwoWire Wire2;
 #endif
 
@@ -71,8 +63,8 @@ extern CAN_HandleTypeDef hcan1;
 // #define _HW_SETUP_UART2_PRIVATE
 
 #if (ENABLE_SIM7600E)
-  // SIM7600 Using local driver UART2
-  #undef _HW_SETUP_UART2_PRIVATE
+// SIM7600 Using local driver UART2
+#undef _HW_SETUP_UART2_PRIVATE
 #endif
 // ******************************************************************************
 

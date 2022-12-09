@@ -250,6 +250,7 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_connected = true;
       param.system_status->connection.is_mqtt_connecting = false;
       param.system_status->connection.is_mqtt_publishing = true;
+      param.system_status->mqtt_data_published = 0;
       param.systemStatusLock->Give();
 
       response.connection.done_mqtt_connected = true;
@@ -275,6 +276,12 @@ void MqttTask::Run()
         // Connection to MQTT server lost?
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+      }
+      else
+      {
+        param.systemStatusLock->Take();
+        param.system_status->mqtt_data_published++;
+        param.systemStatusLock->Give();
       }
 
       // pubblica ogni 5 secondi

@@ -28,10 +28,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef.h"
 #include "stima_utility.h"
 #include "str.h"
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "semaphore.hpp"
 #include "queue.hpp"
+#include "drivers/module_master_hal.hpp"
 
 #define SUPERVISOR_TASK_WAIT_DELAY_MS           (10)
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)

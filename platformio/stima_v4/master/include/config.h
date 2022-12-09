@@ -54,13 +54,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define MODULE_TYPE (STIMA_MODULE_TYPE_MASTER_GSM)
 
-#define USE_HAL_DRIVER        (true)
-
 // HW device
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
-#define ENABLE_CAN            (false)
+#define ENABLE_CAN            (true)
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
@@ -91,6 +89,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MQTT  (true)
 #define USE_NTP   (true)
 #define USE_HTTP  (true)
+
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#define I2C_MAX_DATA_LENGTH (32)
+#define I2C_MAX_ERROR_COUNT (3)
+#endif
+
+#if (ENABLE_I2C1)
+#define I2C1_BUS_CLOCK_HZ (100000L)
+#endif
+
+#if (ENABLE_I2C2)
+#define I2C2_BUS_CLOCK_HZ (100000L)
+#endif
 
 /*!
 \def USE_CONSTANTDATA_COUNT

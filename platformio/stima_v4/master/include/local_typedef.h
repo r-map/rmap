@@ -147,6 +147,7 @@ typedef struct
       uint8_t cereg_stat;
    } modem;
 
+   uint32_t mqtt_data_published;
 } system_status_t;
 
 typedef struct

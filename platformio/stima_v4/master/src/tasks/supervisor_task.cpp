@@ -373,12 +373,6 @@ bool SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
   if (lock->Take())
   {
     status = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
-    // for (size_t i = 0; i < sizeof(configuration_t); i++)
-    // {
-    //   uint8_t *ptr = (uint8_t *) configuration;
-    //   status &= eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, &ptr[i], sizeof(uint8_t));
-    // }
-
     lock->Give();
   }
 
@@ -532,12 +526,6 @@ bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
 
     //! write configuration to eeprom
     status = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
-
-    // for (size_t i = 0; i < sizeof(configuration_t); i++)
-    // {
-    //   uint8_t *ptr = (uint8_t *) configuration;
-    //   status &= eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, &ptr[i], sizeof(uint8_t));
-    // }
 
     if (is_default)
     {

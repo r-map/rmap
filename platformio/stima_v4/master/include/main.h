@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
-#include "config.h"
 #include "debug_config.h"
 #include "stima_utility.h"
 #include "task_util.h"
@@ -42,12 +41,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/trng.h"
 #include "rng/yarrow.h"
 
-#if (ENABLE_I2C1 || ENABLE_I2C2)
-#include <Wire.h>
-#endif
-
-#include "tasks/prova_task.h"
 #include "tasks/supervisor_task.h"
+#include "tasks/prova_task.h"
+#include "tasks/lcd_task.h"
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 #include "tasks/modem_task.h"
@@ -65,9 +61,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/mqtt_task.h"
 #endif
 
+#if (ENABLE_CAN)
+#include "tasks/can_task.h"
+#endif
+
 #include "debug_F.h"
 
-using namespace cpp_freertos;
+    using namespace cpp_freertos;
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -124,5 +124,9 @@ void init_tasks(void);
 void init_sensors(void);
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
 bool CAN_HW_Init(void);
+
+void input_pin_encoder_A();
+void input_pin_encoder_B();
+void input_pin_encoder_C();
 
 #endif

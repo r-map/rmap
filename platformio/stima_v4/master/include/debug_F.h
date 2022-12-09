@@ -31,7 +31,7 @@ void print_debug_F(const __FlashStringHelper *fmt, ...);
 
 //Trace output redirection
 #ifndef TRACE_PRINTF_F
-#define TRACE_PRINTF_F(...) osSuspendAllTasks(), print_debug_F(__VA_ARGS__), osResumeAllTasks()
+#define TRACE_PRINTF_F(...) print_debug_F(__VA_ARGS__)
 #endif
 
 //Debugging macros

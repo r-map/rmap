@@ -46,16 +46,18 @@ void init_debug(uint32_t baudrate) {
 
 void print_debug(const char *fmt, ...)
 {
-   va_list args;
-   va_start(args, fmt);
-   vfprintf(stdout, fmt, args);
-   va_end(args);
+  va_list args;
+  va_start(args, fmt);
+  vfprintf(stdout, fmt, args);
+  va_end(args);
 }
 
 void print_debug_F(const __FlashStringHelper *fmt, ...)
 {
-   va_list args;
-   va_start(args, fmt);
-   vfprintf(stdout, (const char *)fmt, args);
-   va_end(args);
+  osSuspendAllTasks();
+  va_list args;
+  va_start(args, fmt);
+  vfprintf(stdout, (const char *)fmt, args);
+  va_end(args);
+  osResumeAllTasks();
 }

@@ -44,6 +44,34 @@ void setup() {
 
   ProvaParam_t provaParam = {};
 
+  LCDParam_t lcdParam;
+  lcdParam.configuration = &configuration;
+  lcdParam.system_status = &system_status;
+  lcdParam.configurationLock = configurationLock;
+  lcdParam.systemStatusLock = systemStatusLock;
+  lcdParam.systemRequestQueue = systemRequestQueue;
+  lcdParam.systemResponseQueue = systemResponseQueue;
+#if (ENABLE_I2C2)
+  lcdParam.wire = &Wire2;
+  lcdParam.wireLock = wire2Lock;
+#endif
+
+#if (ENABLE_CAN)
+  CanParam_t canParam;
+  canParam.configuration = &configuration;
+  canParam.system_status = &system_status;
+  canParam.configurationLock = configurationLock;
+  canParam.systemStatusLock = systemStatusLock;
+  canParam.systemRequestQueue = systemRequestQueue;
+  canParam.systemResponseQueue = systemResponseQueue;
+  // canParam.requestDataQueue = requestDataQueue;
+  // canParam.reportDataQueue = reportDataQueue;
+// #if (ENABLE_I2C2)
+//   canParam.wire = &Wire2;
+//   canParam.wireLock = wire2Lock;
+// #endif
+#endif
+
   SupervisorParam_t supervisorParam;
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
@@ -100,6 +128,12 @@ void setup() {
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
   static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
 
+  static LCDTask lcd_task("LcdTask", 100, OS_TASK_PRIORITY_01, lcdParam);
+
+#if (ENABLE_CAN)
+  // static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+#endif
+
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
 #endif
@@ -109,11 +143,11 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 1000, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 200, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 1000, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 200, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   // Startup Schedulher
@@ -125,6 +159,13 @@ void loop() {
 
 void init_pins()
 {
+  // Attach interrrupt
+  attachInterrupt(PIN_ENCODER_A, input_pin_encoder_A, CHANGE);
+  attachInterrupt(PIN_ENCODER_B, input_pin_encoder_B, CHANGE);
+  attachInterrupt(PIN_ENCODER_INT, input_pin_encoder_C, CHANGE);
+  // Enable Encoder && Display
+  digitalWrite(PIN_ENCODER_EN5, HIGH);
+  digitalWrite(PIN_DSP_POWER, HIGH);
 }
 
 void init_tasks()
@@ -160,6 +201,21 @@ void init_wire()
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
   wire2Lock = new BinarySemaphore(true);
 #endif
+}
+
+void input_pin_encoder_A()
+{
+  TRACE_DEBUG_F(F("ENC_A Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
+}
+
+void input_pin_encoder_B()
+{
+  TRACE_DEBUG_F(F("ENC_B Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
+}
+
+void input_pin_encoder_C()
+{
+  TRACE_DEBUG_F(F("ENC_ENT Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
 }
 
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
