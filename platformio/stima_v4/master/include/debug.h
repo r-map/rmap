@@ -25,52 +25,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define _DEBUG_H
 
 //Dependencies
-#include <Arduino.h>
-#include "compiler_port.h"
-#include "debug_config.h"
 #include <stdio.h>
+#include <stdint.h>
+#include <Arduino.h>
 #include "os_port.h"
 
-// C++ guard
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define OK_STRING           "OK"
-#define NO_STRING           "NO"
-#define YES_STRING          "YES"
-#define FAIL_STRING         "FAIL"
-#define ERROR_STRING        "ERROR"
-#define REDUNDANT_STRING    "REDUNDANT"
-#define MAIN_STRING         "MAIN"
+#define OK_STRING             "OK"
+#define NO_STRING             "NO"
+#define YES_STRING            "YES"
+#define FAIL_STRING           "FAIL"
+#define ERROR_STRING          "ERROR"
+#define REDUNDANT_STRING      "REDUNDANT"
+#define MAIN_STRING           "MAIN"
+#define ON_STRING             "ON"
+#define OFF_STRING            "OFF"
 
 //Trace level definitions
-#define TRACE_LEVEL_OFF      0
-#define TRACE_LEVEL_FATAL    1
-#define TRACE_LEVEL_ERROR    2
-#define TRACE_LEVEL_WARNING  3
-#define TRACE_LEVEL_INFO     4
-#define TRACE_LEVEL_DEBUG    5
-#define TRACE_LEVEL_VERBOSE  6
+#define TRACE_LEVEL_OFF       0
+#define TRACE_LEVEL_FATAL     1
+#define TRACE_LEVEL_ERROR     2
+#define TRACE_LEVEL_WARNING   3
+#define TRACE_LEVEL_INFO      4
+#define TRACE_LEVEL_DEBUG     5
+#define TRACE_LEVEL_VERBOSE   6
 
 //Default trace level
 #ifndef TRACE_LEVEL
    #define TRACE_LEVEL TRACE_LEVEL_DEBUG
 #endif
 
+void print_debug(const char *fmt, ...);
+
 //Trace output redirection
 #ifndef TRACE_PRINTF
-  #if (SERIAL_DEBUG_SUPPORT == ENABLED)
-    #define TRACE_PRINTF(...) osSuspendAllTasks(), Serial.printf(__VA_ARGS__), osResumeAllTasks()
-  #endif
+#define TRACE_PRINTF(...) osSuspendAllTasks(), print_debug(__VA_ARGS__), osResumeAllTasks()
 #endif
 
 #ifndef TRACE_ARRAY
-   #define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), debugDisplayArray(&Serial, p, a, n), osResumeAllTasks()
+#define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), print_debug_array(p, a, n), osResumeAllTasks()
 #endif
 
 #ifndef TRACE_MPI
-   // #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stderr, p, a), osResumeAllTasks()
+   #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
 #endif
 
 //Debugging macros
@@ -140,10 +136,17 @@ extern "C" {
    #define TRACE_VERBOSE_MPI(p, a)
 #endif
 
+#define printError(error, ok_str, error_str) (error == NO_ERROR ? ok_str : error_str)
+
+//C++ guard
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 //Debug related functions
 void init_debug(uint32_t baudrate);
 
-void debugDisplayArray(FILE *stream, const char_t *prepend, const void *data, size_t length);
+void print_debug_array(const char *prepend, const void *data, size_t length);
 
 //Deprecated definitions
 #define TRACE_LEVEL_NO_TRACE TRACE_LEVEL_OFF

@@ -24,10 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _PROVA_TASK_H
 #define _PROVA_TASK_H
 
-#include "STM32FreeRTOS.h"
+#include "debug_config.h"
+#include "str.h"
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
-#include "debug.h"
+#include "debug_F.h"
 
 typedef struct {
   int x;
@@ -42,10 +44,7 @@ protected:
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
-  ProvaParam_t ProvaParam;
+  ProvaParam_t param;
 };
 
 #endif

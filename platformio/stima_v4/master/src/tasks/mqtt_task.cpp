@@ -27,17 +27,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-YarrowContext *MqttParamYarrowContext;
+#if (USE_MQTT)
 
-//Client's PSK identity
-#define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
+YarrowContext *MqttYarrowContext;
 
-//Client's PSK
-const uint8_t clientPsk[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
+// Client's PSK key
+uint8_t *MqttClientPSKKey;
+
+// Client's PSK identity
+char_t MqttClientPSKIdentity[CLIENT_PSK_IDENTITY_LENGTH];
+
+char_t *MqttServer;
+
+// //Client's PSK identity
+// #define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
+
+// //Client's PSK
+// const uint8_t MqttClientPSKKey[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
 
 //List of preferred ciphersuites
 //https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
-const uint16_t cipherSuites[] = {
+const uint16_t cipherSuites[] =
+{
   // rmap server psk ciphers
   TLS_PSK_WITH_AES_256_CCM                      // WEAK BUT WORK
   // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256            // RECOMMENDED BUT NOT WORK
@@ -73,13 +84,271 @@ const uint16_t cipherSuites[] = {
   // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256
 };
 
-MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), MqttParam(mqttParam) {
+MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), param(mqttParam)
+{
   state = MQTT_STATE_INIT;
+  version = MQTT_VERSION_3_1_1;
+  transportProtocol = MQTT_TRANSPORT_PROTOCOL_TLS;
+  qos = MQTT_QOS_LEVEL_1;
   Start();
 };
 
+void MqttTask::Run()
+{
+  uint8_t retry;
+  bool is_error;
+  error_t error;
+  system_request_t request;
+  system_response_t response;
+  IpAddr ipAddr;
+
+  while (true)
+  {
+    memset(&request, 0, sizeof(system_request_t));
+    memset(&response, 0, sizeof(system_response_t));
+
+    switch (state)
+    {
+    case MQTT_STATE_INIT:
+      state = MQTT_STATE_WAIT_NET_EVENT;
+      TRACE_VERBOSE_F(F("MQTT_STATE_INIT -> MQTT_STATE_WAIT_NET_EVENT\r\n"));
+      break;
+
+    case MQTT_STATE_WAIT_NET_EVENT:
+      retry = 0;
+      is_error = false;
+
+      // wait connection request
+      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
+      {
+        // do mqtt connection
+        if (request.connection.do_mqtt_connect)
+        {
+          MqttServer = param.configuration->mqtt_server;
+          // strSafeCopy(MqttServer, param.configuration->mqtt_server, MQTT_SERVER_LENGTH);
+          
+          param.systemRequestQueue->Dequeue(&request, 0);
+          TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_CONNECT\r\n"));
+          state = MQTT_STATE_CONNECT;
+        }
+        // do disconnect
+        else if (request.connection.do_mqtt_disconnect)
+        {
+          param.systemRequestQueue->Dequeue(&request, 0);
+          TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_DISCONNECT\r\n"));
+          state = MQTT_STATE_DISCONNECT;
+          Suspend();
+        }
+        // other
+        else
+        {
+          Delay(Ticks::MsToTicks(MQTT_TASK_WAIT_DELAY_MS));
+        }
+      }
+      // do something else with non-blocking wait ....
+      break;
+
+    case MQTT_STATE_CONNECT:
+      error = mqttClientInit(&mqttClientContext);
+      if (error)
+      {
+        TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+      }
+      
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connecting = true;
+      param.systemStatusLock->Give();
+
+      TRACE_INFO_F(F("%s Resolving mqtt server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
+      // Resolve MQTT server name
+      error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
+      if (error)
+      {
+        is_error = true;
+
+        TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
+
+        state = MQTT_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
+        break;
+      }
+
+      // Set the MQTT version to be used
+      mqttClientSetVersion(&mqttClientContext, version);
+
+      if (transportProtocol == MQTT_TRANSPORT_PROTOCOL_TLS)
+      {
+        // Shared Pointer
+        MqttYarrowContext = param.yarrowContext;
+        MqttClientPSKKey = param.configuration->client_psk_key;
+
+        // Set PSK identity
+        snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+
+        // MQTT over TLS
+        mqttClientSetTransportProtocol(&mqttClientContext, MQTT_TRANSPORT_PROTOCOL_TLS);
+        // Register TLS initialization callback
+        mqttClientRegisterTlsInitCallback(&mqttClientContext, mqttTlsInitCallback);
+      }
+
+      // Register publish callback function
+      mqttClientRegisterPublishCallback(&mqttClientContext, mqttPublishCallback);
+
+      // Set communication timeout
+      mqttClientSetTimeout(&mqttClientContext, MQTT_TIMEOUT_MS);
+      // Set keep-alive value
+      mqttClientSetKeepAlive(&mqttClientContext, MQTT_KEEP_ALIVE_S);
+
+      // Set client identifier
+      snprintf(clientIdentifier, sizeof(clientIdentifier), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
+
+      // Set username and password
+      if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
+      {
+        mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
+      }
+
+      // Set Will message
+      if (strlen(MQTT_ON_ERROR_MESSAGE))
+      {
+        snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s", RMAP_PROCOTOL_VERSION, DATA_LEVEL_MAINT, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+        mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
+      }
+
+      // Establish connection with the MQTT server
+      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, false);
+      // Any error to report?
+      if (error)
+      {
+        is_error = true;
+
+        TRACE_ERROR_F(F("%s Failed to connect to mqtt server %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
+
+        TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
+        state = MQTT_STATE_DISCONNECT;
+        break;
+      }
+      else
+      {
+        // publish connection message
+        snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+        error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_CONNECT_MESSAGE, strlen(MQTT_ON_CONNECT_MESSAGE), qos, true, NULL);
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_CONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
+
+
+        TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+      }
+
+      // Subscribe to the desired topics
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      error = mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
+
+      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
+
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = true;
+      param.system_status->connection.is_mqtt_connecting = false;
+      param.system_status->connection.is_mqtt_publishing = true;
+      param.systemStatusLock->Give();
+
+      response.connection.done_mqtt_connected = true;
+      param.systemResponseQueue->Enqueue(&response, 0);
+
+      // Successful connection?
+      state = MQTT_STATE_PUBLISH;
+      TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_PUBLISH\r\n"));
+      break;
+
+    case MQTT_STATE_PUBLISH:
+      // TODO: da recuperare da SD Card
+      strSafeCopy(sensors_topic, "254,0,0/265,0,-,-/B01213", MQTT_SENSOR_TOPIC_LENGTH);
+      snprintf(message, sizeof(message), "msg from ppp");
+
+      // Set topic
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->data_level, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
+
+      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
+      TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+      if (error)
+      {
+        // Connection to MQTT server lost?
+        state = MQTT_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+      }
+
+      // pubblica ogni 5 secondi
+      Delay(Ticks::MsToTicks(5000));
+      break;
+
+    case MQTT_STATE_DISCONNECT:
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = false;
+      param.system_status->connection.is_mqtt_disconnecting = true;
+      param.system_status->connection.is_mqtt_publishing = false;
+      param.systemStatusLock->Give();
+
+      // publish disconnection message
+      snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_DISCONNECT_MESSAGE, strlen(MQTT_ON_DISCONNECT_MESSAGE), qos, true, NULL);
+      if (!error)
+      {
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
+      }
+
+      mqttClientClose(&mqttClientContext);
+      TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+      
+      state = MQTT_STATE_END;
+      TRACE_VERBOSE_F(F("MQTT_STATE_DISCONNECT -> MQTT_STATE_END\r\n"));
+      break;
+
+    case MQTT_STATE_END:
+      // ok
+      if (!is_error)
+      {
+        response.connection.done_mqtt_disconnected = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_mqtt_disconnecting = false;
+        param.system_status->connection.is_mqtt_disconnected = true;
+        param.systemStatusLock->Give();
+
+        mqttClientDeinit(&mqttClientContext);
+        state = MQTT_STATE_INIT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      }
+      // retry
+      else if ((++retry) < MQTT_TASK_GENERIC_RETRY)
+      {
+        Delay(Ticks::MsToTicks(MQTT_TASK_GENERIC_RETRY_DELAY_MS));
+
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_CONNECT\r\n"));
+        state = MQTT_STATE_CONNECT;
+      }
+      // error
+      else
+      {
+        response.connection.done_mqtt_disconnected = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_mqtt_disconnecting = false;
+        param.system_status->connection.is_mqtt_disconnected = true;
+        param.systemStatusLock->Give();
+
+        mqttClientDeinit(&mqttClientContext);
+        state = MQTT_STATE_INIT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      }
+      break;
+    }
+  }
+}
+
 /**
- * @brief Publish callback function
+ * @brief Subscriber callback function
  * @param[in] context Pointer to the MQTT client context
  * @param[in] topic Topic name
  * @param[in] message Message payload
@@ -89,15 +358,15 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
  * @param[in] retain This flag specifies if the message is to be retained
  * @param[in] packetId Packet identifier
  **/
-void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId) {
-  //Debug message
-  TRACE_INFO("PUBLISH packet received...\r\n");
-  TRACE_INFO("  Dup: %u\r\n", dup);
-  TRACE_INFO("  QoS: %u\r\n", qos);
-  TRACE_INFO("  Retain: %u\r\n", retain);
-  TRACE_INFO("  Packet Identifier: %u\r\n", packetId);
-  TRACE_INFO("  Topic: %s\r\n", topic);
-  TRACE_INFO("  Message (%" PRIuSIZE " bytes):\r\n", length);
+void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
+{
+  TRACE_INFO_F(F("MQTT packet received...\r\n"));
+  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
+  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
+  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
+  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
+  TRACE_INFO_F(F("Topic: %s\r\n"), topic);
+  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_ARRAY("    ", message, length);
 }
 
@@ -107,38 +376,39 @@ void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const 
  * @param[in] tlsContext Pointer to the TLS context
  * @return Error code
  **/
-error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext) {
+error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
+{
   error_t error;
 
   //Debug message
-  TRACE_INFO("MQTT: TLS initialization callback\r\n");
+  TRACE_INFO_F(F("MQTT TLS initialization callback\r\n"));
 
   //Set the PRNG algorithm to be used
-  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, MqttParamYarrowContext);
+  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, MqttYarrowContext);
   //Any error to report?
   if(error)
     return error;
 
   //Preferred cipher suite list
-  error = tlsSetCipherSuites(tlsContext, cipherSuites, arraysize(cipherSuites));
+  error = tlsSetCipherSuites(tlsContext, cipherSuites, sizeof(cipherSuites));
   // Any error to report?
   if(error)
     return error;
 
   //Set the fully qualified domain name of the server
-  error = tlsSetServerName(tlsContext, "test.rmap.cc");
+  error = tlsSetServerName(tlsContext, MqttServer);
   //Any error to report?
   if(error)
     return error;
 
   //Set the PSK identity to be used by the client
-  error = tlsSetPskIdentity(tlsContext, APP_CLIENT_PSK_IDENTITY);
+  error = tlsSetPskIdentity(tlsContext, MqttClientPSKIdentity);
   //Any error to report?
   if(error)
     return error;
 
   //Set the pre-shared key to be used
-  error = tlsSetPsk(tlsContext, clientPsk, sizeof(clientPsk));
+  error = tlsSetPsk(tlsContext, MqttClientPSKKey, CLIENT_PSK_KEY_LENGTH);
   //Any error to report?
   if(error)
     return error;
@@ -147,137 +417,4 @@ error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext) 
   return NO_ERROR;
 }
 
-void MqttTask::Run() {
-  //Initialize variables
-  error = NO_ERROR;
-  isConnected = false;
-
-  while (true) {
-    switch (state) {
-      case MQTT_STATE_INIT:
-        error = initCPRNG(&MqttParam.yarrowContext);
-        if (error) {
-          TRACE_ERROR("Failed to initialize Cryptographic Pseudo Random Number Generator!\r\n");
-        }
-
-        //Initialize MQTT client context
-        error = mqttClientInit(&MqttParam.mqttClientContext);
-        if (error) {
-          TRACE_ERROR("Failed to initialize MQTT client!\r\n");
-        }
-
-        state = MQTT_STATE_OPEN_CONNECTION;
-        TRACE_VERBOSE("MQTT_STATE_INIT -> MQTT_STATE_OPEN_CONNECTION\r\n");
-      break;
-
-      case MQTT_STATE_OPEN_CONNECTION:
-        while(!isNetReady(NULL)) {
-          Delay(Ticks::MsToTicks(500));
-        }
-
-        TRACE_INFO("\r\n\r\nResolving server name...\r\n");
-        // Resolve MQTT server name
-        error = getHostByName(NULL, MqttParam.server, &serverIpAddr, 0);
-        if (error) {
-          state = MQTT_STATE_CLOSE_CONNECTION;
-          TRACE_VERBOSE("MQTT_STATE_OPEN_CONNECTION -> MQTT_STATE_CLOSE_CONNECTION\r\n");
-          break;
-        }
-
-        //Set the MQTT version to be used
-        mqttClientSetVersion(&MqttParam.mqttClientContext, MqttParam.version);
-
-        if (MqttParam.transportProtocol == MQTT_TRANSPORT_PROTOCOL_TCP) {
-          //MQTT over TCP
-          mqttClientSetTransportProtocol(&MqttParam.mqttClientContext, MQTT_TRANSPORT_PROTOCOL_TCP);
-        }
-        else if (MqttParam.transportProtocol == MQTT_TRANSPORT_PROTOCOL_TLS) {
-          //Shared Pointer
-          MqttParamYarrowContext = &MqttParam.yarrowContext;
-          //MQTT over TLS
-          mqttClientSetTransportProtocol(&MqttParam.mqttClientContext, MQTT_TRANSPORT_PROTOCOL_TLS);
-          //Register TLS initialization callback
-          mqttClientRegisterTlsInitCallback(&MqttParam.mqttClientContext, mqttTlsInitCallback);
-        }
-
-        //Register publish callback function
-        mqttClientRegisterPublishCallback(&MqttParam.mqttClientContext, mqttPublishCallback);
-
-        //Set communication timeout
-        mqttClientSetTimeout(&MqttParam.mqttClientContext, MqttParam.timeoutMs);
-        //Set keep-alive value
-        mqttClientSetKeepAlive(&MqttParam.mqttClientContext, MqttParam.keepAliveS);
-
-        //Set client identifier
-        if (strlen(MqttParam.clientIdentifier)) {
-          mqttClientSetIdentifier(&MqttParam.mqttClientContext, MqttParam.clientIdentifier);
-        }
-
-        //Set user name and password
-        if (strlen(MqttParam.username) && strlen(MqttParam.password)) {
-          mqttClientSetAuthInfo(&MqttParam.mqttClientContext, "username", "password");
-        }
-
-        //Set Will message
-        if (strlen(MqttParam.willTopic) && strlen(MqttParam.willMsg)) {
-          mqttClientSetWillMessage(&MqttParam.mqttClientContext, MqttParam.willTopic, MqttParam.willMsg, strlen(MqttParam.willMsg), MqttParam.qos, MqttParam.isWillMsgRetain);
-        }
-
-        //Debug message
-        TRACE_INFO("Connecting to MQTT server %s...\r\n", ipAddrToString(&serverIpAddr, NULL));
-
-        //Establish connection with the MQTT server
-        error = mqttClientConnect(&MqttParam.mqttClientContext, &serverIpAddr, MqttParam.port, MqttParam.isCleanSession);
-        //Any error to report?
-        if (error) {
-          state = MQTT_STATE_CLOSE_CONNECTION;
-          break;
-        }
-
-        //Subscribe to the desired topics
-        // error = mqttClientSubscribe(&mqttClientContext, "board/leds/+", MqttParam.qos, NULL);
-        //Any error to report?
-        // if(error)
-        //  break;
-
-        //Successful connection?
-        //The MQTT client is connected to the server
-        isConnected = TRUE;
-        state = MQTT_STATE_PUBLISH;
-        TRACE_VERBOSE("MQTT_STATE_OPEN_CONNECTION -> MQTT_STATE_PUBLISH\r\n");
-
-        //Delay between subsequent connection attempts
-        Delay(Ticks::MsToTicks(MqttParam.attemptDelayMs));
-        TRACE_VERBOSE("MQTT_STATE_OPEN_CONNECTION -> Retry\r\n");
-      break;
-
-      case MQTT_STATE_PUBLISH:
-        //Send PUBLISH packet
-        error = mqttClientPublish(&MqttParam.mqttClientContext, "1/report/userv4//1112345,4412345/test/254,0,0/265,0,-,-/B01213", "online", 6, MqttParam.qos, MqttParam.isPublishRetain, NULL);
-        if (error) {
-          //Connection to MQTT server lost?
-          state = MQTT_STATE_CLOSE_CONNECTION;
-          TRACE_VERBOSE("MQTT_STATE_PUBLISH -> MQTT_STATE_CLOSE_CONNECTION\r\n");
-        }
-        // pubblica ogni 5 secondi
-        Delay(Ticks::MsToTicks(5000));
-      break;
-
-      case MQTT_STATE_CLOSE_CONNECTION:
-        //Close connection
-        mqttClientClose(&MqttParam.mqttClientContext);
-        //Update connection state
-        isConnected = FALSE;
-        state = MQTT_STATE_END;
-        //Recovery delay
-        // Delay(Ticks::MsToTicks(MqttParam.attemptDelayMs));
-        // state = MQTT_STATE_OPEN_CONNECTION;
-      break;
-
-      case MQTT_STATE_END:
-        state = MQTT_STATE_INIT;
-        Thread::Suspend();
-      break;
-    }
-  }
-}
+#endif

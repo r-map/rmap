@@ -622,6 +622,11 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         size_t                              size = transfer->payload_size;
                         if (rmap_service_module_TH_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
+                            typedef struct
+                            {
+                                uint32_t data_ora;
+                                uint8_t buffer[300];
+                            } dato_t;
                             // Resetta il pending del comando del nodo verificato (size_mem preparato in avvio)
                             // Copia la risposta nella variabile di chiamata in state
                             // Oppure possibile gestire qua tutte le occorrenze per stima V4

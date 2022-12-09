@@ -31,53 +31,50 @@
 #ifndef _NET_CONFIG_H
 #define _NET_CONFIG_H
 
-#include "debug_config.h"
-
-#define APP_ETHERNET_TICK_EVENT_HANDLER_MS    (100)
-#define APP_MQTT_ATTEMPT_DELAY_MS             (1000)
-#define APP_MQTT_TIMEOUT_MS                   (60000)
-#define APP_MQTT_KEEP_ALIVE_S                 (30)
-#define APP_MQTT_SERVER_NAME_LENGTH           (40)
-#define APP_MQTT_CLIENT_IDENTIFIER_LENGTH     (40)
-#define APP_MQTT_USERNAME_LENGTH              (40)
-#define APP_MQTT_PASSWORD_LENGTH              (40)
-#define APP_MQTT_WILL_TOPIC_LENGTH            (100)
-#define APP_MQTT_WILL_MSG_LENGTH              (100)
-
-#define APP_PSK_IDENTITY_LENGTH               (40)
-
-// Ethernet interface configuration
-#define APP_IF_NAME "eth0"
-#define APP_HOST_NAME "STIMA"
-#define APP_MAC_ADDR "9C-49-D0-29-1D-FE"
-
-#define APP_USE_DHCP_CLIENT ENABLED
-#define APP_IPV4_HOST_ADDR "192.168.88.50"
-#define APP_IPV4_SUBNET_MASK "255.255.255.0"
-#define APP_IPV4_DEFAULT_GATEWAY "192.168.88.1"
-#define APP_IPV4_PRIMARY_DNS "8.8.8.8"
-#define APP_IPV4_SECONDARY_DNS "8.8.4.4"
-
-#define APP_USE_SLAAC DISABLED
-#define APP_IPV6_LINK_LOCAL_ADDR "fe80::755"
-#define APP_IPV6_PREFIX "2001:db8::"
-#define APP_IPV6_PREFIX_LENGTH 64
-#define APP_IPV6_GLOBAL_ADDR "2001:db8::755"
-#define APP_IPV6_ROUTER "fe80::1"
-#define APP_IPV6_PRIMARY_DNS "2001:4860:4860::8888"
-#define APP_IPV6_SECONDARY_DNS "2001:4860:4860::8844"
-
-// Application configuration
-#define APP_MQTT_SERVER_NAME "test.rmap.cc"
-#define APP_MQTT_SERVER_PORT 8885
-
-#define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
-#define APP_SET_CIPHER_SUITES ENABLED
-#define APP_SET_SERVER_NAME ENABLED
+#define MEM_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define NIC_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define ETH_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define LLDP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define ARP_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define IP_TRACE_LEVEL           TRACE_LEVEL_OFF
+#define IPV4_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define IPV6_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define ICMP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define IGMP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define ICMPV6_TRACE_LEVEL       TRACE_LEVEL_OFF
+#define MLD_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define NDP_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define UDP_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define TCP_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define SOCKET_TRACE_LEVEL       TRACE_LEVEL_OFF
+#define RAW_SOCKET_TRACE_LEVEL   TRACE_LEVEL_OFF
+#define BSD_SOCKET_TRACE_LEVEL   TRACE_LEVEL_OFF
+#define WEB_SOCKET_TRACE_LEVEL   TRACE_LEVEL_OFF
+#define AUTO_IP_TRACE_LEVEL      TRACE_LEVEL_OFF
+#define SLAAC_TRACE_LEVEL        TRACE_LEVEL_OFF
+#define DHCP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define DHCPV6_TRACE_LEVEL       TRACE_LEVEL_OFF
+#define DNS_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define MDNS_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define NBNS_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define LLMNR_TRACE_LEVEL        TRACE_LEVEL_OFF
+#define COAP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define FTP_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define HTTP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define MQTT_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define MQTT_SN_TRACE_LEVEL      TRACE_LEVEL_OFF
+#define SMTP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define SNMP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define SNTP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define TFTP_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define MODBUS_TRACE_LEVEL       TRACE_LEVEL_OFF
+#define PPP_TRACE_LEVEL          TRACE_LEVEL_OFF
 
 //Number of network adapters
 #define NET_INTERFACE_COUNT 1
 
+//Ethernet support
+#define ETH_SUPPORT DISABLED
 //Size of the MAC address filter
 #define MAC_ADDR_FILTER_SIZE 12
 
@@ -100,7 +97,9 @@
 #define ARP_MAX_PENDING_PACKETS 2
 
 //IGMP host support
-#define IGMP_HOST_SUPPORT ENABLED
+#define IGMP_HOST_SUPPORT DISABLED
+//DHCP client support
+#define DHCP_CLIENT_SUPPORT DISABLED
 
 //IPv6 support
 #define IPV6_SUPPORT DISABLED
@@ -116,7 +115,7 @@
 #define IPV6_MAX_FRAG_DATAGRAM_SIZE 8192
 
 //MLD support
-#define MLD_SUPPORT ENABLED
+#define MLD_SUPPORT DISABLED
 
 //Neighbor cache size
 #define NDP_NEIGHBOR_CACHE_SIZE 8
@@ -151,19 +150,45 @@
 //Number of sockets that can be opened simultaneously
 #define SOCKET_MAX_COUNT 10
 
-//LLMNR responder support
+#define DNS_CLIENT_SUPPORT ENABLED
+#define DNS_CLIENT_INIT_TIMEOUT 20000
+#define DNS_CLIENT_MAX_TIMEOUT 20000
+
+//NBNS client support
+#define NBNS_CLIENT_SUPPORT DISABLED
+//NBNS responder support
+#define NBNS_RESPONDER_SUPPORT DISABLED
+
+//HTTP client support
+#define HTTP_CLIENT_SUPPORT ENABLED
+//HTTP over TLS
+#define HTTP_CLIENT_TLS_SUPPORT DISABLED
+//HTTP timeout
+#define HTTP_CLIENT_TIMEOUT_MS (20000)
+
+// SNTP timeout
+#define SNTP_CLIENT_TIMEOUT_MS (20000)
+
+//PPP support
+#define PPP_SUPPORT ENABLED
+//PAP authentication support
+#define PAP_SUPPORT DISABLED
+//CHAP authentication support
+#define CHAP_SUPPORT DISABLED
+
+// LLMNR responder support
 #define LLMNR_RESPONDER_SUPPORT ENABLED
 
-//WebSocket support
+// WebSocket support
 #define WEB_SOCKET_SUPPORT DISABLED
-//Support for WebSocket connections over TLS
+// Support for WebSocket connections over TLS
 #define WEB_SOCKET_TLS_SUPPORT DISABLED
 
-//MQTT client support
+// MQTT client support
 #define MQTT_CLIENT_SUPPORT ENABLED
-//MQTT over TLS
+// MQTT over TLS
 #define MQTT_CLIENT_TLS_SUPPORT ENABLED
-//MQTT over WebSocket
+// MQTT over WebSocket
 #define MQTT_CLIENT_WS_SUPPORT DISABLED
 
 #endif

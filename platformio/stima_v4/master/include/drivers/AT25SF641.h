@@ -1,17 +1,31 @@
 /**
   ******************************************************************************
-  * @file    AT25SF641.h
-  * @author  AL
+  * @file    AT25SF641.h (Flash Register and Config 8_MByte)
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   This file contains all the description of the AT25SF641 QSPI memory.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 Argo engineering.
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
   * All rights reserved.</center></h2>
   *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
   ******************************************************************************
   */
-
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __AT25SF641_H
 #define __AT25SF641_H
@@ -62,20 +76,23 @@
 #define AT25SF641_SECTOR_ERASE_MAX_TIME       3000
 #define AT25SF641_BLOCK_ERASE_MAX_TIME        300
 
- /**
-  * @brief  AT25SF641 Commands
+/**
+  * @brief  AT25SF161 Commands
   */
- /* Reset Operations */
- //#define RESET_ENABLE_CMD                     0x66
- //#define RESET_MEMORY_CMD                     0x99
+/* Reset Operations */
+#if 0
+/* Reset Operations */
+#define RESET_ENABLE_CMD                     0x66
+#define RESET_MEMORY_CMD                     0x99
 
- /* Identification Commands */
- //#define READ_ID_CMD                          0x9E
- //#define READ_ID_CMD2                         0x9F
- //#define MULTIPLE_IO_READ_ID_CMD              0xAF
- //#define READ_SERIAL_FLASH_DISCO_PARAM_CMD    0x5A
+/* Identification Commands */
+#define READ_ID_CMD                          0x9E
+#define READ_ID_CMD2                         0x9F
+#define MULTIPLE_IO_READ_ID_CMD              0xAF
+#define READ_SERIAL_FLASH_DISCO_PARAM_CMD    0x5A
+#endif
 
- /* Read Commands */
+/* Read Commands */
 #define READ_CMD                             0x03
 #define FAST_READ_CMD                        0x0B
 #define DUAL_OUT_FAST_READ_CMD               0x3B
@@ -89,9 +106,12 @@
 #define WRITE_DISABLE_CMD                    0x04
 
 /* Status Register Commands */
-#define READ_STATUS_REG_CMD                  0x05
+#define READ_STATUS1_REG_CMD                 0x05
 #define READ_STATUS2_REG_CMD                 0x35
-#define WRITE_STATUS_REG_CMD                 0x01
+#define READ_STATUS3_REG_CMD                 0x15
+#define WRITE_STATUS1_REG_CMD                0x01
+#define WRITE_STATUS2_REG_CMD                0x31
+#define WRITE_STATUS3_REG_CMD                0x11
 #define WRITE_EN_VOLAT_STATUS_REG_CMD				 0x50
 
 /* Program Command */
@@ -132,26 +152,6 @@
 #define AT25SF641_SR_LB			                  ((uint32_t)0x3800)  /*!< Lock security register */
 #define AT25SF641_SR_CMP		                  ((uint32_t)0x4000)  /*!< Complement Block Protection */
 #define AT25SF641_FS_ERSUS                   	((uint32_t)0x8000)  /*!< Erase operation suspended */
-
-/**
-  * @}
-  */
-
-/** @defgroup AT25SF641_Exported_Functions
-  * @{
-  */
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
 /**
   * @}
   */
@@ -162,4 +162,4 @@
 
 #endif /* __AT25SF641_H */
 
-/***************END OF FILE**********/
+/************************ (C) COPYRIGHT Digiteco s.r.l. *****END OF FILE****/

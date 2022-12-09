@@ -26,49 +26,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
-#include "local_typedef.h"
-#include "rmap_utility.h"
+#include "config.h"
+#include "debug_config.h"
+#include "stima_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
-#include <Wire.h>
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
 
-#include "os_port.h"
-#include "net_config.h"
-#include "cpu_endian.h"
-#include "error.h"
-#include "debug.h"
 #include "core/net.h"
-#include "drivers/spi/arduino_spi_driver.h"
-#include "drivers/ext/arduino_interrupt_driver.h"
-#include "drivers/eth/enc28j60_driver.h"
-#include "dhcp/dhcp_client.h"
-#include "tls.h"
-#include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+#include "rng/trng.h"
+#include "rng/yarrow.h"
 
-// #include "register.hpp"
-// #include "bxcan.h"
-// #include "module_config.hpp"
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#include <Wire.h>
+#endif
 
-// #include "tasks/led_task.h"
-// #include "tasks/hardware_task.h"
-// #include "tasks/ethernet_task.h"
-// #include "tasks/mqtt_task.h"
-// #include "tasks/can_task.h"
 #include "tasks/prova_task.h"
 #include "tasks/supervisor_task.h"
 
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+#include "tasks/modem_task.h"
+#endif
+
+#if (USE_NTP)
+#include "tasks/ntp_task.h"
+#endif
+
+#if (USE_HTTP)
+#include "tasks/http_task.h"
+#endif
+
+#if (USE_MQTT)
+#include "tasks/mqtt_task.h"
+#endif
+
+#include "debug_F.h"
+
 using namespace cpp_freertos;
-
-/*********************************************************************
-* TYPEDEF
-*********************************************************************/
-
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -81,8 +80,18 @@ BinarySemaphore *wireLock;
 BinarySemaphore *wire2Lock;
 #endif
 
+Queue *systemStatusQueue;
+Queue *systemRequestQueue;
+Queue *systemResponseQueue;
+
 BinarySemaphore *configurationLock;
+BinarySemaphore *systemStatusLock;
+
 configuration_t configuration;
+system_status_t system_status;
+
+YarrowContext yarrowContext;
+uint8_t seed[SEED_LENGTH];
 
 /*!
 \fn void print_configuration(void)
@@ -111,8 +120,9 @@ void init_wire(void);
 void init_sdcard(void);
 void init_registers(void);
 void init_can(void);
-bool CAN_HW_Init(void);
 void init_tasks(void);
 void init_sensors(void);
+bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
+bool CAN_HW_Init(void);
 
 #endif
