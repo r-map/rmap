@@ -41,7 +41,7 @@
 
 #define LOW_POWER_NONE                  0
 #define LOW_POWER_DEFAULT               1
-#define LOW_POWER_PRIVATE_LPTIMx_TICK   _USE_FREERTOS_LOW_POWER
+#define LOW_POWER_PRIVATE_LPTIMx_TICK   2
 
 // Freertos Tickless Mode (LOW_POWER_PRIVATE Enable LptimTick.c)
 #define configUSE_TICKLESS_IDLE         LOW_POWER_PRIVATE_LPTIMx_TICK
