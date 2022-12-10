@@ -157,7 +157,7 @@ extern void xPortSysTickHandler (void);
 */
 /* SysTick handler implementation done in the core and call osSystickHandler */
 #if (USE_CUSTOM_SYSTICK_HANDLER_IMPLEMENTATION == 0)
-void osSystickHandler (void) {
+void __attribute__((weak)) osSystickHandler(void) {
   /* Clear overflow flag */
   SysTick->CTRL;
 

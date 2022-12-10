@@ -75,7 +75,6 @@ extern CAN_HandleTypeDef hcan1;
 
 // #define _HW_SETUP_ADC_PRIVATE
 // #define _HW_SETUP_CRC_PRIVATE
-// #define _HW_SETUP_LPTIM_PRIVATE
 // #define _HW_SETUP_RNG_PRIVATE
 
 // ******************************************************************************
@@ -201,10 +200,6 @@ extern ADC_HandleTypeDef hadc1;
 extern CRC_HandleTypeDef hcrc;
 #endif
 
-#ifdef _HW_SETUP_LPTIM_PRIVATE
-extern LPTIM_HandleTypeDef hlptim1;
-#endif
-
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
 #ifdef __cplusplus
@@ -229,14 +224,6 @@ void MX_CRC_Init(void);
 #ifdef _HW_MSP_CRC_PRIVATE
 void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc);
 void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc);
-#endif
-
-#ifdef _HW_SETUP_LPTIM_PRIVATE
-void MX_LPTIM1_Init(void);
-#endif
-#ifdef _HW_MSP_LPTIM_PRIVATE
-void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim);
-void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim);
 #endif
 
 #if (ENABLE_QSPI)

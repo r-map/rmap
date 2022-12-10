@@ -104,6 +104,24 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
 
+// Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
+// Is Need to redefined weak void __attribute__((weak)) osSystickHandler(void)
+// Note FROM Freertos_Config.h 
+/*
+ * IMPORTANT:
+ * SysTick_Handler() from stm32duino core is calling weak osSystickHandler().
+ * Both CMSIS-RTOSv2 and CMSIS-RTOS override osSystickHandler() 
+ * which is calling xPortSysTickHandler(), defined in respective CortexM-x port
+*/
+#if ( !defined(configUSE_TICKLESS_IDLE) || configUSE_TICKLESS_IDLE == 2 )
+extern "C" void osSystickHandler()
+{
+  // osSystickHandler CallBack UNUSED for LPTIM1 IRQ Set Increment of OsTickHadler
+  // Optional User Code about osSystickHandler Private Here
+  // ...
+}
+#endif
+
 //------------------------------------------------------------------------------
 // catch exceptions
 /** Hard fault - blink four short flash every two seconds */

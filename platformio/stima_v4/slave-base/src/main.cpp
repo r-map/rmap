@@ -70,6 +70,30 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
 
+  // //Enable Power
+  // digitalWrite(PIN_EN_5VA, 1);
+
+  // analogReadResolution(12);
+  // uint32_t data1;
+  // uint32_t data2;
+  // uint32_t data3;
+  // uint32_t data4;
+  // uint8_t count=0;
+  // while(1) {
+  //   data1 = analogRead(PIN_ANALOG_01);
+  //   data2 = analogRead(PIN_ANALOG_02);
+  //   data3 = analogRead(PIN_ANALOG_03);
+  //   data4 = analogRead(PIN_ANALOG_04);
+  //   delay(500);
+  //   Serial.print(data1);
+  //   Serial.print(", ");
+  //   Serial.print(data2);
+  //   Serial.print(", ");
+  //   Serial.print(data3);
+  //   Serial.print(", ");
+  //   Serial.println(data4);
+  // }
+
   // ********************************************************
   //                     Startup Task
   // ********************************************************
