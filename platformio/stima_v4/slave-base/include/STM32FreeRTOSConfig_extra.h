@@ -10,14 +10,14 @@
 #ifdef _USE_FREERTOS_LOW_POWER
 
 #define LOW_POWER_NONE                  0
-#define LOW_POWER_AUTOMATIC             1
-#define LOW_POWER_PRIVATE               2
+#define LOW_POWER_DEFAULT               1
+#define LOW_POWER_PRIVATE_LPTIMx_TICK   _USE_FREERTOS_LOW_POWER
 
 // Freertos Tickless Mode (LOW_POWER_PRIVATE Enable LptimTick.c)
-#define configUSE_TICKLESS_IDLE         LOW_POWER_PRIVATE
+#define configUSE_TICKLESS_IDLE         LOW_POWER_PRIVATE_LPTIMx_TICK
 
 // Define for lptimTick.c
-#if (configUSE_TICKLESS_IDLE==LOW_POWER_PRIVATE)
+#if (configUSE_TICKLESS_IDLE==LOW_POWER_PRIVATE_LPTIMx_TICK)
     #define configTICK_USES_LSE                 // USE LSE CLOCK
     #define configLPTIM_REF_CLOCK_HZ 32768UL    // LSE CLOCK REFERENCE
     #define configLPTIM_ENABLE_PRECISION 1      // ENABLE AUTO PRECISION
