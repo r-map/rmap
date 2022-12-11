@@ -27,37 +27,20 @@
   ******************************************************************************
 */
 
+#include "config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
-#include "STM32FreeRTOSConfig_extra.h"
+// #include "STM32FreeRTOSConfig_extra.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MODULE_SLAVE_HAL_H
-#define __MODULE_SLAVE_HAL_H
-
-#define USE_HAL_DRIVER        (true)
-
-// HW device
-#define ENABLE_I2C1           (true)
-#define ENABLE_I2C2           (true)
-#define ENABLE_QSPI           (true)
-#define ENABLE_CAN            (true)
-
-// HW Diag PIN redefine
-#define ENABLE_DIAG_PIN       (true)
+#ifndef _MODULE_SLAVE_HAL_H
+#define _MODULE_SLAVE_HAL_H
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
-#define I2C_MAX_DATA_LENGTH   (32)
-#define I2C_MAX_ERROR_COUNT   (3)
-#endif
-
-#if (ENABLE_I2C1)
-#define I2C1_BUS_CLOCK_HZ     (100000L)
 #endif
 
 #if (ENABLE_I2C2)
-#define I2C2_BUS_CLOCK_HZ     (100000L)
 extern TwoWire Wire2;
 #endif
 

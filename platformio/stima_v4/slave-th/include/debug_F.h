@@ -73,7 +73,7 @@ void print_debug_F(const __FlashStringHelper *fmt, ...);
 
 //C++ guard
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 // C++ guard

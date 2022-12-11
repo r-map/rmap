@@ -28,24 +28,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <stdint.h>
 #include <Arduino.h>
-#include "compiler_port.h"
+#include "os_port.h"
 
-#define OK_STRING           "OK"
-#define NO_STRING           "NO"
-#define YES_STRING          "YES"
-#define FAIL_STRING         "FAIL"
-#define ERROR_STRING        "ERROR"
-#define REDUNDANT_STRING    "REDUNDANT"
-#define MAIN_STRING         "MAIN"
+#define OK_STRING             "OK"
+#define NO_STRING             "NO"
+#define YES_STRING            "YES"
+#define FAIL_STRING           "FAIL"
+#define ERROR_STRING          "ERROR"
+#define REDUNDANT_STRING      "REDUNDANT"
+#define MAIN_STRING           "MAIN"
+#define ON_STRING             "ON"
+#define OFF_STRING            "OFF"
 
 //Trace level definitions
-#define TRACE_LEVEL_OFF      0
-#define TRACE_LEVEL_FATAL    1
-#define TRACE_LEVEL_ERROR    2
-#define TRACE_LEVEL_WARNING  3
-#define TRACE_LEVEL_INFO     4
-#define TRACE_LEVEL_DEBUG    5
-#define TRACE_LEVEL_VERBOSE  6
+#define TRACE_LEVEL_OFF       0
+#define TRACE_LEVEL_FATAL     1
+#define TRACE_LEVEL_ERROR     2
+#define TRACE_LEVEL_WARNING   3
+#define TRACE_LEVEL_INFO      4
+#define TRACE_LEVEL_DEBUG     5
+#define TRACE_LEVEL_VERBOSE   6
 
 //Default trace level
 #ifndef TRACE_LEVEL
@@ -56,15 +58,15 @@ void print_debug(const char *fmt, ...);
 
 //Trace output redirection
 #ifndef TRACE_PRINTF
-#define TRACE_PRINTF(...) print_debug(__VA_ARGS__)
+#define TRACE_PRINTF(...) osSuspendAllTasks(), print_debug(__VA_ARGS__), osResumeAllTasks()
 #endif
 
 #ifndef TRACE_ARRAY
-#define TRACE_ARRAY(p, a, n) print_debug_array(p, a, n)
+#define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), print_debug_array(p, a, n), osResumeAllTasks()
 #endif
 
 #ifndef TRACE_MPI
-   // #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
+   #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
 #endif
 
 //Debugging macros
@@ -133,6 +135,8 @@ void print_debug(const char *fmt, ...);
    #define TRACE_VERBOSE_NET_BUFFER(p, b, o, n)
    #define TRACE_VERBOSE_MPI(p, a)
 #endif
+
+#define printError(error, ok_str, error_str) (error == NO_ERROR ? ok_str : error_str)
 
 //C++ guard
 #ifdef __cplusplus

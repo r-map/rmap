@@ -33,7 +33,7 @@ Flash testFlash(&hqspi);
 static uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 static uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), ProvaParam(provaParam)
+ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), param(provaParam)
 {
   Start();
 };
@@ -42,7 +42,7 @@ void ProvaTask::Run() {
   bool first = true;
   bool msgOk = false;
   Delay(500);
-  // TRACE_INFO_F(F("Running TEST Flash"));
+  TRACE_INFO_F(F("Running TEST Flash..."));
   while (true) {
   //   if(first) {
   //     first = false;
@@ -68,8 +68,8 @@ void ProvaTask::Run() {
   //       TRACE_INFO_F(F("TEST Flash OK!!!!"));
   //     }
   //     else
-         TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
-  //   }
-    DelayUntil(Ticks::MsToTicks(1000));
+  TRACE_INFO_F(F("%s\r\n"), Thread::GetName().c_str());
+  //     }
+  DelayUntil(Ticks::MsToTicks(1000));
   }
 }

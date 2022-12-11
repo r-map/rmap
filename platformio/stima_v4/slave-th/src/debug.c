@@ -1,4 +1,4 @@
-/**@file report.h */
+/**@file debug.cpp */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -20,15 +20,39 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
+#include <stdarg.h>
+#include "debug.h"
 
-#ifndef _REPORT_H
-#define _REPORT_H
+void print_debug(const char *fmt, ...)
+{
+   va_list args;
+   va_start(args, fmt);
+   vfprintf(stdout, fmt, args);
+   va_end(args);
+}
 
-#include "typedef.h"
-
-typedef struct {
-  value_t humidity;
-  value_t temperature;
-} report_t;
-
-#endif
+/**
+ * @brief Display the contents of an array
+ * @param[in] stream Pointer to a FILE object that identifies an output stream
+ * @param[in] prepend String to prepend to the left of each line
+ * @param[in] data Pointer to the data array
+ * @param[in] length Number of bytes to display
+ **/
+void print_debug_array(const char *prepend, const void *data, size_t length)
+{
+   for (uint8_t i = 0; i < length; i++)
+   {
+      // Beginning of a new line?
+      if ((i % 16) == 0)
+      {
+         TRACE_PRINTF("%s", prepend);
+      }
+      // Display current data byte
+      TRACE_PRINTF("%02" PRIX8 " ", *((const uint8_t *)data + i));
+      // End of current line?
+      if ((i % 16) == 15 || i == (length - 1))
+      {
+         TRACE_PRINTF("\r\n");
+      }
+   }
+}

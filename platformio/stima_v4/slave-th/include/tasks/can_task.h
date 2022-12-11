@@ -31,17 +31,16 @@
 #define _CAN_TASK_H
 
 #include "debug_config.h"
+#include "local_typedef.h"
+#include "str.h"
+#include "stima_utility.h"
 
-#include "drivers/module_slave_hal.hpp"
-#include "config.h"
-
-#include "STM32FreeRTOS.h"
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
-
-#include "report.h"
+#include "drivers/module_slave_hal.hpp"
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"
@@ -84,11 +83,18 @@ enum CAN_ModePower {
     CAN_SLEEP
 };
 
-typedef struct {
-  Queue *requestDataQueue;
-  Queue *reportDataQueue;
+typedef struct
+{
+  configuration_t *configuration;
+  system_status_t *system_status;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
-  BinarySemaphore *wireLock;
+  cpp_freertos::Queue *requestDataQueue;
+  cpp_freertos::Queue *reportDataQueue;
 } CanParam_t;
 
 class CanTask : public cpp_freertos::Thread {

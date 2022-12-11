@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file local_typedef_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,47 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _LOCAL_TYPEDEF_CONFIG_H
+#define _LOCAL_TYPEDEF_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
-
-#include "debug_config.h"
-#include "canard_config.hpp"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_slave_hal.hpp"
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#include "os_port.h"
-
-#if (ENABLE_ACCELEROMETER)
-#include "tasks/accelerometer_task.h"
-#endif
-
-#if (ENABLE_CAN)
-#include "tasks/can_task.h"
-#endif
-
-#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-#include "tasks/th_sensor_task.h"
-#endif
-
-#include "tasks/prova_task.h"
-#include "tasks/supervisor_task.h"
-#include "tasks/elaborate_data_task.h"
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
-
-void init_pins(void);
-void init_wire(void);
-void init_sdcard(void);
-void init_sensors(void);
+#include "config.h"
 
 #endif

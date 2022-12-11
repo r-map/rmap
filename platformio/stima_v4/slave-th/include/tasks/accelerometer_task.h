@@ -32,14 +32,20 @@
 
 #include "debug_config.h"
 #include "local_typedef.h"
-#include "STM32FreeRTOS.h"
+#include "str.h"
+#include "stima_utility.h"
+
+#if (ENABLE_ACCELEROMETER)
+
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "semaphore.hpp"
+#include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
-#include "drivers/accelerometer.h"
 #include "drivers/eeprom.h"
 #endif
 
@@ -59,10 +65,15 @@ typedef enum
 } AccelerometerState_t;
 
 typedef struct {
-  accelerometer_t *configuration;
-  BinarySemaphore *wireLock;
-  BinarySemaphore *configurationLock;
+  configuration_t *configuration;
+  system_status_t *system_status;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
+  accelerometer_t *accelerometer_configuration;
 } AccelerometerParam_t;
 
 class AccelerometerTask : public cpp_freertos::Thread {
@@ -78,7 +89,7 @@ private:
   uint16_t stackSize;
   uint8_t priority;
   AccelerometerState_t state;
-  AccelerometerParam_t AccelerometerParam;
+  AccelerometerParam_t param;
   Accelerometer accelerometer;
   EEprom eeprom;
   float value_x;
@@ -96,4 +107,5 @@ private:
 
 };
 
+#endif
 #endif

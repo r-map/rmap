@@ -31,11 +31,14 @@
 
 #include "tasks/accelerometer_task.h"
 
+#if (ENABLE_ACCELEROMETER)
+
 using namespace cpp_freertos;
 
-AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), AccelerometerParam(accelerometerParam) {
-  accelerometer = Accelerometer(AccelerometerParam.wire, AccelerometerParam.wireLock);
-  eeprom = EEprom(AccelerometerParam.wire, AccelerometerParam.wireLock);
+AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
+{
+  accelerometer = Accelerometer(param.wire, param.wireLock);
+  eeprom = EEprom(param.wire, param.wireLock);
   state = ACCELEROMETER_STATE_INIT;
   Start();
 };
@@ -63,7 +66,7 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_CHECK_OPERATION:
       if (!is_module_ready)
       {
-        is_hardware_ready = CheckModule(AccelerometerParam.configurationLock);
+        is_hardware_ready = CheckModule(param.configurationLock);
         if (is_hardware_ready) {
           TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_CHECK_OPERATION -> ACCELEROMETER_STATE_LOAD_CONFIGURATION\r\n"));
           state = ACCELEROMETER_STATE_LOAD_CONFIGURATION;
@@ -80,7 +83,7 @@ void AccelerometerTask::Run()
       break;
 
     case ACCELEROMETER_STATE_LOAD_CONFIGURATION:
-      if(LoadConfiguration(AccelerometerParam.configuration, AccelerometerParam.configurationLock)) {
+      if(LoadConfiguration(param.accelerometer_configuration, param.configurationLock)) {
         // True if SetupParam Default and Save Config... Starting base calibration
         start_calibration = 15;
       }
@@ -89,33 +92,33 @@ void AccelerometerTask::Run()
       break;
 
     case ACCELEROMETER_STATE_SETUP_MODULE:
-      SetupModule(AccelerometerParam.configuration, AccelerometerParam.configurationLock);
+      SetupModule(param.accelerometer_configuration, param.configurationLock);
       is_module_ready = true;
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SETUP_MODULE -> ACCELEROMETER_STATE_READ\r\n"));
       state = ACCELEROMETER_STATE_READ;
       break;
 
     case ACCELEROMETER_STATE_READ:
-      if(ReadModule(AccelerometerParam.configuration, AccelerometerParam.configurationLock)) {
+      if(ReadModule(param.accelerometer_configuration, param.configurationLock)) {
         TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
         if(start_calibration) {
           start_calibration--;
           if(start_calibration==0) {
-            Calibrate(AccelerometerParam.configuration, AccelerometerParam.configurationLock, false);
-            // SaveConfiguration(AccelerometerParam.configuration, AccelerometerParam.configurationLock, false);
+            Calibrate(param.accelerometer_configuration, param.configurationLock, false);
+            // SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
           }
         }
       }
       break;
 
     case ACCELEROMETER_STATE_POWER_DOWN:
-      PowerDownModule(AccelerometerParam.configuration, AccelerometerParam.configurationLock);
+      PowerDownModule(param.accelerometer_configuration, param.configurationLock);
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_POWER_DOWN -> WAIT FOR NEXT_STATE\r\n"));
       state = ACCELEROMETER_STATE_WAIT_FOREVER;
       break;
 
     case ACCELEROMETER_STATE_SAVE_CONFIGURATION:
-      SaveConfiguration(AccelerometerParam.configuration, AccelerometerParam.configurationLock, CONFIGURATION_CURRENT);
+      SaveConfiguration(param.accelerometer_configuration, param.configurationLock, CONFIGURATION_CURRENT);
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SAVE_CONFIGURATION -> ACCELEROMETER_STATE_LOAD_CONFIGURATION\r\n"));
       state = ACCELEROMETER_STATE_LOAD_CONFIGURATION;
       break;
@@ -292,3 +295,5 @@ void AccelerometerTask::PowerDownModule(accelerometer_t *configuration, BinarySe
     lock->Give();
   }
 }
+
+#endif

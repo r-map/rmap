@@ -24,35 +24,84 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _LOCAL_TYPEDEF_H
 #define _LOCAL_TYPEDEF_H
 
-#include "config.h"
+#include "local_typedef_config.h"
 #include "typedef.h"
+
+#if (ENABLE_ACCELEROMETER)
 #include "drivers/accelerometer.h"
+#endif
+
+#if (ENABLE_ACCELEROMETER)
+typedef struct
+{
+   uint8_t config_valid;                      //!< Inizialization Byte Config
+   Accelerometer::iis328dq_dr_t module_power; //!< module updating frequency (enabled)
+   float offset_x;                            //!< offset_x to 0
+   float offset_y;                            //!< offset_y to 0
+   float offset_z;                            //!< offset_z to 0
+} accelerometer_t;
+#endif
 
 typedef struct
 {
-   uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
-   uint8_t can_port_id;             //!< port for uavcan services
-   uint8_t can_publish_id;          //!< port for uavcan data publication
+   uint8_t i2c_address;             //!< i2c sensor's address
+   // uint8_t can_port_id;             //!< port for uavcan services
+   // uint8_t can_publish_id;          //!< port for uavcan data publication
    char driver[DRIVER_LENGTH];      //!< sensor's string driver
    char type[TYPE_LENGTH];          //!< sensor type
+   bool is_redundant;
 } sensor_configuration_t;
 
-typedef struct {
-   uint8_t module_main_version;                       //!< module main version
-   uint8_t module_minor_version;                      //!< module minor version
-   uint8_t module_type;                               //!< module type
-   uint8_t sensors_count;                             //!< number of configured sensors
-   sensor_configuration_t sensors[SENSORS_COUNT_MAX]; //!< sensors configurations
-   uint32_t sensor_acquisition_delay_ms;              //!< delay between 2 sensors acquisitions
-   uint8_t observation_time_s;                        //!< observations time in seconds
+typedef struct
+{
+   uint8_t module_main_version;                          //!< module main version
+   uint8_t module_minor_version;                         //!< module minor version
+   uint8_t module_type;                                  //!< module type
+   uint8_t sensors_count;                                //!< number of configured sensors
+   sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
+   uint32_t sensor_acquisition_delay_ms;
 } configuration_t;
 
-typedef struct {
-   uint8_t config_valid;                              //!< Inizialization Byte Config
-   Accelerometer::iis328dq_dr_t module_power;         //!< module updating frequency (enabled)
-   float   offset_x;                                  //!< offset_x to 0
-   float   offset_y;                                  //!< offset_y to 0
-   float   offset_z;                                  //!< offset_z to 0
-} accelerometer_t;
+typedef struct
+{
+   struct
+   {
+      uint32_t system_time;
+      uint32_t next_ptr_time_for_sensors_reading;
+   } datetime;
+
+   struct
+   {
+      bool is_loaded;
+      bool is_saved;
+   } configuration;
+
+} system_status_t;
+
+typedef struct
+{
+   struct
+   {
+      bool do_load;
+      bool do_save;
+   } configuration;
+
+} system_request_t;
+
+typedef struct
+{
+   struct
+   {
+      bool done_loaded;
+      bool done_saved;
+   } configuration;
+
+} system_response_t;
+
+typedef struct
+{
+   value_t humidity;
+   value_t temperature;
+} report_t;
 
 #endif

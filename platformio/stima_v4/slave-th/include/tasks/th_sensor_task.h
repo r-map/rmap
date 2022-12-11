@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file th_sensor_task.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,47 +21,62 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
-
-#define __STDC_LIMIT_MACROS
+#ifndef _TH_SENSOR_TASK_H
+#define _TH_SENSOR_TASK_H
 
 #include "debug_config.h"
-#include "canard_config.hpp"
+#include "local_typedef.h"
 #include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_slave_hal.hpp"
+#include "str.h"
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
+#include "ticks.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
+#include "drivers/module_slave_hal.hpp"
 
-#include "os_port.h"
-
-#if (ENABLE_ACCELEROMETER)
-#include "tasks/accelerometer_task.h"
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#include <Wire.h>
 #endif
 
-#if (ENABLE_CAN)
-#include "tasks/can_task.h"
-#endif
-
-#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-#include "tasks/th_sensor_task.h"
-#endif
-
-#include "tasks/prova_task.h"
-#include "tasks/supervisor_task.h"
-#include "tasks/elaborate_data_task.h"
-
+#include "SensorDriver.h"
 #include "debug_F.h"
 
 using namespace cpp_freertos;
 
-void init_pins(void);
-void init_wire(void);
-void init_sdcard(void);
-void init_sensors(void);
+typedef struct {
+  configuration_t *configuration;
+  system_status_t *system_status;
+  cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *elaborataDataQueue;
+  TwoWire *wire;
+} TemperatureHumidtySensorParam_t;
+
+class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
+  typedef enum {
+    INIT,
+    SETUP,
+    PREPARE,
+    READ,
+    END
+  } State_t;
+
+public:
+  TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam);
+
+protected:
+  virtual void Run();
+
+
+private:
+  State_t state;
+  TemperatureHumidtySensorParam_t param;
+  SensorDriver *sensors[SENSORS_COUNT_MAX];
+};
 
 #endif

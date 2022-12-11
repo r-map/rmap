@@ -3,31 +3,38 @@
 #include "main.h"
 
 void setup() {
-
+  
   // Semaphore, Queue && Param Config for TASK
-  #if (ENABLE_I2C1)
+#if (ENABLE_I2C1)
   static BinarySemaphore *wireLock;
-  #endif
-  #if (ENABLE_I2C2)
+#endif
+
+#if (ENABLE_I2C2)
   static BinarySemaphore *wire2Lock;
-  #endif
-  static BinarySemaphore *configurationLock;
-  static accelerometer_t config_accelerometer;
-  static configuration_t config_module;
+#endif
+
+  static Queue *systemStatusQueue;
+  static Queue *systemRequestQueue;
+  static Queue *systemResponseQueue;
+  
   static Queue *elaborataDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
-  // Initializing basic hardware's configuration
-  SetupSystemPeripheral();
+  static BinarySemaphore *configurationLock;
+  static BinarySemaphore *systemStatusLock;
 
-  // Start and Setup local Module
-  // Except local HW config for module TASK
-  init_debug(115200);
-  init_wire();
-  init_pins();
+  static configuration_t configuration;
+  static system_status_t system_status;
 
-  // Init Semaphore
+  #if (ENABLE_ACCELEROMETER)
+  static accelerometer_t config_accelerometer;
+  #endif
+
+  // init
+  memset(&configuration, 0, sizeof(configuration_t));
+  memset(&system_status, 0, sizeof(system_status_t));
+
 #if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
 #endif
@@ -35,17 +42,45 @@ void setup() {
   wire2Lock = new BinarySemaphore(true);
 #endif
   configurationLock = new BinarySemaphore(true);
+  systemStatusLock = new BinarySemaphore(true);
 
-  // Init required sensor && driver param
+  systemRequestQueue = new Queue(SYSTEM_REQUEST_QUEUE_LENGTH, sizeof(system_request_t));
+  systemResponseQueue = new Queue(SYSTEM_RESPONSE_QUEUE_LENGTH, sizeof(system_response_t));
+  elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
+  requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
+  reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
+
+  // Initializing basic hardware's configuration
+  SetupSystemPeripheral();
+  init_debug(SERIAL_DEBUG_BAUD_RATE);
+  init_wire();
+  init_pins();
   init_sensors();
+  // init_sdcard();
+  // init_registers();
+  // init_can();
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
-  // ********************************************************
-  //                     Param Config Task
-  // ********************************************************
   ProvaParam_t provaParam = {};
 
+#if (ENABLE_CAN)
+  CanParam_t canParam;
+  canParam.configuration = &configuration;
+  canParam.system_status = &system_status;
+  canParam.configurationLock = configurationLock;
+  canParam.systemStatusLock = systemStatusLock;
+  canParam.systemRequestQueue = systemRequestQueue;
+  canParam.systemResponseQueue = systemResponseQueue;
+  canParam.requestDataQueue = requestDataQueue;
+  canParam.reportDataQueue = reportDataQueue;
+#if (ENABLE_I2C2)
+  canParam.wire = &Wire2;
+  canParam.wireLock = wire2Lock;
+#endif
+#endif
+
+#if (ENABLE_ACCELEROMETER)
   AccelerometerParam_t accelerometerParam;
   accelerometerParam.configuration = &config_accelerometer;
 #if (ENABLE_I2C1)
@@ -53,22 +88,68 @@ void setup() {
   accelerometerParam.wireLock = wireLock;
 #endif
   accelerometerParam.configurationLock = configurationLock;
-
-  CanParam_t can_param;
-  can_param.requestDataQueue = requestDataQueue;
-  can_param.reportDataQueue = reportDataQueue;
-#if (ENABLE_I2C1)
-  can_param.wire = &Wire;
-  can_param.wireLock = wireLock;
 #endif
 
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+  TemperatureHumidtySensorParam_t thSensorParam;
+  thSensorParam.configuration = &configuration;
+  thSensorParam.system_status = &system_status;
+#if (ENABLE_I2C2)
+  thSensorParam.wire = &Wire2;
+  thSensorParam.wireLock = wire2Lock;
+#endif
+  thSensorParam.configurationLock = configurationLock;
+  thSensorParam.systemStatusLock = systemStatusLock;
+  thSensorParam.systemRequestQueue = systemRequestQueue;
+  thSensorParam.systemResponseQueue = systemResponseQueue;
+  thSensorParam.elaborataDataQueue = elaborataDataQueue;
+#endif
+
+  ElaboradeDataParam_t elaborateDataParam;
+  elaborateDataParam.configuration = &configuration;
+  elaborateDataParam.system_status = &system_status;
+  elaborateDataParam.configurationLock = configurationLock;
+  elaborateDataParam.systemStatusLock = systemStatusLock;
+  elaborateDataParam.systemRequestQueue = systemRequestQueue;
+  elaborateDataParam.systemResponseQueue = systemResponseQueue;
+  elaborateDataParam.elaborataDataQueue = elaborataDataQueue;
+  elaborateDataParam.requestDataQueue = requestDataQueue;
+  elaborateDataParam.reportDataQueue = reportDataQueue;
+
   SupervisorParam_t supervisorParam;
-  supervisorParam.configuration = &config_module;
+  supervisorParam.configuration = &configuration;
+  supervisorParam.system_status = &system_status;
 #if (ENABLE_I2C1)
   supervisorParam.wire = &Wire;
   supervisorParam.wireLock = wireLock;
 #endif
   supervisorParam.configurationLock = configurationLock;
+  supervisorParam.systemStatusLock = systemStatusLock;
+  supervisorParam.systemRequestQueue = systemRequestQueue;
+  supervisorParam.systemResponseQueue = systemResponseQueue;
+
+  // ********************************************************
+  //                     Startup Task
+  // ********************************************************
+  static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
+
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+  // static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_04, thSensorParam);
+#endif
+
+  // static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 1100, OS_TASK_PRIORITY_03, elaborateDataParam);
+
+#if (ENABLE_CAN)
+  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+#endif
+
+#if (ENABLE_ACCELEROMETER)
+  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+#endif
+
+  // Startup Schedulher
+  Thread::StartScheduler();
 
   // //Enable Power
   // digitalWrite(PIN_EN_5VA, 1);
@@ -93,22 +174,6 @@ void setup() {
   //   Serial.print(", ");
   //   Serial.println(data4);
   // }
-
-  // ********************************************************
-  //                     Startup Task
-  // ********************************************************
-  static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-  // static AccelerometerTask accelerometer_task("ACCELEROMETER TASK", 400, OS_TASK_PRIORITY_01, accelerometerParam);
-  // static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_01, can_param);
-  // static SupervisorTask supervisor_task("SUPERVISOR TASK", 200, OS_TASK_PRIORITY_01, supervisorParam);
-
-  // ********************************************************
-  //                    Run RTOS Scheduler
-  // ********************************************************
-  // Startup Schedulher
-  Thread::StartScheduler();
-
-  TRACE_INFO_F(F("RUN Scheduler started...\r\n"));
 }
 
 void loop() {
