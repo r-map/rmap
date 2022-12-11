@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    lptimTick.c
+  * @file    freeRTOS_lptimTick.c
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   LowPower LPTIM1 TickHandler adapted from lptimTick.c -- Jeff Tenney
   *          Copyright 2021 Jeff Tenney <jeff.tenney@gmail.com>
@@ -45,7 +45,6 @@
   * 
   ******************************************************************************
 */
-
 
 #include "FreeRTOS.h"
 #include "task.h"

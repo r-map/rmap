@@ -98,9 +98,9 @@ void setup() {
   //                     Startup Task
   // ********************************************************
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-  static AccelerometerTask accelerometer_task("ACCELEROMETER TASK", 400, OS_TASK_PRIORITY_01, accelerometerParam);
-  static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_01, can_param);
-  static SupervisorTask supervisor_task("SUPERVISOR TASK", 200, OS_TASK_PRIORITY_01, supervisorParam);
+  // static AccelerometerTask accelerometer_task("ACCELEROMETER TASK", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+  // static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_01, can_param);
+  // static SupervisorTask supervisor_task("SUPERVISOR TASK", 200, OS_TASK_PRIORITY_01, supervisorParam);
 
   // ********************************************************
   //                    Run RTOS Scheduler
