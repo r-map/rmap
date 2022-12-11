@@ -23,8 +23,40 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "debug.h"
 
+int_t fputc(int_t c, FILE *stream)
+{
+   // Standard output or error output?
+   if (stream == stdout || stream == stderr)
+   {
+      Serial.write(c);
+      return c;
+   }
+   // Unknown output?
+   else
+   {
+      // If a writing error occurs, EOF is returned
+      return EOF;
+   }
+}
+
 void init_debug(uint32_t baudrate) {
   Serial.begin(baudrate);
+}
+
+void print_debug(const char *fmt, ...)
+{
+   va_list args;
+   va_start(args, fmt);
+   vfprintf(stdout, fmt, args);
+   va_end(args);
+}
+
+void print_debug_F(const __FlashStringHelper *fmt, ...)
+{
+   va_list args;
+   va_start(args, fmt);
+   vfprintf(stdout, (const char *)fmt, args);
+   va_end(args);
 }
 
 /**
@@ -34,47 +66,19 @@ void init_debug(uint32_t baudrate) {
  * @param[in] data Pointer to the data array
  * @param[in] length Number of bytes to display
  **/
-
-void debugDisplayArray(Stream *stream, const char_t *prepend, const void *data, size_t length) {
-  for (uint16_t i = 0; i < length; i++) {
-    //Beginning of a new line?
-    if ((i % 16) == 0) {
-      stream->printf("%s", prepend);
-      // fprintf(stream, "%s", prepend);
-    }
-
-    //Display current data byte
-    stream->printf("%02" PRIX8 " ", *((uint8_t *) data + i));
-    // fprintf(stream, "%02" PRIX8 " ", *((uint8_t *) data + i));
-
-    //End of current line?
-    if ((i % 16) == 15 || i == (length - 1)) {
-      stream->printf("%s", prepend);
-      // fprintf(stream, "\r\n");
-    }
-  }
+void print_debug_array_F(const char *prepend, const void *data, size_t length)
+{
+   for (uint8_t i = 0; i < length; i++)
+   {
+      // Beginning of a new line?
+      if ((i % 16) == 0) {
+         print_debug("%s", prepend);
+      }
+      // Display current data byte
+      print_debug("%02" PRIX8 " ", *((uint8_t *)data + i));
+      // End of current line?
+      if ((i % 16) == 15 || i == (length - 1)) {
+         print_debug("\r\n");
+      }
+   }
 }
-
-
-/**
- * @brief Write character to stream
- * @param[in] c The character to be written
- * @param[in] stream Pointer to a FILE object that identifies an output stream
- * @return On success, the character written is returned. If a writing
- *   error occurs, EOF is returned
- **/
-
-// int_t fputc(int_t c, FILE *stream) {
-//    //Standard output or error output?
-//    if(stream == stdout || stream == stderr) {
-//       //Transmit data
-//       Serial.print(c);
-//       //On success, the character written is returned
-//       return c;
-//    }
-//    //Unknown output?
-//    else {
-//       //If a writing error occurs, EOF is returned
-//       return EOF;
-//    }
-// }

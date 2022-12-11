@@ -26,62 +26,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
-#include "config.h"
+#include "assert.h"
+#include "drivers/module_slave_hal.hpp"
+#include "debug_config.h"
+#include "canard_config.hpp"
+// #include "rmap_utility.h"
 #include "task_util.h"
-
-#if (HARDWARE_I2C == ENABLE)
 #include <Wire.h>
-#endif
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
 
-#include "report.h"
-
-#include "os_port.h"
-#include "net_config.h"
-#include "cpu_endian.h"
-#include "error.h"
-#include "debug.h"
-
-#include "register.hpp"
-#include "bxcan.h"
-#include "module_config.hpp"
-
-#include "tasks/led_task.h"
-#include "tasks/th_sensor_task.h"
-#include "tasks/elaborate_data_task.h"
+#include "tasks/prova_task.h"
+#include "tasks/accelerometer_task.h"
 #include "tasks/can_task.h"
+#include "tasks/supervisor_task.h"
+
+#include "debug_F.h"
 
 using namespace cpp_freertos;
-
-/*********************************************************************
-* TYPEDEF
-*********************************************************************/
-typedef struct {
-  uint8_t module_main_version;                        //!< module main version
-  uint8_t module_minor_version;                       //!< module minor version
-  uint8_t module_type;                                //!< module type
-  uint8_t sensors_count;                              //!< number of configured sensors
-  sensor_configuration_t sensors[SENSORS_COUNT_MAX];  //!< sensors configurations
-  uint32_t sensor_acquisition_delay_ms;               //!< delay between 2 sensors acquisitions
-  uint8_t observation_time_s;                         //!< observations time in seconds
-} configuration_t;
-
-/*********************************************************************
-* GLOBAL VARIABLE
-*********************************************************************/
-configuration_t configuration;
-
-#if (HARDWARE_I2C == ENABLE)
-BinarySemaphore *wireLock;
-#endif
-
-Queue *elaborataDataQueue;
-Queue *requestDataQueue;
-Queue *reportDataQueue;
 
 /*!
 \fn void print_configuration(void)
@@ -108,10 +73,6 @@ void save_configuration(bool);
 void init_pins(void);
 void init_wire(void);
 void init_sdcard(void);
-void init_registers(void);
-void init_can(void);
-bool CAN_HW_Init(void);
-void init_tasks(void);
 void init_sensors(void);
 
 #endif
