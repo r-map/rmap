@@ -72,7 +72,6 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  // Queue *systemStatusQueue;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
   TwoWire *wire;
