@@ -662,6 +662,15 @@ private:
   int16_t _raw_scroll[3][ARR_REG_FILTER];
 };
 
+typedef struct
+{
+  uint8_t config_valid;                      //!< Inizialization Byte Config
+  Accelerometer::iis328dq_dr_t module_power; //!< module updating frequency (enabled)
+  float offset_x;                            //!< offset_x to 0
+  float offset_y;                            //!< offset_y to 0
+  float offset_z;                            //!< offset_z to 0
+} accelerometer_t;
+
 #endif /* _ACCELEROMETR_H */
 
 /************************ (C) COPYRIGHT Digiteco s.r.l. *****END OF FILE****/

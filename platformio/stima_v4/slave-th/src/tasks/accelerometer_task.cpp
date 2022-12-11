@@ -109,6 +109,8 @@ void AccelerometerTask::Run()
           }
         }
       }
+      // TODO: da controllare
+      Suspend();
       break;
 
     case ACCELEROMETER_STATE_POWER_DOWN:

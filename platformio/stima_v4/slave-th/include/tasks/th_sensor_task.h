@@ -29,6 +29,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "stima_utility.h"
 #include "str.h"
 
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+
+#define TH_TASK_WAIT_DELAY_MS (100)
+#define TH_TASK_GENERIC_RETRY_DELAY_MS (5000)
+#define TH_TASK_GENERIC_RETRY (3)
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -58,7 +64,9 @@ typedef struct {
 } TemperatureHumidtySensorParam_t;
 
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
-  typedef enum {
+  typedef enum
+  {
+    WAIT,
     INIT,
     SETUP,
     PREPARE,
@@ -79,4 +87,5 @@ private:
   SensorDriver *sensors[SENSORS_COUNT_MAX];
 };
 
+#endif
 #endif

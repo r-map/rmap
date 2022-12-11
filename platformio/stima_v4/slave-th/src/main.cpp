@@ -74,20 +74,25 @@ void setup() {
   canParam.systemResponseQueue = systemResponseQueue;
   canParam.requestDataQueue = requestDataQueue;
   canParam.reportDataQueue = reportDataQueue;
-#if (ENABLE_I2C2)
-  canParam.wire = &Wire2;
-  canParam.wireLock = wire2Lock;
+#if (ENABLE_I2C1)
+  canParam.wire = &Wire;
+  canParam.wireLock = wireLock;
 #endif
 #endif
 
 #if (ENABLE_ACCELEROMETER)
   AccelerometerParam_t accelerometerParam;
-  accelerometerParam.configuration = &config_accelerometer;
+  accelerometerParam.configuration = &configuration;
+  accelerometerParam.system_status = &system_status;
+  accelerometerParam.accelerometer_configuration = &config_accelerometer;
 #if (ENABLE_I2C1)
   accelerometerParam.wire = &Wire;
   accelerometerParam.wireLock = wireLock;
 #endif
   accelerometerParam.configurationLock = configurationLock;
+  accelerometerParam.systemStatusLock = systemStatusLock;
+  accelerometerParam.systemRequestQueue = systemRequestQueue;
+  accelerometerParam.systemResponseQueue = systemResponseQueue;
 #endif
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
@@ -132,16 +137,16 @@ void setup() {
   //                     Startup Task
   // ********************************************************
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  // static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_04, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
 
-  // static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 1100, OS_TASK_PRIORITY_03, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 1100, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_ACCELEROMETER)

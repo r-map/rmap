@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/th_sensor_task.h"
 
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+
 using namespace cpp_freertos;
 
 TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam) : Thread(taskName, stackSize, priority), param(temperatureHumidtySensorParam) {
@@ -35,6 +37,8 @@ TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName,
 void TemperatureHumidtySensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
+  system_request_t request;
+  system_response_t response;
   uint32_t delay_ms;
   static bool is_test;
   bool is_temperature_redundant;
@@ -42,10 +46,27 @@ void TemperatureHumidtySensorTask::Run() {
 
   while (true)
   {
+    memset(&request, 0, sizeof(system_request_t));
+    memset(&response, 0, sizeof(system_response_t));
+
     switch (state)
     {
-    case INIT:
+    case WAIT:
+      // check if configuration is loaded
+      if (param.system_status->configuration.is_loaded)
+      {
+        TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
+        state = INIT;
+      }
+      // other
+      else
+      {
+        Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
+      }
+      // do something else with non-blocking wait ....
+      break;
 
+    case INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
       for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
       {
@@ -57,40 +78,41 @@ void TemperatureHumidtySensorTask::Run() {
       state = SETUP;
       break;
 
-      case SETUP:
-        is_test = false;
-        memset((void *) values_readed_from_sensor, RMAPDATA_MAX, (size_t) (VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
+    case SETUP:
+      is_test = false;
+      memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
 
-        for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-          if (!sensors[i]->isSetted()) {
-            param.wireLock->Take();
-            sensors[i]->setup();
-            param.wireLock->Give();
-            TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-          }
-        }
-        state = PREPARE;
-        break;
-
-      case PREPARE:
-        delay_ms = 0;
-        for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-          sensors[i]->resetPrepared();
-          param.wireLock->Take();
-          sensors[i]->prepare(is_test);
-          param.wireLock->Give();
-
-          // wait the most slowest
-          if (sensors[i]->getDelay() > delay_ms) {
-            delay_ms = sensors[i]->getDelay();
-          }
-        }
-
-        if (delay_ms)
+      for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
+      {
+        if (!sensors[i]->isSetted())
         {
-          DelayUntil(Ticks::MsToTicks(delay_ms));
+          param.wireLock->Take();
+          sensors[i]->setup();
+          param.wireLock->Give();
+          TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
         }
-        state = READ;
+      }
+      state = PREPARE;
+      break;
+
+    case PREPARE:
+      delay_ms = 0;
+      for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
+      {
+        sensors[i]->resetPrepared();
+        param.wireLock->Take();
+        sensors[i]->prepare(is_test);
+        param.wireLock->Give();
+
+        // wait the most slowest
+        if (sensors[i]->getDelay() > delay_ms)
+        {
+          delay_ms = sensors[i]->getDelay();
+        }
+      }
+
+      Delay(Ticks::MsToTicks(delay_ms));
+      state = READ;
       break;
 
       case READ:
@@ -102,11 +124,8 @@ void TemperatureHumidtySensorTask::Run() {
             param.wireLock->Take();
             sensors[i]->get(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, is_test);
             param.wireLock->Give();
-            if (sensors[i]->getDelay()) {
-              DelayUntil(Ticks::MsToTicks(sensors[i]->getDelay()));
-            }
-          }
-          while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
+            Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
+          } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
 
           if (false) {}
 
@@ -186,3 +205,5 @@ void TemperatureHumidtySensorTask::Run() {
     }
   }
 }
+
+#endif

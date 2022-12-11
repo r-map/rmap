@@ -29,9 +29,6 @@
 
 #include "drivers/Accelerometer.h"
 
-#include <Arduino.h>
-#include <Wire.h>
-
 Accelerometer::Accelerometer()
 {
 }

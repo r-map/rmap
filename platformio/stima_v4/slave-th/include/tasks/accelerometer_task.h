@@ -47,6 +47,7 @@
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #include "drivers/eeprom.h"
+#include "drivers/accelerometer.h"
 #endif
 
 #include "debug_F.h"

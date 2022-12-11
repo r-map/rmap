@@ -27,21 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
-#if (ENABLE_ACCELEROMETER)
-#include "drivers/accelerometer.h"
-#endif
-
-#if (ENABLE_ACCELEROMETER)
-typedef struct
-{
-   uint8_t config_valid;                      //!< Inizialization Byte Config
-   Accelerometer::iis328dq_dr_t module_power; //!< module updating frequency (enabled)
-   float offset_x;                            //!< offset_x to 0
-   float offset_y;                            //!< offset_y to 0
-   float offset_z;                            //!< offset_z to 0
-} accelerometer_t;
-#endif
-
 typedef struct
 {
    uint8_t i2c_address;             //!< i2c sensor's address
