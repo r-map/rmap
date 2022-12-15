@@ -2341,7 +2341,7 @@ void SensorDriverWind::prepare(bool is_test) {
 	_buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 150;
+      _delay_ms = 100;   // no less then 32 ms
     }
 
     if (is_i2c_write) {

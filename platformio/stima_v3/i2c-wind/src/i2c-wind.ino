@@ -292,7 +292,7 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  start_timer();
+  //start_timer();
 }
 
 void start_timer() {
@@ -1680,9 +1680,9 @@ void commands() {
   }
   //! CONTINUOUS START-STOP
   else if (!configuration.is_oneshot && is_start && is_stop) {
-    stop_timer();
+    stop_timer();                   // from here
     elaborate_circular_buffer();
-    exchange_buffers();
+    exchange_buffers();             // to here require 32 ms with 16Mhz avr mcu and SENSORS_SAMPLE_TIME_MS 1000
     reset_samples_buffer();
     make_report(true);
     start_timer();

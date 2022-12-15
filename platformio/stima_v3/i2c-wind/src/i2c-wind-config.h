@@ -37,13 +37,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (10)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
 \brief Module version of compatibile configuration. If you change it, you have to reconfigure.
 */
-#define MODULE_CONFIGURATION_VERSION                  (2)
+#define MODULE_CONFIGURATION_VERSION                  (1)
 
 /*!
 \def MODULE_TYPE
