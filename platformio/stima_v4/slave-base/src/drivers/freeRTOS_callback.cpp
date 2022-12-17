@@ -113,7 +113,7 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
  * Both CMSIS-RTOSv2 and CMSIS-RTOS override osSystickHandler() 
  * which is calling xPortSysTickHandler(), defined in respective CortexM-x port
 */
-#if ( !defined(configUSE_TICKLESS_IDLE) || configUSE_TICKLESS_IDLE == 2 )
+#if (defined(configUSE_TICKLESS_IDLE) && (configUSE_TICKLESS_IDLE == 2))
 extern "C" void osSystickHandler()
 {
   // osSystickHandler CallBack UNUSED for LPTIM1 IRQ Set Increment of OsTickHadler

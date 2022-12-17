@@ -146,9 +146,7 @@
 //     the tick periods is not a concern.
 
 
-#if ( !defined(configUSE_TICKLESS_IDLE) || configUSE_TICKLESS_IDLE != 2 )
-#warning Please edit FreeRTOSConfig.h to define configUSE_TICKLESS_IDLE as 2 *or* exclude this file.
-#else
+#if (defined(configUSE_TICKLESS_IDLE) && (configUSE_TICKLESS_IDLE==2))
 
 #ifdef xPortSysTickHandler
 #warning Please edit FreeRTOSConfig.h to eliminate the preprocessor definition for xPortSysTickHandler.
