@@ -25,16 +25,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef SENSOR_DRIVER_H
 #define SENSOR_DRIVER_H
 
-#include "SensorDriverSensors.h"
-#include "sensors_config.h"
-#include "rmap_utility.h"
-#include "i2c_config.h"
-#include "i2c_utility.h"
 #include <Arduino.h>
 #include <Wire.h>
+#include "SensorDriverSensors.h"
+#include "debug_config.h"
+#include "sensors_config.h"
+#include "local_typedef.h"
+#include "stima_utility.h"
+#include "i2c_utility.h"
 #include "os_port.h"
-#include "debug.h"
-#include "typedef.h"
+
+#include "debug_F.h"
 
 /*!
 \def SENSOR_DRIVER_ERROR

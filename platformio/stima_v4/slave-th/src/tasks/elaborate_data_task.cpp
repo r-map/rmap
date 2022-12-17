@@ -27,12 +27,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-ElaborateDataSensorTask::ElaborateDataSensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam) {
+ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam) {
   state = INIT;
   Start();
 };
 
-void ElaborateDataSensorTask::Run() {
+void ElaborateDataTask::Run() {
   elaborate_data_t edata;
 
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
@@ -50,25 +50,25 @@ void ElaborateDataSensorTask::Run() {
 
     switch (edata.index) {
       case TEMPERATURE_MAIN_INDEX:
-        TRACE_VERBOSE(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
+        TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
         is_1 = true;
       break;
 
       case TEMPERATURE_REDUNDANT_INDEX:
-        TRACE_VERBOSE(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
+        TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
         is_2 = true;
       break;
 
       case HUMIDITY_MAIN_INDEX:
-        TRACE_VERBOSE(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
+        TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
         is_3 = true;
       break;
 
       case HUMIDITY_REDUNDANT_INDEX:
-        TRACE_VERBOSE(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
+        TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
         is_4 = true;
       break;
@@ -89,7 +89,7 @@ void ElaborateDataSensorTask::Run() {
   }
 }
 
-uint8_t ElaborateDataSensorTask::checkTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
+uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
   uint8_t quality = 0;
 
   float main = ((main_temperature - 27315.0) / 100.0);
@@ -140,7 +140,7 @@ uint8_t ElaborateDataSensorTask::checkTemperature(rmapdata_t main_temperature, r
   return quality;
 }
 
-uint8_t ElaborateDataSensorTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
+uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
   uint8_t quality = 0;
 
   if ((main_humidity > MAX_VALID_HUMIDITY) || (main_humidity < MIN_VALID_HUMIDITY)) {
@@ -188,7 +188,7 @@ uint8_t ElaborateDataSensorTask::checkHumidity(rmapdata_t main_humidity, rmapdat
   return quality;
 }
 
-void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
+void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
   rmapdata_t main_temperature = 0;
   rmapdata_t redundant_temperature = 0;
 
@@ -227,8 +227,8 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
   static rmapdata_t max_humidity_o;
   static rmapdata_t avg_humidity_quality_o;
 
-  uint16_t report_sample_count = round((report_time_s * 1.0) / (*param.acquisition_delay_ms / 1000.0));
-  uint16_t observation_sample_count = round((observation_time_s * 1.0) / (*param.acquisition_delay_ms / 1000.0));
+  uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+  uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
 
   if (is_init) {
     valid_count_temperature_o = 0;
@@ -260,14 +260,14 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
   report.humidity.max = RMAPDATA_MAX;
   report.humidity.quality = RMAPDATA_MAX;
 
-  TRACE_INFO(F("Making report on %d seconds\r\n"), report_time_s);
-  TRACE_DEBUG(F("-> %d samples counts need for report\r\n"), report_sample_count);
-  TRACE_DEBUG(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-  TRACE_DEBUG(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
-  TRACE_DEBUG(F("-> %d available temperature main samples count\r\n"), temperature_main_samples.count);
-  TRACE_DEBUG(F("-> %d available temperature redundant samples count\r\n"), temperature_redundant_samples.count);
-  TRACE_DEBUG(F("-> %d available humidity main samples count\r\n"), humidity_main_samples.count);
-  TRACE_DEBUG(F("-> %d available humidity redundant samples count\r\n"), humidity_redundant_samples.count);
+  TRACE_INFO_F(F("Making report on %d seconds\r\n"), report_time_s);
+  TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
+  TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
+  TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
+  TRACE_DEBUG_F(F("-> %d available temperature main samples count\r\n"), temperature_main_samples.count);
+  TRACE_DEBUG_F(F("-> %d available temperature redundant samples count\r\n"), temperature_redundant_samples.count);
+  TRACE_DEBUG_F(F("-> %d available humidity main samples count\r\n"), humidity_main_samples.count);
+  TRACE_DEBUG_F(F("-> %d available humidity redundant samples count\r\n"), humidity_redundant_samples.count);
 
   bufferPtrResetBack<sample_t, uint16_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
@@ -296,7 +296,7 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
   }
 
   error_temperature_per = (float)(error_count_temperature) / (float)(temperature_main_samples.count) * 100.0;
-  TRACE_DEBUG(F("-> %d temperature samples error (%d%%)\r\n"), error_count_temperature, (int32_t) error_temperature_per);
+  TRACE_DEBUG_F(F("-> %d temperature samples error (%d%%)\r\n"), error_count_temperature, (int32_t) error_temperature_per);
 
   // humidity samples
   for (uint16_t i=0; i<humidity_main_samples.count; i++) {
@@ -320,7 +320,7 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
   }
 
   error_humidity_per = (float)(error_count_humidity) / (float)(humidity_main_samples.count) * 100.0;
-  TRACE_DEBUG(F("-> %d humidity samples error (%d%%)\r\n"), error_count_humidity, (int32_t) error_humidity_per);
+  TRACE_DEBUG_F(F("-> %d humidity samples error (%d%%)\r\n"), error_count_humidity, (int32_t) error_humidity_per);
 
   // temperature
   if (temperature_main_samples.count >= observation_sample_count) {
@@ -345,7 +345,7 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
     }
 
     error_temperature_per_o = (float)(error_count_temperature_o) / (float)(observation_sample_count) * 100.0;
-    TRACE_DEBUG(F("-> %d temperature observation error (%d%%)\r\n"), error_count_temperature_o, (int32_t) error_temperature_per_o);
+    TRACE_DEBUG_F(F("-> %d temperature observation error (%d%%)\r\n"), error_count_temperature_o, (int32_t) error_temperature_per_o);
 
     if (valid_count_temperature_o && (error_temperature_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX)) {
       report.temperature.ist = avg_temperature;
@@ -379,7 +379,7 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
     }
 
     error_humidity_per_o = (float)(error_count_humidity_o) / (float)(observation_sample_count) * 100.0;
-    TRACE_DEBUG(F("-> %d humidity observation error (%d%%)\r\n"), error_count_humidity_o, (int32_t) error_humidity_per_o);
+    TRACE_DEBUG_F(F("-> %d humidity observation error (%d%%)\r\n"), error_count_humidity_o, (int32_t) error_humidity_per_o);
 
     if (valid_count_humidity_o && (error_humidity_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX)) {
       report.humidity.ist = avg_humidity;
@@ -390,8 +390,8 @@ void ElaborateDataSensorTask::make_report (bool is_init, uint16_t report_time_s,
     }
   }
 
-  TRACE_INFO(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-  TRACE_INFO(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
+  TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
+  TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
 }
 
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length) {

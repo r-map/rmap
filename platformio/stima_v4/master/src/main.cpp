@@ -176,12 +176,8 @@ void init_tasks()
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
 
-  systemStatusQueue = new Queue(SYSTEM_STATUS_QUEUE_LENGTH, sizeof(system_status_t));
-
-#if ((MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM) || (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH))
   systemRequestQueue = new Queue(SYSTEM_REQUEST_QUEUE_LENGTH, sizeof(system_request_t));
   systemResponseQueue = new Queue(SYSTEM_RESPONSE_QUEUE_LENGTH, sizeof(system_response_t));
-#endif
 }
 
 void init_sensors()

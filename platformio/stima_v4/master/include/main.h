@@ -67,7 +67,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "debug_F.h"
 
-    using namespace cpp_freertos;
+using namespace cpp_freertos;
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -80,7 +80,6 @@ BinarySemaphore *wireLock;
 BinarySemaphore *wire2Lock;
 #endif
 
-Queue *systemStatusQueue;
 Queue *systemRequestQueue;
 Queue *systemResponseQueue;
 
@@ -92,28 +91,6 @@ system_status_t system_status;
 
 YarrowContext yarrowContext;
 uint8_t seed[SEED_LENGTH];
-
-/*!
-\fn void print_configuration(void)
-\brief Print current configuration.
-\return void.
-*/
-void print_configuration(void);
-
-/*!
-\fn void load_configuration(void)
-\brief Load configuration from EEPROM.
-\return void.
-*/
-void load_configuration(void);
-
-/*!
-\fn void save_configuration(bool is_default)
-\brief Save configuration to EEPROM.
-\param is_default: if true save default configuration; if false save current configuration.
-\return void.
-*/
-void save_configuration(bool);
 
 void init_pins(void);
 void init_wire(void);

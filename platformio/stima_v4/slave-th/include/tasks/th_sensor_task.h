@@ -24,29 +24,49 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _TH_SENSOR_TASK_H
 #define _TH_SENSOR_TASK_H
 
-#include "config.h"
+#include "debug_config.h"
+#include "local_typedef.h"
+#include "stima_utility.h"
+#include "str.h"
 
-#include "STM32FreeRTOS.h"
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+
+#define TH_TASK_WAIT_DELAY_MS (100)
+#define TH_TASK_GENERIC_RETRY_DELAY_MS (5000)
+#define TH_TASK_GENERIC_RETRY (3)
+
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
+#include "drivers/module_slave_hal.hpp"
+
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#include <Wire.h>
+#endif
 
 #include "SensorDriver.h"
-#include "debug.h"
+#include "debug_F.h"
 
 using namespace cpp_freertos;
 
 typedef struct {
-  uint8_t *sensors_count;
-  sensor_configuration_t *sensors;
-  uint32_t *acquisition_delay_ms;
-  BinarySemaphore *wireLock;
-  Queue *elaborataDataQueue;
+  configuration_t *configuration;
+  system_status_t *system_status;
+  cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *elaborataDataQueue;
+  TwoWire *wire;
 } TemperatureHumidtySensorParam_t;
 
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
-  typedef enum {
+  typedef enum
+  {
+    WAIT,
     INIT,
     SETUP,
     PREPARE,
@@ -62,12 +82,10 @@ protected:
 
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
-  TemperatureHumidtySensorParam_t param;
   State_t state;
+  TemperatureHumidtySensorParam_t param;
   SensorDriver *sensors[SENSORS_COUNT_MAX];
 };
 
+#endif
 #endif

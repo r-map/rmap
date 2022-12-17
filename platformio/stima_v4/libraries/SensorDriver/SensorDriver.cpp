@@ -46,7 +46,7 @@ SensorDriver::SensorDriver(const char* driver, const char* type, TwoWire *wire) 
 
 SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire *wire) {
   if (strlen(driver) == 0 || strlen(type) == 0) {
-    TRACE_ERROR(F("SensorDriver %s-%s create... [ %s ]--> driver or type is null."), driver, type, FAIL_STRING);
+    TRACE_ERROR_F(F("SensorDriver %s-%s create... [ %s ]--> driver or type is null."), driver, type, FAIL_STRING);
     return NULL;
   }
 
@@ -111,7 +111,7 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire
   #endif
 
   else {
-    TRACE_ERROR(F("SensorDriver %s-%s create... [ %s ] --> driver or type not found.\r\n"), driver, type, ERROR_STRING);
+    TRACE_ERROR_F(F("SensorDriver %s-%s create... [ %s ] --> driver or type not found.\r\n"), driver, type, ERROR_STRING);
     return NULL;
   }
 }
@@ -210,7 +210,7 @@ void SensorDriver::createSensor(const char* driver, const char* type, const uint
   for (uint8_t i = 0; i < SENSORS_UNIQUE_MAX; i++) {
     if ((strcmp(sensors[i]->getDriver(), driver)) == 0 && (sensors[i]->getAddress() == address)) {
       index = _SensorDriver::_pool_pointers[i];
-      TRACE_VERBOSE(F("found pool index: %d\r\n"), index);
+      TRACE_VERBOSE_F(F("found pool index: %d\r\n"), index);
       found = true;
       break;
     }
@@ -218,13 +218,13 @@ void SensorDriver::createSensor(const char* driver, const char* type, const uint
 
   if (!found) {
     // if (_SensorDriver::_pool_new_pointer >= SENSORS_UNIQUE_MAX) {
-    //   TRACE_ERROR(F("pool index: %d out of scope\r\n"), _SensorDriver::_pool_new_pointer);
+    //   TRACE_ERROR_F(F("pool index: %d out of scope\r\n"), _SensorDriver::_pool_new_pointer);
     //   sensors[_SensorDriver::_sensors_count] = NULL;
     //   _SensorDriver::_sensors_count++;
     //   return;
     // }
 
-    TRACE_VERBOSE(F("new pool index: %d\r\n"), _SensorDriver::_pool_new_pointer);
+    TRACE_VERBOSE_F(F("new pool index: %d\r\n"), _SensorDriver::_pool_new_pointer);
     index=_SensorDriver::_pool_new_pointer;
     _SensorDriver::_pool_pointers[_SensorDriver::_sensors_count] = index;
     _SensorDriver::_pool_new_pointer++;
@@ -239,15 +239,15 @@ void SensorDriver::createSensor(const char* driver, const char* type, const uint
 }
 
 void SensorDriver::printInfo() {
-  TRACE_VERBOSE(F("%s %s-%s 0x%02X on node %u "), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), SensorDriver::getAddress(), SensorDriver::getNode());
+  TRACE_VERBOSE_F(F("%s %s-%s 0x%02X on node %u "), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), SensorDriver::getAddress(), SensorDriver::getNode());
 }
 
 void SensorDriver::printCreate() {
-  TRACE_VERBOSE(F("%s %s-%s create [ %s ]\r\n"), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), OK_STRING);
+  TRACE_VERBOSE_F(F("%s %s-%s create [ %s ]\r\n"), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), OK_STRING);
 }
 
 void SensorDriver::printInit() {
-  TRACE_VERBOSE(F("%s %s-%s 0x%02X on node %u init [ %s ]\r\n"), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), SensorDriver::getAddress(), SensorDriver::getNode(), OK_STRING);
+  TRACE_VERBOSE_F(F("%s %s-%s 0x%02X on node %u init [ %s ]\r\n"), SENSOR_DRIVER_STRING, SensorDriver::getDriver(), SensorDriver::getType(), SensorDriver::getAddress(), SensorDriver::getNode(), OK_STRING);
 }
 
 //------------------------------------------------------------------------------
@@ -271,16 +271,16 @@ void SensorDriverAdt7420::setup() {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      TRACE_ERROR(F("adt7420 setup... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("adt7420 setup... [ %s ]"), FAIL_STRING);
       _error_count++;
       return;
     }
-    TRACE_VERBOSE(F("adt7420 setup... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("adt7420 setup... [ %s ]"), OK_STRING);
     *_is_setted = true;
     _error_count = 0;
   }
   else {
-    TRACE_VERBOSE(F("adt7420 setup... [ %s ]"), YES_STRING);
+    TRACE_VERBOSE_F(F("adt7420 setup... [ %s ]"), YES_STRING);
   }
 
 }
@@ -294,7 +294,7 @@ void SensorDriverAdt7420::prepare(bool is_test) {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      TRACE_ERROR(F("adt7420 prepare... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("adt7420 prepare... [ %s ]"), FAIL_STRING);
       _error_count++;
       return;
     }
@@ -303,10 +303,10 @@ void SensorDriverAdt7420::prepare(bool is_test) {
     _delay_ms = 250;
     _error_count = 0;
 
-    TRACE_VERBOSE(F("adt7420 prepare... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("adt7420 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    TRACE_VERBOSE(F("adt7420 prepare... [ %s ]"), YES_STRING);
+    TRACE_VERBOSE_F(F("adt7420 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -398,17 +398,17 @@ void SensorDriverAdt7420::get(rmapdata_t *values, uint8_t length, bool is_test) 
 
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("adt7420 get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("adt7420 get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("adt7420 get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("adt7420 get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("adt7420--> temperature: %d"), values[0]);
+        TRACE_VERBOSE_F(F("adt7420--> temperature: %d"), values[0]);
       }
       else {
-        TRACE_VERBOSE(F("adt7420--> temperature: ---"));
+        TRACE_VERBOSE_F(F("adt7420--> temperature: ---"));
       }
     }
 
@@ -467,13 +467,13 @@ void SensorDriverHih6100::setup() {
     if (Wire.endTransmission() == 0) {
       *_is_setted = true;
       _error_count = 0;
-      TRACE_VERBOSE(F("hih6100 setup... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("hih6100 setup... [ %s ]"), OK_STRING);
     }else{
       _error_count++;
-      TRACE_ERROR(F("hih6100 setup... [ %s ]"), ERROR_STRING);
+      TRACE_ERROR_F(F("hih6100 setup... [ %s ]"), ERROR_STRING);
     }
   }else {
-    TRACE_VERBOSE(F("hih6100 setup... [ %s ]"), YES_STRING);
+    TRACE_VERBOSE_F(F("hih6100 setup... [ %s ]"), YES_STRING);
   }
 }
 
@@ -485,7 +485,7 @@ void SensorDriverHih6100::prepare(bool is_test) {
 
     if (Wire.endTransmission()) {
       _error_count++;
-      TRACE_ERROR(F("hih6100 prepare... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("hih6100 prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
@@ -493,10 +493,10 @@ void SensorDriverHih6100::prepare(bool is_test) {
     _delay_ms = 40;
     _error_count = 0;
 
-    TRACE_VERBOSE(F("hih6100 prepare... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("hih6100 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    TRACE_VERBOSE(F("hih6100 prepare... [ %s ]"), YES_STRING);
+    TRACE_VERBOSE_F(F("hih6100 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -605,26 +605,26 @@ void SensorDriverHih6100::get(rmapdata_t *values, uint8_t length, bool is_test) 
 
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("hih6100 get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("hih6100 get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("hih6100 get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("hih6100 get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("hih6100--> humidity: %d"), values[0]);
+        TRACE_VERBOSE_F(F("hih6100--> humidity: %d"), values[0]);
       }
       else {
-        TRACE_VERBOSE(F("hih6100--> humidity: ---"));
+        TRACE_VERBOSE_F(F("hih6100--> humidity: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        TRACE_VERBOSE(F("hih6100--> temperature: %d"), values[1]);
+        TRACE_VERBOSE_F(F("hih6100--> temperature: %d"), values[1]);
       }
       else {
-        TRACE_VERBOSE(F("hih6100--> temperature: ---"));
+        TRACE_VERBOSE_F(F("hih6100--> temperature: ---"));
       }
     }
 
@@ -688,15 +688,15 @@ void SensorDriverHyt::setup() {
     if (hyt.prepare()) {
       *_is_setted = true;
       _error_count = 0;
-      TRACE_VERBOSE(F("setup [ %s ]\r\n"), OK_STRING);
+      TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), OK_STRING);
     }
     else {
       _error_count++;
-      TRACE_VERBOSE(F("setup [ %s ]\r\n"), ERROR_STRING);
+      TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), ERROR_STRING);
     }
   }
   else {
-    TRACE_VERBOSE(F("setup [ %s ]\r\n"), YES_STRING);
+    TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), YES_STRING);
   }
 }
 
@@ -705,11 +705,11 @@ void SensorDriverHyt::prepare(bool is_test) {
   *_is_prepared = hyt.prepare();
   if (*_is_prepared) {
     _error_count = 0;
-    TRACE_VERBOSE(F("prepare [ %s ]\r\n"), OK_STRING);
+    TRACE_VERBOSE_F(F("prepare [ %s ]\r\n"), OK_STRING);
   }
   else {
     _error_count++;
-    TRACE_ERROR(F("prepare [ %s ]\r\n"), FAIL_STRING);
+    TRACE_ERROR_F(F("prepare [ %s ]\r\n"), FAIL_STRING);
   }
 
   _delay_ms = hyt.getAcquisitionDelayMs();
@@ -754,7 +754,7 @@ void SensorDriverHyt::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
       else {
         SensorDriver::printInfo();
-        TRACE_ERROR(F("get read [ %s ]\r\n"), ERROR_STRING);
+        TRACE_ERROR_F(F("get read [ %s ]\r\n"), ERROR_STRING);
         _error_count++;
         _is_success = false;
         _get_state = END;
@@ -773,14 +773,14 @@ void SensorDriverHyt::get(rmapdata_t *values, uint8_t length, bool is_test) {
         }
         else {
           SensorDriver::printInfo();
-          TRACE_ERROR(F("get NO confirmation by values %d != %d and %d != %d [ %s ]\r\n"), humidity,humidity_confirmation,temperature,temperature_confirmation, ERROR_STRING);
+          TRACE_ERROR_F(F("get NO confirmation by values %d != %d and %d != %d [ %s ]\r\n"), humidity,humidity_confirmation,temperature,temperature_confirmation, ERROR_STRING);
           _error_count++;
           _is_success = false;
         }
       }
       else {
         SensorDriver::printInfo();
-        TRACE_ERROR(F("get NO confirmation by error %d [ %s ]\r\n"), status, ERROR_STRING);
+        TRACE_ERROR_F(F("get NO confirmation by error %d [ %s ]\r\n"), status, ERROR_STRING);
         _is_success = false;
       }
       _delay_ms = 0;
@@ -809,26 +809,26 @@ void SensorDriverHyt::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       SensorDriver::printInfo();
       if (_is_success){
-        TRACE_VERBOSE(F("get [ %s ]\r\n"), OK_STRING);
+        TRACE_VERBOSE_F(F("get [ %s ]\r\n"), OK_STRING);
       }else{
-        TRACE_ERROR(F("get [ %s ]\r\n"), FAIL_STRING);
+        TRACE_ERROR_F(F("get [ %s ]\r\n"), FAIL_STRING);
       }
 
       if (length >= 1) {
         if (ISVALID_INT32(values[0])) {
-          TRACE_VERBOSE(F("-> humidity: %d\r\n"), values[0]);
+          TRACE_VERBOSE_F(F("-> humidity: %d\r\n"), values[0]);
         }
         else {
-          TRACE_VERBOSE(F("-> humidity: ---\r\n"));
+          TRACE_VERBOSE_F(F("-> humidity: ---\r\n"));
         }
       }
 
       if (length >= 2) {
         if (ISVALID_INT32(values[1])) {
-          TRACE_VERBOSE(F("-> temperature: %d\r\n"), values[1]);
+          TRACE_VERBOSE_F(F("-> temperature: %d\r\n"), values[1]);
         }
         else {
-          TRACE_VERBOSE(F("-> temperature: ---\r\n"));
+          TRACE_VERBOSE_F(F("-> temperature: ---\r\n"));
         }
       }
 
@@ -892,15 +892,15 @@ void SensorDriverSht::setup() {
     if (sht.prepare()) {
       *_is_setted = true;
       _error_count = 0;
-      TRACE_VERBOSE(F("setup [ %s ]\r\n"), OK_STRING);
+      TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), OK_STRING);
     }
     else {
       _error_count++;
-      TRACE_VERBOSE(F("setup [ %s ]\r\n"), ERROR_STRING);
+      TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), ERROR_STRING);
     }
   }
   else {
-    TRACE_VERBOSE(F("setup [ %s ]\r\n"), YES_STRING);
+    TRACE_VERBOSE_F(F("setup [ %s ]\r\n"), YES_STRING);
   }
 }
 
@@ -909,11 +909,11 @@ void SensorDriverSht::prepare(bool is_test) {
   *_is_prepared = sht.prepare();
   if (*_is_prepared) {
     _error_count = 0;
-    TRACE_VERBOSE(F("prepare [ %s ]\r\n"), OK_STRING);
+    TRACE_VERBOSE_F(F("prepare [ %s ]\r\n"), OK_STRING);
   }
   else {
     _error_count++;
-    TRACE_ERROR(F("prepare [ %s ]\r\n"), FAIL_STRING);
+    TRACE_ERROR_F(F("prepare [ %s ]\r\n"), FAIL_STRING);
   }
 
   _delay_ms = sht.getAcquisitionDelayMs();
@@ -957,7 +957,7 @@ void SensorDriverSht::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
       else {
         SensorDriver::printInfo();
-        TRACE_ERROR(F("get read [ %s ]\r\n"), ERROR_STRING);
+        TRACE_ERROR_F(F("get read [ %s ]\r\n"), ERROR_STRING);
         _error_count++;
         _is_success = false;
         _get_state = END;
@@ -987,26 +987,26 @@ void SensorDriverSht::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       SensorDriver::printInfo();
       if (_is_success){
-        TRACE_VERBOSE(F("get [ %s ]\r\n"), OK_STRING);
+        TRACE_VERBOSE_F(F("get [ %s ]\r\n"), OK_STRING);
       }else{
-        TRACE_ERROR(F("get [ %s ]\r\n"), FAIL_STRING);
+        TRACE_ERROR_F(F("get [ %s ]\r\n"), FAIL_STRING);
       }
 
       if (length >= 1) {
         if (ISVALID_INT32(values[0])) {
-          TRACE_VERBOSE(F("-> humidity: %d\r\n"), values[0]);
+          TRACE_VERBOSE_F(F("-> humidity: %d\r\n"), values[0]);
         }
         else {
-          TRACE_VERBOSE(F("-> humidity: ---\r\n"));
+          TRACE_VERBOSE_F(F("-> humidity: ---\r\n"));
         }
       }
 
       if (length >= 2) {
         if (ISVALID_INT32(values[1])) {
-          TRACE_VERBOSE(F("-> temperature: %d\r\n"), values[1]);
+          TRACE_VERBOSE_F(F("-> temperature: %d\r\n"), values[1]);
         }
         else {
-          TRACE_VERBOSE(F("-> temperature: ---\r\n"));
+          TRACE_VERBOSE_F(F("-> temperature: ---\r\n"));
         }
       }
 
@@ -1078,10 +1078,10 @@ void SensorDriverDw1::setup() {
   if (Wire.endTransmission() == 0) {
     _error_count = 0;
     *_is_setted = true;
-    TRACE_VERBOSE(F("dw1 setup... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("dw1 setup... [ %s ]"), OK_STRING);
   }else{
     _error_count++;
-    TRACE_ERROR(F("dw1 setup... [ %s ]"), ERROR_STRING);
+    TRACE_ERROR_F(F("dw1 setup... [ %s ]"), ERROR_STRING);
   }
 }
 
@@ -1096,17 +1096,17 @@ void SensorDriverDw1::prepare(bool is_test) {
 
     if (Wire.endTransmission()) {
       _error_count++;
-      TRACE_VERBOSE(F("dw1 prepare... [ %s ]"), FAIL_STRING);
+      TRACE_VERBOSE_F(F("dw1 prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
     _error_count = 0;
 
-    TRACE_VERBOSE(F("dw1 prepare... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("dw1 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    TRACE_VERBOSE(F("dw1 prepare... [ %s ]"), YES_STRING);
+    TRACE_VERBOSE_F(F("dw1 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -1256,37 +1256,37 @@ void SensorDriverDw1::get(rmapdata_t *values, uint8_t length, bool is_test) {
     case END:
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("dw1 get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("dw1 get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("dw1 get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("dw1 get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("dw1--> mean u: %d"), values[0]);
+        TRACE_VERBOSE_F(F("dw1--> mean u: %d"), values[0]);
       }
       else {
-        TRACE_VERBOSE(F("dw1--> mean u: ---"));
+        TRACE_VERBOSE_F(F("dw1--> mean u: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        TRACE_VERBOSE(F("dw1--> mean v: %d"), values[1]);
+        TRACE_VERBOSE_F(F("dw1--> mean v: %d"), values[1]);
       }
       else {
-        TRACE_VERBOSE(F("dw1--> mean v: ---"));
+        TRACE_VERBOSE_F(F("dw1--> mean v: ---"));
       }
     }
 
     if (ISVALID_INT32(values[0]) && ISVALID_INT32(values[1]) && length >= 2) {
       values[0] = (rmapdata_t) direction;
       values[1] = (rmapdata_t) round(speed);
-      TRACE_VERBOSE(F("dw1--> direction: %d"), values[0]);
-      TRACE_VERBOSE(F("dw1--> speed: %d"), values[1]);
+      TRACE_VERBOSE_F(F("dw1--> direction: %d"), values[0]);
+      TRACE_VERBOSE_F(F("dw1--> speed: %d"), values[1]);
     } else {
-      TRACE_VERBOSE(F("dw1--> direction: ---"));
-      TRACE_VERBOSE(F("dw1--> speed: ---"));
+      TRACE_VERBOSE_F(F("dw1--> direction: ---"));
+      TRACE_VERBOSE_F(F("dw1--> speed: ---"));
     }
 
     _start_time_ms = millis();
@@ -1357,10 +1357,10 @@ void SensorDriverRain::setup() {
   if (Wire.endTransmission() == 0) {
     _error_count = 0;
     *_is_setted = true;
-    TRACE_VERBOSE(F("rain setup... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("rain setup... [ %s ]"), OK_STRING);
   }else{
     _error_count++;
-    TRACE_ERROR(F("rain setup... [ %s ]"), ERROR_STRING);
+    TRACE_ERROR_F(F("rain setup... [ %s ]"), ERROR_STRING);
   }
 }
 
@@ -1408,7 +1408,7 @@ void SensorDriverRain::prepare(bool is_test) {
   }
 
   if(!is_test)_is_current_prepared = *_is_prepared;
-  TRACE_VERBOSE(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -1521,22 +1521,22 @@ void SensorDriverRain::get(rmapdata_t *values, uint8_t length, bool is_test) {
 	}
       }
     } else {
-      TRACE_ERROR(F("rain driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
+      TRACE_ERROR_F(F("rain driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
 
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("rain get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("rain get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("rain get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("rain get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("rain--> rain : %d"), values[0]);
+        TRACE_VERBOSE_F(F("rain--> rain : %d"), values[0]);
       }
       else {
-        TRACE_VERBOSE(F("rain--> rain: ---"));
+        TRACE_VERBOSE_F(F("rain--> rain: ---"));
       }
     }
 
@@ -1628,7 +1628,7 @@ void SensorDriverTh::setup() {
     _is_success = true;
   }
 
-  TRACE_VERBOSE(F("th setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("th setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverTh::prepare(bool is_test) {
@@ -1674,7 +1674,7 @@ void SensorDriverTh::prepare(bool is_test) {
         *_is_prepared = true;
       }else{
 	_error_count++;
-	TRACE_ERROR(F("th prepare... endTransmission"));
+	TRACE_ERROR_F(F("th prepare... endTransmission"));
       }
     }
   }
@@ -1684,7 +1684,7 @@ void SensorDriverTh::prepare(bool is_test) {
   }
 
   if(!is_test)_is_current_prepared = *_is_prepared;
-  TRACE_VERBOSE(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -1707,12 +1707,12 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
     _is_end = false;
 
     if ( *_is_prepared && length >= 1) {
-      TRACE_VERBOSE(F("th get INIT"));
+      TRACE_VERBOSE_F(F("th get INIT"));
       _is_success = true;
       _get_state = SET_TEMPERATURE_ADDRESS;
     }
     else {
-      TRACE_ERROR(F("th get INIT"));
+      TRACE_ERROR_F(F("th get INIT"));
       _is_success = false;
       _get_state = END;
     }
@@ -1757,7 +1757,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
         _buffer[i] = crc8(_buffer, i);
       }
       else{
-	TRACE_ERROR(F("th type mismatch %s for temp write"),_type);
+	TRACE_ERROR_F(F("th type mismatch %s for temp write"),_type);
 	_is_success = false;
       }
 
@@ -1766,7 +1766,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
-	  TRACE_VERBOSE(F("th get... ERROR SET_TEMPERATURE_ADDRESS"));
+	  TRACE_VERBOSE_F(F("th get... ERROR SET_TEMPERATURE_ADDRESS"));
 	  _error_count++;
           _is_success = false;
         }else{
@@ -1800,13 +1800,13 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
     }
     else{
       _is_success = false;
-      TRACE_ERROR(F("th type mismatch %s for temp read"),_type);
+      TRACE_ERROR_F(F("th type mismatch %s for temp read"),_type);
     }
 
       if (_is_success) {
         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
-	  TRACE_VERBOSE(F("th get... ERROR READ_TEMPERATURE"));
+	  TRACE_VERBOSE_F(F("th get... ERROR READ_TEMPERATURE"));
 	  _error_count++;
           _is_success = false;
         }else{
@@ -1820,7 +1820,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
         }
 
         if (crc8(temperature_data, data_length) != Wire.read()) {
-	  TRACE_VERBOSE(F("th get... ERROR READ_TEMPERATURE CRC error"));
+	  TRACE_VERBOSE_F(F("th get... ERROR READ_TEMPERATURE CRC error"));
           _is_success = false;
         }
       }
@@ -1872,7 +1872,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       _buffer[i] = crc8(_buffer, i);
     }
     else{
-      TRACE_ERROR(F("th type mismatch %s for humid write"),_type);
+      TRACE_ERROR_F(F("th type mismatch %s for humid write"),_type);
       _is_success = false;
     }
 
@@ -1881,7 +1881,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission()) {
-	TRACE_VERBOSE(F("th get... ERROR SET_HUMIDITY_ADDRESS"));
+	TRACE_VERBOSE_F(F("th get... ERROR SET_HUMIDITY_ADDRESS"));
 	_error_count++;
         _is_success = false;
       }else{
@@ -1917,14 +1917,14 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
         data_length = I2C_TH_HUMIDITY_MAX_LENGTH;
       }
       else{
-	TRACE_ERROR(F("th type mismatch %s for humid read"),_type);
+	TRACE_ERROR_F(F("th type mismatch %s for humid read"),_type);
 	_is_success = false;
       }
 
       if (_is_success) {
         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
-	  TRACE_VERBOSE(F("th get... ERROR READ_HUMIDITY"));
+	  TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY"));
 	  _error_count++;
           _is_success = false;
         }else{
@@ -1938,7 +1938,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
         }
 
         if (crc8(humidity_data, data_length) != Wire.read()) {
-	  TRACE_VERBOSE(F("th get... ERROR READ_HUMIDITY CRC error"));
+	  TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY CRC error"));
           _is_success = false;
         }
       }
@@ -1962,32 +1962,32 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
 	}
       }
     } else {
-      TRACE_ERROR(F("th driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
+      TRACE_ERROR_F(F("th driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
 
 
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("th get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("th get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("th get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("th get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("th--> temperature: %d"), values[0]);
+        TRACE_VERBOSE_F(F("th--> temperature: %d"), values[0]);
       }
       else {
-        TRACE_VERBOSE(F("th--> temperature: ---"));
+        TRACE_VERBOSE_F(F("th--> temperature: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        TRACE_VERBOSE(F("th--> humidity: %d"), values[1]);
+        TRACE_VERBOSE_F(F("th--> humidity: %d"), values[1]);
       }
       else {
-        TRACE_VERBOSE(F("th--> humidity: ---"));
+        TRACE_VERBOSE_F(F("th--> humidity: ---"));
       }
     }
 
@@ -2051,10 +2051,10 @@ void SensorDriverDigitecoPower::setup() {
   if (Wire.endTransmission() == 0) {
     *_is_setted = true;
     _error_count = 0;
-    TRACE_VERBOSE(F("digitecopower setup... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE_F(F("digitecopower setup... [ %s ]"), OK_STRING);
   }else{
     _error_count++;
-    TRACE_ERROR(F("digitecopower setup... [ %s ]"), ERROR_STRING);
+    TRACE_ERROR_F(F("digitecopower setup... [ %s ]"), ERROR_STRING);
   }
 }
 
@@ -2063,7 +2063,7 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
   _delay_ms = 0;
   *_is_prepared = true;
   _start_time_ms = millis();
-  TRACE_VERBOSE(F(" prepare... [ %s ]"), OK_STRING);
+  TRACE_VERBOSE_F(F(" prepare... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_test) {
@@ -2108,7 +2108,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_BATTERY_VOLTAGE;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set battery voltage"));
+      //TRACE_ERROR_F(F("digitecopower get set battery voltage"));
       _error_count++;
       _get_state = END;
     }
@@ -2129,7 +2129,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
 	_get_state = END;
       }
     }else {
-      //TRACE_ERROR(F("digitecopower get read battery voltage"));
+      //TRACE_ERROR_F(F("digitecopower get read battery voltage"));
       _error_count++;
       _get_state = END;
     }
@@ -2145,7 +2145,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_INPUT_VOLTAGE;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set input voltage"));
+      //TRACE_ERROR_F(F("digitecopower get set input voltage"));
       _error_count++;
       _get_state = END;
     }
@@ -2167,7 +2167,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       }
     }
     else {
-      //TRACE_ERROR(F("digitecopower get read input voltage"));
+      //TRACE_ERROR_F(F("digitecopower get read input voltage"));
       _error_count++;
       _get_state = END;
     }
@@ -2183,7 +2183,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_BATTERY_CHARGE;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set battery charge"));
+      //TRACE_ERROR_F(F("digitecopower get set battery charge"));
       _error_count++;
       _get_state = END;
     }
@@ -2205,7 +2205,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       }
     }
     else {
-      //TRACE_ERROR(F("digitecopower get read battery charge"));
+      //TRACE_ERROR_F(F("digitecopower get read battery charge"));
       _error_count++;
       _get_state = END;
     }
@@ -2221,7 +2221,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_BATTERY_CURRENT;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set battery current"));
+      //TRACE_ERROR_F(F("digitecopower get set battery current"));
       _error_count++;
       _get_state = END;
     }
@@ -2243,7 +2243,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       }
     }
     else {
-      //TRACE_ERROR(F("digitecopower get read battery current"));
+      //TRACE_ERROR_F(F("digitecopower get read battery current"));
       _error_count++;
       _get_state = END;
     }
@@ -2259,7 +2259,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_INPUT_CURRENT;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set input current"));
+      //TRACE_ERROR_F(F("digitecopower get set input current"));
       _error_count++;
       _get_state = END;
     }
@@ -2281,7 +2281,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       }
     }
     else {
-      //TRACE_ERROR(F("digitecopower get read input current"));
+      //TRACE_ERROR_F(F("digitecopower get read input current"));
       _error_count++;
       _get_state = END;
     }
@@ -2297,7 +2297,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       _get_state = READ_OUTPUT_VOLTAGE;
     }
     else {
-      //TRACE_ERROR(F("digitecopower get set output voltage"));
+      //TRACE_ERROR_F(F("digitecopower get set output voltage"));
       _error_count++;
       _get_state = END;
     }
@@ -2311,7 +2311,7 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
       values[5] = output_voltage * 10.0;
       _error_count = 0;
     } else {
-      //TRACE_ERROR(F("digitecopower get read output voltage"));
+      //TRACE_ERROR_F(F("digitecopower get read output voltage"));
       _error_count++;
     }
     _delay_ms = 0;
@@ -2323,62 +2323,62 @@ void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_
 
     SensorDriver::printInfo();
     if (_is_success){
-      TRACE_VERBOSE(F("digitecopower get... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE_F(F("digitecopower get... [ %s ]"), OK_STRING);
     }else{
-      TRACE_ERROR(F("digitecopower get... [ %s ]"), FAIL_STRING);
+      TRACE_ERROR_F(F("digitecopower get... [ %s ]"), FAIL_STRING);
     }
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        TRACE_VERBOSE(F("digitecopower--> battery voltage: %l V"), values[0]);
+        TRACE_VERBOSE_F(F("digitecopower--> battery voltage: %l V"), values[0]);
       }
       else {
-	TRACE_VERBOSE(F("digitecopower--> battery voltage: ---"));
+	TRACE_VERBOSE_F(F("digitecopower--> battery voltage: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-	TRACE_VERBOSE(F("digitecopower--> input voltage: %l V"), values[1]);
+	TRACE_VERBOSE_F(F("digitecopower--> input voltage: %l V"), values[1]);
       }
       else {
-	TRACE_VERBOSE(F("digitecopower--> input voltage: ---"));
+	TRACE_VERBOSE_F(F("digitecopower--> input voltage: ---"));
       }
     }
 
     if (length >= 3) {
       if (ISVALID_INT32(values[2])) {
-	TRACE_VERBOSE(F("digitecopower--> battery charge: %l %%"), values[2]);
+	TRACE_VERBOSE_F(F("digitecopower--> battery charge: %l %%"), values[2]);
       }
       else {
-	TRACE_VERBOSE(F("digitecopower--> battery charge: ---"));
+	TRACE_VERBOSE_F(F("digitecopower--> battery charge: ---"));
       }
     }
 
     if (length >= 4) {
       if (ISVALID_INT32(values[3])) {
-	TRACE_VERBOSE(F("digitecopower--> battery current: %l mA"), values[3]);
+	TRACE_VERBOSE_F(F("digitecopower--> battery current: %l mA"), values[3]);
       }
       else {
-	TRACE_VERBOSE(F("digitecopower--> battery current: ---"));
+	TRACE_VERBOSE_F(F("digitecopower--> battery current: ---"));
       }
     }
 
     if (length >= 5) {
       if (ISVALID_INT32(values[4])) {
-	TRACE_VERBOSE(F("digitecopower--> input current: %l mA"), values[4]);
+	TRACE_VERBOSE_F(F("digitecopower--> input current: %l mA"), values[4]);
       }
       else {
-        TRACE_VERBOSE(F("digitecopower--> input current: ---"));
+        TRACE_VERBOSE_F(F("digitecopower--> input current: ---"));
       }
     }
 
     if (length >= 6) {
       if (ISVALID_INT32(values[5])) {
-	TRACE_VERBOSE(F("digitecopower--> output voltage: %l V"), values[5]);
+	TRACE_VERBOSE_F(F("digitecopower--> output voltage: %l V"), values[5]);
       }
       else {
-        TRACE_VERBOSE(F("digitecopower--> output voltage: ---"));
+        TRACE_VERBOSE_F(F("digitecopower--> output voltage: ---"));
       }
     }
 
@@ -2497,7 +2497,7 @@ void SensorDriverWind::setup() {
     _is_success = true;
   }
 
-  TRACE_VERBOSE(F("wind setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("wind setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverWind::prepare(bool is_test) {
@@ -2538,7 +2538,7 @@ void SensorDriverWind::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  TRACE_VERBOSE(F("wind prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("wind prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -2784,9 +2784,9 @@ void SensorDriverWind::get(rmapdata_t *values, uint8_t length, bool is_test) {
     case END:
       SensorDriver::printInfo();
       if (_is_success){
-	TRACE_VERBOSE(F("wind get... [ %s ]"), OK_STRING);
+	TRACE_VERBOSE_F(F("wind get... [ %s ]"), OK_STRING);
       }else{
-	TRACE_ERROR(F("wind get... [ %s ]"), FAIL_STRING);
+	TRACE_ERROR_F(F("wind get... [ %s ]"), FAIL_STRING);
       }
 
       _start_time_ms = millis();
@@ -2943,7 +2943,7 @@ void SensorDriverSolarRadiation::setup() {
     _is_success = true;
   }
 
-  TRACE_VERBOSE(F("solarradiation setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("solarradiation setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverSolarRadiation::prepare(bool is_test) {
@@ -2984,7 +2984,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  TRACE_VERBOSE(F("solarradiation prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("solarradiation prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -3137,19 +3137,19 @@ void SensorDriverSolarRadiation::get(rmapdata_t *values, uint8_t length, bool is
     case END:
       SensorDriver::printInfo();
       if (_is_success){
-	TRACE_VERBOSE(F("solarradiation get... [ %s ]"), OK_STRING);
+	TRACE_VERBOSE_F(F("solarradiation get... [ %s ]"), OK_STRING);
       }else{
-	TRACE_ERROR(F("solarradiation get... [ %s ]"), FAIL_STRING);
+	TRACE_ERROR_F(F("solarradiation get... [ %s ]"), FAIL_STRING);
       }
 
       #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("solarradiation--> solar radiation: %ld"), values[0]);
+            TRACE_VERBOSE_F(F("solarradiation--> solar radiation: %ld"), values[0]);
           }
           else {
-            TRACE_VERBOSE(F("solarradiation--> solar radiation: ---"));
+            TRACE_VERBOSE_F(F("solarradiation--> solar radiation: ---"));
           }
         }
       }
@@ -3242,7 +3242,7 @@ void SensorDriverOpc::setup() {
     _is_success = true;
   }
 
-  TRACE_VERBOSE(F("opc setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("opc setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverOpc::prepare(bool is_test) {
@@ -3283,7 +3283,7 @@ void SensorDriverOpc::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  TRACE_VERBOSE(F("opc prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("opc prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -3598,37 +3598,37 @@ void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
     case END:
       SensorDriver::printInfo();
       if (_is_success){
-	TRACE_VERBOSE(F("opc get... [ %s ]"), OK_STRING);
+	TRACE_VERBOSE_F(F("opc get... [ %s ]"), OK_STRING);
       }else{
-	TRACE_ERROR(F("opc get... [ %s ]"), FAIL_STRING);
+	TRACE_ERROR_F(F("opc get... [ %s ]"), FAIL_STRING);
       }
 
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("opc--> PM 1: %ld"), values[0]);
+            TRACE_VERBOSE_F(F("opc--> PM 1: %ld"), values[0]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 1: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 1: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID_INT32(values[1])) {
-            TRACE_VERBOSE(F("opc--> PM 2.5: %ld"), values[1]);
+            TRACE_VERBOSE_F(F("opc--> PM 2.5: %ld"), values[1]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 2.5: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 2.5: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID_INT32(values[2])) {
-            TRACE_VERBOSE(F("opc--> PM 10: %ld"), values[2]);
+            TRACE_VERBOSE_F(F("opc--> PM 10: %ld"), values[2]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 10: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 10: ---"));
           }
         }
       }
@@ -3638,28 +3638,28 @@ void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("opc--> PM 1 sigma: %ld"), values[0]);
+            TRACE_VERBOSE_F(F("opc--> PM 1 sigma: %ld"), values[0]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 1 sigma: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 1 sigma: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID_INT32(values[1])) {
-            TRACE_VERBOSE(F("opc--> PM 2.5 sigma: %ld"), values[1]);
+            TRACE_VERBOSE_F(F("opc--> PM 2.5 sigma: %ld"), values[1]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 2.5 sigma: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 2.5 sigma: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID_INT32(values[2])) {
-            TRACE_VERBOSE(F("opc--> PM 10 sigma: %ld"), values[2]);
+            TRACE_VERBOSE_F(F("opc--> PM 10 sigma: %ld"), values[2]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> PM 10 sigma: ---"));
+            TRACE_VERBOSE_F(F("opc--> PM 10 sigma: ---"));
           }
         }
       }
@@ -3669,18 +3669,18 @@ void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
+            TRACE_VERBOSE_F(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
-	      TRACE_VERBOSE(F("%l"),values[i]);
+	      TRACE_VERBOSE_F(F("%l"),values[i]);
 	    }
-            TRACE_VERBOSE(F(" ]"));
+            TRACE_VERBOSE_F(F(" ]"));
           }
           else {
-            TRACE_VERBOSE(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
+            TRACE_VERBOSE_F(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
-	      TRACE_VERBOSE(F("-"));
+	      TRACE_VERBOSE_F(F("-"));
 	    }
-            TRACE_VERBOSE(F(" ]"));
+            TRACE_VERBOSE_F(F(" ]"));
           }
         }
       }
@@ -3690,18 +3690,18 @@ void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+            TRACE_VERBOSE_F(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
-	      TRACE_VERBOSE(F("%l"),values[i]);
+	      TRACE_VERBOSE_F(F("%l"),values[i]);
 	    }
-            TRACE_VERBOSE(F(" ]"));
+            TRACE_VERBOSE_F(F(" ]"));
           }
           else {
-            TRACE_VERBOSE(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+            TRACE_VERBOSE_F(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
-	      TRACE_VERBOSE(F("-"));
+	      TRACE_VERBOSE_F(F("-"));
 	    }
-            TRACE_VERBOSE(F(" ]"));
+            TRACE_VERBOSE_F(F(" ]"));
           }
         }
       }
@@ -3711,19 +3711,19 @@ void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_VERBOSE(F("opc--> Temperature: %ld"), values[0]);
+            TRACE_VERBOSE_F(F("opc--> Temperature: %ld"), values[0]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> Temperature: ---"));
+            TRACE_VERBOSE_F(F("opc--> Temperature: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID_INT32(values[1])) {
-            TRACE_VERBOSE(F("opc--> Humidity: %ld"), values[1]);
+            TRACE_VERBOSE_F(F("opc--> Humidity: %ld"), values[1]);
           }
           else {
-            TRACE_VERBOSE(F("opc--> Humidity: ---"));
+            TRACE_VERBOSE_F(F("opc--> Humidity: ---"));
           }
         }
       }
@@ -3837,7 +3837,7 @@ void SensorDriverLeaf::setup() {
   SensorDriver::printInfo();
   *_is_setted = true;
   _delay_ms = 0;
-  TRACE_VERBOSE(F(" setup... [ %s ]"), OK_STRING);
+  TRACE_VERBOSE_F(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverLeaf::prepare(bool is_test) {
@@ -3884,7 +3884,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  TRACE_VERBOSE(F("leaf prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  TRACE_VERBOSE_F(F("leaf prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -4035,19 +4035,19 @@ void SensorDriverLeaf::get(rmapdata_t *values, uint8_t length, bool is_test) {
     case END:
       SensorDriver::printInfo();
       if (_is_success){
-	TRACE_VERBOSE(F("leaf get... [ %s ]"), OK_STRING);
+	TRACE_VERBOSE_F(F("leaf get... [ %s ]"), OK_STRING);
       }else{
-	TRACE_ERROR(F("leaf get... [ %s ]"), FAIL_STRING);
+	TRACE_ERROR_F(F("leaf get... [ %s ]"), FAIL_STRING);
       }
 
       #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            TRACE_INFO(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
+            TRACE_INFO_F(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
           }
           else {
-            TRACE_VERBOSE(F("leaf--> Leaf Wet Time: --- minutes"));
+            TRACE_VERBOSE_F(F("leaf--> Leaf Wet Time: --- minutes"));
           }
         }
       }

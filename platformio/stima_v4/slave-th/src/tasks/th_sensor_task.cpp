@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/th_sensor_task.h"
 
+#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
+
 using namespace cpp_freertos;
 
 TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam) : Thread(taskName, stackSize, priority), param(temperatureHumidtySensorParam) {
@@ -35,57 +37,82 @@ TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName,
 void TemperatureHumidtySensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
+  system_request_t request;
+  system_response_t response;
   uint32_t delay_ms;
   static bool is_test;
   bool is_temperature_redundant;
   bool is_humidity_redundant;
 
-  while (true) {
-    switch (state) {
-      case INIT:
+  while (true)
+  {
+    memset(&request, 0, sizeof(system_request_t));
+    memset(&response, 0, sizeof(system_response_t));
 
-        TRACE_INFO(F("Initializing sensors...\r\n"));
-        for (uint8_t i=0; i<*param.sensors_count; i++) {
-          if (strlen(param.sensors[i].type) == 3) {
-            SensorDriver::createSensor(SENSOR_DRIVER_I2C, param.sensors[i].type, param.sensors[i].i2c_address, 1, sensors, &Wire);
-          }
-        }
-        state = SETUP;
+    switch (state)
+    {
+    case WAIT:
+      // check if configuration is loaded
+      if (param.system_status->configuration.is_loaded)
+      {
+        TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
+        state = INIT;
+      }
+      // other
+      else
+      {
+        Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
+      }
+      // do something else with non-blocking wait ....
       break;
 
-      case SETUP:
-        is_test = false;
-        memset((void *) values_readed_from_sensor, RMAPDATA_MAX, (size_t) (VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
-
-        for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-          if (!sensors[i]->isSetted()) {
-            param.wireLock->Take();
-            sensors[i]->setup();
-            param.wireLock->Give();
-            TRACE_INFO(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-          }
+    case INIT:
+      TRACE_INFO_F(F("Initializing sensors...\r\n"));
+      for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
+      {
+        if (strlen(param.configuration->sensors[i].type) == 3)
+        {
+          SensorDriver::createSensor(SENSOR_DRIVER_I2C, param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, 1, sensors, param.wire);
         }
-        state = PREPARE;
+      }
+      state = SETUP;
       break;
 
-      case PREPARE:
-        delay_ms = 0;
-        for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-          sensors[i]->resetPrepared();
+    case SETUP:
+      is_test = false;
+      memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
+
+      for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
+      {
+        if (!sensors[i]->isSetted())
+        {
           param.wireLock->Take();
-          sensors[i]->prepare(is_test);
+          sensors[i]->setup();
           param.wireLock->Give();
-
-          // wait the most slowest
-          if (sensors[i]->getDelay() > delay_ms) {
-            delay_ms = sensors[i]->getDelay();
-          }
+          TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
         }
+      }
+      state = PREPARE;
+      break;
 
-        if (delay_ms) {
-          DelayUntil(Ticks::MsToTicks(delay_ms));
+    case PREPARE:
+      delay_ms = 0;
+      for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
+      {
+        sensors[i]->resetPrepared();
+        param.wireLock->Take();
+        sensors[i]->prepare(is_test);
+        param.wireLock->Give();
+
+        // wait the most slowest
+        if (sensors[i]->getDelay() > delay_ms)
+        {
+          delay_ms = sensors[i]->getDelay();
         }
-        state = READ;
+      }
+
+      Delay(Ticks::MsToTicks(delay_ms));
+      state = READ;
       break;
 
       case READ:
@@ -97,65 +124,62 @@ void TemperatureHumidtySensorTask::Run() {
             param.wireLock->Take();
             sensors[i]->get(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, is_test);
             param.wireLock->Give();
-            if (sensors[i]->getDelay()) {
-              DelayUntil(Ticks::MsToTicks(sensors[i]->getDelay()));
-            }
-          }
-          while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
+            Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
+          } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
 
           if (false) {}
 
           #if (USE_SENSOR_ADT)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
             edata.value = values_readed_from_sensor[0];
-            edata.index = param.sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_temperature_redundant = param.sensors[i].is_redundant;
+            is_temperature_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
 
           #if (USE_SENSOR_HIH)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
             edata.value = values_readed_from_sensor[0];
-            edata.index = param.sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_humidity_redundant = param.sensors[i].is_redundant;
+            is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
 
           #if (USE_SENSOR_HYT)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
             edata.value = values_readed_from_sensor[1];
-            edata.index = param.sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_temperature_redundant = param.sensors[i].is_redundant;
+            is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
-            edata.index = param.sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_humidity_redundant = param.sensors[i].is_redundant;
+            is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
 
           #if (USE_SENSOR_SHT)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_SHT) == 0) {
             edata.value = values_readed_from_sensor[1];
-            edata.index = param.sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_temperature_redundant = param.sensors[i].is_redundant;
+            is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
-            edata.index = param.sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
+            edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
             param.elaborataDataQueue->Enqueue(&edata, 0);
-            is_humidity_redundant = param.sensors[i].is_redundant;
+            is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
 
           #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
           for (uint8_t k=0; k<VALUES_TO_READ_FROM_SENSOR_COUNT; k++) {
-            TRACE_VERBOSE(F("%d\t"), values_readed_from_sensor[k]);
+            TRACE_VERBOSE_F(F("%d\t"), values_readed_from_sensor[k]);
           }
-          TRACE_VERBOSE(F("\r\n"));
+          TRACE_VERBOSE_F(F("\r\n"));
           #endif
         }
 
@@ -172,12 +196,14 @@ void TemperatureHumidtySensorTask::Run() {
         }
 
         state = END;
-      break;
+        break;
 
       case END:
-        DelayUntil(Ticks::MsToTicks(*param.acquisition_delay_ms));
+        DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         state = SETUP;
-      break;
+        break;
     }
   }
 }
+
+#endif

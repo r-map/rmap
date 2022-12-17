@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _SENSORS_CONFIG_H
 #define _SENSORS_CONFIG_H
 
-#define USE_REDUNDANT_SENSOR        (false)
+#define USE_REDUNDANT_SENSOR        (true)
 /*!
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).

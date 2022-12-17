@@ -24,9 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include "hardware_config.h"
 #include "sensors_config.h"
-#include "rmap_utility.h"
+#include "stima_config.h"
 
 /*********************************************************************
 * MODULE
@@ -55,14 +54,46 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_RAIN)
 #endif
 
+// HW device
+#define ENABLE_I2C1           (true)
+#define ENABLE_I2C2           (true)
+#define ENABLE_QSPI           (true)
+#define ENABLE_CAN            (false)
+// #define ENABLE_ACCELEROMETER  ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == USE_MODULE_RAIN))
+#define ENABLE_ACCELEROMETER  (true)
+
+// HW Diag PIN redefine
+#define ENABLE_DIAG_PIN       (true)
+
+#define CONFIGURATION_EEPROM_ADDRESS   (0)
+#define ACCELEROMETER_EEPROM_ADDRESS   (CONFIGURATION_EEPROM_ADDRESS + 200)
+#define REGISTER_EEPROM_ADDRESS        (ACCELEROMETER_EEPROM_ADDRESS + 100)
+
+#define SERIAL_DEBUG_BAUD_RATE         (115200)
+
+#if (ENABLE_I2C1 || ENABLE_I2C2)
+#define I2C_MAX_DATA_LENGTH (32)
+#define I2C_MAX_ERROR_COUNT (3)
+#endif
+
+#if (ENABLE_I2C1)
+#define I2C1_BUS_CLOCK_HZ (100000L)
+#endif
+
+#if (ENABLE_I2C2)
+#define I2C2_BUS_CLOCK_HZ (100000L)
+#endif
+
+#define SYSTEM_REQUEST_QUEUE_LENGTH       (1)
+#define SYSTEM_RESPONSE_QUEUE_LENGTH      (1)
+#define ELABORATE_DATA_QUEUE_LENGTH       (4)
+#define REQUEST_DATA_QUEUE_LENGTH         (1)
+#define REPORT_DATA_QUEUE_LENGTH          (1)
+
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATRIONS_TIME_S              (60)
 #define REPORTS_TIME_S                    (900)
-
-#define ELABORATE_DATA_QUEUE_LENGTH       (4)
-#define REQUEST_DATA_QUEUE_LENGTH         (1)
-#define REPORT_DATA_QUEUE_LENGTH          (1)
 
 #define TEMPERATURE_MAIN_INDEX            (0)
 #define HUMIDITY_MAIN_INDEX               (1)

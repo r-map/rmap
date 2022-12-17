@@ -118,55 +118,55 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_RAIN
 \brief The module'name for acquiring rain tips.
 */
-#define STIMA_MODULE_NAME_RAIN                      ("i2c-rain")
+#define STIMA_MODULE_NAME_RAIN                      ("can-rain")
 
 /*!
 \def STIMA_MODULE_NAME_TH
 \brief The module'name for acquiring temperature and humidity.
 */
-#define STIMA_MODULE_NAME_TH                        ("i2c-th")
+#define STIMA_MODULE_NAME_TH                        ("can-th")
 
 /*!
 \def STIMA_MODULE_NAME_THR
 \brief The module'name for acquiring temperature, humidity and rain.
 */
-#define STIMA_MODULE_NAME_THR                       ("i2c-thr")
+#define STIMA_MODULE_NAME_THR                       ("can-thr")
 
 /*!
 \def STIMA_MODULE_NAME_OPC
 \brief The module'name for acquiring air particle.
 */
-#define STIMA_MODULE_NAME_OPC                       ("i2c-opc")
+#define STIMA_MODULE_NAME_OPC                       ("can-opc")
 
 /*!
 \def STIMA_MODULE_NAME_OPC
 \brief The module'name for acquiring air gas (NO2, CO2).
 */
-#define STIMA_MODULE_NAME_GAS                       ("i2c-gas")
+#define STIMA_MODULE_NAME_GAS                       ("can-gas")
 
 /*!
 \def STIMA_MODULE_NAME_LEAF
 \brief The module'name for acquiring leaf wetness.
 */
-#define STIMA_MODULE_NAME_LEAF                      ("i2c-leaf")
+#define STIMA_MODULE_NAME_LEAF                      ("can-leaf")
 
 /*!
 \def STIMA_MODULE_NAME_WIND
 \brief The module'name for acquiring wind sensor.
 */
-#define STIMA_MODULE_NAME_WIND                      ("i2c-wind")
+#define STIMA_MODULE_NAME_WIND                      ("can-wind")
 
 /*!
 \def STIMA_MODULE_NAME_WIND
 \brief The module'name for acquiring radiation sensor.
 */
-#define STIMA_MODULE_NAME_SOLAR_RADIATION           ("i2c-radiation")
+#define STIMA_MODULE_NAME_SOLAR_RADIATION           ("can-radiation")
 
 /*!
 \def STIMA_MODULE_NAME_POWER_MPPT
 \brief The module'name for acquiring power regulator mppt.
 */
-#define STIMA_MODULE_NAME_POWER_MPPT                ("i2c-powermppt")
+#define STIMA_MODULE_NAME_POWER_MPPT                ("can-powermppt")
 
 #define DATA_LEVEL_SAMPLE  ("sample")
 #define DATA_LEVEL_REPORT  ("report")

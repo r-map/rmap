@@ -24,16 +24,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _ELABORATE_DATA_TASK_H
 #define _ELABORATE_DATA_TASK_H
 
-#include "config.h"
+#include "debug_config.h"
+#include "local_typedef.h"
+#include "stima_utility.h"
+#include "str.h"
 
-#include "STM32FreeRTOS.h"
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
+#include "drivers/module_slave_hal.hpp"
 
-#include "report.h"
-#include "debug.h"
+#include "debug_F.h"
 
 using namespace cpp_freertos;
 
@@ -45,14 +48,18 @@ typedef struct {
 } sample_t;
 
 typedef struct {
-  uint32_t *acquisition_delay_ms;
-  uint8_t *observation_time_s;
-  Queue *elaborataDataQueue;
-  Queue *requestDataQueue;
-  Queue *reportDataQueue;
+  configuration_t *configuration;
+  system_status_t *system_status;
+  cpp_freertos::BinarySemaphore *configurationLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *systemRequestQueue;
+  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *requestDataQueue;
+  cpp_freertos::Queue *reportDataQueue;
 } ElaboradeDataParam_t;
 
-class ElaborateDataSensorTask : public cpp_freertos::Thread {
+class ElaborateDataTask : public cpp_freertos::Thread {
   typedef enum {
     INIT,
     SETUP,
@@ -62,18 +69,16 @@ class ElaborateDataSensorTask : public cpp_freertos::Thread {
   } State_t;
 
 public:
-  ElaborateDataSensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam);
+  ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam);
 
 protected:
   virtual void Run();
 
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
-  ElaboradeDataParam_t param;
   State_t state;
+  ElaboradeDataParam_t param;
+
   sample_t temperature_main_samples;
   sample_t temperature_redundant_samples;
   sample_t humidity_main_samples;
