@@ -178,28 +178,28 @@ rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValueExample(uint8_t const sensor
     switch (sensore) {
         case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
-            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
-            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
-            local_data.humidity.val.value = (int32_t)(rand() % 100);
-            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+            local_data.temperature.val.value = report->temperature.ist;
+            local_data.temperature.confidence.value = report->temperature.quality;
+            local_data.humidity.val.value = report->humidity.ist;
+            local_data.humidity.confidence.value = report->humidity.quality;
         case canardClass::Sensor_Type::mth:
-            // Prepara i dati ITH
-            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
-            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
-            local_data.humidity.val.value = (int32_t)(rand() % 100);
-            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+            // Prepara i dati MTH
+            local_data.temperature.val.value = report->temperature.avg;
+            local_data.temperature.confidence.value = report->temperature.quality;
+            local_data.humidity.val.value = report->humidity.avg;
+            local_data.humidity.confidence.value = report->humidity.quality;
         case canardClass::Sensor_Type::nth:
-            // Prepara i dati ITH
-            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
-            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
-            local_data.humidity.val.value = (int32_t)(rand() % 100);
-            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+            // Prepara i dati NTH
+            local_data.temperature.val.value = report->temperature.min;
+            local_data.temperature.confidence.value = report->temperature.quality;
+            local_data.humidity.val.value = report->humidity.min;
+            local_data.humidity.confidence.value = report->humidity.quality;
         case canardClass::Sensor_Type::xth:
-            // Prepara i dati ITH
-            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
-            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
-            local_data.humidity.val.value = (int32_t)(rand() % 100);
-            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+            // Prepara i dati XTH
+            local_data.temperature.val.value = report->temperature.max;
+            local_data.temperature.confidence.value = report->temperature.quality;
+            local_data.humidity.val.value = report->humidity.max;
+            local_data.humidity.confidence.value = report->humidity.quality;
     }
     return local_data;
 }
@@ -213,11 +213,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         (clCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
         rmap_module_TH_1_0 module_th_msg = {0};
 
-        request_data_t request_data;
-        report_t report;
+        request_data_t request_data = {0};
+        report_t report = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
-        request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+        request_data.is_init = true;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
         request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
         request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
 
@@ -225,10 +225,10 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         param->requestDataQueue->Enqueue(&request_data, 0);
 
         // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
-        // if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
-        //   TRACE_INFO(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-        //   TRACE_INFO(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
-        // }
+        if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
+          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+        }
 
         // Preparo i dati e metadati fissi
         // TODO: Aggiorna i valori mobili
@@ -395,8 +395,8 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     // req->parametri.comando (Comando esterno ricevuto 3 BIT)
     // req->parametri.run_sectime (Timer to run 13 bit)
 
-    request_data_t request_data;
-    report_t report;
+    request_data_t request_data = {0};
+    report_t report = {0};
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parametri.comando) {
@@ -405,7 +405,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
         /// Ritorna il dato istantaneo (o ultima acquisizione dal sensore)
         case rmap_service_setmode_1_0_get_istant:
           // preparo la struttura dati per richiedere i dati al task che li elabora
-          request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+          request_data.is_init = true;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
           request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
           request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
 
@@ -413,10 +413,10 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           param->requestDataQueue->Enqueue(&request_data, 0);
 
           // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
-        //   if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
-        //     TRACE_INFO(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-        //     TRACE_INFO(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
-        //   }
+          if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+            TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
+            TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+          }
 
           // Ritorno lo stato (Copia dal comando...)
           resp.stato = req->parametri.comando;
