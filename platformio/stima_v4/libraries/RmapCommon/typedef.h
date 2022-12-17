@@ -63,8 +63,8 @@ typedef struct {
 
 typedef struct {
   bool is_init;
-  uint16_t report_time_s;
-  uint8_t observation_time_s;
+  uint16_t report_time_s;       //! time in seconds in order to calculate data (min, avg, max, quality)
+  uint8_t observation_time_s;   //! time in seconds in order to calculate data (ist)
 } request_data_t;
 
 /*!

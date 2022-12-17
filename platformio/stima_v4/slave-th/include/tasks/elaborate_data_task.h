@@ -40,11 +40,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
+#define ELABORATE_TASK_WAIT_DELAY_MS      (10)
+
 typedef struct {
-  rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer
-  uint16_t count;                         //!< samples counter
-  rmapdata_t *read_ptr;                   //!< reader pointer
-  rmapdata_t *write_ptr;                  //!< writer pointer
+  rmapdata_t value;   //!< samples buffer
+  bool is_maintenance; //!< samples buffer
+} sample_value_t;
+
+typedef struct {
+  sample_value_t values[SAMPLES_COUNT_MAX];
+  uint16_t count;                             //!< samples counter
+  sample_value_t *read_ptr;                   //!< reader pointer
+  sample_value_t *write_ptr;                  //!< writer pointer
 } sample_t;
 
 typedef struct {
@@ -97,6 +104,6 @@ template<typename buffer_g> void bufferPtrReset(buffer_g *buffer);
 template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value);
+template<typename buffer_g, typename length_v, typename value_v, typename bool_v>void addValue(buffer_g *buffer, length_v length, value_v value, bool_v is_maintenance);
 
 #endif

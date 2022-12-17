@@ -34,11 +34,12 @@ ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, u
 
 void ElaborateDataTask::Run() {
   elaborate_data_t edata;
+  request_data_t request_data;
 
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_value_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_value_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_value_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_value_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
 
   bool is_1 = false;
   bool is_2 = false;
@@ -46,46 +47,55 @@ void ElaborateDataTask::Run() {
   bool is_4 = false;
 
   while (true) {
-    param.elaborataDataQueue->Dequeue(&edata, portMAX_DELAY);
-
-    switch (edata.index) {
+    // enqueud from th sensors task
+    if (param.elaborataDataQueue->Peek(&edata, 0))
+    {
+      param.elaborataDataQueue->Dequeue(&edata, 0);
+      switch (edata.index)
+      {
       case TEMPERATURE_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
+        addValue<sample_t, uint16_t, rmapdata_t, bool>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
         is_1 = true;
-      break;
+        break;
 
       case TEMPERATURE_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+        addValue<sample_t, uint16_t, rmapdata_t, bool>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
         is_2 = true;
-      break;
+        break;
 
       case HUMIDITY_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
+        addValue<sample_t, uint16_t, rmapdata_t, bool>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
         is_3 = true;
-      break;
+        break;
 
       case HUMIDITY_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+        addValue<sample_t, uint16_t, rmapdata_t, bool>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
         is_4 = true;
-      break;
+        break;
+      }
     }
+    
+    // enqueud from can task
+    if (param.requestDataQueue->Peek(&request_data, 0))
+    {      
+      if (is_1 && is_2 && is_3 && is_4)
+      {
+        is_1 = false;
+        is_2 = false;
+        is_3 = false;
+        is_4 = false;
 
-    if (is_1 && is_2 && is_3 && is_4) {
-      request_data_t request_data;
-      is_1 = false;
-      is_2 = false;
-      is_3 = false;
-      is_4 = false;
-
-      if (param.requestDataQueue->Dequeue(&request_data, 0)) {
+        param.requestDataQueue->Dequeue(&request_data, 0);
         make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
         param.reportDataQueue->Enqueue(&report, 0);
       }
     }
+
+    DelayUntil(Ticks::MsToTicks(ELABORATE_TASK_WAIT_DELAY_MS));
   }
 }
 
@@ -189,11 +199,11 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
 }
 
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  rmapdata_t main_temperature = 0;
-  rmapdata_t redundant_temperature = 0;
+  sample_value_t main_temperature = {0};
+  sample_value_t redundant_temperature = {0};
 
-  rmapdata_t main_humidity = 0;
-  rmapdata_t redundant_humidity = 0;
+  sample_value_t main_humidity = {0};
+  sample_value_t redundant_humidity = {0};
 
   uint16_t valid_count_temperature = 0;
   uint16_t error_count_temperature = 0;
@@ -276,22 +286,28 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // temperature samples
   for (uint16_t i=0; i<temperature_main_samples.count; i++) {
-    main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-    redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+    main_temperature = bufferReadBack<sample_t, uint16_t, sample_value_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+    redundant_temperature = bufferReadBack<sample_t, uint16_t, sample_value_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {
-      report.temperature.sample = main_temperature;
+      report.temperature.sample = main_temperature.value;
     }
 
-    avg_temperature_quality += (rmapdata_t) ((checkTemperature(main_temperature, redundant_temperature) - avg_temperature_quality) / (i+1));
+    // module in maintenance: ist, min, avg, max data it were not calculated
+    if (!main_temperature.is_maintenance)
+    {
+      avg_temperature_quality += (rmapdata_t)((checkTemperature(main_temperature.value, redundant_temperature.value) - avg_temperature_quality) / (i + 1));
 
-    if (ISVALID_RMAPDATA(main_temperature)) {
-      valid_count_temperature++;
-      avg_temperature += (rmapdata_t) ((main_temperature - avg_temperature) / valid_count_temperature);
-    }
-    else {
-      error_count_temperature++;
+      if (ISVALID_RMAPDATA(main_temperature.value))
+      {
+        valid_count_temperature++;
+        avg_temperature += (rmapdata_t)((main_temperature.value - avg_temperature) / valid_count_temperature);
+      }
+      else
+      {
+        error_count_temperature++;
+      }
     }
   }
 
@@ -300,22 +316,29 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // humidity samples
   for (uint16_t i=0; i<humidity_main_samples.count; i++) {
-    main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
-    redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+    main_humidity = bufferReadBack<sample_t, uint16_t, sample_value_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+    redundant_humidity = bufferReadBack<sample_t, uint16_t, sample_value_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {
-      report.humidity.sample = main_humidity;
+      report.humidity.sample = main_humidity.value;
     }
 
-    avg_humidity_quality += (rmapdata_t) ((checkHumidity(main_humidity, redundant_humidity) - avg_humidity_quality) / (i+1));
+    // module in maintenance: ist, min, avg, max data it were not calculated
+    if (!main_temperature.is_maintenance)
+    {
 
-    if (ISVALID_RMAPDATA(main_humidity)) {
-      valid_count_humidity++;
-      avg_humidity += (rmapdata_t) ((main_humidity - avg_humidity) / valid_count_humidity);
-    }
-    else {
-      error_count_humidity++;
+      avg_humidity_quality += (rmapdata_t)((checkHumidity(main_humidity.value, redundant_humidity.value) - avg_humidity_quality) / (i + 1));
+
+      if (ISVALID_RMAPDATA(main_humidity.value))
+      {
+        valid_count_humidity++;
+        avg_humidity += (rmapdata_t)((main_humidity.value - avg_humidity) / valid_count_humidity);
+      }
+      else
+      {
+        error_count_humidity++;
+      }
     }
   }
 
@@ -394,7 +417,9 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
 }
 
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length) {
+template <typename buffer_g, typename length_v, typename value_v>
+value_v bufferRead(buffer_g *buffer, length_v length)
+{
   value_v value = *buffer->read_ptr;
 
   if (buffer->read_ptr == buffer->values+length-1) {
@@ -405,7 +430,9 @@ template<typename buffer_g, typename length_v, typename value_v> value_v bufferR
   return value;
 }
 
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length) {
+template <typename buffer_g, typename length_v, typename value_v>
+value_v bufferReadBack(buffer_g *buffer, length_v length)
+{
   value_v value = *buffer->read_ptr;
 
   if (buffer->read_ptr == buffer->values) {
@@ -416,23 +443,33 @@ template<typename buffer_g, typename length_v, typename value_v> value_v bufferR
   return value;
 }
 
-template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value) {
+template <typename buffer_g, typename value_v>
+void bufferWrite(buffer_g *buffer, value_v value)
+{
   *buffer->write_ptr = value;
 }
 
-template<typename buffer_g> void bufferPtrReset(buffer_g *buffer) {
+template <typename buffer_g>
+void bufferPtrReset(buffer_g *buffer)
+{
   buffer->read_ptr = buffer->values;
 }
 
-template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length) {
-  if (buffer->write_ptr == buffer->values) {
+template <typename buffer_g, typename length_v>
+void bufferPtrResetBack(buffer_g *buffer, length_v length)
+{
+  if (buffer->write_ptr == buffer->values)
+  {
     buffer->read_ptr = buffer->values+length-1;
   }
   else buffer->read_ptr = buffer->write_ptr-1;
 }
 
-template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length) {
-  if (buffer->count < length) {
+template <typename buffer_g, typename length_v>
+void incrementBuffer(buffer_g *buffer, length_v length)
+{
+  if (buffer->count < length)
+  {
     buffer->count++;
   }
 
@@ -441,14 +478,19 @@ template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *bu
   } else buffer->write_ptr = buffer->values;
 }
 
-template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
+template <typename buffer_g, typename length_v, typename value_v>
+void bufferReset(buffer_g *buffer, length_v length)
+{
   memset(buffer->values, 0xFF, length * sizeof(value_v));
   buffer->count = 0;
   buffer->read_ptr = buffer->values;
   buffer->write_ptr = buffer->values;
 }
 
-template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value) {
-  *buffer->write_ptr = (value_v) value;
+template <typename buffer_g, typename length_v, typename value_v, typename bool_v>
+void addValue(buffer_g *buffer, length_v length, value_v value, bool_v is_maintenance)
+{
+  buffer->write_ptr->value = (value_v)value;
+  buffer->write_ptr->is_maintenance = (bool_v) is_maintenance;
   incrementBuffer<buffer_g, length_v>(buffer, length);
 }

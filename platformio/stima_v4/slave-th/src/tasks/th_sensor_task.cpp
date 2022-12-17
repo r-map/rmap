@@ -127,6 +127,10 @@ void TemperatureHumidtySensorTask::Run() {
             Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
           } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
 
+          // TODO: simulazione da rimuovere
+          values_readed_from_sensor[0] = (23.45 * 100) + SENSOR_DRIVER_C_TO_K;
+          values_readed_from_sensor[1] = 39;
+
           if (false) {}
 
           #if (USE_SENSOR_ADT)

@@ -61,6 +61,8 @@ typedef struct
       bool is_saved;
    } configuration;
 
+  bool is_maintenance;
+
 } system_status_t;
 
 typedef struct
