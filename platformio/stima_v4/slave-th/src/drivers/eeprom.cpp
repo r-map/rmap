@@ -61,7 +61,7 @@ bool EEprom::Write(uint16_t address, uint8_t value)
 			_wire->write(value);
 			_wire->endTransmission();
 			// Look time for write min 1.4 mS (On Byte)
-			vTaskDelay(WR_TIME_MS);
+			delay(WR_TIME_MS);
 		}
 		else
 		{
@@ -109,7 +109,7 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 				// Test other data to write or eot
 				eot = iByte >= length;
 				// Look time for write min 3.6 mS (On Page)
-				vTaskDelay(WR_TIME_MS);
+				delay(WR_TIME_MS);
 			}
 			else
 			{

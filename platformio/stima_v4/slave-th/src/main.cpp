@@ -146,11 +146,11 @@ void setup() {
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 1100, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_CAN)
-  //static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_ACCELEROMETER)
-  //static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
   // Startup Schedulher
@@ -159,6 +159,8 @@ void setup() {
   // Alim Sens + Alim I2C
   digitalWrite(PIN_EN_5VA, 1);
   digitalWrite(PIN_EN_5VS, 1);
+  digitalWrite(PIN_EN_SPLY, 1);
+  digitalWrite(PIN_I2C2_EN, 1);
 
   // //Enable Power
   // digitalWrite(PIN_EN_5VA, 1);
