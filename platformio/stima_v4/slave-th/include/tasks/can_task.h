@@ -75,6 +75,15 @@
 
 using namespace cpp_freertos;
 
+// Main TASK Switch Delay
+#define CAN_VTASK_BASE_DELAY  (10)
+
+// Debug Check Enable Function
+#define LOG_RX_PACKET
+#define LED_ON_SYNCRO_TIME
+#define LOG_STACK_USAGE
+#define LOG_STACK_TIMEOUT_MS  1000
+
 // Mode Power HW CanBus Controller
 enum CAN_ModePower {
     CAN_INIT,

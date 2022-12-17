@@ -109,8 +109,6 @@ void AccelerometerTask::Run()
           }
         }
       }
-      // TODO: da controllare
-      Suspend();
       break;
 
     case ACCELEROMETER_STATE_POWER_DOWN:
@@ -139,8 +137,8 @@ void AccelerometerTask::Run()
       state = ACCELEROMETER_STATE_SETUP_MODULE;
       break;
     }
-    // MAX One switch step for Task
-    DelayUntil(Ticks::MsToTicks(10));
+    // MAX One switch step for Task WAiting Next Step
+    DelayUntil(Ticks::MsToTicks(ACCELEROMETER_VTASK_BASE_DELAY));
   }
 }
 

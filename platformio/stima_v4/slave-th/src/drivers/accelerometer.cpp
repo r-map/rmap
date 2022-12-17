@@ -58,7 +58,7 @@ Accelerometer::Accelerometer(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i
 int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(ACCELEROMETER_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
     /* Read multiple command */
     reg |= 0x80;
@@ -88,7 +88,7 @@ int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t le
 int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(ACCELEROMETER_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
     // /* Write multiple command */
     reg|=0x80;

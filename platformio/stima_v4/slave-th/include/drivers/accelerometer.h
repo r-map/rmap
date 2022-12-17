@@ -41,6 +41,9 @@
 
 using namespace cpp_freertos;
 
+#define ACCELEROMETER_VTASK_BASE_DELAY  (10)
+#define ACCELEROMETER_SEMAPHORE_MAX_WAITING_TIME_MS  (1000)
+
 /** IIS328DQ Accelerometer
   * I2C Device Address 8 bit format  depends from BIT SA0 -> 0x18 - 0x19 */
 #define ACCELEROMETER_IIS328DQ_I2C_ADDR_DEFAULT     (0x19)

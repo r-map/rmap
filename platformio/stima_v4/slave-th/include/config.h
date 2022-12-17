@@ -58,7 +58,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
-#define ENABLE_CAN            (false)
+#define ENABLE_CAN            (true)
 // #define ENABLE_ACCELEROMETER  ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == USE_MODULE_RAIN))
 #define ENABLE_ACCELEROMETER  (true)
 
@@ -66,8 +66,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_DIAG_PIN       (true)
 
 #define CONFIGURATION_EEPROM_ADDRESS   (0)
-#define ACCELEROMETER_EEPROM_ADDRESS   (CONFIGURATION_EEPROM_ADDRESS + 200)
-#define REGISTER_EEPROM_ADDRESS        (ACCELEROMETER_EEPROM_ADDRESS + 100)
+#define ACCELEROMETER_EEPROM_ADDRESS   (CONFIGURATION_EEPROM_ADDRESS + 100)
+#define REGISTER_EEPROM_ADDRESS        (ACCELEROMETER_EEPROM_ADDRESS + 200)
 
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
 

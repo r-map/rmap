@@ -62,7 +62,6 @@ bool EEprom::Write(uint16_t address, uint8_t value)
 			_wire->endTransmission();
 			// Look time for write min 1.4 mS (On Byte)
 			vTaskDelay(WR_TIME_MS);
-			// delay(WR_TIME_MS);
 		}
 		else
 		{
@@ -111,7 +110,6 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 				eot = iByte >= length;
 				// Look time for write min 3.6 mS (On Page)
 				vTaskDelay(WR_TIME_MS);
-				// delay(WR_TIME_MS);
 			}
 			else
 			{
@@ -136,7 +134,7 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 bool EEprom::Read(uint16_t address, uint8_t *value)
 {
 	bool status = true;
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		_wire->beginTransmission(_i2c_address);
 		if (_wire->endTransmission() == 0)
@@ -174,7 +172,7 @@ bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 	bool status = true;
 	bool eor = false;
 	uint16_t iIdx = 0;
-	if (_wireLock->Take(Ticks::MsToTicks(1000)))
+	if (_wireLock->Take(Ticks::MsToTicks(EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS)))
 	{
 		// Loop to end of receive total byte
 		// Block read divise for PAGESIZE maxreceive bytes

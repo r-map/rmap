@@ -302,10 +302,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             clCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
                                                 req->parameter.count, true);
             clCanard.flag.set_local_fw_uploading(true);
-            Serial.print(F("Firmware update request from node id: "));
-            Serial.println(clCanard.master.file.get_server_node());
-            Serial.print(F("Filename to download: "));
-            Serial.println(clCanard.master.file.get_name());
+            TRACE_VERBOSE_F(F("Firmware update request from node id: %u\r\n"), clCanard.master.file.get_server_node());
+            TRACE_VERBOSE_F(F("Filename to download: %s\r\n"), clCanard.master.file.get_name());
             // Avvio la funzione con OK
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -338,10 +336,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             clCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
                                                 req->parameter.count, false);
             clCanard.flag.set_local_fw_uploading(true);
-            Serial.print(F("File standard update request from node id: "));
-            Serial.println(clCanard.master.file.get_server_node());
-            Serial.print(F("Filename to download: "));
-            Serial.println(clCanard.master.file.get_name());
+            TRACE_VERBOSE_F(F("File standard update request from node id: %u\r\n"), clCanard.master.file.get_server_node());
+            TRACE_VERBOSE_F(F("Filename to download: %s\r\n"), clCanard.master.file.get_name());
             // Avvio la funzione con OK
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -350,7 +346,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clCanard.publisher_enabled.module_th = true;
-            Serial.println(F("ATTIVO Trasmissione dati in publish"));
+            TRACE_VERBOSE_F(F("ATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -358,7 +354,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clCanard.publisher_enabled.module_th = false;
-            Serial.println(F("DISATTIVO Trasmissione dati in publish"));
+            TRACE_VERBOSE_F(F("DISATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -580,15 +576,14 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Opzionale Controllo ONLINE direttamente dal messaggio Interno
                     // if (!clCanard.master.heartbeat.is_online()) {
                         // Il master è entrato in modalità ONLine e gestisco
-                        // Serial.println(F("Master controller ONLINE !!! Starting application..."));
+                        // TRACE_INFO(F("Master controller ONLINE !!! Starting application..."));
                     // }
                     // Set PowerMode da comando HeartBeat Remoto remoteVSC.powerMode
                     // Eventuali alri flag gestiti direttamente quà e SET sulla classe
                     canardClass::heartbeat_VSC remoteVSC;
                     // remoteVSC.powerMode
                     remoteVSC.uint8_val = msg.vendor_specific_status_code;
-                    Serial.print(F("RX HeartBeat from master, master power mode SET: -> "));
-                    Serial.println(remoteVSC.powerMode);
+                    TRACE_VERBOSE_F(F("RX HeartBeat from master, master power mode SET: -> %u\r\n"), remoteVSC.powerMode);
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set canard_us local per controllo NodoOffline (validità area di OnLine)
                     clCanard.master.heartbeat.set_online(MASTER_OFFLINE_TIMEOUT_US);
@@ -618,18 +613,15 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                             msg.previous_transmission_timestamp_microsecond);
                         isSyncronized = true;
                     } else {
-                        Serial.print(F("RX TimeSyncro from master, reset or invalid Value at local_time_stamp (uSec): "));
-                        Serial.println(transfer->timestamp_usec);
+                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, reset or invalid Value at local_time_stamp (uSec): %u\r\n"), transfer->timestamp_usec);
                     }
                     // Aggiorna i temporizzatori locali per il prossimo controllo
                     CanardMicrosecond last_message_diff_us = clCanard.master.timestamp.update_timestamp_message(
                         transfer->timestamp_usec, msg.previous_transmission_timestamp_microsecond);
                     // Stampa e/o SETUP RTC
                     if (isSyncronized) {
-                        Serial.print(F("RX TimeSyncro from master, syncronized value is (uSec): "));
-                        Serial.print(timestamp_synchronized_us);
-                        Serial.print(F(" from 2 message difference is (uSec): "));
-                        Serial.println(last_message_diff_us);
+                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, syncronized value is (uSec): %u"), timestamp_synchronized_us);
+                        TRACE_VERBOSE_F(F(" from 2 message difference is (uSec): %u\r\n"), last_message_diff_us);
                     }
                     // Adjust Local RTC Time!!!
                     // TODO: Pseudocode
@@ -662,7 +654,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             // Richiesta ai dati e metodi di sensor drive
             rmap_service_module_TH_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
-            Serial.println(F("<<-- Ricevuto richiesta dati da master"));
+            TRACE_VERBOSE_F(F("<<-- Ricevuto richiesta dati da master"));
             // The request object is empty so we don't bother deserializing it. Just send the response.
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
@@ -693,7 +685,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_register_Access_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
-            Serial.println(F("<<-- Ricevuto richiesta accesso ai registri da master"));
+            TRACE_VERBOSE_F(F("<<-- Ricevuto richiesta accesso ai registri da master"));
             if (uavcan_register_Access_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_register_Access_Response_1_0 resp = processRequestRegisterAccess(&req);
                 uint8_t serialized[uavcan_register_Access_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -722,7 +714,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_node_ExecuteCommand_Request_1_1 req = {0};
             size_t size = transfer->payload_size;
-            Serial.println(F("<<-- Ricevuto comando esterno"));
+            TRACE_VERBOSE_F(F("<<-- Ricevuto comando esterno"));
             if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(clCanard, &req, transfer->metadata.remote_node_id);
                 uint8_t serialized[uavcan_node_ExecuteCommand_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -751,11 +743,11 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 size_t                         size = transfer->payload_size;
                 if (uavcan_file_Read_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                     if(clCanard.master.file.is_firmware()) {
-                        Serial.print(F("RX FIRMWARE READ BLOCK LEN: "));
+                        TRACE_VERBOSE_F(F("RX FIRMWARE READ BLOCK LEN: "));
                     } else {
-                        Serial.print(F("RX FILE READ BLOCK LEN: "));
+                        TRACE_VERBOSE_F(F("RX FILE READ BLOCK LEN: "));
                     }
-                    Serial.println(resp.data.value.count);
+                    TRACE_VERBOSE_F(F("%d\r\n"), resp.data.value.count);
                     // Save Data in File at Block Position (Init = Rewrite file...)
                     // TODO: Flash
                     // putDataFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
@@ -767,7 +759,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 }
             } else {
                 // Errore Nodo non settato...
-                Serial.println(F("RX FILE READ BLOCK REJECT: Node_Id not valid or not set"));
+                TRACE_VERBOSE_F(F("RX FILE READ BLOCK REJECT: Node_Id not valid or not set"));
             }
         }
     }
@@ -794,6 +786,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   // REGISTER_INIT && Fixed Optional Setup Reset
   #ifdef INIT_REGISTER
   // Inizializzazione fissa dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
+  TRACE_INFO_F(F("Init UAVCAN Register Configuration\r\n"));
   clRegister.setup(true);
   #else
   // Default dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
@@ -801,7 +794,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   clRegister.setup(false);
   #endif
 
-  TRACE_INFO_F(F("Starting CAN Configuration"));
+  TRACE_INFO_F(F("Starting CAN Configuration\r\n"));
   // *******************         CANARD SETUP TIMINGS AND SPEED        *******************
   // CAN BITRATE Dinamico su LoadRegister (CAN_FD 2xREG natural32 0=Speed, 1=0 (Not Used))
   uavcan_register_Value_1_0 val = {0};
@@ -816,14 +809,14 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   BxCANTimings timings;
   bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
   if (!result) {
-      TRACE_INFO_F(F("Error redefinition bxCANComputeTimings, try loading default..."));
+      TRACE_VERBOSE_F(F("Error redefinition bxCANComputeTimings, try loading default...\r\n"));
       val.natural32.value.count       = 2;
       val.natural32.value.elements[0] = CAN_BIT_RATE;
       val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
       clRegister.write("uavcan.can.bitrate", &val);
       result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
       if (!result) {
-          TRACE_INFO_F(F("Error initialization bxCANComputeTimings"));
+          TRACE_ERROR_F(F("Error initialization bxCANComputeTimings\r\n"));
           LOCAL_ASSERT(false);
           return;
       }
@@ -835,7 +828,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   // Configurea bxCAN speed && mode
   result = bxCANConfigure(0, timings, false);
   if (!result) {
-      TRACE_INFO_F(F("Error initialization bxCANConfigure"));
+      TRACE_ERROR_F(F("Error initialization bxCANConfigure\r\n"));
       LOCAL_ASSERT(false);
       return;
   }
@@ -843,14 +836,14 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
 
   // Check error starting CAN
   if (HAL_CAN_Start(&hcan1) != HAL_OK) {
-      TRACE_INFO_F(F("CAN startup ERROR!!!"));
+      TRACE_ERROR_F(F("CAN startup ERROR!!!\r\n"));
       LOCAL_ASSERT(false);
       return;
   }
 
   // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
   if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
-      TRACE_INFO_F(F("Error initialization interrupt CAN base"));
+      TRACE_ERROR_F(F("Error initialization interrupt CAN base\r\n"));
       LOCAL_ASSERT(false);
       return;
   }
@@ -859,7 +852,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
 
   // Setup Complete
-  TRACE_INFO_F(F("CAN Configuration complete..."));
+  TRACE_VERBOSE_F(F("CAN Configuration complete...\r\n"));
 
   #endif
 
@@ -881,27 +874,13 @@ void CanTask::Run() {
     CanardMicrosecond last_pub_heartbeat;
     CanardMicrosecond last_pub_port_list;
 
-    uint32_t test_millis = millis();
-    bool bLowPower = false;
-
-    // TODO: Eliminare
-    bool ledShow;
-    int bTxAttempt = 0;
-    int bRxAttempt = 0;
-    long lastMillis = 0;
-    long checkTimeout = 0;
-    uint8_t stackTimer = 0;
+    // OnlineMaster (Set/Reset Application Code Function ToDo Enter/Exit OnLine)
     bool masterOnline = false;
 
-    // Funzioni di modulo TODO: Eliminare -> portare a TRACE
-    #define LOG_PUBLISH_RMAP
-    #define LOG_HEARTBEAT
-    #define LOG_LISTPORT
-    #define LOG_RX_PACKET
-    #define LOG_STACK_USAGE
-    // #define LED_ON_CAN_DATA_TX
-    // #define LED_ON_CAN_DATA_RX
-    #define LED_ON_SYNCRO_TIME
+    // Stack LOG Controller
+    #ifdef LOG_STACK_USAGE
+    uint32_t stackTimer = millis();
+    #endif
 
     // Main Loop TASK
     while (true) {
@@ -1135,7 +1114,7 @@ void CanTask::Run() {
                 // Set Canard microsecond corrente monotonic, per le attività temporanee di ciclo
                 clCanard.getMicros(clCanard.start_syncronization);
 
-                // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED sincronizzati)
+                // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED/OUT sincronizzati)
                 // Test con reboot e successiva risincronizzazione automatica (FAKE RTC!!!!)
                 #if defined(LED_ON_SYNCRO_TIME) && defined(LED2_PIN)
                 // Utilizzo di RTC o locale o generato dal tickMicros locale a partire dall' ultimo SetTimeStamp
@@ -1159,7 +1138,7 @@ void CanTask::Run() {
                 if (clCanard.master.heartbeat.is_online()) {
                     // Solo quando passo da OffLine ad OnLine controllo con VarLocale
                     if (masterOnline != true) {
-                        Serial.println(F("Master controller ONLINE !!! -> OnLineFunction()"));
+                        TRACE_VERBOSE_F(F("Master controller ONLINE !!! -> OnLineFunction()\r\n"));
                         // .... Codice OnLineFunction()
                     }
                     masterOnline = true;
@@ -1187,7 +1166,7 @@ void CanTask::Run() {
                 } else {
                     // Solo quando passo da OffLine ad OnLine
                     if (masterOnline) {
-                        Serial.println(F("Master controller OFFLINE !!! ALERT -> OffLineFunction()"));
+                        TRACE_VERBOSE_F(F("Master controller OFFLINE !!! ALERT -> OffLineFunction()\r\n"));
                         // .... Codice OffLineFunction()
                     }
                     masterOnline = false;
@@ -1208,14 +1187,13 @@ void CanTask::Run() {
                     // Controllo eventuale timeOut del comando o RxBlocco e gestisco le Retry
                     // Verifica TimeOUT Occurs per File download
                     if(clCanard.master.file.event_timeout()) {
-                        Serial.println(F("Time OUT File... event occurs"));
+                        TRACE_VERBOSE_F(F("Time OUT File... event occurs\r\n"));
                         // Gestione Retry previste dal comando per poi abbandonare
                         uint8_t retry; // In overload x LOGGING
                         if(clCanard.master.file.next_retry(&retry)) {
-                            Serial.print(F("Next Retry File read: "));
-                            Serial.println(retry);
+                            TRACE_VERBOSE_F(F("Next Retry File read: %u\r\n"), retry);
                         } else {
-                            Serial.println(F("MAX Retry File occurs, download file ABORT !!!"));
+                            TRACE_VERBOSE_F(F("MAX Retry File occurs, download file ABORT !!!\r\n"));
                             clCanard.master.file.download_end();
                         }
                     }
@@ -1225,15 +1203,12 @@ void CanTask::Run() {
                         // Fine pending, con messaggio OK. Verifico se EOF o necessario altro blocco
                         if(clCanard.master.file.is_download_complete()) {
                             if(clCanard.master.file.is_firmware()) {
-                                Serial.println(F("RX FIRMWARE COMPLETED !!!"));
+                                TRACE_VERBOSE_F(F("RX FIRMWARE COMPLETED !!!\r\n"));
                             } else {
-                                Serial.println(F("RX FILE COMPLETED !!!"));
+                                TRACE_VERBOSE_F(F("RX FILE COMPLETED !!!\r\n"));
                             }
-                            Serial.println(clCanard.master.file.get_name());
-                            Serial.print(F("Size: "));
-                            // TODO: FLASH File
-                            // Serial.print(getDataFileInfo(clCanard.master.file.get_name(), clCanard.master.file.is_firmware()));
-                            Serial.println(F(" (bytes)"));
+                            TRACE_VERBOSE_F(F("File name: %s\r\n"), clCanard.master.file.get_name());
+                            // TRACE_VERBOSE_F(F("Size: %d (bytes)\r\n"), clCanard.master.file.get_size());
                             // Nessun altro evento necessario, chiudo File e stati
                             // procedo all'aggiornamento Firmware dopo le verifiche di conformità
                             // Ovviamente se si tratta di un file firmware
@@ -1285,19 +1260,11 @@ void CanTask::Run() {
                 // ************************* HEARTBEAT DATA PUBLISHER ***********************
                 if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat) {
                     if(clCanard.is_canard_node_anonymous()) {
-                        #ifdef LOG_HEARTBEAT
-                        Serial.print(F("Publish SLAVE PNP Request Message -->> ["));
-                        Serial.print(TIME_PUBLISH_PNP_REQUEST);
-                        Serial.println(F(" sec + Rnd * 1 sec...]"));
-                        #endif
+                        TRACE_VERBOSE_F(F("Publish SLAVE PNP Request Message -->> [ %u sec + Rnd * 1 sec...]\r\n"), TIME_PUBLISH_PNP_REQUEST);
                         clCanard.slave_pnp_send_request();
                         last_pub_heartbeat += MEGA * (TIME_PUBLISH_PNP_REQUEST + random(100) / 100);
                     } else {
-                        #ifdef LOG_HEARTBEAT
-                        Serial.print(F("Publish SLAVE Heartbeat -->> ["));
-                        Serial.print(TIME_PUBLISH_HEARTBEAT);
-                        Serial.println(F(" sec]"));
-                        #endif
+                        TRACE_VERBOSE_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                         clCanard.slave_heartbeat_send_message();
                         // Update publisher
                         last_pub_heartbeat += MEGA * TIME_PUBLISH_HEARTBEAT;
@@ -1306,20 +1273,11 @@ void CanTask::Run() {
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
                 if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
-                    #ifdef LOG_LISTPORT
-                    Serial.print(F("Publish Local PORT LIST -->> ["));
-                    Serial.print(TIME_PUBLISH_PORT_LIST);
-                    Serial.println(F(" sec]"));
-                    #endif
+                    TRACE_VERBOSE_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
                     last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
                     // Update publisher
                     clCanard.slave_servicelist_send_message();
                 }
-
-                // Utilizzato per blinking Led (TX/RX)
-                #if defined(LED_ON_CAN_DATA_TX) or defined(LED_ON_CAN_DATA_RX)
-                digitalWrite(LED2_PIN, LOW);
-                #endif
 
                 // ***************************************************************************
                 //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)
@@ -1327,12 +1285,7 @@ void CanTask::Run() {
                 // Transmit pending frames, avvia la trasmissione gestita da canard a priorità.
                 // Il metodo può essere chiamato direttamente in preparazione messaggio x coda
                 if (clCanard.transmitQueueDataPresent()) {
-                    #ifdef LED_ON_CAN_DATA_TX
-                    digitalWrite(LED2_PIN, HIGH);
-                    #endif
                     clCanard.transmitQueue();
-                    test_millis = millis();
-                    bLowPower = false;
                 }
 
                 // ***************************************************************************
@@ -1340,14 +1293,11 @@ void CanTask::Run() {
                 // ***************************************************************************
                 // Gestione con Intererupt RX Only esterna (verifica dati in coda gestionale)
                 if (clCanard.receiveQueueDataPresent()) {
-                    #ifdef LED_ON_CAN_DATA_RX
-                    digitalWrite(LED2_PIN, HIGH);
-                    #endif
                     // Log Packet
                     #ifdef LOG_RX_PACKET
                     char logMsg[50];
                     clCanard.receiveQueue(logMsg);
-                    Serial.println(logMsg);
+                    TRACE_VERBOSE_F(F("RX [ %s ]\r\n"), logMsg);
                     #else
                     clCanard.receiveQueue();
                     #endif
@@ -1369,14 +1319,14 @@ void CanTask::Run() {
         }
 
         #ifdef LOG_STACK_USAGE
-        if(stackTimer++>100) {
-          stackTimer = 0;
-          TRACE_VERBOSE_F(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        if((millis()-stackTimer > LOG_STACK_TIMEOUT_MS) || (millis() < stackTimer)) {
+          stackTimer = millis();
+          TRACE_DEBUG_F(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
         }
         #endif
 
-        // Esecuzione ongi 10 ms
-        DelayUntil(Ticks::MsToTicks(10));
+        // Run switch TASK CAN one STEP every...
+        DelayUntil(Ticks::MsToTicks(CAN_VTASK_BASE_DELAY));
 
     }
 }

@@ -44,7 +44,7 @@ using namespace cpp_freertos;
 #define EEPAGESIZE  32
 #define PAGEMASK    (EEPROMSIZE-EEPAGESIZE)
 #define WR_TIME_MS  5
-#define EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS  (10000)
+#define EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS  (1000)
 
 class EEprom {
 
