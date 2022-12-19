@@ -56,9 +56,35 @@ void setup() {
   init_wire();
   init_pins();
   init_sensors();
-  // init_sdcard();
   // init_registers();
-  // init_can();
+
+  // Alim Sens x I2C Test ( Force ON )
+  digitalWrite(PIN_EN_5VS, 1);  // Enable + 5VS / +3V3S External Connector Power Sens
+  digitalWrite(PIN_EN_SPLY, 1); // Enable Supply + 3V3_I2C / + 5V_I2C
+  digitalWrite(PIN_I2C2_EN, 1); // I2C External Enable PIN (LevelShitf PCA9517D)
+  
+  // Analog Read examples
+  // digitalWrite(PIN_EN_5VA, 1); Enable Alim. Analog Comparator (xIAN)
+  // analogReadResolution(12);
+  // uint32_t data1;
+  // uint32_t data2;
+  // uint32_t data3;
+  // uint32_t data4;
+  // uint8_t count=0;
+  // while(1) {
+  //   data1 = analogRead(PIN_ANALOG_01);
+  //   data2 = analogRead(PIN_ANALOG_02);
+  //   data3 = analogRead(PIN_ANALOG_03);
+  //   data4 = analogRead(PIN_ANALOG_04);
+  //   delay(500);
+  //   Serial.print(data1);
+  //   Serial.print(", ");
+  //   Serial.print(data2);
+  //   Serial.print(", ");
+  //   Serial.print(data3);
+  //   Serial.print(", ");
+  //   Serial.println(data4);
+  // }
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -142,8 +168,8 @@ void setup() {
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
   static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 1100, OS_TASK_PRIORITY_02, elaborateDataParam);
+  // Min > 20150
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 21000, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_CAN)
   static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
@@ -156,35 +182,6 @@ void setup() {
   // Startup Schedulher
   Thread::StartScheduler();
 
-  // Alim Sens + Alim I2C
-  digitalWrite(PIN_EN_5VA, 1);
-  digitalWrite(PIN_EN_5VS, 1);
-  digitalWrite(PIN_EN_SPLY, 1);
-  digitalWrite(PIN_I2C2_EN, 1);
-
-  // //Enable Power
-  // digitalWrite(PIN_EN_5VA, 1);
-
-  // analogReadResolution(12);
-  // uint32_t data1;
-  // uint32_t data2;
-  // uint32_t data3;
-  // uint32_t data4;
-  // uint8_t count=0;
-  // while(1) {
-  //   data1 = analogRead(PIN_ANALOG_01);
-  //   data2 = analogRead(PIN_ANALOG_02);
-  //   data3 = analogRead(PIN_ANALOG_03);
-  //   data4 = analogRead(PIN_ANALOG_04);
-  //   delay(500);
-  //   Serial.print(data1);
-  //   Serial.print(", ");
-  //   Serial.print(data2);
-  //   Serial.print(", ");
-  //   Serial.print(data3);
-  //   Serial.print(", ");
-  //   Serial.println(data4);
-  // }
 }
 
 void loop() {

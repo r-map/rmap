@@ -38,7 +38,6 @@ void setup() {
   init_net(&yarrowContext, seed, sizeof(seed));
   // init_sdcard();
   // init_registers();
-  // init_can();
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 

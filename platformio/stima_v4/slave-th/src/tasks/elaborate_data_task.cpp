@@ -36,10 +36,10 @@ void ElaborateDataTask::Run() {
   elaborate_data_t edata;
   request_data_t request_data;
 
-  bufferReset<sample_t, uint16_t, sample_value_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, sample_value_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, sample_value_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, sample_value_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, sample_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
 
   bool is_1 = false;
   bool is_2 = false;
@@ -55,25 +55,26 @@ void ElaborateDataTask::Run() {
       {
       case TEMPERATURE_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t, bool>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
+        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
+        addMaintenance<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX, param.system_status->is_maintenance);
         is_1 = true;
         break;
 
       case TEMPERATURE_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t, bool>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
+        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
         is_2 = true;
         break;
 
       case HUMIDITY_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t, bool>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
+        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
         is_3 = true;
         break;
 
       case HUMIDITY_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t, bool>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value, param.system_status->is_maintenance);
+        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
         is_4 = true;
         break;
       }
@@ -199,11 +200,13 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
 }
 
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  sample_value_t main_temperature = {0};
-  sample_value_t redundant_temperature = {0};
+  rmapdata_t main_temperature = 0;
+  rmapdata_t redundant_temperature = 0;
 
-  sample_value_t main_humidity = {0};
-  sample_value_t redundant_humidity = {0};
+  rmapdata_t main_humidity = 0;
+  rmapdata_t redundant_humidity = 0;
+
+  bool measures_maintenance = false;
 
   uint16_t valid_count_temperature = 0;
   uint16_t error_count_temperature = 0;
@@ -286,23 +289,25 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // temperature samples
   for (uint16_t i=0; i<temperature_main_samples.count; i++) {
-    main_temperature = bufferReadBack<sample_t, uint16_t, sample_value_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-    redundant_temperature = bufferReadBack<sample_t, uint16_t, sample_value_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+    main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+    redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+    
+    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {
-      report.temperature.sample = main_temperature.value;
+      report.temperature.sample = main_temperature;
     }
 
     // module in maintenance: ist, min, avg, max data it were not calculated
-    if (!main_temperature.is_maintenance)
+    if (!measures_maintenance)
     {
-      avg_temperature_quality += (rmapdata_t)((checkTemperature(main_temperature.value, redundant_temperature.value) - avg_temperature_quality) / (i + 1));
+      avg_temperature_quality += (rmapdata_t)((checkTemperature(main_temperature, redundant_temperature) - avg_temperature_quality) / (i + 1));
 
-      if (ISVALID_RMAPDATA(main_temperature.value))
+      if (ISVALID_RMAPDATA(main_temperature))
       {
         valid_count_temperature++;
-        avg_temperature += (rmapdata_t)((main_temperature.value - avg_temperature) / valid_count_temperature);
+        avg_temperature += (rmapdata_t)((main_temperature - avg_temperature) / valid_count_temperature);
       }
       else
       {
@@ -316,24 +321,26 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // humidity samples
   for (uint16_t i=0; i<humidity_main_samples.count; i++) {
-    main_humidity = bufferReadBack<sample_t, uint16_t, sample_value_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
-    redundant_humidity = bufferReadBack<sample_t, uint16_t, sample_value_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+    main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+    redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+
+    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {
-      report.humidity.sample = main_humidity.value;
+      report.humidity.sample = main_humidity;
     }
 
     // module in maintenance: ist, min, avg, max data it were not calculated
-    if (!main_temperature.is_maintenance)
+    if (!measures_maintenance)
     {
 
-      avg_humidity_quality += (rmapdata_t)((checkHumidity(main_humidity.value, redundant_humidity.value) - avg_humidity_quality) / (i + 1));
+      avg_humidity_quality += (rmapdata_t)((checkHumidity(main_humidity, redundant_humidity) - avg_humidity_quality) / (i + 1));
 
-      if (ISVALID_RMAPDATA(main_humidity.value))
+      if (ISVALID_RMAPDATA(main_humidity))
       {
         valid_count_humidity++;
-        avg_humidity += (rmapdata_t)((main_humidity.value - avg_humidity) / valid_count_humidity);
+        avg_humidity += (rmapdata_t)((main_humidity - avg_humidity) / valid_count_humidity);
       }
       else
       {
@@ -487,10 +494,16 @@ void bufferReset(buffer_g *buffer, length_v length)
   buffer->write_ptr = buffer->values;
 }
 
-template <typename buffer_g, typename length_v, typename value_v, typename bool_v>
-void addValue(buffer_g *buffer, length_v length, value_v value, bool_v is_maintenance)
+template <typename buffer_g, typename length_v, typename value_v>
+void addValue(buffer_g *buffer, length_v length, value_v value)
 {
-  buffer->write_ptr->value = (value_v)value;
-  buffer->write_ptr->is_maintenance = (bool_v) is_maintenance;
+  *buffer->write_ptr = (value_v)value;
+  incrementBuffer<buffer_g, length_v>(buffer, length);
+}
+
+template <typename buffer_g, typename length_v, typename bool_v>
+void addMaintenance(buffer_g *buffer, length_v length, bool_v is_maintenance)
+{
+  *buffer->write_ptr = (bool_v) is_maintenance;
   incrementBuffer<buffer_g, length_v>(buffer, length);
 }

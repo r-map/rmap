@@ -43,16 +43,18 @@ using namespace cpp_freertos;
 #define ELABORATE_TASK_WAIT_DELAY_MS      (10)
 
 typedef struct {
-  rmapdata_t value;   //!< samples buffer
-  bool is_maintenance; //!< samples buffer
-} sample_value_t;
+  rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
+  uint16_t count;                         //!< samples counter
+  rmapdata_t *read_ptr;                   //!< reader pointer
+  rmapdata_t *write_ptr;                  //!< writer pointer
+} sample_t;
 
 typedef struct {
-  sample_value_t values[SAMPLES_COUNT_MAX];
-  uint16_t count;                             //!< samples counter
-  sample_value_t *read_ptr;                   //!< reader pointer
-  sample_value_t *write_ptr;                  //!< writer pointer
-} sample_t;
+  bool values[SAMPLES_COUNT_MAX];         //!< samples buffer maintenance values
+  uint16_t count;                         //!< samples counter
+  bool *read_ptr;                         //!< reader pointer
+  bool *write_ptr;                        //!< writer pointer
+} maintenance_t;
 
 typedef struct {
   configuration_t *configuration;
@@ -90,6 +92,7 @@ private:
   sample_t temperature_redundant_samples;
   sample_t humidity_main_samples;
   sample_t humidity_redundant_samples;
+  maintenance_t maintenance_flag;
   report_t report;
 
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATRIONS_TIME_S);
@@ -104,6 +107,7 @@ template<typename buffer_g> void bufferPtrReset(buffer_g *buffer);
 template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v, typename value_v, typename bool_v>void addValue(buffer_g *buffer, length_v length, value_v value, bool_v is_maintenance);
+template<typename buffer_g, typename length_v, typename value_v>void addValue(buffer_g *buffer, length_v length, value_v value);
+template<typename buffer_g, typename length_v, typename bool_v>void addMaintenance(buffer_g *buffer, length_v length, bool_v is_maintenance);
 
 #endif
