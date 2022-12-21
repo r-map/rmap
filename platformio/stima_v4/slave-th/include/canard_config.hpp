@@ -57,7 +57,7 @@
 #define NODE_MASTER_ID 100
 
 // Nodo fisso per Modulo Slave
-#define NODE_SLAVE_ID 10
+#define NODE_SLAVE_ID 125
 
 // SET Default value per risposte
 #define GENERIC_STATE_UNDEFINED 0x0Fu

@@ -178,28 +178,33 @@ rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValueExample(uint8_t const sensor
     switch (sensore) {
         case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
-            local_data.temperature.val.value = report->temperature.ist;
+            // TODO: sample / Ist ?
+            local_data.temperature.val.value = report->temperature.sample;
             local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.ist;
+            local_data.humidity.val.value = report->humidity.sample;
             local_data.humidity.confidence.value = report->humidity.quality;
+            break;
         case canardClass::Sensor_Type::mth:
             // Prepara i dati MTH
             local_data.temperature.val.value = report->temperature.avg;
             local_data.temperature.confidence.value = report->temperature.quality;
             local_data.humidity.val.value = report->humidity.avg;
             local_data.humidity.confidence.value = report->humidity.quality;
+            break;
         case canardClass::Sensor_Type::nth:
             // Prepara i dati NTH
             local_data.temperature.val.value = report->temperature.min;
             local_data.temperature.confidence.value = report->temperature.quality;
             local_data.humidity.val.value = report->humidity.min;
             local_data.humidity.confidence.value = report->humidity.quality;
+            break;
         case canardClass::Sensor_Type::xth:
             // Prepara i dati XTH
             local_data.temperature.val.value = report->temperature.max;
             local_data.temperature.confidence.value = report->temperature.quality;
             local_data.humidity.val.value = report->humidity.max;
             local_data.humidity.confidence.value = report->humidity.quality;
+            break;
     }
     return local_data;
 }
@@ -222,7 +227,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
 
         // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        //param->requestDataQueue->Enqueue(&request_data, 0);
 
         // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
         if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
@@ -413,7 +418,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           param->requestDataQueue->Enqueue(&request_data, 0);
 
           // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
-          if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+          if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(1000))) {
             TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
             TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
           }
@@ -421,7 +426,12 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Ritorno lo stato (Copia dal comando...)
           resp.stato = req->parametri.comando;
           // Preparo la risposta di esempio
-          // TODO: Aggiorna i valori mobili
+          // TP
+          resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
+          resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
+          resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
+          resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
+          // UR
           resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
           resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
           resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
@@ -619,10 +629,15 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     CanardMicrosecond last_message_diff_us = clCanard.master.timestamp.update_timestamp_message(
                         transfer->timestamp_usec, msg.previous_transmission_timestamp_microsecond);
                     // Stampa e/o SETUP RTC
+                    #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
                     if (isSyncronized) {
-                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, syncronized value is (uSec): %u"), timestamp_synchronized_us);
-                        TRACE_VERBOSE_F(F(" from 2 message difference is (uSec): %u\r\n"), last_message_diff_us);
+                        char tData[20];
+                        sprintf(tData, "%lu", timestamp_synchronized_us);
+                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, syncronized value is (uSec): %s\r\n"), tData);
+                        sprintf(tData, "%lu", last_message_diff_us);
+                        TRACE_VERBOSE_F(F(" from 2 message difference is (uSec): %s\r\n"), tData);
                     }
+                    #endif
                     // Adjust Local RTC Time!!!
                     // TODO: Pseudocode
                     // if abs((timeStamp) - convertCanardUsec(RTC)) > 500000 (0.5 secondi...)

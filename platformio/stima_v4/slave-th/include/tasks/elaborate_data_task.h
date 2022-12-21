@@ -108,6 +108,5 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v>void addValue(buffer_g *buffer, length_v length, value_v value);
-template<typename buffer_g, typename length_v, typename bool_v>void addMaintenance(buffer_g *buffer, length_v length, bool_v is_maintenance);
 
 #endif

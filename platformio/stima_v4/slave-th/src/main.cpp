@@ -24,16 +24,11 @@ void setup() {
   static BinarySemaphore *configurationLock;
   static BinarySemaphore *systemStatusLock;
 
-  static configuration_t configuration;
-  static system_status_t system_status;
-
+  static configuration_t configuration = {0};
+  static system_status_t system_status = {0};
   #if (ENABLE_ACCELEROMETER)
-  static accelerometer_t config_accelerometer;
+  static accelerometer_t config_accelerometer = {0};
   #endif
-
-  // init
-  memset(&configuration, 0, sizeof(configuration_t));
-  memset(&system_status, 0, sizeof(system_status_t));
 
 #if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
@@ -169,7 +164,8 @@ void setup() {
   static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
   // Min > 20150
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 21000, OS_TASK_PRIORITY_02, elaborateDataParam);
+  //static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 21000, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 8000, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_CAN)
   static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
