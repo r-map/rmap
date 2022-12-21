@@ -48,16 +48,36 @@ void AccelerometerTask::Run()
   bool is_module_ready;
   bool is_hardware_ready;
   uint8_t hardware_check_attempt;
-  uint8_t start_calibration = 0;
+  bool start_calibration = false;
+
+  // System request data queue structured
+  system_request_t system_request;
 
   while (true)
   {
+
+    // enqueud system request from caller task (can or supervisor)
+    if (param.systemRequestQueue->Peek(&system_request, 0))
+    {
+      // Its request addressed into this TASK... -> pull
+      if(system_request.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
+      {
+        // Pull && elaborate command, after response if...
+        param.systemRequestQueue->Dequeue(&system_request, 0);
+        if(system_request.command.do_init) // == Calibrate && Save {
+        {
+          start_calibration = true;
+        }
+      }
+    }
+  
+    // Standard TASK switch main
     switch (state)
     {
     case ACCELEROMETER_STATE_INIT:    
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_OPERATION\r\n"));
       state = ACCELEROMETER_STATE_CHECK_OPERATION;
-      Delay(ACCELEROMETER_WAIT_CHECK_HARDWARE);
+      Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
       is_module_ready = false;
       is_hardware_ready = false;
@@ -74,7 +94,7 @@ void AccelerometerTask::Run()
         }
         // Wait for HW Check
         hardware_check_attempt++;
-        Delay(ACCELEROMETER_WAIT_CHECK_HARDWARE);
+        Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
         if(hardware_check_attempt >= ACCELEROMETER_MAX_CHECK_ATTEMPT)
           state = ACCELEROMETER_STATE_HARDWARE_FAIL;        
       } else {        
@@ -83,10 +103,7 @@ void AccelerometerTask::Run()
       break;
 
     case ACCELEROMETER_STATE_LOAD_CONFIGURATION:
-      if(LoadConfiguration(param.accelerometer_configuration, param.configurationLock)) {
-        // True if SetupParam Default and Save Config... Starting base calibration
-        start_calibration = 15;
-      }
+      LoadConfiguration(param.accelerometer_configuration, param.configurationLock);
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_LOAD_CONFIGURATION -> ACCELEROMETER_STATE_SETUP_MODULE\r\n"));
       state = ACCELEROMETER_STATE_SETUP_MODULE;
       break;
@@ -102,11 +119,10 @@ void AccelerometerTask::Run()
       if(ReadModule(param.accelerometer_configuration, param.configurationLock)) {
         TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
         if(start_calibration) {
-          start_calibration--;
-          if(start_calibration==0) {
-            Calibrate(param.accelerometer_configuration, param.configurationLock, false);
-            // SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
-          }
+          Calibrate(param.accelerometer_configuration, param.configurationLock, false);
+          SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
+          PrintConfiguration(param.accelerometer_configuration, param.configurationLock);
+          start_calibration = false;
         }
         #ifdef LOG_STACK_USAGE
         TRACE_DEBUG_F(F("ACCELEROMETER Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));

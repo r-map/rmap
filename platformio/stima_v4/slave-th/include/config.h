@@ -90,6 +90,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REQUEST_DATA_QUEUE_LENGTH         (1)
 #define REPORT_DATA_QUEUE_LENGTH          (1)
 
+#define PROVA_TASK_QUEUE_ID               (0)
+#define ACCELEROMETER_TASK_QUEUE_ID       (1)
+#define CAN_TASK_QUEUE_ID                 (2)
+#define ELABORATE_TASK_QUEUE_ID           (3)
+#define SENSOR_TASK_QUEUE_ID              (4)
+#define CAN_TASK_QID                      (5)
+
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)

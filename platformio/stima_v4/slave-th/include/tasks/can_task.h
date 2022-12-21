@@ -78,8 +78,9 @@ using namespace cpp_freertos;
 // Main TASK Switch Delay
 #define CAN_TASK_BASE_DELAY_MS  (10)
 
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS (50)
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 #define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)
+#define WAIT_QUEUE_REQUEST_COMMAND_MS   (500)
 
 // Debug Check Enable Function
 #define LOG_RX_PACKET
@@ -138,8 +139,9 @@ private:
   char taskName[configMAX_TASK_NAME_LEN];
   uint16_t stackSize;
   uint8_t priority;
-  CanParam_t param;
   State_t state;
+  CanParam_t param;
+  inline static cpp_freertos::Queue *localSystemRequestQueue;
   inline static uint16_t last_req_obs_time = (REPORTS_TIME_S);
   inline static CAN_ModePower canPower;
   // Register access

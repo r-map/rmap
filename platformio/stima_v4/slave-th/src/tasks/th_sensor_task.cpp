@@ -37,17 +37,16 @@ TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName,
 void TemperatureHumidtySensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
-  system_request_t request;
-  system_response_t response;
   uint32_t delay_ms;
   static bool is_test;
   bool is_temperature_redundant;
   bool is_humidity_redundant;
+  // Request response for system queue Task controlled...
+  system_request_t request;
+  system_response_t response;
 
   while (true)
   {
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
 
     switch (state)
     {

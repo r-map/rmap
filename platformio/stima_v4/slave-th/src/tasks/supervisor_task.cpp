@@ -37,6 +37,7 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
 void SupervisorTask::Run()
 {
   uint8_t retry;
+  // Request response for system queue Task controlled...
   system_request_t request;
   system_response_t response;
 
@@ -44,9 +45,6 @@ void SupervisorTask::Run()
   {
     bool is_saved = false;
     bool is_loaded = false;
-
-    osMemset(&request, 0, sizeof(system_request_t));
-    osMemset(&response, 0, sizeof(system_response_t));
 
     switch (state)
     {
@@ -96,18 +94,6 @@ void SupervisorTask::Run()
         // TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
         // state = SUPERVISOR_STATE_REQUEST_CONNECTION;
       }
-      // // 2 configuration ok, ntp ok -> do http configuration update
-      // else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && !param.system_status->connection.is_http_configuration_updated)
-      // {
-      //   TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-      //   state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      // }
-      // // 3 configuration ok, ntp ok, http configuration updated -> do mqtt sync
-      // else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && param.system_status->connection.is_http_configuration_updated && !param.system_status->connection.is_mqtt_connected)
-      // {
-      //   TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-      //   state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      // }
       else
       {
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));

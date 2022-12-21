@@ -165,12 +165,12 @@ void setup() {
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
-#if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
-#endif
-
 #if (ENABLE_ACCELEROMETER)
   static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+#endif
+
+#if (ENABLE_CAN)
+  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
 #endif
 
   // Startup Schedulher

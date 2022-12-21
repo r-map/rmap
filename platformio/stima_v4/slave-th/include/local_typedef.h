@@ -67,21 +67,35 @@ typedef struct
 
 typedef struct
 {
+   uint8_t task_dest;
    struct
    {
-      bool do_load;
-      bool do_save;
-   } configuration;
+      uint8_t do_init  : 1;
+      uint8_t do_load  : 1;
+      uint8_t do_save  : 1;
+      uint8_t do_run   : 1;
+      uint8_t do_abort : 1;
+      uint8_t do_cmd   : 1;
+      uint8_t do_sleep : 1;
+   } command;
+   uint16_t param;
 
 } system_request_t;
 
 typedef struct
 {
+   uint8_t task_source;
    struct
    {
-      bool done_loaded;
-      bool done_saved;
-   } configuration;
+      uint8_t done_init  : 1;
+      uint8_t done_load  : 1;
+      uint8_t done_save  : 1;
+      uint8_t done_run   : 1;
+      uint8_t done_abort : 1;
+      uint8_t done_cmd   : 1;
+      uint8_t done_sleep : 1;
+   } command;
+   uint16_t param;
 
 } system_response_t;
 

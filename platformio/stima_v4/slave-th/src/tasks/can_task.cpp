@@ -301,6 +301,11 @@ void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
 uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(canardClass &clCanard, const uavcan_node_ExecuteCommand_Request_1_1* req,
                                                                             uint8_t remote_node) {
     uavcan_node_ExecuteCommand_Response_1_1 resp = {0};
+    // System Queue request Structure data
+    // Command-> Accelerometer Calibrate...
+    // Send Command directly To Task (Init to Null)
+    system_request_t request = {0};
+
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
     // req->parameter (array di byte MAX 255 per i parametri da request)
@@ -353,6 +358,20 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             TRACE_INFO_F(F("Filename to download: %s\r\n"), clCanard.master.file.get_name());
             // Avvio la funzione con OK
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            break;
+        }
+        case canardClass::Command_Private::calibrate_accelerometer:
+        {
+            // Avvia calibrazione accelerometro (reset bolla elettroniuca)
+            TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
+            // Send queue command to TASK
+            request.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
+            request.command.do_init = true;
+            if(localSystemRequestQueue->Enqueue(&request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            } else {                
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
+            }
             break;
         }
         case canardClass::Command_Private::enable_publish_rmap:
@@ -801,7 +820,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// @brief Main TASK && INIT TASK --- UAVCAN
 /// *********************************************************************************************
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam) {
-  
+
   // Setup register mode
   clRegister = EERegister(param.wire, param.wireLock);
 
@@ -896,6 +915,9 @@ void CanTask::Run() {
     canardClass clCanard;
     uavcan_register_Value_1_0 val = {0};
 
+    // Local static access to queue Request System
+    localSystemRequestQueue = param.systemRequestQueue;
+
     // LoopTimer Publish
     CanardMicrosecond last_pub_rmap_data;
     CanardMicrosecond last_pub_heartbeat;
@@ -911,7 +933,6 @@ void CanTask::Run() {
 
     // Main Loop TASK
     while (true) {
-
         // ********************************************************************************
         //                   SETUP CONFIG CYPAL, CLASS, REGISTER, DATA
         // ********************************************************************************
