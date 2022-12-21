@@ -35,6 +35,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TH_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define TH_TASK_GENERIC_RETRY (3)
 
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS (50)
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"

@@ -76,13 +76,14 @@
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define CAN_VTASK_BASE_DELAY  (10)
+#define CAN_TASK_BASE_DELAY_MS  (10)
+
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS (50)
+#define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)
 
 // Debug Check Enable Function
 #define LOG_RX_PACKET
 #define LED_ON_SYNCRO_TIME
-#define LOG_STACK_USAGE
-#define LOG_STACK_TIMEOUT_MS  1000
 
 // Mode Power HW CanBus Controller
 enum CAN_ModePower {
@@ -125,7 +126,7 @@ private:
   static void HW_CAN_Power(CAN_ModePower ModeCan);
   static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_]);
   static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name);
-  static rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore, const report_t *report);
+  static rmap_sensors_TH_1_0 prepareSensorsDataValue(uint8_t const sensore, const report_t *report);
   static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param);
   static void processMessagePlugAndPlayNodeIDAllocation(canardClass &clsCanard,  const uavcan_pnp_NodeIDAllocationData_1_0* const msg);
   static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(canardClass &clsCanard, const uavcan_node_ExecuteCommand_Request_1_1* req, uint8_t remote_node);
@@ -139,6 +140,7 @@ private:
   uint8_t priority;
   CanParam_t param;
   State_t state;
+  inline static uint16_t last_req_obs_time = (REPORTS_TIME_S);
   inline static CAN_ModePower canPower;
   // Register access
   inline static EERegister clRegister;

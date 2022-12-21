@@ -36,14 +36,19 @@ void ElaborateDataTask::Run() {
   elaborate_data_t edata;
   request_data_t request_data;
 
+  // Stack LOG Controller
+  #ifdef LOG_STACK_USAGE
+  uint32_t stackTimer = millis();
+  #endif
+
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX);
+  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   while (true) {
-    // enqueud from th sensors task
+    // enqueud from th sensors task (populate data)
     if (param.elaborataDataQueue->Peek(&edata, 0))
     {
       param.elaborataDataQueue->Dequeue(&edata, 0);
@@ -52,7 +57,7 @@ void ElaborateDataTask::Run() {
       case TEMPERATURE_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
-        addValue<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX, param.system_status->is_maintenance);
+        addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->is_maintenance);
         break;
 
       case TEMPERATURE_REDUNDANT_INDEX:
@@ -72,14 +77,21 @@ void ElaborateDataTask::Run() {
       }
     }
     
-    // enqueud from can task
+    // enqueud from can task (get data, start command...)
     if (param.requestDataQueue->Peek(&request_data, 0))
     {
       param.requestDataQueue->Dequeue(&request_data, 0);
       make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
       param.reportDataQueue->Enqueue(&report, 0);
     }
-    // TRACE_VERBOSE_F(F("ELABORATE_TASK()...\r\n"));
+
+    #ifdef LOG_STACK_USAGE
+    if((millis()-stackTimer > LOG_STACK_TIMEOUT_MS) || (millis() < stackTimer)) {
+      stackTimer = millis();
+      TRACE_DEBUG_F(F("ELABORATE DATA Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+    }
+    #endif
+
     DelayUntil(Ticks::MsToTicks(ELABORATE_TASK_WAIT_DELAY_MS));
   }
 }
@@ -270,13 +282,13 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_flag, SAMPLES_COUNT_MAX);
+  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // temperature samples
   for (uint16_t i=0; i<temperature_main_samples.count; i++) {
     main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
     redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
-    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX);
+    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {
@@ -307,7 +319,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   for (uint16_t i=0; i<humidity_main_samples.count; i++) {
     main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
     redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_flag, SAMPLES_COUNT_MAX);
+    measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
     // last sample
     if (i == 0) {

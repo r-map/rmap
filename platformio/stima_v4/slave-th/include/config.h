@@ -90,9 +90,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REQUEST_DATA_QUEUE_LENGTH         (1)
 #define REPORT_DATA_QUEUE_LENGTH          (1)
 
-#define SAMPLES_COUNT_MAX                 (900)
+#define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
-#define OBSERVATRIONS_TIME_S              (60)
+#define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 
 #define TEMPERATURE_MAIN_INDEX            (0)

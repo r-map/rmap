@@ -108,6 +108,9 @@ void AccelerometerTask::Run()
             // SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
           }
         }
+        #ifdef LOG_STACK_USAGE
+        TRACE_DEBUG_F(F("ACCELEROMETER Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        #endif
       }
       break;
 

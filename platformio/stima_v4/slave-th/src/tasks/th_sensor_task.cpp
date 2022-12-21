@@ -133,7 +133,7 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, 0);
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -142,7 +142,7 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, 0);
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -151,12 +151,12 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
             edata.value = values_readed_from_sensor[1];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -165,12 +165,12 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_SHT) == 0) {
             edata.value = values_readed_from_sensor[1];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+            param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -187,20 +187,23 @@ void TemperatureHumidtySensorTask::Run() {
         if (!is_temperature_redundant) {
           edata.value = RMAPDATA_MAX;
           edata.index = TEMPERATURE_REDUNDANT_INDEX;
-          param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+          param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
         }
 
         // If module fail fill void error data
         if (!is_humidity_redundant) {
           edata.value = RMAPDATA_MAX;
           edata.index = HUMIDITY_REDUNDANT_INDEX;
-          param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(100));
+          param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
         }
 
         state = END;
         break;
 
       case END:
+        #ifdef LOG_STACK_USAGE
+        TRACE_DEBUG_F(F("SENSOR Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        #endif
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         state = SETUP;
         break;

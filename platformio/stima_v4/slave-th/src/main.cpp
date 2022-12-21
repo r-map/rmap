@@ -161,14 +161,12 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static TemperatureHumidtySensorTask th_sensor_task("THTask", 800, OS_TASK_PRIORITY_03, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-  // Min > 20150
-  //static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 21000, OS_TASK_PRIORITY_02, elaborateDataParam);
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 8000, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 8192, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_ACCELEROMETER)

@@ -170,18 +170,23 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
 // *******                      FUNZIONI RMAP PUBLISH LOCAL DATA                         *********
 
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
-// TODO: Collegare al modulo sensor_drive per il modulo corrente
 // NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
-rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValueExample(uint8_t const sensore, const report_t *report) {
+rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
     rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
     switch (sensore) {
-        case canardClass::Sensor_Type::ith:
-            // Prepara i dati ITH
-            // TODO: sample / Ist ?
+        case canardClass::Sensor_Type::smp:
+            // Prepara i dati SMP (Sample)
             local_data.temperature.val.value = report->temperature.sample;
             local_data.temperature.confidence.value = report->temperature.quality;
             local_data.humidity.val.value = report->humidity.sample;
+            local_data.humidity.confidence.value = report->humidity.quality;
+            break;
+        case canardClass::Sensor_Type::ith:
+            // Prepara i dati ITH
+            local_data.temperature.val.value = report->temperature.ist;
+            local_data.temperature.confidence.value = report->temperature.quality;
+            local_data.humidity.val.value = report->humidity.ist;
             local_data.humidity.confidence.value = report->humidity.quality;
             break;
         case canardClass::Sensor_Type::mth:
@@ -222,29 +227,32 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         report_t report = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
-        request_data.is_init = true;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
-        request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
-        request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
+        // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
+        // Il dato report_time_s non risiede sullo slave ma è in chimata da master
+        request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+        request_data.report_time_s = last_req_obs_time; // richiedo i dati in conformità a standard request
+        request_data.observation_time_s = 60;  // richiedo i dati mediati su 60 secondi
 
         // coda di richiesta dati (senza attesa)
-        //param->requestDataQueue->Enqueue(&request_data, 0);
+        param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
-        if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+        // coda di attesa dati (attesa rmap_calc_data)
+        if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
           TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
           TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
         }
 
-        // Preparo i dati e metadati fissi
-        // TODO: Aggiorna i valori mobili
-        module_th_msg.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
+        // Preparo i dati
+        module_th_msg.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
+        module_th_msg.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
+        module_th_msg.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
+        module_th_msg.XTH = prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report);
+        // Metadata
         module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
-        module_th_msg.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
         module_th_msg.MTH.metadata = clCanard.module_th.MTH.metadata;
-        module_th_msg.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
         module_th_msg.NTH.metadata = clCanard.module_th.NTH.metadata;
-        module_th_msg.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
         module_th_msg.XTH.metadata = clCanard.module_th.XTH.metadata;
+
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
@@ -407,82 +415,86 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     switch (req->parametri.comando) {
 
         /// saturated uint3 get_istant = 0
-        /// Ritorna il dato istantaneo (o ultima acquisizione dal sensore)
-        case rmap_service_setmode_1_0_get_istant:
+        /// Ritorna il dato come richiesto dal master
+        case rmap_service_setmode_1_0_get_istant:   // saturated uint3 get_istant = 0
+        case rmap_service_setmode_1_0_get_current:  // saturated uint3 get_current = 1
+        case rmap_service_setmode_1_0_get_last:     // saturated uint3 get_last = 2
+
           // preparo la struttura dati per richiedere i dati al task che li elabora
-          request_data.is_init = true;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
-          request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
-          request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
+          if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
+            // Solo Sample istantaneo            
+            request_data.is_init = false;           // No Init, Sample
+            request_data.report_time_s = 0;         // richiedo i dati su 0 secondi (Sample)
+            request_data.observation_time_s = 0;    // richiedo i dati mediati su 0 secondi (Sample)
+          } 
+          if(req->parametri.comando == rmap_service_setmode_1_0_get_current) {
+            // Dato corrente
+            request_data.is_init = false;            // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+            request_data.report_time_s = req->parametri.run_sectime; // richiedo i dati su request secondi
+            request_data.observation_time_s = 60;   // richiedo i dati mediati su request secondi
+            last_req_obs_time = req->parametri.run_sectime; // observation_time_request_backup;
+          }
+          if(req->parametri.comando == rmap_service_setmode_1_0_get_last) {
+            // Dato corrente e reinizializza la coda
+            request_data.is_init = true;            // Reinizializza le elaborazioni
+            request_data.report_time_s = req->parametri.run_sectime; // richiedo i dati su request secondi
+            request_data.observation_time_s = 60;   // richiedo i dati mediati su request secondi
+          }
 
-          // coda di richiesta dati (senza attesa)
-          param->requestDataQueue->Enqueue(&request_data, 0);
+          // coda di richiesta dati
+          param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-          // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
-          if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(1000))) {
+          // coda di attesa dati (attesa rmap_calc_data)
+          if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
             TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
             TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
           }
 
           // Ritorno lo stato (Copia dal comando...)
           resp.stato = req->parametri.comando;
-          // Preparo la risposta di esempio
-          // TP
-          resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
-          resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
-          resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
-          resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
-          // UR
-          resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
-          resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
-          resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
-          resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
+          // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
+          if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
+            // Solo Istantaneo (Sample display request)
+            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::smp, &report);
+          } else {
+            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
+            resp.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
+            resp.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
+            resp.XTH = prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report);
+          }
           break;
-
-        /// saturated uint3 get_current = 1
-        /// Ritorna il dato attuale (ciclo finito o no lo stato di acq_vale)
-        case rmap_service_setmode_1_0_get_current:
-            // resp.dataandmetadata = prepareSensorsDataGetCurrent();
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
-
-        /// saturated uint3 get_last = 2
-        /// Ritorna l'ultimo valore valido di acquisizione (riferito al ciclo precedente)
-        /// Se utilizzato con loop automatico, shifta il valore senza perdite di tempo riavvia il ciclo
-        case rmap_service_setmode_1_0_get_last:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
 
         /// saturated uint3 reset_last = 3
         /// Reset dell'ultimo valore (dopo lettura... potrebbe essere un comando di command standard)
-        /// Potremmo collegare lo stato a heartbeat (ciclo di acquisizione finito, dati disponibili...)
-        case rmap_service_setmode_1_0_reset_last:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
+        /// case rmap_service_setmode_1_0_reset_last:
+        ///    resp.stato = GENERIC_STATE_UNDEFINED;
+        ///    break;
 
         /// saturated uint3 start_acq = 4
         /// Avvio ciclo di lettura... una tantum start stop automatico, con tempo parametrizzato
-        case rmap_service_setmode_1_0_start_acq:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
+        /// case rmap_service_setmode_1_0_start_acq:
+        ///    resp.stato = GENERIC_STATE_UNDEFINED;
+        ///    break;
 
         /// saturated uint3 stop_acq = 5
         /// Arresta ciclo di lettura in ogni condizione (standard o loop)
-        case rmap_service_setmode_1_0_stop_acq:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
+        /// case rmap_service_setmode_1_0_stop_acq:
+        ///    resp.stato = GENERIC_STATE_UNDEFINED;
+        ///    break;
 
         /// saturated uint3 loop_acq = 6
         /// Avvio ciclo di lettura... in loop automatico continuo, con tempo parametrizzato
-        case rmap_service_setmode_1_0_loop_acq:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
+        /// case rmap_service_setmode_1_0_loop_acq:
+        ///    resp.stato = GENERIC_STATE_UNDEFINED;
+        ///    break;
 
         /// saturated uint3 continuos_acq = 7
         /// Avvio ciclo di lettura... in continuo, senza tempo parametrizzato (necessita di stop remoto)
-        case rmap_service_setmode_1_0_continuos_acq:
-            resp.stato = GENERIC_STATE_UNDEFINED;
-            break;
+        /// case rmap_service_setmode_1_0_continuos_acq:
+        ///    resp.stato = GENERIC_STATE_UNDEFINED;
+        ///    break;
 
+        /// saturated uint3 test_acq = 15 (Solo x TEST)
         case rmap_service_setmode_1_0_test_acq:
             resp.stato = req->parametri.comando;
             break;
@@ -1336,12 +1348,12 @@ void CanTask::Run() {
         #ifdef LOG_STACK_USAGE
         if((millis()-stackTimer > LOG_STACK_TIMEOUT_MS) || (millis() < stackTimer)) {
           stackTimer = millis();
-          TRACE_DEBUG_F(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+          TRACE_DEBUG_F(F("CAN Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
         }
         #endif
 
         // Run switch TASK CAN one STEP every...
-        DelayUntil(Ticks::MsToTicks(CAN_VTASK_BASE_DELAY));
+        DelayUntil(Ticks::MsToTicks(CAN_TASK_BASE_DELAY_MS));
 
     }
 }

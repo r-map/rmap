@@ -92,10 +92,10 @@ private:
   sample_t temperature_redundant_samples;
   sample_t humidity_main_samples;
   sample_t humidity_redundant_samples;
-  maintenance_t maintenance_flag;
+  maintenance_t maintenance_samples;
   report_t report;
 
-  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATRIONS_TIME_S);
+  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkTemperature(rmapdata_t main_remperature, rmapdata_t redundant_remperature);
   uint8_t checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
 };
