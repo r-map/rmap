@@ -47,6 +47,11 @@ void ElaborateDataTask::Run() {
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
+  bool is_temperature_main_present = false;
+  bool is_temperature_redundant_present = false;
+  bool is_humidity_main_present = false;
+  bool is_humidity_redundant_present = false;
+
   while (true) {
     // enqueud from th sensors task (populate data)
     if (param.elaborataDataQueue->Peek(&edata, 0))
@@ -63,26 +68,41 @@ void ElaborateDataTask::Run() {
       case TEMPERATURE_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+        is_temperature_redundant_present = true;
         break;
 
       case HUMIDITY_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
+        is_humidity_main_present = true;
         break;
 
       case HUMIDITY_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+        is_humidity_redundant_present = true;
         break;
       }
     }
-    
-    // enqueud from can task (get data, start command...)
+
+    // enqueued from can task (get data, start command...)
     if (param.requestDataQueue->Peek(&request_data, 0))
     {
-      param.requestDataQueue->Dequeue(&request_data, 0);
-      make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-      param.reportDataQueue->Enqueue(&report, 0);
+      // send data to elaborate task when all data is present
+      #if (USE_REDUNDANT_SENSOR)
+      if (is_temperature_main_present && is_temperature_redundant_present && is_humidity_main_present && is_humidity_redundant_present)
+      #else
+      if (is_temperature_main_present && is_humidity_main_present)
+      #endif
+      {
+        is_temperature_main_present = false;
+        is_temperature_redundant_present = false;
+        is_humidity_main_present = false;
+        is_humidity_redundant_present = false;
+        param.requestDataQueue->Dequeue(&request_data, 0);
+        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        param.reportDataQueue->Enqueue(&report, 0);
+      }
     }
 
     #ifdef LOG_STACK_USAGE
@@ -98,6 +118,8 @@ void ElaborateDataTask::Run() {
 
 uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
   uint8_t quality = 0;
+
+  #if (USE_REDUNDANT_SENSOR)
 
   float main = ((main_temperature - 27315.0) / 100.0);
   float redundant = ((redundant_temperature - 27315.0) / 100.0);
@@ -144,11 +166,17 @@ uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdat
     quality = 100;
   }
 
+  #else
+  quality = 100;
+  #endif
+
   return quality;
 }
 
 uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
   uint8_t quality = 0;
+
+  #if (USE_REDUNDANT_SENSOR)
 
   if ((main_humidity > MAX_VALID_HUMIDITY) || (main_humidity < MIN_VALID_HUMIDITY)) {
     quality = 0;
@@ -191,6 +219,10 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
   else {
     quality = 100;
   }
+
+  #else
+  quality = 100;
+  #endif
 
   return quality;
 }
@@ -287,7 +319,11 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // temperature samples
   for (uint16_t i=0; i<temperature_main_samples.count; i++) {
     main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+
+    #if (USE_REDUNDANT_SENSOR)
     redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+    #endif
+
     measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
     // last sample
@@ -318,7 +354,11 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // humidity samples
   for (uint16_t i=0; i<humidity_main_samples.count; i++) {
     main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+
+    #if (USE_REDUNDANT_SENSOR)
     redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+    #endif
+
     measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
     // last sample

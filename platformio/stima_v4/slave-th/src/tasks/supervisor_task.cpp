@@ -235,13 +235,27 @@ bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
       configuration->sensors[configuration->sensors_count].i2c_address = HYT_DEFAULT_ADDRESS;
       configuration->sensors[configuration->sensors_count].is_redundant = false;
       configuration->sensors_count++;
+
+#if (USE_REDUNDANT_SENSOR)
+      strcpy(configuration->sensors[configuration->sensors_count].type, SENSOR_TYPE_HYT);
+      configuration->sensors[configuration->sensors_count].i2c_address = HYT_REDUNDANT_ADDRESS;
+      configuration->sensors[configuration->sensors_count].is_redundant = true;
+      configuration->sensors_count++;
+#endif
 #endif
 
 #if (USE_SENSOR_SHT)
       strcpy(configuration->sensors[configuration->sensors_count].type, SENSOR_TYPE_SHT);
       configuration->sensors[configuration->sensors_count].i2c_address = SHT_DEFAULT_ADDRESS;
+      configuration->sensors[configuration->sensors_count].is_redundant = false;
+      configuration->sensors_count++;
+
+#if (USE_REDUNDANT_SENSOR)
+      strcpy(configuration->sensors[configuration->sensors_count].type, SENSOR_TYPE_SHT);
+      configuration->sensors[configuration->sensors_count].i2c_address = SHT_REDUNDANT_ADDRESS;
       configuration->sensors[configuration->sensors_count].is_redundant = true;
       configuration->sensors_count++;
+#endif
 #endif
     }
 

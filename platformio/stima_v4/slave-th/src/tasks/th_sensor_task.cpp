@@ -45,6 +45,10 @@ void TemperatureHumidtySensorTask::Run() {
   system_request_t request;
   system_response_t response;
 
+  uint8_t error_count;
+
+  powerOff();
+
   while (true)
   {
 
@@ -78,6 +82,10 @@ void TemperatureHumidtySensorTask::Run() {
       break;
 
     case SETUP:
+      error_count = 0;
+
+      powerOn();
+
       is_test = false;
       memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
 
@@ -108,6 +116,12 @@ void TemperatureHumidtySensorTask::Run() {
         {
           delay_ms = sensors[i]->getDelay();
         }
+
+        // end with error
+        if (!sensors[i]->isSuccess())
+        {
+          error_count++;
+        }
       }
 
       Delay(Ticks::MsToTicks(delay_ms));
@@ -125,6 +139,12 @@ void TemperatureHumidtySensorTask::Run() {
             param.wireLock->Give();
             Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
           } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
+
+          // end with error
+          if (!sensors[i]->isSuccess())
+          {
+            error_count++;
+          }
 
           if (false) {}
 
@@ -200,6 +220,11 @@ void TemperatureHumidtySensorTask::Run() {
         break;
 
       case END:
+        if (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
+        {
+          powerOff();
+        }
+
         #ifdef LOG_STACK_USAGE
         TRACE_DEBUG_F(F("SENSOR Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
         #endif
@@ -208,6 +233,26 @@ void TemperatureHumidtySensorTask::Run() {
         break;
     }
   }
+}
+
+void TemperatureHumidtySensorTask::powerOn()
+{
+  if (!is_power_on)
+  {
+    digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
+    digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
+    digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
+    DelayUntil(Ticks::MsToTicks(TH_TASK_POWER_ON_WAIT_DELAY_MS));
+    is_power_on = true;
+  }
+}
+
+void TemperatureHumidtySensorTask::powerOff()
+{
+  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
+  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
+  digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
+  is_power_on = false;
 }
 
 #endif

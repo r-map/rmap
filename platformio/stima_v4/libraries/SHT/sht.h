@@ -36,7 +36,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Default address.
 */
 #define SHT_DEFAULT_ADDRESS       (0x44)
-#define SHT_ALTERNATE_ADDRESS     (0x45)
+
+/*!
+\def SHT_REDUNDANT_ADDRESS
+\brief Redundant address.
+*/
+#define SHT_REDUNDANT_ADDRESS     (0x45)
 
 /*!
 \def SHT_READ_HT_DATA_LENGTH

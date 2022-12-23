@@ -25,7 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _SENSORS_CONFIG_H
 #define _SENSORS_CONFIG_H
 
+/*!
+\def USE_REDUNDANT_SENSOR
+\brief Enable if you want use redundant sensor. Redundant sensor MUST be equal to main sensor.
+*/
 #define USE_REDUNDANT_SENSOR        (true)
+
 /*!
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
@@ -62,7 +67,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_SHT
 \brief Enable if you want use SHT35 sensor.
 */
-#define USE_SENSOR_SHT              (true)
+#define USE_SENSOR_SHT              (false)
 
 /*!
 \def USE_SENSOR_B28
@@ -381,7 +386,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MODULE_RAIN                       (true)
 #endif
 
-#define SENSORS_COUNT_MAX                     (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + USE_REDUNDANT_SENSOR)
+#define SENSORS_COUNT_MAX                     (USE_SENSOR_HYT + USE_SENSOR_SHT + USE_REDUNDANT_SENSOR)
 
 /*!
 \def SENSOR_MAX
