@@ -76,7 +76,8 @@
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define CAN_TASK_BASE_DELAY_MS  (10)
+#define CAN_TASK_WAIT_DELAY_MS          (10)
+#define CAN_TASK_SLEEP_DELAY_MS         (1000)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 #define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)
@@ -100,8 +101,7 @@ typedef struct
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
   cpp_freertos::Queue *requestDataQueue;
@@ -141,7 +141,7 @@ private:
   uint8_t priority;
   State_t state;
   CanParam_t param;
-  inline static cpp_freertos::Queue *localSystemRequestQueue;
+  inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static uint16_t last_req_obs_time = (REPORTS_TIME_S);
   inline static CAN_ModePower canPower;
   // Register access

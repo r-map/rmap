@@ -37,7 +37,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_slave_hal.hpp"
 #include "SensorDriver.h"
 
-#define SUPERVISOR_TASK_WAIT_DELAY_MS           (10)
+// Main TASK Switch Delay
+#define SUPERVISOR_TASK_WAIT_DELAY_MS     (10)
+#define SUPERVISOR_TASK_SLEEP_DELAY_MS    (1000)
+
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)
 
@@ -54,13 +57,6 @@ typedef enum
   SUPERVISOR_STATE_CHECK_OPERATION,
   SUPERVISOR_STATE_LOAD_CONFIGURATION,
   SUPERVISOR_STATE_SAVE_CONFIGURATION,
-  // SUPERVISOR_STATE_REQUEST_CONNECTION,
-  // SUPERVISOR_STATE_CHECK_CONNECTION,
-  // SUPERVISOR_STATE_CHECK_CONNECTION_TYPE,
-  // SUPERVISOR_STATE_DO_NTP,
-  // SUPERVISOR_STATE_DO_HTTP,
-  // SUPERVISOR_STATE_DO_MQTT,
-  // SUPERVISOR_STATE_REQUEST_DISCONNECTION,
   SUPERVISOR_STATE_END
 } SupervisorState_t;
 
@@ -70,8 +66,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemMessageQueue;
   TwoWire *wire;
 } SupervisorParam_t;
 

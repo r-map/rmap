@@ -61,8 +61,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *elaborataDataQueue;
   TwoWire *wire;
 } TemperatureHumidtySensorParam_t;

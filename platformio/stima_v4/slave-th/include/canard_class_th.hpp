@@ -76,11 +76,7 @@ class canardClass {
         // Gestione modalità Power ( x Canard e Nodo in generale)
         enum Power_Mode : uint8_t {
             pwr_on,         // Never (All ON, test o gestione locale)
-            pwr_nominal,    // Every Second (Nominale base)
-            pwr_sleep_05,   // Every 5 Second (Low power 1)
-            pwr_sleep_15,   // Every 15 Second (Low power 2)
-            pwr_sleep_30,   // Every 30 Second (Low power 3)
-            pwr_sleep_60,   // Every Minute (Low power 4...)
+            pwr_nominal,    // Normal Sleep mode (Nominale base)
             pwr_deep_save,  // Deep mode (Very Low Power)
             pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
         };
@@ -110,7 +106,8 @@ class canardClass {
         typedef union {
             // Bit field
             struct {
-                Power_Mode  powerMode   : 3;
+                Power_Mode  powerMode   : 2;
+                bool        traceLog    : 1;
                 bool        fwUploading : 1;
                 bool        dataReady   : 1;
                 bool        moduleReady : 1;

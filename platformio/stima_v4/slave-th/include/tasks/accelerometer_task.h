@@ -52,6 +52,12 @@
 
 #include "debug_F.h"
 
+using namespace cpp_freertos;
+
+// Main TASK Switch Delay
+#define ACELLEROMETER_TASK_WAIT_DELAY_MS    (10)
+#define ACELLEROMETER_TASK_SLEEP_DELAY_MS   (1000)
+
 typedef enum
 {
   ACCELEROMETER_STATE_INIT,
@@ -70,8 +76,7 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
   accelerometer_t *accelerometer_configuration;

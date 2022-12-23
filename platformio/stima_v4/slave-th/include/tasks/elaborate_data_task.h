@@ -40,7 +40,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
+// Main TASK Switch Delay
 #define ELABORATE_TASK_WAIT_DELAY_MS      (10)
+#define ELABORATE_TASK_SLEEP_DELAY_MS     (1000)
 
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
@@ -61,8 +63,7 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *elaborataDataQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;

@@ -304,7 +304,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
     // System Queue request Structure data
     // Command-> Accelerometer Calibrate...
     // Send Command directly To Task (Init to Null)
-    system_request_t request = {0};
+    system_message_t system_request = {0};
 
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
@@ -365,9 +365,9 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             // Avvia calibrazione accelerometro (reset bolla elettroniuca)
             TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
             // Send queue command to TASK
-            request.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
-            request.command.do_init = true;
-            if(localSystemRequestQueue->Enqueue(&request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+            system_request.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
+            system_request.command.do_init = true;
+            if(localSystemMessageQueue->Enqueue(&system_request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
@@ -383,10 +383,10 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
                 TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo"));
             }
             // Send queue command to TASK
-            request.task_dest = SUPERVISOR_TASK_QUEUE_ID;
-            request.command.do_maint = 1;
-            request.param = req->parameter.elements[0];
-            if(localSystemRequestQueue->Enqueue(&request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+            system_request.task_dest = SUPERVISOR_TASK_QUEUE_ID;
+            system_request.command.do_maint = 1;
+            system_request.param = req->parameter.elements[0];
+            if(localSystemMessageQueue->Enqueue(&system_request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
@@ -934,8 +934,11 @@ void CanTask::Run() {
     canardClass clCanard;
     uavcan_register_Value_1_0 val = {0};
 
+    // System request data queue structured
+    system_message_t system_request;
+
     // Local static access to queue Request System
-    localSystemRequestQueue = param.systemRequestQueue;
+    localSystemMessageQueue = param.systemMessageQueue;
 
     // LoopTimer Publish
     CanardMicrosecond last_pub_rmap_data;
@@ -952,6 +955,29 @@ void CanTask::Run() {
 
     // Main Loop TASK
     while (true) {
+
+        // ********* SYSTEM QUEUE REQUEST ***********
+        // enqueud system request from caller task
+        if (!param.systemMessageQueue->IsEmpty()) {
+            // Read queue in test mode
+            if (param.systemMessageQueue->Peek(&system_request, 0))
+            {
+                // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+                if(system_request.task_dest == ALL_TASK_QUEUE_ID)
+                {
+                    // Pull && elaborate command, 
+                    if(system_request.command.do_sleep)
+                    {
+                        // Enter module sleep
+                        HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
+                        Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
+                        // Restore module
+                        HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
+                    }
+                }
+            }
+        }
+
         // ********************************************************************************
         //                   SETUP CONFIG CYPAL, CLASS, REGISTER, DATA
         // ********************************************************************************
@@ -1393,7 +1419,7 @@ void CanTask::Run() {
         #endif
 
         // Run switch TASK CAN one STEP every...
-        DelayUntil(Ticks::MsToTicks(CAN_TASK_BASE_DELAY_MS));
+        DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
 
     }
 }

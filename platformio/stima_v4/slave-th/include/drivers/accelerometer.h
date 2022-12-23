@@ -41,7 +41,6 @@
 
 using namespace cpp_freertos;
 
-#define ACCELEROMETER_VTASK_BASE_DELAY  (10)
 #define ACCELEROMETER_SEMAPHORE_MAX_WAITING_TIME_MS  (1000)
 
 /** IIS328DQ Accelerometer

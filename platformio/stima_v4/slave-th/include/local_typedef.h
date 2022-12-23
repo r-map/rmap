@@ -82,33 +82,14 @@ typedef struct
       uint8_t do_load  : 1;
       uint8_t do_save  : 1;
       uint8_t do_run   : 1;
-      uint8_t do_abort : 1;
       uint8_t do_maint : 1;
       uint8_t do_sleep : 1;
-      uint8_t do_cmd   : 1;   // Using param to determine type of command
+      uint8_t do_cmd   : 1;   // Using param to determine type of message command
+      uint8_t done_cmd : 1;   // Using param to determine type of message response
    } command;
-   uint32_t param;   // 32 Bit for genric data or casting to pointer
+   uint32_t param;   // 32 Bit for generic data or casting to pointer
 
-} system_request_t;
-
-// System message response for queue (optional message response)
-typedef struct
-{
-   uint8_t task_source;
-   struct
-   {
-      uint8_t done_init  : 1;
-      uint8_t done_load  : 1;
-      uint8_t done_save  : 1;
-      uint8_t done_run   : 1;
-      uint8_t done_abort : 1;
-      uint8_t done_maint : 1;
-      uint8_t done_sleep : 1;
-      uint8_t done_cmd   : 1;   // Using param to determine type of command response
-   } command;
-   uint32_t param;   // 32 Bit for genric data or casting to pointer
-
-} system_response_t;
+} system_message_t;
 
 // Report module
 typedef struct

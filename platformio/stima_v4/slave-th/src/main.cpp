@@ -13,23 +13,25 @@ void setup() {
   static BinarySemaphore *wire2Lock;
 #endif
 
-  static Queue *systemStatusQueue;
-  static Queue *systemRequestQueue;
-  static Queue *systemResponseQueue;
-  
+  // System Queue
+  static Queue *systemMessageQueue;
+  // Data queue
   static Queue *elaborataDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
+  // System semaphore
   static BinarySemaphore *configurationLock;
   static BinarySemaphore *systemStatusLock;
 
+  // System configuration
   static configuration_t configuration = {0};
   static system_status_t system_status = {0};
   #if (ENABLE_ACCELEROMETER)
   static accelerometer_t config_accelerometer = {0};
   #endif
 
+  // Hardware Semaphore
 #if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
 #endif
@@ -39,8 +41,8 @@ void setup() {
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
 
-  systemRequestQueue = new Queue(SYSTEM_REQUEST_QUEUE_LENGTH, sizeof(system_request_t));
-  systemResponseQueue = new Queue(SYSTEM_RESPONSE_QUEUE_LENGTH, sizeof(system_response_t));
+  // Creating queue
+  systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
   elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
@@ -83,6 +85,8 @@ void setup() {
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
+  // Setup paramete for Task
+
   ProvaParam_t provaParam = {};
 
 #if (ENABLE_CAN)
@@ -91,8 +95,7 @@ void setup() {
   canParam.system_status = &system_status;
   canParam.configurationLock = configurationLock;
   canParam.systemStatusLock = systemStatusLock;
-  canParam.systemRequestQueue = systemRequestQueue;
-  canParam.systemResponseQueue = systemResponseQueue;
+  canParam.systemMessageQueue = systemMessageQueue;
   canParam.requestDataQueue = requestDataQueue;
   canParam.reportDataQueue = reportDataQueue;
 #if (ENABLE_I2C1)
@@ -112,8 +115,7 @@ void setup() {
 #endif
   accelerometerParam.configurationLock = configurationLock;
   accelerometerParam.systemStatusLock = systemStatusLock;
-  accelerometerParam.systemRequestQueue = systemRequestQueue;
-  accelerometerParam.systemResponseQueue = systemResponseQueue;
+  accelerometerParam.systemMessageQueue = systemMessageQueue;
 #endif
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
@@ -126,8 +128,7 @@ void setup() {
 #endif
   thSensorParam.configurationLock = configurationLock;
   thSensorParam.systemStatusLock = systemStatusLock;
-  thSensorParam.systemRequestQueue = systemRequestQueue;
-  thSensorParam.systemResponseQueue = systemResponseQueue;
+  thSensorParam.systemMessageQueue = systemMessageQueue;
   thSensorParam.elaborataDataQueue = elaborataDataQueue;
 #endif
 
@@ -136,8 +137,7 @@ void setup() {
   elaborateDataParam.system_status = &system_status;
   elaborateDataParam.configurationLock = configurationLock;
   elaborateDataParam.systemStatusLock = systemStatusLock;
-  elaborateDataParam.systemRequestQueue = systemRequestQueue;
-  elaborateDataParam.systemResponseQueue = systemResponseQueue;
+  elaborateDataParam.systemMessageQueue = systemMessageQueue;
   elaborateDataParam.elaborataDataQueue = elaborataDataQueue;
   elaborateDataParam.requestDataQueue = requestDataQueue;
   elaborateDataParam.reportDataQueue = reportDataQueue;
@@ -151,8 +151,7 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
-  supervisorParam.systemRequestQueue = systemRequestQueue;
-  supervisorParam.systemResponseQueue = systemResponseQueue;
+  supervisorParam.systemMessageQueue = systemMessageQueue;
 
   // ********************************************************
   //                     Startup Task

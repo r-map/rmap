@@ -33,8 +33,6 @@
 
 #if (ENABLE_ACCELEROMETER)
 
-using namespace cpp_freertos;
-
 AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
 {
   accelerometer = Accelerometer(param.wire, param.wireLock);
@@ -51,22 +49,40 @@ void AccelerometerTask::Run()
   bool start_calibration = false;
 
   // System request data queue structured
-  system_request_t system_request;
+  system_message_t system_request;
 
   while (true)
   {
 
-    // enqueud system request from caller task (can or supervisor)
-    if (param.systemRequestQueue->Peek(&system_request, 0))
-    {
-      // Its request addressed into this TASK... -> pull
-      if(system_request.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
+    // ********* SYSTEM QUEUE REQUEST ***********
+    // enqueud system request from caller task
+    if (!param.systemMessageQueue->IsEmpty()) {
+      // Read queue in test mode
+      if (param.systemMessageQueue->Peek(&system_request, 0))
       {
-        // Pull && elaborate command, after response if...
-        param.systemRequestQueue->Dequeue(&system_request, 0);
-        if(system_request.command.do_init) // == Calibrate && Save {
+        // Its request addressed into this TASK... -> pull
+        if(system_request.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
         {
-          start_calibration = true;
+          // Pull && elaborate command, after response if...
+          param.systemMessageQueue->Dequeue(&system_request, 0);
+          if(system_request.command.do_init) // == Calibrate && Save {
+          {
+            start_calibration = true;
+          }
+        }
+
+        // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+        if(system_request.task_dest == ALL_TASK_QUEUE_ID)
+        {
+          // Pull && elaborate command, 
+          if(system_request.command.do_sleep)
+          {
+            // Enter module sleep
+            PowerDownModule(param.accelerometer_configuration, param.configurationLock);
+            Delay(Ticks::MsToTicks(ACELLEROMETER_TASK_SLEEP_DELAY_MS));
+            // Restore module
+            state = ACCELEROMETER_STATE_SETUP_MODULE;
+          }
         }
       }
     }
@@ -158,7 +174,7 @@ void AccelerometerTask::Run()
       break;
     }
     // MAX One switch step for Task WAiting Next Step
-    DelayUntil(Ticks::MsToTicks(ACCELEROMETER_VTASK_BASE_DELAY));
+    DelayUntil(Ticks::MsToTicks(ACELLEROMETER_TASK_WAIT_DELAY_MS));
   }
 }
 

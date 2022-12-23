@@ -38,8 +38,7 @@ void SupervisorTask::Run()
 {
   uint8_t retry;
   // Request response for system queue Task controlled...
-  system_request_t request;
-  system_response_t response;
+  system_message_t system_message;
 
   while (true)
   {
@@ -91,14 +90,16 @@ void SupervisorTask::Run()
       if (param.system_status->configuration.is_loaded)
       {
         // Standard SUPERVISOR_OPERATION SYSTEM CHECK...
+
+        // ********* SYSTEM QUEUE REQUEST ***********
         // Check Queue command system status
-        if(!param.systemRequestQueue->IsEmpty()) {
-          if(param.systemRequestQueue->Peek(&request, 0)) {
-            if(request.task_dest == SUPERVISOR_TASK_QUEUE_ID) {
+        if(!param.systemMessageQueue->IsEmpty()) {
+          if(param.systemMessageQueue->Peek(&system_message, 0)) {
+            if(system_message.task_dest == SUPERVISOR_TASK_QUEUE_ID) {
               // Command direct for TASK remove from queue
-              param.systemRequestQueue->Dequeue(&request, 0);
-              if(request.command.do_maint) {
-                if(request.param != 0) {
+              param.systemMessageQueue->Dequeue(&system_message, 0);
+              if(system_message.command.do_maint) {
+                if(system_message.param != 0) {
                   param.system_status->flags.is_maintenance = true;
                 } else {
                   param.system_status->flags.is_maintenance = false;
@@ -106,9 +107,20 @@ void SupervisorTask::Run()
               }
             }
           }
+          // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+          if(system_message.task_dest == ALL_TASK_QUEUE_ID)
+          {
+            // Pull && elaborate command, 
+            if(system_message.command.do_sleep)
+            {
+              // Enter task sleep
+              Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
+            }
+          }
+        } else {
+          // Standard delay task
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
         }
-        // Standard delay task
-        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));     
       }
       else
       {

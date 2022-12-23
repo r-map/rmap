@@ -42,9 +42,8 @@ void TemperatureHumidtySensorTask::Run() {
   bool is_temperature_redundant;
   bool is_humidity_redundant;
   // Request response for system queue Task controlled...
-  system_request_t request;
-  system_response_t response;
-
+  system_message_t system_message;
+  
   uint8_t error_count;
 
   powerOff();

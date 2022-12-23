@@ -87,8 +87,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 // Queue Lenght
-#define SYSTEM_REQUEST_QUEUE_LENGTH       (1)
-#define SYSTEM_RESPONSE_QUEUE_LENGTH      (1)
+#define SYSTEM_MESSAGE_QUEUE_LENGTH       (4)
 #define ELABORATE_DATA_QUEUE_LENGTH       (4)
 #define REQUEST_DATA_QUEUE_LENGTH         (1)
 #define REPORT_DATA_QUEUE_LENGTH          (1)
