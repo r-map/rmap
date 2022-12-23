@@ -309,7 +309,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
     // req->parameter (array di byte MAX 255 per i parametri da request)
-    // Risposta attuale (resp) 1 Bytes RESERVER (0..6) gli altri #define interne
+    // Risposta attuale (resp) 1 Bytes RESERVED (0..6) gli altri #define interne
     switch (req->command)
     {
         // **************** Comandi standard UAVCAN GENERIC_SPECIFIC_COMMAND ****************
@@ -367,6 +367,25 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             // Send queue command to TASK
             request.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
             request.command.do_init = true;
+            if(localSystemRequestQueue->Enqueue(&request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            } else {                
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
+            }
+            break;
+        }
+        case canardClass::Command_Private::module_maintenance:
+        {
+            // Avvia/Arresta modalità di manutenzione come comando sul system status
+            if(req->parameter.elements[0]) {
+                TRACE_INFO_F(F("AVVIA modalità di manutenzione modulo"));
+            } else {
+                TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo"));
+            }
+            // Send queue command to TASK
+            request.task_dest = SUPERVISOR_TASK_QUEUE_ID;
+            request.command.do_maint = 1;
+            request.param = req->parameter.elements[0];
             if(localSystemRequestQueue->Enqueue(&request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                

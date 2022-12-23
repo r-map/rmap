@@ -97,6 +97,7 @@ class canardClass {
         enum Command_Private : uint8_t {
             download_file             =  5,
             calibrate_accelerometer   =  6,
+            module_maintenance        =  7,
             enable_publish_rmap       = 10,
             disable_publish_rmap      = 11,
             enable_publish_port_list  = 12,

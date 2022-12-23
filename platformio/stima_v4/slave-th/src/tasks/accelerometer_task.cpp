@@ -98,7 +98,7 @@ void AccelerometerTask::Run()
         if(hardware_check_attempt >= ACCELEROMETER_MAX_CHECK_ATTEMPT)
           state = ACCELEROMETER_STATE_HARDWARE_FAIL;        
       } else {        
-        state = ACCELEROMETER_STATE_WAIT_FOREVER;
+        state = ACCELEROMETER_STATE_WAIT_RESUME;
       }
       break;
 
@@ -119,6 +119,7 @@ void AccelerometerTask::Run()
       if(ReadModule(param.accelerometer_configuration, param.configurationLock)) {
         TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
         if(start_calibration) {
+          TRACE_INFO_F(F("ACCELEROMETER Start calibration\r\n"));
           Calibrate(param.accelerometer_configuration, param.configurationLock, false);
           SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
           PrintConfiguration(param.accelerometer_configuration, param.configurationLock);
@@ -133,7 +134,7 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_POWER_DOWN:
       PowerDownModule(param.accelerometer_configuration, param.configurationLock);
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_POWER_DOWN -> WAIT FOR NEXT_STATE\r\n"));
-      state = ACCELEROMETER_STATE_WAIT_FOREVER;
+      state = ACCELEROMETER_STATE_WAIT_RESUME;
       break;
 
     case ACCELEROMETER_STATE_SAVE_CONFIGURATION:
@@ -142,7 +143,7 @@ void AccelerometerTask::Run()
       state = ACCELEROMETER_STATE_LOAD_CONFIGURATION;
       break;
 
-    case ACCELEROMETER_STATE_WAIT_FOREVER:
+    case ACCELEROMETER_STATE_WAIT_RESUME:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_END -> SUSPEND()\r\n"));
       Suspend();
       // On Restore Next INIT

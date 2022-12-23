@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
+// Sensor configuration
 typedef struct
 {
    uint8_t i2c_address;             //!< i2c sensor's address
@@ -37,6 +38,7 @@ typedef struct
    bool is_redundant;
 } sensor_configuration_t;
 
+// System module configuration
 typedef struct
 {
    uint8_t module_main_version;                          //!< module main version
@@ -47,6 +49,7 @@ typedef struct
    uint32_t sensor_acquisition_delay_ms;
 } configuration_t;
 
+// System module status
 typedef struct
 {
    struct
@@ -61,10 +64,15 @@ typedef struct
       bool is_saved;
    } configuration;
 
-  bool is_maintenance;
+   struct
+   {
+     bool is_maintenance;
+     bool is_inibith_sleep;
+   } flags;
 
 } system_status_t;
 
+// System message request for queue
 typedef struct
 {
    uint8_t task_dest;
@@ -75,13 +83,15 @@ typedef struct
       uint8_t do_save  : 1;
       uint8_t do_run   : 1;
       uint8_t do_abort : 1;
-      uint8_t do_cmd   : 1;
+      uint8_t do_maint : 1;
       uint8_t do_sleep : 1;
+      uint8_t do_cmd   : 1;   // Using param to determine type of command
    } command;
-   uint16_t param;
+   uint32_t param;   // 32 Bit for genric data or casting to pointer
 
 } system_request_t;
 
+// System message response for queue (optional message response)
 typedef struct
 {
    uint8_t task_source;
@@ -92,13 +102,15 @@ typedef struct
       uint8_t done_save  : 1;
       uint8_t done_run   : 1;
       uint8_t done_abort : 1;
-      uint8_t done_cmd   : 1;
+      uint8_t done_maint : 1;
       uint8_t done_sleep : 1;
+      uint8_t done_cmd   : 1;   // Using param to determine type of command response
    } command;
-   uint16_t param;
+   uint32_t param;   // 32 Bit for genric data or casting to pointer
 
 } system_response_t;
 
+// Report module
 typedef struct
 {
    value_t humidity;

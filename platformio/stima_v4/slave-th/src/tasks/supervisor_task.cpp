@@ -81,22 +81,38 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
 
         // gestire condizione di errore di lettura della configurazione
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
+        TRACE_ERROR_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
       break;
     
     case SUPERVISOR_STATE_CHECK_OPERATION:
-      // 1 configuration ok -> 
+      // true if configuration ok and loaded -> 
       if (param.system_status->configuration.is_loaded)
       {
-        Suspend();
-        // TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-        // state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+        // Standard SUPERVISOR_OPERATION SYSTEM CHECK...
+        // Check Queue command system status
+        if(!param.systemRequestQueue->IsEmpty()) {
+          if(param.systemRequestQueue->Peek(&request, 0)) {
+            if(request.task_dest == SUPERVISOR_TASK_QUEUE_ID) {
+              // Command direct for TASK remove from queue
+              param.systemRequestQueue->Dequeue(&request, 0);
+              if(request.command.do_maint) {
+                if(request.param != 0) {
+                  param.system_status->flags.is_maintenance = true;
+                } else {
+                  param.system_status->flags.is_maintenance = false;
+                }
+              }
+            }
+          }
+          // Standard delay task
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));          
+        }
       }
       else
       {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
+        TRACE_ERROR_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
       break;
@@ -128,7 +144,7 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
 
         // gestire condizione di errore di scrittura della configurazione
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
+        TRACE_ERROR_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
       break;

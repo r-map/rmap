@@ -54,7 +54,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_RAIN)
 #endif
 
-// HW device
+// HW device enabled
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
@@ -65,12 +65,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (true)
 
+// Address EEProm for local param config
 #define CONFIGURATION_EEPROM_ADDRESS   (0)
 #define ACCELEROMETER_EEPROM_ADDRESS   (CONFIGURATION_EEPROM_ADDRESS + 100)
 #define REGISTER_EEPROM_ADDRESS        (ACCELEROMETER_EEPROM_ADDRESS + 200)
 
+// Monitor Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
 
+// HW I2C Speed BUS and specific config
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #define I2C_MAX_DATA_LENGTH (32)
 #define I2C_MAX_ERROR_COUNT (3)
@@ -79,35 +82,40 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (ENABLE_I2C1)
 #define I2C1_BUS_CLOCK_HZ (100000L)
 #endif
-
 #if (ENABLE_I2C2)
 #define I2C2_BUS_CLOCK_HZ (100000L)
 #endif
 
+// Queue Lenght
 #define SYSTEM_REQUEST_QUEUE_LENGTH       (1)
 #define SYSTEM_RESPONSE_QUEUE_LENGTH      (1)
 #define ELABORATE_DATA_QUEUE_LENGTH       (4)
 #define REQUEST_DATA_QUEUE_LENGTH         (1)
 #define REPORT_DATA_QUEUE_LENGTH          (1)
 
-#define PROVA_TASK_QUEUE_ID               (0)
+// Task system_status queue message
+#define ALL_TASK_QUEUE_ID                 (99)      // Send message to ALL Task
+#define SUPERVISOR_TASK_QUEUE_ID          (0)       // Send message to scecific task..
 #define ACCELEROMETER_TASK_QUEUE_ID       (1)
 #define CAN_TASK_QUEUE_ID                 (2)
 #define ELABORATE_TASK_QUEUE_ID           (3)
 #define SENSOR_TASK_QUEUE_ID              (4)
-#define CAN_TASK_QID                      (5)
+#define PROVA_TASK_QUEUE_ID               (5)
 
+// Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 
+// Index Sensor
 #define TEMPERATURE_MAIN_INDEX            (0)
 #define HUMIDITY_MAIN_INDEX               (1)
 #define TEMPERATURE_REDUNDANT_INDEX       (2)
 #define HUMIDITY_REDUNDANT_INDEX          (3)
 #define RAIN_INDEX                        (4)
 
+// Limit range for module sensor
 #define MAX_VALID_TEMPERATURE             (100.0)
 #define MIN_VALID_TEMPERATURE             (-50.0)
 #define MAX_VALID_HUMIDITY                (100.0)

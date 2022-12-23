@@ -57,7 +57,7 @@ void ElaborateDataTask::Run() {
       case TEMPERATURE_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
-        addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->is_maintenance);
+        addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
         break;
 
       case TEMPERATURE_REDUNDANT_INDEX:
