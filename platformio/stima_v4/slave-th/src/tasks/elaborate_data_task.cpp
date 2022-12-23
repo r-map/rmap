@@ -47,11 +47,6 @@ void ElaborateDataTask::Run() {
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
-  bool is_temperature_main_present = false;
-  bool is_temperature_redundant_present = false;
-  bool is_humidity_main_present = false;
-  bool is_humidity_redundant_present = false;
-
   while (true) {
     // enqueud from th sensors task (populate data)
     if (param.elaborataDataQueue->Peek(&edata, 0))
@@ -68,19 +63,16 @@ void ElaborateDataTask::Run() {
       case TEMPERATURE_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
-        is_temperature_redundant_present = true;
         break;
 
       case HUMIDITY_MAIN_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
-        is_humidity_main_present = true;
         break;
 
       case HUMIDITY_REDUNDANT_INDEX:
         TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
         addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
-        is_humidity_redundant_present = true;
         break;
       }
     }
@@ -88,21 +80,10 @@ void ElaborateDataTask::Run() {
     // enqueued from can task (get data, start command...)
     if (param.requestDataQueue->Peek(&request_data, 0))
     {
-      // send data to elaborate task when all data is present
-      #if (USE_REDUNDANT_SENSOR)
-      if (is_temperature_main_present && is_temperature_redundant_present && is_humidity_main_present && is_humidity_redundant_present)
-      #else
-      if (is_temperature_main_present && is_humidity_main_present)
-      #endif
-      {
-        is_temperature_main_present = false;
-        is_temperature_redundant_present = false;
-        is_humidity_main_present = false;
-        is_humidity_redundant_present = false;
-        param.requestDataQueue->Dequeue(&request_data, 0);
-        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-        param.reportDataQueue->Enqueue(&report, 0);
-      }
+      // send request to elaborate task (all data is present verified on elaborate_task)
+      param.requestDataQueue->Dequeue(&request_data, 0);
+      make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+      param.reportDataQueue->Enqueue(&report, 0);
     }
 
     #ifdef LOG_STACK_USAGE

@@ -106,9 +106,9 @@ void SupervisorTask::Run()
               }
             }
           }
-          // Standard delay task
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));          
         }
+        // Standard delay task
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));     
       }
       else
       {
@@ -168,7 +168,9 @@ bool SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     lock->Give();
   }
 
+  #ifndef INIT_SENSOR_CONFIG
   if (configuration->module_type != MODULE_TYPE || configuration->module_main_version != MODULE_MAIN_VERSION)
+  #endif
   {
     status = saveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
   }

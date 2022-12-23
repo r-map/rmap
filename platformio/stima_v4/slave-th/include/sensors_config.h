@@ -61,13 +61,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_HYT
 \brief Enable if you want use HYT939, HYT271 or HYT221 sensor.
 */
-#define USE_SENSOR_HYT              (true)
+#define USE_SENSOR_HYT              (false)
 
 /*!
 \def USE_SENSOR_SHT
 \brief Enable if you want use SHT35 sensor.
 */
-#define USE_SENSOR_SHT              (false)
+#define USE_SENSOR_SHT              (true)
 
 /*!
 \def USE_SENSOR_B28

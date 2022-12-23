@@ -229,13 +229,15 @@ void AccelerometerTask::Calibrate(accelerometer_t *configuration, BinarySemaphor
   {
     if (is_default)
     {
+      // Init offset to 0
       configuration->offset_x = 0.0f;
       configuration->offset_y = 0.0f;
       configuration->offset_z = 0.0f;
     } else {
-      configuration->offset_x = value_x;
-      configuration->offset_y = value_y;
-      configuration->offset_z = value_z;
+      // Set offset to direct realtime Read Value
+      configuration->offset_x = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::X);
+      configuration->offset_y = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Y);
+      configuration->offset_z = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Z);
     }
     lock->Give();
   }

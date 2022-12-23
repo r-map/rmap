@@ -719,7 +719,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             // Richiesta ai dati e metodi di sensor drive
             rmap_service_module_TH_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
-            TRACE_INFO_F(F("<<-- Ricevuto richiesta dati da master"));
+            TRACE_INFO_F(F("<<-- Ricevuto richiesta dati da master\r\n"));
             // The request object is empty so we don't bother deserializing it. Just send the response.
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
@@ -750,7 +750,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_register_Access_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
-            TRACE_INFO_F(F("<<-- Ricevuto richiesta accesso ai registri da master"));
+            TRACE_INFO_F(F("<<-- Ricevuto richiesta accesso ai registri da master\r\n"));
             if (uavcan_register_Access_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_register_Access_Response_1_0 resp = processRequestRegisterAccess(&req);
                 uint8_t serialized[uavcan_register_Access_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -779,7 +779,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_node_ExecuteCommand_Request_1_1 req = {0};
             size_t size = transfer->payload_size;
-            TRACE_INFO_F(F("<<-- Ricevuto comando esterno"));
+            TRACE_INFO_F(F("<<-- Ricevuto comando esterno\r\n"));
             if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(clCanard, &req, transfer->metadata.remote_node_id);
                 uint8_t serialized[uavcan_node_ExecuteCommand_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -824,7 +824,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 }
             } else {
                 // Errore Nodo non settato...
-                TRACE_ERROR_F(F("RX FILE READ BLOCK REJECT: Node_Id not valid or not set"));
+                TRACE_ERROR_F(F("RX FILE READ BLOCK REJECT: Node_Id not valid or not set\r\n"));
             }
         }
     }
