@@ -34,6 +34,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HYT_DEFAULT_ADDRESS       (0x28)
 
 /*!
+\def HYT_REDUNDANT_ADDRESS
+\brief Redundant address.
+*/
+#define HYT_REDUNDANT_ADDRESS     (0x29)
+
+/*!
 \def HYT_READ_HT_DATA_LENGTH
 \brief Number of bytes to be read.
 */

@@ -31,9 +31,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
 
+#define TH_TASK_POWER_ON_WAIT_DELAY_MS (100)
 #define TH_TASK_WAIT_DELAY_MS (100)
 #define TH_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define TH_TASK_GENERIC_RETRY (3)
+#define TH_TASK_ERROR_FOR_POWER_OFF (SENSORS_COUNT_MAX * 3 * 2)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS (50)
 
@@ -82,11 +84,15 @@ public:
 protected:
   virtual void Run();
 
-
 private:
   State_t state;
   TemperatureHumidtySensorParam_t param;
   SensorDriver *sensors[SENSORS_COUNT_MAX];
+
+  bool is_power_on;
+
+  void powerOn();
+  void powerOff();
 };
 
 #endif

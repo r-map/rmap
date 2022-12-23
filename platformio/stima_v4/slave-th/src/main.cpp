@@ -54,9 +54,9 @@ void setup() {
   // init_registers();
 
   // Alim Sens x I2C Test ( Force ON )
-  digitalWrite(PIN_EN_5VS, 1);  // Enable + 5VS / +3V3S External Connector Power Sens
-  digitalWrite(PIN_EN_SPLY, 1); // Enable Supply + 3V3_I2C / + 5V_I2C
-  digitalWrite(PIN_I2C2_EN, 1); // I2C External Enable PIN (LevelShitf PCA9517D)
+  // digitalWrite(PIN_EN_5VS, 1);  // Enable + 5VS / +3V3S External Connector Power Sens
+  // digitalWrite(PIN_EN_SPLY, 1); // Enable Supply + 3V3_I2C / + 5V_I2C
+  // digitalWrite(PIN_I2C2_EN, 1); // I2C External Enable PIN (LevelShitf PCA9517D)
   
   // Analog Read examples
   // digitalWrite(PIN_EN_5VA, 1); Enable Alim. Analog Comparator (xIAN)
