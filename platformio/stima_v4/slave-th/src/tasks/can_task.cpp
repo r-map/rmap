@@ -230,8 +230,8 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
         // Il dato report_time_s non risiede sullo slave ma è in chimata da master
         request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
-        request_data.report_time_s = last_req_obs_time; // richiedo i dati in conformità a standard request
-        request_data.observation_time_s = 60;  // richiedo i dati mediati su 60 secondi
+        request_data.report_time_s = last_req_rpt_time;         // richiedo i dati in conformità a standard request (report)
+        request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
         // coda di richiesta dati (senza attesa)
         param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
@@ -468,15 +468,15 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           if(req->parametri.comando == rmap_service_setmode_1_0_get_current) {
             // Dato corrente
             request_data.is_init = false;            // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
-            request_data.report_time_s = req->parametri.run_sectime; // richiedo i dati su request secondi
-            request_data.observation_time_s = 60;   // richiedo i dati mediati su request secondi
+            request_data.report_time_s = req->parametri.run_sectime;        // richiedo i dati su request secondi
+            request_data.observation_time_s = req->parametri.obs_sectime;   // richiedo i dati mediati su request secondi
             last_req_obs_time = req->parametri.run_sectime; // observation_time_request_backup;
           }
           if(req->parametri.comando == rmap_service_setmode_1_0_get_last) {
             // Dato corrente e reinizializza la coda
             request_data.is_init = true;            // Reinizializza le elaborazioni
-            request_data.report_time_s = req->parametri.run_sectime; // richiedo i dati su request secondi
-            request_data.observation_time_s = 60;   // richiedo i dati mediati su request secondi
+            request_data.report_time_s = req->parametri.run_sectime;        // richiedo i dati su request secondi
+            request_data.observation_time_s = req->parametri.obs_sectime;   // richiedo i dati mediati su request secondi
           }
 
           // coda di richiesta dati

@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.8.2 (serialization was enabled)
-// Source file:   C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl
-// Generated at:  2022-09-16 10:13:43.061609 UTC
+// Generator:     nunavut-1.8.3 (serialization was enabled)
+// Source file:   C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl
+// Generated at:  2022-12-26 19:48:09.533079 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.setmode
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.10.2
+//     python_version:  3.10.5
 //     python_release_level:  final
-//     python_build:  ('tags/v3.10.2:a58ebcc', 'Jan 17 2022 14:12:15')
+//     python_build:  ('tags/v3.10.5:f377153', 'Jun  6 2022 16:14:13')
 //     python_compiler:  MSC v.1929 64 bit (AMD64)
-//     python_revision:  a58ebcc
+//     python_revision:  f377153
 //     python_xoptions:  {}
-//     runtime_platform:  Windows-10-10.0.19044-SP0
+//     runtime_platform:  Windows-10-10.0.19043-SP0
 //
 // Language Options
 //     target_endianness:  little
@@ -40,19 +40,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -72,33 +72,27 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_setmode_1_0_EXTENT_BYTES_                    3UL
-#define rmap_service_setmode_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 3UL
+#define rmap_service_setmode_1_0_EXTENT_BYTES_                    4UL
+#define rmap_service_setmode_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 4UL
 static_assert(rmap_service_setmode_1_0_EXTENT_BYTES_ >= rmap_service_setmode_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
-/// saturated uint4 get_istant = 0
+/// saturated uint3 get_istant = 0
 #define rmap_service_setmode_1_0_get_istant (0U)
-/// saturated uint4 get_current = 1
+/// saturated uint3 get_current = 1
 #define rmap_service_setmode_1_0_get_current (1U)
-/// saturated uint4 get_last = 2
+/// saturated uint3 get_last = 2
 #define rmap_service_setmode_1_0_get_last (2U)
-/// saturated uint4 reset_last = 3
-#define rmap_service_setmode_1_0_reset_last (3U)
-/// saturated uint4 start_acq = 4
-#define rmap_service_setmode_1_0_start_acq (4U)
-/// saturated uint4 stop_acq = 5
-#define rmap_service_setmode_1_0_stop_acq (5U)
-/// saturated uint4 loop_acq = 6
-#define rmap_service_setmode_1_0_loop_acq (6U)
-/// saturated uint4 continuos_acq = 7
-#define rmap_service_setmode_1_0_continuos_acq (7U)
-/// saturated uint4 suspend_acq = 8
-#define rmap_service_setmode_1_0_suspend_acq (8U)
-/// saturated uint4 manutenzione_acq = 9
-#define rmap_service_setmode_1_0_manutenzione_acq (9U)
-/// saturated uint4 test_acq = 15
-#define rmap_service_setmode_1_0_test_acq (15U)
+/// saturated uint3 start_acq = 3
+#define rmap_service_setmode_1_0_start_acq (3U)
+/// saturated uint3 stop_acq = 4
+#define rmap_service_setmode_1_0_stop_acq (4U)
+/// saturated uint3 loop_acq = 5
+#define rmap_service_setmode_1_0_loop_acq (5U)
+/// saturated uint3 continuos_acq = 6
+#define rmap_service_setmode_1_0_continuos_acq (6U)
+/// saturated uint3 test_acq = 7
+#define rmap_service_setmode_1_0_test_acq (7U)
 /// saturated uint3 CH01 = 0
 #define rmap_service_setmode_1_0_CH01 (0U)
 /// saturated uint3 CH02 = 1
@@ -107,16 +101,29 @@ static_assert(rmap_service_setmode_1_0_EXTENT_BYTES_ >= rmap_service_setmode_1_0
 #define rmap_service_setmode_1_0_CH03 (2U)
 /// saturated uint3 CH04 = 3
 #define rmap_service_setmode_1_0_CH04 (3U)
-/// saturated uint16 MAX = 43200
-#define rmap_service_setmode_1_0_MAX (43200U)
+/// saturated uint3 CH05 = 4
+#define rmap_service_setmode_1_0_CH05 (4U)
+/// saturated uint3 CH06 = 5
+#define rmap_service_setmode_1_0_CH06 (5U)
+/// saturated uint3 CH07 = 6
+#define rmap_service_setmode_1_0_CH07 (6U)
+/// saturated uint3 CH08 = 7
+#define rmap_service_setmode_1_0_CH08 (7U)
+/// saturated uint10 MAX_OBS = 900
+#define rmap_service_setmode_1_0_MAX_OBS (900U)
+/// saturated uint16 MAX_RUN = 43200
+#define rmap_service_setmode_1_0_MAX_RUN (43200U)
 
 typedef struct
 {
-    /// saturated uint4 comando
+    /// saturated uint3 comando
     uint8_t comando;
 
-    /// saturated uint4 canale
+    /// saturated uint3 canale
     uint8_t canale;
+
+    /// saturated uint10 obs_sectime
+    uint16_t obs_sectime;
 
     /// saturated uint16 run_sectime
     uint16_t run_sectime;
@@ -148,7 +155,7 @@ static inline int8_t rmap_service_setmode_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 24UL)
+    if ((8U * (size_t) capacity_bytes) < 32UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -160,31 +167,48 @@ static inline int8_t rmap_service_setmode_1_0_serialize_(
 
 
 
-    {   // saturated uint4 comando
+    {   // saturated uint3 comando
         uint8_t _sat0_ = obj->comando;
-        if (_sat0_ > 15U)
+        if (_sat0_ > 7U)
         {
-            _sat0_ = 15U;
+            _sat0_ = 7U;
         }
         buffer[offset_bits / 8U] = (uint8_t)(_sat0_);  // C std, 6.3.1.3 Signed and unsigned integers
-        offset_bits += 4U;
+        offset_bits += 3U;
     }
 
 
 
 
-    {   // saturated uint4 canale
+    {   // saturated uint3 canale
         uint8_t _sat1_ = obj->canale;
-        if (_sat1_ > 15U)
+        if (_sat1_ > 7U)
         {
-            _sat1_ = 15U;
+            _sat1_ = 7U;
         }
-        const int8_t _err0_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, _sat1_, 4U);
+        const int8_t _err0_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, _sat1_, 3U);
         if (_err0_ < 0)
         {
             return _err0_;
         }
-        offset_bits += 4U;
+        offset_bits += 3U;
+    }
+
+
+
+
+    {   // saturated uint10 obs_sectime
+        uint16_t _sat2_ = obj->obs_sectime;
+        if (_sat2_ > 1023U)
+        {
+            _sat2_ = 1023U;
+        }
+        const int8_t _err1_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, _sat2_, 10U);
+        if (_err1_ < 0)
+        {
+            return _err1_;
+        }
+        offset_bits += 10U;
     }
 
 
@@ -200,10 +224,10 @@ static inline int8_t rmap_service_setmode_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad0_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err1_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad0_);  // Optimize?
-        if (_err1_ < 0)
+        const int8_t _err2_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad0_);  // Optimize?
+        if (_err2_ < 0)
         {
-            return _err1_;
+            return _err2_;
         }
         offset_bits += _pad0_;
     }
@@ -257,23 +281,30 @@ static inline int8_t rmap_service_setmode_1_0_deserialize_(
 
 
 
-    // saturated uint4 comando
-    if ((offset_bits + 4U) <= capacity_bits)
+    // saturated uint3 comando
+    if ((offset_bits + 3U) <= capacity_bits)
     {
-        out_obj->comando = buffer[offset_bits / 8U] & 15U;
+        out_obj->comando = buffer[offset_bits / 8U] & 7U;
     }
     else
     {
         out_obj->comando = 0U;
     }
-    offset_bits += 4U;
+    offset_bits += 3U;
 
 
 
 
-    // saturated uint4 canale
-    out_obj->canale = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 4);
-    offset_bits += 4U;
+    // saturated uint3 canale
+    out_obj->canale = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 3);
+    offset_bits += 3U;
+
+
+
+
+    // saturated uint10 obs_sectime
+    out_obj->obs_sectime = nunavutGetU16(&buffer[0], capacity_bytes, offset_bits, 10);
+    offset_bits += 10U;
 
 
 

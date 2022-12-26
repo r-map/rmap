@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.8.2 (serialization was enabled)
-// Source file:   C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl
-// Generated at:  2022-09-16 10:13:43.082399 UTC
+// Generator:     nunavut-1.8.3 (serialization was enabled)
+// Source file:   C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl
+// Generated at:  2022-12-26 19:48:09.792976 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Radiation
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.10.2
+//     python_version:  3.10.5
 //     python_release_level:  final
-//     python_build:  ('tags/v3.10.2:a58ebcc', 'Jan 17 2022 14:12:15')
+//     python_build:  ('tags/v3.10.5:f377153', 'Jun  6 2022 16:14:13')
 //     python_compiler:  MSC v.1929 64 bit (AMD64)
-//     python_revision:  a58ebcc
+//     python_revision:  f377153
 //     python_xoptions:  {}
-//     runtime_platform:  Windows-10-10.0.19044-SP0
+//     runtime_platform:  Windows-10-10.0.19043-SP0
 //
 // Language Options
 //     target_endianness:  little
@@ -42,19 +42,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan master-cpp/data_types/rmap/service/module/Radiation.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -77,8 +77,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_Radiation_Request_1_0_EXTENT_BYTES_                    3UL
-#define rmap_service_module_Radiation_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 3UL
+#define rmap_service_module_Radiation_Request_1_0_EXTENT_BYTES_                    4UL
+#define rmap_service_module_Radiation_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 4UL
 static_assert(rmap_service_module_Radiation_Request_1_0_EXTENT_BYTES_ >= rmap_service_module_Radiation_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -114,7 +114,7 @@ static inline int8_t rmap_service_module_Radiation_Request_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 24UL)
+    if ((8U * (size_t) capacity_bytes) < 32UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -127,7 +127,7 @@ static inline int8_t rmap_service_module_Radiation_Request_1_0_serialize_(
 
 
     {   // rmap.service.setmode.1.0 parametri
-        size_t _size_bytes0_ = 3UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes0_ = 4UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = rmap_service_setmode_1_0_serialize_(
             &obj->parametri, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
