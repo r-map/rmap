@@ -1,0 +1,6 @@
+# Velocità vento (m/s)
+# fattore scala x10
+# MAX 100.0 m/s
+uint10 MAX = 1000
+uint10 value
+@sealed

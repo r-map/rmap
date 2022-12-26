@@ -1,0 +1,53 @@
+# Imposta i parametri di comando ai moduli remoti
+# Il comando è univoco per tutte le tipologie di nodo e viene fatta una DSDL generica
+
+# tipo di comando da eseguire sul modulo
+uint3 comando
+
+# Lettura dato istantaneo diretto
+uint3 get_istant = 0
+# Lettura da memoria a scorrimento ciclo corrente
+uint3 get_current = 1
+# Lettura da memoria a scorrimento ciclo ultimato
+uint3 get_last = 2
+# Resetta il flag di ciclo ultimato, pronto a set per nuovo ciclo ultimato
+uint3 start_acq = 3
+# Arresta immediatamente un ciclo avviato
+uint3 stop_acq = 4
+# Avvia un ciclo che termina dopo acq_second e si riavvia automaticamente
+uint3 loop_acq = 5
+# Avvia un ciclo che termina solo con comando di stop_acq
+uint3 continuos_acq = 6
+# Valore per risposta al test
+uint3 test_acq = 7
+
+# canale/sensore su cui effetuare la lettura (analogico 0..3, altro 4..7)
+# comando riservato per scopi futuri o più canali analogici
+uint3 canale
+
+# costanti di canale Id 01
+uint3 CH01 = 0
+# costanti di canale Id 02
+uint3 CH02 = 1
+# costanti di canale Id 03
+uint3 CH03 = 2
+# costanti di canale Id 04
+uint3 CH04 = 3
+# costanti di canale Id 05
+uint3 CH05 = 4
+# costanti di canale Id 06
+uint3 CH06 = 5
+# costanti di canale Id 07
+uint3 CH07 = 6
+# costanti di canale Id 08
+uint3 CH08 = 7
+
+uint10 MAX_OBS = 900
+# max 15' per la funzione (aggregazione calcoli acquisizione o funzione)
+uint10 obs_sectime
+
+uint16 MAX_RUN = 43200
+# max 12 ore per la funzione (secondi loop acquisizione o funzione)
+uint16 run_sectime
+
+@sealed
