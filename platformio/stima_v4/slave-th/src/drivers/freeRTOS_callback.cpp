@@ -30,6 +30,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "drivers/module_slave_hal.hpp"
+#include "STM32LowPower.h"
 
 // /*******************************************************************************************
 // ********************************************************************************************
@@ -42,19 +43,21 @@
 /// @brief Prepara il sistema allo Sleep (OFF Circuirterie ed entrata in PowerDown)
 /// @param xExpectedIdleTime Ticks RTOS (ms) attesi per la funzione di Sleep
 extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
-   #ifdef _EXIT_SLEEP_FOR_DEBUGGING
-   // Imposto 0 al tempo di attesa Idle e comunica a FreeRTOS
-   // Di non entrare nello stato Sleep
-   *xExpectedIdleTime = 0;
-   #endif
+  #if (LOWPOWER_MODE==SLEEP_IDLE)
+    LowPower.idle(*xExpectedIdleTime - 10);
+  #elif (LOWPOWER_MODE==SLEEP_LOWPOWER)
+    LowPower.sleep(*xExpectedIdleTime - 10);
+  #elif (LOWPOWER_MODE==SLEEP_STOP2)
+    LowPower.deepSleep(*xExpectedIdleTime - 10);
+  #endif
+  *xExpectedIdleTime = 0;
+  #endif
 }
 
 /// @brief Riattiva il sistema dopo lo Sleep (Riattivazione perifieriche, Clock ecc...)
 /// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
 extern "C" void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime) {
 }
-
-#endif
 
 //------------------------------------------------------------------------------
 /// @brief LocalMS Delay Handler_XXX

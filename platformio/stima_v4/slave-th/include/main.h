@@ -32,6 +32,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "task_util.h"
 #include "drivers/module_slave_hal.hpp"
 
+#include <STM32RTC.h>
+#include "STM32LowPower.h"
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -63,6 +66,6 @@ using namespace cpp_freertos;
 void init_pins(void);
 void init_wire(void);
 void init_sdcard(void);
-void init_sensors(void);
+void init_rtc(bool init);
 
 #endif

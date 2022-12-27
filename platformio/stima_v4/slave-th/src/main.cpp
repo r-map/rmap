@@ -3,7 +3,7 @@
 #include "main.h"
 
 void setup() {
-  
+
   // Semaphore, Queue && Param Config for TASK
 #if (ENABLE_I2C1)
   static BinarySemaphore *wireLock;
@@ -52,7 +52,8 @@ void setup() {
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
   init_pins();
-  init_sensors();
+  init_rtc(false);
+
   // init_registers();
 
   // Alim Sens x I2C Test ( Force ON )
@@ -153,23 +154,42 @@ void setup() {
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.systemMessageQueue = systemMessageQueue;
 
+// uint32_t pippo = 0;
+//   while(1) {
+//     Serial.flush();
+//     Serial.print("A....");
+//     Serial.println(pippo);
+//     // Print date...
+//     TRACE_INFO_F(F("%d/%d/%d "), rtc.getDay(), rtc.getMonth(), rtc.getYear());
+//     // ...and time
+//     TRACE_INFO_F(F("%d:%d:%d.%d\n"), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
+// //    delay(1000);
+//     delay(20);
+//     Serial.flush();
+//     LowPower.idle(3000);
+
+//     delay(200);
+//     pippo++;
+//     //delay(10);
+//   }
+
   // ********************************************************
   //                     Startup Task
   // ********************************************************
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
+//  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
+//  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
+//  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
-  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+//  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
+//  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
 #endif
 
   // Startup Schedulher
@@ -201,10 +221,6 @@ void init_pins() {
   #endif
 }
 
-void init_sensors()
-{
-}
-
 // Setup Wire I2C Interface
 void init_wire()
 {
@@ -217,4 +233,28 @@ void init_wire()
   Wire2.begin();
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
 #endif
+}
+
+void init_rtc(bool init)
+{
+  // Create istance/init RTC object
+  STM32RTC& rtc = STM32RTC::getInstance();
+
+  // Select RTC clock source: LSE_CLOCK
+  rtc.setClockSource(STM32RTC::LSE_CLOCK);
+  rtc.begin(); // initialize RTC 24H format
+
+  // Set the time if requireq to Reset value
+  if(init) {
+    rtc.setHours(10);
+    rtc.setMinutes(0);
+    rtc.setSeconds(0);
+    // Set the date
+    rtc.setWeekDay(0);
+    rtc.setDay(27);
+    rtc.setMonth(12);
+    rtc.setYear(22);
+  }
+  // Start LowPower configuration
+  LowPower.begin();
 }

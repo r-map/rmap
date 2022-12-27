@@ -6,8 +6,19 @@
 // Enable For Exit Immediate from LowPower (Using for Debug)
 #define _EXIT_SLEEP_FOR_DEBUGGING
 
+#define SLEEP_NONE         0       // Unused LowPOWER
+#define SLEEP_IDLE         1       // Power mode main regulator ON, mode 1 debug standard enabled
+#define SLEEP_LOWPOWER     2       // Power mode low power regulator ON, debug Low Power
+#define SLEEP_STOP2        3       // Stop2 mode all power regulator OFF
+
 // Define For LowPower Method
 #ifdef _USE_FREERTOS_LOW_POWER
+
+#ifdef _EXIT_SLEEP_FOR_DEBUGGING
+    #define LOWPOWER_MODE   SLEEP_NONE
+#else
+    #define LOWPOWER_MODE   SLEEP_IDLE
+#endif
 
 #define LOW_POWER_NONE                  0
 #define LOW_POWER_DEFAULT               1

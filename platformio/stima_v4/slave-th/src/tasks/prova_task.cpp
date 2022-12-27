@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/prova_task.h"
 #include "drivers/flash.h"
 #include "drivers/module_slave_hal.hpp"
+#include "STM32RTC.h"
 
 using namespace cpp_freertos;
 
@@ -41,6 +42,8 @@ ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 void ProvaTask::Run() {
   bool first = true;
   bool msgOk = false;
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   Delay(500);
   TRACE_INFO_F(F("Running TEST Flash..."));
   while (true) {
@@ -68,7 +71,9 @@ void ProvaTask::Run() {
   //       TRACE_INFO_F(F("TEST Flash OK!!!!"));
   //     }
   //     else
-  TRACE_INFO_F(F("%s\r\n"), Thread::GetName().c_str());
+    TRACE_INFO_F(F("%s: "), Thread::GetName().c_str());
+    TRACE_INFO_F(F("%02d/%02d/%02d "), rtc.getDay(), rtc.getMonth(), rtc.getYear());
+    TRACE_INFO_F(F("%02d:%02d:%02d.%03d\r\n"), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
   //     }
   DelayUntil(Ticks::MsToTicks(1000));
   }
