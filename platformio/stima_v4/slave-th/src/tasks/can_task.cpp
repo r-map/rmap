@@ -493,6 +493,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
+            // TODO: creare sensore STH (non smp) analogo a ITH, MTH, NTH, XTH necessario per gestire i samples
             resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::smp, &report);
           } else {
             resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
