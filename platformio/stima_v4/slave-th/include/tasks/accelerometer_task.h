@@ -55,8 +55,8 @@
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define ACELLEROMETER_TASK_WAIT_DELAY_MS    (10)
-#define ACELLEROMETER_TASK_SLEEP_DELAY_MS   (1000)
+#define ACELLEROMETER_TASK_WAIT_DELAY_MS    (20)
+#define ACELLEROMETER_TASK_SLEEP_DELAY_MS   (1250)
 
 typedef enum
 {

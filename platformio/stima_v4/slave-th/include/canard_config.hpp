@@ -58,6 +58,7 @@
 
 // Nodo fisso per Modulo Slave
 #define NODE_SLAVE_ID 125
+#define PORT_SERVICE_RMAP 100
 
 // SET Default value per risposte
 #define GENERIC_STATE_UNDEFINED 0x0Fu

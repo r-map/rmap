@@ -56,33 +56,6 @@ void setup() {
 
   // init_registers();
 
-  // Alim Sens x I2C Test ( Force ON )
-  // digitalWrite(PIN_EN_5VS, 1);  // Enable + 5VS / +3V3S External Connector Power Sens
-  // digitalWrite(PIN_EN_SPLY, 1); // Enable Supply + 3V3_I2C / + 5V_I2C
-  // digitalWrite(PIN_I2C2_EN, 1); // I2C External Enable PIN (LevelShitf PCA9517D)
-  
-  // Analog Read examples
-  // digitalWrite(PIN_EN_5VA, 1); Enable Alim. Analog Comparator (xIAN)
-  // analogReadResolution(12);
-  // uint32_t data1;
-  // uint32_t data2;
-  // uint32_t data3;
-  // uint32_t data4;
-  // uint8_t count=0;
-  // while(1) {
-  //   data1 = analogRead(PIN_ANALOG_01);
-  //   data2 = analogRead(PIN_ANALOG_02);
-  //   data3 = analogRead(PIN_ANALOG_03);
-  //   data4 = analogRead(PIN_ANALOG_04);
-  //   delay(500);
-  //   Serial.print(data1);
-  //   Serial.print(", ");
-  //   Serial.print(data2);
-  //   Serial.print(", ");
-  //   Serial.print(data3);
-  //   Serial.print(", ");
-  //   Serial.println(data4);
-  // }
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -154,42 +127,24 @@ void setup() {
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.systemMessageQueue = systemMessageQueue;
 
-// uint32_t pippo = 0;
-//   while(1) {
-//     Serial.flush();
-//     Serial.print("A....");
-//     Serial.println(pippo);
-//     // Print date...
-//     TRACE_INFO_F(F("%d/%d/%d "), rtc.getDay(), rtc.getMonth(), rtc.getYear());
-//     // ...and time
-//     TRACE_INFO_F(F("%d:%d:%d.%d\n"), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
-// //    delay(1000);
-//     delay(20);
-//     Serial.flush();
-//     LowPower.idle(3000);
-
-//     delay(200);
-//     pippo++;
-//     //delay(10);
-//   }
 
   // ********************************************************
   //                     Startup Task
   // ********************************************************
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-//  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-//  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-//  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
-//  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-//  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
 #endif
 
   // Startup Schedulher
@@ -197,7 +152,10 @@ void setup() {
 
 }
 
+// FreeRTOS idleHook callBack to loop
 void loop() {
+  // Enable LowPower idleHock power consumption
+  LowPower.idleHook();
 }
 
 void init_pins() {
@@ -235,9 +193,10 @@ void init_wire()
 #endif
 }
 
+// Setup RTC HW && LowPower STM32
 void init_rtc(bool init)
 {
-  // Create istance/init RTC object
+  // Init istance to STM RTC object
   STM32RTC& rtc = STM32RTC::getInstance();
 
   // Select RTC clock source: LSE_CLOCK
@@ -255,6 +214,7 @@ void init_rtc(bool init)
     rtc.setMonth(12);
     rtc.setYear(22);
   }
+
   // Start LowPower configuration
   LowPower.begin();
 }

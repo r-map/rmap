@@ -30,7 +30,6 @@
 #include "config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
-// #include "STM32FreeRTOSConfig_extra.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef _MODULE_SLAVE_HAL_H

@@ -56,7 +56,7 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
 
 /// @brief Riattiva il sistema dopo lo Sleep (Riattivazione perifieriche, Clock ecc...)
 /// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
-extern "C" void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime) {
+extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
 }
 
 //------------------------------------------------------------------------------

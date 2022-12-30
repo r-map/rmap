@@ -63,7 +63,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_ACCELEROMETER  (true)
 
 // HW Diag PIN redefine
-#define ENABLE_DIAG_PIN       (true)
+#define ENABLE_DIAG_PIN       (false)
 
 // Address EEProm for local param config
 #define CONFIGURATION_EEPROM_ADDRESS   (0)

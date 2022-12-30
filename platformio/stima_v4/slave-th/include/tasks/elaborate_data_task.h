@@ -41,8 +41,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define ELABORATE_TASK_WAIT_DELAY_MS      (10)
-#define ELABORATE_TASK_SLEEP_DELAY_MS     (1000)
+#define ELABORATE_TASK_WAIT_DELAY_MS      (20)
+#define ELABORATE_TASK_SLEEP_DELAY_MS     (1250)
 
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values

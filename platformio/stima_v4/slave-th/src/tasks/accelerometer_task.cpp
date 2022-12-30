@@ -48,34 +48,34 @@ void AccelerometerTask::Run()
   uint8_t hardware_check_attempt;
   bool start_calibration = false;
 
-  // System request data queue structured
-  system_message_t system_request;
+  // System message data queue structured
+  system_message_t system_message;
 
   while (true)
   {
 
-    // ********* SYSTEM QUEUE REQUEST ***********
-    // enqueud system request from caller task
+    // ********* SYSTEM QUEUE MESSAGE ***********
+    // enqueud system message from caller task
     if (!param.systemMessageQueue->IsEmpty()) {
       // Read queue in test mode
-      if (param.systemMessageQueue->Peek(&system_request, 0))
+      if (param.systemMessageQueue->Peek(&system_message, 0))
       {
         // Its request addressed into this TASK... -> pull
-        if(system_request.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
+        if(system_message.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
         {
           // Pull && elaborate command, after response if...
-          param.systemMessageQueue->Dequeue(&system_request, 0);
-          if(system_request.command.do_init) // == Calibrate && Save {
+          param.systemMessageQueue->Dequeue(&system_message, 0);
+          if(system_message.command.do_init) // == Calibrate && Save {
           {
             start_calibration = true;
           }
         }
 
         // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-        if(system_request.task_dest == ALL_TASK_QUEUE_ID)
+        if(system_message.task_dest == ALL_TASK_QUEUE_ID)
         {
           // Pull && elaborate command, 
-          if(system_request.command.do_sleep)
+          if(system_message.command.do_sleep)
           {
             // Enter module sleep
             PowerDownModule(param.accelerometer_configuration, param.configurationLock);

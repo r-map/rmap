@@ -219,10 +219,14 @@ void TemperatureHumidtySensorTask::Run() {
         break;
 
       case END:
+        #ifdef TH_TASK_LOW_POWER_ENABLED
+        powerOff();
+        #else
         if (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
         {
           powerOff();
         }
+        #endif
 
         #ifdef LOG_STACK_USAGE
         TRACE_DEBUG_F(F("SENSOR Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));

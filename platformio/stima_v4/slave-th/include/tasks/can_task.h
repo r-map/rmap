@@ -76,8 +76,8 @@
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define CAN_TASK_WAIT_DELAY_MS          (10)
-#define CAN_TASK_SLEEP_DELAY_MS         (1000)
+#define CAN_TASK_WAIT_DELAY_MS          (20)
+#define CAN_TASK_SLEEP_DELAY_MS         (1250)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 #define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)

@@ -33,8 +33,11 @@ ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, u
 };
 
 void ElaborateDataTask::Run() {
+  // Queue for data
   elaborate_data_t edata;
   request_data_t request_data;
+  // System message data queue structured
+  system_message_t system_message;
 
   // Stack LOG Controller
   #ifdef LOG_STACK_USAGE
@@ -48,6 +51,26 @@ void ElaborateDataTask::Run() {
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   while (true) {
+
+    // ********* SYSTEM QUEUE MESSAGE ***********
+    // enqueud system message from caller task
+    if (!param.systemMessageQueue->IsEmpty()) {
+        // Read queue in test mode
+        if (param.systemMessageQueue->Peek(&system_message, 0))
+        {
+            // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+            if(system_message.task_dest == ALL_TASK_QUEUE_ID)
+            {
+                // Pull && elaborate command, 
+                if(system_message.command.do_sleep)
+                {
+                    // Enter module sleep
+                    Delay(Ticks::MsToTicks(ELABORATE_TASK_SLEEP_DELAY_MS));
+                }
+            }
+        }
+    }
+
     // enqueud from th sensors task (populate data)
     if (param.elaborataDataQueue->Peek(&edata, 0))
     {

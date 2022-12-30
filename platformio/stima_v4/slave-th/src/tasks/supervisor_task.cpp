@@ -115,6 +115,8 @@ void SupervisorTask::Run()
             {
               // Enter task sleep
               Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
+              // Il superVisor elimina il messaggio dalla coda dello sleep
+              param.systemMessageQueue->Dequeue(&system_message, 0);
             }
           }
         } else {

@@ -51,7 +51,7 @@ void CanTask::HW_CAN_Power(CAN_ModePower ModeCan) {
         digitalWrite(PIN_CAN_EN, HIGH);
     }
     // Exit if state is the same
-    if (canPower != ModeCan) return;
+    if (canPower == ModeCan) return;
     // Normal Mode (TX/RX Full functionally)
     if(ModeCan == CAN_ModePower::CAN_NORMAL) {
         digitalWrite(PIN_CAN_STB, HIGH);
@@ -175,7 +175,7 @@ rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, cons
     rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
     switch (sensore) {
-        case canardClass::Sensor_Type::smp:
+        case canardClass::Sensor_Type::sth:
             // Prepara i dati SMP (Sample)
             local_data.temperature.val.value = report->temperature.sample;
             local_data.temperature.confidence.value = report->temperature.quality;
@@ -304,7 +304,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
     // System Queue request Structure data
     // Command-> Accelerometer Calibrate...
     // Send Command directly To Task (Init to Null)
-    system_message_t system_request = {0};
+    system_message_t system_message = {0};
 
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
@@ -365,9 +365,9 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             // Avvia calibrazione accelerometro (reset bolla elettroniuca)
             TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
             // Send queue command to TASK
-            system_request.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
-            system_request.command.do_init = true;
-            if(localSystemMessageQueue->Enqueue(&system_request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+            system_message.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
+            system_message.command.do_init = true;
+            if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
@@ -383,10 +383,10 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
                 TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo"));
             }
             // Send queue command to TASK
-            system_request.task_dest = SUPERVISOR_TASK_QUEUE_ID;
-            system_request.command.do_maint = 1;
-            system_request.param = req->parameter.elements[0];
-            if(localSystemMessageQueue->Enqueue(&system_request, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
+            system_message.task_dest = SUPERVISOR_TASK_QUEUE_ID;
+            system_message.command.do_maint = 1;
+            system_message.param = req->parameter.elements[0];
+            if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
@@ -485,7 +485,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
             TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-            TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+            TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
           }
 
           // Ritorno lo stato (Copia dal comando...)
@@ -495,6 +495,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
             // Solo Istantaneo (Sample display request)
             // TODO: creare sensore STH (non smp) analogo a ITH, MTH, NTH, XTH necessario per gestire i samples
             resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::smp, &report);
+=======
+            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
+>>>>>>> Stashed changes
           } else {
             resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
             resp.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
@@ -503,37 +506,16 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           }
           break;
 
-        /// saturated uint3 reset_last = 3
-        /// Reset dell'ultimo valore (dopo lettura... potrebbe essere un comando di command standard)
-        /// case rmap_service_setmode_1_0_reset_last:
-        ///    resp.stato = GENERIC_STATE_UNDEFINED;
-        ///    break;
+        /// NOT USED
+        /// saturated uint3 stop_acq = 4
+        /// #define rmap_service_setmode_1_0_stop_acq (4U)
+        /// saturated uint3 loop_acq = 5
+        /// #define rmap_service_setmode_1_0_loop_acq (5U)
+        /// saturated uint3 continuos_acq = 6
+        /// #define rmap_service_setmode_1_0_continuos_acq (6U)
+        /// saturated uint3 test_acq = 7
 
-        /// saturated uint3 start_acq = 4
-        /// Avvio ciclo di lettura... una tantum start stop automatico, con tempo parametrizzato
-        /// case rmap_service_setmode_1_0_start_acq:
-        ///    resp.stato = GENERIC_STATE_UNDEFINED;
-        ///    break;
-
-        /// saturated uint3 stop_acq = 5
-        /// Arresta ciclo di lettura in ogni condizione (standard o loop)
-        /// case rmap_service_setmode_1_0_stop_acq:
-        ///    resp.stato = GENERIC_STATE_UNDEFINED;
-        ///    break;
-
-        /// saturated uint3 loop_acq = 6
-        /// Avvio ciclo di lettura... in loop automatico continuo, con tempo parametrizzato
-        /// case rmap_service_setmode_1_0_loop_acq:
-        ///    resp.stato = GENERIC_STATE_UNDEFINED;
-        ///    break;
-
-        /// saturated uint3 continuos_acq = 7
-        /// Avvio ciclo di lettura... in continuo, senza tempo parametrizzato (necessita di stop remoto)
-        /// case rmap_service_setmode_1_0_continuos_acq:
-        ///    resp.stato = GENERIC_STATE_UNDEFINED;
-        ///    break;
-
-        /// saturated uint3 test_acq = 15 (Solo x TEST)
+        /// saturated uint3 test_acq = 7 (Solo x TEST)
         case rmap_service_setmode_1_0_test_acq:
             resp.stato = req->parametri.comando;
             break;
@@ -620,6 +602,12 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
 // Richiama le funzioni qui sopra di preparazione e risposta alle richieste
 // ******************************************************************************************
 void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTransfer* const transfer, void *param) {
+
+    // System Queue request Structure data
+    // Command-> Accelerometer Calibrate...
+    // Send Command directly To Task (Init to Null)
+    system_message_t system_message = {0};
+
     // Gestione dei Messaggi in ingresso
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
     {
@@ -645,6 +633,14 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // remoteVSC.powerMode
                     remoteVSC.uint8_val = msg.vendor_specific_status_code;
                     TRACE_VERBOSE_F(F("RX HeartBeat from master, master power mode SET: -> %u\r\n"), remoteVSC.powerMode);
+                    
+                    // ENTER SLEEP
+                    #ifndef _EXIT_SLEEP_FOR_DEBUGGING
+                    system_message.task_dest = ALL_TASK_QUEUE_ID;
+                    system_message.command.do_sleep = true;
+                    localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS));
+                    #endif
+
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set canard_us local per controllo NodoOffline (validità area di OnLine)
                     clCanard.master.heartbeat.set_online(MASTER_OFFLINE_TIMEOUT_US);
@@ -935,8 +931,8 @@ void CanTask::Run() {
     canardClass clCanard;
     uavcan_register_Value_1_0 val = {0};
 
-    // System request data queue structured
-    system_message_t system_request;
+    // System message data queue structured
+    system_message_t system_message;
 
     // Local static access to queue Request System
     localSystemMessageQueue = param.systemMessageQueue;
@@ -957,17 +953,17 @@ void CanTask::Run() {
     // Main Loop TASK
     while (true) {
 
-        // ********* SYSTEM QUEUE REQUEST ***********
-        // enqueud system request from caller task
+        // ********* SYSTEM QUEUE MESSAGE ***********
+        // enqueud system message from caller task
         if (!param.systemMessageQueue->IsEmpty()) {
             // Read queue in test mode
-            if (param.systemMessageQueue->Peek(&system_request, 0))
+            if (param.systemMessageQueue->Peek(&system_message, 0))
             {
                 // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-                if(system_request.task_dest == ALL_TASK_QUEUE_ID)
+                if(system_message.task_dest == ALL_TASK_QUEUE_ID)
                 {
                     // Pull && elaborate command, 
-                    if(system_request.command.do_sleep)
+                    if(system_message.command.do_sleep)
                     {
                         // Enter module sleep
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
@@ -1019,9 +1015,12 @@ void CanTask::Run() {
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
                         "TH.data_and_metadata", rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-                clCanard.port_id.service_module_th =
+                #ifdef PORT_SERVICE_RMAP
+                clCanard.port_id.service_module_th = (CanardPortID)PORT_SERVICE_RMAP;
+                #else
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
                         "TH.service_data_and_metadata", rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
+                #endif
 
                 // Lettura dei registri RMAP al modulo corrente, con impostazione di default x Startup/Init value
 

@@ -50,6 +50,7 @@ void print_debug(const char *fmt, ...)
   va_start(args, fmt);
   vfprintf(stdout, fmt, args);
   va_end(args);
+  Serial.flush();
 }
 
 void print_debug_F(const __FlashStringHelper *fmt, ...)
@@ -59,5 +60,6 @@ void print_debug_F(const __FlashStringHelper *fmt, ...)
   va_start(args, fmt);
   vfprintf(stdout, (const char *)fmt, args);
   va_end(args);
+  Serial.flush();
   osResumeAllTasks();
 }

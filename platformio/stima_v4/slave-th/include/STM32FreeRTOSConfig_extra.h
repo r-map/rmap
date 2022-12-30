@@ -3,8 +3,9 @@
 
 // Enable for use LowPower
 #define _USE_FREERTOS_LOW_POWER
+
 // Enable For Exit Immediate from LowPower (Using for Debug)
-#define _EXIT_SLEEP_FOR_DEBUGGING
+// #define _EXIT_SLEEP_FOR_DEBUGGING
 
 #define SLEEP_NONE         0       // Unused LowPOWER
 #define SLEEP_IDLE         1       // Power mode main regulator ON, mode 1 debug standard enabled
@@ -17,7 +18,7 @@
 #ifdef _EXIT_SLEEP_FOR_DEBUGGING
     #define LOWPOWER_MODE   SLEEP_NONE
 #else
-    #define LOWPOWER_MODE   SLEEP_IDLE
+    #define LOWPOWER_MODE   SLEEP_STOP2
 #endif
 
 #define LOW_POWER_NONE                  0
@@ -36,7 +37,11 @@
 #endif
 
 // Time minimal for start LOW_POWER && SuppressTick...
-#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
+#ifdef _EXIT_SLEEP_FOR_DEBUGGING
+    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   5000
+#else
+    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
+#endif
 
 // Macro Pre && Post Sleep/Wake method
 #define configPRE_SLEEP_PROCESSING( x ) xTaskSleepPrivate ( &x )
