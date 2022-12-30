@@ -78,14 +78,14 @@ typedef struct
    uint8_t task_dest;
    struct
    {
-      uint8_t do_init  : 1;
-      uint8_t do_load  : 1;
-      uint8_t do_save  : 1;
-      uint8_t do_run   : 1;
-      uint8_t do_maint : 1;
-      uint8_t do_sleep : 1;
-      uint8_t do_cmd   : 1;   // Using param to determine type of message command
-      uint8_t done_cmd : 1;   // Using param to determine type of message response
+      uint8_t do_init    : 1;
+      uint8_t do_load    : 1;
+      uint8_t do_save    : 1;
+      uint8_t do_inibith : 1;   // Request inibith sleep (system_status)
+      uint8_t do_maint   : 1;   // Request maintenance (system_status)
+      uint8_t do_sleep   : 1;   // Optional param for difference level Sleep
+      uint8_t do_cmd     : 1;   // Using param to determine type of message command
+      uint8_t done_cmd   : 1;   // Using param to determine type of message response
    } command;
    uint32_t param;   // 32 Bit for generic data or casting to pointer
 

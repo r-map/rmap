@@ -632,18 +632,36 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // remoteVSC.powerMode
                     remoteVSC.uint8_val = msg.vendor_specific_status_code;
                     TRACE_VERBOSE_F(F("RX HeartBeat from master, master power mode SET: -> %u\r\n"), remoteVSC.powerMode);
-                    
-                    // ENTER SLEEP
-                    #ifndef _EXIT_SLEEP_FOR_DEBUGGING
-                    system_message.task_dest = ALL_TASK_QUEUE_ID;
-                    system_message.command.do_sleep = true;
-                    localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS));
-                    #endif
 
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set canard_us local per controllo NodoOffline (validità area di OnLine)
                     clCanard.master.heartbeat.set_online(MASTER_OFFLINE_TIMEOUT_US);
+                    // SET Modalità Power richiesta dal Master (in risposta ad HeartBeat locale...)
+                    // SErve come conferma al master e come flag locale di azione Power
                     clCanard.flag.set_local_power_mode(remoteVSC.powerMode);
+                    
+                    // PowerOn, Non faccio nulla o eventuale altra gestione (Tutto ON)
+                    // if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_on) {
+                        // Ipotesi All Power Sensor ON...
+                    // }
+
+                    // Gestisco lo stato Power come richiesto dal Master immediatamente se != power_on
+                    if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_nominal) {
+                        // ENTER STANDARD SLEEP FROM CAN COMMAND
+                        #ifndef _EXIT_SLEEP_FOR_DEBUGGING
+                        system_message.task_dest = ALL_TASK_QUEUE_ID;
+                        system_message.command.do_sleep = true;
+                        localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS));
+                        #endif
+                    }
+
+                    // if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_deep_save) {
+                        // Ipotesi CAN ON solo al passaggio del minuto 57..60 per syncroTime, Cmd e DataSend
+                    // }
+
+                    // if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_critical) {
+                        // Ipotesi DeepSleep. Save Param in Flash e PowerDown completo 60 Minuti...
+                    // }
                 }
             }
         }

@@ -53,8 +53,9 @@
 // A compilazione per semplificazione setup nodo (TEST)
 // #define INIT_REGISTER
 
-// Nodo Fisso per Modulo Master
-#define NODE_MASTER_ID 100
+// Nodi Fissi per Moduli Master e Yakut
+#define NODE_YAKUT_ID   127
+#define NODE_MASTER_ID  100
 
 // Nodo fisso per Modulo Slave
 #define NODE_SLAVE_ID 125
