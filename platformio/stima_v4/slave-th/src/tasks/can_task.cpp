@@ -169,7 +169,7 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
 
 // *******                      FUNZIONI RMAP PUBLISH LOCAL DATA                         *********
 
-// Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
+// Prepara il blocco messaggio dati per il modulo corrente istantaneo
 // NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
 rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
     rmap_sensors_TH_1_0 local_data = {0};
@@ -243,11 +243,13 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         }
 
         // Preparo i dati
+        module_th_msg.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
         module_th_msg.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
         module_th_msg.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
         module_th_msg.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
         module_th_msg.XTH = prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report);
         // Metadata
+        module_th_msg.STH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.MTH.metadata = clCanard.module_th.MTH.metadata;
         module_th_msg.NTH.metadata = clCanard.module_th.NTH.metadata;
@@ -493,12 +495,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            // TODO: creare sensore STH (non smp) analogo a ITH, MTH, NTH, XTH necessario per gestire i samples
-            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::smp, &report);
-=======
-            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
->>>>>>> Stashed changes
+            resp.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
           } else {
+            resp.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
             resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
             resp.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
             resp.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
@@ -513,7 +512,6 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
         /// #define rmap_service_setmode_1_0_loop_acq (5U)
         /// saturated uint3 continuos_acq = 6
         /// #define rmap_service_setmode_1_0_continuos_acq (6U)
-        /// saturated uint3 test_acq = 7
 
         /// saturated uint3 test_acq = 7 (Solo x TEST)
         case rmap_service_setmode_1_0_test_acq:
@@ -528,8 +526,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
 
     // Copio i metadati fissi
     // TODO: aggiornare i metadati mobili
+    resp.STH.metadata = clCanard.module_th.STH.metadata;
     resp.ITH.metadata = clCanard.module_th.ITH.metadata;
-    resp.MTH.metadata = clCanard.module_th.MTH.metadata;;
+    resp.MTH.metadata = clCanard.module_th.MTH.metadata;
     resp.NTH.metadata = clCanard.module_th.NTH.metadata;
     resp.XTH.metadata = clCanard.module_th.XTH.metadata;
 
@@ -967,6 +966,7 @@ void CanTask::Run() {
                     {
                         // Enter module sleep
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
+                        //Enter Task Sleep
                         Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
                         // Restore module
                         HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
@@ -1038,6 +1038,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT16_MAX;
                 clRegister.read("rmap.module.TH.metadata.Level.L1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[0];
@@ -1048,6 +1049,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT16_MAX;
                 clRegister.read("rmap.module.TH.metadata.Level.L2", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[0];
@@ -1058,6 +1060,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT16_MAX;
                 clRegister.read("rmap.module.TH.metadata.Level.LevelType1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
@@ -1068,6 +1071,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT16_MAX;
                 clRegister.read("rmap.module.TH.metadata.Level.LevelType2", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
@@ -1078,12 +1082,23 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT16_MAX;
                 clRegister.read("rmap.module.TH.metadata.Timerange.P1", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 clCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
+                // TODO: Elimina il caricamento da registerCan..
+                // TODO: Elimina il caricamento del dato oservation (60) se esiste forse P1?
+                //       se non esiste creare il metadato
+                // TODO: REeinviare 900 e 60 in funzione dlla richiesta dal master
+                // TODO SHT mi sembra di aver capito che i metadati sono 254 ecc. diversi...
+                //     se così nelle righe sopra mettere i valori corretti se esistono fissi
+                //     o mettere un registro dove poterli scrivere
+                // TODO: se i metadati dei vari sensori sono diversi agire di conseguenza
+                //       creare un registro per ogni metadato da caricare                
+                clCanard.module_th.STH.metadata.timerange.P2 = 900;
                 clCanard.module_th.ITH.metadata.timerange.P2 = 900;
                 clCanard.module_th.MTH.metadata.timerange.P2 = 900;
                 clCanard.module_th.NTH.metadata.timerange.P2 = 900;
@@ -1094,6 +1109,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[0] = UINT8_MAX;
                 clRegister.read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural16.value.count == 1));
+                clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
                 clCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
                 clCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
                 clCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
