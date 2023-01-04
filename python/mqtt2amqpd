@@ -315,15 +315,16 @@ def main(self):
     topic = topicdict[self.options.datalevel][self.options.stationtype][self.options.rmapversion]
     logging.info('Topic: %s'% topic)
     
+    mqtthost=rmap.settings.mqtthost
     mqttuser=rmap.settings.mqttuser
     mqttpassword=rmap.settings.mqttpassword    
-    user=rmap.settings.amqpuser
-    password=rmap.settings.amqppassword
-    host=rmap.settings.mqtthost
+    amqpuser=rmap.settings.amqpuser
+    amqppassword=rmap.settings.amqppassword
+    amqphost=rmap.settings.amqphost
     exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
     send_queue = queue.Queue(maxsize=1000000)
 
-    amqp=amqpConsumerProducer(host=host,exchange=exchange,user=user,password=password,send_queue=send_queue,logging=logging)
+    amqp=amqpConsumerProducer(host=amqphost,exchange=exchange,user=amqpuser,password=amqppassword,send_queue=send_queue,logging=logging)
     amqp.start()
 
     # If you want to use a specific client id, use
@@ -341,7 +342,7 @@ def main(self):
             "version":self.options.rmapversion,
             "userasident":self.options.userasident
         },
-        client_id=user+"/"+self.options.datalevel+"/"+self.options.stationtype+self.options.rmapversion,
+        client_id=mqttuser+"/"+self.options.datalevel+"/"+self.options.stationtype+self.options.rmapversion,
         clean_session=False
         # qos=1 required by clean_session=False
     )
@@ -352,7 +353,7 @@ def main(self):
 
     mqttclient.enable_logger(logging)
     mqttclient.loop_start()
-    mqttclient.connect(host=host)
+    mqttclient.connect(host=mqtthost)
 
     # infinite loop
     while True:
