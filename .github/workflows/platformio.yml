@@ -107,6 +107,10 @@ jobs:
         run: |
           cd platformio/test/fakewind
           platformio run
+      - name: Build Stima fakewindsonic
+        run: |
+          cd platformio/test/fakewindsonic
+          platformio run
 
       - name: Build Stima devel
         run: |
