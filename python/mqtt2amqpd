@@ -319,7 +319,7 @@ def main(self):
     mqttpassword=rmap.settings.mqttpassword    
     user=rmap.settings.amqpuser
     password=rmap.settings.amqppassword
-    host=rmap.settings.amqphost
+    host=rmap.settings.mqtthost
     exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
     send_queue = queue.Queue(maxsize=1000000)
 

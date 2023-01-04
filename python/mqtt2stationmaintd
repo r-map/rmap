@@ -346,7 +346,7 @@ def main(self):
 
     mqttuser=rmap.settings.mqttuser
     mqttpassword=rmap.settings.mqttpassword
-    host=rmap.settings.amqphost
+    host=rmap.settings.mqtthost
  
     mqttclient = MyMQTTClass(
         userdata={

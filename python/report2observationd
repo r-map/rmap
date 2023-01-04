@@ -89,7 +89,7 @@ def main (self):
             ,"1/report/+/+/+/+/+/+","1/sample/+/+/+/+/+/+"
         ]
         
-        r2o=report2observation(rmap.settings.amqphost,rmap.settings.mqttuser, rmap.settings.mqttpassword
+        r2o=report2observation(rmap.settings.mqtthost,rmap.settings.mqttuser, rmap.settings.mqttpassword
                                , subtopics, rmap.settings.topicmaint, killer)
         r2o.run()
         

@@ -56,6 +56,7 @@ configspec['daemon']={}
 configspec['daemon']['amqphost']        = "string(default='localhost')"
 configspec['daemon']['amqpuser']        = "string(default='rmap')"
 configspec['daemon']['amqppassword']    = "string(default='rmap')"
+configspec['daemon']['mqtthost']        = "string(default='localhost')"
 configspec['daemon']['mqttuser']        = "string(default='rmap')"
 configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 
@@ -296,6 +297,7 @@ CACHE_LOCATION          = config['django']['CACHE_LOCATION']
 amqphost                = config['daemon']['amqphost']
 amqpuser                = config['daemon']['amqpuser']
 amqppassword            = config['daemon']['amqppassword']
+mqtthost                = config['daemon']['mqtthost']
 mqttuser                = config['daemon']['mqttuser']
 mqttpassword            = config['daemon']['mqttpassword']
 
