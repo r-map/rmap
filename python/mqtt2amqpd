@@ -27,6 +27,7 @@ import pika
 import logging,traceback
 import time,queue
 import threading
+import socket
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 import django
@@ -342,7 +343,7 @@ def main(self):
             "version":self.options.rmapversion,
             "userasident":self.options.userasident
         },
-        client_id=mqttuser+"/"+self.options.datalevel+"/"+self.options.stationtype+self.options.rmapversion,
+        client_id=socket.gethostname()+"/"+mqttuser+"/"+self.options.datalevel+"/"+self.options.stationtype+"/"+self.options.rmapversion,
         clean_session=False
         # qos=1 required by clean_session=False
     )
