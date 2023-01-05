@@ -106,7 +106,13 @@ parser.add_argument('--upload_to_server',action="store_true", help="upload confi
 parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
 parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
 parser.add_argument('--rpc_mqtt_recovery',action="store_true", help="execute recovery data RPC over MQTT")
-parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+try:
+    parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+except:
+    # python < 3.7
+    def fromisoformat(isoformat):
+        return datetime.datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
+    parser.add_argument('--datetimestart', default=None, type=fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
