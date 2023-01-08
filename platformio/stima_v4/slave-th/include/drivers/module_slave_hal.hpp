@@ -55,10 +55,6 @@ extern CAN_HandleTypeDef hcan1;
 
 // INIT HW PRIVATE BOARD/ISTANCE CFG
 
-// #define _HW_SETUP_ADC_PRIVATE
-// #define _HW_SETUP_CRC_PRIVATE
-// #define _HW_SETUP_RNG_PRIVATE
-
 // ******************************************************************************
 
 // PIN NAMED STM32 ARDUINO GPIO_INIT
@@ -172,16 +168,6 @@ extern CAN_HandleTypeDef hcan1;
 
 // ******************************************************************************
 
-// Data Istance and Prototype Function Extern "C"
-
-#ifdef _HW_SETUP_ADC_PRIVATE
-extern ADC_HandleTypeDef hadc1;
-#endif
-
-#ifdef _HW_SETUP_CRC_PRIVATE
-extern CRC_HandleTypeDef hcrc;
-#endif
-
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
 #ifdef __cplusplus
@@ -200,26 +186,10 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
 #endif
 
-#ifdef _HW_SETUP_CRC_PRIVATE
-void MX_CRC_Init(void);
-#endif
-#ifdef _HW_MSP_CRC_PRIVATE
-void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc);
-void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc);
-#endif
-
 #if (ENABLE_QSPI)
 void MX_QUADSPI_Init(void);
 void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
 void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
-#endif
-
-#ifdef _HW_SETUP_RNG_PRIVATE
-void MX_RNG_Init(void);
-#endif
-#ifdef _HW_MSP_RNG_PRIVATE
-void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng);
-void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng);
 #endif
 
 #ifdef __cplusplus

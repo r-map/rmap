@@ -35,14 +35,20 @@
 
 AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
 {
+  // Setup register mode && Load or Init configuration
+  clRegister = EERegister(param.wire, param.wireLock);
+  loadConfiguration(&accelerometer_configuration, param.registerAccessLock);
+
+  // Starting Class
   accelerometer = Accelerometer(param.wire, param.wireLock);
-  eeprom = EEprom(param.wire, param.wireLock);
+
   state = ACCELEROMETER_STATE_INIT;
   Start();
 };
 
 void AccelerometerTask::Run()
 {
+  // Local parameter for command and state accelerometer
   bool is_module_ready;
   bool is_hardware_ready;
   uint8_t hardware_check_attempt;
@@ -77,10 +83,14 @@ void AccelerometerTask::Run()
           // Pull && elaborate command, 
           if(system_message.command.do_sleep)
           {
-            // Enter module sleep
-            PowerDownModule(param.accelerometer_configuration, param.configurationLock);
+            // Start module sleep procedure
+            powerDownModule();
+            // Enter sleep module OK
+            param.systemStatusLock->Take();
+            param.system_status->task.accelerometer_sleep = true;
+            param.systemStatusLock->Give();
             Delay(Ticks::MsToTicks(ACELLEROMETER_TASK_SLEEP_DELAY_MS));
-            // Restore module
+            // Restore module from Sleep
             state = ACCELEROMETER_STATE_SETUP_MODULE;
           }
         }
@@ -91,21 +101,21 @@ void AccelerometerTask::Run()
     switch (state)
     {
     case ACCELEROMETER_STATE_INIT:    
-      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_OPERATION\r\n"));
-      state = ACCELEROMETER_STATE_CHECK_OPERATION;
+      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
+      state = ACCELEROMETER_STATE_CHECK_HARDWARE;
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
       is_module_ready = false;
       is_hardware_ready = false;
       break;
 
-    case ACCELEROMETER_STATE_CHECK_OPERATION:
+    case ACCELEROMETER_STATE_CHECK_HARDWARE:
       if (!is_module_ready)
       {
-        is_hardware_ready = CheckModule(param.configurationLock);
+        is_hardware_ready = checkModule();
         if (is_hardware_ready) {
-          TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_CHECK_OPERATION -> ACCELEROMETER_STATE_LOAD_CONFIGURATION\r\n"));
-          state = ACCELEROMETER_STATE_LOAD_CONFIGURATION;
+          TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_CHECK_HARDWARE -> ACCELEROMETER_STATE_SETUP_MODULE\r\n"));
+          state = ACCELEROMETER_STATE_SETUP_MODULE;
           break;
         }
         // Wait for HW Check
@@ -118,45 +128,31 @@ void AccelerometerTask::Run()
       }
       break;
 
-    case ACCELEROMETER_STATE_LOAD_CONFIGURATION:
-      LoadConfiguration(param.accelerometer_configuration, param.configurationLock);
-      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_LOAD_CONFIGURATION -> ACCELEROMETER_STATE_SETUP_MODULE\r\n"));
-      state = ACCELEROMETER_STATE_SETUP_MODULE;
-      break;
-
     case ACCELEROMETER_STATE_SETUP_MODULE:
-      SetupModule(param.accelerometer_configuration, param.configurationLock);
+      setupModule(&accelerometer_configuration);
       is_module_ready = true;
-      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SETUP_MODULE -> ACCELEROMETER_STATE_READ\r\n"));
-      state = ACCELEROMETER_STATE_READ;
+      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SETUP_MODULE -> ACCELEROMETER_STATE_CHECK_OPERATION\r\n"));
+      state = ACCELEROMETER_STATE_CHECK_OPERATION;
       break;
 
-    case ACCELEROMETER_STATE_READ:
-      if(ReadModule(param.accelerometer_configuration, param.configurationLock)) {
+    case ACCELEROMETER_STATE_CHECK_OPERATION:
+      if(readModule(&accelerometer_configuration)) {
         TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
         if(start_calibration) {
           TRACE_INFO_F(F("ACCELEROMETER Start calibration\r\n"));
-          Calibrate(param.accelerometer_configuration, param.configurationLock, false);
-          SaveConfiguration(param.accelerometer_configuration, param.configurationLock, false);
-          PrintConfiguration(param.accelerometer_configuration, param.configurationLock);
+          calibrate(&accelerometer_configuration, param.registerAccessLock, false, true);
+          printConfiguration(&accelerometer_configuration);
           start_calibration = false;
         }
         #ifdef LOG_STACK_USAGE
-        TRACE_DEBUG_F(F("ACCELEROMETER Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+        if((stackUsage) && (stackUsage < param.system_status->task.accelerometer_stack)) {
+          param.systemStatusLock->Take();
+          param.system_status->task.accelerometer_stack = stackUsage;
+          param.systemStatusLock->Give();
+        }
         #endif
       }
-      break;
-
-    case ACCELEROMETER_STATE_POWER_DOWN:
-      PowerDownModule(param.accelerometer_configuration, param.configurationLock);
-      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_POWER_DOWN -> WAIT FOR NEXT_STATE\r\n"));
-      state = ACCELEROMETER_STATE_WAIT_RESUME;
-      break;
-
-    case ACCELEROMETER_STATE_SAVE_CONFIGURATION:
-      SaveConfiguration(param.accelerometer_configuration, param.configurationLock, CONFIGURATION_CURRENT);
-      TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SAVE_CONFIGURATION -> ACCELEROMETER_STATE_LOAD_CONFIGURATION\r\n"));
-      state = ACCELEROMETER_STATE_LOAD_CONFIGURATION;
       break;
 
     case ACCELEROMETER_STATE_WAIT_RESUME:
@@ -173,165 +169,246 @@ void AccelerometerTask::Run()
       state = ACCELEROMETER_STATE_SETUP_MODULE;
       break;
     }
-    // MAX One switch step for Task WAiting Next Step
+
+    // MAX One switch step for Task Waiting Next Step
     DelayUntil(Ticks::MsToTicks(ACELLEROMETER_TASK_WAIT_DELAY_MS));
   }
 }
 
-bool AccelerometerTask::LoadConfiguration(accelerometer_t *configuration, BinarySemaphore *lock)
+/// @brief Load configuration accelleration module
+/// @param configuration Configuration param
+/// @param registerLock Semaphore register access
+void AccelerometerTask::loadConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock)
 {
-  bool status = false;
-  //! read configuration from eeprom
-  if (lock->Take())
-  {
-    status = true;
-    TRACE_INFO_F(F("Attempt read from EEprom configuration... [ %s ]\r\n"), OK_STRING);    
-    if(eeprom.Read(ACCELEROMETER_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(accelerometer_t))) {
-      TRACE_INFO_F(F("Reading from E2PROM... [ %s ]\r\n"), OK_STRING);    
+  // Verify config valid param
+  bool register_config_valid = true;
+  // Param Reading
+  static uavcan_register_Value_1_0 val = {0};
+
+  TRACE_INFO_F(F("ACCELEROMETER: Load configuration...\r\n"));
+
+  //! read configuration from register
+  // Reading RMAP Module identify Param -> (READ/WRITE)
+  // uint8_t config_valid;    TYPE ELEMENT ID
+  // uint8_t module_power;    Frequency get data
+  if(register_config_valid) {
+    // Select type register (uint_8)
+    uavcan_register_Value_1_0_select_natural8_(&val);
+    val.natural8.value.count       = 2;
+    // Loading Default
+    val.natural8.value.elements[0] = IIS328DQ_ID;
+    val.natural8.value.elements[1] = Accelerometer::IIS328DQ_ODR_5Hz2;
+    registerLock->Take();
+    clRegister.read("rmap.accelerometer.config", &val);
+    registerLock->Give();
+    if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 2)) {
+      register_config_valid = false;
     } else {
-      TRACE_INFO_F(F("Reading from E2PROM... [ %s ]\r\n"), ERROR_STRING);    
+      configuration->config_valid = val.natural8.value.elements[0];
+      configuration->module_power = (Accelerometer::iis328dq_dr_t) val.natural8.value.elements[1];
     }
-    lock->Give();
+  }
+
+  // Reading RMAP Module Offset Config -> (READ/WRITE)
+  // float_t x;    Offset (X)
+  // float_t y;    Offset (Y)
+  // float_t z;    Offset (Z)
+  if(register_config_valid) {
+    // Select type register (float_)
+    uavcan_register_Value_1_0_select_real32_(&val);
+    val.real32.value.count       = 3;
+    // Loading Default
+    val.real32.value.elements[0] = 0.0;
+    val.real32.value.elements[1] = 0.0;
+    val.real32.value.elements[2] = 0.0;
+    registerLock->Take();
+    clRegister.read("rmap.accelerometer.offset", &val);
+    registerLock->Give();
+    if(uavcan_register_Value_1_0_is_real32_(&val) && (val.real32.value.count != 3)) {
+      register_config_valid = false;
+    } else {
+      configuration->offset_x = val.real32.value.elements[0];
+      configuration->offset_y = val.real32.value.elements[1];
+      configuration->offset_z = val.real32.value.elements[2];
+    }
   }
 
   // Validation Byte Config (Init Defualt Value)
-  if (configuration->config_valid != IIS328DQ_ID)
+  if (!register_config_valid || (configuration->config_valid != IIS328DQ_ID))
   {
-    // Start calibration...
-    status = true;
-    TRACE_INFO_F(F("Reset configuration and load default... [ %s ]\r\n"), OK_STRING);
-    SaveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
+    // Reset configuration...
+    saveConfiguration(configuration, registerLock, true);
   }
-  PrintConfiguration(configuration, lock);
-  return(status);
+  printConfiguration(configuration);
 }
 
-void AccelerometerTask::PrintConfiguration(accelerometer_t *configuration, BinarySemaphore *lock)
+/// @brief Print configuration Accelerometer
+/// @param configuration Configuration param
+void AccelerometerTask::printConfiguration(accelerometer_t *configuration)
 {
-  if (lock->Take())
-  {
-    TRACE_INFO_F(F("--> accelerometer config: \r\n"));
-    TRACE_INFO_F(F("--> config flag: %d\r\n"), configuration->config_valid);
-    TRACE_INFO_F(F("--> power mode: %d\r\n"), (int)configuration->module_power);
-    TRACE_INFO_F(F("--> offset X value: %d\r\n"), (int)(configuration->offset_x * 1000));
-    TRACE_INFO_F(F("--> offset Y value: %d\r\n"), (int)(configuration->offset_y * 1000));
-    TRACE_INFO_F(F("--> offset Z value: %d\r\n"), (int)(configuration->offset_z * 1000));
-    lock->Give();
-  }
+  TRACE_INFO_F(F("--> accelerometer config: \r\n"));
+  TRACE_INFO_F(F("--> config flag: %d\r\n"), configuration->config_valid);
+  TRACE_INFO_F(F("--> power mode: %d\r\n"), (int)configuration->module_power);
+  TRACE_INFO_F(F("--> offset X value: %d\r\n"), (int)(configuration->offset_x * 1000));
+  TRACE_INFO_F(F("--> offset Y value: %d\r\n"), (int)(configuration->offset_y * 1000));
+  TRACE_INFO_F(F("--> offset Z value: %d\r\n"), (int)(configuration->offset_z * 1000));
 }
 
-void AccelerometerTask::SaveConfiguration(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default)
+/// @brief Init/Save configuration param Accelerometer
+/// @param configuration param configuration
+/// @param registerLock Semaphore register access
+/// @param is_default true if need to reset register configuration value default
+void AccelerometerTask::saveConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default)
 {
-  if (lock->Take())
+  // Param Writing
+  static uavcan_register_Value_1_0 val = {0};
+
+  TRACE_INFO_F(F("Attempt to write accelerometer configuration... [ %s ]\r\n"), OK_STRING);    
+
+  // Loading defualt request
+  if (is_default)
   {
-    if (is_default)
-    {
-      configuration->config_valid = IIS328DQ_ID;
-      configuration->module_power = Accelerometer::IIS328DQ_ODR_5Hz2;
-      configuration->offset_x = 0.0f;
-      configuration->offset_y = 0.0f;
-      configuration->offset_z = 0.0f;
-    }
-    // ! write configuration to eeprom
-    eeprom.Write(ACCELEROMETER_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(accelerometer_t));
-    TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), OK_STRING);
-    lock->Give();
+    configuration->config_valid = IIS328DQ_ID;
+    configuration->module_power = Accelerometer::IIS328DQ_ODR_5Hz2;
+    configuration->offset_x = 0.0f;
+    configuration->offset_y = 0.0f;
+    configuration->offset_z = 0.0f;
   }
+
+  // Writing RMAP Module identify Param -> (READ/WRITE)
+  // uint8_t config_valid;    TYPE ELEMENT ID
+  // uint8_t module_power;    Frequency get data
+  // Select type register (uint_8)
+  uavcan_register_Value_1_0_select_natural8_(&val);
+  val.natural8.value.count       = 2;
+  val.natural8.value.elements[0] = IIS328DQ_ID;
+  val.natural8.value.elements[1] = configuration->module_power;
+  registerLock->Take();
+  clRegister.write("rmap.accelerometer.config", &val);
+  registerLock->Give();
+
+  // Reading RMAP Module Offset Config -> (READ/WRITE)
+  // float_t x;    Offset (X)
+  // float_t y;    Offset (Y)
+  // float_t z;    Offset (Z)
+  // Select type register (float_)
+  uavcan_register_Value_1_0_select_real32_(&val);
+  val.real32.value.count       = 3;
+  // Loading Default
+  val.real32.value.elements[0] = configuration->offset_x;
+  val.real32.value.elements[1] = configuration->offset_y;
+  val.real32.value.elements[2] = configuration->offset_z;
+  registerLock->Take();
+  clRegister.write("rmap.accelerometer.offset", &val);
+  registerLock->Give();
 }
 
-void AccelerometerTask::Calibrate(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default)
+/// @brief Calibrate accelereometer position X-Y-Z to actual value (set offset from 0)
+/// @param configuration configuration accelerometer
+/// @param registerLock Semaphore register access
+/// @param is_default require default value data
+/// @param save_register request to save calibration in register
+void AccelerometerTask::calibrate(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default, bool save_register)
 {
-  if (lock->Take())
+  if (is_default)
   {
-    if (is_default)
-    {
-      // Init offset to 0
-      configuration->offset_x = 0.0f;
-      configuration->offset_y = 0.0f;
-      configuration->offset_z = 0.0f;
-    } else {
-      // Set offset to direct realtime Read Value
-      configuration->offset_x = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::X);
-      configuration->offset_y = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Y);
-      configuration->offset_z = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Z);
-    }
-    lock->Give();
+    // Init offset to 0
+    configuration->offset_x = 0.0f;
+    configuration->offset_y = 0.0f;
+    configuration->offset_z = 0.0f;
+  } else {
+    // Set offset to direct realtime Read Value
+    configuration->offset_x = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::X);
+    configuration->offset_y = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Y);
+    configuration->offset_z = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Z);
+  }
+
+  // Save Register Eeprom
+  if(save_register) {
+    // Param Writing
+    static uavcan_register_Value_1_0 val = {0};
+    // Reading RMAP Module Offset Config -> (READ/WRITE)
+    // float_t x;    Offset (X)
+    // float_t y;    Offset (Y)
+    // float_t z;    Offset (Z)
+    // Select type register (float_)
+    uavcan_register_Value_1_0_select_real32_(&val);
+    val.real32.value.count       = 3;
+    // Loading Default
+    val.real32.value.elements[0] = configuration->offset_x;
+    val.real32.value.elements[1] = configuration->offset_y;
+    val.real32.value.elements[2] = configuration->offset_z;
+    registerLock->Take();
+    clRegister.write("rmap.accelerometer.offset", &val);
+    registerLock->Give();
   }
 }
 
-
-bool AccelerometerTask::CheckModule(BinarySemaphore *lock)
+/// @brief Check hardware module
+/// @return True is module ready and OK
+bool AccelerometerTask::checkModule(void)
 {
   bool hw_check = false;
-  if (lock->Take())
-  {
-    TRACE_INFO_F(F("Check hardware module... [ %s ]\r\n"), OK_STRING);
-    /* Try whoamI response from device */
-    uint8_t whoamI = 0;
-      // Read ID Device
-    accelerometer.iis328dq_device_id_get(&whoamI);
-    if (whoamI == IIS328DQ_ID)
-      hw_check = true;
-    lock->Give();
-  }
+
+  TRACE_INFO_F(F("Check hardware module... [ %s ]\r\n"), OK_STRING);
+  /* Try whoamI response from device */
+  uint8_t whoamI = 0;
+    // Read ID Device
+  accelerometer.iis328dq_device_id_get(&whoamI);
+  if (whoamI == IIS328DQ_ID) hw_check = true;
+
   return hw_check;
 }
 
-void AccelerometerTask::SetupModule(accelerometer_t *configuration, BinarySemaphore *lock)
+/// @brief Setup hardware configuration
+/// @param configuration Configuration hardware param to Accelerometer
+void AccelerometerTask::setupModule(accelerometer_t *configuration)
 {
-  if (lock->Take())
-  {
-    TRACE_INFO_F(F("Setup hardware module... [ %s ]\r\n"), OK_STRING);
-    /* Enable Block Data Update */
-    accelerometer.iis328dq_block_data_update_set(PROPERTY_ENABLE);
-    /* Set full scale */
-    accelerometer.iis328dq_full_scale_set(Accelerometer::IIS328DQ_2g);
-    /* Configure filtering chain */
-    /* Accelerometer - High Pass / Slope path */
-    accelerometer.iis328dq_hp_path_set(Accelerometer::IIS328DQ_HP_DISABLE);
-    /* Set Output Data Rate */
-    accelerometer.iis328dq_data_rate_set(configuration->module_power);
-    lock->Give();
-  }
+  TRACE_INFO_F(F("Setup hardware module... [ %s ]\r\n"), OK_STRING);
+  /* Enable Block Data Update */
+  accelerometer.iis328dq_block_data_update_set(PROPERTY_ENABLE);
+  /* Set full scale */
+  accelerometer.iis328dq_full_scale_set(Accelerometer::IIS328DQ_2g);
+  /* Configure filtering chain */
+  /* Accelerometer - High Pass / Slope path */
+  accelerometer.iis328dq_hp_path_set(Accelerometer::IIS328DQ_HP_DISABLE);
+  /* Set Output Data Rate */
+  accelerometer.iis328dq_data_rate_set(configuration->module_power);
 }
 
-bool AccelerometerTask::ReadModule(accelerometer_t *configuration, BinarySemaphore *lock)
+/// @brief Read data from module accelerometer
+/// @param configuration Param configuratione
+/// @return true if data is ready from module
+bool AccelerometerTask::readModule(accelerometer_t *configuration)
 {
   bool status = false;
-  if (lock->Take())
-  {
-    /* Read output only if new value is available */
-    Accelerometer::iis328dq_reg_t reg;
-    accelerometer.iis328dq_status_reg_get(&reg.status_reg);
-    // Is New Data avaiable
-    if (reg.status_reg.zyxda) {
-      status = true;
-      /* Read acceleration data */
-      int16_t data_raw_acceleration[3];
-      memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
-      accelerometer.iis328dq_acceleration_raw_get(data_raw_acceleration);
-      accelerometer.push_raw_data(data_raw_acceleration);
-      value_x = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::X) - configuration->offset_x;
-      value_y = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Y) - configuration->offset_y;
-      value_z = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Z) - configuration->offset_z;
-    }
-    lock->Give();
+  /* Read output only if new value is available */
+  Accelerometer::iis328dq_reg_t reg;
+  accelerometer.iis328dq_status_reg_get(&reg.status_reg);
+  // Is New Data avaiable
+  if (reg.status_reg.zyxda) {
+    status = true;
+    /* Read acceleration data */
+    int16_t data_raw_acceleration[3];
+    memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
+    accelerometer.iis328dq_acceleration_raw_get(data_raw_acceleration);
+    accelerometer.push_raw_data(data_raw_acceleration);
+    value_x = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::X) - configuration->offset_x;
+    value_y = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Y) - configuration->offset_y;
+    value_z = accelerometer.iis328dq_from_fsx_to_inc(Accelerometer::coordinate::Z) - configuration->offset_z;
   }
   // True if data ready
   return status;
 }
 
-void AccelerometerTask::PowerDownModule(accelerometer_t *configuration, BinarySemaphore *lock)
+/// @brief Activate power saving hardware module
+void AccelerometerTask::powerDownModule(void)
 {
-  if (lock->Take())
-  {
-    TRACE_INFO_F(F("Power down accelerometer... [ %s ]\r\n"), OK_STRING);
-    /* Set Output Data Rate to OFF */
-    accelerometer.iis328dq_data_rate_set(Accelerometer::IIS328DQ_ODR_OFF);
-    /* Disable Block Data Update */
-    accelerometer.iis328dq_block_data_update_set(PROPERTY_DISABLE);
-    lock->Give();
-  }
+  TRACE_INFO_F(F("Power down accelerometer... [ %s ]\r\n"), OK_STRING);
+  /* Set Output Data Rate to OFF */
+  accelerometer.iis328dq_data_rate_set(Accelerometer::IIS328DQ_ODR_OFF);
+  /* Disable Block Data Update */
+  accelerometer.iis328dq_block_data_update_set(PROPERTY_DISABLE);
 }
 
 #endif

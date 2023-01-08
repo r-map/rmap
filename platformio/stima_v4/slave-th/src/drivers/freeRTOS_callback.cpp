@@ -44,7 +44,7 @@
 /// @param xExpectedIdleTime Ticks RTOS (ms) attesi per la funzione di Sleep
 extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
   #if (LOWPOWER_MODE==SLEEP_IDLE)
-    LowPower.idle(*xExpectedIdleTime - 10);
+    LowPower.idle(*xExpectedIdleTime);
   #elif (LOWPOWER_MODE==SLEEP_LOWPOWER)
     LowPower.sleep(*xExpectedIdleTime - 10);
   #elif (LOWPOWER_MODE==SLEEP_STOP2)

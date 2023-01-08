@@ -42,6 +42,18 @@ using namespace cpp_freertos;
 
 #define FLASH_MEMORYMAP_BASE	0x90000000
 
+// Security Check W->R Data
+#define CHECK_FLASH_WRITE
+
+#define FLASH_FW_POSITION   (0ul)
+#define FLASH_FW_BACKUP     (262144ul)  // 000 - 256 KBytes For Program Flash
+#define FLASH_FILE_POSITION (524288ul)  // 256 - 512 KBytes For Program Flash (Backup)
+#define FLASH_FREE_ACCESS   (1048756ul) // 512 - 1024 KBytes For Extra File (... -> Free)
+#define FLASH_INFO_SIZE_LEN (256)
+#define FLASH_FILE_SIZE_LEN (128)
+#define FLASH_SIZE_ADDR(X)  (X + FLASH_FILE_SIZE_LEN + 1)
+#define FLASH_INFO_SIZE_U64 (8)
+
 class Flash {
 
   public:
@@ -150,8 +162,8 @@ private:
       * @{
       */
     QSPI_HandleTypeDef *_hqspi;
-    QSPI_IT_EventFlag *_evtFlag;
-    QSPI_Info _FlashInfo;
+    inline static QSPI_Info _FlashInfo;
+    inline static QSPI_IT_EventFlag *_evtFlag;
     /**
       * @}
       */

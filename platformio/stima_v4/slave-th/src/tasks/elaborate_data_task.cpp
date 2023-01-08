@@ -39,11 +39,6 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
-  // Stack LOG Controller
-  #ifdef LOG_STACK_USAGE
-  uint32_t stackTimer = millis();
-  #endif
-
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
@@ -64,55 +59,66 @@ void ElaborateDataTask::Run() {
                 // Pull && elaborate command, 
                 if(system_message.command.do_sleep)
                 {
-                    // Enter module sleep
+                    // Enter module sleep Procedure ... None
+                    // Enter sleep module OK
+                    param.systemStatusLock->Take();
+                    param.system_status->task.elaborate_data_sleep = true;
+                    param.systemStatusLock->Give();
                     Delay(Ticks::MsToTicks(ELABORATE_TASK_SLEEP_DELAY_MS));
+                    // Exit Sleep module procedure
                 }
             }
         }
     }
 
     // enqueud from th sensors task (populate data)
-    if (param.elaborataDataQueue->Peek(&edata, 0))
-    {
-      param.elaborataDataQueue->Dequeue(&edata, 0);
-      switch (edata.index)
+    if (!param.elaborataDataQueue->IsEmpty()) {
+      if (param.elaborataDataQueue->Peek(&edata, 0))
       {
-      case TEMPERATURE_MAIN_INDEX:
-        TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
-        addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
-        break;
+        param.elaborataDataQueue->Dequeue(&edata, 0);
+        switch (edata.index)
+        {
+        case TEMPERATURE_MAIN_INDEX:
+          TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
+          addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+          break;
 
-      case TEMPERATURE_REDUNDANT_INDEX:
-        TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
-        break;
+        case TEMPERATURE_REDUNDANT_INDEX:
+          TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+          break;
 
-      case HUMIDITY_MAIN_INDEX:
-        TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
-        break;
+        case HUMIDITY_MAIN_INDEX:
+          TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
+          break;
 
-      case HUMIDITY_REDUNDANT_INDEX:
-        TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
-        addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
-        break;
+        case HUMIDITY_REDUNDANT_INDEX:
+          TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+          break;
+        }
       }
     }
 
     // enqueued from can task (get data, start command...)
-    if (param.requestDataQueue->Peek(&request_data, 0))
-    {
-      // send request to elaborate task (all data is present verified on elaborate_task)
-      param.requestDataQueue->Dequeue(&request_data, 0);
-      make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-      param.reportDataQueue->Enqueue(&report, 0);
+    if (!param.elaborataDataQueue->IsEmpty()) {
+      if (param.requestDataQueue->Peek(&request_data, 0))
+      {
+        // send request to elaborate task (all data is present verified on elaborate_task)
+        param.requestDataQueue->Dequeue(&request_data, 0);
+        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        param.reportDataQueue->Enqueue(&report, 0);
+      }
     }
 
     #ifdef LOG_STACK_USAGE
-    if((millis()-stackTimer > LOG_STACK_TIMEOUT_MS) || (millis() < stackTimer)) {
-      stackTimer = millis();
-      TRACE_DEBUG_F(F("ELABORATE DATA Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+    static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+    if((stackUsage) && (stackUsage < param.system_status->task.elaborate_data_stack)) {
+        param.systemStatusLock->Take();
+        param.system_status->task.elaborate_data_stack = stackUsage;
+        param.systemStatusLock->Give();
     }
     #endif
 
@@ -366,7 +372,6 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // it's a report request
   if (report_time_s && observation_time_s)
   {
-    // temperature samples
     for (uint16_t i = 0; i < temperature_main_samples.count; i++)
     {
       main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
@@ -402,6 +407,17 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
     error_temperature_per = (float)(error_count_temperature) / (float)(temperature_main_samples.count) * 100.0;
     TRACE_DEBUG_F(F("-> %d temperature samples error (%d%%)\r\n"), error_count_temperature, (int32_t)error_temperature_per);
+
+    // x MARCO
+    // TODO: Verify Reset buffer maintenance se corretto qua ......
+    // TODO: Verify soot e sopra ... for i..humidity samples.count o sensor_count allineato???
+    // TODO: all'inizio c'e sempre un valore MIN a 0 di TP e UR se rihiesta è senza init
+    // Non mi è chiaro a capire cosa è giusto chiedere dal master (init o no?)
+    // Non capisco la differenza per avere il dato corrente o il dato complessivo da registrare
+    // Io ho previsto 3 comandi 1 chè è solo il sample (x visualizzazione display == OK)
+    // Gli altri due 1 per avere il dato corrente attuale e l'altro per il dato calcolato
+    // alla fine con richiesta valore e reinizializzazione per nuovo calcolo...
+    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
     // humidity samples
     for (uint16_t i = 0; i < humidity_main_samples.count; i++)

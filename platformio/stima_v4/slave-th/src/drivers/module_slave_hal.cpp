@@ -38,14 +38,8 @@ TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 #if (ENABLE_CAN)
 CAN_HandleTypeDef hcan1;
 #endif
-#ifdef _HW_SETUP_CRC_PRIVATE
-CRC_HandleTypeDef hcrc;
-#endif
 #if (ENABLE_QSPI)
 QSPI_HandleTypeDef hqspi;
-#endif
-#ifdef _HW_SETUP_RNG_PRIVATE
-RNG_HandleTypeDef hrng;
 #endif
 
 // ********************************************************************************
@@ -295,14 +289,8 @@ void SetupSystemPeripheral(void) {
   #if (ENABLE_CAN)
   MX_CAN1_Init();
   #endif
-  #ifdef _HW_SETUP_CRC_PRIVATE
-  MX_CRC_Init();
-  #endif
   #if (ENABLE_QSPI)
   MX_QUADSPI_Init();
-  #endif
-  #ifdef _HW_SETUP_RNG_PRIVATE
-  MX_RNG_Init();
   #endif
   
   /* Abilito la carica del supercap */
@@ -359,39 +347,6 @@ extern "C" void MX_CAN1_Init(void)
 }
 #endif
 
-#ifdef _HW_SETUP_CRC_PRIVATE
-/**
-  * @brief CRC Initialization Function
-  * @param None
-  * @retval None
-  */
-extern "C" void MX_CRC_Init(void)
-{
-
-  /* USER CODE BEGIN CRC_Init 0 */
-
-  /* USER CODE END CRC_Init 0 */
-
-  /* USER CODE BEGIN CRC_Init 1 */
-
-  /* USER CODE END CRC_Init 1 */
-  hcrc.Instance = CRC;
-  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
-  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
-  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
-  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
-  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
-  if (HAL_CRC_Init(&hcrc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CRC_Init 2 */
-
-  /* USER CODE END CRC_Init 2 */
-
-}
-#endif
-
 #if (ENABLE_QSPI)
 /**
   * @brief QUADSPI Initialization Function
@@ -424,34 +379,6 @@ extern "C" void MX_QUADSPI_Init(void)
   /* USER CODE BEGIN QUADSPI_Init 2 */
 
   /* USER CODE END QUADSPI_Init 2 */
-}
-#endif
-
-#ifdef _HW_SETUP_RNG_PRIVATE
-/**
-  * @brief RNG Initialization Function
-  * @param None
-  * @retval None
-  */
-extern "C" void MX_RNG_Init(void)
-{
-
-  /* USER CODE BEGIN RNG_Init 0 */
-
-  /* USER CODE END RNG_Init 0 */
-
-  /* USER CODE BEGIN RNG_Init 1 */
-
-  /* USER CODE END RNG_Init 1 */
-  hrng.Instance = RNG;
-  if (HAL_RNG_Init(&hrng) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN RNG_Init 2 */
-
-  /* USER CODE END RNG_Init 2 */
-
 }
 #endif
 
@@ -633,52 +560,6 @@ extern "C" void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 }
 #endif
 
-#ifdef _HW_MSP_CRC_PRIVATE
-/**
-* @brief CRC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-extern "C" void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspInit 0 */
-
-  /* USER CODE END CRC_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_CRC_CLK_ENABLE();
-  /* USER CODE BEGIN CRC_MspInit 1 */
-
-  /* USER CODE END CRC_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief CRC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-extern "C" void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspDeInit 0 */
-
-  /* USER CODE END CRC_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_CRC_CLK_DISABLE();
-  /* USER CODE BEGIN CRC_MspDeInit 1 */
-
-  /* USER CODE END CRC_MspDeInit 1 */
-  }
-
-}
-#endif
-
 #if (ENABLE_QSPI)
 /**
 * @brief QSPI MSP Initialization
@@ -764,63 +645,6 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
   /* USER CODE BEGIN QUADSPI_MspDeInit 1 */
 
   /* USER CODE END QUADSPI_MspDeInit 1 */
-  }
-
-}
-#endif
-
-#ifdef _HW_MSP_RNG_PRIVATE
-/**
-* @brief RNG MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hrng: RNG handle pointer
-* @retval None
-*/
-extern "C" void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(hrng->Instance==RNG)
-  {
-  /* USER CODE BEGIN RNG_MspInit 0 */
-
-  /* USER CODE END RNG_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RNG;
-    PeriphClkInit.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_RNG_CLK_ENABLE();
-  /* USER CODE BEGIN RNG_MspInit 1 */
-
-  /* USER CODE END RNG_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief RNG MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hrng: RNG handle pointer
-* @retval None
-*/
-extern "C" void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng)
-{
-  if(hrng->Instance==RNG)
-  {
-  /* USER CODE BEGIN RNG_MspDeInit 0 */
-
-  /* USER CODE END RNG_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_RNG_CLK_DISABLE();
-  /* USER CODE BEGIN RNG_MspDeInit 1 */
-
-  /* USER CODE END RNG_MspDeInit 1 */
   }
 
 }

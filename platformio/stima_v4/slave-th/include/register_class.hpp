@@ -79,8 +79,10 @@ public:
   EERegister();
   EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address = EEPROM_AT24C64_DEFAULT_ADDRESS);
 
-  // (Re)Inizializza lo spazio RAM/ROM/FLASH/SD dei registri se non già inizializzato, ai valori di default
-  void setup(const bool register_init);
+  // Inizializza lo spazio RAM/ROM/FLASH/SD dei registri, ai valori di default
+  // N.B.! Azzera tutti registri e quelli non inizializzati devono essere impostati
+  // nel relativo modulo di utilizzo
+  void setup(void);
 
   /// Reads the specified register from the persistent storage into `inout_value`.
   /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,

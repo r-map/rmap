@@ -77,32 +77,39 @@ void CanTask::HW_CAN_Power(CAN_ModePower ModeCan) {
     canPower = ModeCan;
 }
 
-// Ritorna unique-ID 128-bit del nodo locale. E' utilizzato in uavcan.node.GetInfo.Response e durante
-// plug-and-play node-ID allocation da uavcan.pnp.NodeIDAllocationData. SerialNumber, Produttore..
-// Dovrebbe essere verificato in uavcan.node.GetInfo.Response per la verifica non sia cambiato Nodo.
-// Al momento vengono inseriti 2 BYTE fissi, altri eventuali, che Identificano il Tipo Modulo
+/// @brief Ritorna unique-ID 128-bit del nodo locale. E' utilizzato in uavcan.node.GetInfo.Response e durante
+///        plug-and-play node-ID allocation da uavcan.pnp.NodeIDAllocationData. SerialNumber, Produttore..
+///        Dovrebbe essere verificato in uavcan.node.GetInfo.Response per la verifica non sia cambiato Nodo.
+///        Al momento vengono inseriti 2 BYTE fissi, altri eventuali, che Identificano il Tipo Modulo
+/// @param out data out UniqueID
 void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_])
 {
     // A real hardware node would read its unique-ID from some hardware-specific source (typically stored in ROM).
     // This example is a software-only node so we store the unique-ID in a (read-only) register instead.
-    uavcan_register_Value_1_0 value = {0};
-    uavcan_register_Value_1_0_select_unstructured_(&value);
+    static uavcan_register_Value_1_0 val = {0};
+    uavcan_register_Value_1_0_select_unstructured_(&val);
     // Crea default unique_id con NODE_TYPE_MAJOR (Tipo di nodo), MINOR (Hw relativo)
     // Il resto dei 128 Bit (112) vengono impostati RANDOM (potrebbero portare Manufactor, SerialNumber ecc...)
     // Dovrebbe essere l'ID per la verifica incrociata del corretto Node_Id dopo il PnP
-    value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) NODE_TYPE_MAJOR;
-    value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) NODE_TYPE_MINOR;
-    for (uint8_t i = value.unstructured.value.count; i < uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_; i++)
+    val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) NODE_TYPE_MAJOR;
+    val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) NODE_TYPE_MINOR;
+    for (uint8_t i = val.unstructured.value.count; i < uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_; i++)
     {
-        value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
+        val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
-    clRegister.read("uavcan.node.unique_id", &value);
-    LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&value) &&
-           value.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
-    memcpy(&out[0], &value.unstructured.value, uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
+    localRegisterAccessLock->Take();
+    clRegister.read("uavcan.node.unique_id", &val);
+    localRegisterAccessLock->Give();
+    LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&val) &&
+           val.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
+    memcpy(&out[0], &val.unstructured.value, uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
 }
 
-/// Legge il subjectID per il modulo corrente per la risposta al servizio di gestione dati.
+/// @brief Legge il subjectID per il modulo corrente per la risposta al servizio di gestione dati.
+/// @param modeAccessID tipo di accesso
+/// @param port_name nome porta uavcan
+/// @param type_name tipo nome registro
+/// @return Canard Port ID associato
 CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name) {
     // Deduce the register name from port name e modeAccess
     char register_name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_] = {0};
@@ -123,13 +130,15 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
     }
 
     // Set up the default value. It will be used to populate the register if it doesn't exist.
-    uavcan_register_Value_1_0 val = {0};
+    static uavcan_register_Value_1_0 val = {0};
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
     val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
 
     // Read the register with defensive self-checks.
+    localRegisterAccessLock->Take();
     clRegister.read(&register_name[0], &val);
+    localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
     const uint16_t result = val.natural16.value.elements[0];
 
@@ -156,9 +165,174 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
     uavcan_register_Value_1_0_select_string_(&val);
     val._string.value.count = nunavutChooseMin(strlen(type_name), uavcan_primitive_String_1_0_value_ARRAY_CAPACITY_);
     memcpy(&val._string.value.elements[0], type_name, val._string.value.count);
-    clRegister.write(&register_name[0], &val);  // Unconditionally overwrite existing value because it's read-only.
+    localRegisterAccessLock->Take();
+    clRegister.read(&register_name[0], &val);
+    localRegisterAccessLock->Give();
 
     return result;
+}
+
+/// @brief Scrive dati in append su Flash per scrittura sequenziale file data remoto
+/// @param file_name nome del file UAVCAN
+/// @param is_firmware true se il file +-è di tipo firmware
+/// @param rewrite true se necessaria la riscrittura del file
+/// @param buf blocco dati da scrivere in formato UAVCAN [256 Bytes]
+/// @param count numero del blocco da scrivere in formato UAVCAN [Blocco x Buffer]
+/// @return true if block saved OK, false on any error
+bool CanTask::putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
+{
+    #ifdef CHECK_FLASH_WRITE
+    // check data (W->R) Verify Flash integrity OK    
+    uint8_t check_data[256];
+    #endif
+    // Request New File Init Upload
+    if(rewrite) {
+        // Qspi Security Semaphore
+        if(localQspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+            // Init if required (DeInit after if required PowerDown Module)
+            if(memFlash.BSP_QSPI_Init() != Flash::QSPI_OK) {
+                localQspiLock->Give();
+                return false;
+            }
+            // Check Status Flash OK
+            Flash::QSPI_StatusTypeDef sts = memFlash.BSP_QSPI_GetStatus();
+            if (sts) {
+                localQspiLock->Give();
+                return false;
+            }
+            // Start From PtrFlash 0x100 (Reserve 256 Bytes For InfoFile)
+            if (is_firmware) {
+                // Firmware Flash
+                flashPtr = FLASH_FW_POSITION;
+            } else {
+                // Standard File Data Upload
+                flashPtr = FLASH_FILE_POSITION;
+            }
+            // Get Block Current into Flash
+            flashBlock = flashPtr / AT25SF161_BLOCK_SIZE;
+            // Erase First Block Block (Block OF 4KBytes)
+            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), flashBlock);
+            if (memFlash.BSP_QSPI_Erase_Block(flashBlock)) {
+                localQspiLock->Give();
+                return false;
+            }
+            // Write Name File (Size at Eof...)
+            uint8_t file_flash_name[FLASH_FILE_SIZE_LEN] = {0};
+            memcpy(file_flash_name, file_name, strlen(file_name));
+            memFlash.BSP_QSPI_Write(file_flash_name, flashPtr, FLASH_FILE_SIZE_LEN);
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, flashPtr);
+            #ifdef CHECK_FLASH_WRITE
+            memFlash.BSP_QSPI_Read(check_data, flashPtr, FLASH_FILE_SIZE_LEN);
+            if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                localQspiLock->Give();
+                return false;
+            }
+            #endif
+            // Start Page...
+            flashPtr += FLASH_INFO_SIZE_LEN;
+            localQspiLock->Give();
+        }
+    }
+    // Write Data Block
+    // Qspi Security Semaphore
+    if(localQspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+        // 0 = Is UavCan Signal EOF for Last Block Exact Len 256 Bytes...
+        // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
+        if(count!=0) {
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, flashPtr);
+            // Starting Write at OFFSET Required... Erase here is Done
+            memFlash.BSP_QSPI_Write((uint8_t*)buf, flashPtr, count);
+            #ifdef CHECK_FLASH_WRITE
+            memFlash.BSP_QSPI_Read(check_data, flashPtr, count);
+            if(memcmp(buf, check_data, count)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                localQspiLock->Give();
+                return false;
+            }
+            #endif
+            flashPtr += count;
+            // Check if Next Page Addressed (For Erase Next Block)
+            if((flashPtr / AT25SF161_BLOCK_SIZE) != flashBlock) {
+                flashBlock = flashPtr / AT25SF161_BLOCK_SIZE;
+                // Erase First Block Block (Block OF 4KBytes)
+                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), flashBlock);
+                if (memFlash.BSP_QSPI_Erase_Block(flashBlock)) {
+                    localQspiLock->Give();
+                    return false;
+                }
+            }
+        }
+        // Eof if != 256 Bytes Write
+        if(count!=0x100) {
+            // Write Info File for Closing...
+            // Size at 
+            uint64_t lenghtFile = flashPtr - FLASH_INFO_SIZE_LEN;
+            if (is_firmware) {
+                // Firmware Flash
+                flashPtr = FLASH_FW_POSITION;
+            } else {
+                // Standard File Data Upload
+                flashPtr = FLASH_FILE_POSITION;
+            }
+            memFlash.BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(flashPtr), FLASH_INFO_SIZE_U64);
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, flashPtr);
+            #ifdef CHECK_FLASH_WRITE
+            memFlash.BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(flashPtr), FLASH_INFO_SIZE_U64);
+            if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_INFO_F(F("FLASH: Reading check ERROR\n\r"));
+            }
+            #endif
+        }
+        localQspiLock->Give();
+    }
+    return true;
+}
+
+/// @brief GetInfo for Firmware File on Flash
+/// @param version version firmware
+/// @param revision revision firmware
+/// @param len length of file in bytes
+/// @return true if exixst
+bool CanTask::getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len)
+{
+    uint8_t block[FLASH_FILE_SIZE_LEN];
+    bool fileReady = false;
+
+    // Qspi Security Semaphore
+    if(localQspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+        // Init if required (DeInit after if required PowerDown Module)
+        if(memFlash.BSP_QSPI_Init() != Flash::QSPI_OK) {
+            localQspiLock->Give();
+            return false;
+        }
+        // Check Status Flash OK
+        if (memFlash.BSP_QSPI_GetStatus()) {
+            localQspiLock->Give();
+            return false;
+        }
+
+        // Read Name file, Version and Info
+        memFlash.BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
+        if(strncasecmp((char*)block, NODE_NAME, sizeof(NODE_NAME))) {
+            uint8_t position = strlen((char*)block);
+            *version = block[strlen((char*)block) - 11] - 48;
+            *revision = block[strlen((char*)block) - 9] - 48;
+            memFlash.BSP_QSPI_Read((uint8_t*)len, FLASH_SIZE_ADDR(0), FLASH_INFO_SIZE_U64);
+            fileReady = true;
+        }
+        localQspiLock->Give();
+    }
+    return fileReady;
 }
 
 // ***********************************************************************************************
@@ -169,11 +343,14 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
 
 // *******                      FUNZIONI RMAP PUBLISH LOCAL DATA                         *********
 
-// Prepara il blocco messaggio dati per il modulo corrente istantaneo
-// NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
+/// @brief Prepara il blocco messaggio dati per il modulo corrente istantaneo
+///    NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
+/// @param sensore tipo di sensore richiesto rmap class_canard di modulo
+/// @param report report data
+/// @return rmap_sensor value data
 rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
     rmap_sensors_TH_1_0 local_data = {0};
-    // TODO: Inserire i dati, passaggio da Update... altro
+    // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::sth:
             // Prepara i dati SMP (Sample)
@@ -214,7 +391,9 @@ rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, cons
     return local_data;
 }
 
-/// Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
+/// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
+/// @param clCanard classe
+/// @param param parametri del modulo UAVCAN
 void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
@@ -232,6 +411,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
         request_data.report_time_s = last_req_rpt_time;         // richiedo i dati in conformità a standard request (report)
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
+
+        // SET Dynamic metadata (Request data from master Only Data != Sample)
+        clCanard.module_th.MTH.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_th.NTH.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_th.XTH.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati (senza attesa)
         param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
@@ -280,6 +464,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
 // Plug and Play Slave, Versione 1.0 compatibile con CAN_CLASSIC MTU 8
 // Messaggi anonimi CAN non sono consentiti se messaggi > LUNGHEZZA MTU disponibile
+
+/// @brief Plug and Play Slave, Versione 1.0 compatibile con CAN_CLASSIC MTU 8
+///        Messaggi anonimi CAN non sono consentiti se messaggi > LUNGHEZZA MTU disponibile
+/// @param clCanard classe
+/// @param msg messaggio di pubblicazione
 void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
                                                       const uavcan_pnp_NodeIDAllocationData_1_0* const msg) {
     // msg->unique_id_hash RX non gestito, è valido GetUniqueID Unificato per entrambe versioni V1 e V2
@@ -287,11 +476,13 @@ void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
         printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
         clCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
         // Store the value into the non-volatile storage.
-        uavcan_register_Value_1_0 reg = {0};
+        static uavcan_register_Value_1_0 reg = {0};
         uavcan_register_Value_1_0_select_natural16_(&reg);
         reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
         reg.natural16.value.count = 1;
+        localRegisterAccessLock->Take();
         clRegister.write("uavcan.node.id", &reg);
+        localRegisterAccessLock->Give();
         // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
         clCanard.rxUnSubscribe(CanardTransferKindMessage,
                                 uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
@@ -299,7 +490,11 @@ void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
     // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
 }
 
-// Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
+/// @brief Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
+/// @param clCanard Classe
+/// @param req richiesta
+/// @param remote_node nodo remoto
+/// @return execute_command standard UAVCAN
 uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(canardClass &clCanard, const uavcan_node_ExecuteCommand_Request_1_1* req,
                                                                             uint8_t remote_node) {
     uavcan_node_ExecuteCommand_Response_1_1 resp = {0};
@@ -330,7 +525,9 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         }
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
         {
+            localRegisterAccessLock->Take();
             clRegister.doFactoryReset();
+            localRegisterAccessLock->Give();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -440,7 +637,11 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
     return resp;
 }
 
-// Chiamate gestioni dati remote da master (yakut o altro servizio di controllo)
+/// @brief Chiamate gestioni dati remote da master (yakut o altro servizio di controllo)
+/// @param clCanard Classe
+/// @param req richiesta
+/// @param param parametri CAN
+/// @return dati rmap_servizio di modulo
 rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_TH_Request_1_0* req, CanParam_t *param) {
     rmap_service_module_TH_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
@@ -472,7 +673,12 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
             request_data.is_init = false;            // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
             request_data.report_time_s = req->parametri.run_sectime;        // richiedo i dati su request secondi
             request_data.observation_time_s = req->parametri.obs_sectime;   // richiedo i dati mediati su request secondi
-            last_req_obs_time = req->parametri.run_sectime; // observation_time_request_backup;
+            last_req_rpt_time = req->parametri.run_sectime; // report_time_request_backup;
+            last_req_obs_time = req->parametri.obs_sectime; // observation_time_request_backup;
+            // SET Dynamic metadata (Request data from master Only Data != Sample)
+            clCanard.module_th.MTH.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_th.NTH.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_th.XTH.metadata.timerange.P2 = request_data.report_time_s;
           }
           if(req->parametri.comando == rmap_service_setmode_1_0_get_last) {
             // Dato corrente e reinizializza la coda
@@ -524,8 +730,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
             break;
     }
 
-    // Copio i metadati fissi
-    // TODO: aggiornare i metadati mobili
+    // Copio i metadati fissi e mobili
     resp.STH.metadata = clCanard.module_th.STH.metadata;
     resp.ITH.metadata = clCanard.module_th.ITH.metadata;
     resp.MTH.metadata = clCanard.module_th.MTH.metadata;
@@ -535,7 +740,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     return resp;
 }
 
-// Accesso ai registri UAVCAN risposta a richieste
+/// @brief Accesso ai registri UAVCAN risposta a richieste
+/// @param req Richiesta
+/// @return register access UAVCAN
 uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req) {
     char name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + 1] = {0};
     LOCAL_ASSERT(req->name.name.count < sizeof(name));
@@ -547,17 +754,23 @@ uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const 
     // If we're asked to write a new value, do it now:
     if (!uavcan_register_Value_1_0_is_empty_(&req->value)) {
         uavcan_register_Value_1_0_select_empty_(&resp.value);
+        localRegisterAccessLock->Take();
         clRegister.read(&name[0], &resp.value);
+        localRegisterAccessLock->Give();
         // If such register exists and it can be assigned from the request value:
         if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && clRegister.assign(&resp.value, &req->value)) {
+            localRegisterAccessLock->Take();
             clRegister.write(&name[0], &resp.value);
+            localRegisterAccessLock->Give();
         }
     }
 
     // Regardless of whether we've just wrote a value or not, we need to read the current one and return it.
     // The client will determine if the write was successful or not by comparing the request value with response.
     uavcan_register_Value_1_0_select_empty_(&resp.value);
+    localRegisterAccessLock->Take();
     clRegister.read(&name[0], &resp.value);
+    localRegisterAccessLock->Give();
 
     // Currently, all registers we implement are mutable and persistent. This is an acceptable simplification,
     // but more advanced implementations will need to differentiate between them to support advanced features like
@@ -571,7 +784,8 @@ uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const 
     return resp;
 }
 
-// Risposta a uavcan.node.GetInfo which Info Node (nome, versione, uniqueID di verifica ecc...)
+/// @brief Risposta a uavcan.node.GetInfo which Info Node (nome, versione, uniqueID di verifica ecc...)
+/// @return Risposta node Get INFO UAVCAN
 uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
     uavcan_node_GetInfo_Response_1_0 resp = {0};
     resp.protocol_version.major = CANARD_CYPHAL_SPECIFICATION_VERSION_MAJOR;
@@ -580,9 +794,9 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
     // The hardware version is not populated in this demo because it runs on no specific hardware.
     // An embedded node would usually determine the version by querying the hardware.
 
-    resp.software_version.major = VERSION_MAJOR;
-    resp.software_version.minor = VERSION_MINOR;
-    resp.software_vcs_revision_id = VCS_REVISION_ID;
+    resp.software_version.major = MODULE_MAIN_VERSION;
+    resp.software_version.minor = MODULE_MINOR_VERSION;
+    resp.software_vcs_revision_id = MODULE_REVISION_ID;
 
     getUniqueID(resp.unique_id);
 
@@ -600,6 +814,11 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
 // Chiamata direttamente nel main loop in ricezione dalla coda RX
 // Richiama le funzioni qui sopra di preparazione e risposta alle richieste
 // ******************************************************************************************
+
+/// @brief Canard CallBACK Receive message to Node (Solo con sottoscrizioni)
+/// @param clCanard Classe
+/// @param transfer Transfer CanardID
+/// @param param Indirizzo di parametri esterni opzionali
 void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTransfer* const transfer, void *param) {
 
     // System Queue request Structure data
@@ -692,22 +911,39 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Aggiorna i temporizzatori locali per il prossimo controllo
                     CanardMicrosecond last_message_diff_us = clCanard.master.timestamp.update_timestamp_message(
                         transfer->timestamp_usec, msg.previous_transmission_timestamp_microsecond);
-                    // Stampa e/o SETUP RTC
-                    #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
+                    // Stampa e/o SETUP RTC con sincronizzazione valida
                     if (isSyncronized) {
-                        char tData[20];
-                        sprintf(tData, "%lu", timestamp_synchronized_us);
-                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, syncronized value is (uSec): %s\r\n"), tData);
-                        sprintf(tData, "%lu", last_message_diff_us);
-                        TRACE_VERBOSE_F(F(" from 2 message difference is (uSec): %s\r\n"), tData);
+                        #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
+                        uint32_t low_ms = timestamp_synchronized_us % 1000u;
+                        uint32_t high_ms = timestamp_synchronized_us / 1000u;
+                        TRACE_VERBOSE_F(F("RX TimeSyncro from master, syncronized value is (uSec): "));
+                        TRACE_VERBOSE_F(F("%lu"), high_ms);
+                        TRACE_VERBOSE_F(F("%lu\r\n"), low_ms);
+                        TRACE_VERBOSE_F(F(" from 2 message difference is (uSec): %lu\r\n"), (uint32_t)last_message_diff_us);
+                        #endif
+                        // *********** Adjust Local RTC Time *************
+                        uint32_t currentSubsecond;
+                        volatile uint64_t canardEpoch_ms;
+                        // Get Millisecond from TimeStampSyncronized
+                        uint64_t timeStampEpoch_ms = timestamp_synchronized_us / 1000ul;
+                        // Second Epoch in Millisecond With Add Subsecond
+                        canardEpoch_ms = (uint64_t) rtc.getEpoch(&currentSubsecond);
+                        canardEpoch_ms *= 1000ul;
+                        canardEpoch_ms += currentSubsecond;
+                        // Refer to milliSecond for TimeStamp ( Set Epoch with abs (ull) difference > 250 mSec )
+                        if(canardEpoch_ms > timeStampEpoch_ms) {
+                            currentSubsecond = canardEpoch_ms - timeStampEpoch_ms;
+                        } else {
+                            currentSubsecond = timeStampEpoch_ms - canardEpoch_ms;
+                        }
+                        // currentSubsecond -> millisDifference from RTC and TimeStamp_Syncro_ms
+                        if(currentSubsecond > 250) {
+                            // Set RTC Epoch DateTime with timeStampEpoch (round mSec + 1)
+                            TRACE_VERBOSE_F(F("RTC: Adjust time with TimeSyncro from master (difference %lu mS)\r\n"), currentSubsecond);
+                            timeStampEpoch_ms++;
+                            rtc.setEpoch(timeStampEpoch_ms / 1000, timeStampEpoch_ms % 1000);
+                        }
                     }
-                    #endif
-                    // Adjust Local RTC Time!!!
-                    // TODO: Pseudocode
-                    // if abs((timeStamp) - convertCanardUsec(RTC)) > 500000 (0.5 secondi...)
-                    //   -> SETDateTime
-                    // Oppure wait (microsecond fino al passaggio del secondo e SET-RTC-> Perfetto)
-                    // Procedura di esempio già nel main...
                 }
             }
         }
@@ -827,14 +1063,18 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         TRACE_VERBOSE_F(F("RX FILE READ BLOCK LEN: "));
                     }
                     TRACE_VERBOSE_F(F("%d\r\n"), resp.data.value.count);
-                    // Save Data in File at Block Position (Init = Rewrite file...)
-                    // TODO: Flash
-                    // putDataFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
-                    //              resp.data.value.elements, resp.data.value.count);
-                    // Reset pending command (Comunico request/Response Serie di comandi OK!!!)
-                    // Uso l'Overload con controllo di EOF (-> EOF se msgLen != UAVCAN_BLOCK_DEFAULT [256 Bytes])
-                    // Questo Overload gestisce in automatico l'offset del messaggio, per i successivi blocchi
-                    clCanard.master.file.reset_pending(resp.data.value.count);
+                    // Save Data in Flash File at Block Position (Init = Rewrite file...)
+                    if(putDataFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
+                                  resp.data.value.elements, resp.data.value.count)) {
+                        // Reset pending command (Comunico request/Response Serie di comandi OK!!!)
+                        // Uso l'Overload con controllo di EOF (-> EOF se msgLen != UAVCAN_BLOCK_DEFAULT [256 Bytes])
+                        // Questo Overload gestisce in automatico l'offset del messaggio, per i successivi blocchi
+                        clCanard.master.file.reset_pending(resp.data.value.count);
+                    } else {
+                        // Error Save... Abort request
+                        TRACE_ERROR_F(F("SAVING BLOCK FILE ERROR, ABORT RX !!!"));
+                        clCanard.master.file.download_end();
+                    }
                 }
             } else {
                 // Errore Nodo non settato...
@@ -857,31 +1097,42 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   // Setup register mode
   clRegister = EERegister(param.wire, param.wireLock);
 
+  // Setup Flash Access
+  memFlash = Flash(&hqspi);
+
+  // Local static access to global queue and Semaphore
+  localSystemMessageQueue = param.systemMessageQueue;
+  localQspiLock = param.qspiLock;
+  localRegisterAccessLock = param.registerAccessLock;
+
   // FullChip Power Mode after Startup
   // Resume from LowPower or reset the controller TJA1443ATK
   // Need FullPower for bxCan Programming (Otherwise Handler_Error()!)
   HW_CAN_Power(CAN_ModePower::CAN_INIT);
 
-  // REGISTER_INIT && Fixed Optional Setup Reset
-  #ifdef INIT_REGISTER
-  // Inizializzazione fissa dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
-  TRACE_INFO_F(F("Init UAVCAN Register Configuration\r\n"));
-  clRegister.setup(true);
-  #else
-  // Default dei registri nella modalità utilizzata (prepare SD/FLASH/ROM con default Value)
-  // Creazione dei registri standard base se non esistono
-  clRegister.setup(false);
-  #endif
-
   TRACE_INFO_F(F("Starting CAN Configuration\r\n"));
+ 
+  // *******************    CANARD MTU CLASSIC (FOR UAVCAN REQUIRE)     *******************
+  // Open Register in Write se non inizializzati correttamente...
+  // Populate INIT Default Value
+  static uavcan_register_Value_1_0 val = {0};
+  uavcan_register_Value_1_0_select_natural16_(&val);
+  val.natural16.value.count       = 1;
+  val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
+  localRegisterAccessLock->Take();
+  clRegister.read("uavcan.can.mtu", &val);
+  localRegisterAccessLock->Give();
+  LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+
   // *******************         CANARD SETUP TIMINGS AND SPEED        *******************
   // CAN BITRATE Dinamico su LoadRegister (CAN_FD 2xREG natural32 0=Speed, 1=0 (Not Used))
-  uavcan_register_Value_1_0 val = {0};
   uavcan_register_Value_1_0_select_natural32_(&val);
   val.natural32.value.count       = 2;
   val.natural32.value.elements[0] = CAN_BIT_RATE;
   val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+  localRegisterAccessLock->Take();
   clRegister.read("uavcan.can.bitrate", &val);
+  localRegisterAccessLock->Give();
   LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
   // Dynamic BIT RATE Change CAN Speed to CAN_BIT_RATE (register default/defined)
@@ -892,7 +1143,9 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
       val.natural32.value.count       = 2;
       val.natural32.value.elements[0] = CAN_BIT_RATE;
       val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+      localRegisterAccessLock->Take();
       clRegister.write("uavcan.can.bitrate", &val);
+      localRegisterAccessLock->Give();
       result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
       if (!result) {
           TRACE_ERROR_F(F("Error initialization bxCANComputeTimings\r\n"));
@@ -946,26 +1199,18 @@ void CanTask::Run() {
     // Data Local Task (Class + Registro)
     // Avvia l'istanza alla classe State_Canard ed inizializza Ram, Buffer e variabili base
     canardClass clCanard;
-    uavcan_register_Value_1_0 val = {0};
+    static uavcan_register_Value_1_0 val = {0};
 
     // System message data queue structured
     system_message_t system_message;
-
-    // Local static access to queue Request System
-    localSystemMessageQueue = param.systemMessageQueue;
 
     // LoopTimer Publish
     CanardMicrosecond last_pub_rmap_data;
     CanardMicrosecond last_pub_heartbeat;
     CanardMicrosecond last_pub_port_list;
 
-    // OnlineMaster (Set/Reset Application Code Function ToDo Enter/Exit OnLine)
+    // OnlineMaster (Set/Reset Application Code Function Here Enter/Exit Function OnLine)
     bool masterOnline = false;
-
-    // Stack LOG Controller
-    #ifdef LOG_STACK_USAGE
-    uint32_t stackTimer = millis();
-    #endif
 
     // Main Loop TASK
     while (true) {
@@ -982,11 +1227,14 @@ void CanTask::Run() {
                     // Pull && elaborate command, 
                     if(system_message.command.do_sleep)
                     {
-                        // Enter module sleep
+                        // Enter module sleep procedure (OFF Module)
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
-                        //Enter Task Sleep
+                        // Enter sleep module OK
+                        param.systemStatusLock->Take();
+                        param.system_status->task.can_sleep = true;
+                        param.systemStatusLock->Give();
                         Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
-                        // Restore module
+                        // Restore module from Sleep
                         HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
                     }
                 }
@@ -1008,14 +1256,16 @@ void CanTask::Run() {
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
                 // Restore the node-ID from the corresponding standard clRegister. Default to anonymous.
-                #ifdef NODE_SLAVE_ID
+                #ifdef USE_NODE_SLAVE_ID_FIXED
                 // Canard Slave NODE ID Fixed dal defined value in module_config
                 clCanard.set_canard_node_id((CanardNodeID)NODE_SLAVE_ID);
                 #else
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
-                registerRead("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+                localRegisterAccessLock->Take();
+                clRegister.read("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+                localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
                     clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
@@ -1026,112 +1276,133 @@ void CanTask::Run() {
                 // It simply keeps a human-readable description of the node that should be empty by default.
                 uavcan_register_Value_1_0_select_string_(&val);
                 val._string.value.count = 0;
+                localRegisterAccessLock->Take();
                 clRegister.read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+                localRegisterAccessLock->Give();
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
+                #ifdef USE_PORT_PUBLISH_RMAP_FIXED
+                clCanard.port_id.publisher_module_th = (CanardPortID)SUBJECTID_PUBLISH_RMAP;
+                #else
                 clCanard.port_id.publisher_module_th =
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
                         "TH.data_and_metadata", rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
-
-                #ifdef PORT_SERVICE_RMAP
+                #endif
+                #ifdef USE_PORT_SERVICE_RMAP_FIXED
                 clCanard.port_id.service_module_th = (CanardPortID)PORT_SERVICE_RMAP;
                 #else
+                clCanard.port_id.service_module_th =
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
                         "TH.service_data_and_metadata", rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
                 #endif
 
-                // Lettura dei registri RMAP al modulo corrente, con impostazione di default x Startup/Init value
-
-                // TODO: Leggere i registri complessivi ITH MTH ECC. di modulo,
-                // Inserire funzione per test registro assert... natural 16 e setup defaul x ogni chiamata
-                // Lettura dei registri RMAP 16 Bit relativi al modulo corrente
-
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
-                // ecc... per tutti i metatdati di tutti i sensori
-                // Selezionare dai registri i valori fissi (solo 1 e quelli dinamici...)
-                // TODO: Per adesso solìno tutti uguali, sistemare con Marco
+                // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
+                // SENSOR_METADATA_STH                   (0)
+                // SENSOR_METADATA_ITH                   (1)
+                // SENSOR_METADATA_MTH                   (2)
+                // SENSOR_METADATA_NTH                   (3)
+                // SENSOR_METADATA_XTH                   (4)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                for(uint8_t id=0; id<SENSOR_METADATA_COUNT; id++) {
+                    val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_1;
+                }
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Level.L1", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.level.L1.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                for(uint8_t id=0; id<SENSOR_METADATA_COUNT; id++) {
+                    val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_2;
+                }
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Level.L2", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.level.L2.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                for(uint8_t id=0; id<SENSOR_METADATA_COUNT; id++) {
+                    val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_1;
+                }
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Level.LevelType1", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.level.LevelType1.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                for(uint8_t id=0; id<SENSOR_METADATA_COUNT; id++) {
+                    val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_2;
+                }
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Level.LevelType2", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.level.LevelType2.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                for(uint8_t id=0; id<SENSOR_METADATA_COUNT; id++) {
+                    val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_P1;
+                }
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Timerange.P1", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                // TODO: Elimina il caricamento da registerCan..
-                // TODO: Elimina il caricamento del dato oservation (60) se esiste forse P1?
-                //       se non esiste creare il metadato
-                // TODO: REeinviare 900 e 60 in funzione dlla richiesta dal master
-                // TODO SHT mi sembra di aver capito che i metadati sono 254 ecc. diversi...
-                //     se così nelle righe sopra mettere i valori corretti se esistono fissi
-                //     o mettere un registro dove poterli scrivere
-                // TODO: se i metadati dei vari sensori sono diversi agire di conseguenza
-                //       creare un registro per ogni metadato da caricare                
-                clCanard.module_th.STH.metadata.timerange.P2 = 900;
-                clCanard.module_th.ITH.metadata.timerange.P2 = 900;
-                clCanard.module_th.MTH.metadata.timerange.P2 = 900;
-                clCanard.module_th.NTH.metadata.timerange.P2 = 900;
-                clCanard.module_th.XTH.metadata.timerange.P2 = 900;
+                clCanard.module_th.STH.metadata.timerange.P2 = 0;
+                clCanard.module_th.ITH.metadata.timerange.P2 = 0;
+                clCanard.module_th.MTH.metadata.timerange.P2 = 0;
+                clCanard.module_th.NTH.metadata.timerange.P2 = 0;
+                clCanard.module_th.XTH.metadata.timerange.P2 = 0;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT8_MAX;
+                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                // Default are single different value for type sensor
+                val.natural16.value.elements[SENSOR_METADATA_STH] = SENSOR_METADATA_LEVEL_P_IND_STH;
+                val.natural16.value.elements[SENSOR_METADATA_ITH] = SENSOR_METADATA_LEVEL_P_IND_ITH;
+                val.natural16.value.elements[SENSOR_METADATA_MTH] = SENSOR_METADATA_LEVEL_P_IND_MTH;
+                val.natural16.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
+                val.natural16.value.elements[SENSOR_METADATA_XTH] = SENSOR_METADATA_LEVEL_P_IND_XTH;
+                localRegisterAccessLock->Take();
                 clRegister.read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural16.value.count == 1));
-                clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
-                clCanard.module_th.XTH.metadata.timerange.Pindicator.value = val.natural16.value.elements[0];
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
+                clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_STH];
+                clCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_ITH];
+                clCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_MTH];
+                clCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_NTH];
+                clCanard.module_th.XTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_XTH];
 
                 // Passa alle sottoscrizioni
                 state = SETUP;
@@ -1273,23 +1544,7 @@ void CanTask::Run() {
                     //            STATO MODULO (Decisionale in funzione di stato remoto)
                     // Gestione continuativa del modulo di acquisizione master.clCanard (flag remoto)
                     // **************************************************************************
-                    // TODO: SOLO CODICE DI ESEMPIO DA GESTIRE
-                    // Il master comunica nell'HeartBeat il proprio stato che viene gestito qui se OnLine
-                    // Gestione attività (es. risparmio energetico, altro in funzione di codice remoto)
-                    /*
-                    switch (clCanard.master.state) {
-                        case 01:
-                            // Risparmio energetico
-                            // -> Entro in risparmio energetico
-                            break;
-                        case 02:
-                            // Altro...
-                            // -> Eseguo altro
-                            break;
-                        default:
-                            // Normale gestione, o non definita
-                    }
-                    */
+                    // Eventuale codice di gestione MasterOnline OK...
                 } else {
                     // Solo quando passo da OffLine ad OnLine
                     if (masterOnline) {
@@ -1335,7 +1590,14 @@ void CanTask::Run() {
                                 TRACE_INFO_F(F("RX FILE COMPLETED !!!\r\n"));
                             }
                             TRACE_VERBOSE_F(F("File name: %s\r\n"), clCanard.master.file.get_name());
-                            // TRACE_VERBOSE_F(F("Size: %d (bytes)\r\n"), clCanard.master.file.get_size());
+                            // GetInfo && Verify Start Updating...
+                            if(clCanard.master.file.is_firmware()) {
+                                uint8_t version;
+                                uint8_t revision;
+                                uint64_t fwFileLen = 0;
+                                getInfoFwFile(&version, &revision, &fwFileLen);
+                                TRACE_VERBOSE_F(F("Firmware V%d.%d, Size: %lu bytes is ready for flash updating\r\n"),version, revision, (uint32_t) fwFileLen);
+                            }
                             // Nessun altro evento necessario, chiudo File e stati
                             // procedo all'aggiornamento Firmware dopo le verifiche di conformità
                             // Ovviamente se si tratta di un file firmware
@@ -1412,7 +1674,11 @@ void CanTask::Run() {
                 // Transmit pending frames, avvia la trasmissione gestita da canard a priorità.
                 // Il metodo può essere chiamato direttamente in preparazione messaggio x coda
                 if (clCanard.transmitQueueDataPresent()) {
-                    clCanard.transmitQueue();
+                    // Access driver con semaforo
+                    if(param.canLock->Take(Ticks::MsToTicks(CAN_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+                        clCanard.transmitQueue();
+                        param.canLock->Give();
+                    }
                 }
 
                 // ***************************************************************************
@@ -1430,30 +1696,31 @@ void CanTask::Run() {
                     #endif
                 }
 
-                // Request Reboot
+                // Request Reboot (Firmware upgrade... Or Reset)
                 if (clCanard.flag.is_requested_system_restart()) {
-                    // TODO: Save param...
                     NVIC_SystemReset();
                 }
-                break;
-
-            // TODO: Implementare
-            case SLEEP:
-                // ...
-                // LowPower Mode before general PowerDown or Waiting TimeEvent WakeUP
-                HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
                 break;
         }
 
         #ifdef LOG_STACK_USAGE
-        if((millis()-stackTimer > LOG_STACK_TIMEOUT_MS) || (millis() < stackTimer)) {
-          stackTimer = millis();
-          TRACE_DEBUG_F(F("CAN Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+        if((stackUsage) && (stackUsage < param.system_status->task.can_stack)) {
+            param.systemStatusLock->Take();
+            param.system_status->task.can_stack = stackUsage;
+            param.systemStatusLock->Give();
         }
         #endif
 
         // Run switch TASK CAN one STEP every...
-        DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
+        // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE
+        if(clCanard.master.file.download_request()) {            
+            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_MAXSPEED_DELAY_MS));
+        }
+        else
+        {
+            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
+        }
 
     }
 }

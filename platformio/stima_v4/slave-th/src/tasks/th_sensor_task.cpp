@@ -55,7 +55,7 @@ void TemperatureHumidtySensorTask::Run() {
     {
     case WAIT:
       // check if configuration is loaded
-      if (param.system_status->configuration.is_loaded)
+      if (param.system_status->flags.is_cfg_loaded)
       {
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = INIT;
@@ -229,8 +229,14 @@ void TemperatureHumidtySensorTask::Run() {
         #endif
 
         #ifdef LOG_STACK_USAGE
-        TRACE_DEBUG_F(F("SENSOR Stack Free: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
+        static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+        if((stackUsage) && (stackUsage < param.system_status->task.th_sensor_stack)) {
+          param.systemStatusLock->Take();
+          param.system_status->task.th_sensor_stack = stackUsage;
+          param.systemStatusLock->Give();
+        }
         #endif
+        
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         state = SETUP;
         break;

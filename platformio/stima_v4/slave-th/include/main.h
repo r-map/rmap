@@ -55,7 +55,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/th_sensor_task.h"
 #endif
 
-#include "tasks/prova_task.h"
+#include "tasks/info_task.h"
 #include "tasks/supervisor_task.h"
 #include "tasks/elaborate_data_task.h"
 

@@ -6,30 +6,43 @@ void setup() {
 
   // Semaphore, Queue && Param Config for TASK
 #if (ENABLE_I2C1)
-  static BinarySemaphore *wireLock;
+  static BinarySemaphore *wireLock;       // Access I2C internal EEprom, Accelerometer
 #endif
 
 #if (ENABLE_I2C2)
-  static BinarySemaphore *wire2Lock;
+  static BinarySemaphore *wire2Lock;      // Access I2C External (Sensor)
 #endif
 
-  // System Queue
+#if (ENABLE_CAN)
+  static BinarySemaphore *canLock;        // Can BUS
+#endif
+
+#if (ENABLE_QSPI)
+  static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
+#endif
+
+  // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
-  // Data queue
+  // Data queue (Request / exchange data from Can to Sensor and Elaborate Task)
   static Queue *elaborataDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
   // System semaphore
-  static BinarySemaphore *configurationLock;
-  static BinarySemaphore *systemStatusLock;
+  static BinarySemaphore *configurationLock;  // Access Configuration
+  static BinarySemaphore *systemStatusLock;   // Access System status
+  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
 
-  // System configuration
+  // System and status configuration struct
   static configuration_t configuration = {0};
   static system_status_t system_status = {0};
-  #if (ENABLE_ACCELEROMETER)
-  static accelerometer_t config_accelerometer = {0};
-  #endif
+
+  // Initializing basic hardware's configuration
+  SetupSystemPeripheral();
+  init_debug(SERIAL_DEBUG_BAUD_RATE);
+  init_wire();
+  init_pins();
+  init_rtc(INIT_PARAMETER);
 
   // Hardware Semaphore
 #if (ENABLE_I2C1)
@@ -38,8 +51,16 @@ void setup() {
 #if (ENABLE_I2C2)
   wire2Lock = new BinarySemaphore(true);
 #endif
+#if (ENABLE_CAN)
+  canLock = new BinarySemaphore(true);
+#endif
+#if (ENABLE_QSPI)
+  qspiLock = new BinarySemaphore(true);
+#endif
+  // Software Semaphore
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
+  registerAccessLock = new BinarySemaphore(true);
 
   // Creating queue
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
@@ -47,31 +68,30 @@ void setup() {
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
-  // Initializing basic hardware's configuration
-  SetupSystemPeripheral();
-  init_debug(SERIAL_DEBUG_BAUD_RATE);
-  init_wire();
-  init_pins();
-  init_rtc(false);
+  TRACE_INFO_F(F("MAIN: Initialization HW Base done\r\n"));
 
-  // init_registers();
-
-
-  TRACE_INFO_F(F("Initialization HW Base done\r\n"));
-
-  // Setup paramete for Task
-
-  ProvaParam_t provaParam = {};
+  // ***************************************************************
+  //                  Setup parameter for Task
+  // ***************************************************************
+#if (ENABLE_INFO)
+  // TASK INFO PARAM CONFIG
+  static InfoParam_t infoParam = {0};
+  infoParam.system_status = &system_status;
+#endif
 
 #if (ENABLE_CAN)
-  CanParam_t canParam;
+  // TASK CAN PARAM CONFIG
+  static CanParam_t canParam = {0};
   canParam.configuration = &configuration;
   canParam.system_status = &system_status;
   canParam.configurationLock = configurationLock;
   canParam.systemStatusLock = systemStatusLock;
+  canParam.registerAccessLock = registerAccessLock;
   canParam.systemMessageQueue = systemMessageQueue;
   canParam.requestDataQueue = requestDataQueue;
   canParam.reportDataQueue = reportDataQueue;
+  canParam.canLock = canLock;  
+  canParam.qspiLock = qspiLock;  
 #if (ENABLE_I2C1)
   canParam.wire = &Wire;
   canParam.wireLock = wireLock;
@@ -79,21 +99,22 @@ void setup() {
 #endif
 
 #if (ENABLE_ACCELEROMETER)
-  AccelerometerParam_t accelerometerParam;
+  // TASK ACCELEROMETER PARAM CONFIG
+  static AccelerometerParam_t accelerometerParam = {0};
   accelerometerParam.configuration = &configuration;
   accelerometerParam.system_status = &system_status;
-  accelerometerParam.accelerometer_configuration = &config_accelerometer;
 #if (ENABLE_I2C1)
   accelerometerParam.wire = &Wire;
   accelerometerParam.wireLock = wireLock;
 #endif
-  accelerometerParam.configurationLock = configurationLock;
   accelerometerParam.systemStatusLock = systemStatusLock;
+  accelerometerParam.registerAccessLock = registerAccessLock;
   accelerometerParam.systemMessageQueue = systemMessageQueue;
 #endif
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  TemperatureHumidtySensorParam_t thSensorParam;
+  // TASK SENSOR PARAM CONFIG
+  static TemperatureHumidtySensorParam_t thSensorParam = {0};
   thSensorParam.configuration = &configuration;
   thSensorParam.system_status = &system_status;
 #if (ENABLE_I2C2)
@@ -106,7 +127,8 @@ void setup() {
   thSensorParam.elaborataDataQueue = elaborataDataQueue;
 #endif
 
-  ElaboradeDataParam_t elaborateDataParam;
+  // TASK ELABORATE DATA PARAM CONFIG
+  static ElaboradeDataParam_t elaborateDataParam = {0};
   elaborateDataParam.configuration = &configuration;
   elaborateDataParam.system_status = &system_status;
   elaborateDataParam.configurationLock = configurationLock;
@@ -116,7 +138,8 @@ void setup() {
   elaborateDataParam.requestDataQueue = requestDataQueue;
   elaborateDataParam.reportDataQueue = reportDataQueue;
 
-  SupervisorParam_t supervisorParam;
+  // TASK SUPERVISOR PARAM CONFIG
+  static SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
 #if (ENABLE_I2C1)
@@ -125,29 +148,38 @@ void setup() {
 #endif
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
+  supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.systemMessageQueue = systemMessageQueue;
 
+  #if INIT_PARAMETER
+  // Reset Factory register value
+  EERegister initRegister(&Wire, wireLock);
+  initRegister.doFactoryReset();
+  #endif
 
-  // ********************************************************
-  //                     Startup Task
-  // ********************************************************
-  static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_04, supervisorParam);
+  // *****************************************************************************
+  // Startup Task, Supervisor as first for Loading parameter generic configuration
+  // *****************************************************************************
+  static SupervisorTask supervisor_task("SupervisorTask", 350, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
   static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 250, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
   static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7100, OS_TASK_PRIORITY_02, canParam);
 #endif
 
-  // Startup Schedulher
+#if (ENABLE_INFO)
+  static InfoTask info_task("InfoTask", 100, OS_TASK_PRIORITY_01, infoParam);
+#endif
+
+  // Run Schedulher
   Thread::StartScheduler();
 
 }
@@ -158,6 +190,7 @@ void loop() {
   LowPower.idleHook();
 }
 
+/// @brief Init Pin (Diag and configuration)
 void init_pins() {
   #if (ENABLE_DIAG_PIN)
   // *****************************************************
@@ -193,28 +226,20 @@ void init_wire()
 #endif
 }
 
-// Setup RTC HW && LowPower STM32
+// Setup RTC HW && LowPower Class STM32
 void init_rtc(bool init)
 {
   // Init istance to STM RTC object
   STM32RTC& rtc = STM32RTC::getInstance();
-
-  // Select RTC clock source: LSE_CLOCK
+  // Select RTC clock source: LSE_CLOCK (First Istance)
   rtc.setClockSource(STM32RTC::LSE_CLOCK);
   rtc.begin(); // initialize RTC 24H format
-
   // Set the time if requireq to Reset value
   if(init) {
-    rtc.setHours(10);
-    rtc.setMinutes(0);
-    rtc.setSeconds(0);
-    // Set the date
-    rtc.setWeekDay(0);
-    rtc.setDay(27);
-    rtc.setMonth(12);
-    rtc.setYear(22);
+    // Set the date && Time Init Value
+    rtc.setHours(0);rtc.setMinutes(0);rtc.setSeconds(0);
+    rtc.setWeekDay(0);rtc.setDay(1);rtc.setMonth(1);rtc.setYear(23);
   }
-
   // Start LowPower configuration
   LowPower.begin();
 }

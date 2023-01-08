@@ -59,12 +59,12 @@ using namespace cpp_freertos;
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
+  TwoWire *wire;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *elaborataDataQueue;
-  TwoWire *wire;
 } TemperatureHumidtySensorParam_t;
 
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {

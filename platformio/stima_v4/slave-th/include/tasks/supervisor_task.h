@@ -37,6 +37,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_slave_hal.hpp"
 #include "SensorDriver.h"
 
+// Register EEprom
+#include "register_class.hpp"
+
 // Main TASK Switch Delay
 #define SUPERVISOR_TASK_WAIT_DELAY_MS     (20)
 #define SUPERVISOR_TASK_SLEEP_DELAY_MS    (1250)
@@ -44,30 +47,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)
 
-#if (ENABLE_I2C1 || ENABLE_I2C2)
-#include <Wire.h>
-#include "drivers/eeprom.h"
-#endif
-
 #include "debug_F.h"
 
 typedef enum
 {
   SUPERVISOR_STATE_INIT,
   SUPERVISOR_STATE_CHECK_OPERATION,
-  SUPERVISOR_STATE_LOAD_CONFIGURATION,
-  SUPERVISOR_STATE_SAVE_CONFIGURATION,
   SUPERVISOR_STATE_END
 } SupervisorState_t;
 
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
+  TwoWire *wire;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *registerAccessLock;
   cpp_freertos::Queue *systemMessageQueue;
-  TwoWire *wire;
 } SupervisorParam_t;
 
 class SupervisorTask : public cpp_freertos::Thread {
@@ -81,11 +78,12 @@ protected:
 private:
   SupervisorState_t state;
   SupervisorParam_t param;
-  EEprom eeprom;
+  // Register access
+  EERegister clRegister;
 
-  void printConfiguration(configuration_t *configuration, BinarySemaphore *lock);
-  bool loadConfiguration(configuration_t *configuration, BinarySemaphore *lock);
-  bool saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default);
+  void printConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig);
+  void loadConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister);
+  void saveConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister, bool is_default);
 };
 
 #endif

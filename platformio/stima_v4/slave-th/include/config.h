@@ -43,6 +43,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_MINOR_VERSION  (0)
 
 /*!
+\def MODULE_REVISION_ID
+\brief Module revision id.
+*/
+#define MODULE_REVISION_ID    (0)
+
+/*!
 \def MODULE_TYPE
 \brief Type of module. It is defined in registers.h.
 */
@@ -64,6 +70,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (false)
+
+// Enable (Info Task) and relative Function (Stack, Wdt ecc...)
+#define ENABLE_INFO           (true)
+#define LOG_STACK_USAGE
 
 // Address EEProm for local param config
 #define CONFIGURATION_EEPROM_ADDRESS   (0)
@@ -99,7 +109,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define CAN_TASK_QUEUE_ID                 (2)
 #define ELABORATE_TASK_QUEUE_ID           (3)
 #define SENSOR_TASK_QUEUE_ID              (4)
-#define PROVA_TASK_QUEUE_ID               (5)
+#define INFO_TASK_QUEUE_ID                (5)
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

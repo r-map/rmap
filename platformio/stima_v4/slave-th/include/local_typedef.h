@@ -60,12 +60,23 @@ typedef struct
 
    struct
    {
-      bool is_loaded;
-      bool is_saved;
-   } configuration;
+      // Module Sleep
+      bool accelerometer_sleep;
+      bool can_sleep;
+      bool elaborate_data_sleep;
+      // Stack Free
+      #ifdef LOG_STACK_USAGE
+      uint16_t accelerometer_stack;
+      uint16_t can_stack;
+      uint16_t elaborate_data_stack;
+      uint16_t th_sensor_stack;
+      uint16_t supervisor_stack;
+      #endif
+   } task;
 
    struct
    {
+     bool is_cfg_loaded;
      bool is_maintenance;
      bool is_inibith_sleep;
    } flags;

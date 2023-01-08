@@ -43,12 +43,10 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
-
-#if (ENABLE_I2C1 || ENABLE_I2C2)
-#include <Wire.h>
-#include "drivers/eeprom.h"
 #include "drivers/accelerometer.h"
-#endif
+
+// Register EEprom
+#include "register_class.hpp"
 
 #include "debug_F.h"
 
@@ -61,12 +59,10 @@ using namespace cpp_freertos;
 typedef enum
 {
   ACCELEROMETER_STATE_INIT,
-  ACCELEROMETER_STATE_CHECK_OPERATION,
+  ACCELEROMETER_STATE_CHECK_HARDWARE,
   ACCELEROMETER_STATE_LOAD_CONFIGURATION,
   ACCELEROMETER_STATE_SETUP_MODULE,
-  ACCELEROMETER_STATE_READ,
-  ACCELEROMETER_STATE_POWER_DOWN,
-  ACCELEROMETER_STATE_SAVE_CONFIGURATION,
+  ACCELEROMETER_STATE_CHECK_OPERATION,
   ACCELEROMETER_STATE_WAIT_RESUME,
   ACCELEROMETER_STATE_HARDWARE_FAIL
 } AccelerometerState_t;
@@ -74,12 +70,11 @@ typedef enum
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
-  accelerometer_t *accelerometer_configuration;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *registerAccessLock;
+  cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::Queue *systemMessageQueue;
 } AccelerometerParam_t;
 
 class AccelerometerTask : public cpp_freertos::Thread {
@@ -97,19 +92,21 @@ private:
   AccelerometerState_t state;
   AccelerometerParam_t param;
   Accelerometer accelerometer;
-  EEprom eeprom;
+  accelerometer_t accelerometer_configuration;
+  // Register access
+  EERegister clRegister;
   float value_x;
   float value_y;
   float value_z;
 
-  void PrintConfiguration(accelerometer_t *configuration, BinarySemaphore *lock);
-  bool LoadConfiguration(accelerometer_t *configuration, BinarySemaphore *lock);
-  void SaveConfiguration(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default);
-  void Calibrate(accelerometer_t *configuration, BinarySemaphore *lock, bool is_default);
-  bool CheckModule(BinarySemaphore *lock);
-  void SetupModule(accelerometer_t *configuration, BinarySemaphore *lock);
-  bool ReadModule(accelerometer_t *configuration, BinarySemaphore *lock);
-  void PowerDownModule(accelerometer_t *configuration, BinarySemaphore *lock);
+  void printConfiguration(accelerometer_t *configuration);
+  void loadConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock);
+  void saveConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default);
+  void calibrate(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default, bool save_register);
+  bool checkModule(void);
+  void setupModule(accelerometer_t *configuration);
+  bool readModule(accelerometer_t *configuration);
+  void powerDownModule(void);
 
 };
 

@@ -232,6 +232,7 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_DeInit(void)
   _evtFlag->flag = 0;
 
 	_FlashInfo.State = QSPI_RESET;
+
   return QSPI_OK;
 }
 
@@ -364,7 +365,7 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_Erase_Block(uint32_t BlockAddress)
   sCommand.Instruction       = BLOCK_ERASE_CMD;
   sCommand.AddressMode       = QSPI_ADDRESS_1_LINE;
   sCommand.AddressSize       = QSPI_ADDRESS_24_BITS;
-  sCommand.Address           = BlockAddress;
+  sCommand.Address           = (BlockAddress * AT25SF161_BLOCK_SIZE); //BlockAddress;
   sCommand.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
   sCommand.DataMode          = QSPI_DATA_NONE;
   sCommand.DummyCycles       = 0;
@@ -582,8 +583,8 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_GetInfo(QSPI_Info *pInfo)
 {
   /* Configure the structure with the memory configuration */
   pInfo->FlashSize          = AT25SF161_FLASH_SIZE;
-  pInfo->EraseBlockSize    = AT25SF161_BLOCK_SIZE;
-  pInfo->EraseBlockNumber = (AT25SF161_FLASH_SIZE / AT25SF161_BLOCK_SIZE);
+  pInfo->EraseBlockSize     = AT25SF161_BLOCK_SIZE;
+  pInfo->EraseBlockNumber   = (AT25SF161_FLASH_SIZE / AT25SF161_BLOCK_SIZE);
   pInfo->ProgPageSize       = AT25SF161_PAGE_SIZE;
   pInfo->ProgPagesNumber    = (AT25SF161_FLASH_SIZE / AT25SF161_PAGE_SIZE);
 
