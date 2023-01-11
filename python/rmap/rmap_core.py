@@ -195,7 +195,7 @@ def delsensors(station_slug=None,username=None,board_slug=None):
 
 def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,serialactivate=False
-              ,canactivate=False
+              ,canactivate=False,cannodeid=100,cansubject="",cansubjectid=100,cansamplerate=60
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
@@ -235,7 +235,13 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     except ObjectDoesNotExist :
         transportcan=TransportCan()
 
+    print(canactivate,cannodeid,cansubject,cansubjectid,cansamplerate)
+    
     transportcan.active=canactivate
+    transportcan.node_id=cannodeid
+    transportcan.subject=cansubject
+    transportcan.subject_id=cansubjectid
+    transportcan.cansampletime=cansamplerate
     myboard.transportcan=transportcan
     print("CAN Transport", myboard.transportcan)
     myboard.transportcan.save()
@@ -1437,6 +1443,11 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False,dump
                 pass
             try:
                 transport=board.transporttcpip
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transportcan
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
