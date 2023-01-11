@@ -43,6 +43,7 @@ typedef struct
 {
    uint8_t module_main_version;                          //!< module main version
    uint8_t module_minor_version;                         //!< module minor version
+   uint8_t configuration_version;                        //!< module configuration version
    uint8_t module_type;                                  //!< module type
    uint8_t sensors_count;                                //!< number of configured sensors
    sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations

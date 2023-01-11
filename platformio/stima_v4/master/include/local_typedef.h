@@ -42,14 +42,13 @@ typedef struct
    uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
    uint8_t can_port_id;             //!< port for uavcan services
    uint8_t can_publish_id;          //!< port for uavcan data publication
-   char driver[DRIVER_LENGTH];      //!< sensor's string driver
-   char type[TYPE_LENGTH];          //!< sensor type
 } sensor_configuration_t;
 
 typedef struct
 {
    uint8_t module_main_version;                          //!< module main version
    uint8_t module_minor_version;                         //!< module minor version
+   uint8_t configuration_version;                        //!< module configuration version
    uint8_t module_type;                                  //!< module type
    uint8_t sensors_count;                                //!< number of configured sensors
    sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
@@ -92,10 +91,9 @@ typedef struct
    #endif
 
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-   char gsm_apn[GSM_APN_LENGTH];           //!< gsm apn
-   char gsm_number[GSM_NUMBER_LENGTH]; //!< gsm number
-   char gsm_username[GSM_USERNAME_LENGTH]; //!< gsm username
-   char gsm_password[GSM_PASSWORD_LENGTH]; //!< gsm password
+   char gsm_number[GSM_APN_LENGTH];             //!< gsm number
+   char gsm_username[GSM_USERNAME_LENGTH];      //!< gsm username
+   char gsm_password[GSM_PASSWORD_LENGTH];      //!< gsm password
    #endif
 } configuration_t;
 
