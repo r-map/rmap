@@ -1,8 +1,0 @@
-rmap.metadata.Metadata.1.0 metadata
-rmap.measures.WindClass1Speed.1.0 class1
-rmap.measures.WindClass2Speed.1.0 class2
-rmap.measures.WindClass3Speed.1.0 class3
-rmap.measures.WindClass4Speed.1.0 class4
-rmap.measures.WindClass5Speed.1.0 class5
-rmap.measures.WindClass6Speed.1.0 class6
-@sealed

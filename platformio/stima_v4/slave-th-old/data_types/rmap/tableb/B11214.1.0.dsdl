@@ -1,6 +1,0 @@
-# Percentuale velocità vento >= 4 < 7 (m/s)
-# fattore scala naturale
-# MAX 100 %
-uint7 MAX = 100
-uint7 value
-@sealed

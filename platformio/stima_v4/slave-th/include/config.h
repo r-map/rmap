@@ -75,10 +75,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_INFO           (true)
 #define LOG_STACK_USAGE
 
-// Address EEProm for local param config
-#define CONFIGURATION_EEPROM_ADDRESS   (0)
-#define ACCELEROMETER_EEPROM_ADDRESS   (CONFIGURATION_EEPROM_ADDRESS + 100)
-#define REGISTER_EEPROM_ADDRESS        (ACCELEROMETER_EEPROM_ADDRESS + 200)
+// Address EEProm for reserved bootloader flag param (and future used param)
+#define START_EEPROM_ADDRESS           (0)
+#define SIZE_EEPROM_RESERVED           (200)
+#define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
+#define BOOT_LOADER_STRUCT_SIZE        (3)
+#define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
+// Start Standard UAVCAN Register
+#define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
 
 // Monitor Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)

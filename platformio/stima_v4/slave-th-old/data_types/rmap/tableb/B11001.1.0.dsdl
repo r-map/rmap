@@ -1,6 +1,0 @@
-# Direzione vento (°)
-# fattore scala naturale
-# MAX 360 °
-uint9 MAX = 360
-uint9 value
-@sealed
