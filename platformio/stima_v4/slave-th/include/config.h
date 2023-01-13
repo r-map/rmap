@@ -71,15 +71,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (false)
 
-// Enable (Info Task) and relative Function (Stack, Wdt ecc...)
-#define ENABLE_INFO           (true)
+// Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
+#define ENABLE_WDT            (true)
+#define WDT_TIMEOUT_BASE_MS   (8000000)
 #define LOG_STACK_USAGE
 
-// Address EEProm for reserved bootloader flag param (and future used param)
+// Address EEProm for reserved bootloader flag param (and future used)
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (200)
+#define SIZE_EEPROM_RESERVED           (450)
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
-#define BOOT_LOADER_STRUCT_SIZE        (3)
+#define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
 // Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
@@ -101,19 +102,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 // Queue Lenght
-#define SYSTEM_MESSAGE_QUEUE_LENGTH       (4)
-#define ELABORATE_DATA_QUEUE_LENGTH       (4)
-#define REQUEST_DATA_QUEUE_LENGTH         (1)
-#define REPORT_DATA_QUEUE_LENGTH          (1)
+#define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
+#define ELABORATE_DATA_QUEUE_LENGTH (4)
+#define REQUEST_DATA_QUEUE_LENGTH   (1)
+#define REPORT_DATA_QUEUE_LENGTH    (1)
 
-// Task system_status queue message
-#define ALL_TASK_QUEUE_ID                 (99)      // Send message to ALL Task
-#define SUPERVISOR_TASK_QUEUE_ID          (0)       // Send message to scecific task..
-#define ACCELEROMETER_TASK_QUEUE_ID       (1)
-#define CAN_TASK_QUEUE_ID                 (2)
-#define ELABORATE_TASK_QUEUE_ID           (3)
-#define SENSOR_TASK_QUEUE_ID              (4)
-#define INFO_TASK_QUEUE_ID                (5)
+// Task system_status and queue ID message
+#define ALL_TASK_ID                 (99)      // Send message to ALL Task
+#define SUPERVISOR_TASK_ID          (0)       // Send message to specific task..
+#define CAN_TASK_ID                 (1)
+#define ELABORATE_TASK_ID           (2)
+#define SENSOR_TASK_ID              (3)
+#define WDT_TASK_ID                 (4)
+#if ENABLE_ACCELEROMETER
+#define ACCELEROMETER_TASK_ID       (5)
+#define TOTAL_INFO_TASK             (6)       // Total Task for WDT Task Control
+#else
+#define TOTAL_INFO_TASK             (5)       // Total Task for WDT Task Control
+#endif
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

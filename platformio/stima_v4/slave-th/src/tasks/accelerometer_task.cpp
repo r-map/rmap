@@ -35,6 +35,11 @@
 
 AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
 {
+  // Starting Task monitor WDT
+  param.systemStatusLock->Take();
+  param.system_status->tasks[ACCELEROMETER_TASK_ID].running_pos = RUNNING_START;
+  param.systemStatusLock->Give();
+
   // Setup register mode && Load or Init configuration
   clRegister = EERegister(param.wire, param.wireLock);
   loadConfiguration(&accelerometer_configuration, param.registerAccessLock);
@@ -67,7 +72,7 @@ void AccelerometerTask::Run()
       if (param.systemMessageQueue->Peek(&system_message, 0))
       {
         // Its request addressed into this TASK... -> pull
-        if(system_message.task_dest == ACCELEROMETER_TASK_QUEUE_ID)
+        if(system_message.task_dest == ACCELEROMETER_TASK_ID)
         {
           // Pull && elaborate command, after response if...
           param.systemMessageQueue->Dequeue(&system_message, 0);
@@ -78,18 +83,27 @@ void AccelerometerTask::Run()
         }
 
         // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-        if(system_message.task_dest == ALL_TASK_QUEUE_ID)
+        if(system_message.task_dest == ALL_TASK_ID)
         {
           // Pull && elaborate command, 
           if(system_message.command.do_sleep)
           {
             // Start module sleep procedure
             powerDownModule();
-            // Enter sleep module OK
+            // Enter sleep module OK and update WDT
             param.systemStatusLock->Take();
-            param.system_status->task.accelerometer_sleep = true;
+            param.system_status->tasks[ACCELEROMETER_TASK_ID].is_sleep = true;
+            // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
+            if(ACELLEROMETER_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
+              param.system_status->tasks[ACCELEROMETER_TASK_ID].watch_dog = wdt_flag::rest;
+            else
+              param.system_status->tasks[ACCELEROMETER_TASK_ID].watch_dog = wdt_flag::set;
             param.systemStatusLock->Give();
             Delay(Ticks::MsToTicks(ACELLEROMETER_TASK_SLEEP_DELAY_MS));
+            // WakeUP
+            param.systemStatusLock->Take();
+            param.system_status->tasks[ACCELEROMETER_TASK_ID].is_sleep = false;
+            param.systemStatusLock->Give();
             // Restore module from Sleep
             state = ACCELEROMETER_STATE_SETUP_MODULE;
           }
@@ -100,7 +114,7 @@ void AccelerometerTask::Run()
     // Standard TASK switch main
     switch (state)
     {
-    case ACCELEROMETER_STATE_INIT:    
+    case ACCELEROMETER_STATE_INIT:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
       state = ACCELEROMETER_STATE_CHECK_HARDWARE;
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
@@ -114,6 +128,12 @@ void AccelerometerTask::Run()
       {
         is_hardware_ready = checkModule();
         if (is_hardware_ready) {
+          
+          // Starting Task monitor WDT Module RUN After Init OK
+          param.systemStatusLock->Take();
+          param.system_status->tasks[ACCELEROMETER_TASK_ID].running_pos = RUNNING_EXEC;
+          param.systemStatusLock->Give();
+
           TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_CHECK_HARDWARE -> ACCELEROMETER_STATE_SETUP_MODULE\r\n"));
           state = ACCELEROMETER_STATE_SETUP_MODULE;
           break;
@@ -146,9 +166,9 @@ void AccelerometerTask::Run()
         }
         #ifdef LOG_STACK_USAGE
         static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-        if((stackUsage) && (stackUsage < param.system_status->task.accelerometer_stack)) {
+        if((stackUsage) && (stackUsage < param.system_status->tasks[ACCELEROMETER_TASK_ID].stack)) {
           param.systemStatusLock->Take();
-          param.system_status->task.accelerometer_stack = stackUsage;
+          param.system_status->tasks[ACCELEROMETER_TASK_ID].stack = stackUsage;
           param.systemStatusLock->Give();
         }
         #endif
@@ -157,18 +177,35 @@ void AccelerometerTask::Run()
 
     case ACCELEROMETER_STATE_WAIT_RESUME:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_END -> SUSPEND()\r\n"));
+      param.systemStatusLock->Take();
+      param.system_status->tasks[ACCELEROMETER_TASK_ID].is_suspend = true;
+      param.systemStatusLock->Give();
       Suspend();
+      param.systemStatusLock->Take();
+      param.system_status->tasks[ACCELEROMETER_TASK_ID].is_suspend = false;
+      param.systemStatusLock->Give();
       // On Restore Next INIT
       state = ACCELEROMETER_STATE_SETUP_MODULE;
       break;
 
     case ACCELEROMETER_STATE_HARDWARE_FAIL:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_FAIL -> SUSPEND()\r\n"));
+      param.systemStatusLock->Take();
+      param.system_status->tasks[ACCELEROMETER_TASK_ID].is_suspend = true;
+      param.systemStatusLock->Give();
       Suspend();
+      param.systemStatusLock->Take();
+      param.system_status->tasks[ACCELEROMETER_TASK_ID].is_suspend = false;
+      param.systemStatusLock->Give();
       // On Restore Next INIT
       state = ACCELEROMETER_STATE_SETUP_MODULE;
       break;
     }
+
+    // Local WatchDog update;
+    param.systemStatusLock->Take();
+    param.system_status->tasks[ACCELEROMETER_TASK_ID].watch_dog = wdt_flag::set;
+    param.systemStatusLock->Give();
 
     // MAX One switch step for Task Waiting Next Step
     DelayUntil(Ticks::MsToTicks(ACELLEROMETER_TASK_WAIT_DELAY_MS));

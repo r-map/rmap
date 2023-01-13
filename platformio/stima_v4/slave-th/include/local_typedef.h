@@ -44,37 +44,45 @@ typedef struct
    uint8_t module_main_version;                          //!< module main version
    uint8_t module_minor_version;                         //!< module minor version
    uint8_t configuration_version;                        //!< module configuration version
+   uint32_t serial_number;                               //!< module serial number
    uint8_t module_type;                                  //!< module type
    uint8_t sensors_count;                                //!< number of configured sensors
    sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
    uint32_t sensor_acquisition_delay_ms;
 } configuration_t;
 
+// WatchDog Flag type
+enum wdt_flag {
+   clear    = 0,
+   set      = 1,
+   rest     = 2
+};
+
+// Task Info structure
+#define RUNNING_START    1
+#define RUNNING_EXEC     2
+typedef struct
+{
+   wdt_flag watch_dog;  // WatchDog of Task
+   uint16_t stack;      // Stack Max Usage Monitor
+   bool is_sleep;       // Long sleep Task
+   bool is_suspend;     // Suspend Task
+   uint8_t running_pos; // !=0 Task Started, 1=Start, 2=Running, XX=User State LOG SW Position
+} task_t;
+
 // System module status
 typedef struct
 {
+   // DateTime Operation
    struct
    {
-      uint32_t system_time;
       uint32_t next_ptr_time_for_sensors_reading;
    } datetime;
 
-   struct
-   {
-      // Module Sleep
-      bool accelerometer_sleep;
-      bool can_sleep;
-      bool elaborate_data_sleep;
-      // Stack Free
-      #ifdef LOG_STACK_USAGE
-      uint16_t accelerometer_stack;
-      uint16_t can_stack;
-      uint16_t elaborate_data_stack;
-      uint16_t th_sensor_stack;
-      uint16_t supervisor_stack;
-      #endif
-   } task;
+   // Info Task && WDT
+   task_t tasks[TOTAL_INFO_TASK];
 
+   // Module Flasg
    struct
    {
      bool is_cfg_loaded;
@@ -109,5 +117,19 @@ typedef struct
    value_t humidity;
    value_t temperature;
 } report_t;
+
+// Backup && Upload Firmware TypeDef
+typedef struct
+{
+  bool request_upload;
+  bool backup_executed;
+  bool upload_executed;
+  bool rollback_executed;
+  bool app_executed_ok;
+  uint8_t upload_error;
+  uint8_t version;
+  uint8_t revision;
+  uint32_t serial_number;
+} bootloader_t;
 
 #endif

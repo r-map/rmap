@@ -44,6 +44,22 @@ void setup() {
   init_pins();
   init_rtc(INIT_PARAMETER);
 
+  // Init SystemStatus Parameter !=0 ... For Check control Value
+  // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
+  // TOTAL_INFO_TASK Number of Task checked
+#ifdef LOG_STACK_USAGE
+  for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
+  {
+    system_status.tasks[id].stack = 0xFFFFu;
+  }
+#endif
+
+#if (ENABLE_WDT)
+  // Init the watchdog timer WDT_TIMEOUT_BASE_MS mseconds timeout (only control system)
+  // Wdt Task Reset the value after All Task reset property single Flag
+  IWatchdog.begin(WDT_TIMEOUT_BASE_MS);
+#endif
+
   // Hardware Semaphore
 #if (ENABLE_I2C1)
   wireLock = new BinarySemaphore(true);
@@ -73,10 +89,35 @@ void setup() {
   // ***************************************************************
   //                  Setup parameter for Task
   // ***************************************************************
-#if (ENABLE_INFO)
-  // TASK INFO PARAM CONFIG
-  static InfoParam_t infoParam = {0};
-  infoParam.system_status = &system_status;
+
+#if (ENABLE_I2C1)
+  // Load Info from E2 boot_check flag and send to Config
+  EEprom  memEprom(&Wire, wireLock);
+  bootloader_t boot_check = {0};
+  #if INIT_PARAMETER
+  boot_check.app_executed_ok = true;
+  boot_check.version = MODULE_MAIN_VERSION;
+  boot_check.revision = MODULE_MINOR_VERSION;
+  #ifdef NODE_SERIAL_NUMBER
+  configuration.serial_number = NODE_SERIAL_NUMBER;
+  memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  #endif
+  #else
+  memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  configuration.serial_number = boot_check.serial_number;
+  #endif
+  // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
+#endif
+
+#if (ENABLE_WDT)
+  // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
+  static WdtParam_t wdtParam = {0};
+  wdtParam.system_status = &system_status;
+  wdtParam.systemStatusLock = systemStatusLock;
+#if (ENABLE_I2C1)
+  wdtParam.wire = &Wire;
+  wdtParam.wireLock = wireLock;
+#endif
 #endif
 
 #if (ENABLE_CAN)
@@ -160,23 +201,23 @@ void setup() {
   // *****************************************************************************
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
-  static SupervisorTask supervisor_task("SupervisorTask", 350, OS_TASK_PRIORITY_04, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 350, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 250, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
-  static AccelerometerTask accelerometer_task("AccelerometerTask", 400, OS_TASK_PRIORITY_01, accelerometerParam);
+  static AccelerometerTask accelerometer_task("AccelerometerTask", 350, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
   static CanTask can_task("CanTask", 7100, OS_TASK_PRIORITY_02, canParam);
 #endif
 
-#if (ENABLE_INFO)
-  static InfoTask info_task("InfoTask", 100, OS_TASK_PRIORITY_01, infoParam);
+#if (ENABLE_WDT)
+  static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_01, wdtParam);
 #endif
 
   // Run Schedulher
@@ -186,7 +227,7 @@ void setup() {
 
 // FreeRTOS idleHook callBack to loop
 void loop() {
-  // Enable LowPower idleHock power consumption
+  // Enable LowPower idleHock reduce power consumption without disable sysTick
   LowPower.idleHook();
 }
 

@@ -30,6 +30,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using namespace cpp_freertos;
 
 TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam) : Thread(taskName, stackSize, priority), param(temperatureHumidtySensorParam) {
+
+  // Starting Task monitor WDT
+  param.systemStatusLock->Take();
+  param.system_status->tasks[SENSOR_TASK_ID].running_pos = RUNNING_START;
+  param.systemStatusLock->Give();
+
   state = INIT;
   Start();
 };
@@ -63,12 +69,21 @@ void TemperatureHumidtySensorTask::Run() {
       // other
       else
       {
+        // Local WatchDog update;
+        param.systemStatusLock->Take();
+        param.system_status->tasks[SENSOR_TASK_ID].watch_dog = wdt_flag::set;
+        param.systemStatusLock->Give();        
         Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
       }
       // do something else with non-blocking wait ....
       break;
 
     case INIT:
+      // Starting TASK OK
+      param.systemStatusLock->Take();
+      param.system_status->tasks[SENSOR_TASK_ID].running_pos = RUNNING_EXEC;
+      param.systemStatusLock->Give();
+
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
       for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
       {
@@ -122,6 +137,11 @@ void TemperatureHumidtySensorTask::Run() {
           error_count++;
         }
       }
+
+      // Local WatchDog update;
+      param.systemStatusLock->Take();
+      param.system_status->tasks[SENSOR_TASK_ID].watch_dog = wdt_flag::set;
+      param.systemStatusLock->Give();
 
       Delay(Ticks::MsToTicks(delay_ms));
       state = READ;
@@ -230,14 +250,27 @@ void TemperatureHumidtySensorTask::Run() {
 
         #ifdef LOG_STACK_USAGE
         static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-        if((stackUsage) && (stackUsage < param.system_status->task.th_sensor_stack)) {
+        if((stackUsage) && (stackUsage < param.system_status->tasks[SENSOR_TASK_ID].stack)) {
           param.systemStatusLock->Take();
-          param.system_status->task.th_sensor_stack = stackUsage;
+          param.system_status->tasks[SENSOR_TASK_ID].stack = stackUsage;
           param.systemStatusLock->Give();
         }
         #endif
-        
+
+        param.systemStatusLock->Take();
+        // Wait Delay Sensor Acquisition is same as Long Sleep TASK...
+        param.system_status->tasks[SENSOR_TASK_ID].is_sleep = true;
+        // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
+        if(param.configuration->sensor_acquisition_delay_ms > WDT_TIMEOUT_BASE_MS)
+        param.system_status->tasks[SENSOR_TASK_ID].watch_dog = wdt_flag::rest;
+        else
+        param.system_status->tasks[SENSOR_TASK_ID].watch_dog = wdt_flag::set;
+        param.systemStatusLock->Give();
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
+        // WakeUP
+        param.systemStatusLock->Take();
+        param.system_status->tasks[SENSOR_TASK_ID].is_sleep = false;
+        param.systemStatusLock->Give();
         state = SETUP;
         break;
     }
@@ -251,7 +284,7 @@ void TemperatureHumidtySensorTask::powerOn()
     digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
     digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
     digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
-    DelayUntil(Ticks::MsToTicks(TH_TASK_POWER_ON_WAIT_DELAY_MS));
+    Delay(Ticks::MsToTicks(TH_TASK_POWER_ON_WAIT_DELAY_MS));
     is_power_on = true;
   }
 }

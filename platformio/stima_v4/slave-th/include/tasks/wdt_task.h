@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    info_task.h
+  * @file    wdt_task.h
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   info_task header file (Info && Logging Task for Module Slave)
+  * @brief   wdt_task header file (Wdt && Logging Task for Module Slave)
   ******************************************************************************
   * @attention
   *
@@ -27,8 +27,8 @@
   ******************************************************************************
 */
 
-#ifndef _INFO_TASK_H
-#define _INFO_TASK_H
+#ifndef _WDT_TASK_H
+#define _WDT_TASK_H
 
 #include "debug_config.h"
 #include "local_typedef.h"
@@ -43,20 +43,28 @@
 
 #include "debug_F.h"
 
+// Main TASK Switch Delay
+#define WDT_TASK_WAIT_DELAY_MS      (2000)
+
+using namespace cpp_freertos;
+
 typedef struct {
   system_status_t *system_status;
-} InfoParam_t;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  TwoWire *wire;
+  cpp_freertos::BinarySemaphore *wireLock;
+} WdtParam_t;
 
-class InfoTask : public cpp_freertos::Thread {
+class WdtTask : public cpp_freertos::Thread {
 
 public:
-  InfoTask(const char *taskName, uint16_t stackSize, uint8_t priority, InfoParam_t provaParam);
+  WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, WdtParam_t wdtParam);
 
 protected:
   virtual void Run();
 
 private:
-  InfoParam_t param;
+  WdtParam_t param;
 };
 
 #endif

@@ -285,7 +285,7 @@ class canardClass {
         //  Comandi Server per gestione del modulo locale tramite classe locale e pending o Diretti
         // ****************************************************************************************
         bool slave_heartbeat_send_message(void);
-        bool slave_pnp_send_request(void);
+        bool slave_pnp_send_request(uint32_t serial_number);
         bool slave_servicelist_send_message(void);
 
         // *************************************************

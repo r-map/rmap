@@ -564,7 +564,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             // Avvia calibrazione accelerometro (reset bolla elettroniuca)
             TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
             // Send queue command to TASK
-            system_message.task_dest = ACCELEROMETER_TASK_QUEUE_ID;
+            system_message.task_dest = ACCELEROMETER_TASK_ID;
             system_message.command.do_init = true;
             if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
@@ -582,7 +582,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
                 TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo"));
             }
             // Send queue command to TASK
-            system_message.task_dest = SUPERVISOR_TASK_QUEUE_ID;
+            system_message.task_dest = SUPERVISOR_TASK_ID;
             system_message.command.do_maint = 1;
             system_message.param = req->parameter.elements[0];
             if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
@@ -868,7 +868,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_nominal) {
                         // ENTER STANDARD SLEEP FROM CAN COMMAND
                         #ifndef _EXIT_SLEEP_FOR_DEBUGGING
-                        system_message.task_dest = ALL_TASK_QUEUE_ID;
+                        system_message.task_dest = ALL_TASK_ID;
                         system_message.command.do_sleep = true;
                         localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS));
                         #endif
@@ -1094,6 +1094,14 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// *********************************************************************************************
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam) {
 
+  // Starting Task monitor WDT
+  param.systemStatusLock->Take();
+  param.system_status->tasks[CAN_TASK_ID].running_pos = RUNNING_START;
+  param.systemStatusLock->Give();
+
+  // Direct acces to EEprom
+  memEprom = EEprom(param.wire, param.wireLock);
+
   // Setup register mode
   clRegister = EERegister(param.wire, param.wireLock);
 
@@ -1209,6 +1217,9 @@ void CanTask::Run() {
     CanardMicrosecond last_pub_heartbeat;
     CanardMicrosecond last_pub_port_list;
 
+    // Set when Firmware Upgrade is required
+    bool start_firmware_upgrade = false;
+
     // OnlineMaster (Set/Reset Application Code Function Here Enter/Exit Function OnLine)
     bool masterOnline = false;
 
@@ -1222,18 +1233,27 @@ void CanTask::Run() {
             if (param.systemMessageQueue->Peek(&system_message, 0))
             {
                 // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-                if(system_message.task_dest == ALL_TASK_QUEUE_ID)
+                if(system_message.task_dest == ALL_TASK_ID)
                 {
                     // Pull && elaborate command, 
                     if(system_message.command.do_sleep)
                     {
                         // Enter module sleep procedure (OFF Module)
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
-                        // Enter sleep module OK
+                        // Enter sleep module OK and Update WDT
                         param.systemStatusLock->Take();
-                        param.system_status->task.can_sleep = true;
+                        param.system_status->tasks[CAN_TASK_ID].is_sleep = true;
+                        // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
+                        if(CAN_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
+                        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::rest;
+                        else
+                        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::set;
                         param.systemStatusLock->Give();
                         Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
+                        // WakeUP
+                        param.systemStatusLock->Take();
+                        param.system_status->tasks[CAN_TASK_ID].is_sleep = false;
+                        param.systemStatusLock->Give();
                         // Restore module from Sleep
                         HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
                     }
@@ -1247,6 +1267,12 @@ void CanTask::Run() {
         switch (state) {
             // Setup Class CB and NodeId
             case INIT:
+
+                // Starting Task monitor WDT after INIT Ok
+                param.systemStatusLock->Take();
+                param.system_status->tasks[CAN_TASK_ID].running_pos = RUNNING_EXEC;
+                param.systemStatusLock->Give();
+
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
                 // Segnale al Master necessità di impostazioni ev. parametri, Data/Ora ecc..
                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
@@ -1604,14 +1630,23 @@ void CanTask::Run() {
                             clCanard.master.file.download_end();
                             // Comunico a HeartBeat (Yakut o Altri) l'avvio dell'aggiornamento (se il file è un firmware...)
                             // Per Yakut Pubblicare un HeartBeat prima dell'Avvio quindi con il flag
-                            // clCanard.local_node.file.updating_run = true >> HeartBeat Counica Upgrade...
+                            // clCanard.local_node.file.updating_run = true >> HeartBeat Comunica Upgrade...
                             if(clCanard.master.file.is_firmware()) {
                                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_SOFTWARE_UPDATE);
+                                start_firmware_upgrade = true;
+                                // Preparo la struttua per informare il Boot Loader
+                                if(start_firmware_upgrade) {
+                                    bootloader_t boot_request;
+                                    boot_request.app_executed_ok = false;
+                                    boot_request.backup_executed = false;
+                                    boot_request.rollback_executed = false;
+                                    boot_request.request_upload = true;
+                                    memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+                                }
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo
-                            // di HeartBeat (svuotamento coda), quindi attendiamo 2/3 secondi poi via
+                            // di HeartBeat (svuotamento coda), quindi via subito in heart_beat send
                             // Counque non rispondo più ai comandi di update con file.updating_run = true
-                            // FirmwareUpgrade(*NameFile)... -> Fra 2/3 secondi dopo HeartBeat
                         } else {
                             // Avvio prima request o nuovo blocco (Set Flag e TimeOut)
                             // Prima request (clCanard.local_node.file.offset == 0)
@@ -1647,10 +1682,11 @@ void CanTask::Run() {
                 }
 
                 // ************************* HEARTBEAT DATA PUBLISHER ***********************
-                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat) {
+                if((start_firmware_upgrade)||
+                    (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
                     if(clCanard.is_canard_node_anonymous()) {
                         TRACE_INFO_F(F("Publish SLAVE PNP Request Message -->> [ %u sec + Rnd * 1 sec...]\r\n"), TIME_PUBLISH_PNP_REQUEST);
-                        clCanard.slave_pnp_send_request();
+                        clCanard.slave_pnp_send_request(1);
                         last_pub_heartbeat += MEGA * (TIME_PUBLISH_PNP_REQUEST + random(100) / 100);
                     } else {
                         TRACE_INFO_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
@@ -1697,20 +1733,27 @@ void CanTask::Run() {
                 }
 
                 // Request Reboot (Firmware upgrade... Or Reset)
-                if (clCanard.flag.is_requested_system_restart()) {
-                    NVIC_SystemReset();
+                if (clCanard.flag.is_requested_system_restart() || (start_firmware_upgrade)) {
+                    TRACE_INFO_F(F("Send signal to system Reset...\r\n"));
+                    delay(250); // Waiting security queue empty send HB (Updating start...)
+                    NVIC_SystemReset();                    
                 }
                 break;
         }
 
         #ifdef LOG_STACK_USAGE
         static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-        if((stackUsage) && (stackUsage < param.system_status->task.can_stack)) {
+        if((stackUsage) && (stackUsage < param.system_status->tasks[CAN_TASK_ID].stack)) {
             param.systemStatusLock->Take();
-            param.system_status->task.can_stack = stackUsage;
+            param.system_status->tasks[CAN_TASK_ID].stack = stackUsage;
             param.systemStatusLock->Give();
         }
         #endif
+
+        // Local WatchDog update;
+        param.systemStatusLock->Take();
+        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::set;
+        param.systemStatusLock->Give();
 
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE

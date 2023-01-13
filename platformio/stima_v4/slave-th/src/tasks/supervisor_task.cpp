@@ -29,6 +29,11 @@ using namespace cpp_freertos;
 
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
+  // Starting Task monitor WDT
+  param.systemStatusLock->Take();
+  param.system_status->tasks[SUPERVISOR_TASK_ID].running_pos = RUNNING_START;
+  param.systemStatusLock->Give();
+
   // Setup register mode && Load or Init configuration
   clRegister = EERegister(param.wire, param.wireLock);
   loadConfiguration(param.configuration, param.configurationLock, param.registerAccessLock);
@@ -48,18 +53,12 @@ void SupervisorTask::Run()
     {
     case SUPERVISOR_STATE_INIT:
       // Load configuration is done...
-      // Seting Startup param TASK
+      // Seting Startup param TASK and INIT Function Here...
       param.systemStatusLock->Take();
-      // Task check data
-      #ifdef LOG_STACK_USAGE
-      param.system_status->task.accelerometer_stack = 0xFFFF;
-      param.system_status->task.can_stack = 0xFFFF;
-      param.system_status->task.elaborate_data_stack = 0xFFFF;
-      param.system_status->task.supervisor_stack = 0xFFFF;
-      param.system_status->task.th_sensor_stack = 0xFFFF;
-      #endif
       // Done Load config && Starting function
       param.system_status->flags.is_cfg_loaded = true;
+      // Starting Task monitor WDT after INIT OK
+      param.system_status->tasks[SUPERVISOR_TASK_ID].running_pos = RUNNING_EXEC;
       param.systemStatusLock->Give();
 
       state = SUPERVISOR_STATE_CHECK_OPERATION;
@@ -75,7 +74,7 @@ void SupervisorTask::Run()
         // Check Queue command system status
         if(!param.systemMessageQueue->IsEmpty()) {
           if(param.systemMessageQueue->Peek(&system_message, 0)) {
-            if(system_message.task_dest == SUPERVISOR_TASK_QUEUE_ID) {
+            if(system_message.task_dest == SUPERVISOR_TASK_ID) {
               // Command direct for TASK remove from queue
               param.systemMessageQueue->Dequeue(&system_message, 0);
               if(system_message.command.do_maint) {
@@ -90,35 +89,55 @@ void SupervisorTask::Run()
             }
           }
           // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-          if(system_message.task_dest == ALL_TASK_QUEUE_ID)
+          if(system_message.task_dest == ALL_TASK_ID)
           {
             // Pull && elaborate command, 
             if(system_message.command.do_sleep)
             {
-              // Check All Module Waiting for Sleep are ready to Sleep...
-              if(param.system_status->task.accelerometer_sleep &&
-                param.system_status->task.can_sleep &&
-                param.system_status->task.elaborate_data_sleep) {
+              // Check All Module Direct Controlled Entered in Sleep and performed
+              // Local ShutDown periph, IO data ecc... IF ALL OK-> Enter LowPOWER Mode
+              if(param.system_status->tasks[ACCELEROMETER_TASK_ID].is_sleep &&
+                param.system_status->tasks[CAN_TASK_ID].is_sleep &&
+                param.system_status->tasks[ELABORATE_TASK_ID].is_sleep) {
                 // Enter to Sleep Complete (Remove before queue Message TaskSleep)
                 // Ready for Next Security Startup without Reenter Sleep
                 // Next Enter with Other QueueMessage from CAN or Other Task...
                 param.systemMessageQueue->Dequeue(&system_message, 0);
                 // Enter task sleep (enable global LowPower procedure...)
+                // Local WatchDog update
+                param.systemStatusLock->Take();
+                param.system_status->tasks[SUPERVISOR_TASK_ID].is_sleep = true;
+                // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
+                if(SUPERVISOR_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
+                  param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::rest;
+                else
+                  param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::set;
+                param.systemStatusLock->Give();
                 Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
+                // WakeUP
+                param.systemStatusLock->Take();
+                param.system_status->tasks[SUPERVISOR_TASK_ID].is_sleep = false;
+                param.systemStatusLock->Give();
               }
             }
           }
         } else {
           #ifdef LOG_STACK_USAGE
           static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-          if((stackUsage) && (stackUsage < param.system_status->task.supervisor_stack)) {
+          if((stackUsage) && (stackUsage < param.system_status->tasks[SUPERVISOR_TASK_ID].stack)) {
             param.systemStatusLock->Take();
-            param.system_status->task.supervisor_stack = stackUsage;
+            param.system_status->tasks[SUPERVISOR_TASK_ID].stack = stackUsage;
             param.systemStatusLock->Give();
           }
           #endif
+
+          // Local WatchDog update;
+          param.systemStatusLock->Take();
+          param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::set;
+          param.systemStatusLock->Give();
+
           // Standard delay task
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+          DelayUntil(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
         }
       }
       else

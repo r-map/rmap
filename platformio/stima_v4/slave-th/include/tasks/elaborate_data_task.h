@@ -72,10 +72,8 @@ typedef struct {
 class ElaborateDataTask : public cpp_freertos::Thread {
   typedef enum {
     INIT,
-    SETUP,
-    PREPARE,
-    READ,
-    END
+    RUN,
+    SUSPEND
   } State_t;
 
 public:

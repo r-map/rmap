@@ -27,8 +27,9 @@
   ******************************************************************************
 */
 
-// Assert Locali
+// Assert Locali (Enable / disable)
 #define LOCAL_ASSERT    assert
+// #define LOCAL_ASSERT    (void(0));
 
 #define KILO 1000L
 #define MEGA ((int64_t)KILO * KILO)

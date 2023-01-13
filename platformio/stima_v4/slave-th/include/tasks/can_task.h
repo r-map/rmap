@@ -158,6 +158,7 @@ private:
   uint16_t stackSize;
   uint8_t priority;
   State_t state;
+  EEprom memEprom;
   CanParam_t param;
   inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static uint16_t last_req_rpt_time = (REPORTS_TIME_S);

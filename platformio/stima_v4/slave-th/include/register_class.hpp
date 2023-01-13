@@ -40,10 +40,10 @@
 //               E2PROM STIMAV4 STM32 REGISTER ACCESS LOCATION AND SIZE CONFIG
 // ***************************************************************************************
 
-// Start Address BASE UAVCAN/CYPAL Register
+// Start Address BASE UAVCAN/CYPAL Register (128 Bytes x Register)
 #define MEM_UAVCAN_LEN                      EEPROMSIZE
 #define MEM_UAVCAN_ADDR_START               REGISTER_EEPROM_ADDRESS
-#define MEM_UAVCAN_MAX_REG                  50u
+#define MEM_UAVCAN_MAX_REG                  60u
 #define MEM_UAVCAN_LEN_SIZE_T_REG           1u
 #define MEM_UAVCAN_LEN_INTEST_REG           60u
 #define MEM_UAVCAN_LEN_VALUE_REG            66u
