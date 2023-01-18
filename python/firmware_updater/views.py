@@ -94,7 +94,7 @@ def update(request,name):
     try:
         myboard = Board.objects.get(slug=swversion["bslug"]
                                     ,stationmetadata__slug=swversion["slug"]
-                                    ,stationmetadata__ident__username=swversion["user"])
+                                    ,stationmetadata__user__username=swversion["user"])
 
         if hasattr(myboard, 'boardfirmwaremetadata'):
             if not myboard.boardfirmwaremetadata.mac:
