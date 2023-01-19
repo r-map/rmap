@@ -69,9 +69,6 @@ protected:
   virtual void Run();
 
 private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   LCDState_t state;
   LCDParam_t LCDParam;
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C u8g2;

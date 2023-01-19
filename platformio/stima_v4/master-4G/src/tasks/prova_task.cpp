@@ -68,7 +68,8 @@ void ProvaTask::Run() {
   //       TRACE_INFO_F(F("TEST Flash OK!!!!"));
   //     }
   //     else
-         TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
+         //TRACE_INFO_F(F("Prova %s\r\n"), "TASK");
+        TRACE_INFO_F(F("*"));
 //     }
     DelayUntil(Ticks::MsToTicks(1000));
   }

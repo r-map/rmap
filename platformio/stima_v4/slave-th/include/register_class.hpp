@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    register_class.cpp
+  * @file    register_class.hpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Register class (Uavcan/Other) header file
   ******************************************************************************

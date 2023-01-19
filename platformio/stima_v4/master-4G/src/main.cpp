@@ -98,14 +98,14 @@ void setup() {
 #endif
 
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 400, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
+  static ModemTask modem_task("ModemTask", 800, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
-  static NtpTask ntp_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 400, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_HTTP)

@@ -154,9 +154,6 @@ private:
   static void processRequestUpdateRTC(canardClass &clsCanard, const uavcan_pnp_NodeIDAllocationData_1_0* const msg);
   static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer, void *param);
 
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
   State_t state;
   EEprom memEprom;
   CanParam_t param;

@@ -42,6 +42,9 @@ void SupervisorTask::Run()
     switch (state)
     {
     case SUPERVISOR_STATE_INIT:
+      #if INIT_PARAM
+      SaveConfiguration(SupervisorParam.configuration, SupervisorParam.configurationLock, CONFIGURATION_DEFAULT);
+      #endif
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
       state = SUPERVISOR_STATE_CHECK_OPERATION;
       break;

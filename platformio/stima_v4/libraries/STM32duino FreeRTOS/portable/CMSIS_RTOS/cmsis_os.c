@@ -1359,7 +1359,11 @@ osStatus osMailFree (osMailQId queue_id, void *mail)
 * @param  none.
 * @retval none.
 */
+#if (configUSE_TICKLESS_IDLE == 2)
 void __attribute__((weak)) osSystickHandler(void)
+#else
+void osSystickHandler(void)
+#endif
 {
 
 #if (INCLUDE_xTaskGetSchedulerState  == 1 )

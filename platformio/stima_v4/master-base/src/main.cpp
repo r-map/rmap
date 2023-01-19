@@ -64,10 +64,10 @@ void setup() {
   #endif
   supervisorParam.configurationLock = configurationLock;
 
-  static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
-  static LCDTask lcd_task("LCD TASK", 100, OS_TASK_PRIORITY_01, lcdParam);
-  static CanTask can_task("CAN TASK", 12000, OS_TASK_PRIORITY_02, can_param);
-  static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
+  static ProvaTask prova_task("PROVA TASK", 600, OS_TASK_PRIORITY_01, provaParam);
+  static LCDTask lcd_task("LCD TASK", 600, OS_TASK_PRIORITY_02, lcdParam);
+  static CanTask can_task("CAN TASK", 12000, OS_TASK_PRIORITY_03, can_param);
+  static SupervisorTask supervisor_task("SUPERVISOR TASK", 800, OS_TASK_PRIORITY_04, supervisorParam);
 
   // Startup Schedulher
   Thread::StartScheduler();

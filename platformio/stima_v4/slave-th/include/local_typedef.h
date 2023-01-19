@@ -92,7 +92,7 @@ typedef struct
 
 } system_status_t;
 
-// System message request for queue
+// System message for queue
 typedef struct
 {
    uint8_t task_dest;

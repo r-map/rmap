@@ -55,7 +55,9 @@ void SupervisorTask::Run()
 
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
-      // saveConfiguration(configuration, configurationLock, CONFIGURATION_DEFAULT);
+      #if(INIT_PARAM)
+      saveConfiguration(param.configuration, param.configurationLock, CONFIGURATION_DEFAULT);
+      #endif
       break;
 
     case SUPERVISOR_STATE_LOAD_CONFIGURATION:
@@ -406,10 +408,10 @@ void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySe
 
     TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
 
-    for (uint8_t i = 0; i < configuration->sensors_count; i++)
-    {
-      TRACE_INFO_F(F("--> %u: %s-%s\r\n"), i + 1, configuration->sensors[i].driver, configuration->sensors[i].type);
-    }
+    // for (uint8_t i = 0; i < configuration->sensors_count; i++)
+    // {
+    //   TRACE_INFO_F(F("--> %u: %s-%s\r\n"), i + 1, configuration->sensors[i].driver, configuration->sensors[i].type);
+    // }
 
     TRACE_INFO_F(F("-> data report every %d seconds\r\n"), configuration->report_s);
     TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), configuration->observation_s);

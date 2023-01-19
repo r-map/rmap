@@ -49,7 +49,7 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
     LowPower.sleep(*xExpectedIdleTime - 10);
   #elif (LOWPOWER_MODE==SLEEP_STOP2)
     LowPower.deepSleep(*xExpectedIdleTime - 10);
-  #endif
+  #else
   *xExpectedIdleTime = 0;
   #endif
 }
@@ -59,6 +59,26 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
 extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
 }
 
+
+// Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
+// Is Need to redefined weak void __attribute__((weak)) osSystickHandler(void)
+// Note FROM Freertos_Config.h 
+/*
+ * IMPORTANT:
+ * SysTick_Handler() from stm32duino core is calling weak osSystickHandler().
+ * Both CMSIS-RTOSv2 and CMSIS-RTOS override osSystickHandler() 
+ * which is calling xPortSysTickHandler(), defined in respective CortexM-x port
+*/
+#if ( configUSE_TICKLESS_IDLE == 2 )
+extern "C" void osSystickHandler()
+{
+  // osSystickHandler CallBack UNUSED for LPTIM1 IRQ Set Increment of OsTickHadler
+  // Optional User Code about osSystickHandler Private Here
+  // ...
+}
+#endif
+
+#endif
 //------------------------------------------------------------------------------
 /// @brief LocalMS Delay Handler_XXX
 /// @param millis Millisecondi di Wait
@@ -106,24 +126,6 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
   faultStimaV4(3);
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
-
-// Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
-// Is Need to redefined weak void __attribute__((weak)) osSystickHandler(void)
-// Note FROM Freertos_Config.h 
-/*
- * IMPORTANT:
- * SysTick_Handler() from stm32duino core is calling weak osSystickHandler().
- * Both CMSIS-RTOSv2 and CMSIS-RTOS override osSystickHandler() 
- * which is calling xPortSysTickHandler(), defined in respective CortexM-x port
-*/
-#if ( !defined(configUSE_TICKLESS_IDLE) || configUSE_TICKLESS_IDLE == 2 )
-extern "C" void osSystickHandler()
-{
-  // osSystickHandler CallBack UNUSED for LPTIM1 IRQ Set Increment of OsTickHadler
-  // Optional User Code about osSystickHandler Private Here
-  // ...
-}
-#endif
 
 //------------------------------------------------------------------------------
 // catch exceptions

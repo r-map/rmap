@@ -796,7 +796,7 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
 
     resp.software_version.major = MODULE_MAIN_VERSION;
     resp.software_version.minor = MODULE_MINOR_VERSION;
-    resp.software_vcs_revision_id = MODULE_REVISION_ID;
+    resp.software_vcs_revision_id = RMAP_PROCOTOL_VERSION;
 
     getUniqueID(resp.unique_id);
 
@@ -1000,7 +1000,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_register_Access_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
-            TRACE_INFO_F(F("<<-- Ricevuto richiesta accesso ai registri da master\r\n"));
+            TRACE_INFO_F(F("<<-- Ricevuto richiesta accesso ai registri\r\n"));
             if (uavcan_register_Access_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_register_Access_Response_1_0 resp = processRequestRegisterAccess(&req);
                 uint8_t serialized[uavcan_register_Access_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -1015,6 +1015,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
         {
             uavcan_register_List_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
+            TRACE_INFO_F(F("<<-- Ricevuto richiesta lettura elenco registri\r\n"));
             if (uavcan_register_List_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_register_List_Response_1_0 resp = {.name = clRegister.getNameByIndex(req.index)};
                 uint8_t serialized[uavcan_register_List_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -1054,8 +1055,8 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             // Inoltre non accetta messaggi extra standard UAVCAN, necessarià prima la CALL al comando
             // SEtFirmwareUpload o SetFileUpload, che impostano il node_id, resettato su EOF dalla classe
             if (clCanard.master.file.get_server_node() == transfer->metadata.remote_node_id) {
-                uavcan_file_Read_Response_1_1 resp  = {0};
-                size_t                         size = transfer->payload_size;
+                uavcan_file_Read_Response_1_1 resp = {0};
+                size_t size = transfer->payload_size;
                 if (uavcan_file_Read_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                     if(clCanard.master.file.is_firmware()) {
                         TRACE_VERBOSE_F(F("RX FIRMWARE READ BLOCK LEN: "));

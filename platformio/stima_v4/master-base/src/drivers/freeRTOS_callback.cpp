@@ -52,7 +52,6 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
 /// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
 extern "C" void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime) {
 }
-
 #endif
 
 //------------------------------------------------------------------------------

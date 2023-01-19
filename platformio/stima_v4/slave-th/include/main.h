@@ -67,7 +67,6 @@ using namespace cpp_freertos;
 
 void init_pins(void);
 void init_wire(void);
-void init_sdcard(void);
 void init_rtc(bool init);
 
 #endif

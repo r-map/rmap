@@ -163,7 +163,7 @@ void USART2_IRQHandler(void)
    NetInterface *interface;
 
    // Enter interrupt service routine
-   osEnterIsr();
+//   osEnterIsr();
 
    // This flag will be set if a higher priority task must be woken
    flag = FALSE;
@@ -210,5 +210,5 @@ void USART2_IRQHandler(void)
    }
 
    // Leave interrupt service routine
-   osExitIsr(flag);
+//   osExitIsr(flag);
 }

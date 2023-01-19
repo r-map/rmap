@@ -1,8 +1,8 @@
-#define configUSE_CMSIS_RTOS_V2         1
+#define configUSE_CMSIS_RTOS_V2         0
 #define configCHECK_FOR_STACK_OVERFLOW  1
 
 // Enable for use LowPower
-#define _USE_FREERTOS_LOW_POWER
+#define _USE_FREERTOS_LOW_POWER         1
 
 // Enable For Exit Immediate from LowPower (Using for Debug)
 #define _EXIT_SLEEP_FOR_DEBUGGING
@@ -38,7 +38,7 @@
 
 // Time minimal for start LOW_POWER && SuppressTick...
 #ifdef _EXIT_SLEEP_FOR_DEBUGGING
-    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   5000
+    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   60000
 #else
     #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
 #endif

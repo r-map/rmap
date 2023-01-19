@@ -134,19 +134,19 @@ void setup() {
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 100, OS_TASK_PRIORITY_02, modemParam);
+  static ModemTask modem_task("ModemTask", 800, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
-  static NtpTask ntp_task("NtpTask", 100, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 400, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 200, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 600, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 200, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 600, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   // Startup Schedulher

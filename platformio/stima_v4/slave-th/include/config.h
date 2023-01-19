@@ -43,10 +43,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_MINOR_VERSION  (0)
 
 /*!
-\def MODULE_REVISION_ID
-\brief Module revision id.
+\def RMAP_PROCOTOL_VERSION
+\brief rmap protocol version
 */
-#define MODULE_REVISION_ID    (0)
+#define RMAP_PROCOTOL_VERSION (1)
 
 /*!
 \def MODULE_TYPE
@@ -113,13 +113,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define CAN_TASK_ID                 (1)
 #define ELABORATE_TASK_ID           (2)
 #define SENSOR_TASK_ID              (3)
-#define WDT_TASK_ID                 (4)
-#if ENABLE_ACCELEROMETER
-#define ACCELEROMETER_TASK_ID       (5)
-#define TOTAL_INFO_TASK             (6)       // Total Task for WDT Task Control
-#else
-#define TOTAL_INFO_TASK             (5)       // Total Task for WDT Task Control
-#endif
+#define ACCELEROMETER_TASK_ID       (4)
+#define WDT_TASK_ID                 (5)
+#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

@@ -365,7 +365,7 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_Erase_Block(uint32_t BlockAddress)
   sCommand.Instruction       = BLOCK_ERASE_CMD;
   sCommand.AddressMode       = QSPI_ADDRESS_1_LINE;
   sCommand.AddressSize       = QSPI_ADDRESS_24_BITS;
-  sCommand.Address           = (BlockAddress * AT25SF161_BLOCK_SIZE); //BlockAddress;
+  sCommand.Address           = (BlockAddress * AT25SF161_BLOCK_SIZE);
   sCommand.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
   sCommand.DataMode          = QSPI_DATA_NONE;
   sCommand.DummyCycles       = 0;

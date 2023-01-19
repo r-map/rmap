@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "sim7600.h"
 
+#define USE_FREERTOS
+
 SIM7600::SIM7600()
 {
 }
@@ -57,9 +59,9 @@ SIM7600::SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _hi
 
 void SIM7600::initPins()
 {
-   pinMode(enable_power_pin, OUTPUT);
-   pinMode(power_pin, OUTPUT);
-   pinMode(ring_indicator_pin, INPUT);
+   // pinMode(enable_power_pin, OUTPUT);
+   // pinMode(power_pin, OUTPUT);
+   // pinMode(ring_indicator_pin, INPUT);
 
    digitalWrite(enable_power_pin, LOW);
    digitalWrite(power_pin, LOW);
@@ -120,8 +122,12 @@ sim7600_status_t SIM7600::switchOn()
    at_command_status = switchModem(is_switching_on);
 
    if (at_command_status != SIM7600_BUSY) {
+      TRACE_INFO_F(F("UART_DEINIT !!!!!!!!!!!!!!!!!!!!!!"));
       uartDeInit();
+      delay(2);
+      TRACE_INFO_F(F("UART_REINIT !!!!!!!!!!!!!!!!!!!!!!"));
       uartInitConfig(low_baud_rate);
+      delay(2);
       TRACE_INFO_F(F("%s switching ON... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
    }
 

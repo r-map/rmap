@@ -61,6 +61,7 @@ void LCDTask::Run()
       break;
 
     case LCD_STATE_CHECK_OPERATION:
+      Suspend();
       break;
     
     case LCD_STATE_END:
