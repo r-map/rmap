@@ -80,41 +80,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-/*********************************************************************
-* GLOBAL VARIABLE
-*********************************************************************/
-#if (ENABLE_I2C1)
-BinarySemaphore *wireLock;
-#endif
-
-#if (ENABLE_I2C2)
-BinarySemaphore *wire2Lock;
-#endif
-
-Queue *systemRequestQueue;
-Queue *systemResponseQueue;
-
-BinarySemaphore *configurationLock;
-BinarySemaphore *systemStatusLock;
-
-configuration_t configuration;
-system_status_t system_status;
-
-YarrowContext yarrowContext;
-uint8_t seed[SEED_LENGTH];
-
-void init_pins(void);
 void init_wire(void);
 void init_sdcard(void);
-void init_registers(void);
-void init_can(void);
-void init_tasks(void);
-void init_sensors(void);
+void init_rtc(bool init);
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
-bool CAN_HW_Init(void);
-
-void input_pin_encoder_A();
-void input_pin_encoder_B();
-void input_pin_encoder_C();
 
 #endif

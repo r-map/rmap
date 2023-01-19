@@ -35,6 +35,10 @@ using namespace cpp_freertos;
 
 LCDTask::LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t LCDParam) : Thread(taskName, stackSize, priority), param(LCDParam)
 {
+  // Enable Encoder && Display
+  digitalWrite(PIN_ENCODER_EN5, HIGH);
+  digitalWrite(PIN_DSP_POWER, HIGH);
+
   state = LCD_STATE_INIT;
   // Create LCD Access with Param Task
   u8g2 = U8G2_SH1108_128X160_F_FREERTOS_HW_I2C(U8G2_R1, param.wire, param.wireLock);

@@ -55,7 +55,7 @@ void SupervisorTask::Run()
 
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
-      #if(INIT_PARAM)
+      #if(INIT_PARAMETER)
       saveConfiguration(param.configuration, param.configurationLock, CONFIGURATION_DEFAULT);
       #endif
       break;

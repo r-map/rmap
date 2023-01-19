@@ -25,6 +25,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "main.h"
 
+void setup() {
+ 
+  // Semaphore, Queue && Param Config for TASK
+#if (ENABLE_I2C1)
+  static BinarySemaphore *wireLock;       // Access I2C external interface UPIN_27
+#endif
+
+#if (ENABLE_I2C2)
+  static BinarySemaphore *wire2Lock;      // Access I2C internal EEprom, Display
+#endif
+
 #if (ENABLE_CAN)
   static BinarySemaphore *canLock;        // Can BUS
 #endif
@@ -33,32 +44,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
 #endif
 
-  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
+  // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
+  // Data queue (Request / exchange data from Data Task)
+  static Queue *systemRequestQueue;
+  static Queue *systemResponseQueue;
+  //TODO: Data SD WR/RMAP
+  //static Queue *reportDataQueue;
 
+  // System semaphore
+  static BinarySemaphore *configurationLock;  // Access Configuration
+  static BinarySemaphore *systemStatusLock;   // Access System status
+  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
 
-void setup() {
-  // osInitKernel();
+  // System and status configuration struct
+  static configuration_t configuration = {0};
+  static system_status_t system_status = {0};
+
+  // Net Interface
+  static YarrowContext yarrowContext;
+  static uint8_t seed[SEED_LENGTH];
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
-  init_pins();
-  init_tasks();
-  init_sensors();
+  init_rtc(INIT_PARAMETER);
   init_net(&yarrowContext, seed, sizeof(seed));
   // init_sdcard();
-  // init_registers();
-
-  registerAccessLock = new BinarySemaphore(true);
-  #if (ENABLE_CAN)
-  canLock = new BinarySemaphore(true);
-#endif
-#if (ENABLE_QSPI)
-  qspiLock = new BinarySemaphore(true);
-#endif
-
 
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
@@ -76,11 +89,35 @@ void setup() {
   if(IWatchdog.isReset()) {
     delay(50);
     TRACE_INFO_F(F("Verified an WDT Reset...\r\n"));
-    // Optional Save E2 DateTime To Reboot/Restart, Number Of Restart, Number of WDT
     IWatchdog.clearReset();
   }
   IWatchdog.begin(WDT_TIMEOUT_BASE_MS);
 #endif
+
+  // Hardware Semaphore
+#if (ENABLE_I2C1)
+  wireLock = new BinarySemaphore(true);
+#endif
+#if (ENABLE_I2C2)
+  wire2Lock = new BinarySemaphore(true);
+#endif
+#if (ENABLE_CAN)
+  canLock = new BinarySemaphore(true);
+#endif
+#if (ENABLE_QSPI)
+  qspiLock = new BinarySemaphore(true);
+#endif
+  // Software Semaphore
+  configurationLock = new BinarySemaphore(true);
+  systemStatusLock = new BinarySemaphore(true);
+  registerAccessLock = new BinarySemaphore(true);
+
+  // Creating queue
+  systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
+  systemRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(system_request_t));
+  systemResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(system_response_t));
+  //TODO: Data SD WR/RMAP
+  //reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -120,7 +157,7 @@ void setup() {
 
 #if (ENABLE_LCD)
   // TASK LCD DISPLAY PARAM CONFIG
-  LCDParam_t lcdParam = {0};
+  static LCDParam_t lcdParam = {0};
   lcdParam.configuration = &configuration;
   lcdParam.system_status = &system_status;
   lcdParam.configurationLock = configurationLock;
@@ -135,7 +172,7 @@ void setup() {
 
 #if (ENABLE_CAN)
   // TASK CAN PARAM CONFIG
-  CanParam_t canParam = {0};
+  static CanParam_t canParam = {0};
   canParam.configuration = &configuration;
   canParam.system_status = &system_status;
   canParam.configurationLock = configurationLock;
@@ -153,7 +190,7 @@ void setup() {
 #endif
 
  // TASK SUPERVISOR PARAM CONFIG
-  SupervisorParam_t supervisorParam = {0};
+  static SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
 #if (ENABLE_I2C2)
@@ -166,7 +203,7 @@ void setup() {
   supervisorParam.systemResponseQueue = systemResponseQueue;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  ModemParam_t modemParam = {0};
+  static ModemParam_t modemParam = {0};
   modemParam.configuration = &configuration;
   modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
@@ -176,7 +213,7 @@ void setup() {
 #endif
 
 #if (USE_NTP)
-  NtpParam_t ntpParam = {0};
+  static NtpParam_t ntpParam = {0};
   ntpParam.configuration = &configuration;
   ntpParam.system_status = &system_status;
   ntpParam.configurationLock = configurationLock;
@@ -186,7 +223,8 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  HttpParam_t httpParam = {0};
+  
+  static HttpParam_t httpParam = {0};
   httpParam.configuration = &configuration;
   httpParam.system_status = &system_status;
   httpParam.configurationLock = configurationLock;
@@ -196,7 +234,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  MqttParam_t mqttParam = {0};
+  static MqttParam_t mqttParam = {0};
   mqttParam.configuration = &configuration;
   mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
@@ -253,64 +291,41 @@ void setup() {
 // FreeRTOS idleHook callBack to loop
 void loop() {
   // Enable LowPower idleHock reduce power consumption without disable sysTick
-//////////////////////  LowPower.idleHook();
+  #if (USE_LOWPOWER_IDLE_LOOP)
+  LowPower.idleHook();
+  #endif
 }
 
-void init_pins()
-{
-  // Attach interrrupt
-  attachInterrupt(PIN_ENCODER_A, input_pin_encoder_A, CHANGE);
-  attachInterrupt(PIN_ENCODER_B, input_pin_encoder_B, CHANGE);
-  attachInterrupt(PIN_ENCODER_INT, input_pin_encoder_C, CHANGE);
-  // Enable Encoder && Display
-  digitalWrite(PIN_ENCODER_EN5, HIGH);
-  digitalWrite(PIN_DSP_POWER, HIGH);
-}
-
-void init_tasks()
-{
-  memset(&configuration, 0, sizeof(configuration_t));
-  memset(&system_status, 0, sizeof(system_status_t));
-
-  configurationLock = new BinarySemaphore(true);
-  systemStatusLock = new BinarySemaphore(true);
-
-  systemRequestQueue = new Queue(SYSTEM_REQUEST_QUEUE_LENGTH, sizeof(system_request_t));
-  systemResponseQueue = new Queue(SYSTEM_RESPONSE_QUEUE_LENGTH, sizeof(system_response_t));
-}
-
-void init_sensors()
-{
-}
-
+// Setup Wire I2C Interface
 void init_wire()
 {
 #if (ENABLE_I2C1)
   Wire.begin();
   Wire.setClock(I2C1_BUS_CLOCK_HZ);
-  wireLock = new BinarySemaphore(true);
 #endif
 
 #if (ENABLE_I2C2)
   Wire2.begin();
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
-  wire2Lock = new BinarySemaphore(true);
 #endif
 }
 
-void input_pin_encoder_A()
+// Setup RTC HW && LowPower Class STM32
+void init_rtc(bool init)
 {
-  TRACE_DEBUG_F(F("ENC_A Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
-}
-
-void input_pin_encoder_B()
-{
-  TRACE_DEBUG_F(F("ENC_B Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
-}
-
-void input_pin_encoder_C()
-{
-  TRACE_DEBUG_F(F("ENC_ENT Event: %d %d %d\r\n"), digitalRead(PIN_ENCODER_A), digitalRead(PIN_ENCODER_B), digitalRead(PIN_ENCODER_INT));
+  // Init istance to STM RTC object
+  STM32RTC& rtc = STM32RTC::getInstance();
+  // Select RTC clock source: LSE_CLOCK (First Istance)
+  rtc.setClockSource(STM32RTC::LSE_CLOCK);
+  rtc.begin(); // initialize RTC 24H format
+  // Set the time if requireq to Reset value
+  if(init) {
+    // Set the date && Time Init Value
+    rtc.setHours(0);rtc.setMinutes(0);rtc.setSeconds(0);
+    rtc.setWeekDay(0);rtc.setDay(1);rtc.setMonth(1);rtc.setYear(23);
+  }
+  // Start LowPower configuration
+  LowPower.begin();
 }
 
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)

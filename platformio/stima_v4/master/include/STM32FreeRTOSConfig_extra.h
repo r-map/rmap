@@ -4,6 +4,8 @@
 // Enable for use LowPower
 #define _USE_FREERTOS_LOW_POWER
 
+#define USE_LOWPOWER_IDLE_LOOP      (false)
+
 // Enable For Exit Immediate from LowPower (Using for Debug)
 #define _EXIT_SLEEP_FOR_DEBUGGING
 
@@ -15,7 +17,7 @@
 // Define For LowPower Method
 #ifdef _USE_FREERTOS_LOW_POWER
 
-#ifdef _EXIT_SLEEP_FOR_DEBUGGING
+#ifdef _EXIT_SLEEP_FOR_DEBUGGING    
     #define LOWPOWER_MODE   SLEEP_NONE
 #else
     #define LOWPOWER_MODE   SLEEP_STOP2
