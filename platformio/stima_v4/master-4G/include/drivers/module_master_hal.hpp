@@ -195,6 +195,8 @@ extern CAN_HandleTypeDef hcan1;
 // *****************************
 
 // PIN NAMED STM32CUBE GPIO_INIT
+#define GSM_RingInd_Pin   GPIO_PIN_10
+#define GSM_RING_Port     GPIOA
 
 #define DISPLAY_Power_Pin       GPIO_PIN_11
 #define DISPLAY_Power_GPIO_Port GPIOB
@@ -213,9 +215,8 @@ extern CAN_HandleTypeDef hcan1;
 #define MMC1_Detect_Pin   GPIO_PIN_7
 #define MMC1_GPIO_Port    GPIOC
 
-#define GSM_RingInd_Pin   GPIO_PIN_2
-#define GSM_PowerEn_Pin   GPIO_PIN_4
-#define GSM_PowerKey_Pin  GPIO_PIN_5
+#define GSM_PowerEn_Pin   GPIO_PIN_11
+#define GSM_PowerKey_Pin  GPIO_PIN_12
 #define GSM_GPIO_Port     GPIOD
 
 // ******************************************************************************

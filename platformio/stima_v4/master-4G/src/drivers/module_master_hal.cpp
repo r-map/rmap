@@ -552,6 +552,11 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* Ring Indicator NoPull */
+  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   // ********** SETUP Port B *************
  
@@ -577,12 +582,6 @@ void MX_GPIO_Init(void)
   /* PowerKey && PowerGsm OUT */
   GPIO_InitStruct.Pin = GSM_PowerEn_Pin|GSM_PowerKey_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /* Ring Indicator NoPull */
-  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   #if (ENABLE_SIM7600E)

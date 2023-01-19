@@ -25,8 +25,8 @@
   * <http://www.gnu.org/licenses/>.
   * 
   ******************************************************************************
-  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+*/
+
 #ifndef __AT25SF641_H
 #define __AT25SF641_H
 

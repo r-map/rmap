@@ -125,9 +125,9 @@ void setup() {
 #endif
 
   static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
-  static SupervisorTask supervisor_task("SupervisorTask", 100, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_02, supervisorParam);
 
-  static LCDTask lcd_task("LcdTask", 100, OS_TASK_PRIORITY_01, lcdParam);
+  static LCDTask lcd_task("LcdTask", 400, OS_TASK_PRIORITY_01, lcdParam);
 
 #if (ENABLE_CAN)
   static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);

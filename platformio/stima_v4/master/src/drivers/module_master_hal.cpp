@@ -43,24 +43,11 @@ TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 #if (ENABLE_CAN)
 CAN_HandleTypeDef hcan1;
 #endif
-#ifdef _HW_SETUP_CRC_PRIVATE
-CRC_HandleTypeDef hcrc;
-#endif
-#ifdef _HW_SETUP_LPTIM_PRIVATE
-LPTIM_HandleTypeDef hlptim1;
-#endif
+
 #if (ENABLE_QSPI)
 QSPI_HandleTypeDef hqspi;
 #endif
-#ifdef _HW_SETUP_RNG_PRIVATE
-RNG_HandleTypeDef hrng;
-#endif
-#ifdef _HW_SETUP_SD_PRIVATE
-SD_HandleTypeDef hsd1;
-#endif
-#ifdef _HW_SETUP_UART2_PRIVATE
-UART_HandleTypeDef huart2;
-#endif
+
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
 // ********************************************************************************************
@@ -552,6 +539,11 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* Ring Indicator NoPull */
+  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   // ********** SETUP Port B *************
  
@@ -579,12 +571,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /* Ring Indicator NoPull */
-  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
   #if (ENABLE_SIM7600E)
   /** USART2 GPIO Configuration to 7600E
     PD5     ------> USART2_TX
@@ -599,8 +585,8 @@ void MX_GPIO_Init(void)
   #endif
 
   /* Unused PDx (esclude UPIN27) */
-  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10
+                          |GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -725,109 +711,6 @@ extern "C" void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 }
 #endif
 
-#ifdef _HW_MSP_CRC_PRIVATE
-/**
-* @brief CRC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-extern "C" void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspInit 0 */
-
-  /* USER CODE END CRC_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_CRC_CLK_ENABLE();
-  /* USER CODE BEGIN CRC_MspInit 1 */
-
-  /* USER CODE END CRC_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief CRC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-extern "C" void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspDeInit 0 */
-
-  /* USER CODE END CRC_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_CRC_CLK_DISABLE();
-  /* USER CODE BEGIN CRC_MspDeInit 1 */
-
-  /* USER CODE END CRC_MspDeInit 1 */
-  }
-
-}
-#endif
-
-#ifdef _HW_MSP_LPTIM_PRIVATE
-/**
-* @brief LPTIM MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hlptim: LPTIM handle pointer
-* @retval None
-*/
-extern "C" void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(hlptim->Instance==LPTIM1)
-  {
-  /* USER CODE BEGIN LPTIM1_MspInit 0 */
-
-  /* USER CODE END LPTIM1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPTIM1;
-    PeriphClkInit.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSE;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_LPTIM1_CLK_ENABLE();
-  /* USER CODE BEGIN LPTIM1_MspInit 1 */
-
-  /* USER CODE END LPTIM1_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief LPTIM MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hlptim: LPTIM handle pointer
-* @retval None
-*/
-extern "C" void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim)
-{
-  if(hlptim->Instance==LPTIM1)
-  {
-  /* USER CODE BEGIN LPTIM1_MspDeInit 0 */
-
-  /* USER CODE END LPTIM1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_LPTIM1_CLK_DISABLE();
-  /* USER CODE BEGIN LPTIM1_MspDeInit 1 */
-
-  /* USER CODE END LPTIM1_MspDeInit 1 */
-  }
-
-}
-#endif
-
 #if (ENABLE_QSPI)
 /**
 * @brief QSPI MSP Initialization
@@ -918,241 +801,4 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
   }
 
 }
-#endif
-
-#ifdef _HW_MSP_RNG_PRIVATE
-/**
-* @brief RNG MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hrng: RNG handle pointer
-* @retval None
-*/
-extern "C" void HAL_RNG_MspInit(RNG_HandleTypeDef* hrng)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(hrng->Instance==RNG)
-  {
-  /* USER CODE BEGIN RNG_MspInit 0 */
-
-  /* USER CODE END RNG_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RNG;
-    PeriphClkInit.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_RNG_CLK_ENABLE();
-  /* USER CODE BEGIN RNG_MspInit 1 */
-
-  /* USER CODE END RNG_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief RNG MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hrng: RNG handle pointer
-* @retval None
-*/
-extern "C" void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng)
-{
-  if(hrng->Instance==RNG)
-  {
-  /* USER CODE BEGIN RNG_MspDeInit 0 */
-
-  /* USER CODE END RNG_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_RNG_CLK_DISABLE();
-  /* USER CODE BEGIN RNG_MspDeInit 1 */
-
-  /* USER CODE END RNG_MspDeInit 1 */
-  }
-
-}
-#endif
-
-#ifdef _HW_MSP_SD_PRIVATE
-/**
-* @brief SD MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hsd: SD handle pointer
-* @retval None
-*/
-extern "C" void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(hsd->Instance==SDMMC1)
-  {
-  /* USER CODE BEGIN SDMMC1_MspInit 0 */
-
-  /* USER CODE END SDMMC1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SDMMC1;
-    PeriphClkInit.Sdmmc1ClockSelection = RCC_SDMMC1CLKSOURCE_HSI48;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_SDMMC1_CLK_ENABLE();
-
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**SDMMC1 GPIO Configuration
-    PC8     ------> SDMMC1_D0
-    PC9     ------> SDMMC1_D1
-    PC10     ------> SDMMC1_D2
-    PC11     ------> SDMMC1_D3
-    PC12     ------> SDMMC1_CK
-    PD2     ------> SDMMC1_CMD
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN SDMMC1_MspInit 1 */
-
-  /* USER CODE END SDMMC1_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief SD MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hsd: SD handle pointer
-* @retval None
-*/
-extern "C" void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
-{
-  if(hsd->Instance==SDMMC1)
-  {
-  /* USER CODE BEGIN SDMMC1_MspDeInit 0 */
-
-  /* USER CODE END SDMMC1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_SDMMC1_CLK_DISABLE();
-
-    /**SDMMC1 GPIO Configuration
-    PC8     ------> SDMMC1_D0
-    PC9     ------> SDMMC1_D1
-    PC10     ------> SDMMC1_D2
-    PC11     ------> SDMMC1_D3
-    PC12     ------> SDMMC1_CK
-    PD2     ------> SDMMC1_CMD
-    */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12);
-
-    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
-
-  /* USER CODE BEGIN SDMMC1_MspDeInit 1 */
-
-  /* USER CODE END SDMMC1_MspDeInit 1 */
-  }
-
-}
-#endif
-
-#ifdef _HW_MSP_UART2_PRIVATE
-/**
-* @brief UART MSP Initialization
-* This function configures the hardware resources used in this example
-* @param huart: UART handle pointer
-* @retval None
-*/
-extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(huart->Instance==USART2)
-  {
-  /* USER CODE BEGIN USART2_MspInit 0 */
-
-  /* USER CODE END USART2_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
-    PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_USART2_CLK_ENABLE();
-
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**USART2 GPIO Configuration
-    PD3     ------> USART2_CTS
-    PD4     ------> USART2_RTS
-    PD5     ------> USART2_TX
-    PD6     ------> USART2_RX
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN USART2_MspInit 1 */
-
-  /* USER CODE END USART2_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief UART MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param huart: UART handle pointer
-* @retval None
-*/
-extern "C" void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
-{
-  if(huart->Instance==USART2)
-  {
-  /* USER CODE BEGIN USART2_MspDeInit 0 */
-
-  /* USER CODE END USART2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_USART2_CLK_DISABLE();
-
-    /**USART2 GPIO Configuration
-    PD3     ------> USART2_CTS
-    PD4     ------> USART2_RTS
-    PD5     ------> USART2_TX
-    PD6     ------> USART2_RX
-    */
-    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
-
-  /* USER CODE BEGIN USART2_MspDeInit 1 */
-
-  /* USER CODE END USART2_MspDeInit 1 */
-  }
-}
-
 #endif

@@ -26,9 +26,11 @@
   * 
   ******************************************************************************
 */
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "drivers/module_master_hal.hpp"
+#include "STM32LowPower.h"
 
 // /*******************************************************************************************
 // ********************************************************************************************
@@ -41,17 +43,40 @@
 /// @brief Prepara il sistema allo Sleep (OFF Circuirterie ed entrata in PowerDown)
 /// @param xExpectedIdleTime Ticks RTOS (ms) attesi per la funzione di Sleep
 extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
-   #ifdef _EXIT_SLEEP_FOR_DEBUGGING
-   // Imposto 0 al tempo di attesa Idle e comunica a FreeRTOS
-   // Di non entrare nello stato Sleep
-   *xExpectedIdleTime = 0;
-   #endif
+  #if (LOWPOWER_MODE==SLEEP_IDLE)
+    LowPower.idle(*xExpectedIdleTime);
+  #elif (LOWPOWER_MODE==SLEEP_LOWPOWER)
+    LowPower.sleep(*xExpectedIdleTime - 10);
+  #elif (LOWPOWER_MODE==SLEEP_STOP2)
+    LowPower.deepSleep(*xExpectedIdleTime - 10);
+  #else
+  *xExpectedIdleTime = 0;
+  #endif
 }
 
 /// @brief Riattiva il sistema dopo lo Sleep (Riattivazione perifieriche, Clock ecc...)
 /// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
-extern "C" void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime) {
+extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
 }
+
+
+// Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
+// Is Need to redefined weak void __attribute__((weak)) osSystickHandler(void)
+// Note FROM Freertos_Config.h 
+/*
+ * IMPORTANT:
+ * SysTick_Handler() from stm32duino core is calling weak osSystickHandler().
+ * Both CMSIS-RTOSv2 and CMSIS-RTOS override osSystickHandler() 
+ * which is calling xPortSysTickHandler(), defined in respective CortexM-x port
+*/
+#if ( configUSE_TICKLESS_IDLE == 2 )
+extern "C" void osSystickHandler()
+{
+  // osSystickHandler CallBack UNUSED for LPTIM1 IRQ Set Increment of OsTickHadler
+  // Optional User Code about osSystickHandler Private Here
+  // ...
+}
+#endif
 
 #endif
 
@@ -97,14 +122,15 @@ static void faultStimaV4(int n) {
   \param[in] pcTaskName Task name
   */
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
+  // Use Serial.print direct for prevent Malloc from RTOS (ISR Malloc ASSERT Error)
+  Serial.print("Error stack overflow form task: ");
+  Serial.print(pcTaskName);
+  Serial.flush();
   (void) pcTaskName;
   (void) pxTask;
   faultStimaV4(3);
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
-
-// Exception Internal
-volatile uint32_t exceptionInt = 0;
 
 //------------------------------------------------------------------------------
 // catch exceptions
@@ -115,9 +141,8 @@ extern "C" void hard_fault_isr() {
 }
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void HardFault_Handler() {
-  exceptionInt++;
   faultStimaV4(4);
-  NVIC_SystemReset();
+  //NVIC_SystemReset();
 }
 
 /** Bus fault - blink five short flashes every two seconds */
@@ -137,5 +162,3 @@ extern "C" void usage_fault_isr() {
 extern "C" void UsageFault_Handler() {
   faultStimaV4(6);
 }
-
-// #endif
