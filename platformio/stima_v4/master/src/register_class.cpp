@@ -87,7 +87,7 @@ EERegister::EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_add
 /// @param data data to write
 /// @param len packet len
 void EERegister::_memory_write_block(uint16_t address, uint8_t *data, uint8_t len) {
-   _Eprom.Write(address, data, len);
+    _Eprom.Write(address, data, len);
 }
 
 /// @brief Wrapper memory_read_block
@@ -330,23 +330,19 @@ uint8_t EERegister::_eeprom_register_add(uint8_t *reg_name, uint8_t *data, size_
 
 /// @brief Check if exist or create space register with init default value
 /// @param register_init (true, perform an init to default value)
-void EERegister::setup(const bool register_init)
+void EERegister::setup(void)
 {
-    if(register_init) {
-        // Init AREA E2PROM
-        _eeprom_register_factory();
-    }
+    // Init AREA E2PROM
+    _eeprom_register_factory();
+
     // Open Register in Write se non inizializzati correttamente...
     // Populate INIT Default Value
-    uavcan_register_Value_1_0 val = {0};
+    static uavcan_register_Value_1_0 val = {0};
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
-    if(register_init) {
-        write("uavcan.can.mtu", &val);
-    } else {
-        read("uavcan.can.mtu", &val);
-    }
+    write("uavcan.can.mtu", &val);
+
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
     // TODO: Default a CAN_BIT_RATE, se CAN_BIT_RATE <> readRegister setup bxCAN con nuovo RATE hot reload
@@ -354,19 +350,40 @@ void EERegister::setup(const bool register_init)
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
-    if(register_init) {
-        write("uavcan.can.bitrate", &val);
-    } else {
-        read("uavcan.can.bitrate", &val);
-    }
+    write("uavcan.can.bitrate", &val);
 
     // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
-    if(register_init) {
-        uavcan_register_Value_1_0_select_natural16_(&val);
-        val.natural16.value.count       = 1;
-        val.natural16.value.elements[0] = 100;
-        write("uavcan.srv.TH.service_data_and_metadata.id", &val);
-    }
+
+    // Node ID
+    #ifdef NODE_SLAVE_ID
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count = 1;
+    val.natural16.value.elements[0] = NODE_SLAVE_ID; // This means undefined (anonymous), per Specification/libcanard.
+    write("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+    #endif
+
+    // Service RMAP
+    #ifdef PORT_SERVICE_RMAP
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count       = 1;
+    val.natural16.value.elements[0] = PORT_SERVICE_RMAP;
+    write("uavcan.srv.TH.service_data_and_metadata.id", &val);
+    #endif
+
+    // Publish RMAP
+    #ifdef SUBJECTID_PUBLISH_RMAP
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count       = 1;
+    val.natural16.value.elements[0] = SUBJECTID_PUBLISH_RMAP;
+    write("uavcan.pub.TH.data_and_metadata.id", &val);
+    #endif
+
+    // The description register is optional but recommended because it helps constructing/maintaining large networks.
+    // It simply keeps a human-readable description of the node that should be empty by default.
+    uavcan_register_Value_1_0_select_string_(&val);
+    val._string.value.count = strlen(NODE_DESCRIPTION);
+    memcpy(val._string.value.elements, NODE_DESCRIPTION, val._string.value.count);
+    write("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
 }
 
 /// @brief Legge un registro Cypal/Uavcan wrapper UAVCAN 
@@ -381,15 +398,10 @@ void EERegister::read(const char* const register_name, uavcan_register_Value_1_0
     uint8_t serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
     size_t sr_size = _eeprom_register_get_from_name((const uint8_t*)register_name, &register_number, serialized);
     
-    uavcan_register_Value_1_0 out = {0};
+    static uavcan_register_Value_1_0 out = {0};
     const int8_t err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
-    if (err >= 0) {
-        init_required = !assign(inout_value, &out);
-    }
-    if (init_required) {
-        printf("Init register: %s\n", register_name);
-        write(register_name, inout_value);
-    }
+    if (err >= 0) init_required = !assign(inout_value, &out);
+    if (init_required) write(register_name, inout_value);
 }
 
 /// @brief Scrive un registro Cypal/Uavcan wrapper UAVCAN
@@ -401,6 +413,7 @@ void EERegister::write(const char* const register_name, const uavcan_register_Va
     const int8_t err = uavcan_register_Value_1_0_serialize_(value, serialized, &sr_size);
     uint8_t register_index = _eeprom_register_get_index_from_name((uint8_t*) register_name);
     if(register_index == MEM_UAVCAN_REG_UNDEF) {
+        printf("Init register: %s\n", register_name);
         _eeprom_register_add((uint8_t*) register_name, serialized, sr_size);
     } else {
         _eeprom_register_set(register_index, (uint8_t*) register_name, serialized, sr_size);
@@ -443,8 +456,7 @@ uavcan_register_Name_1_0 EERegister::getNameByIndex(const uint16_t index) {
 /// @brief Set factoryReset Register UAVCAN
 /// @param  None
 void EERegister::doFactoryReset(void) {
-    _eeprom_register_factory();
-    setup(true);
+    setup();
 }
 
 /// @brief Register type Assign UAVCAN

@@ -25,6 +25,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "main.h"
 
+#if (ENABLE_CAN)
+  static BinarySemaphore *canLock;        // Can BUS
+#endif
+
+#if (ENABLE_QSPI)
+  static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
+#endif
+
+  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
+  static Queue *systemMessageQueue;
+
+
 void setup() {
   // osInitKernel();
 
@@ -39,11 +51,76 @@ void setup() {
   // init_sdcard();
   // init_registers();
 
+  registerAccessLock = new BinarySemaphore(true);
+  #if (ENABLE_CAN)
+  canLock = new BinarySemaphore(true);
+#endif
+#if (ENABLE_QSPI)
+  qspiLock = new BinarySemaphore(true);
+#endif
+
+
+  // Init SystemStatus Parameter !=0 ... For Check control Value
+  // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
+  // TOTAL_INFO_TASK Number of Task checked
+#if (ENABLE_STACK_USAGE)
+  for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
+  {
+    system_status.tasks[id].stack = 0xFFFFu;
+  }
+#endif
+
+#if (ENABLE_WDT)
+  // Init the watchdog timer WDT_TIMEOUT_BASE_MS mseconds timeout (only control system)
+  // Wdt Task Reset the value after All Task reset property single Flag
+  if(IWatchdog.isReset()) {
+    delay(50);
+    TRACE_INFO_F(F("Verified an WDT Reset...\r\n"));
+    // Optional Save E2 DateTime To Reboot/Restart, Number Of Restart, Number of WDT
+    IWatchdog.clearReset();
+  }
+  IWatchdog.begin(WDT_TIMEOUT_BASE_MS);
+#endif
+
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
-  ProvaParam_t provaParam = {};
+  // ***************************************************************
+  //                  Setup parameter for Task
+  // ***************************************************************
 
-  LCDParam_t lcdParam;
+#if (ENABLE_I2C2)
+  // Load Info from E2 boot_check flag and send to Config
+  EEprom  memEprom(&Wire2, wire2Lock);
+  bootloader_t boot_check = {0};
+  #if INIT_PARAMETER
+  boot_check.app_executed_ok = true;
+  boot_check.version = MODULE_MAIN_VERSION;
+  boot_check.revision = MODULE_MINOR_VERSION;
+  #ifdef NODE_SERIAL_NUMBER
+  configuration.board_master.serial_number = NODE_SERIAL_NUMBER;
+  memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  #endif
+  #else
+  memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  configuration.board_master.serial_number = boot_check.serial_number;
+  #endif
+  // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
+#endif
+
+#if (ENABLE_WDT)
+  // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
+  static WdtParam_t wdtParam = {0};
+  wdtParam.system_status = &system_status;
+  wdtParam.systemStatusLock = systemStatusLock;
+#if (ENABLE_I2C2)
+  wdtParam.wire = &Wire2;
+  wdtParam.wireLock = wire2Lock;
+#endif
+#endif
+
+#if (ENABLE_LCD)
+  // TASK LCD DISPLAY PARAM CONFIG
+  LCDParam_t lcdParam = {0};
   lcdParam.configuration = &configuration;
   lcdParam.system_status = &system_status;
   lcdParam.configurationLock = configurationLock;
@@ -54,24 +131,29 @@ void setup() {
   lcdParam.wire = &Wire2;
   lcdParam.wireLock = wire2Lock;
 #endif
+#endif
 
 #if (ENABLE_CAN)
-  CanParam_t canParam;
+  // TASK CAN PARAM CONFIG
+  CanParam_t canParam = {0};
   canParam.configuration = &configuration;
   canParam.system_status = &system_status;
   canParam.configurationLock = configurationLock;
   canParam.systemStatusLock = systemStatusLock;
-  canParam.systemRequestQueue = systemRequestQueue;
-  canParam.systemResponseQueue = systemResponseQueue;
+  canParam.registerAccessLock = registerAccessLock;
+  canParam.systemMessageQueue = systemMessageQueue;
   // canParam.requestDataQueue = requestDataQueue;
   // canParam.reportDataQueue = reportDataQueue;
+  canParam.canLock = canLock;  
+  canParam.qspiLock = qspiLock;  
 #if (ENABLE_I2C2)
   canParam.wire = &Wire2;
   canParam.wireLock = wire2Lock;
 #endif
 #endif
 
-  SupervisorParam_t supervisorParam;
+ // TASK SUPERVISOR PARAM CONFIG
+  SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
 #if (ENABLE_I2C2)
@@ -84,7 +166,7 @@ void setup() {
   supervisorParam.systemResponseQueue = systemResponseQueue;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  ModemParam_t modemParam;
+  ModemParam_t modemParam = {0};
   modemParam.configuration = &configuration;
   modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
@@ -94,7 +176,7 @@ void setup() {
 #endif
 
 #if (USE_NTP)
-  NtpParam_t ntpParam;
+  NtpParam_t ntpParam = {0};
   ntpParam.configuration = &configuration;
   ntpParam.system_status = &system_status;
   ntpParam.configurationLock = configurationLock;
@@ -104,7 +186,7 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  HttpParam_t httpParam;
+  HttpParam_t httpParam = {0};
   httpParam.configuration = &configuration;
   httpParam.system_status = &system_status;
   httpParam.configurationLock = configurationLock;
@@ -114,7 +196,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  MqttParam_t mqttParam;
+  MqttParam_t mqttParam = {0};
   mqttParam.configuration = &configuration;
   mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
@@ -124,10 +206,21 @@ void setup() {
   mqttParam.yarrowContext = &yarrowContext;
 #endif
 
-  static ProvaTask prova_task("ProvaTask", 100, OS_TASK_PRIORITY_01, provaParam);
+  #if INIT_PARAMETER
+  // Reset Factory register value
+  EERegister initRegister(&Wire2, wire2Lock);
+  initRegister.doFactoryReset();
+  #endif
+
+  // *****************************************************************************
+  // Startup Task, Supervisor as first for Loading parameter generic configuration
+  // *****************************************************************************
+
   static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_02, supervisorParam);
 
+#if (ENABLE_LCD)
   static LCDTask lcd_task("LcdTask", 400, OS_TASK_PRIORITY_01, lcdParam);
+#endif
 
 #if (ENABLE_CAN)
   static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
@@ -149,11 +242,18 @@ void setup() {
   static MqttTask mqtt_task("MqttTask", 600, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
+#if (ENABLE_WDT)
+  static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_01, wdtParam);
+#endif
+
   // Startup Schedulher
   Thread::StartScheduler();
 }
 
+// FreeRTOS idleHook callBack to loop
 void loop() {
+  // Enable LowPower idleHock reduce power consumption without disable sysTick
+//////////////////////  LowPower.idleHook();
 }
 
 void init_pins()

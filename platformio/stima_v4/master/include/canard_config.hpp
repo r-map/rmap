@@ -27,8 +27,9 @@
   ******************************************************************************
 */
 
-// Assert Locali
+// Assert Locali (Enable / disable)
 #define LOCAL_ASSERT    assert
+// #define LOCAL_ASSERT    (void(0));
 
 #define KILO 1000L
 #define MEGA ((int64_t)KILO * KILO)
@@ -50,22 +51,25 @@
 #define CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC 3500000UL
 #define CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC     2500000UL
 
-// A compilazione per semplificazione setup nodo (TEST)
-// #define INIT_REGISTER
+// Nodi Fissi per Moduli Master e Yakut
+#define NODE_YAKUT_ID   127
+#define NODE_MASTER_ID  100
+
+// Parametri default per Modulo Master (INIT_PARAMETER) Servizi futuri...
+#define PORT_SERVICE_MASTER 100
+#define SUBJECTID_PUBLISH_MASTER 2100
 
 // Utilizza metodo di sottoscrizione al publisher per acceso ai dati slave remoti
 // Opzionale se non utilizzata per il popolamento di dati come ad. esempio display
 // Sempre attiva invece sui nodi slave per accesso con tool esterni di debug (Yakut)
 #define USE_SUB_PUBLISH_SLAVE_DATA
 
-// Nodo Fisso per Modulo Master
-#define NODE_MASTER_ID 100
 // Numero di nodi massimo da collegare al MASTER
 #define MAX_NODE_CONNECT 8
 
 // SET Default value per risposte
-#define GENERIC_STATE_UNDEFINED 0x0F
-#define GENERIC_BVAL_UNDEFINED  0xFF
+#define GENERIC_STATE_UNDEFINED 0x0Fu
+#define GENERIC_BVAL_UNDEFINED  0xFFu
 
 // Servizi di default
 #define DEFAULT_PUBLISH_PORT_LIST true

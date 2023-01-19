@@ -42,7 +42,9 @@ typedef struct
    uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
    uint8_t can_port_id;             //!< port for uavcan services
    uint8_t can_publish_id;          //!< port for uavcan data publication
-} sensor_configuration_t;
+   uint32_t serial_number;          //!< Serial number of board (Used from slave for PnP Assign...)
+   // uint8_t module_type;             //!< module type (optional also present in unique_id...)
+} board_configuration_t;
 
 typedef struct
 {
@@ -50,8 +52,8 @@ typedef struct
    uint8_t module_minor_version;                         //!< module minor version
    uint8_t configuration_version;                        //!< module configuration version
    uint8_t module_type;                                  //!< module type
-   uint8_t sensors_count;                                //!< number of configured sensors
-   sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
+   board_configuration_t board_master;                   //!< board configurations local (Master)
+   board_configuration_t board_slave[BOARDS_COUNT_MAX];  //!< board configurations remote (Slave)
    uint16_t observation_s;                               //!< observations time in seconds
    uint16_t report_s;                                    //!< report time in seconds
 
@@ -91,12 +93,31 @@ typedef struct
    #endif
 
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-   char gsm_apn[GSM_APN_LENGTH];                //!< gsm number
-   char gsm_number[GSM_NUMBER_LENGTH];          //!< gsm apn
+   char gsm_apn[GSM_APN_LENGTH];                //!< gsm apn
+   char gsm_number[GSM_NUMBER_LENGTH];          //!< gsm number
    char gsm_username[GSM_USERNAME_LENGTH];      //!< gsm username
    char gsm_password[GSM_PASSWORD_LENGTH];      //!< gsm password
    #endif
 } configuration_t;
+
+// WatchDog Flag type
+enum wdt_flag {
+   clear    = 0,
+   set      = 1,
+   rest     = 2
+};
+
+// Task Info structure
+#define RUNNING_START    1
+#define RUNNING_EXEC     2
+typedef struct
+{
+   wdt_flag watch_dog;  // WatchDog of Task
+   uint16_t stack;      // Stack Max Usage Monitor
+   bool is_sleep;       // Long sleep Task
+   bool is_suspend;     // Suspend Task
+   uint8_t running_pos; // !=0 Task Started, 1=Start, 2=Running, XX=User State LOG SW Position
+} task_t;
 
 typedef struct
 {
@@ -105,6 +126,9 @@ typedef struct
       uint32_t system_time;
       uint32_t next_ptr_time_for_sensors_reading;
    } datetime;
+
+   // Info Task && WDT
+   task_t tasks[TOTAL_INFO_TASK];
 
    struct
    {
@@ -196,5 +220,39 @@ typedef struct
 
    uint16_t number_of_mqtt_data_sent;
 } system_response_t;
+
+
+// System message for queue
+typedef struct
+{
+   uint8_t task_dest;
+   struct
+   {
+      uint8_t do_init    : 1;
+      uint8_t do_load    : 1;
+      uint8_t do_save    : 1;
+      uint8_t do_inibith : 1;   // Request inibith sleep (system_status)
+      uint8_t do_maint   : 1;   // Request maintenance (system_status)
+      uint8_t do_sleep   : 1;   // Optional param for difference level Sleep
+      uint8_t do_cmd     : 1;   // Using param to determine type of message command
+      uint8_t done_cmd   : 1;   // Using param to determine type of message response
+   } command;
+   uint32_t param;   // 32 Bit for generic data or casting to pointer
+
+} system_message_t;
+
+// Backup && Upload Firmware TypeDef
+typedef struct
+{
+  bool request_upload;
+  bool backup_executed;
+  bool upload_executed;
+  bool rollback_executed;
+  bool app_executed_ok;
+  uint8_t upload_error;
+  uint8_t version;
+  uint8_t revision;
+  uint32_t serial_number;
+} bootloader_t;
 
 #endif

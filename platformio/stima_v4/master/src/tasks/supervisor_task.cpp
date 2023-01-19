@@ -406,7 +406,7 @@ void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySe
       TRACE_INFO_F(F("--> cd %d:/t%s : %s"), i, configuration->constantdata[i].btable, configuration->constantdata[i].value);
     }
 
-    TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
+    // TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
 
     // for (uint8_t i = 0; i < configuration->sensors_count; i++)
     // {

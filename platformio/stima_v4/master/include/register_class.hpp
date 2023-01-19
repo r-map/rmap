@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    register_class.cpp
+  * @file    register_class.hpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Register class (Uavcan/Other) header file
   ******************************************************************************
@@ -40,10 +40,10 @@
 //               E2PROM STIMAV4 STM32 REGISTER ACCESS LOCATION AND SIZE CONFIG
 // ***************************************************************************************
 
-// Start Address BASE UAVCAN/CYPAL Register
+// Start Address BASE UAVCAN/CYPAL Register (128 Bytes x Register)
 #define MEM_UAVCAN_LEN                      EEPROMSIZE
 #define MEM_UAVCAN_ADDR_START               REGISTER_EEPROM_ADDRESS
-#define MEM_UAVCAN_MAX_REG                  50u
+#define MEM_UAVCAN_MAX_REG                  55u
 #define MEM_UAVCAN_LEN_SIZE_T_REG           1u
 #define MEM_UAVCAN_LEN_INTEST_REG           60u
 #define MEM_UAVCAN_LEN_VALUE_REG            66u
@@ -79,8 +79,10 @@ public:
   EERegister();
   EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address = EEPROM_AT24C64_DEFAULT_ADDRESS);
 
-  // (Re)Inizializza lo spazio RAM/ROM/FLASH/SD dei registri se non già inizializzato, ai valori di default
-  void setup(const bool register_init);
+  // Inizializza lo spazio RAM/ROM/FLASH/SD dei registri, ai valori di default
+  // N.B.! Azzera tutti registri e quelli non inizializzati devono essere impostati
+  // nel relativo modulo di utilizzo
+  void setup(void);
 
   /// Reads the specified register from the persistent storage into `inout_value`.
   /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,

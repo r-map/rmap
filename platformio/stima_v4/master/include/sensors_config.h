@@ -396,4 +396,12 @@ unique sensors are sensors that can have more driver but only one i2c address an
 */
 #define SENSORS_UNIQUE_MAX                    (1)
 
+
+/*!
+\def BOARDS_COUNT_MAX
+\brief Max number of unique boards present.
+boards are module CAN UAVCAN that have sensor on board
+*/
+#define BOARDS_COUNT_MAX                      (8)
+
 #endif

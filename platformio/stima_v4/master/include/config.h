@@ -59,15 +59,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
+#define ENABLE_LCD            (true)
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+
+// Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
+#define ENABLE_WDT            (true)
+#define WDT_TIMEOUT_BASE_MS   (8000000)
+#define ENABLE_STACK_USAGE    (true)
 
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (true)
 
-#define CONFIGURATION_EEPROM_ADDRESS (0)
+// Address EEProm for reserved bootloader flag param (and future used 1Kb)
+#define START_EEPROM_ADDRESS           (0)
+#define SIZE_EEPROM_RESERVED           (1024)
+#define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
+#define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
+#define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
+// Start Standard UAVCAN Register
+#define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
 
-#define SERIAL_DEBUG_BAUD_RATE   (115200)
+// Private configuration board direct
+#define CONFIGURATION_EEPROM_ADDRESS   (BOOT_LOADER_STRUCT_END)
+
+// Monitor Serial speed
+#define SERIAL_DEBUG_BAUD_RATE         (115200)
 
 #define PPP0_INTERFACE_NAME      ("ppp0")
 #define ETH0_INTERFACE_NAME      ("eth0")
@@ -98,10 +115,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (ENABLE_I2C1)
 #define I2C1_BUS_CLOCK_HZ (100000L)
 #endif
-
 #if (ENABLE_I2C2)
 #define I2C2_BUS_CLOCK_HZ (100000L)
 #endif
+
+#if (ENABLE_I2C1)
+#define I2C1_BUS_CLOCK_HZ (100000L)
+#endif
+#if (ENABLE_I2C2)
+#define I2C2_BUS_CLOCK_HZ (100000L)
+#endif
+
+// Queue Lenght
+#define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
+#define REQUEST_DATA_QUEUE_LENGTH   (1)
+#define RESPONSE_DATA_QUEUE_LENGTH  (1)
+
+// Task system_status and queue ID message
+#define ALL_TASK_ID                 (99)      // Send message to ALL Task
+#define SUPERVISOR_TASK_ID          (0)       // Send message to specific task..
+#define LCD_TASK_ID                 (1)
+#define CAN_TASK_ID                 (2)
+#define MODEM_TASK_ID               (3)
+#define NTP_TASK_ID                 (4)
+#define HTTP_TASK_ID                (5)
+#define MQTT_TASK_ID                (6)
+#define WDT_TASK_ID                 (7)
+#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 /*!
 \def USE_CONSTANTDATA_COUNT

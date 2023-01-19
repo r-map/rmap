@@ -31,6 +31,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
 
+#include <STM32RTC.h>
+#include "STM32LowPower.h"
+
+#include <IWatchdog.h>
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "semaphore.hpp"
@@ -42,8 +47,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/yarrow.h"
 
 #include "tasks/supervisor_task.h"
-#include "tasks/prova_task.h"
+
+#if (ENABLE_WDT)
+#include "tasks/wdt_task.h"
+#endif
+
+#if (ENABLE_LCD)
 #include "tasks/lcd_task.h"
+#endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 #include "tasks/modem_task.h"
