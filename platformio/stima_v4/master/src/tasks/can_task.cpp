@@ -832,6 +832,11 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// *********************************************************************************************
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t CanParam) : Thread(taskName, stackSize, priority), param(CanParam)
 {
+    // Start WDT controller and RunState Flags
+    #if (ENABLE_WDT)
+    WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
+    RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
+    #endif
 
     // Starting Task monitor WDT
     param.systemStatusLock->Take();
@@ -940,6 +945,55 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
     Start();
 };
 
+#if (ENABLE_STACK_USAGE)
+/// @brief local stack Monitor (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+void CanTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+{
+  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  if((stackUsage) && (stackUsage < status->tasks[CAN_TASK_ID].stack)) {
+    if(lock != NULL) lock->Take();
+    status->tasks[CAN_TASK_ID].stack = stackUsage;
+    if(lock != NULL) lock->Give();
+  }
+}
+#endif
+
+#if (ENABLE_WDT)
+/// @brief local watchDog and Sleep flag Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
+void CanTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+{
+  // Local WatchDog update
+  if(lock != NULL) lock->Take();
+  // Signal Task sleep/disabled mode from request
+  status->tasks[CAN_TASK_ID].is_sleep = is_sleep;
+  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
+    status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::set;
+  else
+    status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::rest;
+  if(lock != NULL) lock->Give();
+}
+
+/// @brief local suspend flag and positor running state Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
+/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
+void CanTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+{
+  // Local WatchDog update
+  if(lock != NULL) lock->Take();
+  // Signal Task sleep/disabled mode from request
+  status->tasks[CAN_TASK_ID].is_suspend = is_suspend;
+  status->tasks[CAN_TASK_ID].running_pos = state_position;
+  if(lock != NULL) lock->Give();
+}
+#endif
+
 /// @brief RUN Task
 void CanTask::Run() {
 
@@ -961,6 +1015,14 @@ void CanTask::Run() {
 
     // OnlineMaster (Set/Reset Application Code Function Here Enter/Exit Function OnLine)
     bool masterOnline = false;
+
+    // Starting Task and first WDT (if required and enabled. Time < than WDT_TIMEOUT_BASE_US)
+    #if (ENABLE_WDT)
+    RunState(param.system_status, param.systemStatusLock, RUNNING_EXEC, false);
+    #endif
+    #if (ENABLE_STACK_USAGE)
+    monitorStack(param.system_status, param.systemStatusLock);
+    #endif
 
     // Main Loop TASK
     while (true) {
@@ -1770,12 +1832,7 @@ void CanTask::Run() {
         }
 
         #if (ENABLE_STACK_USAGE)
-        static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-        if((stackUsage) && (stackUsage < param.system_status->tasks[CAN_TASK_ID].stack)) {
-            param.systemStatusLock->Take();
-            param.system_status->tasks[CAN_TASK_ID].stack = stackUsage;
-            param.systemStatusLock->Give();
-        }
+        monitorStack(param.system_status, param.systemStatusLock);
         #endif
 
         // Local WatchDog update;

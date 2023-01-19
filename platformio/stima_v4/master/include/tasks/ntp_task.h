@@ -53,6 +53,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "ticks.hpp"
 #include "debug_F.h"
 
+using namespace cpp_freertos;
+
 typedef enum
 {
   NTP_STATE_INIT,
@@ -79,6 +81,15 @@ protected:
   virtual void Run();
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  #endif
+  #if (ENABLE_WDT)
+  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
+  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
+  #endif
+
   NtpState_t state;
   NtpParam_t param;
   SntpClientContext sntpClientContext;

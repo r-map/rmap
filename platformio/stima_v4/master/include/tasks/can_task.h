@@ -82,7 +82,6 @@
 
 using namespace cpp_freertos;
 
-
 // Main TASK Switch Delay
 #define CAN_TASK_WAIT_DELAY_MS          (20)
 #define CAN_TASK_WAIT_MAXSPEED_DELAY_MS (1)
@@ -139,6 +138,14 @@ protected:
   virtual void Run();
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  static void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  #endif
+  #if (ENABLE_WDT)
+  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
+  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
+  #endif
 
   static void HW_CAN_Power(CAN_ModePower ModeCan);
   static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_]);

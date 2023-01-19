@@ -65,7 +65,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
 #define ENABLE_WDT            (true)
-#define WDT_TIMEOUT_BASE_MS   (8000000)
+#define WDT_TIMEOUT_BASE_US   (8000000)
 #define ENABLE_STACK_USAGE    (true)
 
 // HW Diag PIN redefine

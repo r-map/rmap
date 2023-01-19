@@ -84,14 +84,14 @@ void setup() {
 #endif
 
 #if (ENABLE_WDT)
-  // Init the watchdog timer WDT_TIMEOUT_BASE_MS mseconds timeout (only control system)
+  // Init the watchdog timer WDT_TIMEOUT_BASE_US mseconds timeout (only control system)
   // Wdt Task Reset the value after All Task reset property single Flag
   if(IWatchdog.isReset()) {
     delay(50);
     TRACE_INFO_F(F("Verified an WDT Reset...\r\n"));
     IWatchdog.clearReset();
   }
-  IWatchdog.begin(WDT_TIMEOUT_BASE_MS);
+  IWatchdog.begin(WDT_TIMEOUT_BASE_US);
 #endif
 
   // Hardware Semaphore

@@ -86,6 +86,15 @@ protected:
   virtual void Run();
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  #endif
+  #if (ENABLE_WDT)
+  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
+  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
+  #endif
+
   SupervisorState_t state;
   SupervisorParam_t param;
   EEprom eeprom;

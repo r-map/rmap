@@ -31,6 +31,12 @@ using namespace cpp_freertos;
 
 HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam)
 {
+  // Start WDT controller and RunState Flags
+  #if (ENABLE_WDT)
+  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
+  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
+  #endif
+
   state = HTTP_STATE_INIT;
   Start();
 };
@@ -218,6 +224,56 @@ HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, H
 //   return error;
 // }
 
+#if (ENABLE_STACK_USAGE)
+/// @brief local stack Monitor (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+void HttpTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+{
+  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  if((stackUsage) && (stackUsage < status->tasks[HTTP_TASK_ID].stack)) {
+    if(lock != NULL) lock->Take();
+    status->tasks[HTTP_TASK_ID].stack = stackUsage;
+    if(lock != NULL) lock->Give();
+  }
+}
+#endif
+
+#if (ENABLE_WDT)
+/// @brief local watchDog and Sleep flag Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
+void HttpTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+{
+  // Local WatchDog update
+  if(lock != NULL) lock->Take();
+  // Signal Task sleep/disabled mode from request
+  status->tasks[HTTP_TASK_ID].is_sleep = is_sleep;
+  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
+    status->tasks[HTTP_TASK_ID].watch_dog = wdt_flag::set;
+  else
+    status->tasks[HTTP_TASK_ID].watch_dog = wdt_flag::rest;
+  if(lock != NULL) lock->Give();
+}
+
+/// @brief local suspend flag and positor running state Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
+/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
+void HttpTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+{
+  // Local WatchDog update
+  if(lock != NULL) lock->Take();
+  // Signal Task sleep/disabled mode from request
+  status->tasks[HTTP_TASK_ID].is_suspend = is_suspend;
+  status->tasks[HTTP_TASK_ID].running_pos = state_position;
+  if(lock != NULL) lock->Give();
+}
+#endif
+
+
 void HttpTask::Run() {
   uint8_t retry;
   bool is_error;
@@ -234,6 +290,10 @@ void HttpTask::Run() {
 
   system_request_t request;
   system_response_t response;
+
+  #if (ENABLE_STACK_USAGE)
+  monitorStack(param.system_status, param.systemStatusLock);
+  #endif
 
   while (true)
   {

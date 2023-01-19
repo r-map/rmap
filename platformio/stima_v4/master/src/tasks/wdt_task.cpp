@@ -112,25 +112,25 @@ void WdtTask::Run() {
     // Update WatchDog (if all enabledModule setting local Flag)
     // else... Can Flash Saving INFO on Task Not Responding after (XXX mS)
     // For check TASK debugging Info
-    // if(resetWdt)
+    if(resetWdt)
     {
       TRACE_INFO_F(F("WDT: Reset WDT OK\r\n"));
       IWatchdog.reload();
       // Reset WDT Variables for TASK
-      // param.systemStatusLock->Take();
-      // // Check All Module Setting Flag WDT before reset Global WDT
-      // // WDT Are called from Task into TASK While(1) Generic...
-      // // 
-      // for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
-      // {
-      //   // Reset only set (not suspend) WDT Flags to Reset State
-      //   if(param.system_status->tasks[id].watch_dog == wdt_flag::set)
-      //     param.system_status->tasks[id].watch_dog = wdt_flag::clear;
-      // }
-      // param.systemStatusLock->Give();
+      param.systemStatusLock->Take();
+      // Check All Module Setting Flag WDT before reset Global WDT
+      // WDT Are called from Task into TASK While(1) Generic...
+      // 
+      for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
+      {
+        // Reset only set (not suspend) WDT Flags to Reset State
+        if(param.system_status->tasks[id].watch_dog == wdt_flag::set)
+          param.system_status->tasks[id].watch_dog = wdt_flag::clear;
+      }
+      param.systemStatusLock->Give();
     }
 
-    // Logging Stack
+    // Logging Stack (Only ready module task controlled)
     #if (ENABLE_STACK_USAGE)
     // Update This Task
     static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
@@ -140,17 +140,22 @@ void WdtTask::Run() {
       param.systemStatusLock->Give();
     }
     TRACE_INFO_F(F("WDT: Stack Free monitor\r\n"));
-    #if(ENABLE_ACCELEROMETER)
-    TRACE_INFO_F(F("Accelerometer  : %d\r\n"), param.system_status->tasks[ACCELEROMETER_TASK_ID].stack);
-    #endif
-    TRACE_INFO_F(F("Can Bus        : %d\r\n"), param.system_status->tasks[CAN_TASK_ID].stack);
+    if(param.system_status->tasks[CAN_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("Can Bus        : %d\r\n"), param.system_status->tasks[CAN_TASK_ID].stack);
+    if(param.system_status->tasks[LCD_TASK_ID].stack != 0xFFFFu)
     TRACE_INFO_F(F("Display LCD    : %d\r\n"), param.system_status->tasks[LCD_TASK_ID].stack);
-    // TRACE_INFO_F(F("Elaborate data : %d\r\n"), param.system_status->tasks[ELABORATE_TASK_ID].stack);
-    TRACE_INFO_F(F("Modem 2G/4G    : %d\r\n"), param.system_status->tasks[MODEM_TASK_ID].stack);
-    TRACE_INFO_F(F("NET-HTTP(S)    : %d\r\n"), param.system_status->tasks[HTTP_TASK_ID].stack);
-    TRACE_INFO_F(F("NET-MQTT(S)    : %d\r\n"), param.system_status->tasks[MQTT_TASK_ID].stack);
-    TRACE_INFO_F(F("NET-NTP        : %d\r\n"), param.system_status->tasks[NTP_TASK_ID].stack);
-    TRACE_INFO_F(F("Supervisor     : %d\r\n"), param.system_status->tasks[SUPERVISOR_TASK_ID].stack);
+    // if(param.system_status->tasks[ELABORATE_TASK_ID].stack != 0xFFFFu)
+      // TRACE_INFO_F(F("Elaborate data : %d\r\n"), param.system_status->tasks[ELABORATE_TASK_ID].stack);
+    if(param.system_status->tasks[MODEM_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("Modem 2G/4G    : %d\r\n"), param.system_status->tasks[MODEM_TASK_ID].stack);
+    if(param.system_status->tasks[HTTP_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("NET-HTTP(S)    : %d\r\n"), param.system_status->tasks[HTTP_TASK_ID].stack);
+    if(param.system_status->tasks[MQTT_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("NET-MQTT(S)    : %d\r\n"), param.system_status->tasks[MQTT_TASK_ID].stack);
+    if(param.system_status->tasks[NTP_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("NET-NTP        : %d\r\n"), param.system_status->tasks[NTP_TASK_ID].stack);
+    if(param.system_status->tasks[SUPERVISOR_TASK_ID].stack != 0xFFFFu)
+      TRACE_INFO_F(F("Supervisor     : %d\r\n"), param.system_status->tasks[SUPERVISOR_TASK_ID].stack);
     TRACE_INFO_F(F("WatchDog Info  : %d\r\n"), param.system_status->tasks[WDT_TASK_ID].stack);
     #endif
 
