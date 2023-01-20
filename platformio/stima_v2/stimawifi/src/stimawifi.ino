@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2021  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2023  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -40,7 +40,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2022-05-30T00:00"
+#define SOFTWARE_VERSION "2023-01-20T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
