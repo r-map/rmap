@@ -116,7 +116,7 @@
             "description": "TOTAL SNOW DEPTH",
             "unit": "M",
             "offset": 0.0,
-            "scale": 1e-1,
+            "scale": 100.,
             "userunit": "cm"
         }
     },
