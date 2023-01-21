@@ -48,21 +48,25 @@
 </tr>
 </table>
 </div>
+
 <h4>{% trans 'Station status' %}: {{ object.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ object.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
-<h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default:_('Missing')}}</h4>
+<h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
 
 <p><h3> <a href="http://{{site.domain}}{% url 'mystation-localdata' object.user object.slug %}">{% trans 'Realtime local data' %} {{ object.slug }}</a></h3></p>
 
 <div class="container-fluid">
-  <div class="row">
-    <div id="preloadimages">      
+  <div id="preloadimages">      
 
 {% for board in object.board_set.all %}
   {% if board.active  %}
+
+    <div class="row">
+    
     <h3>{% trans 'Board name' %}: {{ board.name }}</h3>
     <h4>{% trans 'Firmware version' %}: {{ board.boardfirmwaremetadata.swversion|default:_('Missing')}} // {% trans 'Last firmware update' %}: {{ board.boardfirmwaremetadata.swlastupdate|default:_('Missing')}}</h4>
     {% for sensor in board.sensor_set.all %}
       {% if sensor.active  %}
+        <p>
         {% if sensor.type.active and sensor.driver != 'JRPC' %}
           {% for bcode in sensor.type.bcodes.all %}
 <div class="col-md-6">
@@ -94,9 +98,9 @@
         {% endif %}
       {% endif %}
     {% endfor %}
+    </div>
   {% endif %}
 {% endfor %}
-    </div>
   </div>
 </div>
 </section>
