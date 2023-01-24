@@ -1,0 +1,25 @@
+include COPYING
+include NEWS
+include README
+include LICENSE
+include README.rst
+include TODO
+include *.txt
+include rmap-core.spec
+include map
+include ttnmap
+include main.py
+global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
+recursive-include ../../doc *
+recursive-include ../../locale *
+recursive-include ../../global_static *
+recursive-include ../../debian *
+
+recursive-include rmap/registration/static *
+recursive-include rmap/registration/templates *
+recursive-include rmap/registration/tests *
+recursive-include rmap/registration/locale *
+
+recursive-include rmap/static *
+recursive-include rmap/templates *
+

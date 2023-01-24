@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: rmap-core
+Version: 13.2
+Summary: rete monitoraggio ambientale partecipativo
+Home-page: https://github.com/r-map/rmap
+Author: Paolo Patruno
+Author-email: p.patruno@iperbole.bologna.it
+License: GNU GPL v2
+Description: R-map: participative environmental monitoring net.
+        
+Platform: any

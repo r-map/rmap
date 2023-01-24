@@ -1,0 +1,4 @@
+#Creates a GraphViz dot file with django_extensions
+
+python ../manage.py graph_models  -g --output=model.png stations
+

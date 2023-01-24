@@ -1,0 +1,8 @@
+django<3.0,>=2.0
+configobj
+pika
+simplejson
+django-imagekit
+django-appconf
+paho-mqtt
+requests
