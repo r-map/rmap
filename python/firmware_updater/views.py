@@ -44,6 +44,7 @@ def update(request,name):
     chip_size  = request.META.get('HTTP_X_ESP8266_CHIP_SIZE')
     sdk_version= request.META.get('HTTP_X_ESP8266_SDK_VERSION')
 
+    print("firmware name:",name)
     print("sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version")
     print(sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version)
     
