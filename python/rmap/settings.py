@@ -1334,6 +1334,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
         {"import": 'contacts',                       "apps": ('contacts'   ,)},
         {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
+        {"import": 'firmware_updater_stima',         "apps": ('firmware_updater_stima',)},
         {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
     )
 
