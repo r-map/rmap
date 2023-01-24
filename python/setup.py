@@ -230,6 +230,7 @@ showdata_package_data = []
 rainbo_package_data = []
 contacts_package_data = []
 firmware_updater = []
+firmware_updater_stima = []
 
 data_files = []
 
@@ -401,6 +402,7 @@ setup(name='rmap',
                 'graphite-dballe.tags',
                 'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
+                'firmware_updater_stima','firmware_updater_stima.migrations',
                 'oscpy',
       ],
 
