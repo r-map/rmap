@@ -104,6 +104,8 @@ parser.add_argument('--modify_station',action="store_true", help="modify station
 parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
 parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
+parser.add_argument('--stima_version',  default="3", choices=("3","4"), help="stima version")
+parser.add_argument('--notification',action="store_true", help="use notification (no response expected) for JSRPC")
 parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
 parser.add_argument('--rpc_mqtt_recovery',action="store_true", help="execute recovery data RPC over MQTT")
 try:
@@ -703,7 +705,8 @@ if args.config_station:
 
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
+                                 device=args.device,baudrate=args.baudrate,host=args.host,username=args.username,
+                                 notification=args.notification,version=args.stima_version)
 
     print("END of station configuration")
 

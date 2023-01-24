@@ -8,6 +8,7 @@ from rmap.stations.views import mystationmetadata_json
 from rmap.stations.views import mystationmetadata_upload_json
 from rmap.stations.views import mystationmetadata_del
 from rmap.stations.views import mystation_localdata
+from rmap.stations.views import mystationmetadata_config
 
 urlpatterns = [
 
@@ -30,6 +31,9 @@ urlpatterns = [
                        url(r'^stationsupload/json/$',
                            mystationmetadata_upload_json ,name='mystationmetadata-upload-json'),
     
+                       url(r'^stationconfig/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)$',
+                           mystationmetadata_config ,name='mystationmetadata-config'),
+
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$',
                            mystationmetadata_json ,name='mystationmetadata-json'),
 

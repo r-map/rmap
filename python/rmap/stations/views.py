@@ -12,6 +12,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from rmap.jsonrpc import TransportHTTPREPONSE
+
 
 class StationList(ListView):
     paginate_by = 25
@@ -132,6 +134,18 @@ def mystationmetadata_upload_json(request):
     response.status_code=403
     return response
 
+
+def mystationmetadata_config(request,user,station_slug):
+    
+    response = HttpResponse()
+    transport=TransportHTTPREPONSE(response=response)
+
+    rmap_core.configstation(transport=transport,station_slug=station_slug,
+                            username=user,
+                            notification=True,version="4", without_password=True)
+
+    return response
+    
 
 def mystationmetadata_json(request,user,station_slug,board_slug=None,dump=False):
     if request.user.is_authenticated:
