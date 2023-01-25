@@ -782,6 +782,21 @@ sample_measurements=\
         "trange": (254, 0, 0),
     },
     {
+        "var": "B15202",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15203",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15242",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
         "var": "B15195",
         "level": (103, 2000, None, None),
         "trange": (254, 0, 0),
@@ -818,6 +833,21 @@ sample_measurements=\
     },
     {
         "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15202",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15203",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15242",
         "level": (103, 2000, None, None),
         "trange": (0, 0, 60),
     },
