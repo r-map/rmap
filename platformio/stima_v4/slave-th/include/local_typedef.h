@@ -1,9 +1,9 @@
 /**@file local_typedef.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 typedef struct
 {
    uint8_t i2c_address;             //!< i2c sensor's address
-   // uint8_t can_port_id;             //!< port for uavcan services
-   // uint8_t can_publish_id;          //!< port for uavcan data publication
    char driver[DRIVER_LENGTH];      //!< sensor's string driver
    char type[TYPE_LENGTH];          //!< sensor type
    bool is_redundant;
@@ -53,21 +51,27 @@ typedef struct
 
 // WatchDog Flag type
 enum wdt_flag {
-   clear    = 0,
-   set      = 1,
-   rest     = 2
+   clear    = 0,  // Wdt Reset (From WDT Task Controller)
+   set      = 1,  // Set WDT   (From Application TASK... All OK)
+   timer    = 2   // Set Timered WDT (From Application long function WDT...)
+};
+
+// Task state Flag type
+enum task_flag {
+   normal    = 0,  // Normal operation Task controller
+   sleepy    = 1,  // Task is in sleep mode or longer wait (Inform WDT controller)
+   suspended = 2   // Task is excluded from WDT Controller or Suspended complete
 };
 
 // Task Info structure
-#define RUNNING_START    1
-#define RUNNING_EXEC     2
 typedef struct
 {
-   wdt_flag watch_dog;  // WatchDog of Task
-   uint16_t stack;      // Stack Max Usage Monitor
-   bool is_sleep;       // Long sleep Task
-   bool is_suspend;     // Suspend Task
-   uint8_t running_pos; // !=0 Task Started, 1=Start, 2=Running, XX=User State LOG SW Position
+   wdt_flag watch_dog;     // WatchDog of Task
+   int32_t watch_dog_ms;   // WatchDog of Task Timer
+   uint16_t stack;         // Stack Max Usage Monitor
+   task_flag state;        // Long sleep Task
+   uint8_t running_pos;    // !=0 (CREATE) Task Started (Generic state of Task)
+   uint8_t running_sub;    // Optional SubState of Task
 } task_t;
 
 // System module status

@@ -1,9 +1,9 @@
 /**@file ntp_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -44,19 +44,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "sntp/sntp_client.h"
 #include "date_time.h"
 #include "debug_F.h"
-
 #include "config.h"
 #include "debug_config.h"
 #include "str.h"
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "ticks.hpp"
-#include "debug_F.h"
+
+#include <STM32RTC.h>
 
 using namespace cpp_freertos;
 
 typedef enum
 {
+  NTP_STATE_CREATE,
   NTP_STATE_INIT,
   NTP_STATE_WAIT_NET_EVENT,
   NTP_STATE_DO_NTP_SYNC,
@@ -68,6 +66,7 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
 } NtpParam_t;
@@ -83,12 +82,10 @@ protected:
 private:
 
   #if (ENABLE_STACK_USAGE)
-  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  void TaskMonitorStack();
   #endif
-  #if (ENABLE_WDT)
-  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
-  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
-  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   NtpState_t state;
   NtpParam_t param;

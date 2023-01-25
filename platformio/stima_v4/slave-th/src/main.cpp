@@ -21,6 +21,8 @@ void setup() {
   static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
 #endif
 
+  static BinarySemaphore *rtcLock;        // RTC (Access lock)
+
   // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
   // Data queue (Request / exchange data from Can to Sensor and Elaborate Task)
@@ -47,17 +49,22 @@ void setup() {
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
   // TOTAL_INFO_TASK Number of Task checked
-#ifdef LOG_STACK_USAGE
+#if (ENABLE_STACK_USAGE)
   for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
   {
     system_status.tasks[id].stack = 0xFFFFu;
   }
 #endif
+  // Disable all Task before INIT
+  for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
+  {
+    system_status.tasks[id].state = task_flag::suspended;
+  }
 
 #if (ENABLE_WDT)
-  // Init the watchdog timer WDT_TIMEOUT_BASE_MS mseconds timeout (only control system)
+  // Init the watchdog timer WDT_TIMEOUT_BASE_US mseconds timeout (only control system)
   // Wdt Task Reset the value after All Task reset property single Flag
-  IWatchdog.begin(WDT_TIMEOUT_BASE_MS);
+  IWatchdog.begin(WDT_TIMEOUT_BASE_US);
 #endif
 
   // Hardware Semaphore
@@ -73,6 +80,8 @@ void setup() {
 #if (ENABLE_QSPI)
   qspiLock = new BinarySemaphore(true);
 #endif
+  rtcLock = new BinarySemaphore(true);
+
   // Software Semaphore
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
@@ -114,6 +123,7 @@ void setup() {
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
   wdtParam.systemStatusLock = systemStatusLock;
+  wdtParam.rtcLock = rtcLock;
 #if (ENABLE_I2C1)
   wdtParam.wire = &Wire;
   wdtParam.wireLock = wireLock;
@@ -132,7 +142,8 @@ void setup() {
   canParam.requestDataQueue = requestDataQueue;
   canParam.reportDataQueue = reportDataQueue;
   canParam.canLock = canLock;  
-  canParam.qspiLock = qspiLock;  
+  canParam.qspiLock = qspiLock;
+  canParam.rtcLock = rtcLock;
 #if (ENABLE_I2C1)
   canParam.wire = &Wire;
   canParam.wireLock = wireLock;

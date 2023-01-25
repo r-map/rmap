@@ -1,9 +1,9 @@
 /**@file debug.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -39,6 +39,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MAIN_STRING           "MAIN"
 #define ON_STRING             "ON"
 #define OFF_STRING            "OFF"
+#define SUSPEND_STRING        "x"
+#define FLAG_STRING           "*"
+#define SPACE_STRING          " "
 
 //Trace level definitions
 #define TRACE_LEVEL_OFF       0

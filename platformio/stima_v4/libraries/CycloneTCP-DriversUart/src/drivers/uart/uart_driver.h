@@ -1,9 +1,9 @@
 /**@file uart_driver.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define _UART_DRIVER_H
 
 #define UART_DRIVER_BAUD_RATE_DEFAULT (115200)
+
+#define UART2_NVIC_INT_PREMPT_PRIORITY 6
 
 #include "config.h"
 #include "stima_config.h"

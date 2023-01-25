@@ -1,9 +1,9 @@
 /**@file http_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL HTTP_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     HTTP_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   HTTP_TASK_ID
 
 #include "tasks/http_task.h"
 
@@ -31,11 +32,9 @@ using namespace cpp_freertos;
 
 HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam)
 {
-  // Start WDT controller and RunState Flags
-  #if (ENABLE_WDT)
-  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
-  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
-  #endif
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(HTTP_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   state = HTTP_STATE_INIT;
   Start();
@@ -226,56 +225,63 @@ HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, H
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-void HttpTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+void HttpTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < status->tasks[HTTP_TASK_ID].stack)) {
-    if(lock != NULL) lock->Take();
-    status->tasks[HTTP_TASK_ID].stack = stackUsage;
-    if(lock != NULL) lock->Give();
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
   }
 }
 #endif
 
-#if (ENABLE_WDT)
 /// @brief local watchDog and Sleep flag Task (optional)
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void HttpTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+void HttpTask::TaskWatchDog(uint32_t millis_standby)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[HTTP_TASK_ID].is_sleep = is_sleep;
-  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
-    status->tasks[HTTP_TASK_ID].watch_dog = wdt_flag::set;
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
   else
-    status->tasks[HTTP_TASK_ID].watch_dog = wdt_flag::rest;
-  if(lock != NULL) lock->Give();
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
-/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
-void HttpTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void HttpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[HTTP_TASK_ID].is_suspend = is_suspend;
-  status->tasks[HTTP_TASK_ID].running_pos = state_position;
-  if(lock != NULL) lock->Give();
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
 }
-#endif
-
 
 void HttpTask::Run() {
   uint8_t retry;
+  uint8_t retry_get_response;
   bool is_error;
   error_t error;
   IpAddr ipAddr;
@@ -291,15 +297,14 @@ void HttpTask::Run() {
   system_request_t request;
   system_response_t response;
 
+  // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
-  monitorStack(param.system_status, param.systemStatusLock);
+  TaskMonitorStack();
   #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true)
   {
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
-
     switch (state)
     {
     case HTTP_STATE_INIT:
@@ -314,8 +319,11 @@ void HttpTask::Run() {
       retry = 0;
 
       // wait connection request
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do http get configuration
         if (request.connection.do_http_get_configuration)
         {
@@ -332,12 +340,7 @@ void HttpTask::Run() {
           state = HTTP_STATE_SEND_REQUEST;
           TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
         }
-        else
-        {
-          Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
-        }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case HTTP_STATE_SEND_REQUEST:
@@ -458,6 +461,7 @@ void HttpTask::Run() {
       // }
 
       state = HTTP_STATE_GET_RESPONSE;
+      retry_get_response = 0;
       TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_GET_RESPONSE\r\n"));
       break;
 
@@ -467,7 +471,15 @@ void HttpTask::Run() {
       // Any error to report?
       if (error)
       {
-        TRACE_ERROR_F(F("%s Failed to read http response header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
+          is_error = true;
+          state = HTTP_STATE_END;
+          TRACE_ERROR_F(F("%s Failed to read http response header [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        } else {
+          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+          TRACE_ERROR_F(F("%s Failed to read http response header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        }
         break;
       }
 
@@ -481,7 +493,16 @@ void HttpTask::Run() {
       // Header field found?
       if (value == NULL)
       {
-        TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
+          is_error = true;
+          state = HTTP_STATE_END;
+          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        } else {
+          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        }
+        break;
       }
 
       // Receive HTTP response body
@@ -511,7 +532,15 @@ void HttpTask::Run() {
       // Any error to report?
       if (error != ERROR_END_OF_STREAM)
       {
-        TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
+          is_error = true;
+          state = HTTP_STATE_END;
+          TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        } else {
+          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+          TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        }
         break;
       }
 
@@ -520,7 +549,15 @@ void HttpTask::Run() {
       // Any error to report?
       if (error)
       {
-        TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
+          is_error = true;
+          state = HTTP_STATE_END;
+          TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        } else {
+          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+          TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        }
         break;
       }
 
@@ -535,10 +572,6 @@ void HttpTask::Run() {
       // ok
       if (!is_error)
       {
-        response.connection.done_http_configuration_getted = is_get_configuration;
-        response.connection.done_http_firmware_getted = is_get_firmware;
-        param.systemResponseQueue->Enqueue(&response, 0);
-
         param.systemStatusLock->Take();
         param.system_status->connection.is_http_configuration_updating = false;
         param.system_status->connection.is_http_configuration_updated = is_get_configuration;
@@ -547,12 +580,21 @@ void HttpTask::Run() {
         param.systemStatusLock->Give();
 
         httpClientDeinit(&httpClientContext);
+
+        memset(&response, 0, sizeof(system_response_t));
+        response.connection.done_http_configuration_getted = is_get_configuration;
+        response.connection.error_http_configuration_getted = false;
+        response.connection.done_http_firmware_getted = is_get_firmware;
+        response.connection.error_http_firmware_getted = false;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
       }
       // retry
       else if ((++retry) < HTTP_TASK_GENERIC_RETRY)
       {
+        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
 
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_SEND_REQUEST\r\n"));
@@ -561,10 +603,6 @@ void HttpTask::Run() {
       // error
       else
       {
-        response.connection.done_http_configuration_getted = is_get_configuration;
-        response.connection.done_http_firmware_getted = is_get_firmware;
-        param.systemResponseQueue->Enqueue(&response, 0);
-
         param.systemStatusLock->Take();
         param.system_status->connection.is_http_configuration_updating = false;
         param.system_status->connection.is_http_configuration_updated = false;
@@ -573,10 +611,27 @@ void HttpTask::Run() {
         param.systemStatusLock->Give();
 
         httpClientDeinit(&httpClientContext);
+
+        memset(&response, 0, sizeof(system_response_t));
+        response.connection.done_http_configuration_getted = false;
+        response.connection.error_http_configuration_getted = is_get_configuration;
+        response.connection.done_http_firmware_getted = false;
+        response.connection.error_http_firmware_getted = is_get_firmware;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
       }
       break;
+
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
+      // One step base non blocking switch
+      TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
+
     }
   }
 }

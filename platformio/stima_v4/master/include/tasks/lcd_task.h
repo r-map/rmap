@@ -52,6 +52,7 @@
 
 typedef enum
 {
+  LCD_STATE_CREATE,
   LCD_STATE_INIT,
   LCD_STATE_PRINT,
   LCD_STATE_END
@@ -79,12 +80,10 @@ protected:
 private:
 
   #if (ENABLE_STACK_USAGE)
-  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  void TaskMonitorStack();
   #endif
-  #if (ENABLE_WDT)
-  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
-  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
-  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   LCDState_t state;
   LCDParam_t param;

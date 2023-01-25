@@ -1,9 +1,9 @@
 /**@file elaborate_data_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -71,9 +71,10 @@ typedef struct {
 
 class ElaborateDataTask : public cpp_freertos::Thread {
   typedef enum {
-    INIT,
-    RUN,
-    SUSPEND
+    ELABORATE_DATA_CREATE,
+    ELABORATE_DATA_INIT,
+    ELABORATE_DATA_RUN,
+    ELABORATE_DATA_SUSPEND
   } State_t;
 
 public:
@@ -84,6 +85,17 @@ protected:
 
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  void TaskMonitorStack();
+  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
+  uint8_t checkTemperature(rmapdata_t main_remperature, rmapdata_t redundant_remperature);
+  uint8_t checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
+
   State_t state;
   ElaboradeDataParam_t param;
 
@@ -93,10 +105,6 @@ private:
   sample_t humidity_redundant_samples;
   maintenance_t maintenance_samples;
   report_t report;
-
-  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
-  uint8_t checkTemperature(rmapdata_t main_remperature, rmapdata_t redundant_remperature);
-  uint8_t checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
 };
 
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length);

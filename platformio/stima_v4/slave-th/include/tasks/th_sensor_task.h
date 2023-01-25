@@ -1,9 +1,9 @@
 /**@file th_sensor_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -70,12 +70,13 @@ typedef struct {
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
   typedef enum
   {
-    WAIT,
-    INIT,
-    SETUP,
-    PREPARE,
-    READ,
-    END
+    SENSOR_STATE_CREATE,
+    SENSOR_STATE_WAIT_CFG,
+    SENSOR_STATE_INIT,
+    SENSOR_STATE_SETUP,
+    SENSOR_STATE_PREPARE,
+    SENSOR_STATE_READ,
+    SENSOR_STATE_END
   } State_t;
 
 public:
@@ -85,14 +86,20 @@ protected:
   virtual void Run();
 
 private:
-  State_t state;
-  TemperatureHumidtySensorParam_t param;
-  SensorDriver *sensors[SENSORS_COUNT_MAX];
-
-  bool is_power_on;
+  #if (ENABLE_STACK_USAGE)
+  void TaskMonitorStack();
+  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   void powerOn();
   void powerOff();
+
+  bool is_power_on;
+
+  State_t state;
+  TemperatureHumidtySensorParam_t param;
+  SensorDriver *sensors[SENSORS_COUNT_MAX];
 };
 
 #endif

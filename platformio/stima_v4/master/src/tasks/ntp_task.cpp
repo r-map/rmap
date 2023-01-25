@@ -1,9 +1,9 @@
 /**@file ntp_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL NTP_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     NTP_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   NTP_TASK_ID
 
 #include "tasks/ntp_task.h"
 
@@ -31,11 +32,9 @@ using namespace cpp_freertos;
 
 NtpTask::NtpTask(const char *taskName, uint16_t stackSize, uint8_t priority, NtpParam_t ntpParam) : Thread(taskName, stackSize, priority), param(ntpParam)
 {
-  // Start WDT controller and RunState Flags
-  #if (ENABLE_WDT)
-  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
-  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
-  #endif
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(NTP_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   state = NTP_STATE_INIT;
   Start();
@@ -43,53 +42,59 @@ NtpTask::NtpTask(const char *taskName, uint16_t stackSize, uint8_t priority, Ntp
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-void NtpTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+void NtpTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < status->tasks[NTP_TASK_ID].stack)) {
-    if(lock != NULL) lock->Take();
-    status->tasks[NTP_TASK_ID].stack = stackUsage;
-    if(lock != NULL) lock->Give();
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
   }
 }
 #endif
 
-#if (ENABLE_WDT)
 /// @brief local watchDog and Sleep flag Task (optional)
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void NtpTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+void NtpTask::TaskWatchDog(uint32_t millis_standby)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[NTP_TASK_ID].is_sleep = is_sleep;
-  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
-    status->tasks[NTP_TASK_ID].watch_dog = wdt_flag::set;
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
   else
-    status->tasks[NTP_TASK_ID].watch_dog = wdt_flag::rest;
-  if(lock != NULL) lock->Give();
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
-/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
-void NtpTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void NtpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[NTP_TASK_ID].is_suspend = is_suspend;
-  status->tasks[NTP_TASK_ID].running_pos = state_position;
-  if(lock != NULL) lock->Give();
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
 }
-#endif
-
 
 void NtpTask::Run() {
   uint8_t retry;
@@ -101,22 +106,19 @@ void NtpTask::Run() {
   IpAddr ipAddr;
   NtpTimestamp timestamp;
 
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   system_request_t request;
   system_response_t response;
 
-  // Starting Task and first WDT (if required and enabled. Time < than WDT_TIMEOUT_BASE_US)
-  #if (ENABLE_WDT)
-  RunState(param.system_status, param.systemStatusLock, RUNNING_EXEC, false);
-  #endif
+  // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
-  monitorStack(param.system_status, param.systemStatusLock);
+  TaskMonitorStack();
   #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true)
   {
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
-
     switch (state)
     {
     case NTP_STATE_INIT:
@@ -129,8 +131,11 @@ void NtpTask::Run() {
       retry = 0;
 
       // wait connection request
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do ntp sync
         if (request.connection.do_ntp_sync)
         {
@@ -138,13 +143,7 @@ void NtpTask::Run() {
           TRACE_VERBOSE_F(F("NTP_STATE_WAIT_NET_EVENT -> NTP_STATE_DO_NTP_SYNC\r\n"));
           state = NTP_STATE_DO_NTP_SYNC;
         }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(NTP_TASK_WAIT_DELAY_MS));
-        }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case NTP_STATE_DO_NTP_SYNC:
@@ -157,7 +156,9 @@ void NtpTask::Run() {
       TRACE_INFO_F(F("%s Resolving ntp server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
 
       // Resolve NTP server name
+      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       error = getHostByName(NULL, param.configuration->ntp_server, &ipAddr, 0);
+      TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
       {
@@ -169,7 +170,7 @@ void NtpTask::Run() {
         break;
       }
 
-      // Set timeout value for blocking operations
+      TaskWatchDog(SNTP_CLIENT_TIMEOUT_MS);
       error = sntpClientSetTimeout(&sntpClientContext, SNTP_CLIENT_TIMEOUT_MS);
       // Any error to report?
       if (error)
@@ -181,6 +182,7 @@ void NtpTask::Run() {
       }
 
       // Specify the IP address of the NTP server
+      TaskWatchDog(SNTP_CLIENT_TIMEOUT_MS);
       error = sntpClientSetServerAddr(&sntpClientContext, &ipAddr, NTP_PORT);
       // Any error to report?
       if (error)
@@ -192,6 +194,7 @@ void NtpTask::Run() {
       }
 
       // Retrieve current time from NTP server
+      TaskWatchDog(SNTP_CLIENT_TIMEOUT_MS);
       error = sntpClientGetTimestamp(&sntpClientContext, &timestamp);
       // Check status code
       if (!error)
@@ -199,13 +202,14 @@ void NtpTask::Run() {
         // Unix time starts on January 1st, 1970
         unixTime = timestamp.seconds - NTP_UNIX_EPOCH;
 
-        // system date and time
-        param.systemStatusLock->Take();
-        param.system_status->datetime.system_time = (uint32_t) unixTime;
-        param.systemStatusLock->Give();
-
         // Convert Unix timestamp to date
         convertUnixTimeToDate(unixTime, &date);
+        
+        // Set DateTime RTC With Semaphore Locked access
+        if(param.rtcLock->Take()) {
+          rtc.setEpoch((uint32_t) unixTime);
+          param.rtcLock->Give();
+        }
 
         // Debug message
         TRACE_INFO_F(F("%s ntp current date/time [ %d ] %s\r\n"), Thread::GetName().c_str(), (uint32_t)unixTime, formatDate(&date, NULL));
@@ -216,6 +220,7 @@ void NtpTask::Run() {
       else if (error == ERROR_REQUEST_REJECTED)
       {
         // Retrieve kiss code
+        TaskWatchDog(SNTP_CLIENT_TIMEOUT_MS);
         kissCode = sntpClientGetKissCode(&sntpClientContext);
 
         TRACE_ERROR_F(F("%s ntp received kiss code: '%c%c%c%c' [ %s ]\r\n"), Thread::GetName().c_str(), (kissCode >> 24) & 0xFF, (kissCode >> 16) & 0xFF, (kissCode >> 8) & 0xFF, kissCode & 0xFF, ERROR_STRING);
@@ -238,21 +243,24 @@ void NtpTask::Run() {
       // ok
       if (!is_error)
       {
-        response.connection.done_ntp_synchronized = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
-
         param.systemStatusLock->Take();
         param.system_status->connection.is_ntp_synchronizing = false;
         param.system_status->connection.is_ntp_synchronized = true;
         param.systemStatusLock->Give();
 
         sntpClientDeinit(&sntpClientContext);
+
+        memset(&response, 0, sizeof(system_response_t));
+        response.connection.done_ntp_synchronized = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
       }
       // retry
       else if ((++retry) < NTP_TASK_GENERIC_RETRY)
       {
+        TaskWatchDog(NTP_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(NTP_TASK_GENERIC_RETRY_DELAY_MS));
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_DO_NTP_SYNC\r\n"));
         state = NTP_STATE_DO_NTP_SYNC;
@@ -260,20 +268,31 @@ void NtpTask::Run() {
       // error
       else
       {
-        response.connection.done_ntp_synchronized = false;
-        param.systemResponseQueue->Enqueue(&response, 0);
-
         param.systemStatusLock->Take();
         param.system_status->connection.is_ntp_synchronizing = false;
         param.system_status->connection.is_ntp_synchronized = false;
         param.systemStatusLock->Give();
 
         sntpClientDeinit(&sntpClientContext);
+
+        memset(&response, 0, sizeof(system_response_t));
+        response.connection.error_ntp_synchronized = true;
+        param.systemResponseQueue->Enqueue(&response, 0);
+
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
       }
       break;
     }
+
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+
+    // One step base non blocking switch
+    TaskWatchDog(NTP_TASK_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(NTP_TASK_WAIT_DELAY_MS));
+
   }
 }
 

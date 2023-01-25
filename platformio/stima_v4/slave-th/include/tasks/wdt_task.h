@@ -40,11 +40,15 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
+#include "drivers/eeprom.h"
+
+#include <STM32RTC.h>
+#include <IWatchdog.h>
 
 #include "debug_F.h"
 
 // Main TASK Switch Delay
-#define WDT_TASK_WAIT_DELAY_MS      (2000)
+#define WDT_TASK_WAIT_DELAY_MS      (WDT_CONTROLLER_MS)
 
 using namespace cpp_freertos;
 
@@ -53,6 +57,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   TwoWire *wire;
   cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
 } WdtParam_t;
 
 class WdtTask : public cpp_freertos::Thread {
@@ -65,6 +70,8 @@ protected:
 
 private:
   WdtParam_t param;
+
+  EEprom memEprom;
 };
 
 #endif

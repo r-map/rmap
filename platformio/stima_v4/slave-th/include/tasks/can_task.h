@@ -119,6 +119,7 @@ typedef struct
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *canLock;
   cpp_freertos::BinarySemaphore *qspiLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;
@@ -126,9 +127,10 @@ typedef struct
 
 class CanTask : public cpp_freertos::Thread {
   typedef enum {
-    INIT,
-    SETUP,
-    STANDBY
+    CAN_STATE_CREATE,
+    CAN_STATE_INIT,
+    CAN_STATE_SETUP,
+    CAN_STATE_CHECK
   } State_t;
 
 public:
@@ -138,6 +140,12 @@ protected:
   virtual void Run();
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  void TaskMonitorStack();
+  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   static void HW_CAN_Power(CAN_ModePower ModeCan);
   static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_]);

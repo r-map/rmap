@@ -1,9 +1,9 @@
 /**@file supervisor_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL SUPERVISOR_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     SUPERVISOR_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
 #include "tasks/supervisor_task.h"
 
@@ -29,11 +30,9 @@ using namespace cpp_freertos;
 
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
-  // Start WDT controller and RunState Flags
-  #if (ENABLE_WDT)
-  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
-  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
-  #endif
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(SUPERVISOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   eeprom = EEprom(param.wire, param.wireLock);
   state = SUPERVISOR_STATE_INIT;
@@ -42,90 +41,92 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-void SupervisorTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+void SupervisorTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < status->tasks[SUPERVISOR_TASK_ID].stack)) {
-    if(lock != NULL) lock->Take();
-    status->tasks[SUPERVISOR_TASK_ID].stack = stackUsage;
-    if(lock != NULL) lock->Give();
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
   }
 }
 #endif
 
-#if (ENABLE_WDT)
 /// @brief local watchDog and Sleep flag Task (optional)
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void SupervisorTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+void SupervisorTask::TaskWatchDog(uint32_t millis_standby)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[SUPERVISOR_TASK_ID].is_sleep = is_sleep;
-  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
-    status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::set;
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
   else
-    status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::rest;
-  if(lock != NULL) lock->Give();
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
-/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
-void SupervisorTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[SUPERVISOR_TASK_ID].is_suspend = is_suspend;
-  status->tasks[SUPERVISOR_TASK_ID].running_pos = state_position;
-  if(lock != NULL) lock->Give();
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
 }
-#endif
-
 
 void SupervisorTask::Run()
 {
   uint8_t retry;
   system_request_t request;
   system_response_t response;
+  SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
 
-  // Starting Task and first WDT (if required and enabled. Time < than WDT_TIMEOUT_BASE_US)
-  #if (ENABLE_WDT)
-  RunState(param.system_status, param.systemStatusLock, RUNNING_EXEC, false);
-  #endif
+  // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
-  monitorStack(param.system_status, param.systemStatusLock);
+  TaskMonitorStack();
   #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true)
   {
     bool is_saved = false;
     bool is_loaded = false;
 
-    osMemset(&request, 0, sizeof(system_request_t));
-    osMemset(&response, 0, sizeof(system_response_t));
-
     switch (state)
     {
     case SUPERVISOR_STATE_INIT:
       retry = 0;
 
-      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
       #if(INIT_PARAMETER)
-      saveConfiguration(param.configuration, param.configurationLock, CONFIGURATION_DEFAULT);
+      saveConfiguration(CONFIGURATION_DEFAULT);
       #endif
       break;
 
     case SUPERVISOR_STATE_LOAD_CONFIGURATION:
-      is_loaded = loadConfiguration(param.configuration, param.configurationLock);
+      is_loaded = loadConfiguration();
       
       if (is_loaded)
       {
@@ -133,13 +134,17 @@ void SupervisorTask::Run()
         
         param.systemStatusLock->Take();
         param.system_status->configuration.is_loaded = true;
+        // Int default security value
+        param.system_status->connection.is_disconnected = true;
+        param.system_status->connection.is_mqtt_disconnected = true;
         param.systemStatusLock->Give();
-        
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-        state = SUPERVISOR_STATE_CHECK_OPERATION;
+
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
+        state = SUPERVISOR_STATE_WAITING_EVENT;
       }
       else if ((++retry <= SUPERVISOR_TASK_GENERIC_RETRY) && !is_loaded)
       {
+        TaskWatchDog(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
       }
       else
@@ -150,38 +155,157 @@ void SupervisorTask::Run()
 
         // gestire condizione di errore di lettura della configurazione
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
-        Suspend();
-      }
-      break;
-    
-    case SUPERVISOR_STATE_CHECK_OPERATION:
-      // 1 configuration ok -> do ntp sync
-      if (param.system_status->configuration.is_loaded && !param.system_status->connection.is_ntp_synchronized)
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      }
-      // 2 configuration ok, ntp ok -> do http configuration update
-      else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && !param.system_status->connection.is_http_configuration_updated)
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      }
-      // 3 configuration ok, ntp ok, http configuration updated -> do mqtt sync
-      else if (param.system_status->configuration.is_loaded && param.system_status->connection.is_ntp_synchronized && param.system_status->connection.is_http_configuration_updated && !param.system_status->connection.is_mqtt_connected)
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-        state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-      }
-      else
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
+        // Post Suspend TaskWatchDog Module for TASK
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
         Suspend();
       }
       break;
 
+    case SUPERVISOR_STATE_WAITING_EVENT:
+      // TODO: Wait StimaV4 Start Event controlled time RUN Send Data
+
+      // Retry connection
+      retry = 0;
+
+      // TODO:Remove Test Wait new start as time test 2,5 sec...
+      // TODO: Create Date/Time Event start from configuration
+      // TODO: Start only modulePower Full OK (no energy rest)
+      // TODO: Start only if data enable to send
+      // TODO: Remove NTP Syncro (1 x day?)
+      // TODO: Get RPC Remote? When connected... + Queue Command RPC (system_message_t)
+
+      TaskWatchDog(2500);
+      Delay(Ticks::MsToTicks(2500));
+      
+      // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_ntp_synchronized = false;
+      param.system_status->connection.is_http_configuration_updated = false;
+      param.system_status->connection.is_mqtt_connected = false;
+      param.systemStatusLock->Give();
+      
+      // Start state check connection
+      state_check_connection = CONNECTION_INIT;
+      state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+      // Save next attempt of connection
+      param.systemStatusLock->Take();
+      param.system_status->modem.connection_attempted++;
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+      TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
+        param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
+      param.systemStatusLock->Give();
+
+      break;
+
+    case SUPERVISOR_STATE_CONNECTION_OPERATION:
+
+      // Here config was already loaded
+
+      // Sequence connection (on start set request param list operation)
+      // es. ->
+      // param.system_status->connection.is_ntp_synchronized = true; (require new NTP synch)
+      // param.system_status->connection.is_http_configuration_updated = true; (no operation)
+      // param.system_status->connection.is_mqtt_connected = false; ...
+
+      // SUB Case of sequence of check (connection / operation) state
+      switch(state_check_connection) {
+
+        case CONNECTION_INIT: // STARTING CONNECTION
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+          state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+          state_check_connection = CONNECTION_CHECK;
+          break;
+
+        case CONNECTION_CHECK: // CONNECTION VERIFY
+          if (param.system_status->connection.is_connected) // Ready Connected ?
+          {
+            state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+          } else {
+            TRACE_VERBOSE_F(F("SUPERVISOR: Connection not ready\r\n"));
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_END\r\n"));
+            // Exit from the switch (no more action)
+            state = SUPERVISOR_STATE_END;
+          }
+          // Prepare next state controller
+          state_check_connection = CONNECTION_CHECK_NTP;
+          break;
+
+        case CONNECTION_CHECK_NTP: // NTP_SYNCRO (NTP)
+          if (!param.system_status->connection.is_ntp_synchronized) // Already Syncronized?
+          {
+            // Request ntp sync
+            memset(&request, 0, sizeof(system_request_t));
+            request.connection.do_ntp_sync = true;
+            param.systemRequestQueue->Enqueue(&request, 0);
+
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_NTP\r\n"));
+            state = SUPERVISOR_STATE_DO_NTP;
+          }
+          // Prepare next state controller
+          state_check_connection = CONNECTION_CHECK_HTTP;
+          break;
+
+        case CONNECTION_CHECK_HTTP: // READ_CONFIG, FIRMWARE (HTTP)
+          if (!param.system_status->connection.is_http_configuration_updated) // Already Configured?
+          {
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+
+            // Request configuration update by http request
+            memset(&request, 0, sizeof(system_request_t));
+            request.connection.do_http_get_configuration = true;
+            param.systemRequestQueue->Enqueue(&request, 0);
+
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
+            state = SUPERVISOR_STATE_DO_HTTP;
+          }
+          // Prepare next state controller
+          state_check_connection = CONNECTION_CHECK_MQTT;
+          break;
+
+        case CONNECTION_CHECK_MQTT: // Rmap Publish data (MQTT)
+          if (!param.system_status->connection.is_mqtt_connected) // Mqtt connected?
+          {
+            // Request mqtt connection
+            memset(&request, 0, sizeof(system_request_t));
+            request.connection.do_mqtt_connect = true;
+            param.systemRequestQueue->Enqueue(&request, 0);
+
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_MQTT\r\n"));
+            state = SUPERVISOR_STATE_DO_MQTT;
+          }
+          // Prepare next state controller
+          state_check_connection = CONNECTION_END;
+          break;
+
+        case CONNECTION_END: // Publish completed? Or End Connection Mqtt -> END
+          if(param.system_status->connection.is_mqtt_disconnected)
+          {
+            if(param.system_status->connection.is_mqtt_publishing_end) {
+              TRACE_VERBOSE_F(F("SUPERVISOR: Publish data [ %s ] from MQTT\r\n"), OK_STRING);
+            } else {
+              TRACE_VERBOSE_F(F("SUPERVISOR: Publish data [ %s ] from MQTT\r\n"), ERROR_STRING);
+            }
+            // Remove Flag for Start Next Publish and Connect for Next attempt
+            param.systemStatusLock->Take();
+            param.system_status->connection.is_mqtt_publishing_end = false;
+            param.systemStatusLock->Give();
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_DISCONNECTION\r\n"));
+            // Init retry disconnection
+            retry = 0;
+            // Exit from the switch (no more action)
+            state = SUPERVISOR_STATE_REQUEST_DISCONNECTION;
+            // Saving connection sequence completed
+            param.systemStatusLock->Take();
+            param.system_status->modem.connection_completed++;
+            param.systemStatusLock->Give();
+          }
+          // No action (waiting END, error or disconnet)
+          break;
+      }
+      break;
+
     case SUPERVISOR_STATE_SAVE_CONFIGURATION:
-      is_saved = saveConfiguration(param.configuration, param.configurationLock, CONFIGURATION_CURRENT);
+      is_saved = saveConfiguration(CONFIGURATION_CURRENT);
 
       if (is_saved)
       {
@@ -192,11 +316,12 @@ void SupervisorTask::Run()
         param.system_status->configuration.is_loaded = true;
         param.systemStatusLock->Give();
 
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-        state = SUPERVISOR_STATE_CHECK_OPERATION;
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
       }
       else if ((++retry <= SUPERVISOR_TASK_GENERIC_RETRY) && !is_saved)
       {
+        TaskWatchDog(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
       }
       else
@@ -208,27 +333,30 @@ void SupervisorTask::Run()
 
         // gestire condizione di errore di scrittura della configurazione
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
+        // Post Suspend TaskWatchDog Module for TASK
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
         Suspend();
       }
       break;
 
-    case SUPERVISOR_STATE_REQUEST_CONNECTION:
+    case SUPERVISOR_STATE_REQUEST_CONNECTION:    
       // already connected
       if (param.system_status->connection.is_connected)
       {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION_TYPE\r\n"));
-        state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_CONNECTION -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
       }
       // not connected -> request connection.
       else
       {
-        request.connection.do_connect = true;
-        
         param.systemStatusLock->Take();
         param.system_status->connection.is_connecting = true;
         param.systemStatusLock->Give();
-        
+
+        memset(&request, 0, sizeof(system_request_t));
+        request.connection.do_connect = true;                
         param.systemRequestQueue->Enqueue(&request, 0);
+
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION\r\n"));
         state = SUPERVISOR_STATE_CHECK_CONNECTION;
       }
@@ -236,8 +364,11 @@ void SupervisorTask::Run()
     
     case SUPERVISOR_STATE_CHECK_CONNECTION:
       // wait connection
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok connected
         if (response.connection.done_connected)
         {
@@ -245,229 +376,255 @@ void SupervisorTask::Run()
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = true;
           param.system_status->connection.is_connecting = false;
+          param.system_status->connection.is_disconnecting = false;
+          param.system_status->connection.is_disconnected = false;
           param.systemStatusLock->Give();
           TRACE_INFO_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION_TYPE\r\n"));
-          state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
-        // error: not connected
-        else if (!response.connection.done_connected)
-        {
+        // Error connection?
+        else if (response.connection.error_connected) {
+          retry++; // Add error retry
           param.systemResponseQueue->Dequeue(&response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connecting = false;
+          param.system_status->connection.is_disconnecting = false;
+          param.system_status->connection.is_disconnected = true;
           param.systemStatusLock->Give();
-          TRACE_ERROR_F(F("%s Connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_END\r\n"));
-          state = SUPERVISOR_STATE_CHECK_CONNECTION_TYPE;
+          TRACE_ERROR_F(F("%s Connection [ %s ], retry remaining [ %d ]\r\n"), Thread::GetName().c_str(), ERROR_STRING, SUPERVISOR_TASK_GENERIC_RETRY - retry);
+          if (retry < SUPERVISOR_TASK_GENERIC_RETRY) // Check Retry
+          {
+            TaskWatchDog(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS);
+            Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
+            // Try to powerOff Modem other times
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+            state = SUPERVISOR_STATE_REQUEST_CONNECTION;
+          } else {
+            // Return state to CONNECTION_OPERATION (next switch control operation)
+            // Retry, abort connection on check_connection estabilished (->not connected !!!)
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+            state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+          }
         }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-        }
-      }
-      // do something else with non-blocking wait ....
-      break;
-
-    case SUPERVISOR_STATE_CHECK_CONNECTION_TYPE:
-      if (!param.system_status->connection.is_ntp_synchronized)
-      {
-        // Request ntp sync
-        request.connection.do_ntp_sync = true;
-        param.systemRequestQueue->Enqueue(&request, 0);
-
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> SUPERVISOR_STATE_DO_NTP\r\n"));
-        state = SUPERVISOR_STATE_DO_NTP;
-      }
-      else if (!param.system_status->connection.is_http_configuration_updated)
-      {
-        // Request configuration update by http request
-        request.connection.do_http_get_configuration = true;
-        param.systemRequestQueue->Enqueue(&request, 0);
-
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> SUPERVISOR_STATE_DO_HTTP\r\n"));
-        state = SUPERVISOR_STATE_DO_HTTP;
-      }
-      else if (!param.system_status->connection.is_mqtt_connected)
-      {
-        // Request mqtt connection
-        request.connection.do_mqtt_connect = true;
-        param.systemRequestQueue->Enqueue(&request, 0);
-
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> SUPERVISOR_STATE_DO_MQTT\r\n"));
-        state = SUPERVISOR_STATE_DO_MQTT;
-      }
-      else
-      {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_CONNECTION_TYPE -> ??? Condizione non gestita!!!\r\n"));
-        Thread::Suspend();
       }
       break;
 
     case SUPERVISOR_STATE_DO_NTP:
       // wait ntp to be sync
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok ntp synchronized
         if (response.connection.done_ntp_synchronized)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
           TRACE_INFO_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
-        // error: not connected
-        else if (!response.connection.done_ntp_synchronized)
+        // error: ntp syncronized
+        else if (response.connection.error_ntp_synchronized)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
           TRACE_ERROR_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
-        }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case SUPERVISOR_STATE_DO_HTTP:
       // wait http to be connected
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok http gettet configuration or firmware
         if (response.connection.done_http_configuration_getted || response.connection.done_http_firmware_getted)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          TRACE_INFO_F(F("%s HTTP connected [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+          if(response.connection.done_http_configuration_getted) {
+            TRACE_INFO_F(F("%s HTTP connected [ get config ] [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+          }
+          if(response.connection.done_http_firmware_getted) {
+            TRACE_INFO_F(F("%s HTTP connected [ get firmware ] [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+          }
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_HTTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // error: http not gettet configuration or firmware
-        else if (!response.connection.done_http_configuration_getted && !response.connection.done_http_firmware_getted)
+        else if (response.connection.error_http_configuration_getted || response.connection.error_http_firmware_getted)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
-          TRACE_ERROR_F(F("%s HTTP connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+          if(response.connection.error_http_configuration_getted) {
+            TRACE_INFO_F(F("%s HTTP request [ get config ] [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+          }
+          if(response.connection.error_http_firmware_getted) {
+            TRACE_INFO_F(F("%s HTTP request [ get firmware ] [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+          }
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
-        }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_HTTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case SUPERVISOR_STATE_DO_MQTT:
       // wait mqtt to be connected
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok mqtt connected
         if (response.connection.done_mqtt_connected)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
           TRACE_INFO_F(F("%s MQTT connected [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // error: not connected
-        else if (!response.connection.done_mqtt_connected)
+        else if (response.connection.error_mqtt_connected)
         {
           param.systemResponseQueue->Dequeue(&response, 0);
           TRACE_ERROR_F(F("%s MQTT connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
-          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-          state = SUPERVISOR_STATE_CHECK_OPERATION;
-        }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case SUPERVISOR_STATE_REQUEST_DISCONNECTION:
       // already disconnected
       if (param.system_status->connection.is_disconnected)
       {
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_DISCONNECTION -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-        state = SUPERVISOR_STATE_CHECK_OPERATION;
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_DISCONNECTION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
+        state = SUPERVISOR_STATE_WAITING_EVENT;
       }
       // connected -> request disconnection.
       else
       {
-        request.connection.do_disconnect = true;
-
         param.systemStatusLock->Take();
         param.system_status->connection.is_disconnecting = true;
         param.systemStatusLock->Give();
 
+        memset(&request, 0, sizeof(system_request_t));
+        request.connection.do_disconnect = true;
         param.systemRequestQueue->Enqueue(&request, 0);
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_DISCONNECTION -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-        state = SUPERVISOR_STATE_CHECK_CONNECTION;
+
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_DISCONNECTION -> SUPERVISOR_STATE_CHECK_DISCONNECTION\r\n"));
+        state = SUPERVISOR_STATE_CHECK_DISCONNECTION;
+      }
+      break;
+
+    case SUPERVISOR_STATE_CHECK_DISCONNECTION:
+      // wait connection
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
+      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY)) {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
+        // ok disconnected
+        if (response.connection.done_disconnected)
+        {
+          param.systemResponseQueue->Dequeue(&response, 0);
+          param.systemStatusLock->Take();
+          param.system_status->connection.is_connected = false;
+          param.system_status->connection.is_connecting = false;
+          param.system_status->connection.is_disconnected = true;
+          param.system_status->connection.is_disconnecting = false;
+          param.systemStatusLock->Give();
+          TRACE_INFO_F(F("%s Disconnection [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_DISCONNECTION -> SUPERVISOR_STATE_END\r\n"));
+          state = SUPERVISOR_STATE_END;
+          break;
+        }
+        // else if (++retry <= SUPERVISOR_TASK_GENERIC_RETRY) // Check Retry
+        // {
+        //   TaskWatchDog(param.system_status, param.systemStatusLock, SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS, false);
+        //   Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
+        //   // Try to powerOff Modem other times
+        //   TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_DISCONNECTION -> SUPERVISOR_STATE_REQUEST_DISCONNECTION\r\n"));
+        //   state = SUPERVISOR_STATE_REQUEST_DISCONNECTION;
+        // } else {
+        //   // Disconnection impossible, perform a Reboot
+        //   // Signal to E2Prom the problem
+        //   NVIC_SystemReset();
+        // }
       }
       break;
 
     case SUPERVISOR_STATE_END:
-      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_CHECK_OPERATION\r\n"));
-      state = SUPERVISOR_STATE_CHECK_OPERATION;
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_END -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
+      state = SUPERVISOR_STATE_WAITING_EVENT;
       break;
     }
+
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+
+    // One step base non blocking switch
+    TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
   }
 }
 
-bool SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySemaphore *lock)
+/// @brief Load configuration base from E2
+/// @return true if loading OK
+bool SupervisorTask::loadConfiguration()
 {
+  // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
 
   //! read configuration from eeprom
-  if (lock->Take())
+  if (param.configurationLock->Take())
   {
-    status = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
-    lock->Give();
+    status = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    param.configurationLock->Give();
   }
 
-  if (configuration->module_type != MODULE_TYPE || configuration->module_main_version != MODULE_MAIN_VERSION)
+  if (param.configuration->module_type != MODULE_TYPE || param.configuration->module_main_version != MODULE_MAIN_VERSION)
   {
-    status = saveConfiguration(configuration, lock, CONFIGURATION_DEFAULT);
+    status = saveConfiguration(CONFIGURATION_DEFAULT);
   }
 
   TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
-  printConfiguration(configuration, lock);
+  printConfiguration();
 
   return status;
 }
 
-void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySemaphore *lock)
+/// @brief Trace print current configuration from param
+void SupervisorTask::printConfiguration()
 {
-  if (lock->Take()) {
+  // Private param and Semaphore: param.configuration, param.configurationLock
+  if (param.configurationLock->Take()) {
     char stima_name[STIMA_MODULE_NAME_LENGTH];
     char topic[MQTT_ROOT_TOPIC_LENGTH];
 
-    getStimaNameByType(stima_name, configuration->module_type);
+    getStimaNameByType(stima_name, param.configuration->module_type);
     TRACE_INFO_F(F("-> type: %s\r\n"), stima_name);
-    TRACE_INFO_F(F("-> main version: %u\r\n"), configuration->module_main_version);
-    TRACE_INFO_F(F("-> minor version: %u\r\n"), configuration->module_minor_version);
-    TRACE_INFO_F(F("-> constant data: %d\r\n"), configuration->constantdata_count);
+    TRACE_INFO_F(F("-> main version: %u\r\n"), param.configuration->module_main_version);
+    TRACE_INFO_F(F("-> minor version: %u\r\n"), param.configuration->module_minor_version);
+    TRACE_INFO_F(F("-> constant data: %d\r\n"), param.configuration->constantdata_count);
     
-    for (uint8_t i = 0; i < configuration->constantdata_count; i++)
+    for (uint8_t i = 0; i < param.configuration->constantdata_count; i++)
     {
-      TRACE_INFO_F(F("--> cd %d:/t%s : %s"), i, configuration->constantdata[i].btable, configuration->constantdata[i].value);
+      TRACE_INFO_F(F("--> cd %d:/t%s : %s"), i, param.configuration->constantdata[i].btable, param.configuration->constantdata[i].value);
     }
 
     // TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
@@ -477,12 +634,12 @@ void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySe
     //   TRACE_INFO_F(F("--> %u: %s-%s\r\n"), i + 1, configuration->sensors[i].driver, configuration->sensors[i].type);
     // }
 
-    TRACE_INFO_F(F("-> data report every %d seconds\r\n"), configuration->report_s);
-    TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), configuration->observation_s);
-    TRACE_INFO_F(F("-> data level: %s\r\n"), configuration->data_level);
-    TRACE_INFO_F(F("-> ident: %s\r\n"), configuration->ident);
-    TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), configuration->longitude, configuration->latitude);
-    TRACE_INFO_F(F("-> network: %s\r\n"), configuration->network);
+    TRACE_INFO_F(F("-> data report every %d seconds\r\n"), param.configuration->report_s);
+    TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), param.configuration->observation_s);
+    TRACE_INFO_F(F("-> data level: %s\r\n"), param.configuration->data_level);
+    TRACE_INFO_F(F("-> ident: %s\r\n"), param.configuration->ident);
+    TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), param.configuration->longitude, param.configuration->latitude);
+    TRACE_INFO_F(F("-> network: %s\r\n"), param.configuration->network);
 
     #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
     TRACE_INFO_F(F("-> dhcp: %s\r\n"), configuration->is_dhcp_enable ? "on" : "off");
@@ -490,108 +647,118 @@ void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySe
     #endif
 
     #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-    TRACE_INFO_F(F("-> gsm apn: %s\r\n"), configuration->gsm_apn);
-    TRACE_INFO_F(F("-> gsm number: %s\r\n"), configuration->gsm_number);
-    TRACE_INFO_F(F("-> gsm username: %s\r\n"), configuration->gsm_username);
-    TRACE_INFO_F(F("-> gsm password: %s\r\n"), configuration->gsm_password);
+    TRACE_INFO_F(F("-> gsm apn: %s\r\n"), param.configuration->gsm_apn);
+    TRACE_INFO_F(F("-> gsm number: %s\r\n"), param.configuration->gsm_number);
+    TRACE_INFO_F(F("-> gsm username: %s\r\n"), param.configuration->gsm_username);
+    TRACE_INFO_F(F("-> gsm password: %s\r\n"), param.configuration->gsm_password);
     #endif
 
     #if (USE_NTP)
-    TRACE_INFO_F(F("-> ntp server: %s\r\n"), configuration->ntp_server);
+    TRACE_INFO_F(F("-> ntp server: %s\r\n"), param.configuration->ntp_server);
     #endif
 
     #if (USE_MQTT)
-    TRACE_INFO_F(F("-> mqtt server: %s\r\n"), configuration->mqtt_server);
-    TRACE_INFO_F(F("-> mqtt port: %d\r\n"), configuration->mqtt_port);    
-    TRACE_INFO_F(F("-> mqtt username: %s\r\n"), configuration->mqtt_username);
-    TRACE_INFO_F(F("-> mqtt password: %s\r\n"), configuration->mqtt_password);
-    TRACE_INFO_F(F("-> station slug: %s\r\n"), configuration->stationslug);
-    TRACE_INFO_F(F("-> board slug: %s\r\n"), configuration->boardslug);
+    TRACE_INFO_F(F("-> mqtt server: %s\r\n"), param.configuration->mqtt_server);
+    TRACE_INFO_F(F("-> mqtt port: %d\r\n"), param.configuration->mqtt_port);    
+    TRACE_INFO_F(F("-> mqtt username: %s\r\n"), param.configuration->mqtt_username);
+    TRACE_INFO_F(F("-> mqtt password: %s\r\n"), param.configuration->mqtt_password);
+    TRACE_INFO_F(F("-> station slug: %s\r\n"), param.configuration->stationslug);
+    TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->boardslug);
     TRACE_INFO_F(F("-> client psk key "));
-    TRACE_INFO_ARRAY("", configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
-    TRACE_INFO_F(F("-> mqtt root topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->data_level, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
-    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->mqtt_maint_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
-    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, configuration->mqtt_rpc_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network);
+    TRACE_INFO_ARRAY("", param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
+    TRACE_INFO_F(F("-> mqtt root topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, 
+      param.configuration->data_level, param.configuration->mqtt_username, param.configuration->ident,
+      param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION,
+      param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident,
+      param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION,
+      param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident,
+      param.configuration->longitude, param.configuration->latitude, param.configuration->network);
 #endif
 
-    lock->Give();
+    param.configurationLock->Give();
   }
 }
 
-bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default)
+/// @brief Save configuration to E2
+/// @param is_default require to write the Default configuration
+/// @return true is saving is done
+bool SupervisorTask::saveConfiguration(bool is_default)
 {
+  // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
 
-  if (lock->Take())
+  if (param.configurationLock->Take())
   {
     if (is_default)
     {
-      osMemset(configuration, 0, sizeof(configuration_t));
+      osMemset(param.configuration, 0, sizeof(configuration_t));
 
-      configuration->module_main_version = MODULE_MAIN_VERSION;
-      configuration->module_minor_version = MODULE_MINOR_VERSION;
-      configuration->module_type = MODULE_TYPE;
+      param.configuration->module_main_version = MODULE_MAIN_VERSION;
+      param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+      param.configuration->module_type = MODULE_TYPE;
 
-      configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
-      configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
+      param.configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
+      param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
 
-      strSafeCopy(configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
-      strSafeCopy(configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
-      strSafeCopy(configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
+      strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
+      strSafeCopy(param.configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
+      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
 
-      configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
-      configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;
+      param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
+      param.configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;
 
       #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
       char temp_string[20];
-      configuration->is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
+      param.configuration->is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
       strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_MAC);
-      macStringToArray(configuration->ethernet_mac, temp_string);
+      macStringToArray(param.configuration->ethernet_mac, temp_string);
       strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_IP);
-      ipStringToArray(configuration->ip, temp_string);
+      ipStringToArray(param.configuration->ip, temp_string);
       strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_NETMASK);
-      ipStringToArray(configuration->netmask, temp_string);
+      ipStringToArray(param.configuration->netmask, temp_string);
       strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_GATEWAY);
-      ipStringToArray(configuration->gateway, temp_string);
+      ipStringToArray(param.configuration->gateway, temp_string);
       strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_PRIMARY_DNS);
-      ipStringToArray(configuration->primary_dns, temp_string);
+      ipStringToArray(param.configuration->primary_dns, temp_string);
       #endif
 
       #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-      strSafeCopy(configuration->gsm_apn, CONFIGURATION_DEFAULT_GSM_APN, GSM_APN_LENGTH);
-      strSafeCopy(configuration->gsm_number, CONFIGURATION_DEFAULT_GSM_NUMBER, GSM_NUMBER_LENGTH);
-      strSafeCopy(configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
-      strSafeCopy(configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
+      strSafeCopy(param.configuration->gsm_apn, CONFIGURATION_DEFAULT_GSM_APN, GSM_APN_LENGTH);
+      strSafeCopy(param.configuration->gsm_number, CONFIGURATION_DEFAULT_GSM_NUMBER, GSM_NUMBER_LENGTH);
+      strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
+      strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
       #endif
 
       #if (USE_NTP)
-      strSafeCopy(configuration->ntp_server, CONFIGURATION_DEFAULT_NTP_SERVER, NTP_SERVER_LENGTH);
+      strSafeCopy(param.configuration->ntp_server, CONFIGURATION_DEFAULT_NTP_SERVER, NTP_SERVER_LENGTH);
       #endif
 
       #if (USE_MQTT)
-      configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
-      strSafeCopy(configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
-      strSafeCopy(configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
-      strSafeCopy(configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
-      strSafeCopy(configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
-      strSafeCopy(configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
-      strSafeCopy(configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
-      strSafeCopy(configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
+      param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
+      strSafeCopy(param.configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
+      strSafeCopy(param.configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
+      strSafeCopy(param.configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
+      strSafeCopy(param.configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
+      strSafeCopy(param.configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
+      strSafeCopy(param.configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
+      strSafeCopy(param.configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
       #endif
 
       // TODO: da rimuovere
       #if (USE_MQTT)
       uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
-      osMemcpy(configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
+      osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
 
-      strSafeCopy(configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
-      strSafeCopy(configuration->stationslug, "stimav4", STATIONSLUG_LENGTH);
-      strSafeCopy(configuration->boardslug, "stima4", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
+      strSafeCopy(param.configuration->stationslug, "stimav4", STATIONSLUG_LENGTH);
+      strSafeCopy(param.configuration->boardslug, "stima4", BOARDSLUG_LENGTH);
       #endif
     }
 
     //! write configuration to eeprom
-    status = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(configuration), sizeof(configuration_t));
+    status = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
 
     if (is_default)
     {
@@ -602,7 +769,7 @@ bool SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
       TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
     }
 
-    lock->Give();
+    param.configurationLock->Give();
   }
 
   return status;

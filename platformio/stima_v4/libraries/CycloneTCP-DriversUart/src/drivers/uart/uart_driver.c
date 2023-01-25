@@ -1,9 +1,9 @@
 /**@file uart_driver.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,12 +25,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/uart/uart_driver.h"
 
 // Variable declaration
-static UART_HandleTypeDef uart2;
+UART_HandleTypeDef huart2;
 
 /**
  * @brief UART driver
  **/
-
 const UartDriver uartDriver =
 {
    uartInit,
@@ -50,7 +49,6 @@ error_t uartInit(void)
 
 error_t uartInitConfig(uint32_t baud)
 {
-   // GPIO_InitTypeDef GPIO_InitStruct = {0};
    RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
@@ -66,34 +64,32 @@ error_t uartInitConfig(uint32_t baud)
    __HAL_RCC_USART2_CLK_ENABLE();
 
    // Configure USART2
-   uart2.Instance = USART2;
-   uart2.Init.BaudRate = baud;
-   uart2.Init.WordLength = UART_WORDLENGTH_8B;
-   uart2.Init.StopBits = UART_STOPBITS_1;
-   uart2.Init.Parity = UART_PARITY_NONE;
-   uart2.Init.Mode = UART_MODE_TX_RX;
-   uart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+   huart2.Instance = USART2;
+   huart2.Init.BaudRate = baud;
+   huart2.Init.WordLength = UART_WORDLENGTH_8B;
+   huart2.Init.StopBits = UART_STOPBITS_1;
+   huart2.Init.Parity = UART_PARITY_NONE;
+   huart2.Init.Mode = UART_MODE_TX_RX;
+   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
    // uart2.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
-   uart2.Init.OverSampling = UART_OVERSAMPLING_16;
-   uart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-   uart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-   if (HAL_UART_Init(&uart2) != HAL_OK)
+   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+   huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+   if (HAL_UART_Init(&huart2) != HAL_OK)
    {
       Error_Handler();
    }
 
-   // Enable USART interrupts
-   __HAL_UART_ENABLE_IT(&uart2, UART_IT_TXE);
-   __HAL_UART_ENABLE_IT(&uart2, UART_IT_RXNE);
-
-   // Set priority grouping (4 bits for pre-emption priority, no bits for subpriority)
-   NVIC_SetPriorityGrouping(3);
-
-   // Configure Usart interrupt priority
-   NVIC_SetPriority(USART2_IRQn, NVIC_EncodePriority(3, 12, 0));
-
    // Enable USART2
-   __HAL_UART_ENABLE(&uart2);
+   __HAL_UART_ENABLE(&huart2);
+
+   // Enable USART interrupts
+   __HAL_UART_ENABLE_IT(&huart2, UART_IT_TXE);
+   __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+
+    // Setup Priority e CB CAN_IRQ_RX Enable
+    HAL_NVIC_SetPriority(USART2_IRQn, UART2_NVIC_INT_PREMPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
 
    // Successful processing
    return NO_ERROR;
@@ -101,14 +97,18 @@ error_t uartInitConfig(uint32_t baud)
 
 error_t uartDeInit(void)
 {
-   // Disable USART2
-   __HAL_UART_DISABLE(&uart2);
+
+    // Setup Priority e CB CAN_IRQ_RX Enable
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
 
    // Disable USART interrupts
-   __HAL_UART_DISABLE_IT(&uart2, UART_IT_TXE);
-   __HAL_UART_DISABLE_IT(&uart2, UART_IT_RXNE);
+   __HAL_UART_DISABLE_IT(&huart2, UART_IT_RXNE);
+   __HAL_UART_DISABLE_IT(&huart2, UART_IT_TXE);
 
-   if (HAL_UART_DeInit(&uart2) != HAL_OK)
+   // Disable USART2
+   __HAL_UART_DISABLE(&huart2);
+
+   if (HAL_UART_DeInit(&huart2) != HAL_OK)
    {
       Error_Handler();
    }
@@ -149,66 +149,52 @@ void uartDisableIrq(void)
 void uartStartTx(void)
 {
    // Enable TXE interrupt
-   __HAL_UART_ENABLE_IT(&uart2, UART_IT_TXE);
+   __HAL_UART_ENABLE_IT(&huart2, UART_IT_TXE);
 }
 
 /**
  * @brief UART interrupt handler
  **/
-
 void USART2_IRQHandler(void)
 {
+   // Point to the PPP netInterface[INTERFACE_0_INDEX];
    int_t c;
-   bool_t flag;
-   NetInterface *interface;
-
-   // Enter interrupt service routine
-//   osEnterIsr();
-
-   // This flag will be set if a higher priority task must be woken
-   flag = FALSE;
-
-   // Point to the PPP network interface
-   interface = &netInterface[INTERFACE_0_INDEX];
 
    // TXE interrupt?
-   if (__HAL_UART_GET_FLAG(&uart2, UART_FLAG_TXE) != RESET &&
-       __HAL_UART_GET_IT_SOURCE(&uart2, UART_IT_TXE) != RESET)
+   if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_TXE) != RESET &&
+       __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_TXE) != RESET)
    {
       // Get next character
-      flag |= pppHdlcDriverReadTxQueue(interface, &c);
+      pppHdlcDriverReadTxQueue(&netInterface[INTERFACE_0_INDEX], &c);
 
       // Valid character read?
       if (c != EOF)
       {
          // Send data byte
-         uart2.Instance->TDR = c;
+         huart2.Instance->TDR = c;
       }
       else
       {
          // Disable TXE interrupt
-         __HAL_UART_DISABLE_IT(&uart2, UART_IT_TXE);
+         __HAL_UART_DISABLE_IT(&huart2, UART_IT_TXE);
       }
    }
 
    // RXNE interrupt?
-   if (__HAL_UART_GET_FLAG(&uart2, UART_FLAG_RXNE) != RESET &&
-       __HAL_UART_GET_IT_SOURCE(&uart2, UART_IT_RXNE) != RESET)
+   if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) != RESET &&
+       __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE) != RESET)
    {
       // Read data byte
-      c = uart2.Instance->RDR;
+      c = huart2.Instance->RDR;
       // Process incoming character
-      flag |= pppHdlcDriverWriteRxQueue(interface, c);
+      pppHdlcDriverWriteRxQueue(&netInterface[INTERFACE_0_INDEX], c);
    }
 
    // ORE interrupt?
-   if (__HAL_UART_GET_FLAG(&uart2, UART_FLAG_ORE) != RESET &&
-       __HAL_UART_GET_IT_SOURCE(&uart2, UART_IT_RXNE) != RESET)
+   if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE) != RESET &&
+       __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE) != RESET)
    {
       // Clear ORE interrupt flag
-      __HAL_UART_CLEAR_OREFLAG(&uart2);
+      __HAL_UART_CLEAR_OREFLAG(&huart2);
    }
-
-   // Leave interrupt service routine
-//   osExitIsr(flag);
 }

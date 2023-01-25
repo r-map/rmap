@@ -1,9 +1,9 @@
 /**@file config.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -65,8 +65,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
 #define ENABLE_WDT            (true)
-#define WDT_TIMEOUT_BASE_US   (8000000)
+#define WDT_TIMEOUT_BASE_US   (8000000)     // WatchDog HW us
+#define WDT_STARTING_TASK_MS  (60000)       // Init WDT Task Local ms
+#define WDT_CONTROLLER_MS     (2000)        // Task ms minimal check
 #define ENABLE_STACK_USAGE    (true)
+#define UNUSED_SUB_POSITION   (0)           // Monitor Sub Position Not Used Flag
+#define NORMAL_STATE          (0)           // Monitor No Sleep / No Suspend
+#define SLEEP_STATE           (1)           // Sleep Task For Wdt or LowPower Check
+#define SUSPEND_STATE         (2)           // Suspend Task from WDT
+
+// Generic Semaphore Time acquire RTC
+#define ENABLE_RTC            (true)
+#define RTC_WAIT_DELAY_MS     (100)
 
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (true)

@@ -1,9 +1,9 @@
 /**@file supervisor_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL SUPERVISOR_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     SUPERVISOR_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
 #include "tasks/supervisor_task.h"
 
@@ -29,36 +30,95 @@ using namespace cpp_freertos;
 
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
-  // Starting Task monitor WDT
-  param.systemStatusLock->Take();
-  param.system_status->tasks[SUPERVISOR_TASK_ID].running_pos = RUNNING_START;
-  param.systemStatusLock->Give();
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(SUPERVISOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Setup register mode && Load or Init configuration
   clRegister = EERegister(param.wire, param.wireLock);
-  loadConfiguration(param.configuration, param.configurationLock, param.registerAccessLock);
+  loadConfiguration();
 
   state = SUPERVISOR_STATE_INIT;
   Start();
 };
+
+#if (ENABLE_STACK_USAGE)
+/// @brief local stack Monitor (optional)
+void SupervisorTask::TaskMonitorStack()
+{
+  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
+  }
+}
+#endif
+
+/// @brief local watchDog and Sleep flag Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
+void SupervisorTask::TaskWatchDog(uint32_t millis_standby)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
+  else
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
+}
+
+/// @brief local suspend flag and positor running state Task (optional)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
+}
 
 void SupervisorTask::Run()
 {
   // Request response for system queue Task controlled...
   system_message_t system_message;
 
+  // Start Running Monitor and First WDT normal state
+  #if (ENABLE_STACK_USAGE)
+  TaskMonitorStack();
+  #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
   while (true)
   {
     switch (state)
     {
     case SUPERVISOR_STATE_INIT:
-      // Load configuration is done...
+      // Load configuration is also done...
       // Seting Startup param TASK and INIT Function Here...
       param.systemStatusLock->Take();
       // Done Load config && Starting function
       param.system_status->flags.is_cfg_loaded = true;
-      // Starting Task monitor WDT after INIT OK
-      param.system_status->tasks[SUPERVISOR_TASK_ID].running_pos = RUNNING_EXEC;
       param.systemStatusLock->Give();
 
       state = SUPERVISOR_STATE_CHECK_OPERATION;
@@ -92,49 +152,40 @@ void SupervisorTask::Run()
           if(system_message.task_dest == ALL_TASK_ID)
           {
             // Pull && elaborate command, 
+            // Sleep Global was called from CAN TASK When CAN Finished operation
+            // from request and comuinication with Master. Master send flag Sleep...
             if(system_message.command.do_sleep)
             {
               // Check All Module Direct Controlled Entered in Sleep and performed
               // Local ShutDown periph, IO data ecc... IF ALL OK-> Enter LowPOWER Mode
-              if(param.system_status->tasks[ACCELEROMETER_TASK_ID].is_sleep &&
-                param.system_status->tasks[CAN_TASK_ID].is_sleep &&
-                param.system_status->tasks[ELABORATE_TASK_ID].is_sleep) {
+              // ************ SLEEP ALL MODULE OK -> SLEEP SUPERVISOR ************
+              // Sleeping or Suspend Module are same. Only normal_mode suspend Sleep Mode
+              // SLEEP SUPERVISOR -> ALL MODULE IS SLEEPING. Tickless_mode CAN Start
+              if((param.system_status->tasks[ACCELEROMETER_TASK_ID].state != task_flag::normal) &&
+                 (param.system_status->tasks[CAN_TASK_ID].state != task_flag::normal) &&
+                 (param.system_status->tasks[ELABORATE_TASK_ID].state != task_flag::normal)) {
                 // Enter to Sleep Complete (Remove before queue Message TaskSleep)
                 // Ready for Next Security Startup without Reenter Sleep
                 // Next Enter with Other QueueMessage from CAN or Other Task...
                 param.systemMessageQueue->Dequeue(&system_message, 0);
                 // Enter task sleep (enable global LowPower procedure...)
                 // Local WatchDog update
-                param.systemStatusLock->Take();
-                param.system_status->tasks[SUPERVISOR_TASK_ID].is_sleep = true;
-                // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
-                if(SUPERVISOR_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
-                  param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::rest;
-                else
-                  param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::set;
-                param.systemStatusLock->Give();
+                TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+                TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                // ... -> Enter LowPower on call Delay ... ->
                 Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
-                // WakeUP
-                param.systemStatusLock->Take();
-                param.system_status->tasks[SUPERVISOR_TASK_ID].is_sleep = false;
-                param.systemStatusLock->Give();
+                TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
               }
             }
           }
         } else {
-          #ifdef LOG_STACK_USAGE
-          static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-          if((stackUsage) && (stackUsage < param.system_status->tasks[SUPERVISOR_TASK_ID].stack)) {
-            param.systemStatusLock->Take();
-            param.system_status->tasks[SUPERVISOR_TASK_ID].stack = stackUsage;
-            param.systemStatusLock->Give();
-          }
+
+          #if (ENABLE_STACK_USAGE)
+          TaskMonitorStack();
           #endif
 
-          // Local WatchDog update;
-          param.systemStatusLock->Take();
-          param.system_status->tasks[SUPERVISOR_TASK_ID].watch_dog = wdt_flag::set;
-          param.systemStatusLock->Give();
+          // Local TaskWatchDog update;
+          TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
 
           // Standard delay task
           DelayUntil(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
@@ -156,11 +207,12 @@ void SupervisorTask::Run()
 }
 
 /// @brief Load configuration from Register
-/// @param configuration param configuration module
-/// @param lockConfig Semaphore config Access
-/// @param lockRegister Semaphore register Access
-void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister)
+/// @param None
+void SupervisorTask::loadConfiguration()
 {
+  // param.configuration configuration Module
+  // param.configurationLock Semaphore config Access
+  // param.registerAccessLock Semaphore register Access
   // Verify if config valid
   bool register_config_valid = true;
   // Param Reading
@@ -180,17 +232,17 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     val.natural8.value.elements[0] = MODULE_MAIN_VERSION;
     val.natural8.value.elements[1] = MODULE_MINOR_VERSION;
     val.natural8.value.elements[2] = MODULE_TYPE;
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.identify", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 3)) {
       register_config_valid = false;
     } else {
-      lockConfig->Take();
-      configuration->module_main_version = val.natural8.value.elements[0];
-      configuration->module_minor_version = val.natural8.value.elements[1];
-      configuration->module_type = val.natural8.value.elements[2];
-      lockConfig->Give();
+      param.configurationLock->Take();
+      param.configuration->module_main_version = val.natural8.value.elements[0];
+      param.configuration->module_minor_version = val.natural8.value.elements[1];
+      param.configuration->module_type = val.natural8.value.elements[2];
+      param.configurationLock->Give();
     }
   }
 
@@ -221,15 +273,15 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     #endif
     // Loading Default
     val.natural8.value.elements[0] = sensor_count;
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.sensor.count", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 1)) {
       register_config_valid = false;
     } else {
-      lockConfig->Take();
-      configuration->sensors_count = val.natural8.value.elements[0];
-      lockConfig->Give();
+      param.configurationLock->Take();
+      param.configuration->sensors_count = val.natural8.value.elements[0];
+      param.configurationLock->Give();
     }
   }
 
@@ -241,15 +293,15 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     val.natural32.value.count       = 1;
     // Loading Default
     val.natural32.value.elements[0] = SENSORS_ACQUISITION_DELAY_MS;
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.sensor.acquisition", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count != 1)) {
       register_config_valid = false;
     } else {
-      lockConfig->Take();
-      configuration->sensor_acquisition_delay_ms = val.natural32.value.elements[0];
-      lockConfig->Give();
+      param.configurationLock->Take();
+      param.configuration->sensor_acquisition_delay_ms = val.natural32.value.elements[0];
+      param.configurationLock->Give();
     }
   }
 
@@ -287,19 +339,19 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     #endif
     // Total element
     val.natural8.value.count = elements;
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.sensor.config", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural32.value.count != elements)) {
       register_config_valid = false;
     } else {
       // Copy Register value to local_type config
-      lockConfig->Take();
-      for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-        configuration->sensors[id].i2c_address = val.natural8.value.elements[id*2];
-        configuration->sensors[id].is_redundant = (val.natural8.value.elements[id*2+1] != 0);
+      param.configurationLock->Take();
+      for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+        param.configuration->sensors[id].i2c_address = val.natural8.value.elements[id*2];
+        param.configuration->sensors[id].is_redundant = (val.natural8.value.elements[id*2+1] != 0);
       }
-      lockConfig->Give();
+      param.configurationLock->Give();
     }
   }
 
@@ -326,16 +378,16 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     val._string.value.count = strlen(SENSOR_TYPE_SHT);
     #endif
     // Total element
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.sensor.type", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(!uavcan_register_Value_1_0_is_string_(&val)) {
       register_config_valid = false;
     } else {
-      lockConfig->Take();
-      for(uint8_t id = 0; id < configuration->sensors_count; id++)
-        memcpy(configuration->sensors[id].type, val._string.value.elements, val._string.value.count);
-      lockConfig->Give();
+      param.configurationLock->Take();
+      for(uint8_t id = 0; id < param.configuration->sensors_count; id++)
+        memcpy(param.configuration->sensors[id].type, val._string.value.elements, val._string.value.count);
+      param.configurationLock->Give();
     }
   }
 
@@ -362,34 +414,34 @@ void SupervisorTask::loadConfiguration(configuration_t *configuration, BinarySem
     val._string.value.count = strlen(SENSOR_DRIVER_I2C);
     #endif
     // Total element
-    lockRegister->Take();
+    param.registerAccessLock->Take();
     clRegister.read("rmap.module.sensor.driver", &val);
-    lockRegister->Give();
+    param.registerAccessLock->Give();
     if(!uavcan_register_Value_1_0_is_string_(&val)) {
       register_config_valid = false;
     } else {
-      lockConfig->Take();
-      for(uint8_t id = 0; id < configuration->sensors_count; id++)
-        memcpy(configuration->sensors[id].driver, val._string.value.elements, val._string.value.count);
-      lockConfig->Give();
+      param.configurationLock->Take();
+      for(uint8_t id = 0; id < param.configuration->sensors_count; id++)
+        memcpy(param.configuration->sensors[id].driver, val._string.value.elements, val._string.value.count);
+      param.configurationLock->Give();
     }
   }
 
   // INIT CONFIG (Config invalid)
   if(!register_config_valid) {
     // Reinit Configuration with default classic value
-    saveConfiguration(configuration, lockConfig, lockRegister, true);
+    saveConfiguration(CONFIGURATION_DEFAULT);
   }
-  printConfiguration(configuration, lockConfig);
+  printConfiguration();
 }
 
 /// @brief Save/Init configuration base Register Class
-/// @param configuration Module configuration
-/// @param lockConfig Semaphore config Access
-/// @param lockRegister Semaphore register Access
 /// @param is_default true if is need to prepare config default value
-void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister, bool is_default)
+void SupervisorTask::saveConfiguration(bool is_default)
 {
+  // param.configuration configuration Module
+  // param.configurationLock Semaphore config Access
+  // param.registerAccessLock Semaphore register Access
   uint8_t sensor_count = 0;   // Number of Sensor
   uint8_t elements = 0;       // Array ID Element For Sensor
   static uavcan_register_Value_1_0 val = {0};  // Save configuration into register
@@ -397,11 +449,11 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
   // Load default value to WRITE into config base
   if(is_default) {
 
-    lockConfig->Take();
+    param.configurationLock->Take();
 
-    configuration->module_main_version = MODULE_MAIN_VERSION;
-    configuration->module_minor_version = MODULE_MINOR_VERSION;
-    configuration->module_type = MODULE_TYPE;
+    param.configuration->module_main_version = MODULE_MAIN_VERSION;
+    param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+    param.configuration->module_type = MODULE_TYPE;
 
     // Get sensor_count
     #if (USE_SENSOR_ADT)
@@ -424,61 +476,61 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
     #endif
 
     // Acquisition time sensor default
-    configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
+    param.configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
 
     // Get elements
     #if (USE_SENSOR_ADT)
-    configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
     #endif
     #if (USE_SENSOR_HIH)
-    configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
     #endif
     #if (USE_SENSOR_HYT)
-    configuration->sensors[elements].i2c_address = HYT_DEFAULT_ADDRESS;   // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = HYT_DEFAULT_ADDRESS;   // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
     #if (USE_REDUNDANT_SENSOR)
-    configuration->sensors[elements].i2c_address = HYT_REDUNDANT_ADDRESS; // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = HYT_REDUNDANT_ADDRESS; // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
     #endif
     #endif
     #if (USE_SENSOR_SHT)
-    configuration->sensors[elements].i2c_address = SHT_DEFAULT_ADDRESS;   // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = SHT_DEFAULT_ADDRESS;   // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
     #if (USE_REDUNDANT_SENSOR)
-    configuration->sensors[elements].i2c_address = SHT_REDUNDANT_ADDRESS; // I2C ADDRESS
-    configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
+    param.configuration->sensors[elements].i2c_address = SHT_REDUNDANT_ADDRESS; // I2C ADDRESS
+    param.configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
     #endif
     #endif
 
     // Loading Default
     #if (USE_SENSOR_ADT)
-    for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-      strcpy(configuration->sensors[id].type, SENSOR_TYPE_ADT);
-      strcpy(configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
+    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_ADT);
+      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
     }
     #endif
     #if (USE_SENSOR_HIH)
-    for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-      strcpy(configuration->sensors[id].type, SENSOR_TYPE_HYH);
-      strcpy(configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
+    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HYH);
+      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
     }
     #endif
     #if (USE_SENSOR_HYT)
-    for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-      strcpy(configuration->sensors[id].type, SENSOR_TYPE_HYT);
-      strcpy(configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
+    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HYT);
+      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
     }
     #endif
     #if (USE_SENSOR_SHT)
-    for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-      strcpy(configuration->sensors[id].type, SENSOR_TYPE_SHT);
-      strcpy(configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
+    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_SHT);
+      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
     }
     #endif
 
-    lockConfig->Give();
+    param.configurationLock->Give();
 
   }
 
@@ -490,14 +542,14 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
   uavcan_register_Value_1_0_select_natural8_(&val);
   val.natural8.value.count       = 3;
   // Loading Default
-  lockConfig->Take();
-  val.natural8.value.elements[0] = configuration->module_main_version;
-  val.natural8.value.elements[1] = configuration->module_minor_version;
-  val.natural8.value.elements[2] = configuration->module_type;
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Take();
+  val.natural8.value.elements[0] = param.configuration->module_main_version;
+  val.natural8.value.elements[1] = param.configuration->module_minor_version;
+  val.natural8.value.elements[2] = param.configuration->module_type;
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.identify", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor count -> (READ)
   // uint8_t sensors_count
@@ -505,12 +557,12 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
   sensor_count = 0;
   uavcan_register_Value_1_0_select_natural8_(&val);
   val.natural8.value.count = 1;
-  lockConfig->Take();
+  param.configurationLock->Take();
   val.natural8.value.elements[0] = sensor_count;
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.sensor.count", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
   // uint32_t sensor_acquisition_delay_ms;
@@ -518,12 +570,12 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
   uavcan_register_Value_1_0_select_natural32_(&val);
   val.natural32.value.count       = 1;
   // Loading Default
-  lockConfig->Take();
-  val.natural32.value.elements[0] = configuration->sensor_acquisition_delay_ms;
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Take();
+  val.natural32.value.elements[0] = param.configuration->sensor_acquisition_delay_ms;
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.sensor.acquisition", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor address -> (READ/WRITE)
   // uint8_t i2c_address[sensor_count];   // I2C Address
@@ -534,70 +586,72 @@ void SupervisorTask::saveConfiguration(configuration_t *configuration, BinarySem
   // Total element = sensor_count x 2 => sensor_count == elements
   val.natural8.value.count = sensor_count * 2;
   // Copy Register value to local_type config
-  lockConfig->Take();
-  for(uint8_t id = 0; id < configuration->sensors_count; id++) {
-    val.natural8.value.elements[id*2] = configuration->sensors[id].i2c_address;
-    val.natural8.value.elements[id*2+1] = configuration->sensors[id].is_redundant;
+  param.configurationLock->Take();
+  for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
+    val.natural8.value.elements[id*2] = param.configuration->sensors[id].i2c_address;
+    val.natural8.value.elements[id*2+1] = param.configuration->sensors[id].is_redundant;
   }
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.sensor.config", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   /// Writing RMAP Module sensor type -> (READ/WRITE)
   // char type[TYPE_LENGTH] same for sensor standard and redundant;
   // Select type register (string)
   uavcan_register_Value_1_0_select_string_(&val);
   // Total element (len of string)
-  lockConfig->Take();
-  val._string.value.count = strlen(configuration->sensors[0].type);
-  memcpy(val._string.value.elements, configuration->sensors[0].type, val._string.value.count);
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Take();
+  val._string.value.count = strlen(param.configuration->sensors[0].type);
+  memcpy(val._string.value.elements, param.configuration->sensors[0].type, val._string.value.count);
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.sensor.type", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   /// Writing RMAP Module sensor type -> (READ/WRITE)
   // char driver[DRIVER_LENGTH] same for sensor standard and redundant;
   // Select type register (string)
   uavcan_register_Value_1_0_select_string_(&val);
   // Total element (len of string)
-  lockConfig->Take();
-  val._string.value.count = strlen(configuration->sensors[0].driver);
-  memcpy(val._string.value.elements, configuration->sensors[0].driver, val._string.value.count);
-  lockConfig->Give();
-  lockRegister->Take();
+  param.configurationLock->Take();
+  val._string.value.count = strlen(param.configuration->sensors[0].driver);
+  memcpy(val._string.value.elements, param.configuration->sensors[0].driver, val._string.value.count);
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
   clRegister.write("rmap.module.sensor.driver", &val);
-  lockRegister->Give();
+  param.registerAccessLock->Give();
 
   if(is_default) {
     TRACE_INFO_F(F("SUPERVISOR: Save configuration...\r\n"));
   } else {
     TRACE_INFO_F(F("SUPERVISOR: Init configuration and save parameter...\r\n"));
   }
-  printConfiguration(configuration, lockConfig);
+  printConfiguration();
 }
 
 /// @brief Print configuratione
-/// @param configuration param configuration module
-/// @param lockConfig Semaphore for configuration access
-void SupervisorTask::printConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig)
+/// @param None
+void SupervisorTask::printConfiguration()
 {
+  // param.configuration configuration Module
+  // param.configurationLock Semaphore config Access
+  // param.registerAccessLock Semaphore register Access
   char stima_name[STIMA_MODULE_NAME_LENGTH];
 
-  lockConfig->Take();
+  param.configurationLock->Take();
 
-  getStimaNameByType(stima_name, configuration->module_type);
+  getStimaNameByType(stima_name, param.configuration->module_type);
   TRACE_INFO_F(F("-> type: %s\r\n"), stima_name);
-  TRACE_INFO_F(F("-> main version: %u\r\n"), configuration->module_main_version);
-  TRACE_INFO_F(F("-> minor version: %u\r\n"), configuration->module_minor_version);
-  TRACE_INFO_F(F("-> acquisition delay: %u [ms]\r\n"), configuration->sensor_acquisition_delay_ms);
+  TRACE_INFO_F(F("-> main version: %u\r\n"), param.configuration->module_main_version);
+  TRACE_INFO_F(F("-> minor version: %u\r\n"), param.configuration->module_minor_version);
+  TRACE_INFO_F(F("-> acquisition delay: %u [ms]\r\n"), param.configuration->sensor_acquisition_delay_ms);
 
-  TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
-  for (uint8_t i = 0; i < configuration->sensors_count; i++)
+  TRACE_INFO_F(F("-> %u configured sensors:\r\n"), param.configuration->sensors_count);
+  for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
   {
-    TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, configuration->sensors[i].type, configuration->sensors[i].i2c_address, configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
+    TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
   }
 
-  lockConfig->Give();
+  param.configurationLock->Give();
 }

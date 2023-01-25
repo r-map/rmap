@@ -1,9 +1,9 @@
 /**@file sim7600.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -57,12 +57,13 @@ SIM7600::SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _hi
 }
 #endif
 
-void SIM7600::initPins()
+void SIM7600::initPins(bool _set_direction)
 {
-   // pinMode(enable_power_pin, OUTPUT);
-   // pinMode(power_pin, OUTPUT);
-   // pinMode(ring_indicator_pin, INPUT);
-
+   if(_set_direction) {
+      pinMode(enable_power_pin, OUTPUT);
+      pinMode(power_pin, OUTPUT);
+      pinMode(ring_indicator_pin, INPUT);
+   }
    digitalWrite(enable_power_pin, LOW);
    digitalWrite(power_pin, LOW);
 }
@@ -95,7 +96,7 @@ void SIM7600::init()
    uartInitConfig(low_baud_rate);
    #endif
 
-   initPins();
+   initPins(false);
 }
 
 bool SIM7600::isOn()
@@ -122,12 +123,8 @@ sim7600_status_t SIM7600::switchOn()
    at_command_status = switchModem(is_switching_on);
 
    if (at_command_status != SIM7600_BUSY) {
-      TRACE_INFO_F(F("UART_DEINIT !!!!!!!!!!!!!!!!!!!!!!"));
       uartDeInit();
-      delay(2);
-      TRACE_INFO_F(F("UART_REINIT !!!!!!!!!!!!!!!!!!!!!!"));
       uartInitConfig(low_baud_rate);
-      delay(2);
       TRACE_INFO_F(F("%s switching ON... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
    }
 
@@ -166,7 +163,10 @@ sim7600_status_t SIM7600::switchOff(uint8_t power_off_method)
          state_after_wait = SIM7600_POWER_OFF_END;
          sim7600_power_off_state = SIM7600_POWER_OFF_WAIT_STATE;
          #else
-         delay_ms = SIM7600_WAIT_FOR_POWER_OFF_DELAY_MS;
+         if (at_command_status == SIM7600_OK)
+            delay_ms = SIM7600_WAIT_FOR_POWER_OFF_CPOF_DELAY_MS;
+         else
+            delay_ms = SIM7600_WAIT_FOR_POWER_OFF_DELAY_MS;
          sim7600_power_off_state = SIM7600_POWER_OFF_END;
          #endif
          at_command_status = SIM7600_BUSY;
@@ -184,11 +184,12 @@ sim7600_status_t SIM7600::switchOff(uint8_t power_off_method)
       cereg_stat = CREG_STAT_UNKNOWN;
 
       uartDeInit();
-      uartInitConfig(low_baud_rate);
       
       digitalWrite(enable_power_pin, LOW);
       digitalWrite(power_pin, LOW);
-      
+
+      uartInitConfig(low_baud_rate);
+
       state = SIM7600_STATE_NONE;
 
       TRACE_INFO_F(F("%s switching OFF... [ %s ] [ %s ]\r\n"), SIM7600_NAME, printStatus(SIM7600_OK, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
@@ -243,11 +244,20 @@ sim7600_status_t SIM7600::switchModem(bool is_switching_on)
       }
       break;
 
+#define GSM_PowerEn_Pin   GPIO_PIN_11
+#define GSM_PowerKey_Pin  GPIO_PIN_12
+#define GSM_GPIO_Port     GPIOD
+
    case SIM7600_POWER_ENABLE:
-      digitalWrite(enable_power_pin, HIGH);
+      uartDeInit();
+
       digitalWrite(power_pin, HIGH);
+      digitalWrite(enable_power_pin, HIGH);
+
+      uartInitConfig(low_baud_rate);
+
       delay_ms = SIM7600_POWER_ON_STABILIZATION_DELAY_MS;
-      
+
       #ifndef USE_FREERTOS
       start_time_ms = millis();
       state_after_wait = SIM7600_POWER_IMPULSE_DOWN;
@@ -440,7 +450,11 @@ sim7600_status_t SIM7600::sendAtCommand(const char *command, char *response, siz
          modem->print(command)
          sim7600_at_state = SIM7600_AT_RECEIVE;
          #else
-         error = pppSendAtCommand(interface, command);
+         if(strncmp(command,"+++", 3)==0) {
+            error = pppHdlcDriverSendAtCommand(interface, command);
+         } else {
+            error = pppSendAtCommand(interface, command);
+         }
          
          if(!error)
          {
@@ -481,15 +495,23 @@ sim7600_status_t SIM7600::sendAtCommand(const char *command, char *response, siz
             // Wait for a response from the modem
             error = pppReceiveAtCommand(interface, response + n, response_length - n);
 
+            // Check escape sequence... Enter command Mode (OK or NO CARRIER)
+            bool bSeqEscapeOk = false;
+            if(strncmp(command,"+++", 3)==0) {
+               if(found(response, AT_NO_CARRIER_STRING)) {
+                  bSeqEscapeOk = true;
+               }
+            }
+
             // ok
-            if (!error && found(response, at_ok_string))
+            if (!error && (found(response, at_ok_string) || bSeqEscapeOk))
             {
                TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
                sim7600_at_state = SIM7600_AT_END;
                break;
             }
             // error
-            else if (error || (!error && found(response, at_error_string)))
+            else if (error || (!error && (found(response, at_error_string) || bSeqEscapeOk)))
             {
                if (n) {
                   TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
@@ -506,7 +528,7 @@ sim7600_status_t SIM7600::sendAtCommand(const char *command, char *response, siz
          }
          else
          {
-            // TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
+            TRACE_DEBUG_F(F("%s%s\r\n"), SIM7600_AT_RX_CMD_DEBUG_PREFIX, response);
             is_error = true;
             sim7600_at_state = SIM7600_AT_END;
          }
@@ -1300,7 +1322,43 @@ sim7600_status_t SIM7600::disconnect() {
       is_error = false;
       sim7600_status = SIM7600_BUSY;
 
-      sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_HANGUP;
+      // Delay before enter escape sequence -> command mode
+      TRACE_INFO_F(F("Starting escape sequence +++\r\n"), SIM7600_NAME);
+      delay_ms = SIM7600_COMMAND_MODE_WAIT_DELAY_MS;
+
+      sim7600_connection_stop_state = SIM7600_CONNECTION_ENTER_COMMAND_MODE;
+      break;
+
+   case SIM7600_CONNECTION_ENTER_COMMAND_MODE:
+      at_command_status = sendAtCommand("+++", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_FASTCMD_TIMEOUT_MS);
+
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         retry = 0;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_HANGUP;
+      }
+      // retry
+      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_CONNECTION_ENTER_COMMAND_MODE;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_START_WAIT_STATE;
+         #endif
+         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
+      }
+      // fail
+      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         is_error = true;
+         sim7600_connection_stop_state = SIM7600_CONNECTION_STOP_END;
+      }
+
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s enter command mode... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
       break;
 
    case SIM7600_CONNECTION_STOP_HANGUP:
@@ -1360,7 +1418,7 @@ sim7600_status_t SIM7600::disconnect() {
       cereg_n = CREG_N_UNKNOWN;
       cereg_stat = CREG_STAT_UNKNOWN;
 
-      TRACE_INFO_F(F("%s disconnect... [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      TRACE_INFO_F(F("%s disconnect... [ %s ]\r\n"), SIM7600_NAME, printStatus(sim7600_status, OK_STRING, ERROR_STRING));
       break;
 
    #ifndef USE_FREERTOS

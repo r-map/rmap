@@ -1,9 +1,9 @@
 /**@file supervisor_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 typedef enum
 {
+  SUPERVISOR_STATE_CREATE,
   SUPERVISOR_STATE_INIT,
   SUPERVISOR_STATE_CHECK_OPERATION,
   SUPERVISOR_STATE_END
@@ -76,14 +77,20 @@ protected:
   virtual void Run();
 
 private:
+  #if (ENABLE_STACK_USAGE)
+  void TaskMonitorStack();
+  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  void printConfiguration();
+  void loadConfiguration();
+  void saveConfiguration(bool is_default);
+
   SupervisorState_t state;
   SupervisorParam_t param;
   // Register access
   EERegister clRegister;
-
-  void printConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig);
-  void loadConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister);
-  void saveConfiguration(configuration_t *configuration, BinarySemaphore *lockConfig, BinarySemaphore *lockRegister, bool is_default);
 };
 
 #endif

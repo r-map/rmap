@@ -1,9 +1,9 @@
 /**@file modem_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL MODEM_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     MODEM_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   MODEM_TASK_ID
 
 #include "tasks/modem_task.h"
 
@@ -31,11 +32,9 @@ using namespace cpp_freertos;
 
 ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam) : Thread(taskName, stackSize, priority), param(modemParam)
 {
-  // Start WDT controller and RunState Flags
-  #if (ENABLE_WDT)
-  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
-  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
-  #endif
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(MODEM_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   state = MODEM_STATE_INIT;
   Start();
@@ -43,53 +42,59 @@ ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority,
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-void ModemTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+void ModemTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < status->tasks[MODEM_TASK_ID].stack)) {
-    if(lock != NULL) lock->Take();
-    status->tasks[MODEM_TASK_ID].stack = stackUsage;
-    if(lock != NULL) lock->Give();
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
   }
 }
 #endif
 
-#if (ENABLE_WDT)
 /// @brief local watchDog and Sleep flag Task (optional)
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void ModemTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+void ModemTask::TaskWatchDog(uint32_t millis_standby)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[MODEM_TASK_ID].is_sleep = is_sleep;
-  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
-    status->tasks[MODEM_TASK_ID].watch_dog = wdt_flag::set;
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
   else
-    status->tasks[MODEM_TASK_ID].watch_dog = wdt_flag::rest;
-  if(lock != NULL) lock->Give();
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
-/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
-void ModemTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void ModemTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[MODEM_TASK_ID].is_suspend = is_suspend;
-  status->tasks[MODEM_TASK_ID].running_pos = state_position;
-  if(lock != NULL) lock->Give();
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
 }
-#endif
-
 
 void ModemTask::Run() {
   uint8_t retry;
@@ -99,20 +104,16 @@ void ModemTask::Run() {
   system_request_t request;
   system_response_t response;
   Ipv4Addr ipv4Addr;
+  bool try_connection = false;
 
-  // Starting Task and first WDT (if required and enabled. Time < than WDT_TIMEOUT_BASE_US)
-  #if (ENABLE_WDT)
-  RunState(param.system_status, param.systemStatusLock, RUNNING_EXEC, false);
-  #endif
+  // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
-  monitorStack(param.system_status, param.systemStatusLock);
+  TaskMonitorStack();
   #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true)
   {
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
-
     switch (state)
     {
     case MODEM_STATE_INIT:
@@ -154,6 +155,7 @@ void ModemTask::Run() {
         is_error = true;
 
         TRACE_ERROR_F(F("%s Failed to configure interface %s [ %s ]\r\n"), Thread::GetName().c_str(), interface->name, ERROR_STRING);
+        TaskWatchDog(MODEM_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
       }
@@ -169,11 +171,16 @@ void ModemTask::Run() {
       retry = 0;
 
       // wait connection request
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do connection
         if (request.connection.do_connect)
         {
+          // Test connection estabilished ok (return done or error)
+          try_connection = true;
           param.configurationLock->Take();
           strSafeCopy(apn, param.configuration->gsm_apn, GSM_APN_LENGTH);
           strSafeCopy(number, param.configuration->gsm_number, GSM_NUMBER_LENGTH);
@@ -192,18 +199,16 @@ void ModemTask::Run() {
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_DISCONNECT\r\n"));
           state = MODEM_STATE_DISCONNECT;
         }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(MODEM_TASK_WAIT_DELAY_MS));
-        }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case MODEM_STATE_SWITCH_ON:
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       status = sim7600.switchOn();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      // Resume task state WDT
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
       if (status == SIM7600_OK)
       {
@@ -221,8 +226,13 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_SETUP:
+
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       status = sim7600.setup();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      // Resume
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
       if (status == SIM7600_OK)
       {
@@ -239,8 +249,12 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_CONNECT:
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       status = sim7600.connect(apn, number);
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      // Resume
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
       if (status == SIM7600_OK)
       {
@@ -277,7 +291,11 @@ void ModemTask::Run() {
       pppSetAuthInfo(interface, username, password);
 
       // Establish a PPP connection
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       error = pppConnect(interface);
+      // Resume
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       // Any error to report?
       if (error)
       {
@@ -289,7 +307,11 @@ void ModemTask::Run() {
       }
       else
       {
+        // Connection EXEC completed PPP (remove testing var)
+        try_connection = false;
+        // Saving last state of modemParam signal state
         param.systemStatusLock->Take();
+        param.system_status->connection.is_ppp_estabilished = true;
         param.system_status->modem.ber = sim7600.getBer();
         param.system_status->modem.rssi = sim7600.getRssi();
         param.system_status->modem.creg_n = sim7600.getCregN();
@@ -301,17 +323,41 @@ void ModemTask::Run() {
         param.systemStatusLock->Give();
 
         TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+
+        memset(&response, 0, sizeof(system_response_t));
         response.connection.done_connected = true;
         param.systemResponseQueue->Enqueue(&response, 0);
 
         state = MODEM_STATE_WAIT_NET_EVENT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
+
       }
       break;
 
     case MODEM_STATE_DISCONNECT:
+      // At begin Close PPP Connection
+      if(param.system_status->connection.is_ppp_estabilished) {
+        // Detach a PPP connection
+        error = pppClose(interface);
+        // Any error to report?
+        if (error)
+        {
+          is_error = true;
+          TRACE_ERROR_F(F("%s Failed to close PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        } else {
+          param.systemStatusLock->Take();
+          param.system_status->connection.is_ppp_estabilished = false;
+          param.systemStatusLock->Give();
+          TRACE_INFO_F(F("%s Closing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
+        }
+      }
+
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       status = sim7600.disconnect();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      // Resume
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
       if (status == SIM7600_OK)
       {
@@ -328,8 +374,12 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_SWITCH_OFF:
+      // Suspend TASK Controller for external Delay controller
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       status = sim7600.switchOff();
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
+      // Resume
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
       if (status == SIM7600_OK)
       {
@@ -346,30 +396,30 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_END:
-      response.connection.done_disconnected = true;
+      memset(&response, 0, sizeof(system_response_t));
+      if(try_connection) {
+        // If required connection -> Error to connect
+        response.connection.error_connected = true;
+      } else {
+        // If required disconnection -> done_disconnect
+        response.connection.done_disconnected = true;
+      }
       param.systemResponseQueue->Enqueue(&response, 0);
-
-      // ok
-      if (!is_error)
-      {
-        state = MODEM_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
-      }
-      // retry
-      else if ((++retry) < MODEM_TASK_GENERIC_RETRY)
-      {
-        Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
-        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_SWITCH_ON\r\n"));
-        state = MODEM_STATE_SWITCH_ON;
-      }
-      // error
-      else
-      {
-        state = MODEM_STATE_WAIT_NET_EVENT;
-        TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
-      }
+      
+      // Exit (Retry connection is extern from Modem)
+      state = MODEM_STATE_WAIT_NET_EVENT;
+      TRACE_VERBOSE_F(F("MODEM_STATE_END -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       break;
     }
+
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+
+    // One step base non blocking switch
+    TaskWatchDog(MODEM_TASK_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(MODEM_TASK_WAIT_DELAY_MS));
+
   }
 }
 

@@ -1,9 +1,9 @@
 /**@file main.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -44,6 +44,13 @@ void setup() {
   static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
 #endif
 
+  static BinarySemaphore *rtcLock;        // RTC (Access lock)
+
+  // System semaphore
+  static BinarySemaphore *configurationLock;  // Access Configuration
+  static BinarySemaphore *systemStatusLock;   // Access System status
+  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
+
   // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
   // Data queue (Request / exchange data from Data Task)
@@ -51,11 +58,6 @@ void setup() {
   static Queue *systemResponseQueue;
   //TODO: Data SD WR/RMAP
   //static Queue *reportDataQueue;
-
-  // System semaphore
-  static BinarySemaphore *configurationLock;  // Access Configuration
-  static BinarySemaphore *systemStatusLock;   // Access System status
-  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
 
   // System and status configuration struct
   static configuration_t configuration = {0};
@@ -82,6 +84,11 @@ void setup() {
     system_status.tasks[id].stack = 0xFFFFu;
   }
 #endif
+  // Disable all Task before INIT
+  for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++)
+  {
+    system_status.tasks[id].state = task_flag::suspended;
+  }
 
 #if (ENABLE_WDT)
   // Init the watchdog timer WDT_TIMEOUT_BASE_US mseconds timeout (only control system)
@@ -107,6 +114,8 @@ void setup() {
 #if (ENABLE_QSPI)
   qspiLock = new BinarySemaphore(true);
 #endif
+  rtcLock = new BinarySemaphore(true);
+  
   // Software Semaphore
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
@@ -127,7 +136,7 @@ void setup() {
 
 #if (ENABLE_I2C2)
   // Load Info from E2 boot_check flag and send to Config
-  EEprom  memEprom(&Wire2, wire2Lock);
+  static EEprom  memEprom(&Wire2, wire2Lock);
   bootloader_t boot_check = {0};
   #if INIT_PARAMETER
   boot_check.app_executed_ok = true;
@@ -144,15 +153,14 @@ void setup() {
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
 #endif
 
-#if (ENABLE_WDT)
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
   wdtParam.systemStatusLock = systemStatusLock;
+  wdtParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
   wdtParam.wire = &Wire2;
   wdtParam.wireLock = wire2Lock;
-#endif
 #endif
 
 #if (ENABLE_LCD)
@@ -183,6 +191,7 @@ void setup() {
   // canParam.reportDataQueue = reportDataQueue;
   canParam.canLock = canLock;  
   canParam.qspiLock = qspiLock;  
+  canParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
   canParam.wire = &Wire2;
   canParam.wireLock = wire2Lock;
@@ -216,6 +225,7 @@ void setup() {
   static NtpParam_t ntpParam = {0};
   ntpParam.configuration = &configuration;
   ntpParam.system_status = &system_status;
+  ntpParam.rtcLock = rtcLock;
   ntpParam.configurationLock = configurationLock;
   ntpParam.systemStatusLock = systemStatusLock;
   ntpParam.systemRequestQueue = systemRequestQueue;
@@ -254,35 +264,33 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 400, OS_TASK_PRIORITY_01, lcdParam);
+  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_01, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 11400, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 800, OS_TASK_PRIORITY_02, modemParam);
+  static ModemTask modem_task("ModemTask", 650, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
-  static NtpTask ntp_task("NtpTask", 400, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 450, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 600, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 400, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 600, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 500, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
-#if (ENABLE_WDT)
   static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_01, wdtParam);
-#endif
 
   // Startup Schedulher
   Thread::StartScheduler();

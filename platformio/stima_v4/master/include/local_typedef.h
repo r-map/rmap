@@ -1,9 +1,9 @@
 /**@file local_typedef.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -102,28 +102,33 @@ typedef struct
 
 // WatchDog Flag type
 enum wdt_flag {
-   clear    = 0,
-   set      = 1,
-   rest     = 2
+   clear    = 0,  // Wdt Reset (From WDT Task Controller)
+   set      = 1,  // Set WDT   (From Application TASK... All OK)
+   timer    = 2   // Set Timered WDT (From Application long function WDT...)
+};
+
+// Task state Flag type
+enum task_flag {
+   normal    = 0,  // Normal operation Task controller
+   sleepy    = 1,  // Task is in sleep mode or longer wait (Inform WDT controller)
+   suspended = 2   // Task is excluded from WDT Controller or Suspended complete
 };
 
 // Task Info structure
-#define RUNNING_START    1
-#define RUNNING_EXEC     2
 typedef struct
 {
-   wdt_flag watch_dog;  // WatchDog of Task
-   uint16_t stack;      // Stack Max Usage Monitor
-   bool is_sleep;       // Long sleep Task
-   bool is_suspend;     // Suspend Task
-   uint8_t running_pos; // !=0 Task Started, 1=Start, 2=Running, XX=User State LOG SW Position
+   wdt_flag watch_dog;     // WatchDog of Task
+   int32_t watch_dog_ms;   // WatchDog of Task Timer
+   uint16_t stack;         // Stack Max Usage Monitor
+   task_flag state;        // Long sleep Task
+   uint8_t running_pos;    // !=0 (CREATE) Task Started (Generic state of Task)
+   uint8_t running_sub;    // Optional SubState of Task
 } task_t;
 
 typedef struct
 {
    struct
    {
-      uint32_t system_time;
       uint32_t next_ptr_time_for_sensors_reading;
    } datetime;
 
@@ -142,13 +147,16 @@ typedef struct
       bool is_connecting;
       bool is_disconnected;
       bool is_disconnecting;
+      bool is_ppp_estabilished;
 
       bool is_ntp_synchronized;
       bool is_ntp_synchronizing;
 
       bool is_mqtt_connected;
       bool is_mqtt_connecting;
+      bool is_mqtt_subscribed;
       bool is_mqtt_publishing;
+      bool is_mqtt_publishing_end;
       bool is_mqtt_disconnected;
       bool is_mqtt_disconnecting;
       
@@ -160,6 +168,7 @@ typedef struct
 
    struct
    {
+      // Signal status for last connect
       uint8_t rssi;
       uint8_t ber;
       uint8_t creg_n;
@@ -168,6 +177,9 @@ typedef struct
       uint8_t cgreg_stat;
       uint8_t cereg_n;
       uint8_t cereg_stat;
+      // Indicator state connection sequence (Ok/err)
+      uint16_t connection_attempted;
+      uint16_t connection_completed;
    } modem;
 
    uint32_t mqtt_data_published;
@@ -177,19 +189,12 @@ typedef struct
 {
    struct
    {
-      bool do_load;
-      bool do_save;
-   } configuration;
-
-   struct
-   {
       bool do_connect;
       bool do_disconnect;
 
       bool do_ntp_sync;
 
       bool do_mqtt_connect;
-      bool do_mqtt_disconnect;
 
       bool do_http_get_configuration;
       bool do_http_get_firmware;
@@ -200,25 +205,27 @@ typedef struct
 {
    struct
    {
-      bool done_loaded;
-      bool done_saved;
-   } configuration;
-
-   struct
-   {
+      bool error_connected;
       bool done_connected;
+
+      bool error_disconnected;
       bool done_disconnected;
 
       bool done_ntp_synchronized;
+      bool error_ntp_synchronized;
 
       bool done_mqtt_connected;
-      bool done_mqtt_disconnected;
+      bool error_mqtt_connected;
       
       bool done_http_configuration_getted;
+      bool error_http_configuration_getted;
+
       bool done_http_firmware_getted;
+      bool error_http_firmware_getted;
    } connection;
 
    uint16_t number_of_mqtt_data_sent;
+
 } system_response_t;
 
 

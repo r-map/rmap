@@ -27,7 +27,8 @@
   ******************************************************************************
 */
 
-#define TRACE_LEVEL CAN_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     CAN_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   CAN_TASK_ID
 
 #include "tasks/can_task.h"
 
@@ -1093,12 +1094,11 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// *********************************************************************************************
 /// @brief Main TASK && INIT TASK --- UAVCAN
 /// *********************************************************************************************
-CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam) {
-
-  // Starting Task monitor WDT
-  param.systemStatusLock->Take();
-  param.system_status->tasks[CAN_TASK_ID].running_pos = RUNNING_START;
-  param.systemStatusLock->Give();
+CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam)
+{
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(CAN_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Direct acces to EEprom
   memEprom = EEprom(param.wire, param.wireLock);
@@ -1198,9 +1198,65 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   #endif
 
   // Run Task Init
-  state = INIT;
+  state = CAN_STATE_INIT;
   Start();
 };
+
+#if (ENABLE_STACK_USAGE)
+/// @brief local stack Monitor (optional)
+void CanTask::TaskMonitorStack()
+{
+  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
+  }
+}
+#endif
+
+/// @brief local watchDog and Sleep flag Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
+void CanTask::TaskWatchDog(uint32_t millis_standby)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
+  else
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
+}
+
+/// @brief local suspend flag and positor running state Task (optional)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void CanTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
+}
 
 /// @brief RUN Task
 void CanTask::Run() {
@@ -1224,6 +1280,12 @@ void CanTask::Run() {
     // OnlineMaster (Set/Reset Application Code Function Here Enter/Exit Function OnLine)
     bool masterOnline = false;
 
+    // Start Running Monitor and First WDT normal state
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+    TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
     // Main Loop TASK
     while (true) {
 
@@ -1241,20 +1303,13 @@ void CanTask::Run() {
                     {
                         // Enter module sleep procedure (OFF Module)
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
-                        // Enter sleep module OK and Update WDT
-                        param.systemStatusLock->Take();
-                        param.system_status->tasks[CAN_TASK_ID].is_sleep = true;
-                        // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
-                        if(CAN_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
-                        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::rest;
-                        else
-                        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::set;
-                        param.systemStatusLock->Give();
+                        
+                        // Enter sleep module OK and update WDT
+                        TaskWatchDog(CAN_TASK_SLEEP_DELAY_MS);
+                        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
                         Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
-                        // WakeUP
-                        param.systemStatusLock->Take();
-                        param.system_status->tasks[CAN_TASK_ID].is_sleep = false;
-                        param.systemStatusLock->Give();
+                        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
                         // Restore module from Sleep
                         HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
                     }
@@ -1267,12 +1322,7 @@ void CanTask::Run() {
         // ********************************************************************************
         switch (state) {
             // Setup Class CB and NodeId
-            case INIT:
-
-                // Starting Task monitor WDT after INIT Ok
-                param.systemStatusLock->Take();
-                param.system_status->tasks[CAN_TASK_ID].running_pos = RUNNING_EXEC;
-                param.systemStatusLock->Give();
+            case CAN_STATE_INIT:
 
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
                 // Segnale al Master necessità di impostazioni ev. parametri, Data/Ora ecc..
@@ -1432,13 +1482,13 @@ void CanTask::Run() {
                 clCanard.module_th.XTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_XTH];
 
                 // Passa alle sottoscrizioni
-                state = SETUP;
+                state = CAN_STATE_SETUP;
                 break;
 
             // ********************************************************************************
             //               AVVIA SOTTOSCRIZIONI ai messaggi per servizi RPC ecc...
             // ********************************************************************************
-            case SETUP:
+            case CAN_STATE_SETUP:
 
                 // Plug and Play Versione 1_0 CAN_CLASSIC senza nodo ID valido
                 if (clCanard.is_canard_node_anonymous()) {
@@ -1528,13 +1578,13 @@ void CanTask::Run() {
                 last_pub_port_list = last_pub_heartbeat + MEGA * (0.5);
 
                 // Passo alla gestione Main
-                state = STANDBY;
+                state = CAN_STATE_CHECK;
                 break;
 
             // ********************************************************************************
             //         AVVIA LOOP CANARD PRINCIPALE gestione TX/RX Code -> Messaggi
             // ********************************************************************************
-            case STANDBY:
+            case CAN_STATE_CHECK:
 
                 // Set Canard microsecond corrente monotonic, per le attività temporanee di ciclo
                 clCanard.getMicros(clCanard.start_syncronization);
@@ -1742,19 +1792,12 @@ void CanTask::Run() {
                 break;
         }
 
-        #ifdef LOG_STACK_USAGE
-        static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-        if((stackUsage) && (stackUsage < param.system_status->tasks[CAN_TASK_ID].stack)) {
-            param.systemStatusLock->Take();
-            param.system_status->tasks[CAN_TASK_ID].stack = stackUsage;
-            param.systemStatusLock->Give();
-        }
+        #if (ENABLE_STACK_USAGE)
+        TaskMonitorStack();
         #endif
 
-        // Local WatchDog update;
-        param.systemStatusLock->Take();
-        param.system_status->tasks[CAN_TASK_ID].watch_dog = wdt_flag::set;
-        param.systemStatusLock->Give();
+        // Local TaskWatchDog update;
+        TaskWatchDog(CAN_TASK_WAIT_DELAY_MS);
 
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE

@@ -1,9 +1,9 @@
 /**@file sim7600.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -84,6 +84,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define AT_CONNECT_OK_STRING                                ("CONNECT")
 
 /*!
+\def AT_OK_STRING
+\brief AT command: ok message.
+*/
+#define AT_NO_CARRIER_STRING                                ("NO CARRIER")
+
+/*!
 \def SIM7600_AT_CREG_MODE
 \brief CREG mode.
 */
@@ -114,6 +120,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_AT_DEFAULT_TIMEOUT_MS                       (10000)
 
 /*!
+\def SIM7600_AT_DEFAULT_TIMEOUT_MS
+\brief Default AT command response timeout in milliseconds.
+*/
+#define SIM7600_AT_FASTCMD_TIMEOUT_MS                       (1500)
+
+/*!
 \def SIM7600_AT_DELAY_MS
 \brief Waiting time in milliseconds between two AT command.
 */
@@ -130,6 +142,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Waiting time in milliseconds between two retry in milliseconds.
 */
 #define SIM7600_GENERIC_WAIT_DELAY_MS                       (3000)
+
+/*!
+\def SIM7600_GENERIC_WAIT_DELAY_MS
+\brief Waiting time in milliseconds between two retry in milliseconds.
+*/
+#define SIM7600_COMMAND_MODE_WAIT_DELAY_MS                  (1000)
 
 /*!
 \def SIM7600_GENERIC_STATE_DELAY_MS
@@ -190,6 +208,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Waiting time in milliseconds for powering sim7600.
 */
 #define SIM7600_WAIT_FOR_POWER_OFF_DELAY_MS                 (30000)
+
+/*!
+\def SIM7600_WAIT_FOR_POWER_OFF_DELAY_MS
+\brief Waiting time in milliseconds for powering sim7600.
+*/
+#define SIM7600_WAIT_FOR_POWER_OFF_CPOF_DELAY_MS            (2500)
 
 /*!
 \def SIM7600_POWER_OFF_BY_SWITCH
@@ -333,7 +357,8 @@ typedef enum
 typedef enum
 {
    SIM7600_CONNECTION_STOP_INIT,                       //!< init task variables
-   SIM7600_CONNECTION_STOP_HANGUP,                      //!< close socket
+   SIM7600_CONNECTION_ENTER_COMMAND_MODE,              //!< enter command mode
+   SIM7600_CONNECTION_STOP_HANGUP,                     //!< close socket
    SIM7600_CONNECTION_STOP_CLOSE_PDP,                  //!< close pdp context
    SIM7600_CONNECTION_STOP_END,                        //!< performs end operations and deactivate task
    #ifndef USE_FREERTOS
@@ -450,10 +475,10 @@ public:
    */
    void setPins(uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_inicator_pin);
 
-   void initPins();
+   void initPins(bool _set_direction);
    /*!
-   \fn void initPins()
-   \brief Init module pins.
+   \fn void initPins(_set_direction)
+   \brief Init module pins with direction if required
    */
 
    /*!

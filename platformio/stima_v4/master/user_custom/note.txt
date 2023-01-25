@@ -1,0 +1,15 @@
+******************************* NOTE VARIE STIMA V4 MASTER ********************************
+
+1) Modificare STM32Duino attribute __weak prima di USART2_IRQHandler
+
+La Libreria è gestita da Cyclone che istanzia IRQ_Handler (Com2 in questo caso)
+Arduino prenderebbe possesso di tutte le seriali (anche non utilizzate) senza lasciare possibilità
+di gestione esterna di alcun genere.
+
+Modulo uart.c in libraries\srcWrapper\src\stm32\uart.c Line 950
+
+#if defined(USART2_BASE)
+__weak void USART2_IRQHandler(void)
+{
+
+__weak void Consente una redifinizione esterna o mantiene quella esistente se non necessaria la redifinizione

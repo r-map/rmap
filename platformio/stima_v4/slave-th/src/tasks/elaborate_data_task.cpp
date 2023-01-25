@@ -1,9 +1,9 @@
 /**@file elaborate_data_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,21 +21,78 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL ELABORATE_DATA_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     ELABORATE_DATA_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   ELABORATE_TASK_ID
 
 #include "tasks/elaborate_data_task.h"
 
 using namespace cpp_freertos;
 
-ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam) {
-  // Starting Task monitor WDT (Direct to EXEC No Init Function)
-  param.systemStatusLock->Take();
-  param.system_status->tasks[ELABORATE_TASK_ID].running_pos = RUNNING_EXEC;
-  param.systemStatusLock->Give();
+ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
+{
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(ELABORATE_DATA_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-  state = INIT;
+  state = ELABORATE_DATA_INIT;
   Start();
 };
+
+#if (ENABLE_STACK_USAGE)
+/// @brief local stack Monitor (optional)
+void ElaborateDataTask::TaskMonitorStack()
+{
+  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
+  }
+}
+#endif
+
+/// @brief local watchDog and Sleep flag Task (optional)
+/// @param status system_status_t Status STIMAV4
+/// @param lock if used (!=NULL) Semaphore locking system status access
+/// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
+void ElaborateDataTask::TaskWatchDog(uint32_t millis_standby)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
+  else
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
+}
+
+/// @brief local suspend flag and positor running state Task (optional)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void ElaborateDataTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
+{
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
+}
 
 void ElaborateDataTask::Run() {
   // Queue for data
@@ -49,6 +106,12 @@ void ElaborateDataTask::Run() {
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+  // Start Running Monitor and First WDT normal state
+  #if (ENABLE_STACK_USAGE)
+  TaskMonitorStack();
+  #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true) {
 
@@ -64,20 +127,11 @@ void ElaborateDataTask::Run() {
                 // Pull && elaborate command, 
                 if(system_message.command.do_sleep)
                 {
-                    // Enter sleep module OK and Update WDT
-                    param.systemStatusLock->Take();
-                    param.system_status->tasks[ELABORATE_TASK_ID].is_sleep = true;
-                    // Before enter Sleep ckeck Time WDT If longer than WDT_Check...sleep temporary Ceck
-                    if(ELABORATE_TASK_SLEEP_DELAY_MS > WDT_TIMEOUT_BASE_MS)
-                      param.system_status->tasks[ELABORATE_TASK_ID].watch_dog = wdt_flag::rest;
-                    else
-                      param.system_status->tasks[ELABORATE_TASK_ID].watch_dog = wdt_flag::set;
-                    param.systemStatusLock->Give();
+                    // Enter sleep module OK and update WDT
+                    TaskWatchDog(ELABORATE_TASK_SLEEP_DELAY_MS);
+                    TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
                     Delay(Ticks::MsToTicks(ELABORATE_TASK_SLEEP_DELAY_MS));
-                    // WakeUP
-                    param.systemStatusLock->Take();
-                    param.system_status->tasks[ELABORATE_TASK_ID].is_sleep = false;
-                    param.systemStatusLock->Give();
+                    TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
                 }
             }
         }
@@ -125,19 +179,12 @@ void ElaborateDataTask::Run() {
       }
     }
 
-    #ifdef LOG_STACK_USAGE
-    static u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-    if((stackUsage) && (stackUsage < param.system_status->tasks[ELABORATE_TASK_ID].stack)) {
-        param.systemStatusLock->Take();
-        param.system_status->tasks[ELABORATE_TASK_ID].stack = stackUsage;
-        param.systemStatusLock->Give();
-    }
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
     #endif
 
-    // Local WatchDog update;
-    param.systemStatusLock->Take();
-    param.system_status->tasks[ELABORATE_TASK_ID].watch_dog = wdt_flag::set;
-    param.systemStatusLock->Give();
+    // Local TaskWatchDog update;
+    TaskWatchDog(ELABORATE_TASK_WAIT_DELAY_MS);
 
     DelayUntil(Ticks::MsToTicks(ELABORATE_TASK_WAIT_DELAY_MS));
   }

@@ -1,9 +1,9 @@
 /**@file mqtt_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL MQTT_TASK_TRACE_LEVEL
+#define TRACE_LEVEL     MQTT_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   MQTT_TASK_ID
 
 #include "tasks/mqtt_task.h"
 
@@ -86,11 +87,9 @@ const uint16_t cipherSuites[] =
 
 MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), param(mqttParam)
 {
-  // Start WDT controller and RunState Flags
-  #if (ENABLE_WDT)
-  WatchDog(param.system_status, param.systemStatusLock, WDT_TIMEOUT_BASE_US / 1000, false);
-  RunState(param.system_status, param.systemStatusLock, RUNNING_START, false);
-  #endif
+  // Start WDT controller and TaskState Flags
+  TaskWatchDog(WDT_STARTING_TASK_MS);
+  TaskState(MQTT_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   state = MQTT_STATE_INIT;
   version = MQTT_VERSION_3_1_1;
@@ -101,115 +100,120 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-void MqttTask::monitorStack(system_status_t *status, BinarySemaphore *lock)
+void MqttTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < status->tasks[MQTT_TASK_ID].stack)) {
-    if(lock != NULL) lock->Take();
-    status->tasks[MQTT_TASK_ID].stack = stackUsage;
-    if(lock != NULL) lock->Give();
+  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+    param.systemStatusLock->Take();
+    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+    param.systemStatusLock->Give();
   }
 }
 #endif
 
-#if (ENABLE_WDT)
 /// @brief local watchDog and Sleep flag Task (optional)
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void MqttTask::WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep)
+void MqttTask::TaskWatchDog(uint32_t millis_standby)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[MQTT_TASK_ID].is_sleep = is_sleep;
-  if((millis_standby) < (WDT_TIMEOUT_BASE_US / 1000))
-    status->tasks[MQTT_TASK_ID].watch_dog = wdt_flag::set;
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Update WDT Signal (Direct or Long function Timered)
+  if(millis_standby)  
+  {
+    // Check 1/2 Freq. controller ready to WDT only SET flag
+    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    } else {
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+      // Add security milimal Freq to check
+      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+    }
+  }
   else
-    status->tasks[MQTT_TASK_ID].watch_dog = wdt_flag::rest;
-  if(lock != NULL) lock->Give();
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+  param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
-/// @param state_position Sw_Poition (STandard 1 RUNNING_START, 2 RUNNING_EXEC, XX User define SW POS fo Logging)
-/// @param is_suspend TRUE if task enter suspending mode (Disable from WDT Controller)
-void MqttTask::RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend)
+/// @param state_position Sw_Position (Local STATE)
+/// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
+/// @param state_operation operative mode flag status for this task
+void MqttTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
-  // Local WatchDog update
-  if(lock != NULL) lock->Take();
-  // Signal Task sleep/disabled mode from request
-  status->tasks[MQTT_TASK_ID].is_suspend = is_suspend;
-  status->tasks[MQTT_TASK_ID].running_pos = state_position;
-  if(lock != NULL) lock->Give();
+  // Local TaskWatchDog update
+  param.systemStatusLock->Take();
+  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
+     (state_operation==task_flag::normal))
+     param.system_status->tasks->watch_dog = wdt_flag::set;
+  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+  param.systemStatusLock->Give();
 }
-#endif
-
 
 void MqttTask::Run()
 {
   uint8_t retry;
   bool is_error;
+  bool is_subscribed;
+  bool mqtt_connection_estabilished;
   error_t error;
   system_request_t request;
   system_response_t response;
   IpAddr ipAddr;
+  bool is_data_publish_end = false;
 
-  // Starting Task and first WDT (if required and enabled. Time < than WDT_TIMEOUT_BASE_US)
-  #if (ENABLE_WDT)
-  RunState(param.system_status, param.systemStatusLock, RUNNING_EXEC, false);
-  #endif
+  // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
-  monitorStack(param.system_status, param.systemStatusLock);
+  TaskMonitorStack();
   #endif
+  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true)
   {
-    memset(&request, 0, sizeof(system_request_t));
-    memset(&response, 0, sizeof(system_response_t));
-
     switch (state)
     {
     case MQTT_STATE_INIT:
       state = MQTT_STATE_WAIT_NET_EVENT;
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = false;
+      param.system_status->connection.is_mqtt_connecting = false;
+      param.system_status->connection.is_mqtt_disconnected = true;
+      param.system_status->connection.is_mqtt_disconnecting = false;
+      param.system_status->connection.is_mqtt_publishing = false;
+      param.system_status->connection.is_mqtt_publishing_end = false;
+      param.systemStatusLock->Give();
       TRACE_VERBOSE_F(F("MQTT_STATE_INIT -> MQTT_STATE_WAIT_NET_EVENT\r\n"));
       break;
 
     case MQTT_STATE_WAIT_NET_EVENT:
       retry = 0;
       is_error = false;
+      is_data_publish_end = false;
 
       // wait connection request
+      // Suspend TASK Controller for queue waiting portMAX_DELAY
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
       {
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do mqtt connection
         if (request.connection.do_mqtt_connect)
         {
           MqttServer = param.configuration->mqtt_server;
           // strSafeCopy(MqttServer, param.configuration->mqtt_server, MQTT_SERVER_LENGTH);
           
+          // Start new connection sequence
+          mqtt_connection_estabilished = false;
+
           param.systemRequestQueue->Dequeue(&request, 0);
           TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_CONNECT\r\n"));
           state = MQTT_STATE_CONNECT;
         }
-        // do disconnect
-        else if (request.connection.do_mqtt_disconnect)
-        {
-          param.systemRequestQueue->Dequeue(&request, 0);
-          TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_DISCONNECT\r\n"));
-          state = MQTT_STATE_DISCONNECT;
-          Suspend();
-        }
-        // other
-        else
-        {
-          Delay(Ticks::MsToTicks(MQTT_TASK_WAIT_DELAY_MS));
-        }
       }
-      // do something else with non-blocking wait ....
       break;
 
     case MQTT_STATE_CONNECT:
@@ -300,23 +304,29 @@ void MqttTask::Run()
         error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_CONNECT_MESSAGE, strlen(MQTT_ON_CONNECT_MESSAGE), qos, true, NULL);
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_CONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
 
-
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       }
 
-      // Subscribe to the desired topics
+      // Subscribe to the desired topics (Subscribe error not blocking connection)
       snprintf(topic, sizeof(topic), "%d/%s/%s/%s/%07d,%07d/%s/%s", RMAP_PROCOTOL_VERSION, param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
-      error = mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
-
+      is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
 
       param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_subscribed = is_subscribed;      
       param.system_status->connection.is_mqtt_connected = true;
+      param.system_status->connection.is_mqtt_disconnected = false;
       param.system_status->connection.is_mqtt_connecting = false;
-      param.system_status->connection.is_mqtt_publishing = true;
+      // Checked for end of transmission
+      param.system_status->connection.is_mqtt_publishing_end = false;
       param.system_status->mqtt_data_published = 0;
       param.systemStatusLock->Give();
 
+      // Session connection complete (send response to request command)
+      // No other response from TASK with this session connection
+      mqtt_connection_estabilished = true;
+      // Response direct when connection complete
+      memset(&response, 0, sizeof(system_response_t));
       response.connection.done_mqtt_connected = true;
       param.systemResponseQueue->Enqueue(&response, 0);
 
@@ -343,20 +353,30 @@ void MqttTask::Run()
       }
       else
       {
+        // Starting publishing
         param.systemStatusLock->Take();
+        param.system_status->connection.is_mqtt_publishing = true;
         param.system_status->mqtt_data_published++;
         param.systemStatusLock->Give();
       }
 
+      // TODO. Set Time corretto
       // pubblica ogni 5 secondi
+      TaskWatchDog(5000);
       Delay(Ticks::MsToTicks(5000));
+      //TODO:REMOVE End connecction on END Data... >=3 Remove...
+      //TODO: is_data_publish_end = true when data END !!!
+      if(param.system_status->mqtt_data_published >= 3) {
+        param.systemStatusLock->Take();
+        is_data_publish_end = true;
+        param.systemStatusLock->Give();
+        state = MQTT_STATE_DISCONNECT;
+      }
       break;
 
     case MQTT_STATE_DISCONNECT:
       param.systemStatusLock->Take();
-      param.system_status->connection.is_mqtt_connected = false;
       param.system_status->connection.is_mqtt_disconnecting = true;
-      param.system_status->connection.is_mqtt_publishing = false;
       param.systemStatusLock->Give();
 
       // publish disconnection message
@@ -375,46 +395,54 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_END:
-      // ok
-      if (!is_error)
-      {
-        response.connection.done_mqtt_disconnected = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
 
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_mqtt_disconnecting = false;
-        param.system_status->connection.is_mqtt_disconnected = true;
-        param.systemStatusLock->Give();
+      mqttClientDeinit(&mqttClientContext);
 
-        mqttClientDeinit(&mqttClientContext);
-        state = MQTT_STATE_INIT;
-        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
+      // Response direct (error) when connection not complete
+      // Only when sequence connection is not completed (otherwise response already sended)
+      if(!mqtt_connection_estabilished) {
+        // Check retry before error end connection MQTT
+        if ((++retry) < MQTT_TASK_GENERIC_RETRY)
+        {
+          TaskWatchDog(MQTT_TASK_GENERIC_RETRY_DELAY_MS);
+          Delay(Ticks::MsToTicks(MQTT_TASK_GENERIC_RETRY_DELAY_MS));
+          TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_CONNECT\r\n"));
+          state = MQTT_STATE_CONNECT;
+          break;
+        } else {
+          // Send response to request
+          memset(&response, 0, sizeof(system_response_t));
+          response.connection.error_mqtt_connected = true;
+          param.systemResponseQueue->Enqueue(&response, 0);
+        }
       }
-      // retry
-      else if ((++retry) < MQTT_TASK_GENERIC_RETRY)
-      {
-        Delay(Ticks::MsToTicks(MQTT_TASK_GENERIC_RETRY_DELAY_MS));
 
-        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_CONNECT\r\n"));
-        state = MQTT_STATE_CONNECT;
-      }
-      // error
-      else
-      {
-        response.connection.done_mqtt_disconnected = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
+      // Exit end complete
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_mqtt_connected = false;
+      param.system_status->connection.is_mqtt_connecting = false;
+      param.system_status->connection.is_mqtt_disconnected = true;
+      param.system_status->connection.is_mqtt_disconnecting = false;
+      param.system_status->connection.is_mqtt_subscribed = false;
+      param.system_status->connection.is_mqtt_publishing = false;
+      // (true if ok data send, do no clean. Only on Next Connect)
+      param.system_status->connection.is_mqtt_publishing_end = is_data_publish_end;
+      param.systemStatusLock->Give();
 
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_mqtt_disconnecting = false;
-        param.system_status->connection.is_mqtt_disconnected = true;
-        param.systemStatusLock->Give();
+      state = MQTT_STATE_WAIT_NET_EVENT;
+      TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_WAIT_NET_EVENT\r\n"));
 
-        mqttClientDeinit(&mqttClientContext);
-        state = MQTT_STATE_INIT;
-        TRACE_VERBOSE_F(F("MQTT_STATE_END -> MQTT_STATE_INIT\r\n"));
-      }
       break;
     }
+
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+
+    // One step base non blocking switch
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_WAIT_DELAY_MS));
+
   }
 }
 
@@ -429,7 +457,7 @@ void MqttTask::Run()
  * @param[in] retain This flag specifies if the message is to be retained
  * @param[in] packetId Packet identifier
  **/
-void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
+void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
 {
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
   TRACE_INFO_F(F("Dup: %u\r\n"), dup);
@@ -447,7 +475,7 @@ void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const 
  * @param[in] tlsContext Pointer to the TLS context
  * @return Error code
  **/
-error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
+error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
 {
   error_t error;
 

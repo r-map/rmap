@@ -53,11 +53,12 @@
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
-#define ACELLEROMETER_TASK_WAIT_DELAY_MS    (20)
-#define ACELLEROMETER_TASK_SLEEP_DELAY_MS   (1250)
+#define ACCELEROMETER_TASK_WAIT_DELAY_MS    (20)
+#define ACCELEROMETER_TASK_SLEEP_DELAY_MS   (1250)
 
 typedef enum
 {
+  ACCELEROMETER_STATE_CREATE,
   ACCELEROMETER_STATE_INIT,
   ACCELEROMETER_STATE_CHECK_HARDWARE,
   ACCELEROMETER_STATE_LOAD_CONFIGURATION,
@@ -86,25 +87,34 @@ protected:
   virtual void Run();
 
 private:
+
+  #if (ENABLE_STACK_USAGE)
+  void TaskMonitorStack();
+  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  void printConfiguration(void);
+  void loadConfiguration(void);
+  void saveConfiguration(bool is_default);
+  void calibrate(bool is_default, bool save_register);
+  bool checkModule(void);
+  void setupModule(void);
+  bool readModule(void);
+  void powerDownModule(void);
+
   AccelerometerState_t state;
   AccelerometerParam_t param;
   Accelerometer accelerometer;
   accelerometer_t accelerometer_configuration;
+  
   // Register access
   EERegister clRegister;
+  
+  // Value data
   float value_x;
   float value_y;
   float value_z;
-
-  void printConfiguration(accelerometer_t *configuration);
-  void loadConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock);
-  void saveConfiguration(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default);
-  void calibrate(accelerometer_t *configuration, BinarySemaphore *registerLock, bool is_default, bool save_register);
-  bool checkModule(void);
-  void setupModule(accelerometer_t *configuration);
-  bool readModule(accelerometer_t *configuration);
-  void powerDownModule(void);
-
 };
 
 #endif

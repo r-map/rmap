@@ -1,9 +1,9 @@
 /**@file supervisor_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -52,19 +52,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 typedef enum
 {
+  SUPERVISOR_STATE_CREATE,
   SUPERVISOR_STATE_INIT,
-  SUPERVISOR_STATE_CHECK_OPERATION,
   SUPERVISOR_STATE_LOAD_CONFIGURATION,
+  SUPERVISOR_STATE_WAITING_EVENT,
+  SUPERVISOR_STATE_CONNECTION_OPERATION,
   SUPERVISOR_STATE_SAVE_CONFIGURATION,
   SUPERVISOR_STATE_REQUEST_CONNECTION,
   SUPERVISOR_STATE_CHECK_CONNECTION,
-  SUPERVISOR_STATE_CHECK_CONNECTION_TYPE,
   SUPERVISOR_STATE_DO_NTP,
   SUPERVISOR_STATE_DO_HTTP,
   SUPERVISOR_STATE_DO_MQTT,
   SUPERVISOR_STATE_REQUEST_DISCONNECTION,
+  SUPERVISOR_STATE_CHECK_DISCONNECTION,
   SUPERVISOR_STATE_END
 } SupervisorState_t;
+
+typedef enum
+{
+  CONNECTION_INIT,
+  CONNECTION_CHECK,
+  CONNECTION_CHECK_NTP,
+  CONNECTION_CHECK_HTTP,
+  CONNECTION_CHECK_MQTT,
+  CONNECTION_END
+} SupervisorConnection_t;
 
 typedef struct {
   configuration_t *configuration;
@@ -88,20 +100,18 @@ protected:
 private:
 
   #if (ENABLE_STACK_USAGE)
-  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  void TaskMonitorStack();
   #endif
-  #if (ENABLE_WDT)
-  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
-  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
-  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   SupervisorState_t state;
   SupervisorParam_t param;
   EEprom eeprom;
 
-  void printConfiguration(configuration_t *configuration, BinarySemaphore *lock);
-  bool loadConfiguration(configuration_t *configuration, BinarySemaphore *lock);
-  bool saveConfiguration(configuration_t *configuration, BinarySemaphore *lock, bool is_default);
+  void printConfiguration();
+  bool loadConfiguration();
+  bool saveConfiguration(bool is_default);
 };
 
 #endif

@@ -1,9 +1,9 @@
 /**@file main.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -48,9 +48,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/supervisor_task.h"
 
-#if (ENABLE_WDT)
 #include "tasks/wdt_task.h"
-#endif
 
 #if (ENABLE_LCD)
 #include "tasks/lcd_task.h"

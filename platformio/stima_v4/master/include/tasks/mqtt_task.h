@@ -1,9 +1,9 @@
 /**@file mqtt_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -61,11 +61,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext);
-void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId);
-
 typedef enum
 {
+  MQTT_STATE_CREATE,
   MQTT_STATE_INIT,
   MQTT_STATE_WAIT_NET_EVENT,
   MQTT_STATE_CONNECT,
@@ -96,12 +94,13 @@ protected:
 private:
 
   #if (ENABLE_STACK_USAGE)
-  void monitorStack(system_status_t *status, BinarySemaphore *lock);
+  void TaskMonitorStack();
   #endif
-  #if (ENABLE_WDT)
-  void WatchDog(system_status_t *status, BinarySemaphore *lock, uint16_t millis_standby, bool is_sleep);
-  void RunState(system_status_t *status, BinarySemaphore *lock, uint8_t state_position, bool is_suspend);
-  #endif
+  void TaskWatchDog(uint32_t millis_standby);
+  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  static error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext);
+  static void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId);
 
   MqttState_t state;
   MqttParam_t param;
