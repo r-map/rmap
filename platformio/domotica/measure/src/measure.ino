@@ -405,7 +405,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         // nav.async((const char*)payload);//this is slow!!!!!!!!
         __trace(Serial.printf("[%u] get Text: %s\n", num, payload));
         char*s=(char*)payload;
-        _trace(Serial<<"serve websocket menu"<<endl);
+        _trace(Serial<<"serve websocket menu"<<std::endl);
         wsOut.response.remove(0);
         wsOut<<"{\"output\":\"";
         wsNav.async((const char*)payload);
@@ -425,15 +425,17 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           Serial.print(*(char*)(payload+c),HEX);
           Serial.write(',');
         }
-        Serial<<"]"<<endl;
+        //Serial<<"]"<<std::endl;
+        Serial<<"]\n";
+	Serial.flush();
         uint16_t id=*(uint16_t*) payload++;
         idx_t len=*((idx_t*)++payload);
         idx_t* pathBin=(idx_t*)++payload;
         const char* inp=(const char*)(payload+len);
-        //Serial<<"id:"<<id<<endl;
+        //Serial<<"id:"<<id<<std::endl;
         if (id==nav.active().hash()) {
-          //Serial<<"id ok."<<endl;Serial.flush();
-          //Serial<<"input:"<<inp<<endl;
+          //Serial<<"id ok."<<std::endl;Serial.flush();
+          //Serial<<"input:"<<inp<<std::endl;
           //StringStream inStr(inp);
           //while(inStr.available())
 
@@ -444,8 +446,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 	  circularbuffer_clear();
 
           webSocket.sendTXT(num, "binBusy=false;");//send javascript to unlock the state
-        } //else Serial<<"id not ok!"<<endl;
-        //Serial<<endl;
+        } //else Serial<<"id not ok!"<<std::endl;
+        //Serial<<std::endl;
       }
       break;
     default:break;
@@ -453,7 +455,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 }
 
 void pageStart() {
-  _trace(Serial<<"pasgeStart!"<<endl);
+  _trace(Serial<<"pasgeStart!"<<std::endl);
   serverOut<<"HTTP/1.1 200 OK\r\n"
     <<"Content-Type: text/xml\r\n"
     <<"Connection: close\r\n"
@@ -482,7 +484,7 @@ void pageEnd() {
 }
 
 void jsonStart() {
-  _trace(Serial<<"jsonStart!"<<endl);
+  _trace(Serial<<"jsonStart!"<<std::endl);
   serverOut<<"HTTP/1.1 200 OK\r\n"
     <<"Content-Type: application/json; charset=utf-8\r\n"
     <<"Connection: close\r\n"
@@ -511,7 +513,7 @@ bool handleMenu(navRoot& nav){
 //redirect to version folder,
 //this allows agressive caching with no need to cache reset on version change
 auto mainPage= []() {
-  _trace(Serial<<"serving main page from root!"<<endl);
+  _trace(Serial<<"serving main page from root!"<<std::endl);
   webserver.sendHeader("Location", CUR_VERSION "/index.html", true);
   webserver.send ( 302, "text/plain", "");
   if (webserver.hasArg("at"))
@@ -596,34 +598,34 @@ result save() {
   LOGN(F("debounce   : %d\n"),debounce);
   LOGN(F("resolution : %.2f\n"),resolution);
 
-  StaticJsonBuffer<500> jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  StaticJsonDocument<500> doc;
+  //JsonObject json = jsonBuffer.createObject();
   
 #ifdef HBRIDGE
   LOGN(F("vent     %D" CR),vent);
   LOGN(F("ventctrl %D" CR),ventCtrl);
   
-  json["vent"] = vent;
-  json["ventctrl"] = ventCtrl;
+  doc["vent"] = vent;
+  doc["ventctrl"] = ventCtrl;
 #endif
 
-  json["debounce"] = debounce;
-  json["resolution"] = resolution;
+  doc["debounce"] = debounce;
+  doc["resolution"] = resolution;
   
-  JsonArray& jsontrawmeasures =json.createNestedArray("trawmeasures");
+  JsonArray jsontrawmeasures =doc.createNestedArray("trawmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
     jsontrawmeasures.add(trawmeasures[i]);
   }
-  JsonArray& jsontmeasures =json.createNestedArray("tmeasures");
+  JsonArray jsontmeasures =doc.createNestedArray("tmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
     jsontmeasures.add(tmeasures[i]);
   }
 
-  JsonArray& jsonhrawmeasures =json.createNestedArray("hrawmeasures");
+  JsonArray jsonhrawmeasures =doc.createNestedArray("hrawmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
     jsonhrawmeasures.add(hrawmeasures[i]);
   }
-  JsonArray& jsonhmeasures =json.createNestedArray("hmeasures");
+  JsonArray jsonhmeasures =doc.createNestedArray("hmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
     jsonhmeasures.add(hmeasures[i]);
   }
@@ -633,7 +635,7 @@ result save() {
     LOGE(F("failed to open config file for writing" CR));
   }else{
     //json.printTo(Serial);
-    json.printTo(configFile);
+    serializeJson(doc,configFile);
     configFile.close();
     LOGN(F("saved parameter" CR));
   }
@@ -1172,35 +1174,35 @@ void setup()
     LOGN(F("station configuration not found!" CR));
   }else{
     //Serial.println(savedparams);
-    StaticJsonBuffer<500> jsonBuffer;
-    JsonObject& json =jsonBuffer.parseObject(savedparams);
-    if (!json.success()) {
+    StaticJsonDocument<500> doc;
+    DeserializationError error = deserializeJson(doc,savedparams);
+    if (error) {
       LOGE(F("reading json data" CR));
     }else{
 #ifdef HBRIDGE      
-      if (json.containsKey("vent"))     vent=json["vent"];
-      if (json.containsKey("ventctrl")) ventCtrl=json["ventctrl"];      
+      if (doc.containsKey("vent"))     vent=doc["vent"];
+      if (doc.containsKey("ventctrl")) ventCtrl=doc["ventctrl"];      
       LOGN(F("vent     %D" CR),vent);
       LOGN(F("ventctrl %D" CR),ventCtrl);
 #endif
 
-      if (json.containsKey("debounce")) debounce=json["debounce"];      
+      if (doc.containsKey("debounce")) debounce=doc["debounce"];      
       LOGN(F("debounce     %D" CR),debounce);
 
-      if (json.containsKey("resolution")) resolution=json["resolution"];      
+      if (doc.containsKey("resolution")) resolution=doc["resolution"];      
       LOGN(F("resolution   %.2F" CR),resolution);
       
-      if (json.containsKey("trawmeasures") && json.containsKey("tmeasures")) {
+      if (doc.containsKey("trawmeasures") && doc.containsKey("tmeasures")) {
 	for (int i = 0; i < calibrationPoints; i++) {
-	  trawmeasures[i]=json["trawmeasures"][i];
-	  tmeasures[i]=json["tmeasures"][i];
+	  trawmeasures[i]=doc["trawmeasures"][i];
+	  tmeasures[i]=doc["tmeasures"][i];
 	}
       }
 
-      if (json.containsKey("hrawmeasures") && json.containsKey("hmeasures")) {
+      if (doc.containsKey("hrawmeasures") && doc.containsKey("hmeasures")) {
 	for (int i = 0; i < calibrationPoints; i++) {
-	  hrawmeasures[i]=json["hrawmeasures"][i];
-	  hmeasures[i]=json["hmeasures"][i];
+	  hrawmeasures[i]=doc["hrawmeasures"][i];
+	  hmeasures[i]=doc["hmeasures"][i];
 	}
       }
     }
@@ -1333,7 +1335,7 @@ void setup()
   webserver.on("/menu", HTTP_GET, []() {
     pageStart();
     serverOut<<"<output state=\""<<((int)&webNav.idleTask)<<"\"><![CDATA[";
-    _trace(Serial<<"output count"<<webNav.out.cnt<<endl);
+    _trace(Serial<<"output count"<<webNav.out.cnt<<std::endl);
     handleMenu(webNav);//do navigation (read input) and produce output messages or reports
     serverOut<<"]]></output>";
     webNav.doOutput();
@@ -1342,7 +1344,7 @@ void setup()
 
   //menu json server over http
   webserver.on("/json", HTTP_GET, []() {
-    _trace(Serial<<"json request!"<<endl);
+    _trace(Serial<<"json request!"<<std::endl);
     jsonStart();
     serverOut<<"{\"output\":\"";
     handleMenu(jsonNav);
