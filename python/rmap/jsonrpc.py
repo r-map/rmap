@@ -823,7 +823,10 @@ class TransportSERIAL(Transport):
             self.log( "serial port (%s): %s" % ("RECEIVE",string) )
 
         self.ser.flushInput()  # del buffer in timeout case
-        return string[:-1]
+        if (string[-1] == "\n"):
+            return string[:-1]
+        else:
+            return string
 
     def close (self):
         self.ser.close()
