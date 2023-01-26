@@ -71,6 +71,10 @@ void getStimaNameByType(char *name, uint8_t type)
     strncpy(name, STIMA_MODULE_NAME_POWER_MPPT, STIMA_MODULE_NAME_LENGTH);
     break;
 
+  case STIMA_MODULE_TYPE_VVC:
+    strncpy(name, STIMA_MODULE_NAME_VVC, STIMA_MODULE_NAME_LENGTH);
+    break;
+
   default:
     strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
     break;

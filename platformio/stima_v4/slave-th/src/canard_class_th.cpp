@@ -769,12 +769,12 @@ bool canardClass::slave_heartbeat_send_message(void)
 /// @brief Invia il messaggio di PNP request (richiesta di node_id valido) al nodo server PNP (master)
 /// @param  None
 /// @return true se il metodo è eseguito correttamente
-bool canardClass::slave_pnp_send_request(uint32_t serial_number) {
+bool canardClass::slave_pnp_send_request(uint64_t serial_number) {
     // PnP over Classic CAN, use message v1.0.
     uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
     // truncated uint48 unique_id_hash
     // msg.allocated_node_id.(count/element) => Solo in response non in request;
-    msg.unique_id_hash = (uint64_t)serial_number;
+    msg.unique_id_hash = serial_number;
     uint8_t serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
     size_t serialized_size = sizeof(serialized);
     const int8_t err = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);

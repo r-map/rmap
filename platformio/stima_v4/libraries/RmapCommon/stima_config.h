@@ -103,6 +103,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_POWER_MPPT                (28)
 
 /*!
+\def STIMA_MODULE_TYPE_POWER_MPPT
+\brief This module acquire power regulator mppt.
+*/
+#define STIMA_MODULE_TYPE_VVC                       (29)
+
+/*!
 \def STIMA_MODULE_NAME_MASTER_ETH
 \brief The module'name for sending report over ethernet.
 */
@@ -167,6 +173,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief The module'name for acquiring power regulator mppt.
 */
 #define STIMA_MODULE_NAME_POWER_MPPT                ("can-powermppt")
+
+/*!
+\def STIMA_MODULE_NAME_VVC
+\brief The module'name for acquiring vvc.
+*/
+#define STIMA_MODULE_NAME_VVC                       ("can-vvc")
+
 
 #define DATA_LEVEL_SAMPLE  ("sample")
 #define DATA_LEVEL_REPORT  ("report")

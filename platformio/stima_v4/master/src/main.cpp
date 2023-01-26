@@ -73,7 +73,6 @@ void setup() {
   init_wire();
   init_rtc(INIT_PARAMETER);
   init_net(&yarrowContext, seed, sizeof(seed));
-  // init_sdcard();
 
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
@@ -95,7 +94,7 @@ void setup() {
   // Wdt Task Reset the value after All Task reset property single Flag
   if(IWatchdog.isReset()) {
     delay(50);
-    TRACE_INFO_F(F("Verified an WDT Reset...\r\n"));
+    TRACE_INFO_F(F("\r\n\r\nALERT: Verified an WDT Reset !!!\r\n\r\n"));
     IWatchdog.clearReset();
   }
   IWatchdog.begin(WDT_TIMEOUT_BASE_US);
@@ -130,6 +129,22 @@ void setup() {
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
+  // Get Serial Number
+  configuration.board_master.serial_number = StimaV4GetSerialNumber();
+
+  // Serial Print Fixed for Serial Number
+  Serial.println();
+  Serial.println(F("*****************************"));
+  Serial.println(F("* Stima V4 MASTER - SER.NUM *"));
+  Serial.println(F("*****************************"));
+  Serial.print(F("COD: "));
+  for(uint8_t uid=0; uid<8; uid++) {
+    if(uid) Serial.print("-");
+    if((uint8_t)((configuration.board_master.serial_number >> (8*uid)) & 0xFF) < 16) Serial.print("0");
+    Serial.print((uint8_t)((configuration.board_master.serial_number >> (8*uid)) & 0xFF), 16);
+  }
+  Serial.println("\r\n");
+
   // ***************************************************************
   //                  Setup parameter for Task
   // ***************************************************************
@@ -140,17 +155,11 @@ void setup() {
   bootloader_t boot_check = {0};
   #if INIT_PARAMETER
   boot_check.app_executed_ok = true;
-  boot_check.version = MODULE_MAIN_VERSION;
-  boot_check.revision = MODULE_MINOR_VERSION;
-  #ifdef NODE_SERIAL_NUMBER
-  configuration.board_master.serial_number = NODE_SERIAL_NUMBER;
   memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  #endif
   #else
   memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  configuration.board_master.serial_number = boot_check.serial_number;
   #endif
-  // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
+  // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config) ...
 #endif
 
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
@@ -161,6 +170,21 @@ void setup() {
 #if (ENABLE_I2C2)
   wdtParam.wire = &Wire2;
   wdtParam.wireLock = wire2Lock;
+#endif
+
+#if (ENABLE_MMC)
+ // TASK SUPERVISOR PARAM CONFIG
+  static MmcParam_t mmcParam = {0};
+  mmcParam.configuration = &configuration;
+  mmcParam.system_status = &system_status;
+#if (ENABLE_I2C2)
+  mmcParam.wire = &Wire2;
+  mmcParam.wireLock = wire2Lock;
+#endif
+  mmcParam.configurationLock = configurationLock;
+  mmcParam.systemStatusLock = systemStatusLock;
+  mmcParam.systemRequestQueue = systemRequestQueue;
+  mmcParam.systemResponseQueue = systemResponseQueue;
 #endif
 
 #if (ENABLE_LCD)
@@ -264,10 +288,14 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
+ static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
+
+#if (ENABLE_MMC)
+  static MmcTask mmc_task("MmcTask", 350, OS_TASK_PRIORITY_01, mmcParam);
+#endif
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_01, lcdParam);
+  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_03, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
@@ -290,7 +318,7 @@ void setup() {
   static MqttTask mqtt_task("MqttTask", 500, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
-  static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_01, wdtParam);
+  static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_04, wdtParam);
 
   // Startup Schedulher
   Thread::StartScheduler();

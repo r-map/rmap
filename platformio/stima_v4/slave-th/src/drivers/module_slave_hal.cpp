@@ -297,6 +297,31 @@ void SetupSystemPeripheral(void) {
 	HAL_PWREx_EnableBatteryCharging(PWR_BATTERY_CHARGING_RESISTOR_5);
 }
 
+/// @brief Get Unique ID HW of CPU (SerialNumber Unique ID)
+/// @param  ptrCpuId pointer to external 12 byte buffer required (CPU_ID)
+void STM32L4GetCPUID(uint8_t *ptrCpuId) {
+  for(uint8_t uid=0; uid<12; uid++) {
+    ptrCpuId[uid++] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + uid))));
+  }
+}
+
+/// @brief Get StimaV4 Serial Number from UID Cpu and Module TYPE
+/// @param  None
+/// @return Serial Number 64 BIT
+uint64_t StimaV4GetSerialNumber(void) {
+  volatile uint64_t serNumb = 0;
+  uint8_t *ptrData = (uint8_t*)&serNumb;
+  ptrData[0] = MODULE_TYPE;
+  ptrData[1] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS))));
+  ptrData[2] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 10))));
+  ptrData[3] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 9))));
+  ptrData[4] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 7))));
+  ptrData[5] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 6))));
+  ptrData[6] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 5))));
+  ptrData[7] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 4))));
+  return serNumb;
+}
+
 /*******************************************************************************************
 ********************************************************************************************
                    System base Hardware Istance and private Initialization
@@ -470,7 +495,6 @@ extern "C" void HAL_MspInit(void)
 
   __HAL_RCC_SYSCFG_CLK_ENABLE();
   __HAL_RCC_PWR_CLK_ENABLE();
-
 
   /** PVD Configuration
   */

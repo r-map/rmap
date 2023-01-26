@@ -54,12 +54,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define MODULE_TYPE (STIMA_MODULE_TYPE_MASTER_GSM)
 
+// Enable control Error for Debug
+#define DEBUG_MODE            (true)
+
 // HW device
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_LCD            (true)
+#define ENABLE_MMC            (true)
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
@@ -87,11 +91,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
 #define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
+// Private configuration board direct
+#define CONFIGURATION_EEPROM_ADDRESS   (20)
 // Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
-
-// Private configuration board direct
-#define CONFIGURATION_EEPROM_ADDRESS   (BOOT_LOADER_STRUCT_END)
 
 // Monitor Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
@@ -150,7 +153,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define NTP_TASK_ID                 (4)
 #define HTTP_TASK_ID                (5)
 #define MQTT_TASK_ID                (6)
-#define WDT_TASK_ID                 (7)
+#define MMC_TASK_ID                 (7)
+#define WDT_TASK_ID                 (8)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 /*!

@@ -42,7 +42,7 @@ typedef struct
    uint8_t module_main_version;                          //!< module main version
    uint8_t module_minor_version;                         //!< module minor version
    uint8_t configuration_version;                        //!< module configuration version
-   uint32_t serial_number;                               //!< module serial number
+   uint64_t serial_number;                               //!< module serial number
    uint8_t module_type;                                  //!< module type
    uint8_t sensors_count;                                //!< number of configured sensors
    sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
@@ -131,9 +131,6 @@ typedef struct
   bool rollback_executed;
   bool app_executed_ok;
   uint8_t upload_error;
-  uint8_t version;
-  uint8_t revision;
-  uint32_t serial_number;
 } bootloader_t;
 
 #endif

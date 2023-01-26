@@ -93,7 +93,23 @@ void setup() {
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
-  TRACE_INFO_F(F("MAIN: Initialization HW Base done\r\n"));
+  TRACE_INFO_F(F("Initialization HW Base done\r\n"));
+
+  // Get Serial Number
+  configuration.serial_number = StimaV4GetSerialNumber();
+
+  // Serial Print Fixed for Serial Number
+  Serial.println();
+  Serial.println(F("*****************************"));
+  Serial.println(F("* Stima V4 SLAVE - SER.NUM. *"));
+  Serial.println(F("*****************************"));
+  Serial.print(F("COD: "));
+  for(uint8_t uid=0; uid<8; uid++) {
+    if(uid) Serial.print("-");
+    if((uint8_t)((configuration.serial_number >> (8*uid)) & 0xFF) < 16) Serial.print("0");
+    Serial.print((uint8_t)((configuration.serial_number >> (8*uid)) & 0xFF), 16);
+  }
+  Serial.println("\r\n");
 
   // ***************************************************************
   //                  Setup parameter for Task
@@ -105,15 +121,9 @@ void setup() {
   bootloader_t boot_check = {0};
   #if INIT_PARAMETER
   boot_check.app_executed_ok = true;
-  boot_check.version = MODULE_MAIN_VERSION;
-  boot_check.revision = MODULE_MINOR_VERSION;
-  #ifdef NODE_SERIAL_NUMBER
-  configuration.serial_number = NODE_SERIAL_NUMBER;
   memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  #endif
   #else
   memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  configuration.serial_number = boot_check.serial_number;
   #endif
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
 #endif

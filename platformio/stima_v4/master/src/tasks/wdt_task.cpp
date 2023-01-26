@@ -107,6 +107,8 @@ void WdtTask::Run() {
         switch(id) {
           case SUPERVISOR_TASK_ID:
             strcpy (strTask, "Supervisor  "); break;
+          case MMC_TASK_ID:
+            strcpy (strTask, "MMC Card    "); break;
           case LCD_TASK_ID:
             strcpy (strTask, "Display LCD "); break;
           case CAN_TASK_ID:
@@ -173,9 +175,6 @@ void WdtTask::Run() {
           boot_check.rollback_executed = false;          
           boot_check.upload_error = 0;          
           boot_check.upload_executed = false;
-          boot_check.version = MODULE_MAIN_VERSION;
-          boot_check.revision = MODULE_MINOR_VERSION;
-          // No modify SerialNumber
           memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         }
       }

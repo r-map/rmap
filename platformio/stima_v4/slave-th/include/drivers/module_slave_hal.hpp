@@ -35,6 +35,9 @@
 #ifndef _MODULE_SLAVE_HAL_H
 #define _MODULE_SLAVE_HAL_H
 
+// CPUID STM32
+#define UID_BASE_ADDRESS       (0x1FFF7590UL)
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #endif
@@ -179,6 +182,9 @@ void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
 void HAL_MspInit(void);
 void MX_GPIO_Init(void);
+
+void STM32L4GetCPUID(uint8_t *ptrCpuId);
+uint64_t StimaV4GetSerialNumber(void);
 
 #if (ENABLE_CAN)
 void MX_CAN1_Init(void);

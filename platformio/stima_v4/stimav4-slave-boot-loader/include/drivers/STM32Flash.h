@@ -89,9 +89,8 @@
 
 // Address EEProm for reserved bootloader flag param (and future used param)
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (200)
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
-#define BOOT_LOADER_STRUCT_SIZE        (sizeof(BOOTRequest_TypeDef))
+#define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
 
 // ***********************************************************************
@@ -124,7 +123,7 @@ enum eFlashProtectionTypes
 typedef void (*pFunction)(void);
 
 // Backup && Upload Firmware TypeDef
-typedef struct BOOTRequest_TypeDef
+typedef struct bootloader_t
 {
   bool request_upload;
   bool backup_executed;

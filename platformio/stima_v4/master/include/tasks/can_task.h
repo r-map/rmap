@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************
- */
+*/
 
 #ifndef _CAN_TASK_H
 #define _CAN_TASK_H
@@ -84,7 +84,7 @@ using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define CAN_TASK_WAIT_DELAY_MS          (20)
-#define CAN_TASK_WAIT_MAXSPEED_DELAY_MS (1)
+#define CAN_TASK_WAIT_REALTIME_DELAY_MS (1)
 #define CAN_TASK_SLEEP_DELAY_MS         (1250)
 
 // Task waiting queue command/response
@@ -148,7 +148,7 @@ private:
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   static void HW_CAN_Power(CAN_ModePower ModeCan);
-  static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_]);
+  static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_], uint64_t serNumb);
   static bool putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
   static bool getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len);
   static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(canardClass &clsCanard, const uavcan_node_ExecuteCommand_Request_1_1* req, uint8_t remote_node);

@@ -47,29 +47,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/yarrow.h"
 
 #include "tasks/supervisor_task.h"
-
 #include "tasks/wdt_task.h"
-
+#if (ENABLE_MMC)
+#include "tasks/mmc_task.h"
+#endif
 #if (ENABLE_LCD)
 #include "tasks/lcd_task.h"
 #endif
-
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 #include "tasks/modem_task.h"
 #endif
-
 #if (USE_NTP)
 #include "tasks/ntp_task.h"
 #endif
-
 #if (USE_HTTP)
 #include "tasks/http_task.h"
 #endif
-
 #if (USE_MQTT)
 #include "tasks/mqtt_task.h"
 #endif
-
 #if (ENABLE_CAN)
 #include "tasks/can_task.h"
 #endif

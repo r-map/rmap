@@ -42,7 +42,7 @@ typedef struct
    uint8_t can_address;             //!< can sensor's address [0-127]; 100 master, 127 reserved
    uint8_t can_port_id;             //!< port for uavcan services
    uint8_t can_publish_id;          //!< port for uavcan data publication
-   uint32_t serial_number;          //!< Serial number of board (Used from slave for PnP Assign...)
+   uint64_t serial_number;          //!< Serial number of board (Used from slave for PnP Assign...)
    // uint8_t module_type;             //!< module type (optional also present in unique_id...)
 } board_configuration_t;
 
@@ -257,9 +257,6 @@ typedef struct
   bool rollback_executed;
   bool app_executed_ok;
   uint8_t upload_error;
-  uint8_t version;
-  uint8_t revision;
-  uint32_t serial_number;
 } bootloader_t;
 
 #endif

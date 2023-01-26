@@ -31,6 +31,7 @@
 #include "task.h"
 #include "drivers/module_master_hal.hpp"
 #include "STM32LowPower.h"
+#include <IWatchdog.h>
 
 // /*******************************************************************************************
 // ********************************************************************************************
@@ -59,7 +60,6 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
 extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
 }
 
-
 // Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
 // Is Need to redefined weak void __attribute__((weak)) osSystickHandler(void)
 // Note FROM Freertos_Config.h 
@@ -80,6 +80,7 @@ extern "C" void osSystickHandler()
 
 #endif
 
+#if(DEBUG_MODE)
 //------------------------------------------------------------------------------
 /// @brief LocalMS Delay Handler_XXX
 /// @param millis Millisecondi di Wait
@@ -99,6 +100,10 @@ static void faultStimaV4(int n) {
   pinMode(HFLT_PIN, OUTPUT);
   for (;;) {
     int i;
+    #if (ENABLE_WDT)
+    // Error signal WDT Refresh (For debugger only)
+    IWatchdog.reload();
+    #endif
     for (i = 0; i < n; i++) {
       digitalWrite(HFLT_PIN, 1);
       delayMS(300);
@@ -112,6 +117,7 @@ static void faultStimaV4(int n) {
 #endif // HFLT_PIN
 }
 //------------------------------------------------------------------------------
+#endif
 
 #if ( configCHECK_FOR_STACK_OVERFLOW >= 1 )
 	/**  Blink three short pulses if stack overflow is detected.
@@ -126,39 +132,82 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
   Serial.print("Error stack overflow form task: ");
   Serial.print(pcTaskName);
   Serial.flush();
-  (void) pcTaskName;
-  (void) pxTask;
-  faultStimaV4(3);
+  #if(DEBUG_MODE)
+  faultStimaV4(2);
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 #endif /* configCHECK_FOR_STACK_OVERFLOW >= 1 */
 
 //------------------------------------------------------------------------------
 // catch exceptions
+
+// Generic Error_Handler
+extern "C" void _Error_Handler(const char *msg, int val)
+{
+  /* User can add his own implementation to report the HAL error return state */
+  Serial.print("Error handler: ");
+  Serial.print(msg);
+  Serial.print(", ");
+  Serial.print(val);
+  Serial.flush();
+  #if(DEBUG_MODE)
+  faultStimaV4(3);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void hard_fault_isr() {
-  //printf("Hard fault isr\n");
+  #if(DEBUG_MODE)
   faultStimaV4(4);
+  //SD_Vic
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void HardFault_Handler() {
+  #if(DEBUG_MODE)
   faultStimaV4(4);
-  //NVIC_SystemReset();
+  //SD_Vic
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 
 /** Bus fault - blink five short flashes every two seconds */
 extern "C" void bus_fault_isr() {
+  #if(DEBUG_MODE)
   faultStimaV4(5);
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 /** Bus fault - blink five short flashes every two seconds */
 extern "C" void BusFault_Handler() {
+  #if(DEBUG_MODE)
   faultStimaV4(5);
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 
 /** Usage fault - blink six short flashes every two seconds */
 extern "C" void usage_fault_isr() {
+  #if(DEBUG_MODE)
   faultStimaV4(6);
+  #else
+  NVIC_SystemReset();
+  #endif
 }
 /** Usage fault - blink six short flashes every two seconds */
 extern "C" void UsageFault_Handler() {
+  #if(DEBUG_MODE)
   faultStimaV4(6);
+  #else
+  NVIC_SystemReset();
+  #endif
 }

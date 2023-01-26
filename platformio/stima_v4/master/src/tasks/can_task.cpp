@@ -83,17 +83,21 @@ void CanTask::HW_CAN_Power(CAN_ModePower ModeCan) {
 ///        Dovrebbe essere verificato in uavcan.node.GetInfo.Response per la verifica non sia cambiato Nodo.
 ///        Al momento vengono inseriti 2 BYTE fissi, altri eventuali, che Identificano il Tipo Modulo
 /// @param out data out UniqueID
-void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_])
+/// @param serNumb local Hardware Serial Number (64Bit) Already Send in PNP 1.0 Request (Hash 48Bit)
+void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_], uint64_t serNumb)
 {
     // A real hardware node would read its unique-ID from some hardware-specific source (typically stored in ROM).
     // This example is a software-only node so we store the unique-ID in a (read-only) register instead.
     static uavcan_register_Value_1_0 val = {0};
     uavcan_register_Value_1_0_select_unstructured_(&val);
-    // Crea default unique_id con NODE_TYPE_MAJOR (Tipo di nodo), MINOR (Hw relativo)
-    // Il resto dei 128 Bit (112) vengono impostati RANDOM (potrebbero portare Manufactor, SerialNumber ecc...)
-    // Dovrebbe essere l'ID per la verifica incrociata del corretto Node_Id dopo il PnP
-    val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) NODE_TYPE_MAJOR;
-    val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) NODE_TYPE_MINOR;
+
+    // Crea default unique_id con 8 BYTES From local_serial Number (N.B. serNumb[0] rappresenta Tipo Nodo )
+    uint8_t *ptrData = (uint8_t*)&serNumb;
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        val.unstructured.value.elements[val.unstructured.value.count++] = ptrData[i];
+    }
+    // Il resto dei 128 vengono impostati RANDOM
     for (uint8_t i = val.unstructured.value.count; i < uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_; i++)
     {
         val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
@@ -412,7 +416,7 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
     resp.software_version.minor = MODULE_MINOR_VERSION;
     resp.software_vcs_revision_id = RMAP_PROCOTOL_VERSION;
 
-    getUniqueID(resp.unique_id);
+    getUniqueID(resp.unique_id, StimaV4GetSerialNumber());
 
     // The node name is the name of the product like a reversed Internet domain name (or like a Java package).
     resp.name.count = strlen(NODE_NAME);
@@ -1832,7 +1836,7 @@ void CanTask::Run() {
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE
         if(clCanard.master.file.download_request()) {            
-            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_MAXSPEED_DELAY_MS));
+            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_REALTIME_DELAY_MS));
         }
         else
         {

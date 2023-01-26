@@ -237,7 +237,7 @@ void setup(void) {
 void loop(void)
 {
     // Struct Boot Check EEPROM Fields
-    BOOTRequest_TypeDef boot_request;
+    bootloader_t boot_request;
     // External Flash Var
     uint32_t qspiWritePtr;
     uint32_t qspiReadPtr;

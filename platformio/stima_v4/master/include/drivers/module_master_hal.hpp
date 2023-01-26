@@ -30,11 +30,13 @@
 #include "config.h"
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
-#include "STM32FreeRTOSConfig_extra.h"
 
 // /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_MASTER_HAL_H
 #define __MODULE_MASTER_HAL_H
+
+// CPUID STM32
+#define UID_BASE_ADDRESS       (0x1FFF7590UL)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -84,6 +86,9 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_MMC1_D3     PC11
 #define PIN_MMC1_CLK    PC12
 #define PIN_MMC1_CMD    PD2
+
+// ARDUINO REFERENCE STM32DUINO
+#define SD_DETECT_PIN   PIN_MMC1_DTC
 
 // BUZZER
 #define PIN_BUZZER      PE9
@@ -200,8 +205,14 @@ extern CAN_HandleTypeDef hcan1;
 #define CAN_GPIO_Port     GPIOE
 
 #define MMC1_Detect_Pin   GPIO_PIN_7
+#define MMC1_D0_Pin       GPIO_PIN_8
+#define MMC1_D1_Pin       GPIO_PIN_9
+#define MMC1_D2_Pin       GPIO_PIN_10
+#define MMC1_D3_Pin       GPIO_PIN_11
+#define MMC1_CLK_Pin      GPIO_PIN_12
 #define MMC1_GPIO_Port    GPIOC
 
+#define MMC1_CMD_Pin      GPIO_PIN_2
 #define GSM_PowerEn_Pin   GPIO_PIN_11
 #define GSM_PowerKey_Pin  GPIO_PIN_12
 #define GSM_GPIO_Port     GPIOD
@@ -214,6 +225,9 @@ void SystemClock_Config(void);
 void SetupSystemPeripheral(void);
 void HAL_MspInit(void);
 void MX_GPIO_Init(void);
+
+void STM32L4GetCPUID(uint8_t *ptrCpuId);
+uint64_t StimaV4GetSerialNumber(void);
 
 #if (ENABLE_CAN)
 void MX_CAN1_Init(void);
