@@ -1348,12 +1348,34 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             sensor.timerange=sensor.dynamic_timerange()
             print(sensor)
 
+        if (version == "3"):            
             print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                 type=sensor.type.type,
                                 node=sensor.node,address=sensor.address,
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/"))
-            #TODO  check id of status (good only > 0)
+        else:
 
+            timerange=sensor.timerange.split(",")
+            for i in range(len(timerange)):
+                if (timerange[i] == "-"):
+                    timerange[i] = None
+                else:
+                    timerange[i] = int(timerange[i])
+
+            level=sensor.level.split(",")
+            for i in range(len(level)):
+                if (level[i] == "-"):
+                    level[i] = None
+                else:
+                    level[i] = int(level[i])
+            
+            print("add driver:",rpcproxy.configure(driver=sensor.driver,
+                                type=sensor.type.type,
+                                timerange=timerange,
+                                level=level))
+
+        #TODO  check id of status (good only > 0)
+            
         print(">>>>>>> save config")
         if (isinstance(transport, jsonrpc.TransportSERIAL)):
             transport.ser.timeout=8    # save on eeprom require time
