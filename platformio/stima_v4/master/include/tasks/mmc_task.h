@@ -42,6 +42,7 @@
 #include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 
+#include <STM32RTC.h>
 #include <STM32SD.h>
 
 #define MMC_TASK_WAIT_DELAY_MS            (50)
@@ -79,8 +80,9 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *dataRmapPutQueue;
+  cpp_freertos::Queue *dataLogPutQueue;
+  cpp_freertos::BinarySemaphore *rtcLock;
   TwoWire *wire;
 } MmcParam_t;
 
@@ -104,7 +106,7 @@ private:
   MmcParam_t param;
   EEprom eeprom;
 
-  File rmapDataFile;
+  File localFile;
 };
 
 #endif

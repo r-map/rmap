@@ -142,6 +142,23 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
 
 //------------------------------------------------------------------------------
 // catch exceptions
+
+// Generic Error_Handler
+extern "C" void _Error_Handler(const char *msg, int val)
+{
+  /* User can add his own implementation to report the HAL error return state */
+  Serial.print("Error handler: ");
+  Serial.print(msg);
+  Serial.print(", ");
+  Serial.print(val);
+  Serial.flush();
+  #if(DEBUG_MODE)
+  faultStimaV4(3);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void hard_fault_isr() {
   #if(DEBUG_MODE)
@@ -188,6 +205,23 @@ extern "C" void usage_fault_isr() {
 extern "C" void UsageFault_Handler() {
   #if(DEBUG_MODE)
   faultStimaV4(6);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+
+/** Usage fault - blink six short flashes every two seconds */
+extern "C" void MemManage_fault_isr() {
+  #if(DEBUG_MODE)
+  faultStimaV4(7);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+/** Usage fault - blink six short flashes every two seconds */
+extern "C" void MemManage_Handler() {
+  #if(DEBUG_MODE)
+  faultStimaV4(7);
   #else
   NVIC_SystemReset();
   #endif

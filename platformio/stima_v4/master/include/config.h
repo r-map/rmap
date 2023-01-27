@@ -143,6 +143,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
+#define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
+#define LOG_PUT_DATA_QUEUE_LENGTH   (10)
+// Queu Size block MAX
+#define RMAP_PUT_DATA_ELEMENT_SIZE (256)
+#define LOG_PUT_DATA_ELEMENT_SIZE  (128)
 
 // Task system_status and queue ID message
 #define ALL_TASK_ID                 (99)      // Send message to ALL Task

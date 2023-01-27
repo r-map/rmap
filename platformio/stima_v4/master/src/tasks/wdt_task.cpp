@@ -44,6 +44,7 @@ void WdtTask::Run() {
   u_int16_t stackUsage;
   char strTask[12] = {0};
   bootloader_t boot_check;
+  char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -159,6 +160,10 @@ void WdtTask::Run() {
       // Can not perform Complete LOAD and configuration BUT Application is OK
       // If All Task Start and enter in WDT Task, The application is Ready to RUN
       if(firsCheck) {
+        // TEST LOG MESSAGE
+        strcpy(logMessage, "Starting OK");
+        param.dataLogPutQueue->Enqueue(logMessage, 0);
+        // END TEST
         firsCheck = false;
         memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         // Flag OK Start APP Eexcuted

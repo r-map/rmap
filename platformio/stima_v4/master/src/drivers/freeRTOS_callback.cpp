@@ -163,7 +163,6 @@ extern "C" void _Error_Handler(const char *msg, int val)
 extern "C" void hard_fault_isr() {
   #if(DEBUG_MODE)
   faultStimaV4(4);
-  //SD_Vic
   #else
   NVIC_SystemReset();
   #endif
@@ -172,7 +171,6 @@ extern "C" void hard_fault_isr() {
 extern "C" void HardFault_Handler() {
   #if(DEBUG_MODE)
   faultStimaV4(4);
-  //SD_Vic
   #else
   NVIC_SystemReset();
   #endif
@@ -207,6 +205,23 @@ extern "C" void usage_fault_isr() {
 extern "C" void UsageFault_Handler() {
   #if(DEBUG_MODE)
   faultStimaV4(6);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+
+/** Usage fault - blink six short flashes every two seconds */
+extern "C" void MemManage_fault_isr() {
+  #if(DEBUG_MODE)
+  faultStimaV4(7);
+  #else
+  NVIC_SystemReset();
+  #endif
+}
+/** Usage fault - blink six short flashes every two seconds */
+extern "C" void MemManage_Handler() {
+  #if(DEBUG_MODE)
+  faultStimaV4(7);
   #else
   NVIC_SystemReset();
   #endif

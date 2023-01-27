@@ -65,7 +65,7 @@
 #define USE_SUB_PUBLISH_SLAVE_DATA
 
 // Numero di nodi massimo da collegare al MASTER
-#define MAX_NODE_CONNECT 8
+#define MAX_NODE_CONNECT        BOARDS_COUNT_MAX
 
 // SET Default value per risposte
 #define GENERIC_STATE_UNDEFINED 0x0Fu

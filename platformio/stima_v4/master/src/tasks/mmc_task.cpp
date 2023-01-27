@@ -104,8 +104,12 @@ void MmcTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
 void MmcTask::Run()
 {
   uint8_t retry;
+  bool is_get_rtc;
+  STM32RTC &rtc = STM32RTC::getInstance();
   system_request_t request;
   system_response_t response;
+  char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
+  char logIntest[23] = {0};
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -207,6 +211,13 @@ uint32_t index=0;
         // Check or create directory Structure...
         // Check firmware file present on bord..
         //  -> Send to config Info of File Firmware Ready
+        if(!SD.exists("firmware")) {
+          SD.mkdir("firmware");
+        } else {
+          // Check firmware file present Type, model and version
+        }
+        if(!SD.exists("log")) SD.mkdir("log");
+        if(!SD.exists("data")) SD.mkdir("data");
         state = MMC_STATE_WAITING_EVENT;
       }
       break;
@@ -216,6 +227,37 @@ uint32_t index=0;
       // If System SLEEP...  Long WAIT
       // Else check all queue input
       // Go to response/action
+
+      // *********************************************************
+      //             Perform LOG WRITE append message
+      // *********************************************************
+      // If element get all element from the queue and Put to MMC
+      is_get_rtc = false;
+      while(!param.dataLogPutQueue->IsEmpty()) {
+        if(!is_get_rtc) {
+          // Get date time to Intest string to PUT (for this message session)
+          is_get_rtc = true;
+          if(param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+            sprintf(logIntest, "%02d/%02d/%02d %02d:%02d:%02d.%03d ",
+              rtc.getDay(), rtc.getMonth(), rtc.getYear(), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
+            param.rtcLock->Give();
+          }
+        }
+        // Get message from queue
+        if(param.dataLogPutQueue->Dequeue(logMessage)) {
+          // Put to MMC ( APPEND File )
+          localFile = SD.open("log/log.txt", FA_OPEN_APPEND | FA_WRITE);
+          if(localFile) {          
+            localFile.print(logIntest);
+            localFile.write(logMessage, strlen(logMessage) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logMessage) : LOG_PUT_DATA_ELEMENT_SIZE);
+            localFile.println();
+            localFile.close();
+          }
+        }
+      }
+      // *********************************************************
+      //             End OF perform LOG append message
+      // *********************************************************
 
       break;
 

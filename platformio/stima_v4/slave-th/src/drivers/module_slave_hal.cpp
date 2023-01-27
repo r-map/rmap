@@ -29,6 +29,7 @@
 
 #include "drivers/module_slave_hal.hpp"
 #include "stm32l4xx_ll_system.h"
+#include "stm32l4xx_ll_cortex.h"
 
 #if (ENABLE_I2C2)
 TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
@@ -283,6 +284,11 @@ void SetupSystemPeripheral(void) {
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+  // Enable Handler Fault Error
+  LL_HANDLER_EnableFault(LL_HANDLER_FAULT_USG);
+  LL_HANDLER_EnableFault(LL_HANDLER_FAULT_BUS);
+  LL_HANDLER_EnableFault(LL_HANDLER_FAULT_MEM);
 
   MX_GPIO_Init();
 

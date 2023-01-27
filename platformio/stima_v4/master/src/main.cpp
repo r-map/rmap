@@ -56,8 +56,9 @@ void setup() {
   // Data queue (Request / exchange data from Data Task)
   static Queue *systemRequestQueue;
   static Queue *systemResponseQueue;
-  //TODO: Data SD WR/RMAP
-  //static Queue *reportDataQueue;
+  //Data MMC WR/RD
+  static Queue *dataRmapPutQueue;
+  static Queue *dataLogPutQueue;
 
   // System and status configuration struct
   static configuration_t configuration = {0};
@@ -124,15 +125,13 @@ void setup() {
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
   systemRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(system_request_t));
   systemResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(system_response_t));
-  //TODO: Data SD WR/RMAP
-  //reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
+  dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
+  dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
 
-  TRACE_INFO_F(F("Initialization HW Base done\r\n"));
+  TRACE_INFO_F(F("Initialization HW Base done\r\n\r\n"));
 
-  // Get Serial Number
+  // Get Serial Number and Print Fixed to Serial logger default
   configuration.board_master.serial_number = StimaV4GetSerialNumber();
-
-  // Serial Print Fixed for Serial Number
   Serial.println();
   Serial.println(F("*****************************"));
   Serial.println(F("* Stima V4 MASTER - SER.NUM *"));
@@ -167,6 +166,7 @@ void setup() {
   wdtParam.system_status = &system_status;
   wdtParam.systemStatusLock = systemStatusLock;
   wdtParam.rtcLock = rtcLock;
+  wdtParam.dataLogPutQueue = dataLogPutQueue;
 #if (ENABLE_I2C2)
   wdtParam.wire = &Wire2;
   wdtParam.wireLock = wire2Lock;
@@ -177,14 +177,15 @@ void setup() {
   static MmcParam_t mmcParam = {0};
   mmcParam.configuration = &configuration;
   mmcParam.system_status = &system_status;
+  mmcParam.dataRmapPutQueue = dataRmapPutQueue;
+  mmcParam.dataLogPutQueue = dataLogPutQueue;
 #if (ENABLE_I2C2)
   mmcParam.wire = &Wire2;
   mmcParam.wireLock = wire2Lock;
 #endif
+  mmcParam.rtcLock = rtcLock;
   mmcParam.configurationLock = configurationLock;
   mmcParam.systemStatusLock = systemStatusLock;
-  mmcParam.systemRequestQueue = systemRequestQueue;
-  mmcParam.systemResponseQueue = systemResponseQueue;
 #endif
 
 #if (ENABLE_LCD)
