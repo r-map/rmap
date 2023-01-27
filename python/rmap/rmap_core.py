@@ -1192,7 +1192,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         print("mybaudrate:",mybaudrate)
 
                         transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=1,sleep=3)
-                        
+
                 except ObjectDoesNotExist:
                     print("transport serial not present for this board")
                     return
@@ -1348,31 +1348,31 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             sensor.timerange=sensor.dynamic_timerange()
             print(sensor)
 
-        if (version == "3"):            
-            print("add driver:",rpcproxy.configure(driver=sensor.driver,
+            if (version == "3"):            
+                print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                 type=sensor.type.type,
                                 node=sensor.node,address=sensor.address,
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/"))
-        else:
+            else:
 
-            timerange=sensor.timerange.split(",")
-            for i in range(len(timerange)):
-                if (timerange[i] == "-"):
-                    timerange[i] = None
-                else:
-                    timerange[i] = int(timerange[i])
+                timerange=sensor.timerange.split(",")
+                for i in range(len(timerange)):
+                    if (timerange[i] == "-"):
+                        timerange[i] = None
+                    else:
+                        timerange[i] = int(timerange[i])
 
-            level=sensor.level.split(",")
-            for i in range(len(level)):
-                if (level[i] == "-"):
-                    level[i] = None
-                else:
-                    level[i] = int(level[i])
+                level=sensor.level.split(",")
+                for i in range(len(level)):
+                    if (level[i] == "-"):
+                        level[i] = None
+                    else:
+                        level[i] = int(level[i])
             
-            print("add driver:",rpcproxy.configure(driver=sensor.driver,
-                                type=sensor.type.type,
-                                timerange=timerange,
-                                level=level))
+                print("add driver:",rpcproxy.configure(driver=sensor.driver,
+                                                       type=sensor.type.type,
+                                                       timerange=timerange,
+                                                       level=level))
 
         #TODO  check id of status (good only > 0)
             
