@@ -492,10 +492,16 @@ def acl(request):
                                                 "1/rpc/"+username+"/"+mytopic
                                             )
                                     ):
-                                        if (topic.split("/")[5] == mynetwork):
-                                            response=HttpResponse("allow")
-                                            response.status_code=200
-                                            return response
+                                        if acc == "2" or acc == "3":
+                                            if (topic.split("/")[5] == mynetwork):
+                                                response=HttpResponse("allow")
+                                                response.status_code=200
+                                                return response
+                                        else:
+                                                response=HttpResponse("allow")
+                                                response.status_code=200
+                                                return response
+                                            
                                         
                 except ObjectDoesNotExist:
                     pass
