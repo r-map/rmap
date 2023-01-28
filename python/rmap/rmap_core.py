@@ -1132,7 +1132,22 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
         for myrpc in kwargs.keys():
             print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
         
-        
+
+def find_report_time(station):
+
+    report_time=None
+
+    for board in station.board_set.all():        
+        # try to get sampletime: from mqtt transport of the board of the station
+        if (hasattr(board, 'transportmqtt')):
+            if (board.transportmqtt.active) :
+                if (not report_time is None):
+                    if(report_time != board.transportmqtt.mqttsampletime): raise Exception("Cannot define sample time: more then one board have different transportmqtt")
+                report_time = board.transportmqtt.mqttsampletime
+
+    if  (report_time is None) : raise Exception("Cannot define sample time: no board have transportmqtt")
+    return report_time
+            
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None,version="3",notification=False,
                   without_password=False):
@@ -1345,13 +1360,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         print(">>>> sensors:")
         for sensor in board.sensor_set.all():
             if not sensor.active: continue
-            # try to get sampletime: from mqtt transport of the same board, if not from main board named "stimav4"
-            if hasattr(board, 'transportmqtt'):
-                timerange=sensor.dynamic_timerange()
-            else:
-                timerange=sensor.timerange.format(P2=mystation.board_set.get(slug="stimav4").transportmqtt.mqttsampletime)
-            print(sensor)
-    
+
+            report_time=find_report_time(mystation)
+            timerange=sensor.timerange.format(P2=report_time)
+            
             if (version == "3"):            
                 print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                 type=sensor.type.type,
