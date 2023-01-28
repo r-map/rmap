@@ -50,7 +50,7 @@ def showImage(request,ident=None):
 
 
 def showOneImage(request,ident,id):
-    grimage=GeorefencedImage.objects.get(ident__username=ident,id=id)
+    grimage=GeorefencedImage.objects.get(user__username=ident,id=id)
     print("grimage")
     print(grimage)
     return render(request, 'geoimage/georefencedimage.html',{"grimage":grimage})
