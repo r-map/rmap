@@ -1345,30 +1345,34 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         print(">>>> sensors:")
         for sensor in board.sensor_set.all():
             if not sensor.active: continue
-            sensor.timerange=sensor.dynamic_timerange()
+            # try to get sampletime: from mqtt transport of the same board, if not from main board named "stimav4"
+            if hasattr(board, 'transportmqtt'):
+                timerange=sensor.dynamic_timerange()
+            else:
+                timerange=sensor.timerange.format(P2=mystation.board_set.get(slug="stimav4").transportmqtt.mqttsampletime)
             print(sensor)
-
+    
             if (version == "3"):            
                 print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                 type=sensor.type.type,
                                 node=sensor.node,address=sensor.address,
-                                mqttpath=sensor.timerange+"/"+sensor.level+"/"))
+                                mqttpath=timerange+"/"+sensor.level+"/"))
             else:
 
-                timerange=sensor.timerange.split(",")
+                timerange=timerange.split(",")
                 for i in range(len(timerange)):
                     if (timerange[i] == "-"):
                         timerange[i] = None
                     else:
                         timerange[i] = int(timerange[i])
-
+                        
                 level=sensor.level.split(",")
                 for i in range(len(level)):
                     if (level[i] == "-"):
                         level[i] = None
                     else:
                         level[i] = int(level[i])
-            
+                            
                 print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                                        type=sensor.type.type,
                                                        timerange=timerange,
@@ -1756,6 +1760,10 @@ def object_auth(object,user):
         if object.board.stationmetadata.user.username == user:
             return True
 
+    if isinstance(object,TransportCan):
+        if object.board.stationmetadata.user.username == user:
+            return True
+        
     if isinstance(object,StationConstantData):
         if object.stationmetadata.user.username == user:
             return True
