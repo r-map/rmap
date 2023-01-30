@@ -1041,6 +1041,8 @@ void CanTask::Run() {
                 // Attiva il callBack su RX Messaggio Canard sulla funzione interna processReceivedTransfer
                 clCanard.setReceiveMessage_CB(processReceivedTransfer);
 
+                // Setup INIT Time for syncronized TimeStamp with local RTC
+                clCanard.setMicros(rtc.getEpoch(), rtc.getSubSeconds());
                 // ********************************************************************************
                 //            INIT VALUE, Caricamento default e registri locali MASTER
                 // ********************************************************************************

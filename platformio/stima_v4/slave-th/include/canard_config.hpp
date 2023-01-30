@@ -42,6 +42,7 @@
 #define IFACE_CAN_IDX         0
 #define CAN_DELAY_US_SEND     0
 #define MAX_SUBSCRIPTION      10
+#define HEAP_ARENA_SIZE       (1024 * 16)
 
 // CAN SPEED RATE HZ
 #define CAN_BIT_RATE 1000000ul
@@ -61,6 +62,7 @@
 #define SUBJECTID_PUBLISH_RMAP 2100
 
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
+// #define USE_NODE_MASTER_ID_FIXED
 // #define USE_NODE_SLAVE_ID_FIXED
 // #define USE_PORT_SERVICE_RMAP_FIXED
 // #define USE_SUBJECTID_PUBLISH_RMAP_FIXED

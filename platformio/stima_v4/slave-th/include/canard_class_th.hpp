@@ -107,11 +107,11 @@ class canardClass {
             // Bit field
             struct {
                 Power_Mode  powerMode   : 2;
-                bool        traceLog    : 1;
-                bool        fwUploading : 1;
-                bool        dataReady   : 1;
-                bool        moduleReady : 1;
-                bool        moduleError : 1;
+                uint8_t     traceLog    : 1;
+                uint8_t     fwUploading : 1;
+                uint8_t     dataReady   : 1;
+                uint8_t     moduleReady : 1;
+                uint8_t     moduleError : 1;
             };
             // uint8 value
             uint8_t uint8_val;
@@ -376,15 +376,23 @@ class canardClass {
 
         } flag;
 
+        // Local address
         void set_canard_node_id(CanardNodeID local_id);
         CanardNodeID get_canard_node_id(void);
         bool is_canard_node_anonymous(void);
+        // Master address
+        void set_canard_master_id(CanardNodeID remote_id);
+        CanardNodeID get_canard_master_id(void);
 
     // ***************** PRIVATE ACCESS *****************
     private:
 
         // Istanza del modulo canard
         CanardInstance _canard;
+
+        // Node ID del MASTER remoto utilizzato per riferimento Set Flag e Comandi locali
+        // automatici come gestione flag modalità power, Sleep, errori ecc.
+        CanardNodeID _master_id;
 
         // Buffer dati e trasmissione delle code di tx e quella di rx
         CanardRxQueue _canard_rx_queue;
@@ -401,7 +409,7 @@ class canardClass {
 
         // Canard O1HEAP, Gestita RAM e CallBack internamente alla classe
         O1HeapInstance* _heap;
-        _Alignas(O1HEAP_ALIGNMENT) uint8_t _heap_arena[1024 * 16];
+        _Alignas(O1HEAP_ALIGNMENT) uint8_t _heap_arena[HEAP_ARENA_SIZE];
 
         // Gestione O1Heap Static Funzioni x Canard Memory Allocate/Free
         static void* _memAllocate(CanardInstance* const ins, const size_t amount);

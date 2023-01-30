@@ -81,10 +81,6 @@ class canardClass {
         enum Power_Mode : uint8_t {
             pwr_on,         // Never (All ON, test o gestione locale)
             pwr_nominal,    // Every Second (Nominale base)
-            pwr_sleep_05,   // Every 5 Second (Low power 1)
-            pwr_sleep_15,   // Every 15 Second (Low power 2)
-            pwr_sleep_30,   // Every 30 Second (Low power 3)
-            pwr_sleep_60,   // Every Minute (Low power 4...)
             pwr_deep_save,  // Deep mode (Very Low Power)
             pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
         };
@@ -102,21 +98,26 @@ class canardClass {
         // Gestione comandi privati di Canard / Rmap
         enum Command_Private : uint8_t {
             download_file             =  5,
+            calibrate_accelerometer   =  6,
+            module_maintenance        =  7,
             enable_publish_rmap       = 10,
             disable_publish_rmap      = 11,
             enable_publish_port_list  = 12,
-            disable_publish_port_list = 13
+            disable_publish_port_list = 13,
+            remote_test               = 99,
+            remote_test_value         = 100
         };
 
         // Interprete heartBeat VSC (Vendor Status Code) x Comunicazioni messaggi Master<->Slave
         typedef union {
             // Bit field
             struct {
-                Power_Mode  powerMode   : 3;
-                bool        fwUploading : 1;
-                bool        dataReady   : 1;
-                bool        moduleReady : 1;
-                bool        moduleError : 1;
+                Power_Mode  powerMode   : 2;
+                uint8_t     traceLog    : 1;
+                uint8_t     fwUploading : 1;
+                uint8_t     dataReady   : 1;
+                uint8_t     moduleReady : 1;
+                uint8_t     moduleError : 1;
             };
             // uint8 value
             uint8_t uint8_val;
@@ -145,6 +146,8 @@ class canardClass {
         static CanardMicrosecond getMicros();
         static CanardMicrosecond getMicros(GetMonotonicTime_Type syncro_type);
         static uint32_t getUpTimeSecond(void);
+        static void setMicros(CanardMicrosecond currMicros);
+        static void setMicros(uint32_t epochSecond, uint16_t epochSubSecond);
     
         // *************************************************
         //                  Canard SendData
@@ -574,7 +577,7 @@ class canardClass {
 
         // Canard O1HEAP, Gestita RAM e CallBack internamente alla classe
         O1HeapInstance* _heap;
-        _Alignas(O1HEAP_ALIGNMENT) uint8_t _heap_arena[1024 * 16];
+        _Alignas(O1HEAP_ALIGNMENT) uint8_t _heap_arena[HEAP_ARENA_SIZE];
 
         // Gestione O1Heap Static Funzioni x Canard Memory Allocate/Free
         static void* _memAllocate(CanardInstance* const ins, const size_t amount);

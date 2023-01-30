@@ -84,6 +84,9 @@ canardClass::canardClass() {
     // Sottoscrizioni
     _rxSubscriptionIdx = 0;
 
+    // Reset master ID all'avvio
+    _master_id = UINT16_MAX;
+
     // Init Timing
     _lastMicros = micros();
     _currMicros = _lastMicros;
@@ -1085,6 +1088,21 @@ CanardNodeID canardClass::get_canard_node_id(void) {
 bool canardClass::is_canard_node_anonymous(void) {
     // Istanza del modulo canard
     return _canard.node_id > CANARD_NODE_ID_MAX;
+}
+
+/// @brief Set node master ID (slave respond to RMAP command and flag with master ID)
+/// @param remote_id remote id for master (normal reading in register)
+void canardClass::set_canard_master_id(CanardNodeID remote_id) {
+    // Istanza del modulo canard
+    _master_id = remote_id;
+}
+
+/// @brief Get master node id for local set and flag operation automatic (sleep, power...)
+/// @param  None
+/// @return Master node ID
+CanardNodeID canardClass::get_canard_master_id(void) {
+    // Istanza del modulo canard
+    return _master_id;
 }
 
 // ***************************************************************

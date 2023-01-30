@@ -164,6 +164,25 @@ uint32_t canardClass::getUpTimeSecond(void) {
     return (uint32_t)(_currMicros / MEGA);
 }
 
+/// @brief Set MonotonicTime Interno realTime
+/// @param currMicros Microsecondi correnti realTime di Canard
+void canardClass::setMicros(CanardMicrosecond currMicros) {
+    // Start Syncro o real_time
+    _lastMicros = micros();
+    _currMicros = currMicros;
+    _syncMicros = _currMicros;
+}
+
+/// @brief Set MonotonicTime Interno realTime
+/// @param epochSecond Second from 1970 UNIX type (RTC Standard Epoch Second)
+/// @param epochSubSecond SubSecond of Second (RTC millis se disponibile STM32 si)
+void canardClass::setMicros(uint32_t epochSecond, uint16_t epochSubSecond) {
+    // Start Syncro o real_time
+    _lastMicros = micros();
+    _currMicros = (epochSecond*1000000ull) + (epochSubSecond * 1000ull);
+    _syncMicros = _currMicros;
+}
+
 // ***************************************************************************
 //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)
 // ***************************************************************************

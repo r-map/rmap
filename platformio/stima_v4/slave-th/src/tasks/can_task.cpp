@@ -842,7 +842,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             uavcan_node_Heartbeat_1_0 msg = {0};
             if (uavcan_node_Heartbeat_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // Controllo e gestisco solo il nodo MASTER
-                if(transfer->metadata.remote_node_id == NODE_MASTER_ID) {
+                if(transfer->metadata.remote_node_id == clCanard.get_canard_master_id()) {
                     // Entro in OnLine se precedentemente arrivo dall'OffLine
                     // ed eseguo eventuali operazioni di entrata in attività se necessario
                     // Opzionale Controllo ONLINE direttamente dal messaggio Interno
@@ -898,7 +898,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             if (uavcan_time_Synchronization_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // Controllo e gestisco solo il nodo MASTER come SyncroTime (a gestione locale)
                 // Non sono previsti multi sincronizzatori ma la selezione è esterna alla classe
-                if(transfer->metadata.remote_node_id == NODE_MASTER_ID) {
+                if(transfer->metadata.remote_node_id == clCanard.get_canard_master_id()) {
                     bool isSyncronized = false;
                     CanardMicrosecond timestamp_synchronized_us;
                     // Controllo coerenza messaggio per consentire e verificare l'aggiornamento timestamp
@@ -1334,6 +1334,24 @@ void CanTask::Run() {
 
                 // Attiva il callBack su RX Messaggio Canard sulla funzione interna processReceivedTransfer
                 clCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
+
+                // ********************    Lettura Registri standard UAVCAN    ********************
+                // Restore the master-ID from the corresponding standard clRegister. Default to anonymous.
+                #ifdef USE_NODE_MASTER_ID_FIXED
+                // Canard Slave NODE ID Fixed dal defined value in module_config
+                clCanard.set_canard_master_id((CanardNodeID)NODE_MASTER_ID);
+                #else
+                uavcan_register_Value_1_0_select_natural16_(&val);
+                val.natural16.value.count = 1;
+                val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
+                localRegisterAccessLock->Take();
+                clRegister.read("rmap.master.id", &val);      // The names of the standard registers are regulated by the Specification.
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
+                    clCanard.set_canard_master_id((CanardNodeID)val.natural16.value.elements[0]);
+                }
+                #endif
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
                 // Restore the node-ID from the corresponding standard clRegister. Default to anonymous.
