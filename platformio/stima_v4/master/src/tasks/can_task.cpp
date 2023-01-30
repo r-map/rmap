@@ -261,7 +261,10 @@ bool CanTask::getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len)
 
         // Read Name file, Version and Info
         memFlash.BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
-        if(strncasecmp((char*)block, NODE_NAME, sizeof(NODE_NAME))) {
+        // The node name is the name of the product like a reversed Internet domain name (or like a Java package).
+        char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
+        getStimaNameByType(stima_name, MODULE_TYPE);
+        if(strncasecmp((char*)block, stima_name, strlen(stima_name))) {
             uint8_t position = strlen((char*)block);
             *version = block[strlen((char*)block) - 11] - 48;
             *revision = block[strlen((char*)block) - 9] - 48;
@@ -419,8 +422,10 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
     getUniqueID(resp.unique_id, StimaV4GetSerialNumber());
 
     // The node name is the name of the product like a reversed Internet domain name (or like a Java package).
-    resp.name.count = strlen(NODE_NAME);
-    memcpy(&resp.name.elements, NODE_NAME, resp.name.count);
+    char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
+    getStimaNameByType(stima_name, MODULE_TYPE);
+    resp.name.count = strlen(stima_name);
+    memcpy(&resp.name.elements, stima_name, resp.name.count);
 
     // The software image CRC and the Certificate of Authenticity are optional so not populated in this demo.
     return resp;

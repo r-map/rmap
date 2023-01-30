@@ -37,4 +37,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 void getStimaNameByType(char *name, uint8_t type);
 
+/*!
+\fn void getStimaDescriptionByType(char *name, uint8_t type)
+\brief Return a STIMA's description Cyphal from a module type stored in configuration.
+\param[out] *description STIMA's description.
+\param[in] *type module type stored in configuration.
+\return void.
+*/
+void getStimaDescriptionByType(char *description, uint8_t type);
+
+
+/*!
+\fn void checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)
+\brief Return a STIMA's check file firmware name Type Version and Revision.
+\param[out] *types Type of module checked.
+\param[out] *version Version firmware of module checked.
+\param[out] *revision Revision firmware of module checked.
+\param[in] *file_name module name to check.
+\return true if file name is correct, false if not
+*/
+bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision);
+
 #endif

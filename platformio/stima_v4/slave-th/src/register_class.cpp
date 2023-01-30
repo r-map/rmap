@@ -30,6 +30,9 @@
 #include "register_class.hpp"
 #include "canard_config.hpp"
 
+#include "config.h"
+#include "stima_utility.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -388,9 +391,11 @@ void EERegister::setup(void)
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
     // It simply keeps a human-readable description of the node that should be empty by default.
+    char stima_description[STIMA_MODULE_DESCRIPTION_LENGTH] = {0};
+    getStimaDescriptionByType(stima_description, MODULE_TYPE);
     uavcan_register_Value_1_0_select_string_(&val);
-    val._string.value.count = strlen(NODE_DESCRIPTION);
-    memcpy(val._string.value.elements, NODE_DESCRIPTION, val._string.value.count);
+    val._string.value.count = strlen(stima_description);
+    memcpy(val._string.value.elements, stima_description, val._string.value.count);
     write("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
 }
 

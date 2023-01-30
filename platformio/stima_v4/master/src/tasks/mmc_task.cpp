@@ -111,6 +111,9 @@ void MmcTask::Run()
   char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
 
+  File dir;
+  File entry;
+
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -215,6 +218,21 @@ uint32_t index=0;
           SD.mkdir("firmware");
         } else {
           // Check firmware file present Type, model and version
+          dir = SD.open("/firmware");
+          while(1) {
+            // Check list File
+            entry = dir.openNextFile();
+            if(dir) {
+              // se file_fw del master
+                // controllo se già caricato in flash se no lo carico altrimenti esco
+              // se firmware di modulo non faccio nulla attendo rpc di comando
+
+              // Check filename
+              if(entry.name()){
+
+              }
+            }
+          }
         }
         if(!SD.exists("log")) SD.mkdir("log");
         if(!SD.exists("data")) SD.mkdir("data");

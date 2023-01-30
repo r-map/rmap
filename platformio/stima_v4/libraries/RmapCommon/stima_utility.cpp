@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **********************************************************************/
 
 #include "stima_utility.h"
+#include "ctype.h"
+#include "stdlib.h"
 
 void getStimaNameByType(char *name, uint8_t type)
 {
@@ -79,4 +81,164 @@ void getStimaNameByType(char *name, uint8_t type)
     strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
     break;
     }
+}
+
+void getStimaDescriptionByType(char *description, uint8_t type)
+{
+  switch (type)
+  {
+  case STIMA_MODULE_TYPE_MASTER_ETH:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_ETH, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_MASTER_GSM:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_GSM, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_RAIN:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_RAIN, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_TH:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_TH, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_THR:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_THR, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_OPC:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_OPC, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_LEAF:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_LEAF, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_WIND:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_WIND, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_SOLAR_RADIATION, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_GAS:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_GAS, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_POWER_MPPT:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_POWER_MPPT, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  case STIMA_MODULE_TYPE_VVC:
+    strncpy(description, STIMA_MODULE_DESCRIPTION_VVC, STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+
+  default:
+    strncpy(description, "ERROR", STIMA_MODULE_DESCRIPTION_LENGTH);
+    break;
+    }
+}
+
+
+bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)
+{
+  // Standard Cyphal-Yakut file Name
+  // node_name-Ver.Rev.app.hex -> stima4.module_th-4.1-app.hex
+  bool is_firmware_file = false;
+  char *ptrcheck = strstr(file_name, ".app.hex");
+  char field[3];
+  uint8_t idx;
+
+  // File suffix not found
+  if(ptrcheck == NULL) return false;
+
+  // Check module type from file name
+  if(strncasecmp(file_name, STIMA_MODULE_NAME_MASTER_ETH, sizeof(STIMA_MODULE_NAME_MASTER_ETH))) {
+    *type = STIMA_MODULE_TYPE_MASTER_ETH;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_MASTER_GSM, sizeof(STIMA_MODULE_NAME_MASTER_GSM))) {
+    *type = STIMA_MODULE_TYPE_MASTER_GSM;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_GSM);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_RAIN, sizeof(STIMA_MODULE_NAME_RAIN))) {
+    *type = STIMA_MODULE_TYPE_RAIN;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_RAIN);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_TH, sizeof(STIMA_MODULE_NAME_TH))) {
+    *type = STIMA_MODULE_TYPE_TH;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_TH);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_THR, sizeof(STIMA_MODULE_NAME_THR))) {
+    *type = STIMA_MODULE_TYPE_THR;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_THR);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_OPC, sizeof(STIMA_MODULE_NAME_OPC))) {
+    *type = STIMA_MODULE_TYPE_OPC;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_OPC);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_LEAF, sizeof(STIMA_MODULE_NAME_LEAF))) {
+    *type = STIMA_MODULE_TYPE_LEAF;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEAF);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_WIND, sizeof(STIMA_MODULE_NAME_WIND))) {
+    *type = STIMA_MODULE_TYPE_WIND;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_WIND);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_SOLAR_RADIATION, sizeof(STIMA_MODULE_NAME_SOLAR_RADIATION))) {
+    *type = STIMA_MODULE_TYPE_SOLAR_RADIATION;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_SOLAR_RADIATION);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_GAS, sizeof(STIMA_MODULE_NAME_GAS))) {
+    *type = STIMA_MODULE_TYPE_GAS;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_GAS);
+  }
+  else if(strncasecmp(file_name, STIMA_MODULE_NAME_POWER_MPPT, sizeof(STIMA_MODULE_NAME_POWER_MPPT))) {
+    *type = STIMA_MODULE_TYPE_POWER_MPPT;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
+  }
+  else {
+    // Error unknown module file
+    return false;
+  }
+
+  // Poin to divider field
+  ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
+
+  // check divider field
+  if(*ptrcheck != '-') return false;
+
+  // Get Version
+  ptrcheck++;
+  memset(field, 0, 3);
+  if(isdigit(*ptrcheck)) {
+    idx = 0;
+    while(isdigit(*ptrcheck)) {
+      field[idx++] = *(ptrcheck++);
+      // Error len field
+      if(idx >= 2) return false;
+    }
+  }
+  *version = (uint8_t)atoi(field);
+
+  // check separator field
+  if(*ptrcheck != '.') return false;
+
+  // Get Revision
+  ptrcheck++;
+  memset(field, 0, 3);
+  if(isdigit(*ptrcheck)) {
+    idx = 0;
+    while(isdigit(*ptrcheck)) {
+      field[idx++] = *(ptrcheck++);
+      // Error len field
+      if(idx >= 2) return false;
+    }
+  }
+  *revision = (uint8_t)atoi(field);
+
+  return true;
+
 }
