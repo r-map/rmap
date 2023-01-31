@@ -179,6 +179,49 @@ File SDClass::openRoot(void)
   return file;
 }
 
+/** Return a single name file into directory with index file request.
+ *  function is same openNextFile but preserve from memory Leak Arduino STM32 SD problem
+ *
+ * \param[in] path string pointer to Directory path of check
+ *
+ * \param[in] idxList Index file to check in list
+ *
+ * \param[out] nameFile string pointer to name file if found
+ *
+ */
+bool SDClass::listIndex(char *path, uint16_t idxList, char *nameFile)
+{
+  DIR dir;
+  FRESULT res;
+  uint16_t idxCount = 0;
+
+  // Reading dir
+  res = f_opendir(&dir, path);
+
+  // if ready
+  if (res == FR_OK)
+  {
+    // check file list
+    while(1)
+    {
+      FILINFO fno;
+
+      res = f_readdir(&dir, &fno);
+
+      if ((res != FR_OK) || (fno.fname[0] == 0))
+        return false;
+
+      // Index check
+      if(idxCount++ == idxList) {
+        strcpy(nameFile, fno.fname);
+        return true;
+      }      
+    }
+  }
+
+  return false;
+}
+
 File::File()
 {
   _name = NULL;

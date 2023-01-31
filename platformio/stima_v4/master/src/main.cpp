@@ -292,7 +292,7 @@ void setup() {
  static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
-  static MmcTask mmc_task("MmcTask", 350, OS_TASK_PRIORITY_01, mmcParam);
+  static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
 #endif
 
 #if (ENABLE_LCD)

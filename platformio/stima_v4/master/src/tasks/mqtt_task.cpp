@@ -30,60 +30,19 @@ using namespace cpp_freertos;
 
 #if (USE_MQTT)
 
-YarrowContext *MqttYarrowContext;
+/* 
+  TEST VALUE FIXED PSK KEY
+  
+  //Client's PSK identity
+  #define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
 
-// Client's PSK key
-uint8_t *MqttClientPSKKey;
+  //Client's PSK
+  const uint8_t MqttClientPSKKey[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
 
-// Client's PSK identity
-char_t MqttClientPSKIdentity[CLIENT_PSK_IDENTITY_LENGTH];
-
-char_t *MqttServer;
-
-// //Client's PSK identity
-// #define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
-
-// //Client's PSK
-// const uint8_t MqttClientPSKKey[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
-
-//List of preferred ciphersuites
-//https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
-const uint16_t cipherSuites[] =
-{
-  // rmap server psk ciphers
-  TLS_PSK_WITH_AES_256_CCM                      // WEAK BUT WORK
-  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256            // RECOMMENDED BUT NOT WORK
-  // TLS_DHE_PSK_WITH_AES_256_GCM_SHA384            // RECOMMENDED BUT NOT WORK
-  // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256    // RECOMMENDED BUT NOT WORK
-  // TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256      // RECOMMENDED BUT NOT WORK
-
-  // TLS_PSK_WITH_AES_256_CBC_SHA,            // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_PSK_WITH_AES_256_GCM_SHA384,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,   // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,      // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_DHE_PSK_WITH_AES_256_CBC_SHA384,     // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_PSK_WITH_AES_256_CBC_SHA384,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,     // RECOMMENDED BUT NOT WORK
-  // TLS_PSK_WITH_AES_128_GCM_SHA256,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,   // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,      // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,     // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_DHE_PSK_WITH_AES_128_CBC_SHA,        // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_PSK_WITH_AES_128_CBC_SHA256,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-  // TLS_PSK_WITH_AES_128_CBC_SHA             // WEAK BUT NOT WORK (PREVIOUSLY WORK)
-
-  // Recommended psk ciphers
-  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,
-  // TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
-  // TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256,
-  // TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384,
-  // TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256,
-  // TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384,
-  // TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256,
-  // TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256,
-  // TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384,
-  // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256
-};
+  List of preferred ciphersuites
+  https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
+  defined in tasks/mqtt_task.h -> const uint16_t cipherSuites[] = TYPE_VALUE
+*/
 
 MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), param(mqttParam)
 {

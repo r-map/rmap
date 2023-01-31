@@ -112,21 +112,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_MASTER_ETH
 \brief The module'name for sending report over ethernet.
 */
-#define STIMA_MODULE_NAME_MASTER_ETH                ("stima4.module-master-eth")
+#define STIMA_MODULE_NAME_MASTER_ETH                ("stima4.module_master_eth")
 #define STIMA_MODULE_DESCRIPTION_MASTER_ETH         ("Master module 4G, CAN Cyphal V1.0")
 
 /*!
 \def STIMA_MODULE_NAME_MASTER_GSM
 \brief The module'name for sending report over gsm/gors.
 */
-#define STIMA_MODULE_NAME_MASTER_GSM                ("stima4.module-master-gsm")
+#define STIMA_MODULE_NAME_MASTER_GSM                ("stima4.module_master_gsm")
 #define STIMA_MODULE_DESCRIPTION_MASTER_GSM         ("Master module ETH, CAN Cyphal V1.0")
 
 /*!
 \def STIMA_MODULE_NAME_RAIN
 \brief The module'name for acquiring rain tips.
 */
-#define STIMA_MODULE_NAME_RAIN                      ("stima4.module_slave_rain")
+#define STIMA_MODULE_NAME_RAIN                      ("stima4.module_rain")
 #define STIMA_MODULE_DESCRIPTION_RAIN               ("Slave module rain, CAN Cyphal V1.0")
 
 
@@ -134,14 +134,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_TH
 \brief The module'name for acquiring temperature and humidity.
 */
-#define STIMA_MODULE_NAME_TH                        ("stima4.module_slave_th")
+#define STIMA_MODULE_NAME_TH                        ("stima4.module_th")
 #define STIMA_MODULE_DESCRIPTION_TH                 ("Slave module th, CAN Cyphal V1.0")
 
 /*!
 \def STIMA_MODULE_NAME_THR
 \brief The module'name for acquiring temperature, humidity and rain.
 */
-#define STIMA_MODULE_NAME_THR                       ("stima4.module_slave_thr")
+#define STIMA_MODULE_NAME_THR                       ("stima4.module_thr")
 #define STIMA_MODULE_DESCRIPTION_THR                ("Slave module thr, CAN Cyphal V1.0")
 
 
@@ -149,7 +149,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_OPC
 \brief The module'name for acquiring air particle.
 */
-#define STIMA_MODULE_NAME_OPC                       ("stima4.module_slave_opc")
+#define STIMA_MODULE_NAME_OPC                       ("stima4.module_opc")
 #define STIMA_MODULE_DESCRIPTION_OPC                ("Slave module opc, CAN Cyphal V1.0")
 
 
@@ -157,7 +157,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_OPC
 \brief The module'name for acquiring air gas (NO2, CO2).
 */
-#define STIMA_MODULE_NAME_GAS                       ("stima4.module_slave_gas")
+#define STIMA_MODULE_NAME_GAS                       ("stima4.module_gas")
 #define STIMA_MODULE_DESCRIPTION_GAS                ("Slave module gas, CAN Cyphal V1.0")
 
 
@@ -165,7 +165,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_LEAF
 \brief The module'name for acquiring leaf wetness.
 */
-#define STIMA_MODULE_NAME_LEAF                      ("stima4.module_slave_leaf")
+#define STIMA_MODULE_NAME_LEAF                      ("stima4.module_leaf")
 #define STIMA_MODULE_DESCRIPTION_LEAF               ("Slave module leaf, CAN Cyphal V1.0")
 
 
@@ -173,7 +173,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_WIND
 \brief The module'name for acquiring wind sensor.
 */
-#define STIMA_MODULE_NAME_WIND                      ("stima4.module_slave_wind")
+#define STIMA_MODULE_NAME_WIND                      ("stima4.module_wind")
 #define STIMA_MODULE_DESCRIPTION_WIND               ("Slave module wind, CAN Cyphal V1.0")
 
 
@@ -181,7 +181,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_WIND
 \brief The module'name for acquiring radiation sensor.
 */
-#define STIMA_MODULE_NAME_SOLAR_RADIATION           ("stima4.module_slave_radiation")
+#define STIMA_MODULE_NAME_SOLAR_RADIATION           ("stima4.module_radiation")
 #define STIMA_MODULE_DESCRIPTION_SOLAR_RADIATION    ("Slave module radiation, CAN Cyphal V1.0")
 
 
@@ -189,7 +189,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_POWER_MPPT
 \brief The module'name for acquiring power regulator mppt.
 */
-#define STIMA_MODULE_NAME_POWER_MPPT                ("stima4.module_slave_powermppt")
+#define STIMA_MODULE_NAME_POWER_MPPT                ("stima4.module_powermppt")
 #define STIMA_MODULE_DESCRIPTION_POWER_MPPT         ("Slave module power mppt, CAN Cyphal V1.0")
 
 
@@ -197,7 +197,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def STIMA_MODULE_NAME_VVC
 \brief The module'name for acquiring vvc.
 */
-#define STIMA_MODULE_NAME_VVC                       ("stima4.module_slave_vvc")
+#define STIMA_MODULE_NAME_VVC                       ("stima4.module_vvc")
 #define STIMA_MODULE_DESCRIPTION_VVC                ("Slave module vvc, CAN Cyphal V1.0")
 
 

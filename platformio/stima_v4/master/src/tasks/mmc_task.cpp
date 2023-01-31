@@ -110,9 +110,14 @@ void MmcTask::Run()
   system_response_t response;
   char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
+  // Firmware check and update
+  char stima_name[STIMA_MODULE_NAME_LENGTH];
+  char file_name[128];
+  uint16_t idxList;
+  uint8_t module_type, fw_version, fw_revision;
+  bool fw_found;
 
   File dir;
-  File entry;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -210,32 +215,26 @@ uint32_t index=0;
       // Setup SD Card
       if (SD.begin()) {
         TRACE_VERBOSE_F(F("MMC Card init complete -> MMC_STATE_WAITING_EVENT\r\n"));
-        // Trace Type of CARD... and Size
+        // Optional Trace Type of CARD... and Size
         // Check or create directory Structure...
-        // Check firmware file present on bord..
-        //  -> Send to config Info of File Firmware Ready
-        if(!SD.exists("firmware")) {
-          SD.mkdir("firmware");
-        } else {
-          // Check firmware file present Type, model and version
-          dir = SD.open("/firmware");
-          while(1) {
-            // Check list File
-            entry = dir.openNextFile();
-            if(dir) {
-              // se file_fw del master
-                // controllo se già caricato in flash se no lo carico altrimenti esco
-              // se firmware di modulo non faccio nulla attendo rpc di comando
-
-              // Check filename
-              if(entry.name()){
-
-              }
-            }
-          }
-        }
+        if(!SD.exists("firmware")) SD.mkdir("firmware");
         if(!SD.exists("log")) SD.mkdir("log");
         if(!SD.exists("data")) SD.mkdir("data");
+
+        #if (TRACE_LEVEL > TRACE_LEVEL_OFF)
+        // Check firmware file present Type, model and version
+        idxList = 0;
+        // Check list Firmware File (Added Function to SD Class)
+        while(SD.listIndex("/firmware", idxList++, file_name)) {
+          // Found firmware file?
+          if(checkStimaFirmwareType(file_name, &module_type, &fw_version, &fw_revision)) {
+            getStimaNameByType(stima_name, module_type);
+            TRACE_INFO_F(F("MMC: found firmware type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+          }
+        }
+        #endif
+
+        // Push firmware to Flash
         state = MMC_STATE_WAITING_EVENT;
       }
       break;
@@ -245,6 +244,55 @@ uint32_t index=0;
       // If System SLEEP...  Long WAIT
       // Else check all queue input
       // Go to response/action
+
+      // Test Firmware Upload local (Remote RPC / or local display request)
+      // if request_update
+      {
+        Serial.println();
+        Serial.print(xPortGetFreeHeapSize());
+        Serial.println();
+        // Check firmware file present Type, model and version
+        fw_found = false;
+        // Name of module
+        getStimaNameByType(stima_name, param.configuration->module_type);
+        // Check list Firmware File
+        while(SD.listIndex("/firmware", idxList++, file_name)) {
+          // Found firmware file?
+          if(checkStimaFirmwareType(file_name, &module_type, &fw_version, &fw_revision)) {
+            // Is this module ?
+            if(module_type == param.configuration->module_type) {
+              fw_found = true;
+              if((fw_version > param.configuration->module_main_version) ||
+                ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version)))
+              {
+                TRACE_INFO_F(F("MMC: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+                TRACE_INFO_F(F("MMC: starting firmware upgrade...\n\r"));
+                // TODO: Put file in Flash (same of UAVCAN push Flash)
+                // Rename firmware in .old
+                // NB Get VErsion and Revision Remote???
+                // Non necessario con send 
+                // and receive uavcan_node_ExecuteCommand_Response_1_1_STATUS_NOT_AUTHORIZED
+                // rename file in .old e download solo dei file app.hex ma se trovi .old no!
+                // creare lista di file version max
+                // NVIC Reboot
+              }
+              else
+              {
+                TRACE_INFO_F(F("MMC: found firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+                TRACE_INFO_F(F("MMC: firmware upgrade abort!!!\n\r"));
+              }
+              break;
+            }
+          }
+        }
+        // Firmware not Found
+        if(!fw_found) {
+          TRACE_INFO_F(F("MMC: module firmware for module %s not found\r\n"), stima_name);
+        }
+        Serial.println();
+        Serial.print(xPortGetFreeHeapSize());
+        Serial.println();
+      }
 
       // *********************************************************
       //             Perform LOG WRITE append message

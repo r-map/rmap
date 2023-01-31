@@ -59,6 +59,46 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/yarrow.h"
 #include "debug_F.h"
 
+//List of preferred ciphersuites
+//https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
+const uint16_t cipherSuites[] =
+{
+  // rmap server psk ciphers
+  TLS_PSK_WITH_AES_256_CCM                      // WEAK BUT WORK
+  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256            // RECOMMENDED BUT NOT WORK
+  // TLS_DHE_PSK_WITH_AES_256_GCM_SHA384            // RECOMMENDED BUT NOT WORK
+  // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256    // RECOMMENDED BUT NOT WORK
+  // TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256      // RECOMMENDED BUT NOT WORK
+
+  // TLS_PSK_WITH_AES_256_CBC_SHA,            // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_PSK_WITH_AES_256_GCM_SHA384,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,   // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,      // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_DHE_PSK_WITH_AES_256_CBC_SHA384,     // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_PSK_WITH_AES_256_CBC_SHA384,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,     // RECOMMENDED BUT NOT WORK
+  // TLS_PSK_WITH_AES_128_GCM_SHA256,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,   // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,      // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,     // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_DHE_PSK_WITH_AES_128_CBC_SHA,        // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_PSK_WITH_AES_128_CBC_SHA256,         // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+  // TLS_PSK_WITH_AES_128_CBC_SHA             // WEAK BUT NOT WORK (PREVIOUSLY WORK)
+
+  // Recommended psk ciphers
+  // TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,
+  // TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
+  // TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256,
+  // TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384,
+  // TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256,
+  // TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384,
+  // TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256,
+  // TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256,
+  // TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384,
+  // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256
+};
+
+
 using namespace cpp_freertos;
 
 typedef enum
@@ -115,6 +155,18 @@ private:
   char sensors_topic[MQTT_SENSOR_TOPIC_LENGTH];
   char message[MQTT_MESSAGE_LENGTH];
   char clientIdentifier[MQTT_CLIENT_ID_LENGTH];
+
+  
+  inline static YarrowContext *MqttYarrowContext;
+
+  // Client's PSK key
+  inline static uint8_t *MqttClientPSKKey;
+
+  // Client's PSK identity
+  inline static char_t MqttClientPSKIdentity[CLIENT_PSK_IDENTITY_LENGTH];
+
+  inline static char_t *MqttServer;
+
 };
 
 #endif

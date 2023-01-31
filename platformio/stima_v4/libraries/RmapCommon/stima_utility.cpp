@@ -155,47 +155,48 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
   if(ptrcheck == NULL) return false;
 
   // Check module type from file name
-  if(strncasecmp(file_name, STIMA_MODULE_NAME_MASTER_ETH, sizeof(STIMA_MODULE_NAME_MASTER_ETH))) {
+  if(strstr(file_name, STIMA_MODULE_NAME_MASTER_ETH)) {
     *type = STIMA_MODULE_TYPE_MASTER_ETH;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_MASTER_GSM, sizeof(STIMA_MODULE_NAME_MASTER_GSM))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_MASTER_GSM)) {
     *type = STIMA_MODULE_TYPE_MASTER_GSM;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_GSM);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_RAIN, sizeof(STIMA_MODULE_NAME_RAIN))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_RAIN)) {
     *type = STIMA_MODULE_TYPE_RAIN;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_RAIN);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_TH, sizeof(STIMA_MODULE_NAME_TH))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_TH)) {
+    //stima4.module_th
     *type = STIMA_MODULE_TYPE_TH;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_TH);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_THR, sizeof(STIMA_MODULE_NAME_THR))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_THR)) {
     *type = STIMA_MODULE_TYPE_THR;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_THR);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_OPC, sizeof(STIMA_MODULE_NAME_OPC))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_OPC)) {
     *type = STIMA_MODULE_TYPE_OPC;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_OPC);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_LEAF, sizeof(STIMA_MODULE_NAME_LEAF))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_LEAF)) {
     *type = STIMA_MODULE_TYPE_LEAF;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEAF);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_WIND, sizeof(STIMA_MODULE_NAME_WIND))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_WIND)) {
     *type = STIMA_MODULE_TYPE_WIND;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_WIND);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_SOLAR_RADIATION, sizeof(STIMA_MODULE_NAME_SOLAR_RADIATION))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_SOLAR_RADIATION)) {
     *type = STIMA_MODULE_TYPE_SOLAR_RADIATION;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_SOLAR_RADIATION);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_GAS, sizeof(STIMA_MODULE_NAME_GAS))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_GAS)) {
     *type = STIMA_MODULE_TYPE_GAS;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_GAS);
   }
-  else if(strncasecmp(file_name, STIMA_MODULE_NAME_POWER_MPPT, sizeof(STIMA_MODULE_NAME_POWER_MPPT))) {
+  else if(strstr(file_name, STIMA_MODULE_NAME_POWER_MPPT)) {
     *type = STIMA_MODULE_TYPE_POWER_MPPT;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
   }
@@ -204,10 +205,8 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     return false;
   }
 
-  // Poin to divider field
-  ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
-
-  // check divider field
+  // ptrcheck Point to divider field, check divider char
+  ptrcheck--;
   if(*ptrcheck != '-') return false;
 
   // Get Version
@@ -218,7 +217,7 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     while(isdigit(*ptrcheck)) {
       field[idx++] = *(ptrcheck++);
       // Error len field
-      if(idx >= 2) return false;
+      if(idx > 3) return false;
     }
   }
   *version = (uint8_t)atoi(field);
@@ -234,10 +233,13 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     while(isdigit(*ptrcheck)) {
       field[idx++] = *(ptrcheck++);
       // Error len field
-      if(idx >= 2) return false;
+      if(idx > 3) return false;
     }
   }
   *revision = (uint8_t)atoi(field);
+
+  // check separator field (enter suffix...)
+  if(*ptrcheck != '.') return false;
 
   return true;
 

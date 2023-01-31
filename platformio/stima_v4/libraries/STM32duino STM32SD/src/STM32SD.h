@@ -89,6 +89,9 @@ class SDClass {
     static bool remove(const char *filepath);
     static bool rmdir(const char *filepath);
 
+    // Check list file (Preserve from memory leak problem)
+    bool listIndex(char *path, uint16_t idxList, char *nameFile);
+
     File openRoot(void);
 
     friend class File;
