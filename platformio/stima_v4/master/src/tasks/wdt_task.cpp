@@ -34,7 +34,6 @@
 
 WdtTask::WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, WdtParam_t wdtParam) : Thread(taskName, stackSize, priority), param(wdtParam)
 {
-  memEprom = EEprom(param.wire, param.wireLock);
   Start();
 };
 
@@ -102,7 +101,7 @@ void WdtTask::Run() {
       param.system_status->tasks[WDT_TASK_ID].stack = stackUsage;
       param.systemStatusLock->Give();
     }
-    TRACE_INFO_F(F("WDT: Stack Free monitor\r\n"));
+    TRACE_INFO_F(F("WDT: Stack Free monitor, Heap free: %lu\r\n"), (uint32_t)xPortGetFreeHeapSize());
     for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
       if(param.system_status->tasks[id].stack != 0xFFFFu) {
         switch(id) {
@@ -165,7 +164,7 @@ void WdtTask::Run() {
         param.dataLogPutQueue->Enqueue(logMessage, 0);
         // END TEST
         firsCheck = false;
-        memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+        param.eeprom->Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         // Flag OK Start APP Eexcuted
         if (!boot_check.app_executed_ok) {
           if(boot_check.rollback_executed) {
@@ -180,7 +179,7 @@ void WdtTask::Run() {
           boot_check.rollback_executed = false;          
           boot_check.upload_error = 0;          
           boot_check.upload_executed = false;
-          memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         }
       }
 

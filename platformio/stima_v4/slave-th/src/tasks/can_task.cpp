@@ -184,7 +184,7 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
 /// @param buf blocco dati da scrivere in formato UAVCAN [256 Bytes]
 /// @param count numero del blocco da scrivere in formato UAVCAN [Blocco x Buffer]
 /// @return true if block saved OK, false on any error
-bool CanTask::putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
+bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
 {
     #ifdef CHECK_FLASH_WRITE
     // check data (W->R) Verify Flash integrity OK    
@@ -304,11 +304,12 @@ bool CanTask::putDataFile(const char* const file_name, const bool is_firmware, c
 }
 
 /// @brief GetInfo for Firmware File on Flash
+/// @param module_type type module of firmware
 /// @param version version firmware
 /// @param revision revision firmware
 /// @param len length of file in bytes
 /// @return true if exixst
-bool CanTask::getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len)
+bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len)
 {
     uint8_t block[FLASH_FILE_SIZE_LEN];
     bool fileReady = false;
@@ -328,13 +329,9 @@ bool CanTask::getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len)
 
         // Read Name file, Version and Info
         memFlash.BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
-        // The node name is the name of the product like a reversed Internet domain name (or like a Java package).
         char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
         getStimaNameByType(stima_name, MODULE_TYPE);
-        if(strncasecmp((char*)block, stima_name, strlen(stima_name))) {
-            uint8_t position = strlen((char*)block);
-            *version = block[strlen((char*)block) - 11] - 48;
-            *revision = block[strlen((char*)block) - 9] - 48;
+        if(checkStimaFirmwareType((char*)block, module_type, version, revision)) {
             memFlash.BSP_QSPI_Read((uint8_t*)len, FLASH_SIZE_ADDR(0), FLASH_INFO_SIZE_U64);
             fileReady = true;
         }
@@ -1075,7 +1072,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     }
                     TRACE_VERBOSE_F(F("%d\r\n"), resp.data.value.count);
                     // Save Data in Flash File at Block Position (Init = Rewrite file...)
-                    if(putDataFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
+                    if(putFlashFile(clCanard.master.file.get_name(), clCanard.master.file.is_firmware(), clCanard.master.file.is_first_data_block(),
                                   resp.data.value.elements, resp.data.value.count)) {
                         // Reset pending command (Comunico request/Response Serie di comandi OK!!!)
                         // Uso l'Overload con controllo di EOF (-> EOF se msgLen != UAVCAN_BLOCK_DEFAULT [256 Bytes])
@@ -1696,13 +1693,14 @@ void CanTask::Run() {
                             TRACE_VERBOSE_F(F("File name: %s\r\n"), clCanard.master.file.get_name());
                             // GetInfo && Verify Start Updating...
                             if(clCanard.master.file.is_firmware()) {
+                                // Module type also checked before startin firmware_upgrade
+                                uint8_t module_type;
                                 uint8_t version;
                                 uint8_t revision;
                                 uint64_t fwFileLen = 0;
-                                getInfoFwFile(&version, &revision, &fwFileLen);
+                                getFlashFwInfoFile(&module_type, &version, &revision, &fwFileLen);
                                 TRACE_VERBOSE_F(F("Firmware V%d.%d, Size: %lu bytes is ready for flash updating\r\n"),version, revision, (uint32_t) fwFileLen);
-                            }
-                            // Nessun altro evento necessario, chiudo File e stati
+                            }                            // Nessun altro evento necessario, chiudo File e stati
                             // procedo all'aggiornamento Firmware dopo le verifiche di conformità
                             // Ovviamente se si tratta di un file firmware
                             clCanard.master.file.download_end();

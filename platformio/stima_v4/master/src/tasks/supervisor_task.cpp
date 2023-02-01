@@ -34,7 +34,7 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SUPERVISOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-  eeprom = EEprom(param.wire, param.wireLock);
+//  svsEprom = EEprom(param.wire, param.wireLock);
   state = SUPERVISOR_STATE_INIT;
   Start();
 };
@@ -593,7 +593,7 @@ bool SupervisorTask::loadConfiguration()
   //! read configuration from eeprom
   if (param.configurationLock->Take())
   {
-    status = eeprom.Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    status = param.eeprom->Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
     param.configurationLock->Give();
   }
 
@@ -758,7 +758,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
     }
 
     //! write configuration to eeprom
-    status = eeprom.Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
 
     if (is_default)
     {

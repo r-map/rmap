@@ -86,7 +86,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
-  TwoWire *wire;
+  EEprom *eeprom;
 } SupervisorParam_t;
 
 class SupervisorTask : public cpp_freertos::Thread {
@@ -107,7 +107,6 @@ private:
 
   SupervisorState_t state;
   SupervisorParam_t param;
-  EEprom eeprom;
 
   void printConfiguration();
   bool loadConfiguration();

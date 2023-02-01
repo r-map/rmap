@@ -45,11 +45,18 @@
 #include <STM32RTC.h>
 #include <STM32SD.h>
 
+// Flash Access
+#include "drivers/flash.h"
+
 #define MMC_TASK_WAIT_DELAY_MS            (50)
-#define MMC_TASK_WAIT_REALTIME_DELAY_MS   (1)
+#define MMC_TASK_WAIT_OPERATION_DELAY_MS  (1)
+
+#define MMC_TASK_WAIT_REBOOT_MS           (2500)
 
 #define MMC_TASK_GENERIC_RETRY_DELAY_MS   (5000)
 #define MMC_TASK_GENERIC_RETRY            (3)
+
+#define MMC_FW_BLOCK_SIZE                 (256)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -78,12 +85,14 @@ typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::BinarySemaphore *qspiLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *dataRmapPutQueue;
   cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  TwoWire *wire;
+  Flash *flash;
+  EEprom *eeprom;
 } MmcParam_t;
 
 class MmcTask : public cpp_freertos::Thread {
@@ -102,11 +111,15 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
+  bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
+  bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
+
   MmcState_t state;
   MmcParam_t param;
-  EEprom eeprom;
 
-  File localFile;
+  // Local flashPointer
+  uint64_t mmcFlashPtr;
+  uint16_t mmcFlashBlock;
 };
 
 #endif

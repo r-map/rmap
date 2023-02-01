@@ -54,6 +54,8 @@ using namespace cpp_freertos;
 #define FLASH_SIZE_ADDR(X)  (X + FLASH_FILE_SIZE_LEN + 1)
 #define FLASH_INFO_SIZE_U64 (8)
 
+#define FLASH_SEMAPHORE_MAX_WAITING_TIME_MS (3000)
+
 class Flash {
 
   public:

@@ -150,8 +150,8 @@ private:
   static void HW_CAN_Power(CAN_ModePower ModeCan);
   static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_], uint64_t serNumb);
   static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name);
-  static bool putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
-  static bool getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len);
+  static bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
+  static bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
   static rmap_sensors_TH_1_0 prepareSensorsDataValue(uint8_t const sensore, const report_t *report);
   static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param);
   static void processMessagePlugAndPlayNodeIDAllocation(canardClass &clsCanard,  const uavcan_pnp_NodeIDAllocationData_1_0* const msg);

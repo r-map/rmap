@@ -58,7 +58,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *rtcLock;
-  TwoWire *wire;
+  EEprom *eeprom;
 } WdtParam_t;
 
 class WdtTask : public cpp_freertos::Thread {
@@ -72,7 +72,6 @@ protected:
 private:
   WdtParam_t param;
 
-  EEprom memEprom;
 };
 
 #endif

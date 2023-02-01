@@ -94,7 +94,6 @@ using namespace cpp_freertos;
 
 // Task waiting Semaphore Driver access
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
-#define FLASH_SEMAPHORE_MAX_WAITING_TIME_MS (3000)
 
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
@@ -112,7 +111,6 @@ enum CAN_ModePower
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
-  TwoWire *wire;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;  
@@ -123,6 +121,9 @@ typedef struct {
   cpp_freertos::Queue *systemMessageQueue;
   // cpp_freertos::Queue *requestDataQueue;
   // cpp_freertos::Queue *reportDataQueue;
+  Flash *flash;
+  EEprom *eeprom;
+  EERegister *clRegister;
 } CanParam_t;
 
 class CanTask : public cpp_freertos::Thread {
@@ -149,8 +150,8 @@ private:
 
   static void HW_CAN_Power(CAN_ModePower ModeCan);
   static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_], uint64_t serNumb);
-  static bool putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
-  static bool getInfoFwFile(uint8_t *version, uint8_t *revision, uint64_t *len);
+  static bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
+  static bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
   static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(canardClass &clsCanard, const uavcan_node_ExecuteCommand_Request_1_1* req, uint8_t remote_node);
   static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req);
   static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo();
@@ -158,18 +159,18 @@ private:
 
   uint16_t stackSize;
   State_t state;
-  EEprom memEprom;
   CanParam_t param;
+
   inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static CAN_ModePower canPower;
   inline static STM32RTC& rtc = STM32RTC::getInstance();
   // Register access && Flash (Firmware and data log archive)
-  inline static EERegister clRegister;
-  inline static Flash memFlash;
+  inline static EERegister *localRegister;
   inline static cpp_freertos::BinarySemaphore *localQspiLock;
   inline static cpp_freertos::BinarySemaphore *localRegisterAccessLock;
-  inline static uint64_t flashPtr = 0;
-  inline static uint16_t flashBlock = 0;
+  inline static Flash *localFlash;
+  inline static uint64_t canFlashPtr = 0;
+  inline static uint16_t canFlashBlock = 0;
 };
 
 #endif

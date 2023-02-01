@@ -160,6 +160,13 @@ void setup() {
   #endif
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config) ...
 #endif
+  // Reset Factory register value
+  static EERegister clRegister(&Wire2, wire2Lock);
+  #if INIT_PARAMETER
+  clRegister.doFactoryReset();
+  #endif
+  // Init access Flash istance object
+  static Flash memFlash(&hqspi);
 
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
@@ -167,10 +174,7 @@ void setup() {
   wdtParam.systemStatusLock = systemStatusLock;
   wdtParam.rtcLock = rtcLock;
   wdtParam.dataLogPutQueue = dataLogPutQueue;
-#if (ENABLE_I2C2)
-  wdtParam.wire = &Wire2;
-  wdtParam.wireLock = wire2Lock;
-#endif
+  wdtParam.eeprom = &memEprom;
 
 #if (ENABLE_MMC)
  // TASK SUPERVISOR PARAM CONFIG
@@ -179,10 +183,9 @@ void setup() {
   mmcParam.system_status = &system_status;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
   mmcParam.dataLogPutQueue = dataLogPutQueue;
-#if (ENABLE_I2C2)
-  mmcParam.wire = &Wire2;
-  mmcParam.wireLock = wire2Lock;
-#endif
+  mmcParam.flash = &memFlash;
+  mmcParam.eeprom = &memEprom;
+  mmcParam.qspiLock = qspiLock;  
   mmcParam.rtcLock = rtcLock;
   mmcParam.configurationLock = configurationLock;
   mmcParam.systemStatusLock = systemStatusLock;
@@ -214,23 +217,19 @@ void setup() {
   canParam.systemMessageQueue = systemMessageQueue;
   // canParam.requestDataQueue = requestDataQueue;
   // canParam.reportDataQueue = reportDataQueue;
-  canParam.canLock = canLock;  
+  canParam.eeprom = &memEprom;
+  canParam.clRegister = &clRegister;
+  canParam.flash = &memFlash;
+  canParam.canLock = canLock;
   canParam.qspiLock = qspiLock;  
   canParam.rtcLock = rtcLock;
-#if (ENABLE_I2C2)
-  canParam.wire = &Wire2;
-  canParam.wireLock = wire2Lock;
-#endif
 #endif
 
  // TASK SUPERVISOR PARAM CONFIG
   static SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
-#if (ENABLE_I2C2)
-  supervisorParam.wire = &Wire2;
-  supervisorParam.wireLock = wire2Lock;
-#endif
+  supervisorParam.eeprom = &memEprom;
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.systemRequestQueue = systemRequestQueue;
@@ -258,7 +257,6 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  
   static HttpParam_t httpParam = {0};
   httpParam.configuration = &configuration;
   httpParam.system_status = &system_status;
@@ -279,17 +277,11 @@ void setup() {
   mqttParam.yarrowContext = &yarrowContext;
 #endif
 
-  #if INIT_PARAMETER
-  // Reset Factory register value
-  EERegister initRegister(&Wire2, wire2Lock);
-  initRegister.doFactoryReset();
-  #endif
-
   // *****************************************************************************
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
- static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
   static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
@@ -409,7 +401,7 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
     return error;
   }
 
-  // // TCP/IP stack initialization
+  // TCP/IP stack initialization
   error = netInit();
   if (error)
   {
