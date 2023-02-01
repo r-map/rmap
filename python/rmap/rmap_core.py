@@ -1349,9 +1349,9 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             if ( board.transportcan.active):
                 print("CAN Transport",board.transportcan)
                 print("cansampletime:",rpcproxy.configure(cansampletime=board.transportcan.cansampletime))
-                print("node_id:",rpcproxy.configure(node_id=board.transportcan.node_id))
-                print("subject:",rpcproxy.configure(subject=board.transportcan.subject))
-                print("subject_id:",rpcproxy.configure(subject_id=board.transportcan.subject_id))
+                print("node_id, subject, subject_id:",rpcproxy.configure(node_id=board.transportcan.node_id,
+                                                                         subject=board.transportcan.subject,
+                                                                         subject_id=board.transportcan.subject_id))
 
         except ObjectDoesNotExist:
             print("transport can not present")
@@ -1385,8 +1385,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     else:
                         level[i] = int(level[i])
                             
-                print("add driver:",rpcproxy.configure(driver=sensor.driver,
-                                                       type=sensor.type.type,
+                print("add driver:",rpcproxy.configure(type=sensor.type.type,
                                                        timerange=timerange,
                                                        level=level))
 
