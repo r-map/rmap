@@ -123,6 +123,9 @@ typedef struct
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;
+  Flash *flash;
+  EEprom *eeprom;
+  EERegister *clRegister;
 } CanParam_t;
 
 class CanTask : public cpp_freertos::Thread {
@@ -163,20 +166,20 @@ private:
   static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer, void *param);
 
   State_t state;
-  EEprom memEprom;
   CanParam_t param;
+
   inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static uint16_t last_req_rpt_time = (REPORTS_TIME_S);
   inline static uint16_t last_req_obs_time = (OBSERVATIONS_TIME_S);
   inline static CAN_ModePower canPower;
   inline static STM32RTC& rtc = STM32RTC::getInstance();
   // Register access && Flash (Firmware and data log archive)
-  inline static EERegister clRegister;
-  inline static Flash memFlash;
+  inline static EERegister *localRegister;
   inline static cpp_freertos::BinarySemaphore *localQspiLock;
   inline static cpp_freertos::BinarySemaphore *localRegisterAccessLock;
-  inline static uint64_t flashPtr = 0;
-  inline static uint16_t flashBlock = 0;
+  inline static Flash *localFlash;
+  inline static uint64_t canFlashPtr = 0;
+  inline static uint16_t canFlashBlock = 0;
 };
 
 #endif

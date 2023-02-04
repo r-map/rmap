@@ -157,7 +157,6 @@ private:
   static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo();
   static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer);
 
-  uint16_t stackSize;
   State_t state;
   CanParam_t param;
 

@@ -34,7 +34,6 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SUPERVISOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-//  svsEprom = EEprom(param.wire, param.wireLock);
   state = SUPERVISOR_STATE_INIT;
   Start();
 };

@@ -41,7 +41,6 @@ AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, u
   TaskState(ACCELEROMETER_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Setup register mode && Load or Init configuration
-  clRegister = EERegister(param.wire, param.wireLock);
   loadConfiguration();
 
   // Starting Class
@@ -267,7 +266,7 @@ void AccelerometerTask::loadConfiguration(void)
     val.natural8.value.elements[0] = IIS328DQ_ID;
     val.natural8.value.elements[1] = Accelerometer::IIS328DQ_ODR_5Hz2;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.accelerometer.config", &val);
+    param.clRegister->read("rmap.accelerometer.config", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 2)) {
       register_config_valid = false;
@@ -290,7 +289,7 @@ void AccelerometerTask::loadConfiguration(void)
     val.real32.value.elements[1] = 0.0;
     val.real32.value.elements[2] = 0.0;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.accelerometer.offset", &val);
+    param.clRegister->read("rmap.accelerometer.offset", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_real32_(&val) && (val.real32.value.count != 3)) {
       register_config_valid = false;
@@ -350,7 +349,7 @@ void AccelerometerTask::saveConfiguration(bool is_default)
   val.natural8.value.elements[0] = IIS328DQ_ID;
   val.natural8.value.elements[1] = accelerometer_configuration.module_power;
   param.registerAccessLock->Take();
-  clRegister.write("rmap.accelerometer.config", &val);
+  param.clRegister->write("rmap.accelerometer.config", &val);
   param.registerAccessLock->Give();
 
   // Reading RMAP Module Offset Config -> (READ/WRITE)
@@ -365,7 +364,7 @@ void AccelerometerTask::saveConfiguration(bool is_default)
   val.real32.value.elements[1] = accelerometer_configuration.offset_y;
   val.real32.value.elements[2] = accelerometer_configuration.offset_z;
   param.registerAccessLock->Take();
-  clRegister.write("rmap.accelerometer.offset", &val);
+  param.clRegister->write("rmap.accelerometer.offset", &val);
   param.registerAccessLock->Give();
 }
 
@@ -405,7 +404,7 @@ void AccelerometerTask::calibrate(bool is_default, bool save_register)
     val.real32.value.elements[1] = accelerometer_configuration.offset_y;
     val.real32.value.elements[2] = accelerometer_configuration.offset_z;
     param.registerAccessLock->Take();
-    clRegister.write("rmap.accelerometer.offset", &val);
+    param.clRegister->write("rmap.accelerometer.offset", &val);
     param.registerAccessLock->Give();
   }
 }

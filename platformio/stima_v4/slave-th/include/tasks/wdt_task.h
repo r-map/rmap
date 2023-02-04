@@ -55,9 +55,9 @@ using namespace cpp_freertos;
 typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  TwoWire *wire;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *rtcLock;
+  EEprom *eeprom;
 } WdtParam_t;
 
 class WdtTask : public cpp_freertos::Thread {
@@ -71,7 +71,6 @@ protected:
 private:
   WdtParam_t param;
 
-  EEprom memEprom;
 };
 
 #endif

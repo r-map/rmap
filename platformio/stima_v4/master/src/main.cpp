@@ -168,6 +168,8 @@ void setup() {
   // Init access Flash istance object
   static Flash memFlash(&hqspi);
 
+  // ***************** SET PARAMETER TO TASK *********************
+
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
@@ -225,17 +227,20 @@ void setup() {
   canParam.rtcLock = rtcLock;
 #endif
 
- // TASK SUPERVISOR PARAM CONFIG
+  // TASK SUPERVISOR PARAM CONFIG
   static SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
-  supervisorParam.eeprom = &memEprom;
+  supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.systemRequestQueue = systemRequestQueue;
   supervisorParam.systemResponseQueue = systemResponseQueue;
+  supervisorParam.eeprom = &memEprom;
+  supervisorParam.clRegister = &clRegister;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+  // TASK MODEM 2G/4G
   static ModemParam_t modemParam = {0};
   modemParam.configuration = &configuration;
   modemParam.system_status = &system_status;
@@ -246,6 +251,7 @@ void setup() {
 #endif
 
 #if (USE_NTP)
+  // TASK NET NTP
   static NtpParam_t ntpParam = {0};
   ntpParam.configuration = &configuration;
   ntpParam.system_status = &system_status;
@@ -257,6 +263,7 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
+  // TASK HTTP
   static HttpParam_t httpParam = {0};
   httpParam.configuration = &configuration;
   httpParam.system_status = &system_status;
@@ -267,6 +274,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
+  // TASK MQTT
   static MqttParam_t mqttParam = {0};
   mqttParam.configuration = &configuration;
   mqttParam.system_status = &system_status;

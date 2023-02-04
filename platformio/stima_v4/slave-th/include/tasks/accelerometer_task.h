@@ -76,6 +76,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *registerAccessLock;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::Queue *systemMessageQueue;
+  EERegister *clRegister;
 } AccelerometerParam_t;
 
 class AccelerometerTask : public cpp_freertos::Thread {
@@ -107,10 +108,7 @@ private:
   AccelerometerParam_t param;
   Accelerometer accelerometer;
   accelerometer_t accelerometer_configuration;
-  
-  // Register access
-  EERegister clRegister;
-  
+    
   // Value data
   float value_x;
   float value_y;

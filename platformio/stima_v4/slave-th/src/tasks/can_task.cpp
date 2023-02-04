@@ -103,7 +103,7 @@ void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id
         val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
     localRegisterAccessLock->Take();
-    clRegister.read("uavcan.node.unique_id", &val);
+    localRegister->read("uavcan.node.unique_id", &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&val) &&
            val.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
@@ -142,7 +142,7 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
 
     // Read the register with defensive self-checks.
     localRegisterAccessLock->Take();
-    clRegister.read(&register_name[0], &val);
+    localRegister->read(&register_name[0], &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
     const uint16_t result = val.natural16.value.elements[0];
@@ -171,7 +171,7 @@ CanardPortID CanTask::getModeAccessID(uint8_t modeAccessID, const char* const po
     val._string.value.count = nunavutChooseMin(strlen(type_name), uavcan_primitive_String_1_0_value_ARRAY_CAPACITY_);
     memcpy(&val._string.value.elements[0], type_name, val._string.value.count);
     localRegisterAccessLock->Take();
-    clRegister.read(&register_name[0], &val);
+    localRegister->read(&register_name[0], &val);
     localRegisterAccessLock->Give();
 
     return result;
@@ -195,12 +195,12 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         // Qspi Security Semaphore
         if(localQspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
             // Init if required (DeInit after if required PowerDown Module)
-            if(memFlash.BSP_QSPI_Init() != Flash::QSPI_OK) {
+            if(localFlash->BSP_QSPI_Init() != Flash::QSPI_OK) {
                 localQspiLock->Give();
                 return false;
             }
             // Check Status Flash OK
-            Flash::QSPI_StatusTypeDef sts = memFlash.BSP_QSPI_GetStatus();
+            Flash::QSPI_StatusTypeDef sts = localFlash->BSP_QSPI_GetStatus();
             if (sts) {
                 localQspiLock->Give();
                 return false;
@@ -208,27 +208,27 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             // Start From PtrFlash 0x100 (Reserve 256 Bytes For InfoFile)
             if (is_firmware) {
                 // Firmware Flash
-                flashPtr = FLASH_FW_POSITION;
+                canFlashPtr = FLASH_FW_POSITION;
             } else {
                 // Standard File Data Upload
-                flashPtr = FLASH_FILE_POSITION;
+                canFlashPtr = FLASH_FILE_POSITION;
             }
             // Get Block Current into Flash
-            flashBlock = flashPtr / AT25SF161_BLOCK_SIZE;
+            canFlashBlock = canFlashPtr / AT25SF161_BLOCK_SIZE;
             // Erase First Block Block (Block OF 4KBytes)
-            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), flashBlock);
-            if (memFlash.BSP_QSPI_Erase_Block(flashBlock)) {
+            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+            if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                 localQspiLock->Give();
                 return false;
             }
             // Write Name File (Size at Eof...)
             uint8_t file_flash_name[FLASH_FILE_SIZE_LEN] = {0};
             memcpy(file_flash_name, file_name, strlen(file_name));
-            memFlash.BSP_QSPI_Write(file_flash_name, flashPtr, FLASH_FILE_SIZE_LEN);
+            localFlash->BSP_QSPI_Write(file_flash_name, canFlashPtr, FLASH_FILE_SIZE_LEN);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, flashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
-            memFlash.BSP_QSPI_Read(check_data, flashPtr, FLASH_FILE_SIZE_LEN);
+            localFlash->BSP_QSPI_Read(check_data, canFlashPtr, FLASH_FILE_SIZE_LEN);
             if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -238,7 +238,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             }
             #endif
             // Start Page...
-            flashPtr += FLASH_INFO_SIZE_LEN;
+            canFlashPtr += FLASH_INFO_SIZE_LEN;
             localQspiLock->Give();
         }
     }
@@ -249,11 +249,11 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
         if(count!=0) {
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, flashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, canFlashPtr);
             // Starting Write at OFFSET Required... Erase here is Done
-            memFlash.BSP_QSPI_Write((uint8_t*)buf, flashPtr, count);
+            localFlash->BSP_QSPI_Write((uint8_t*)buf, canFlashPtr, count);
             #ifdef CHECK_FLASH_WRITE
-            memFlash.BSP_QSPI_Read(check_data, flashPtr, count);
+            localFlash->BSP_QSPI_Read(check_data, canFlashPtr, count);
             if(memcmp(buf, check_data, count)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -262,13 +262,13 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
                 return false;
             }
             #endif
-            flashPtr += count;
+            canFlashPtr += count;
             // Check if Next Page Addressed (For Erase Next Block)
-            if((flashPtr / AT25SF161_BLOCK_SIZE) != flashBlock) {
-                flashBlock = flashPtr / AT25SF161_BLOCK_SIZE;
+            if((canFlashPtr / AT25SF161_BLOCK_SIZE) != canFlashBlock) {
+                canFlashBlock = canFlashPtr / AT25SF161_BLOCK_SIZE;
                 // Erase First Block Block (Block OF 4KBytes)
-                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), flashBlock);
-                if (memFlash.BSP_QSPI_Erase_Block(flashBlock)) {
+                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+                if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                     localQspiLock->Give();
                     return false;
                 }
@@ -278,19 +278,19 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         if(count!=0x100) {
             // Write Info File for Closing...
             // Size at 
-            uint64_t lenghtFile = flashPtr - FLASH_INFO_SIZE_LEN;
+            uint64_t lenghtFile = canFlashPtr - FLASH_INFO_SIZE_LEN;
             if (is_firmware) {
                 // Firmware Flash
-                flashPtr = FLASH_FW_POSITION;
+                canFlashPtr = FLASH_FW_POSITION;
             } else {
                 // Standard File Data Upload
-                flashPtr = FLASH_FILE_POSITION;
+                canFlashPtr = FLASH_FILE_POSITION;
             }
-            memFlash.BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(flashPtr), FLASH_INFO_SIZE_U64);
+            localFlash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, flashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
-            memFlash.BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(flashPtr), FLASH_INFO_SIZE_U64);
+            localFlash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -317,22 +317,22 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
     // Qspi Security Semaphore
     if(localQspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
         // Init if required (DeInit after if required PowerDown Module)
-        if(memFlash.BSP_QSPI_Init() != Flash::QSPI_OK) {
+        if(localFlash->BSP_QSPI_Init() != Flash::QSPI_OK) {
             localQspiLock->Give();
             return false;
         }
         // Check Status Flash OK
-        if (memFlash.BSP_QSPI_GetStatus()) {
+        if (localFlash->BSP_QSPI_GetStatus()) {
             localQspiLock->Give();
             return false;
         }
 
         // Read Name file, Version and Info
-        memFlash.BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
+        localFlash->BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
         char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
         getStimaNameByType(stima_name, MODULE_TYPE);
         if(checkStimaFirmwareType((char*)block, module_type, version, revision)) {
-            memFlash.BSP_QSPI_Read((uint8_t*)len, FLASH_SIZE_ADDR(0), FLASH_INFO_SIZE_U64);
+            localFlash->BSP_QSPI_Read((uint8_t*)len, FLASH_SIZE_ADDR(0), FLASH_INFO_SIZE_U64);
             fileReady = true;
         }
         localQspiLock->Give();
@@ -486,7 +486,7 @@ void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
         reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
         reg.natural16.value.count = 1;
         localRegisterAccessLock->Take();
-        clRegister.write("uavcan.node.id", &reg);
+        localRegister->write("uavcan.node.id", &reg);
         localRegisterAccessLock->Give();
         // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
         clCanard.rxUnSubscribe(CanardTransferKindMessage,
@@ -531,7 +531,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
         {
             localRegisterAccessLock->Take();
-            clRegister.doFactoryReset();
+            localRegister->doFactoryReset();
             localRegisterAccessLock->Give();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -760,12 +760,12 @@ uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const 
     if (!uavcan_register_Value_1_0_is_empty_(&req->value)) {
         uavcan_register_Value_1_0_select_empty_(&resp.value);
         localRegisterAccessLock->Take();
-        clRegister.read(&name[0], &resp.value);
+        localRegister->read(&name[0], &resp.value);
         localRegisterAccessLock->Give();
         // If such register exists and it can be assigned from the request value:
-        if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && clRegister.assign(&resp.value, &req->value)) {
+        if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && localRegister->assign(&resp.value, &req->value)) {
             localRegisterAccessLock->Take();
-            clRegister.write(&name[0], &resp.value);
+            localRegister->write(&name[0], &resp.value);
             localRegisterAccessLock->Give();
         }
     }
@@ -774,7 +774,7 @@ uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const 
     // The client will determine if the write was successful or not by comparing the request value with response.
     uavcan_register_Value_1_0_select_empty_(&resp.value);
     localRegisterAccessLock->Take();
-    clRegister.read(&name[0], &resp.value);
+    localRegister->read(&name[0], &resp.value);
     localRegisterAccessLock->Give();
 
     // Currently, all registers we implement are mutable and persistent. This is an acceptable simplification,
@@ -1024,7 +1024,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             size_t size = transfer->payload_size;
             TRACE_INFO_F(F("<<-- Ricevuto richiesta lettura elenco registri\r\n"));
             if (uavcan_register_List_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                const uavcan_register_List_Response_1_0 resp = {.name = clRegister.getNameByIndex(req.index)};
+                const uavcan_register_List_Response_1_0 resp = {.name = localRegister->getNameByIndex(req.index)};
                 uint8_t serialized[uavcan_register_List_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_register_List_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
@@ -1106,14 +1106,11 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(CAN_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-  // Direct acces to EEprom
-  memEprom = EEprom(param.wire, param.wireLock);
-
   // Setup register mode
-  clRegister = EERegister(param.wire, param.wireLock);
+  localRegister = param.clRegister;
 
   // Setup Flash Access
-  memFlash = Flash(&hqspi);
+  localFlash = param.flash;
 
   // Local static access to global queue and Semaphore
   localSystemMessageQueue = param.systemMessageQueue;
@@ -1135,7 +1132,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   val.natural16.value.count       = 1;
   val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
   localRegisterAccessLock->Take();
-  clRegister.read("uavcan.can.mtu", &val);
+  localRegister->read("uavcan.can.mtu", &val);
   localRegisterAccessLock->Give();
   LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
 
@@ -1146,7 +1143,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   val.natural32.value.elements[0] = CAN_BIT_RATE;
   val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
   localRegisterAccessLock->Take();
-  clRegister.read("uavcan.can.bitrate", &val);
+  localRegister->read("uavcan.can.bitrate", &val);
   localRegisterAccessLock->Give();
   LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
@@ -1159,7 +1156,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
       val.natural32.value.elements[0] = CAN_BIT_RATE;
       val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
       localRegisterAccessLock->Take();
-      clRegister.write("uavcan.can.bitrate", &val);
+      localRegister->write("uavcan.can.bitrate", &val);
       localRegisterAccessLock->Give();
       result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
       if (!result) {
@@ -1338,7 +1335,7 @@ void CanTask::Run() {
                 clCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
-                // Restore the master-ID from the corresponding standard clRegister. Default to anonymous.
+                // Restore the master-ID from the corresponding standard register -> Default to anonymous.
                 #ifdef USE_NODE_MASTER_ID_FIXED
                 // Canard Slave NODE ID Fixed dal defined value in module_config
                 clCanard.set_canard_master_id((CanardNodeID)NODE_MASTER_ID);
@@ -1347,7 +1344,7 @@ void CanTask::Run() {
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.master.id", &val);      // The names of the standard registers are regulated by the Specification.
+                localRegister->read("rmap.master.id", &val);      // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
@@ -1356,7 +1353,7 @@ void CanTask::Run() {
                 #endif
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
-                // Restore the node-ID from the corresponding standard clRegister. Default to anonymous.
+                // Restore the node-ID from the corresponding standard regioster. Default to anonymous.
                 #ifdef USE_NODE_SLAVE_ID_FIXED
                 // Canard Slave NODE ID Fixed dal defined value in module_config
                 clCanard.set_canard_node_id((CanardNodeID)NODE_SLAVE_ID);
@@ -1365,7 +1362,7 @@ void CanTask::Run() {
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
                 localRegisterAccessLock->Take();
-                clRegister.read("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+                localRegister->read("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
@@ -1378,7 +1375,7 @@ void CanTask::Run() {
                 uavcan_register_Value_1_0_select_string_(&val);
                 val._string.value.count = 0;
                 localRegisterAccessLock->Take();
-                clRegister.read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+                localRegister->read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
                 localRegisterAccessLock->Give();
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
@@ -1411,7 +1408,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_1;
                 }
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Level.L1", &val);
+                localRegister->read("rmap.module.TH.metadata.Level.L1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1426,7 +1423,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_2;
                 }
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Level.L2", &val);
+                localRegister->read("rmap.module.TH.metadata.Level.L2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1441,7 +1438,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_1;
                 }
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Level.LevelType1", &val);
+                localRegister->read("rmap.module.TH.metadata.Level.LevelType1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1456,7 +1453,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_2;
                 }
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Level.LevelType2", &val);
+                localRegister->read("rmap.module.TH.metadata.Level.LevelType2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1471,7 +1468,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_P1;
                 }
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Timerange.P1", &val);
+                localRegister->read("rmap.module.TH.metadata.Timerange.P1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1496,7 +1493,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
                 val.natural16.value.elements[SENSOR_METADATA_XTH] = SENSOR_METADATA_LEVEL_P_IND_XTH;
                 localRegisterAccessLock->Take();
-                clRegister.read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
+                localRegister->read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_STH];
@@ -1717,7 +1714,7 @@ void CanTask::Run() {
                                     boot_request.backup_executed = false;
                                     boot_request.rollback_executed = false;
                                     boot_request.request_upload = true;
-                                    memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+                                    param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
                                 }
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo

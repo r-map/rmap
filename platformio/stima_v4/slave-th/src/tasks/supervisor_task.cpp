@@ -34,8 +34,7 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SUPERVISOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-  // Setup register mode && Load or Init configuration
-  clRegister = EERegister(param.wire, param.wireLock);
+  // Immediate load Config for all Task info
   loadConfiguration();
 
   state = SUPERVISOR_STATE_INIT;
@@ -233,7 +232,7 @@ void SupervisorTask::loadConfiguration()
     val.natural8.value.elements[1] = MODULE_MINOR_VERSION;
     val.natural8.value.elements[2] = MODULE_TYPE;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.identify", &val);
+    param.clRegister->read("rmap.module.identify", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 3)) {
       register_config_valid = false;
@@ -274,7 +273,7 @@ void SupervisorTask::loadConfiguration()
     // Loading Default
     val.natural8.value.elements[0] = sensor_count;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.sensor.count", &val);
+    param.clRegister->read("rmap.module.sensor.count", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 1)) {
       register_config_valid = false;
@@ -294,7 +293,7 @@ void SupervisorTask::loadConfiguration()
     // Loading Default
     val.natural32.value.elements[0] = SENSORS_ACQUISITION_DELAY_MS;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.sensor.acquisition", &val);
+    param.clRegister->read("rmap.module.sensor.acquisition", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count != 1)) {
       register_config_valid = false;
@@ -340,7 +339,7 @@ void SupervisorTask::loadConfiguration()
     // Total element
     val.natural8.value.count = elements;
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.sensor.config", &val);
+    param.clRegister->read("rmap.module.sensor.config", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural32.value.count != elements)) {
       register_config_valid = false;
@@ -379,7 +378,7 @@ void SupervisorTask::loadConfiguration()
     #endif
     // Total element
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.sensor.type", &val);
+    param.clRegister->read("rmap.module.sensor.type", &val);
     param.registerAccessLock->Give();
     if(!uavcan_register_Value_1_0_is_string_(&val)) {
       register_config_valid = false;
@@ -415,7 +414,7 @@ void SupervisorTask::loadConfiguration()
     #endif
     // Total element
     param.registerAccessLock->Take();
-    clRegister.read("rmap.module.sensor.driver", &val);
+    param.clRegister->read("rmap.module.sensor.driver", &val);
     param.registerAccessLock->Give();
     if(!uavcan_register_Value_1_0_is_string_(&val)) {
       register_config_valid = false;
@@ -548,7 +547,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   val.natural8.value.elements[2] = param.configuration->module_type;
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.identify", &val);
+  param.clRegister->write("rmap.module.identify", &val);
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor count -> (READ)
@@ -561,7 +560,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   val.natural8.value.elements[0] = sensor_count;
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.sensor.count", &val);
+  param.clRegister->write("rmap.module.sensor.count", &val);
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
@@ -574,7 +573,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   val.natural32.value.elements[0] = param.configuration->sensor_acquisition_delay_ms;
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.sensor.acquisition", &val);
+  param.clRegister->write("rmap.module.sensor.acquisition", &val);
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor address -> (READ/WRITE)
@@ -593,7 +592,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   }
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.sensor.config", &val);
+  param.clRegister->write("rmap.module.sensor.config", &val);
   param.registerAccessLock->Give();
 
   /// Writing RMAP Module sensor type -> (READ/WRITE)
@@ -606,7 +605,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   memcpy(val._string.value.elements, param.configuration->sensors[0].type, val._string.value.count);
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.sensor.type", &val);
+  param.clRegister->write("rmap.module.sensor.type", &val);
   param.registerAccessLock->Give();
 
   /// Writing RMAP Module sensor type -> (READ/WRITE)
@@ -619,7 +618,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   memcpy(val._string.value.elements, param.configuration->sensors[0].driver, val._string.value.count);
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  clRegister.write("rmap.module.sensor.driver", &val);
+  param.clRegister->write("rmap.module.sensor.driver", &val);
   param.registerAccessLock->Give();
 
   if(is_default) {

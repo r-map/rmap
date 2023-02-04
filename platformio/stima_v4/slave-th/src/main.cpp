@@ -64,6 +64,11 @@ void setup() {
 #if (ENABLE_WDT)
   // Init the watchdog timer WDT_TIMEOUT_BASE_US mseconds timeout (only control system)
   // Wdt Task Reset the value after All Task reset property single Flag
+  if(IWatchdog.isReset()) {
+    delay(50);
+    TRACE_INFO_F(F("\r\n\r\nALERT: Verified an WDT Reset !!!\r\n\r\n"));
+    IWatchdog.clearReset();
+  }
   IWatchdog.begin(WDT_TIMEOUT_BASE_US);
 #endif
 
@@ -117,7 +122,7 @@ void setup() {
 
 #if (ENABLE_I2C1)
   // Load Info from E2 boot_check flag and send to Config
-  EEprom  memEprom(&Wire, wireLock);
+  static EEprom  memEprom(&Wire, wireLock);
   bootloader_t boot_check = {0};
   #if INIT_PARAMETER
   boot_check.app_executed_ok = true;
@@ -127,18 +132,22 @@ void setup() {
   #endif
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
 #endif
+  // Reset Factory register value
+  static EERegister clRegister(&Wire, wireLock);
+  #if INIT_PARAMETER
+  clRegister.doFactoryReset();
+  #endif
+  // Init access Flash istance object
+  static Flash memFlash(&hqspi);
 
-#if (ENABLE_WDT)
+  // ***************** SET PARAMETER TO TASK *********************
+
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
   wdtParam.systemStatusLock = systemStatusLock;
   wdtParam.rtcLock = rtcLock;
-#if (ENABLE_I2C1)
-  wdtParam.wire = &Wire;
-  wdtParam.wireLock = wireLock;
-#endif
-#endif
+  wdtParam.eeprom = &memEprom;
 
 #if (ENABLE_CAN)
   // TASK CAN PARAM CONFIG
@@ -151,13 +160,12 @@ void setup() {
   canParam.systemMessageQueue = systemMessageQueue;
   canParam.requestDataQueue = requestDataQueue;
   canParam.reportDataQueue = reportDataQueue;
-  canParam.canLock = canLock;  
-  canParam.qspiLock = qspiLock;
+  canParam.eeprom = &memEprom;
+  canParam.clRegister = &clRegister;
+  canParam.flash = &memFlash;
+  canParam.canLock = canLock;
+  canParam.qspiLock = qspiLock;  
   canParam.rtcLock = rtcLock;
-#if (ENABLE_I2C1)
-  canParam.wire = &Wire;
-  canParam.wireLock = wireLock;
-#endif
 #endif
 
 #if (ENABLE_ACCELEROMETER)
@@ -165,6 +173,7 @@ void setup() {
   static AccelerometerParam_t accelerometerParam = {0};
   accelerometerParam.configuration = &configuration;
   accelerometerParam.system_status = &system_status;
+  accelerometerParam.clRegister = &clRegister;
 #if (ENABLE_I2C1)
   accelerometerParam.wire = &Wire;
   accelerometerParam.wireLock = wireLock;
@@ -204,20 +213,11 @@ void setup() {
   static SupervisorParam_t supervisorParam = {0};
   supervisorParam.configuration = &configuration;
   supervisorParam.system_status = &system_status;
-#if (ENABLE_I2C1)
-  supervisorParam.wire = &Wire;
-  supervisorParam.wireLock = wireLock;
-#endif
+  supervisorParam.clRegister = &clRegister;
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.systemMessageQueue = systemMessageQueue;
-
-  #if INIT_PARAMETER
-  // Reset Factory register value
-  EERegister initRegister(&Wire, wireLock);
-  initRegister.doFactoryReset();
-  #endif
 
   // *****************************************************************************
   // Startup Task, Supervisor as first for Loading parameter generic configuration

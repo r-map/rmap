@@ -81,12 +81,13 @@ typedef enum
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *registerAccessLock;
   cpp_freertos::Queue *systemRequestQueue;
   cpp_freertos::Queue *systemResponseQueue;
   EEprom *eeprom;
+  EERegister *clRegister;
 } SupervisorParam_t;
 
 class SupervisorTask : public cpp_freertos::Thread {
