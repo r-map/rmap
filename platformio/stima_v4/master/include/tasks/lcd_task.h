@@ -31,6 +31,9 @@
 #define _LCD_TASK_H
 
 #define LCD_TASK_PRINT_DELAY_MS   (5000)
+#define LCD_TASK_WAIT_DELAY_MS    (10)
+
+#include "display_config.hpp"
 
 #include "debug_config.h"
 #include "local_typedef.h"
@@ -50,13 +53,50 @@
 
 #include "debug_F.h"
 
-typedef enum
-{
+// CHECK*********
+
+typedef enum LCDState {
   LCD_STATE_CREATE,
   LCD_STATE_INIT,
-  LCD_STATE_PRINT,
-  LCD_STATE_END
+  LCD_STATE_CHECK_OPERATION,
+  LCD_STATE_STANDBY
 } LCDState_t;
+
+typedef enum Stimacommands {
+  MAINTENANCE,
+  EXIT  // Always the latest element
+} stima4_commands_t;
+
+typedef enum Stimamenu {
+  MAIN,
+  CHANNEL,
+  CONFIGURATION
+} stima4_menu_ui_t;
+
+typedef union Encoder {
+  struct Pin {
+    bool a : 1;
+    bool b : 1;
+  } pin;
+  uint8_t pin_val;
+
+} encoder_t;
+
+typedef struct Channel {
+  bool maintenance_mode;
+  char description[MAX_LENGTH_DESCRIPTION];
+  char unit_type[MAX_LENGTH_UNIT_TYPE];
+  float value;
+} channel_t;
+
+typedef struct Data {
+  char date[MAX_LENGTH_DATE];
+  char time[MAX_LENGTH_TIME];
+  char name_station[MAX_LENGTH_NAME_STATION] = "Diga di Brasimone"; 
+  channel_t channel[MAX_CHANNELS];
+} data_t;
+
+// ********************
 
 typedef struct {
   configuration_t *configuration;
@@ -85,9 +125,52 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
+const char* get_command_name_from_enum(stima4_commands_t command);
+  static void encoder_process(uint8_t new_value, uint8_t old_value);
+  static void ISR_input_pression_pin_encoder(void);
+  static void ISR_input_rotation_pin_encoder_a(void);
+  static void ISR_input_rotation_pin_encoder_b(void);
+  static void ISR_input_rotation_pin_encoder(void);
+  void display_off(void);
+  void display_on(void);
+  void display_print_channel_interface(void);
+  void display_print_config_menu_interface(void);
+  void display_print_default_interface(void);
+  void display_print_main_interface(void);
+  void display_setup(void);
+  void elaborate_command(stima4_commands_t command);
+  void switch_interface(void);
+
+bool data_printed;
+  bool display_is_off;
+  char taskName[configMAX_TASK_NAME_LEN];
+  data_t data = {
+    .date = "17/11/22",
+    .time = "13:00:00",
+    .channel = {{false, "Temperature", "°C", 25.40},
+                {false, "Humidity", "%", 54.00},
+                {false, "Rain", "mm", 0.00},
+                {false, "Wind speed", "m/s", 2.30},
+                {false, "Global radiation", "W/m2", 145.00}}};
+  inline static bool pression_event, rotation_event;
+  inline static encoder_t encoder, encoder_old;
+  inline static uint32_t debounce_millis;
+  inline static uint32_t last_display_timeout;
+  inline static uint8_t encoder_state;
+  int8_t channel;
+  stima4_commands_t stima4_command;
+  stima4_menu_ui_t stima4_menu_ui, stima4_menu_ui_last;
+  U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
+  uint16_t stackSize;
+  uint32_t read_millis;
+  uint8_t priority;
+
+  char pin_bottom_left_encoder;
+  char pin_bottom_right_encoder;
+  char pin_top_left_encoder;
+ 
   LCDState_t state;
   LCDParam_t param;
-  U8G2_SH1108_128X160_F_FREERTOS_HW_I2C u8g2;
 };
 
 #endif

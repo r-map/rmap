@@ -48,6 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/eeprom.h"
 #endif
 
+#include "register_class.hpp"
+
 #include "debug_F.h"
 
 typedef enum

@@ -227,14 +227,14 @@ void setup() {
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
   static TemperatureHumidtySensorTask th_sensor_task("THTask", 350, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 250, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 350, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
   static AccelerometerTask accelerometer_task("AccelerometerTask", 350, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7100, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_WDT)

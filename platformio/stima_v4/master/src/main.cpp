@@ -296,7 +296,7 @@ void setup() {
 #endif
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_03, lcdParam);
+  static LCDTask lcd_task("LcdTask", 400, OS_TASK_PRIORITY_03, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
