@@ -4,12 +4,7 @@ import rainbo.views
 import insertdata.views
 import showdata.views
 from rmap.stations.form import RmapRegistrationForm
-from registration.backends.default.views import RegistrationView
-
-
-from rmap.stations.form import RmapRegistrationForm
-#from registration.forms import RegistrationFormTermsOfService
-from registration.backends.default.views import RegistrationView
+from rmap.registration.backends.default.views import RegistrationView
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
