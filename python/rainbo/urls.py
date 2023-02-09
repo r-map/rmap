@@ -33,7 +33,7 @@ urlpatterns = [
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
-    url(r'^registrazione/', include('registration.backends.default.urls')),
+    url(r'^registrazione/', include('rmap.registration.backends.default.urls')),
     url(r'^accounts/profile/$',
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
