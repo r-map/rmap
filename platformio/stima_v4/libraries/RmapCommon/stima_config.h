@@ -137,6 +137,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_NAME_TH                        ("stima4.module_th")
 #define STIMA_MODULE_DESCRIPTION_TH                 ("Slave module th, CAN Cyphal V1.0")
 
+
 /*!
 \def STIMA_MODULE_NAME_THR
 \brief The module'name for acquiring temperature, humidity and rain.
@@ -154,7 +155,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 /*!
-\def STIMA_MODULE_NAME_OPC
+\def STIMA_MODULE_NAME_GAS
 \brief The module'name for acquiring air gas (NO2, CO2).
 */
 #define STIMA_MODULE_NAME_GAS                       ("stima4.module_gas")
@@ -178,7 +179,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 /*!
-\def STIMA_MODULE_NAME_WIND
+\def STIMA_MODULE_NAME_SOLAR_RADIATION
 \brief The module'name for acquiring radiation sensor.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("stima4.module_radiation")
@@ -201,17 +202,58 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_DESCRIPTION_VVC                ("Slave module vvc, CAN Cyphal V1.0")
 
 
+/*!
+\brief LCD descriptions list
+*/
+#define STIMA_LCD_DESCRIPTION_GAS                   ("Air gas")
+#define STIMA_LCD_DESCRIPTION_HUMIDITY              ("Humidity")
+#define STIMA_LCD_DESCRIPTION_LEAF                  ("Leaf wetness")
+#define STIMA_LCD_DESCRIPTION_OPC                   ("Air particle")
+#define STIMA_LCD_DESCRIPTION_POWER_MPPT            ("Power regulator mppt")
+#define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
+#define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")
+#define STIMA_LCD_DESCRIPTION_TEMPERATURE           ("Temperature")
+#define STIMA_LCD_DESCRIPTION_VVC                   ("VVC")
+#define STIMA_LCD_DESCRIPTION_WIND_DIRECTION        ("Wind direction")
+#define STIMA_LCD_DESCRIPTION_WIND_SPEED            ("Wind speed")
 
+/*!
+\brief LCD Measure units list
+*/
+#define STIMA_LCD_UNIT_TYPE_CELSIUS_DEGREES         ("°C")
+#define STIMA_LCD_UNIT_TYPE_DEGREES                 ("°")
+#define STIMA_LCD_UNIT_TYPE_METERS                  ("m")
+#define STIMA_LCD_UNIT_TYPE_METERS_PER_SECOND       ("m/s")
+#define STIMA_LCD_UNIT_TYPE_MILLIMETERS             ("mm")
+#define STIMA_LCD_UNIT_TYPE_PERCENTS                ("%")
+#define STIMA_LCD_UNIT_TYPE_VOLTS                   ("V")
+#define STIMA_LCD_UNIT_TYPE_WATTS_PER_SQUARE_METER  ("W/m2")
+
+/*!
+\brief LCD Decimals units list
+*/
+#define STIMA_LCD_DECIMALS_ZERO  0
+#define STIMA_LCD_DECIMALS_ONE   1
+#define STIMA_LCD_DECIMALS_TWO   2
+
+//
 #define DATA_LEVEL_SAMPLE  ("sample")
 #define DATA_LEVEL_REPORT  ("report")
 #define DATA_LEVEL_MAINT   ("maint")
 #define DATA_LEVEL_RPC     ("rpc")
 
+//
 #define NETWORK_FIXED      ("fixed")
 #define NETWORK_MOBILE     ("mobile")
 #define NETWORK_TEST       ("test")
 
-#define STIMA_MODULE_NAME_LENGTH                   (30)
+/*!
+\brief Max length of strings used to take the information
+*/
+#define STIMA_LCD_DESCRIPTION_LENGTH               (30)
+#define STIMA_LCD_MEASURE_LENGTH                   (20)
+#define STIMA_LCD_UNIT_TYPE_LENGTH                 (10)
 #define STIMA_MODULE_DESCRIPTION_LENGTH            (50)
+#define STIMA_MODULE_NAME_LENGTH                   (30)
 
 #endif

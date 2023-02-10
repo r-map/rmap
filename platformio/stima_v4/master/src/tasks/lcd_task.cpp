@@ -31,8 +31,6 @@
 
 #include "tasks/lcd_task.h"
 
-#include <U8g2lib.h>
-
 using namespace cpp_freertos;
 
 LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCDParam_t LCDParam) : Thread(taskName, stackSize, priority), param(LCDParam) {
@@ -247,7 +245,7 @@ void LCDTask::Run() {
                             TRACE_INFO_F(F("CHANNEL: %d\r\n"), channel);
 
                             // Display CHANNEL interface
-                            display_print_channel_interface();
+                            display_print_channel_interface(data.channel[channel].module_type);
 
                             break;
                         }
@@ -411,19 +409,38 @@ void LCDTask::display_on() {
  * @brief Rows with description, value and unity type of measurement
  *
  */
-void LCDTask::display_print_channel_interface() {
+void LCDTask::display_print_channel_interface(uint8_t module_type) {
+    char description[STIMA_LCD_DESCRIPTION_LENGTH];
+    char unit_type[STIMA_LCD_UNIT_TYPE_LENGTH];
+    char measure[STIMA_LCD_MEASURE_LENGTH];
+    uint8_t decimals;
+    
+    // Take the informations to print
+    getStimaLcdDescriptionByType(description, module_type);
+    getStimaLcdUnitTypeByType(unit_type, module_type);
+    getStimaLcdDecimalsByType(&decimals, module_type);
+
+    // Process string format to print
+    dtostrf(data.channel[channel].value, 0, decimals, measure);
+    (void)snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
+
+    // Print description of measure
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-    display.print(data.channel[channel].description);
+    display.print(description);
+    
+    // Print measurement information
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
     display.setFont(u8g2_font_helvB12_tf);
-    display.print(data.channel[channel].value);
-    display.print(" ");
-    display.print(data.channel[channel].unit_type);
-    display.setFont(u8g2_font_helvR08_tf);
+    display.print(measure);
+
+    // Print maintenance information if enabled
     if (data.channel[channel].maintenance_mode) {
+        display.setFont(u8g2_font_helvR08_tf);
         display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
         display.print("Maintenance mode");
     }
+
+    // Apply the updates to display
     display.sendBuffer();
     display.clearBuffer();
 }
@@ -438,6 +455,8 @@ void LCDTask::display_print_config_menu_interface() {
         display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + i * LINE_BREAK);
         display.print(get_command_name_from_enum((stima4_commands_t)i));
     }
+
+    // Apply the updates to display
     display.sendBuffer();
     display.clearBuffer();
 }
@@ -455,25 +474,30 @@ void LCDTask::display_print_default_interface() {
 }
 
 /**
- * @brief Row with date and time
+ * @brief Print Main interface with general information about station
  *
  */
 void LCDTask::display_print_main_interface() {
+    char station[STATION_LCD_LENGTH];
+    char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
+
+    // Process strings format to print
+    (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
+    (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
+
+    // Print data and time
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-    display.print(data.date);
-    display.print(" ");
-    display.print(data.time);
+    display.print("08/02/23 15:00:00");
+
+    // Print station name 
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + LINE_BREAK);
-    display.print("Station: ");
-    display.print(data.name_station);
+    display.print(station);
+
+    // Print firmware version
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
-    display.print("Firmware version: ");
-    display.print(param.configuration->module_main_version);
-    display.print(".");
-    display.print(param.configuration->module_minor_version);
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
-    display.print("Sensors configurated: ");
-    display.print(param.configuration->board_slave->can_address);
+    display.print(firmware_version);
+
+    // Apply the updates to display
     display.sendBuffer();
     display.clearBuffer();
 }
