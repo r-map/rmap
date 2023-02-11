@@ -16,7 +16,7 @@ import rmap.rmap_core
 from rmap.stations.models import StationMetadata
 from rmap.stations.models import StationImage,PHOTO_CATEGORY_CHOICES
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.cache import never_cache
+#from django.views.decorators.cache import never_cache
 import re
 from django.contrib.auth.hashers import make_password
 from rmap.utils import nint
@@ -566,13 +566,13 @@ def acl(request):
 from django.contrib.auth.decorators import login_required
 
 @login_required
-@never_cache
+#@never_cache
 def profile(request):
     stations=StationMetadata.objects.filter(active=True,user__username=request.user.get_username())
     return render(request, 'profile.html',{ 'user' : request.user.get_username(),"stations":stations})
 
 @login_required
-@never_cache
+#@never_cache
 def profile_details(request,mystation_slug):
 
     if request.method == 'POST': # If the form has been submitted...
@@ -626,7 +626,7 @@ def profile_details(request,mystation_slug):
 
 
 @login_required
-@never_cache
+#@never_cache
 def profile_details_stationimage(request,mystation_slug,stationimage_id):
     stationimage=StationImage.objects.get(stationmetadata__user__username=request.user.get_username(),stationmetadata__slug=mystation_slug,id=stationimage_id)
     return render(request, 'profile_details_stationimage.html',{"stationimage":stationimage})
