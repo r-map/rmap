@@ -104,9 +104,17 @@ parser.add_argument('--modify_station',action="store_true", help="modify station
 parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
 parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
+parser.add_argument('--stima_version',  default="3", choices=("3","4"), help="stima version")
+parser.add_argument('--notification',action="store_true", help="use notification (no response expected) for JSRPC")
 parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
 parser.add_argument('--rpc_mqtt_recovery',action="store_true", help="execute recovery data RPC over MQTT")
-parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+try:
+    parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+except:
+    # python < 3.7
+    def fromisoformat(isoformat):
+        return datetime.datetime.strptime(isoformat, '%Y-%m-%dT%H:%M:%S')
+    parser.add_argument('--datetimestart', default=None, type=fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -141,11 +149,11 @@ parser.add_argument('--level',  default="103,2000", help="sensor level (see tabl
 
 parser.add_argument('--addboard',action="store_true", help="add board to module of station")
 
-####
-parser.add_argument('--canactivate',action="store_true", help="activate can transport")
-
-
-####
+parser.add_argument('--canactivate',action="store_true", help="activate can/Cyphal transport")
+parser.add_argument('--cannodeid', default=100, type=int, help="Cyphal node id")
+parser.add_argument('--cansubject', help="Cyphal subject")
+parser.add_argument('--cansubjectid', default=100, type=int, help="Cyphal subject id")
+parser.add_argument('--cansamplerate',type=int,  default=60, help="can period to send data on the bus in seconds")
 
 parser.add_argument('--serialactivate',action="store_true", help="activate serial transport")
 parser.add_argument('--mqttactivate',action="store_true", help="activate mqtt transport")
@@ -489,7 +497,7 @@ if args.addboard:
 
     rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,activate=True
                             ,serialactivate=args.serialactivate
-                            ,canactivate=args.canactivate
+                            ,canactivate=args.canactivate,cannodeid=args.cannodeid,cansubject=args.cansubject,cansubjectid=args.cansubjectid,cansamplerate=args.cansamplerate
                             ,mqttactivate=args.mqttactivate, mqttserver=args.server
                             ,mqttusername=args.mqttusername, mqttpassword=args.mqttpassword,mqttpskkey=args.mqttpskkey, mqttsamplerate=args.mqttsamplerate
                             ,bluetoothactivate=args.bluetoothactivate, bluetoothname=args.bluetoothname
@@ -697,7 +705,8 @@ if args.config_station:
 
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
+                                 device=args.device,baudrate=args.baudrate,host=args.host,username=args.username,
+                                 notification=args.notification,version=args.stima_version)
 
     print("END of station configuration")
 

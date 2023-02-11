@@ -123,7 +123,12 @@ if not android  :
         print("Warning: firmware_updater disabled")
         print(e)
         print(traceback.format_exc())
-  
+    try:
+        urlpatterns.append(url(r'^firmware/stima/', include('firmware_updater_stima.urls')))
+    except Exception as e:
+        print("Warning: firmware_updater_stima disabled")
+        print(e)
+        print(traceback.format_exc())
         
 if ( settings.SERVE_STATIC ):
 #serve local static files

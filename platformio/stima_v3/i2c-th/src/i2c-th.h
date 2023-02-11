@@ -1,4 +1,3 @@
-/**@file i2c-th.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>

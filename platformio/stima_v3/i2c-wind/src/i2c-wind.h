@@ -1,4 +1,3 @@
-
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
@@ -43,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <SdFat.h>
 #include <StreamUtils.h>
 #include <ArduinoLog.h>
+#include <CircularBuffer.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -64,48 +64,40 @@ typedef struct {
 } configuration_t;
 
 /*!
-\struct sample_t
-\brief samples data
-*/
-typedef struct {
-  float value[SAMPLES_COUNT];        //!< samples buffer
-  uint16_t count;                              //!< samples counter
-  float *read_ptr;                             //!< reader pointer
-  float *write_ptr;                            //!< writer pointer
-} sample_t;
-
-/*!
 \struct report_t
 \brief report data.
 */
 typedef struct {
+  uint16_t sample_speed;           // B11002   254,0,0
+  uint16_t sample_direction;       // B11001   254,0,0
+
   // DWA
-  float vavg10_speed;           // B11002   254,0,0
-  float vavg10_direction;       // B11001   254,0,0
+  uint16_t vavg10_speed;           // B11002   254,0,0
+  uint16_t vavg10_direction;       // B11001   254,0,0
 
   // DWB
-  float vavg_speed;             // B11002   200,0,900
-  float vavg_direction;         // B11001   200,0,900
+  uint16_t vavg_speed;             // B11002   200,0,900
+  uint16_t vavg_direction;         // B11001   200,0,900
 
   // DWC
-  float peak_gust_speed;        // B11041   2,0,900
-  float long_gust_speed;        // B11209   2,0,900
+  uint16_t peak_gust_speed;        // B11041   2,0,900
+  uint16_t long_gust_speed;        // B11209   2,0,900
 
   // DWD
-  float avg_speed;              // B11002   0,0,900
+  uint16_t avg_speed;              // B11002   0,0,900
 
   // DWE
-  float class_1;                // B11211   9,0,900
-  float class_2;                // B11212   9,0,900
-  float class_3;                // B11213   9,0,900
-  float class_4;                // B11214   9,0,900
-  float class_5;                // B11215   9,0,900
-  float class_6;                // B11216   9,0,900
+  uint8_t class_1;                // B11211   9,0,900
+  uint8_t class_2;                // B11212   9,0,900
+  uint8_t class_3;                // B11213   9,0,900
+  uint8_t class_4;                // B11214   9,0,900
+  uint8_t class_5;                // B11215   9,0,900
+  uint8_t class_6;                // B11216   9,0,900
   // dtable={"51":["B11211","B11212","B11213","B11214","B11215","B11216"]}
 
   // DWF
-  float peak_gust_direction;    // B11043   205,0,900
-  float long_gust_direction;    // B11210   205,0,900
+  uint16_t peak_gust_direction;    // B11043   205,0,900
+  uint16_t long_gust_direction;    // B11210   205,0,900
 
 } report_t;
 
@@ -243,6 +235,12 @@ volatile uint8_t lastcommand;
 volatile uint8_t i2c_error;
 
 /*!
+\var i2c_time
+\brief Time in seconds from last I2C reset.
+*/
+volatile uint8_t i2c_time;
+
+/*!
 \var ready_tasks_count
 \brief Number of tasks ready to execute.
 */
@@ -293,39 +291,31 @@ bool is_oneshot;
 bool is_test;
 
 #if (USE_SENSOR_DES)
-sample_t wind_speed_samples;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_speed;
 #endif
 
 #if (USE_SENSOR_DED)
-sample_t wind_direction_samples;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_direction;
 #endif
 
 #if (USE_SENSOR_GWS)
-sample_t wind_speed_samples;
-sample_t wind_direction_samples;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_speed;
+CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_direction;
 #endif
-
-/*!
-\var samples_count
-\brief Number of samples to be acquired for make one observation.
-*/
-// uint8_t samples_count;
 
 /*!
 \var timer_counter_ms
 \brief Timer counter variable for execute timed task with time multiple of base Timer1 time.
 */
 volatile uint16_t timer_counter_ms;
-volatile uint16_t timer_counter_s;
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 volatile bool is_wind_on;
-uint8_t wind_acquisition_count;
 #endif
 
 #if (USE_SENSOR_DES)
 volatile uint32_t wind_speed_count;
-volatile float wind_speed;
+volatile uint16_t wind_speed;
 #endif
 
 /*!
@@ -527,6 +517,7 @@ void reset_report_buffer(void);
 */
 void exchange_buffers(void);
 
+/*
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value);
@@ -535,6 +526,7 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value);
+*/
 
 /*!
 \fn void make_report (bool init=false)
@@ -542,6 +534,15 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 \return void.
 */
 void make_report (bool init=false);
+
+
+/*!
+\fn void elaborate_circular_buffer (void)
+\brief Main routine for processing the samples in circular buffer to calculate an observation.
+\return void.
+*/
+void elaborate_circular_buffer(void);
+
 
 void getSDFromUV (float, float, float *, float *);
 
@@ -567,7 +568,7 @@ float getWindSpeed (float count);
 void windPowerOff(void);
 void windPowerOn(void);
 void serial1_reset(void);
-bool windsonic_interpreter (float *speed, float *direction);
+bool windsonic_interpreter (uint16_t *speed, uint16_t *direction);
 
 uint16_t uart_rx_buffer_length;
 uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];

@@ -236,10 +236,29 @@ Legenda segnalazioni tramite LED blu onboard
 Un corretto funzionamento della stazione viene evidenziato dal led blu
 che si accende per circa 5 secondi ogni 60 secondi.
 
-Visualizzazione dei dati
-------------------------
+Visualizzazione dei dati in tempo reale
+---------------------------------------
 
-| `Dati stazione <http://rmapv.rmap.cc/accounts/profile/>`__
+Se la rete a cui accede la stazione è la stessa a cui avete collegato
+il dispositivo che utilizzerete per visualizzare i dati con un browser
+e tale rete è correttamente configurata per utilizzare i servizi
+Zeroconf/Bonjour sarà' possibile visualizzare i dati tramite un
+browser appena questi vengono rilevati dai sensori interrogando
+direttamente la stazione senza interessare il server. Questa funsione
+è consigliata ad esempio per creare pannelli informativi.
+
+Accedere con il browser a:
+| `Dati stazione <http://rmap.cc/accounts/profile/>`__
+
+selezionare la propria stazione e selezionare "mostra dettagli stazione"
+e successivamente "dati locali in tempo reale
+
+E possibile accedere anche direttamente alla stazione tramite l'URL:
+| `Dati stazione <http://NOMESTAZIONE/>`__
+
+sostituendo NOMESTAZIONE con appunto il nome della vostra stazione in
+forma abbreviata.
+
 
 Cancellazione delle configurazioni e reset alle condizioni di "fabbrica"
 ------------------------------------------------------------------------

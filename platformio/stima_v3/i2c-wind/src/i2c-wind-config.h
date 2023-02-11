@@ -37,13 +37,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (10)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
 \brief Module version of compatibile configuration. If you change it, you have to reconfigure.
 */
-#define MODULE_CONFIGURATION_VERSION                  (2)
+#define MODULE_CONFIGURATION_VERSION                  (1)
 
 /*!
 \def MODULE_TYPE
@@ -130,24 +130,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIND_SPEED_MIN                                  (0.0)
 
 #define GWS_SERIAL_BAUD                                 (9600)
-#define GWS_SERIAL_TIMEOUT_MS                           (8)
-#define GWS_ACQUISITION_COUNT_FOR_POWER_RESET           (100)
-
-#define GWS_STX_INDEX                                   (0)
-#define GWS_ETX_INDEX                                   (19)
-
-#define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
-
-#define GWS_DIRECTION_INDEX                             (3)
-#define GWS_DIRECTION_LENGTH                            (3)
-#define GWS_SPEED_INDEX                                 (7)
-#define GWS_SPEED_LENGTH                                (6)
-#define GWS_CRC_INDEX                                   (20)
-#define GWS_CRC_LENGTH                                  (2)
-#define STX_VALUE                                       (2)
-#define ETX_VALUE                                       (3)
-#define CR_VALUE                                        (13)
-#define LF_VALUE                                        (10)
+#define GWS_SERIAL_TIMEOUT_MS                           (0)
 
 #define UART_RX_BUFFER_LENGTH                           (40)
 #endif
@@ -162,6 +145,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Clock speed for SPI and SDcard.
 */
 #define SPI_SPEED SD_SCK_MHZ(4)
+
+/*!
+\def I2C_MAX_TIME
+\brief Max i2c time in seconds before i2c restart.
+*/
+#define I2C_MAX_TIME             (180)
 
 /*********************************************************************
 * POWER DOWN
@@ -200,12 +189,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * WIND SENSORS
 *********************************************************************/
-// observations with processing every 1-10 minutes (minutes for processing sampling)
-// report every 5-60 minutes (> OBSERVATIONS_MINUTES)
 
 #if (USE_SENSOR_DES || USE_SENSOR_DED)
 /*!
-\def SENSORS_SAMPLE_TIME_MS
+\def SENSORS_SAMPLE_TIME_MS<
 \brief Milliseconds for sampling sensors: 100 - 60000 [ms] must be integer multiple of TIMER1_INTERRUPT_TIME_MS !!!
 */
 #define SENSORS_ACQ_TIME_MS                             (2000)
@@ -215,63 +202,61 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #endif
 
 #if (USE_SENSOR_GWS)
-#define SENSORS_SAMPLE_TIME_MS                          (4000)
+  // for 644pa
+  //#define SENSORS_SAMPLE_TIME_MS                          (2000)
+  // for 1284p
+  #define SENSORS_SAMPLE_TIME_MS                          (1000)
 #endif
 
 /*!
-\def OBSERVATION_SAMPLES_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
+\def WMO_REPORT_SAMPLES_TIME
+\brief Sample time for generate WMO standard wind (verctorial mean) (minutes).
 */
-#define OBSERVATION_SAMPLES_COUNT_MIN                   ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
-
-#if ((OBSERVATIONS_MINUTES * 60) % (SENSORS_SAMPLE_TIME_MS / 1000) == 0)
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                   (OBSERVATION_SAMPLES_COUNT_MIN)
-#else
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                   (OBSERVATION_SAMPLES_COUNT_MIN + 1)
-#endif
-
-#define RMAP_REPORT_SAMPLE_VALID                        (true)
-
-#define RMAP_REPORT_SAMPLES_COUNT                       (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * OBSERVATION_SAMPLES_COUNT_MAX)
-#define WMO_REPORT_SAMPLES_COUNT                        (10 * OBSERVATION_SAMPLES_COUNT_MAX)
+#define WMO_REPORT_SAMPLES_TIME                         (10)
 
 /*!
-\def OBSERVATION_SAMPLE_ERROR_MAX
-\brief Maximum invalid sample count for generate a valid observations.
+\def WMO_REPORT_SAMPLES_COUNT
+\brief Sample count for generate WMO standard wind (verctorial mean).
 */
-#define OBSERVATION_SAMPLE_ERROR_MAX                    ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT_MAX / 2)))
-#define OBSERVATION_SAMPLE_VALID_MIN                    ((uint16_t)(OBSERVATION_SAMPLES_COUNT_MAX - OBSERVATION_SAMPLE_ERROR_MAX))
+#define WMO_REPORT_SAMPLES_COUNT                        (size_t)((WMO_REPORT_SAMPLES_TIME*1000Lu*60Lu)/SENSORS_SAMPLE_TIME_MS)
 
-#define RMAP_REPORT_SAMPLE_ERROR_MAX                    ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_ERROR_MAX))
-#define WMO_REPORT_SAMPLE_ERROR_MAX                     ((uint16_t)(10 * OBSERVATION_SAMPLE_ERROR_MAX))
+/*!
+\def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
+\brief Sample maximum error in percent for one observation.
+*/
+#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC               (10.)
 
-#if (RMAP_REPORT_SAMPLE_VALID)
-#define RMAP_REPORT_SAMPLE_VALID_MIN                    (OBSERVATION_SAMPLE_VALID_MIN)
-#define WMO_REPORT_SAMPLE_VALID_MIN                     (OBSERVATION_SAMPLE_VALID_MIN)
-#else
-#define RMAP_REPORT_SAMPLE_VALID_MIN                    ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_VALID_MIN))
-#define WMO_REPORT_SAMPLE_VALID_MIN                     ((uint16_t)(10 * OBSERVATION_SAMPLE_VALID_MIN))
-#endif
+/*!
+\def LONG_GUST_SAMPLES_TIME
+\brief Sample time for elaborate long gust (seconds).
+*/
+#define LONG_GUST_SAMPLES_TIME                         (60)
 
-#define RMAP_REPORT_ERROR_MAX                           ((uint16_t)(STATISTICAL_DATA_COUNT - 1))
-#define RMAP_REPORT_VALID_MIN                           ((uint16_t)(STATISTICAL_DATA_COUNT - RMAP_REPORT_ERROR_MAX))
 
-#define SAMPLES_COUNT                                   ((60000 / SENSORS_SAMPLE_TIME_MS * STATISTICAL_DATA_COUNT) + 10)
+/*!
+\def LONG_GUST_SAMPLES_COUNT
+\brief Sample count for generate long gust.
+*/
+#define LONG_GUST_SAMPLES_COUNT                        (size_t)((LONG_GUST_SAMPLES_TIME*1000Lu)/SENSORS_SAMPLE_TIME_MS)
 
+
+/*!
+\def GWS_ERROR_COUNT_MAX
+\brief Maximum error readeng GWS sensor before sensor reset and configuration.
+*/
+#define GWS_ERROR_COUNT_MAX                             (10)
+
+// wind class definition
 #define WIND_CLASS_1_MAX                                (1.0)
 #define WIND_CLASS_2_MAX                                (2.0)
 #define WIND_CLASS_3_MAX                                (4.0)
 #define WIND_CLASS_4_MAX                                (7.0)
 #define WIND_CLASS_5_MAX                                (10.0)
 
+/*!
+\def CALM_WIND_MAX_MS
+\brief speed limit value for wind calm (m/s).
+*/
 #if (USE_SENSOR_DES)
 #define CALM_WIND_MAX_MS                                (0.3)
 #endif
@@ -287,6 +272,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * SENSORS
 *********************************************************************/
+
 /*!
 \def USE_SENSORS_COUNT
 \brief Sensors count.
@@ -333,7 +319,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Maximum timer1 counter value for timed tasks.
 */
 #define TIMER_COUNTER_VALUE_MAX_MS                    (SENSORS_SAMPLE_TIME_MS)
-#define TIMER_COUNTER_VALUE_MAX_S                     (60)
 
 /*********************************************************************
 * TASKS
@@ -350,6 +335,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define WIND_POWER_ON_DELAY_MS                          (5000)
 
+
+/*!
+\def WIND_POWER_RESPONSE_DELAY_MS
+\brief windsonic poll mode delay for response (millisec).
+*/
+#define WIND_POWER_RESPONSE_DELAY_MS                    (150)
+
 /*!
 \def WIND_READ_DELAY_MS
 \brief Reading delay.
@@ -357,22 +349,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define WIND_READ_DELAY_MS                              (2)
 
 /*!
-\def WIND_READ_DELAY_MS
-\brief Reading delay.
-*/
-#define WIND_RETRY_DELAY_MS                             (2)
-
-/*!
 \def WIND_READ_COUNT
 \brief number of read.
 */
 #define WIND_READ_COUNT                                 (10)
-
-/*!
-\def WIND_READ_COUNT
-\brief number of read.
-*/
-#define WIND_RETRY_MAX                                  (600)
 
 /*!
 \def TRANSACTION_TIMEOUT_MS

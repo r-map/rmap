@@ -195,7 +195,7 @@ def delsensors(station_slug=None,username=None,board_slug=None):
 
 def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,serialactivate=False
-              ,canactivate=False
+              ,canactivate=False,cannodeid=100,cansubject="",cansubjectid=100,cansamplerate=60
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
@@ -235,7 +235,13 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     except ObjectDoesNotExist :
         transportcan=TransportCan()
 
+    print(canactivate,cannodeid,cansubject,cansubjectid,cansamplerate)
+    
     transportcan.active=canactivate
+    transportcan.node_id=cannodeid
+    transportcan.subject=cansubject
+    transportcan.subject_id=cansubjectid
+    transportcan.cansampletime=cansamplerate
     myboard.transportcan=transportcan
     print("CAN Transport", myboard.transportcan)
     myboard.transportcan.save()
@@ -1126,9 +1132,25 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
         for myrpc in kwargs.keys():
             print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
         
-        
+
+def find_report_time(station):
+
+    report_time=None
+
+    for board in station.board_set.all():        
+        # try to get sampletime: from mqtt transport of the board of the station
+        if (hasattr(board, 'transportmqtt')):
+            if (board.transportmqtt.active) :
+                if (not report_time is None):
+                    if(report_time != board.transportmqtt.mqttsampletime): raise Exception("Cannot define sample time: more then one board have different transportmqtt")
+                report_time = board.transportmqtt.mqttsampletime
+
+    if  (report_time is None) : raise Exception("Cannot define sample time: no board have transportmqtt")
+    return report_time
+            
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
-                  device=None,baudrate=None,host=None,transport=None,username=None):
+                  device=None,baudrate=None,host=None,transport=None,username=None,version="3",notification=False,
+                  without_password=False):
 
     if (station_slug is None): return
     if (username is None): return
@@ -1185,7 +1207,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         print("mybaudrate:",mybaudrate)
 
                         transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=1,sleep=3)
-                        
+
                 except ObjectDoesNotExist:
                     print("transport serial not present for this board")
                     return
@@ -1229,7 +1251,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
                 
         if (transport is None): return
-        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(notification=notification),transport)
         if (rpcproxy is None): return
         
         # with MQTT we send a configure command without params 
@@ -1238,24 +1260,53 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             print("MQTT prepare to RPC",rpcproxy.configure())
             time.sleep(30)
 
-        
-        print(">>>>>>> reset config")
-        print("reset",rpcproxy.configure(reset=True ))
-
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name," slug="+board.slug)
 
-        for constantdata in  mystation.stationconstantdata_set.all():
-            if ( constantdata.active):
-                #print ("constantdata:",constantdata.btable,constantdata.value)
-                print("constantdata:",constantdata.btable,rpcproxy.configure(sd={constantdata.btable:constantdata.value}))
-        
+        if (version != "3"):
+            print("board",rpcproxy.configure(board=board.slug ))
+
+        print(">>>>>>> reset config")
+        print("reset",rpcproxy.configure(reset=True ))
+            
         try:
             if ( board.transportmqtt.active):
                 print("TCP/IP Transport",board.transportmqtt)
+
+                for constantdata in  mystation.stationconstantdata_set.all():
+                    if ( constantdata.active):
+                        #print ("constantdata:",constantdata.btable,constantdata.value)
+                        print("constantdata:",constantdata.btable,rpcproxy.configure(sd={constantdata.btable:constantdata.value}))
+
+                if (version == "3"):
+                    print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                                                             +"/"+ mystation.ident +"/"\
+                                                             +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                             +"/"+mystation.network+"/"))
+
+                    print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                                                              +"/"+ mystation.ident +"/"\
+                                                              +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                              +"/"+mystation.network+"/"))
+
+                    print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+board.transportmqtt.mqttuser\
+                                                            +"/"+ mystation.ident +"/"\
+                                                            +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                            +"/"+mystation.network+"/"))
+
+                else:
+
+                    print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath))
+                    print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath))
+                    print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"))
+
                 print("sampletime and mqttserver:",rpcproxy.configure(mqttsampletime=board.transportmqtt.mqttsampletime,
                                                    mqttserver=board.transportmqtt.mqttserver))
-                print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
-                                                   mqttpassword=board.transportmqtt.mqttpassword))
+
+                if (without_password):
+                    print("mqtt user:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser))
+                else:
+                    print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
+                                                    mqttpassword=board.transportmqtt.mqttpassword))
                 try:
                     print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
                 except:
@@ -1294,33 +1345,52 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         except ObjectDoesNotExist:
             print("transport rf24network not present")
 
+        try:
+            if ( board.transportcan.active):
+                print("CAN Transport",board.transportcan)
+                print("cansampletime:",rpcproxy.configure(cansampletime=board.transportcan.cansampletime))
+                print("node_id, subject, subject_id:",rpcproxy.configure(node_id=board.transportcan.node_id,
+                                                                         subject=board.transportcan.subject,
+                                                                         subject_id=board.transportcan.subject_id))
+
+        except ObjectDoesNotExist:
+            print("transport can not present")
+
+            
         print(">>>> sensors:")
         for sensor in board.sensor_set.all():
             if not sensor.active: continue
-            sensor.timerange=sensor.dynamic_timerange()
-            print(sensor)
 
-            print("add driver:",rpcproxy.configure(driver=sensor.driver,
+            report_time=find_report_time(mystation)
+            timerange=sensor.timerange.format(P2=report_time)
+            
+            if (version == "3"):            
+                print("add driver:",rpcproxy.configure(driver=sensor.driver,
                                 type=sensor.type.type,
                                 node=sensor.node,address=sensor.address,
-                                mqttpath=sensor.timerange+"/"+sensor.level+"/"))
-            #TODO  check id of status (good only > 0)
+                                mqttpath=timerange+"/"+sensor.level+"/"))
+            else:
 
-        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
-                                                 +"/"+ mystation.ident +"/"\
-                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                                                 +"/"+mystation.network+"/"))
+                timerange=timerange.split(",")
+                for i in range(len(timerange)):
+                    if (timerange[i] == "-"):
+                        timerange[i] = None
+                    else:
+                        timerange[i] = int(timerange[i])
+                        
+                level=sensor.level.split(",")
+                for i in range(len(level)):
+                    if (level[i] == "-"):
+                        level[i] = None
+                    else:
+                        level[i] = int(level[i])
+                            
+                print("add driver:",rpcproxy.configure(type=sensor.type.type,
+                                                       timerange=timerange,
+                                                       level=level))
 
-        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
-                                                  +"/"+ mystation.ident +"/"\
-                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                                                  +"/"+mystation.network+"/"))
-
-        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+board.transportmqtt.mqttuser\
-                                                  +"/"+ mystation.ident +"/"\
-                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                                                 +"/"+mystation.network+"/"))
-
+        #TODO  check id of status (good only > 0)
+            
         print(">>>>>>> save config")
         if (isinstance(transport, jsonrpc.TransportSERIAL)):
             transport.ser.timeout=8    # save on eeprom require time
@@ -1328,10 +1398,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         if (isinstance(transport, jsonrpc.TransportSERIAL)):
             transport.ser.timeout=1
 
-        print("----------------------------- board configured : REBOOT ---------------------------------")
-        print("reboot:",rpcproxy.reboot())
+    print("----------------------------- station configured : REBOOT ---------------------------------")
+    print("reboot:",rpcproxy.reboot())
         
-        transport.close()
+    transport.close()
 
 
 def send2http(body="",user=None,password=None,url=None,login_url=None):
@@ -1437,6 +1507,11 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False,dump
                 pass
             try:
                 transport=board.transporttcpip
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transportcan
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
@@ -1696,6 +1771,10 @@ def object_auth(object,user):
         if object.board.stationmetadata.user.username == user:
             return True
 
+    if isinstance(object,TransportCan):
+        if object.board.stationmetadata.user.username == user:
+            return True
+        
     if isinstance(object,StationConstantData):
         if object.stationmetadata.user.username == user:
             return True

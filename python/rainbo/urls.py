@@ -4,12 +4,7 @@ import rainbo.views
 import insertdata.views
 import showdata.views
 from rmap.stations.form import RmapRegistrationForm
-from registration.backends.default.views import RegistrationView
-
-
-from rmap.stations.form import RmapRegistrationForm
-#from registration.forms import RegistrationFormTermsOfService
-from registration.backends.default.views import RegistrationView
+from rmap.registration.backends.default.views import RegistrationView
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -38,7 +33,7 @@ urlpatterns = [
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
-    url(r'^registrazione/', include('registration.backends.default.urls')),
+    url(r'^registrazione/', include('rmap.registration.backends.default.urls')),
     url(r'^accounts/profile/$',
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 

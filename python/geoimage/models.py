@@ -54,7 +54,7 @@ class GeorefencedImage(models.Model):
     geom = PointField()
     comment = models.TextField()
     #image = DeletingImageField()
-    ident = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
     date=models.DateTimeField(auto_now=False, auto_now_add=False)
     category = models.CharField(max_length=50, blank=False,choices=CATEGORY_CHOICES)
 
@@ -81,12 +81,12 @@ class GeorefencedImage(models.Model):
             {}\
             </p>\
             <p><a href="/geoimage/{}">{}</a> {}</p>'.format(
-                self.ident,
+                self.user,
                 self.id,
                 self.image_thumbnail.url,
                 self.comment,
-                self.ident,
-                self.ident,
+                self.user,
+                self.user,
                 self.date
             )
 

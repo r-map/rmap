@@ -1,0 +1,9 @@
+include django-borinud.spec
+include LICENSE
+global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
+recursive-include doc *
+recursive-include locale *
+recursive-include debian *
+
+recursive-include borinud/static *
+recursive-include borinud/templates *

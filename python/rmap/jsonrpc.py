@@ -823,7 +823,10 @@ class TransportSERIAL(Transport):
             self.log( "serial port (%s): %s" % ("RECEIVE",string) )
 
         self.ser.flushInput()  # del buffer in timeout case
-        return string[:-1]
+        if (string[-1] == "\n"):
+            return string[:-1]
+        else:
+            return string
 
     def close (self):
         self.ser.close()
@@ -1106,6 +1109,29 @@ class TransportSTDINOUT(Transport):
     def close (self):
         pass
 
+class TransportHTTPREPONSE(Transport):
+    """manage django HTTPresponse.
+
+    Useful for jsrpc notification only
+    """
+
+    def __init__(self,response,logfunc=log_dummy):
+        self.response=response
+        
+    def send(self, string):
+        """write data to STREAM with '***SEND:' prefix """
+        print("***SEND:")
+        self.response.write(string)
+
+    def sendrecv( self, string ):
+        """send + receive data"""
+        self.send( string )
+        return ""
+        
+    def close (self):
+        return self.response
+
+    
 class TransportDUMMY(Transport):
     """receive from STDIN, send to STDOUT.
 

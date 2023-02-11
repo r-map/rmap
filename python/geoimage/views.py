@@ -44,13 +44,13 @@ def showImage(request,ident=None):
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end).order_by("date")
     else:
         print("query:",datetime_start,datetime_end,ident)
-        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,ident__username=ident).order_by("date")
+        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,user__username=ident).order_by("date")
 
     return render(request, 'geoimage/georefencedimage_list.html',{'form': form,"grimages":grimages,"ident":ident})
 
 
 def showOneImage(request,ident,id):
-    grimage=GeorefencedImage.objects.get(ident__username=ident,id=id)
+    grimage=GeorefencedImage.objects.get(user__username=ident,id=id)
     print("grimage")
     print(grimage)
     return render(request, 'geoimage/georefencedimage.html',{"grimage":grimage})

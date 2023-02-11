@@ -492,10 +492,16 @@ def acl(request):
                                                 "1/rpc/"+username+"/"+mytopic
                                             )
                                     ):
-                                        if (topic.split("/")[5] == mynetwork):
-                                            response=HttpResponse("allow")
-                                            response.status_code=200
-                                            return response
+                                        if acc == "2" or acc == "3":
+                                            if (topic.split("/")[5] == mynetwork):
+                                                response=HttpResponse("allow")
+                                                response.status_code=200
+                                                return response
+                                        else:
+                                                response=HttpResponse("allow")
+                                                response.status_code=200
+                                                return response
+                                            
                                         
                 except ObjectDoesNotExist:
                     pass
@@ -540,12 +546,17 @@ def acl(request):
                             "rpc/"+username+mytopic
                         )
                 ):
-                    # check possible network
-                    if (topic.split("/")[3] == "fixed" or topic.split("/")[3] == "mobile"):
+                    if acc == "2" or acc == "3":
+                        # check possible network
+                        if (topic.split("/")[3] == "fixed" or topic.split("/")[3] == "mobile"):
+                            response=HttpResponse("allow")
+                            response.status_code=200
+                            return response
+                    else:
                         response=HttpResponse("allow")
                         response.status_code=200
                         return response
-                
+
     response=HttpResponse("deny")
     response.status_code=403
     return response

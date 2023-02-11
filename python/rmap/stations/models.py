@@ -716,7 +716,7 @@ class Board(models.Model):
 
 
 class StationMaintStatus(models.Model):
-    """Board status based on maint messages over MQTT."""
+    """Station status based on maint messages over MQTT."""
 
     station = models.OneToOneField("StationMetadata",on_delete=models.CASCADE)
     

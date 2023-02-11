@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: borinud
+Version: 1.0
+Summary: borinud django app
+Home-page: https://github.com/r-map/rmap
+Author: Paolo Patruno
+Author-email: p.patruno@iperbole.bologna.it
+License: GNU GPL v2
+Description: UNKNOWN
+Platform: any
+Provides-Extra: borinud

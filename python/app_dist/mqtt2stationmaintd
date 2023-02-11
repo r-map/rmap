@@ -1,0 +1,417 @@
+#!/usr/bin/python3
+# mqtt2stationmaintd - Update station information with the last status
+# received from MQTT maint rootpath
+#
+# Copyright (C) 2021  Paolo Patruno <p.patruno@iperbole.bologna.it>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Author: Paolo Patruno <p.patruno@iperbole.bologna.it>
+
+OVERWRITE_DATE=False
+
+import os,sys
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
+import signal
+import re
+import json
+from django.utils import timezone
+import paho.mqtt.client as mqtt
+import logging,traceback
+from rmap.stations.models import StationMaintStatus,StationMetadata
+
+
+from rmap import daemon
+import rmap.settings
+
+TOPIC_RE_V0 = re.compile((
+    r'^.*/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
+
+TOPIC_RE_V1 = re.compile((
+    r'^1/[^/]+/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<ident>[^/]*)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
+
+class MyMQTTClass(mqtt.Client):
+
+
+    def parse_topic_v0(self,topic):
+        match = TOPIC_RE_V0.match(topic)
+        if match is None:
+            logging.info("SKIP topic V0: {}".format(topic))
+            return None
+        else:
+            g = match.groupdict()
+            return {
+                "user": None if g["user"] == "-" else g["user"],
+                "ident": None,
+                "lon": int(g["lon"]),
+                "lat": int(g["lat"]),
+                "rep_memo": g["rep"],
+                "level": (
+                    None if g["lt1"] == "-" else int(g["lt1"]),
+                    None if g["lv1"] == "-" else int(g["lv1"]),
+                    None if g["lt2"] == "-" else int(g["lt2"]),
+                    None if g["lv2"] == "-" else int(g["lv2"]),
+                ),
+                "trange": (
+                    None if g["pind"] == "-" else int(g["pind"]),
+                    None if g["p1"] == "-" else int(g["p1"]),
+                    None if g["p2"] == "-" else int(g["p2"]),
+                ),
+                "var": g["var"],
+            }
+
+
+    def parse_topic_v1(self,topic):
+        match = TOPIC_RE_V1.match(topic)
+        if match is None:
+            logging.info("SKIP topic V1: {}".format(topic))
+            return None
+        else:
+            g = match.groupdict()
+            return {
+                "user": None if g["user"] == "" else g["user"],
+                "ident": g["ident"],
+                "lon": int(g["lon"]),
+                "lat": int(g["lat"]),
+                "rep_memo": g["rep"],
+                "level": (
+                    None if g["lt1"] == "-" else int(g["lt1"]),
+                    None if g["lv1"] == "-" else int(g["lv1"]),
+                    None if g["lt2"] == "-" else int(g["lt2"]),
+                    None if g["lv2"] == "-" else int(g["lv2"]),
+                ),
+                "trange": (
+                    None if g["pind"] == "-" else int(g["pind"]),
+                    None if g["p1"] == "-" else int(g["p1"]),
+                    None if g["p2"] == "-" else int(g["p2"]),
+                ),
+                "var": g["var"],
+            }
+
+        
+    def parse_payload(self,payload):
+        return json.loads(payload)
+
+
+    def parse_message(self,topic, payload):
+
+        if topic.startswith("1/"):
+            msg = self.parse_topic_v1(topic)
+        else:
+            msg = self.parse_topic_v0(topic)
+        
+        if msg is None:
+            return None
+
+        try:
+            p = self.parse_payload(payload)
+            msg["value"] = p["v"]
+            msg["majorversion"] = p.get("s")
+            msg["minorversion"] = p.get("m")
+        except:
+            return None
+            
+        if all([
+                msg["level"] != (None, None, None, None),
+                msg["trange"] != (None, None, None)]):
+            if "t" in msg:
+                msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+            else:
+                msg["datetime"] = timezone.now()
+        else:
+            msg["datetime"] = None
+
+        if "a" in p:
+            msg["attributes"] = p["a"]
+        else:
+            msg["attributes"] = {}
+            
+        return msg
+
+    def on_connect(self,client, userdata, flags, rc):
+        for topic in userdata["topics"]:
+            client.subscribe(topic,qos=userdata.get("qos",0))
+
+
+    def on_message(self,client, userdata, message):
+        
+        if userdata["logging"]:
+            logging=userdata["logging"]            
+
+        try:
+
+            # clear and skip retained messages !
+            if message.retain != 0:
+                logging.info("Clearing retained message: {} {}".format(message.topic,message.payload.decode("utf-8")))
+                (rc, mid) = self.publish(message.topic, None, 1, True)
+                return
+                
+            m = self.parse_message(message.topic, message.payload.decode("utf-8"))
+            if m is None:
+                return
+
+            if all([
+                m["level"] != (None, None, None, None),
+                m["trange"] != (None, None, None),
+                userdata["overwrite_date"],
+            ]):
+                m["datetime"] = timezone.now()
+                
+            logging.debug(">>>>>>>>>>>>>>>>>>>>>>>>")
+            logging.debug(m["datetime"])
+            logging.debug(m["rep_memo"])
+            logging.debug(m["user"])
+            logging.debug(m["ident"])
+            logging.debug(m["lon"])
+            logging.debug(m["lat"])
+            logging.debug(m["level"])
+            logging.debug(m["trange"])
+            logging.debug(m["var"])
+            logging.debug(m["value"])
+            logging.debug(m["majorversion"])
+            logging.debug(m["minorversion"])
+
+            for b, v in m["attributes"].items():
+                logging.debug("ignore: {} {}".format(b, v))
+            logging.debug("-----------------------")
+
+
+            if all([
+                m["level"] == (265, 0, None, None),
+                m["trange"] == (254, 0, 0),
+                m["var"] == "B01213",
+                    ]):
+
+                try:
+                    mystation = StationMetadata.objects.get(network=m["rep_memo"]
+                                                            ,lon=m["lon"]/100000.
+                                                            ,lat=m["lat"]/100000.
+                                                            ,user__username=m["user"]
+                                                            ,ident=m["ident"] )
+
+                    if hasattr(mystation, 'stationmaintstatus'):
+
+                        logging.info("update maint information to station {} {} {} {} {}: {} {} {} {}".format
+                                      (mystation.network
+                                       ,mystation.lon
+                                       ,mystation.lat
+                                       ,mystation.user
+                                       ,mystation.ident
+                                       ,m["value"]
+                                       ,m["majorversion"]
+                                       ,m["minorversion"]
+                                       ,m["datetime"])                                
+                                     )
+
+                        mystation.stationmaintstatus.laststatus    = m["value"]
+                        mystation.stationmaintstatus.lastupdate    = m["datetime"]
+                        mystation.stationmaintstatus.firmwaremajor = m["majorversion"]
+                        mystation.stationmaintstatus.firmwareminor = m["minorversion"]
+                        mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
+                        if (m["value"] == "conn"): mystation.stationmaintstatus.save(update_fields=['firmwaremajor','firmwareminor'])
+
+                    else:
+
+                        logging.info("add maint information to station {} {} {} {} {}: {} {} {} {}".format
+                                      (mystation.network
+                                       ,mystation.lon
+                                       ,mystation.lat
+                                       ,mystation.user
+                                       ,mystation.ident
+                                       ,m["value"]
+                                       ,m["datetime"]                            
+                                       ,m["majorversion"]
+                                       ,m["minorversion"])
+                                     )
+
+                        sms=StationMaintStatus(station=mystation,laststatus=m["value"], lastupdate=m["datetime"], firmwaremajor=m["majorversion"], firmwareminor=m["minorversion"])
+                        sms.save()
+
+                except StationMetadata.DoesNotExist :
+                    logging.debug("user/station not present on DB; ignore it: {} {} {} {}".format
+                                  (m["rep_memo"]
+                                   ,m["lon"]/100000.
+                                   ,m["lat"]/100000.
+                                   ,m["user"]
+                                   ,m["ident"]))
+            else:
+                logging.info("Ignore maint message {} {}".format(message.topic, message.payload.decode("utf-8")))
+
+        except Exception:
+            logging.error(traceback.format_exc())
+
+
+mqtt2stationmaint = daemon.Daemon(
+    stdin="/dev/null",
+    stdout=rmap.settings.logfilemqtt2stationmaintd,
+    stderr=rmap.settings.errfilemqtt2stationmaintd,
+    pidfile=rmap.settings.lockfilemqtt2stationmaintd,
+    user=rmap.settings.usermqtt2stationmaintd,
+    group=rmap.settings.groupmqtt2stationmaintd
+)
+
+# catch signal to terminate the process
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
+
+    def keyboard_interrupt(self):
+        self.kill_now = True
+
+    def terminate(self):
+        self.kill_now = True
+
+def main(self):
+
+    import os,sys,time
+    import logging.handlers
+    import subprocess
+
+    #arm the signal handler
+    killer = GracefulKiller()
+
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up mqtt2stationmaintd')
+
+    # here we can start other procs/consumer
+    #send_queue = queue.Queue(maxsize=1000000)
+    #amqp=amqpConsumerProducer(host=host,exchange=exchange,user=user,password=password,send_queue=send_queue,logging=logging)
+    #amqp.start()
+    
+    # If you want to use a specific client id, use
+    # mqttc = MyMQTTClass("client-id")
+    # but note that the client id must be unique on the broker. Leaving the client
+    # id parameter empty will generate a random id for you.
+
+    #    mqtt2stationmaint.main(
+    #        host=self.options.host,
+    #        topics=rmap.settings.subtopicmaint, username=self.options.username, password=self.options.pw,
+    #        debug=self.options.debug, overwrite_date=self.options.overwrite_date,
+    #    )
+
+    mqttuser=rmap.settings.mqttuser
+    mqttpassword=rmap.settings.mqttpassword
+    host=rmap.settings.mqtthost
+ 
+    mqttclient = MyMQTTClass(
+        userdata={
+            "topics": [rmap.settings.subtopicmaint,"1/"+rmap.settings.subtopicmaint],
+            "logging": logging,
+            "overwrite_date": OVERWRITE_DATE,
+            "qos":0},
+        client_id=mqttuser+"/mqttstaionmaint/"+rmap.settings.subtopicmaint,
+        clean_session=True
+        # qos=1 required by clean_session=False
+    )
+
+    if mqttuser:
+        mqttclient.username_pw_set(mqttuser, mqttpassword)
+    
+    mqttclient.enable_logger(logging)
+    mqttclient.loop_start()
+    mqttclient.connect(host=host)
+
+    
+    # infinite loop
+    while True:
+        try:
+            time.sleep(3) # do nothing
+        except Exception as exception:
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            killer.terminate()
+            
+        # terminate on keyboard interrupt
+        except KeyboardInterrupt:
+            sys.stdout.write("keyboard interrupt\n")
+            logging.info("keyboard interrupt\n")
+            killer.keyboard_interrupt()
+
+        # terminate without error
+        # no exception was raised
+        #logging.info('work finished')
+
+
+        # check if we have to terminate together with other exceptions
+        if killer.kill_now:
+            logging.info("killed by signal\n")
+
+            mqttclient.disconnect()
+            mqttclient.loop_stop()
+            logging.debug("MQTT connection closed")
+            
+            return False
+    
+
+if __name__ == '__main__':
+
+    import sys, os
+    
+    mqtt2stationmaint.cwd=os.getcwd()
+
+    if mqtt2stationmaint.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+
+        main(mqtt2stationmaint)  # (this code was run as script)
+            
+        for proc in mqtt2stationmaint.procs:
+            proc.wait()
+
+        sys.stdout.write("Daemon stoppped\n")
+        sys.exit(0)

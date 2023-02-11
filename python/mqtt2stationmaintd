@@ -137,6 +137,8 @@ class MyMQTTClass(mqtt.Client):
 
     def parse_message(self,topic, payload):
 
+        logging.info("parse message: {} {}".format(topic,payload))
+
         if topic.startswith("1/"):
             msg = self.parse_topic_v1(topic)
         else:
@@ -151,6 +153,7 @@ class MyMQTTClass(mqtt.Client):
             msg["majorversion"] = p.get("s")
             msg["minorversion"] = p.get("m")
         except:
+            logging.error(traceback.format_exc())
             return None
             
         if all([
@@ -172,6 +175,7 @@ class MyMQTTClass(mqtt.Client):
 
     def on_connect(self,client, userdata, flags, rc):
         for topic in userdata["topics"]:
+            logging.info("subscribe to topic: {}".format(topic))
             client.subscribe(topic,qos=userdata.get("qos",0))
 
 
@@ -346,7 +350,7 @@ def main(self):
 
     mqttuser=rmap.settings.mqttuser
     mqttpassword=rmap.settings.mqttpassword
-    host=rmap.settings.amqphost
+    host=rmap.settings.mqtthost
  
     mqttclient = MyMQTTClass(
         userdata={

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2021  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2023  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -40,7 +40,9 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2022-05-30T00:00"
+#define SOFTWARE_VERSION "2023-01-21T00:00"    // date and time
+#define MAJOR_VERSION    "20230121"            // date  YYYYMMDD
+#define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -485,8 +487,8 @@ bool publish_maint() {
   }
   LOGN(F("MQTT connected" CR));
   yield();
-  
-  if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
+  if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\",\"s\":" MAJOR_VERSION ",\"m\":" MINOR_VERSION "}   ", 34,1)){ //padded 3 blank char for time
+    //if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
     LOGE(F("MQTT maint not published" CR));
     mqttclient.disconnect();
     return false;

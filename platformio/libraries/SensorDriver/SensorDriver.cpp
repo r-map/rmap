@@ -2260,14 +2260,22 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
 #endif
 
 //------------------------------------------------------------------------------
-// Wind Speed and Direction sensor's
+// Wind Speed and Direction i2-wind module V3
 // USE_SENSOR_DWA:
 // USE_SENSOR_DWB:
+// USE_SENSOR_DWC:
+// USE_SENSOR_DWD:
+// USE_SENSOR_DWE:
+// USE_SENSOR_DWF:
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
 
 void SensorDriverWind::resetPrepared(bool is_test) {
   _get_state = INIT;
+  if (!is_test) {
+    _is_previous_prepared = _is_current_prepared;
+    _is_current_prepared = false;
+  }
   *_is_prepared = false;
 }
 
@@ -2295,10 +2303,12 @@ void SensorDriverWind::setup() {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	LOGN("scritto %d, %d",_address,i+1);      
 	_error_count = 0;
         _is_success = true;
         *_is_setted = true;
       }else{
+	LOGE("scritto errore");
 	_error_count++;
       }	
     }
@@ -2325,9 +2335,13 @@ void SensorDriverWind::prepare(bool is_test) {
     if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWE) == 0) || (strcmp(_type, SENSOR_TYPE_DWF) == 0)) {
       is_i2c_write = true;
       _buffer[i++] = I2C_COMMAND_ID;
-      _buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START_STOP;
+      if (is_test) {
+        _buffer[i++] = I2C_WIND_COMMAND_TEST_READ;
+      } else {
+	_buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START_STOP;
+      }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 0;
+      _delay_ms = 100;   // no less then 32 ms
     }
 
     if (is_i2c_write) {
@@ -2348,6 +2362,7 @@ void SensorDriverWind::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
+  if(!is_test)_is_current_prepared = *_is_prepared;  
   LOGT(F("wind prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
@@ -2356,9 +2371,10 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
-
+  
   #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
-  float val;
+  uint16_t val16;
+  uint8_t  val8;
   uint8_t *val_ptr;
   #endif
 
@@ -2369,27 +2385,27 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
       }
 
       if (strcmp(_type, SENSOR_TYPE_DWA) == 0) {
-        val = FLT_MAX;
+        val16 = UINT16_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWB) == 0) {
-        val = FLT_MAX;
+        val16 = UINT16_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
-        val = FLT_MAX;
+        val16 = UINT16_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
-        val = FLT_MAX;
+        val16 = UINT16_MAX;
         variable_length = 1;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
-        val = FLT_MAX;
+        val8 = UINT8_MAX;
         variable_length = 6;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
-        val = FLT_MAX;
+        val16 = UINT16_MAX;
         variable_length = 2;
       }
 
@@ -2420,64 +2436,94 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
       #if (USE_SENSOR_DWA)
       if (strcmp(_type, SENSOR_TYPE_DWA) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_VAVG10_LENGTH;
-        _buffer[i++] = I2C_WIND_VAVG10_ADDRESS;
-        _buffer[i++] = I2C_WIND_VAVG10_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	if (is_test){      //TODO with samples
+	  data_length = I2C_WIND_SAMPLE_LENGTH;
+	  _buffer[i++] = I2C_WIND_SAMPLE_ADDRESS;
+	  _buffer[i++] = I2C_WIND_SAMPLE_LENGTH;
+	} else {
+	  data_length = I2C_WIND_VAVG10_LENGTH;
+	  _buffer[i++] = I2C_WIND_VAVG10_ADDRESS;
+	  _buffer[i++] = I2C_WIND_VAVG10_LENGTH;
+	}
+	is_i2c_write = true;
+	_buffer[i] = crc8(_buffer, i);
       }
       #endif
-
+      
       #if (USE_SENSOR_DWB)
       if (strcmp(_type, SENSOR_TYPE_DWB) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_VAVG_LENGTH;
-        _buffer[i++] = I2C_WIND_VAVG_ADDRESS;
-        _buffer[i++] = I2C_WIND_VAVG_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	if (is_test){      //TODO with samples
+	  data_length = I2C_WIND_SAMPLE_LENGTH;
+	  _buffer[i++] = I2C_WIND_SAMPLE_ADDRESS;
+	  _buffer[i++] = I2C_WIND_SAMPLE_LENGTH;
+	} else {
+	  data_length = I2C_WIND_VAVG_LENGTH;
+	  _buffer[i++] = I2C_WIND_VAVG_ADDRESS;
+	  _buffer[i++] = I2C_WIND_VAVG_LENGTH;
+	}	
+	is_i2c_write = true;
+	_buffer[i] = crc8(_buffer, i);
       }
-      #endif
-
+        #endif
+      
       #if (USE_SENSOR_DWC)
       if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_GUST_SPEED_LENGTH;
-        _buffer[i++] = I2C_WIND_GUST_SPEED_ADDRESS;
-        _buffer[i++] = I2C_WIND_GUST_SPEED_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	if (is_test){      //TODO with samples
+	  data_length = I2C_WIND_SAMPLE_LENGTH;
+	  _buffer[i++] = I2C_WIND_SAMPLE_ADDRESS;
+	  _buffer[i++] = I2C_WIND_SAMPLE_LENGTH;
+	} else {
+	  data_length = I2C_WIND_GUST_SPEED_LENGTH;
+	  _buffer[i++] = I2C_WIND_GUST_SPEED_ADDRESS;
+	  _buffer[i++] = I2C_WIND_GUST_SPEED_LENGTH;
+	}
+	is_i2c_write = true;
+	_buffer[i] = crc8(_buffer, i);
       }
       #endif
-
+      
       #if (USE_SENSOR_DWD)
       if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_SPEED_LENGTH;
-        _buffer[i++] = I2C_WIND_SPEED_ADDRESS;
-        _buffer[i++] = I2C_WIND_SPEED_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	if (is_test){
+	  data_length = I2C_WIND_SPEED_LENGTH;;
+	  _buffer[i++] = I2C_WIND_SAMPLE_ADDRESS;  // only one!
+	  _buffer[i++] = I2C_WIND_SPEED_LENGTH;
+	} else {
+	  data_length = I2C_WIND_SPEED_LENGTH;
+	  _buffer[i++] = I2C_WIND_SPEED_ADDRESS;
+	  _buffer[i++] = I2C_WIND_SPEED_LENGTH;
+	}
+	is_i2c_write = true;
+	_buffer[i] = crc8(_buffer, i);
       }
       #endif
-
+      
       #if (USE_SENSOR_DWE)
       if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_CLASS_LENGTH;
-        _buffer[i++] = I2C_WIND_CLASS_ADDRESS;
-        _buffer[i++] = I2C_WIND_CLASS_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	is_i2c_write = true;
+	data_length = I2C_WIND_CLASS_LENGTH;
+	_buffer[i++] = I2C_WIND_CLASS_ADDRESS;
+	_buffer[i++] = I2C_WIND_CLASS_LENGTH;
+	_buffer[i] = crc8(_buffer, i);
       }
       #endif
-
+      
       #if (USE_SENSOR_DWF)
       if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
-        is_i2c_write = true;
-        data_length = I2C_WIND_GUST_DIRECTION_LENGTH;
-        _buffer[i++] = I2C_WIND_GUST_DIRECTION_ADDRESS;
-        _buffer[i++] = I2C_WIND_GUST_DIRECTION_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
+	if (is_test){
+	  data_length = I2C_WIND_SAMPLE_LENGTH;
+	  _buffer[i++] = I2C_WIND_SAMPLE_ADDRESS;
+	  _buffer[i++] = I2C_WIND_SAMPLE_LENGTH;
+	} else {
+	  data_length = I2C_WIND_GUST_DIRECTION_LENGTH;
+	  _buffer[i++] = I2C_WIND_GUST_DIRECTION_ADDRESS;
+	  _buffer[i++] = I2C_WIND_GUST_DIRECTION_LENGTH;
+	}
+	is_i2c_write = true;
+	_buffer[i] = crc8(_buffer, i);
       }
       #endif
-
+      
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
         Wire.write(_buffer, i+1);
@@ -2536,45 +2582,37 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
     case GET_VALUE:
       #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
-      if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWE) == 0) || (strcmp(_type, SENSOR_TYPE_DWF) == 0)) {
-        if (length >= variable_count + 1) {
-          val_ptr = (uint8_t*) &val;
 
-          for (i = 0; i < 4; i++) {
+      if (length >= variable_count + 1) {
+	if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWF) == 0)) {
+          val_ptr = (uint8_t*) &val16;
+	  
+          for (i = 0; i < 2; i++) {
             *(val_ptr + i) = _buffer[offset + i];
           }
+          offset += 2;
+	  
+	  if (_is_success && ISVALID(val16)) {
+	    // speed or direction
+	    values[variable_count] = (int32_t) val16;
+	  }
+	}else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
 
-          if (_is_success && ISVALID_FLOAT(val)) {
-            if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
-              // speed
-              if ((variable_count == 0)) {
-                values[variable_count] = (int32_t) round(val * 10.0);
-              }
-              // direction
-              else {
-                values[variable_count] = (int32_t) round(val);
-              }
-            }
-            // speed
-            else if ((strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0)) {
-              values[variable_count] = (int32_t) round(val * 10.0);
-            }
-            // speed class percent
-            else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
-              values[variable_count] = (int32_t) round(val);
-            }
-            // direction
-            else if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
-              values[variable_count] = (int32_t) round(val);
-            }
+          val_ptr = (uint8_t*) &val8;
+	  
+          for (i = 0; i < 1; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
           }
-          else {
-            values[variable_count] = INT32_MAX;
-            _is_success = false;
-          }
-
-          offset += 4;
-        }
+          offset += 1;
+	  
+	  // speed class percent
+	  if (_is_success && ISVALID_UINT8(val8)) {
+	    values[variable_count] = (int32_t) val8;
+	  }
+	}
+      } else {
+	values[variable_count] = INT32_MAX;
+	_is_success = false;
       }
       #endif
 
@@ -2582,7 +2620,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
       _delay_ms = 0;
       _start_time_ms = millis();
-
+      
       if ((variable_count >= length) || (variable_count >= variable_length)) {
         _get_state = END;
       }
@@ -2590,7 +2628,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
         _get_state = SET_ADDRESS;
       }
       break;
-
+      
     case END:
       SensorDriver::printInfo();
       if (_is_success){
@@ -2670,7 +2708,7 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
 
         JsonArray p = json.createNestedArray("p");
 
-        for (uint8_t i = 0; i < 6; i++) {
+        for (uint8_t i = 0; i < length; i++) {
           if (ISVALID_INT32(values[i])) {
             p.add(values[i]);
           }

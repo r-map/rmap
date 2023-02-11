@@ -56,6 +56,7 @@ configspec['daemon']={}
 configspec['daemon']['amqphost']        = "string(default='localhost')"
 configspec['daemon']['amqpuser']        = "string(default='rmap')"
 configspec['daemon']['amqppassword']    = "string(default='rmap')"
+configspec['daemon']['mqtthost']        = "string(default='localhost')"
 configspec['daemon']['mqttuser']        = "string(default='rmap')"
 configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 
@@ -296,6 +297,7 @@ CACHE_LOCATION          = config['django']['CACHE_LOCATION']
 amqphost                = config['daemon']['amqphost']
 amqpuser                = config['daemon']['amqpuser']
 amqppassword            = config['daemon']['amqppassword']
+mqtthost                = config['daemon']['mqtthost']
 mqttuser                = config['daemon']['mqttuser']
 mqttpassword            = config['daemon']['mqttpassword']
 
@@ -780,6 +782,21 @@ sample_measurements=\
         "trange": (254, 0, 0),
     },
     {
+        "var": "B15202",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15203",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15242",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
         "var": "B15195",
         "level": (103, 2000, None, None),
         "trange": (254, 0, 0),
@@ -816,6 +833,21 @@ sample_measurements=\
     },
     {
         "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15202",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15203",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15242",
         "level": (103, 2000, None, None),
         "trange": (0, 0, 60),
     },
@@ -957,6 +989,21 @@ report_measurements=\
         "var": "B15198",
         "level": (103, 2000, None, None),
         "trange": (0, 0, 86400),
+    },
+    {
+        "var": "B15202",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B15203",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B15242",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
     },
     {
         "var": "B15195",
@@ -1332,6 +1379,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
         {"import": 'contacts',                       "apps": ('contacts'   ,)},
         {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
+        {"import": 'firmware_updater_stima',         "apps": ('firmware_updater_stima',)},
         {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
     )
 

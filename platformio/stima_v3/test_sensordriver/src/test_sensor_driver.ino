@@ -13,8 +13,8 @@
 #define SENSORS_RETRY_DELAY_MS                        (50)
 
 
-#define DELAY_ACQ_MS          (60000)
-#define DELAY_TEST_MS         (5000)
+#define DELAY_ACQ_MS          (900000)
+#define DELAY_TEST_MS         (10000)
 
 typedef enum {
   SENSORS_READING_INIT,
@@ -123,7 +123,51 @@ void init_sensors () {
   address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSA, address, 1, sensors, &sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif
+
+  #if (USE_SENSOR_DWA)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWA, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
+
+  #if (USE_SENSOR_DWB)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWB, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
+
+  #if (USE_SENSOR_DWC)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWC, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
+
+  #if (USE_SENSOR_DWD)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWD, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
+
+  #if (USE_SENSOR_DWE)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWE, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
+
+  #if (USE_SENSOR_DWF)
+  #include <registers-wind.h>
+  address = I2C_WIND_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWF, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
+
+  
 }
 
 void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *driver = NULL, char *type = NULL, uint8_t address = 0, uint8_t node = 0, uint8_t *sensor_index = 0, uint32_t *wait_time = NULL) {
@@ -398,6 +442,8 @@ void init_wire() {
   i2c_error = 0;
   Wire.begin();
   Wire.setClock(I2C_BUS_CLOCK);
+  digitalWrite(SDA, HIGH);
+  digitalWrite(SCL, HIGH);
 }
 
 void check_i2c_bus () {

@@ -499,7 +499,7 @@ Aggiunta repository e installazione pacchetti da utente amministratore
   dnf install yum-plugin-copr
   dnf copr enable simc/stable
   dnf copr enable pat1/rmap
-  dnf config-manager --set-enabled PowerTool
+  dnf config-manager --set-enabled powertool
   dnf groupinstall rmap
 
 
@@ -559,23 +559,16 @@ Modulo Stima GSM/GPRS
       utile per il report nella #define STATISTICAL_DATA_COUNT (in
       genere 15)
 
-6. Aprire il file gsm_config.h nella cartella
-   platformio/stima_v3/stima/include:
+6. Impostare il microcontrollore su core+1284 a 5V
 
-   -  Settare la #define GSM_DEFAULT_APN con il valore dell’APN o con il
-      valore di una delle #define predefinite ed incluse nel medesimo
-      file
-
-7. Impostare il microcontrollore su core+1284 a 5V
-
-8. Compilare il firmware e caricarlo attraverso il cavo USB
+7. Compilare il firmware e caricarlo attraverso il cavo USB
    tramite il comando:
    ::
    
       cd platformio/stima_v3/stima
       pio run -e 1284p16m -t upload
    
-9. Inserire il jumper sulla board Stima I2C-Base, configurare la
+8. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata
 
 
