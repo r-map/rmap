@@ -15,20 +15,26 @@ from django.core import serializers
 from rmap.jsonrpc import TransportHTTPREPONSE
 
 
-class StationList(ListView):
-    paginate_by = 25
-    model = StationMetadata
-    def get_queryset(self):
+def mystationmetadata_list(request,user=None):
 
-        if 'search' in self.request.GET:
-            objects = StationMetadata.objects.filter(
-                Q(user__username__icontains=self.request.GET['search']) | Q(slug__icontains=self.request.GET['search'])
-            )
-        else:
-            objects = StationMetadata.objects.all()
+    if (user is None):
+        query=Q()
+    else:
+        query = Q(user__username=user)
         
-        return objects
+    if 'search' in request.GET:
+        search = request.GET['search']
+        query = query & Q(user__username__icontains=search) | Q(slug__icontains=search)
+    else:
+        search = None
 
+    mystations = StationMetadata.objects.filter(query)
+
+    paginator = Paginator(mystations, 25) # Show 25 contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'stations/stationmetadata_list.html',{"page_obj":page_obj,"user":user,"search":search})
+    
     
 class StationDetail(DetailView):
     model = StationMetadata
@@ -72,12 +78,6 @@ def mystationmetadata_del(request,user,slug):
 
 
 
-def mystationmetadata_list(request,user):
-    mystations=StationMetadata.objects.filter(user__username=user)
-    paginator = Paginator(mystations, 25) # Show 25 contacts per page.
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'stations/stationmetadata_list.html',{"page_obj":page_obj,"user":user})
 
 def mystationmetadata_detail(request,user,slug):
 
@@ -167,13 +167,19 @@ def mystationmetadata_json(request,user,station_slug,board_slug=None,dump=False)
 
     
 def StationsOnMap(request,user=None,slug=None):
-    if user is None:
-        stations=StationMetadata.objects.exclude(lat=None,lon=None)
-    else:
-        if slug is None:
-            stations=StationMetadata.objects.filter(user__username=user).exclude(lat=None,lon=None)
-        else:
-            stations=StationMetadata.objects.filter(user__username=user,slug=slug).exclude(lat=None,lon=None)
 
-    print(stations,user,slug)
+    if (user is None):
+        query=Q()
+    else:
+        query = Q(user__username=user)
+        
+    if not slug is None:
+        query = query & Q(user__username=user)
+        
+    if 'search' in request.GET:
+        query = query & Q(user__username__icontains=request.GET['search']) | Q(slug__icontains=request.GET['search'])
+
+
+    stations=StationMetadata.objects.filter(query).exclude(lat=None,lon=None)
+
     return render(request, 'stations/stationsonmap.html',{"stations":stations,"user":user,"slug":slug})
