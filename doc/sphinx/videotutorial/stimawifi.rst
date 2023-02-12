@@ -19,7 +19,7 @@ La procedura per registrare un nuovo utente è semplice, basta avere una email p
 
 .. raw:: html
 
-        <div class="externalvid"><iframe class="pip" src="https://player.vimeo.com/video/771496724?h=1888d9a3a7&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="rmap_nuovo_utente.mp4"></iframe></div>
+        <div class="externalvid"><iframe class="pip" src="https://player.vimeo.com/video/771496724?h=1888d9a3a7&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Registrazione di un nuovo utente su server RMAP"></iframe></div>
 
 Registrazione nuova stazione
 ----------------------------
