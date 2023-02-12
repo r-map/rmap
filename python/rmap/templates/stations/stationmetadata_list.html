@@ -7,7 +7,7 @@
 
     <h2 id="striped-rows">{% trans 'Stations' %}</h2>
 
-    <h3 id="striped-rows"><a href="{% url 'stationsonmap' %}"><i class="fa fa-map-marker"></i> {% trans 'View on the map' %}</a></h3>
+    <h3 id="striped-rows"><a href="{% if user %} {% url 'stationsonmap' user %} {% else %} {% url 'stationsonmap' %} {% endif %}"><i class="fa fa-map-marker"></i> {% trans 'View on the map' %}</a></h3>
 
     <div class="table-responsive">
 
