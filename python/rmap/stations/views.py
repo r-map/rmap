@@ -24,7 +24,7 @@ def mystationmetadata_list(request,user=None):
         
     if 'search' in request.GET:
         search = request.GET['search']
-        query = query & Q(user__username__icontains=search) | Q(slug__icontains=search)
+        query = query & (Q(user__username__icontains=search) | Q(slug__icontains=search))
     else:
         search = None
 
@@ -177,7 +177,7 @@ def StationsOnMap(request,user=None,slug=None):
         query = query & Q(user__username=user)
         
     if 'search' in request.GET:
-        query = query & Q(user__username__icontains=request.GET['search']) | Q(slug__icontains=request.GET['search'])
+        query = query & (Q(user__username__icontains=request.GET['search']) | Q(slug__icontains=request.GET['search']))
 
 
     stations=StationMetadata.objects.filter(query).exclude(lat=None,lon=None)
