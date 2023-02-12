@@ -28,7 +28,7 @@ urlpatterns = [
                            mystationmetadata_list ,name='stationmetadata-list' ),
 
                        url(r'^stations/(?P<user>[-_\w]+)/$',
-                           mystationmetadata_list ,name='mystationmetadata_list'),
+                           mystationmetadata_list ,name='mystationmetadata-list'),
 
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_detail ,name='mystationmetadata-detail'),
