@@ -188,7 +188,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
 {
     #ifdef CHECK_FLASH_WRITE
     // check data (W->R) Verify Flash integrity OK    
-    uint8_t check_data[256];
+    uint8_t check_data[FLASH_BUFFER_SIZE];
     #endif
     // Request New File Init Upload
     if(rewrite) {
@@ -651,14 +651,14 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     rmap_service_module_TH_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
-    // req->parametri.comando (Comando esterno ricevuto 3 BIT)
+    // req->parameter.command (Comando esterno ricevuto 3 BIT)
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
     report_t report = {0};
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
-    switch (req->parametri.comando) {
+    switch (req->parameter.command) {
 
         /// saturated uint3 get_istant = 0
         /// Ritorna il dato come richiesto dal master
@@ -667,29 +667,27 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
         case rmap_service_setmode_1_0_get_last:     // saturated uint3 get_last = 2
 
           // preparo la struttura dati per richiedere i dati al task che li elabora
-          if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
+          if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Sample istantaneo            
             request_data.is_init = false;           // No Init, Sample
             request_data.report_time_s = 0;         // richiedo i dati su 0 secondi (Sample)
             request_data.observation_time_s = 0;    // richiedo i dati mediati su 0 secondi (Sample)
           } 
-          if(req->parametri.comando == rmap_service_setmode_1_0_get_current) {
-            // Dato corrente
-            request_data.is_init = false;            // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
-            request_data.report_time_s = req->parametri.run_sectime;        // richiedo i dati su request secondi
-            request_data.observation_time_s = req->parametri.obs_sectime;   // richiedo i dati mediati su request secondi
-            last_req_rpt_time = req->parametri.run_sectime; // report_time_request_backup;
-            last_req_obs_time = req->parametri.obs_sectime; // observation_time_request_backup;
+          if((req->parameter.command == rmap_service_setmode_1_0_get_current)||
+             (req->parameter.command == rmap_service_setmode_1_0_get_last)) {
+            // Dato corrente con o senza inizializzazione (get_last...)
+            if(req->parameter.command == rmap_service_setmode_1_0_get_current)
+                request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+            else
+                request_data.is_init = true;    // Reinit delle elaborazioni
+            request_data.report_time_s = req->parameter.run_sectime;        // richiedo i dati su request secondi
+            request_data.observation_time_s = req->parameter.obs_sectime;   // richiedo i dati mediati su request secondi
+            last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
+            last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
             clCanard.module_th.MTH.metadata.timerange.P2 = request_data.report_time_s;
             clCanard.module_th.NTH.metadata.timerange.P2 = request_data.report_time_s;
             clCanard.module_th.XTH.metadata.timerange.P2 = request_data.report_time_s;
-          }
-          if(req->parametri.comando == rmap_service_setmode_1_0_get_last) {
-            // Dato corrente e reinizializza la coda
-            request_data.is_init = true;            // Reinizializza le elaborazioni
-            request_data.report_time_s = req->parametri.run_sectime;        // richiedo i dati su request secondi
-            request_data.observation_time_s = req->parametri.obs_sectime;   // richiedo i dati mediati su request secondi
           }
 
           // coda di richiesta dati
@@ -702,9 +700,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           }
 
           // Ritorno lo stato (Copia dal comando...)
-          resp.stato = req->parametri.comando;
+          resp.state = req->parameter.command;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
-          if(req->parametri.comando == rmap_service_setmode_1_0_get_istant) {
+          if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
             resp.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
           } else {
@@ -726,12 +724,12 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
 
         /// saturated uint3 test_acq = 7 (Solo x TEST)
         case rmap_service_setmode_1_0_test_acq:
-            resp.stato = req->parametri.comando;
+            resp.state = req->parameter.command;
             break;
 
         /// NON Gestito, risposta error (undefined)
         default:
-            resp.stato = GENERIC_STATE_UNDEFINED;
+            resp.state = GENERIC_STATE_UNDEFINED;
             break;
     }
 

@@ -562,6 +562,10 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         clCanard.slave[queueId].register_access.reset_pending();
                         clCanard.slave[queueId].file_server.reset_pending();
                         clCanard.slave[queueId].rmap_service.reset_pending();
+                        // Set system_status from local to static access (Set Node Online)
+                        localSystemStatusLock->Take();
+                        localSystemStatus->data_slave[queueId].is_online = true;
+                        localSystemStatusLock->Give();
                     }
                 }
             }
@@ -856,6 +860,8 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
     localSystemMessageQueue = param.systemMessageQueue;
     localQspiLock = param.qspiLock;
     localRegisterAccessLock = param.registerAccessLock;
+    localSystemStatusLock = param.systemStatusLock;
+    localSystemStatus = param.system_status;
 
     // FullChip Power Mode after Startup
     // Resume from LowPower or reset the controller TJA1443ATK
@@ -1016,6 +1022,9 @@ void CanTask::Run() {
     CanardMicrosecond last_pub_heartbeat;
     CanardMicrosecond last_pub_port_list;
     CanardMicrosecond next_timesyncro_msg;
+
+    // Buffer to queue Out to MMC
+    uint8_t dataQueue[256];
 
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
@@ -1304,6 +1313,10 @@ void CanTask::Run() {
                             clCanard.slave[queueId].register_access.reset_pending();
                             clCanard.slave[queueId].file_server.reset_pending();
                             clCanard.slave[queueId].rmap_service.reset_pending();
+                            // Set system_status (Set Node Offline)
+                            param.systemStatusLock->Take();
+                            param.system_status->data_slave[queueId].is_online = false;
+                            param.systemStatusLock->Give();
                         }
                     }
                 }
@@ -1422,6 +1435,29 @@ void CanTask::Run() {
                     clCanard.master_servicelist_send_message();
                 }
 
+                // *******************************************************************************************
+                // ********************* GET SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
+                // *******************************************************************************************
+                uint32_t curEpoch = rtc.getEpoch();
+                bool bStartGetIstant = false;
+                bool bStartGetData = false;
+
+                // need do acquire istant value for display?
+                if ((curEpoch / param.configuration->observation_s) != param.system_status->datetime.next_ptr_time_for_sensors_get_istant) {
+                    param.systemStatusLock->Take();
+                    param.system_status->datetime.next_ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
+                    param.systemStatusLock->Give();
+                    bStartGetIstant = true;
+                }                
+                // need do acquire data value for RMAP Archive?
+                if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.next_ptr_time_for_sensors_get_value) {      
+                    param.systemStatusLock->Take();
+                    param.system_status->datetime.next_ptr_time_for_sensors_get_value = curEpoch % param.configuration->report_s;
+                    param.systemStatusLock->Give();
+                    bStartGetData = true;
+                }
+                // ********************* END SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
+
                 #ifdef TEST_COMMAND
                 // ********************** TEST COMANDO TX-> RX<- *************************
                 // LOOP HANDLER >> 0..15 SECONDI x TEST COMANDI <<
@@ -1490,76 +1526,112 @@ void CanTask::Run() {
                 // ***************** FINE TEST COMANDO TX-> RX<- *************************
                 #endif
 
-                #ifdef TEST_RMAP_DATA
-                // ********************** TEST GETDATA TX-> RX<- *************************
-                // LOOP HANDLER >> 0..15 SECONDI x TEST GETDATA <<
-                if ((clCanard.getMicros(clCanard.syncronized_time) >= test_cmd_vs_iter_at)) {
-                    // TimeOUT variabile in 15 secondi
-                    test_cmd_vs_iter_at += MEGA * ((float)(rand() % 60)/4.0);   
-                    // Invio un comando di test in prova al nodo 125
-                    // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
-                    // Abilito disabilito pubblicazione dei dati ogni 5 secondi...
-                    uint8_t queueId = clCanard.getSlaveIstanceFromId(125);
-                    // Il comando viene inviato solamente se il nodo è ONLine
-                    if(clCanard.slave[queueId].is_online()) {
-                        // Il comando viene inviato solamente senza altri Pending di Comandi
-                        // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                        if(!clCanard.slave[queueId].rmap_service.is_pending()) {
-                            Serial.print(F("Inviato richiesta dati al nodo remoto: "));
-                            Serial.println(clCanard.slave[0].get_node_id());
-                            // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
-                            // parametri.run_for_second = 900; ( inutile in get_istant )
-                            rmap_service_setmode_1_0 parmRequest;
-                            parmRequest.canale = 0; // Necessario solo per i canali indirizzabili 1..X (Analog/Digital)
-                            parmRequest.comando = rmap_service_setmode_1_0_get_istant;
-                            parmRequest.run_sectime = 10;
-                            // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                            // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-                            clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, parmRequest);
+                // ***********************************************************************
+                // ********************** RMAP GETDATA TX-> RX<- *************************
+                // ***********************************************************************
+
+                // START COMMAND REQUEST
+                // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
+                if ((bStartGetIstant)||(bStartGetData)) {
+                    // For all node
+                    for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                        // For all node onLine
+                        if(clCanard.slave[queueId].is_online()) {
+                            // Comman are sending without other Pending Command
+                            // Service request structure is same for all RMAP object to simplify function
+                            if(!clCanard.slave[queueId].rmap_service.is_pending()) {
+                                Serial.print(F("Inviato richiesta dati al nodo remoto: "));
+                                Serial.println(clCanard.slave[queueId].get_node_id());
+                                // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
+                                // parametri.run_for_second = 900; ( not used for get_istant )
+                                rmap_service_setmode_1_0 paramRequest;
+                                paramRequest.chanel = 0; // Request only for chanel analog/digital adressed 1..X
+                                if(bStartGetData) {
+                                    paramRequest.command = rmap_service_setmode_1_0_get_istant;
+                                    paramRequest.obs_sectime = param.configuration->observation_s;
+                                    paramRequest.run_sectime = param.configuration->report_s;
+                                } else {
+                                    paramRequest.command = rmap_service_setmode_1_0_get_last;
+                                    paramRequest.obs_sectime = 0;
+                                    paramRequest.run_sectime = 0;
+                                }
+                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                                // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
+                                clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
+                            }
                         }
                     }
                 }
-                // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
-                // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-                if (clCanard.slave[0].rmap_service.event_timeout()) {
-                    // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-                    clCanard.slave[0].rmap_service.reset_pending();
-                    // TimeOUT di un comando in attesa... gestisco il da farsi
-                    Serial.print(F("Timeout risposta su richiesta dati al nodo remoto: "));
-                    Serial.print(clCanard.slave[0].get_node_id());
-                    Serial.println(F(", Warning [restore pending command]"));
+                // EVENT GESTION OF TIMEOUT AT REQUEST
+                for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                    if (clCanard.slave[queueId].rmap_service.event_timeout()) {
+                        // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
+                        clCanard.slave[queueId].rmap_service.reset_pending();
+                        // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
+                        Serial.print(F("Timeout risposta su richiesta dati al nodo remoto: "));
+                        Serial.print(clCanard.slave[queueId].get_node_id());
+                        Serial.println(F(", Warning [restore pending command]"));
+                    }
                 }
-                if(clCanard.slave[0].rmap_service.is_executed()) {
-                    // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-                    clCanard.slave[0].rmap_service.reset_pending();
-                    // Interprete del messaggio in casting dal puntatore dinamico
-                    // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
-                    // in funzione di clCanard.slave[x].node_type
-                    // Esempio ->
-                    // switch (clCanard.slave[0].get_module_type()) {
-                    //     case canardClass::Module_Type::th:
-                    //         rmap_service_module_TH_Response_1_0* retData =
-                    //             (rmap_service_module_TH_Response_1_0*) clCanard.slave[0].rmap_service.get_response();
-                    //     break;
-                    //     ...
-                    // }
-                    rmap_service_module_TH_Response_1_0* retData =
-                        (rmap_service_module_TH_Response_1_0*) clCanard.slave[0].rmap_service.get_response();
-                    // Stampo la risposta corretta
-                    Serial.print(F("Ricevuto risposta di richiesta dati dal nodo remoto: "));
-                    Serial.print(clCanard.slave[0].get_node_id());
-                    Serial.print(F(", cod. risposta ->: "));
-                    Serial.println(retData->stato);
-                    // Test data Received e stampa valori con accesso al puntatore in casting per il modulo
-                    Serial.println(F("Value (ITH) L1, TP, UH: "));
-                    Serial.print(retData->ITH.metadata.level.L1.value);
-                    Serial.print(F(", "));
-                    Serial.print(retData->ITH.temperature.val.value);
-                    Serial.print(F(", "));
-                    Serial.println(retData->ITH.humidity.val.value);
+                // EVENT GESTION OF RECIVED DATA AT REQUEST
+                for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                    if(clCanard.slave[queueId].rmap_service.is_executed()) {
+                        // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
+                        clCanard.slave[queueId].rmap_service.reset_pending();
+                        // Interprete del messaggio in casting dal puntatore dinamico
+                        // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
+                        // in funzione di clCanard.slave[x].node_type
+                        switch (clCanard.slave[queueId].get_module_type()) {
+                            case canardClass::Module_Type::th:
+                                // Cast to th module
+                                rmap_service_module_TH_Response_1_0* retData;
+                                retData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                // Get parameter data
+                                char stimaName[STIMA_MODULE_NAME_LENGTH];
+                                getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
+                                // Put data in system_status with module_type and RMAP Ver.Rev at first access
+                                if(param.system_status->data_slave[queueId].module_type == canardClass::Module_Type::undefined) {
+                                    param.systemStatusLock->Take();
+                                    param.system_status->data_slave[queueId].module_version = retData->version;
+                                    param.system_status->data_slave[queueId].module_revision = retData->revision;
+                                    param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                    param.systemStatusLock->Give();
+                                }
+                                // TRACE Info data
+                                TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d"),
+                                    stimaName, clCanard.slave[queueId].get_node_id(), retData->state);
+                                TRACE_INFO_F(F("Value (STH) TP %d, UH: %d"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
+                                // Put data in system_status
+                                param.systemStatusLock->Take();
+                                // Set data istant value
+                                param.system_status->data_slave[queueId].data_value_A = retData->STH.temperature.val.value;
+                                param.system_status->data_slave[queueId].data_value_B = retData->STH.humidity.val.value;
+                                // Add info RMAP to system
+                                param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.next_ptr_time_for_sensors_get_istant;
+                                param.systemStatusLock->Give();
+                                // Set data into queue if data value (not for istant observation acquire)
+                                if(bStartGetData) {
+                                    memset(dataQueue, 0, sizeof(dataQueue));
+                                    dataQueue[0] = clCanard.slave[queueId].get_module_type();
+                                    dataQueue[1] = (uint8_t) (param.system_status->datetime.next_ptr_time_for_sensors_get_value >> 8) & 0xFF;
+                                    dataQueue[2] = (uint8_t) (param.system_status->datetime.next_ptr_time_for_sensors_get_value % 0xFF);
+                                    memcpy((void*)dataQueue[3], retData, sizeof(retData));
+                                    // Send queue to MMC/SD for direct archive data
+                                    // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                    param.dataRmapPutQueue->Enqueue(&dataQueue, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                }
+                                break;
+
+                            default:
+                                // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d"),
+                                    clCanard.slave[queueId].get_node_id(), retData->state);
+                                break;
+                        }
+                    }
                 }
-                // ***************** FINE TEST GETDATA TX-> RX<- *************************
-                #endif
+                // ********************* END RMAP GETDATA TX-> RX<- **********************
 
                 #ifdef TEST_REGISTER
                 // ********************** TEST REGISTER TX-> RX<- *************************

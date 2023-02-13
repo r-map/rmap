@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "stima_utility.h"
 #include "str.h"
 
+#include <STM32RTC.h>
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -112,12 +114,14 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  SupervisorState_t state;
-  SupervisorParam_t param;
-
   void printConfiguration();
   bool loadConfiguration();
   bool saveConfiguration(bool is_default);
+
+  STM32RTC &rtc = STM32RTC::getInstance();
+
+  SupervisorState_t state;
+  SupervisorParam_t param;
 };
 
 #endif

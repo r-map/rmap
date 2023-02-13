@@ -150,7 +150,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define LOG_PUT_DATA_QUEUE_LENGTH   (10)
 // Queu Size block MAX
 #define FILE_PUT_DATA_BLOCK_SIZE    (512)
-#define RMAP_PUT_DATA_ELEMENT_SIZE  (256)
+#define RMAP_PUT_DATA_ELEMENT_SIZE  (160)   // MAX LEN TH = 144 Bytes + INFO Block 3 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128)
 
 // Task system_status and queue ID message

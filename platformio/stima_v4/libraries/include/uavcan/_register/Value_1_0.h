@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/register/Value.1.0.dsdl
-// Generated at:  2022-12-30 11:15:45.373922 UTC
+// Generated at:  2023-02-13 19:08:39.949196 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.register.Value

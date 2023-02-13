@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/setmode.1.0.dsdl
-// Generated at:  2022-12-30 11:15:46.531074 UTC
+// Generated at:  2023-02-13 19:08:41.523413 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.setmode
@@ -116,11 +116,11 @@ static_assert(rmap_service_setmode_1_0_EXTENT_BYTES_ >= rmap_service_setmode_1_0
 
 typedef struct
 {
-    /// saturated uint3 comando
-    uint8_t comando;
+    /// saturated uint3 command
+    uint8_t command;
 
-    /// saturated uint3 canale
-    uint8_t canale;
+    /// saturated uint3 chanel
+    uint8_t chanel;
 
     /// saturated uint10 obs_sectime
     uint16_t obs_sectime;
@@ -167,8 +167,8 @@ static inline int8_t rmap_service_setmode_1_0_serialize_(
 
 
 
-    {   // saturated uint3 comando
-        uint8_t _sat0_ = obj->comando;
+    {   // saturated uint3 command
+        uint8_t _sat0_ = obj->command;
         if (_sat0_ > 7U)
         {
             _sat0_ = 7U;
@@ -180,8 +180,8 @@ static inline int8_t rmap_service_setmode_1_0_serialize_(
 
 
 
-    {   // saturated uint3 canale
-        uint8_t _sat1_ = obj->canale;
+    {   // saturated uint3 chanel
+        uint8_t _sat1_ = obj->chanel;
         if (_sat1_ > 7U)
         {
             _sat1_ = 7U;
@@ -281,22 +281,22 @@ static inline int8_t rmap_service_setmode_1_0_deserialize_(
 
 
 
-    // saturated uint3 comando
+    // saturated uint3 command
     if ((offset_bits + 3U) <= capacity_bits)
     {
-        out_obj->comando = buffer[offset_bits / 8U] & 7U;
+        out_obj->command = buffer[offset_bits / 8U] & 7U;
     }
     else
     {
-        out_obj->comando = 0U;
+        out_obj->command = 0U;
     }
     offset_bits += 3U;
 
 
 
 
-    // saturated uint3 canale
-    out_obj->canale = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 3);
+    // saturated uint3 chanel
+    out_obj->chanel = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 3);
     offset_bits += 3U;
 
 

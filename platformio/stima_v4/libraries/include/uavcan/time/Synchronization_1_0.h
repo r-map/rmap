@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/time/7168.Synchronization.1.0.dsdl
-// Generated at:  2022-12-30 11:15:44.663475 UTC
+// Generated at:  2023-02-13 19:08:40.089721 UTC
 // Is deprecated: no
 // Fixed port-ID: 7168
 // Full name:     uavcan.time.Synchronization

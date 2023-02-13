@@ -2,7 +2,7 @@
 # Il comando è univoco per tutte le tipologie di nodo e viene fatta una DSDL generica
 
 # tipo di comando da eseguire sul modulo
-uint3 comando
+uint3 command
 
 # Lettura dato istantaneo diretto
 uint3 get_istant = 0
@@ -23,7 +23,7 @@ uint3 test_acq = 7
 
 # canale/sensore su cui effetuare la lettura (analogico 0..3, altro 4..7)
 # comando riservato per scopi futuri o più canali analogici
-uint3 canale
+uint3 chanel
 
 # costanti di canale Id 01
 uint3 CH01 = 0

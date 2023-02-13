@@ -130,7 +130,8 @@ typedef struct
 {
    struct
    {
-      uint32_t next_ptr_time_for_sensors_reading;
+      uint16_t next_ptr_time_for_sensors_get_istant;
+      uint16_t next_ptr_time_for_sensors_get_value;
    } datetime;
 
    // Info Task && WDT
@@ -193,6 +194,19 @@ typedef struct
    {
       bool is_ready;
    } sd_card;
+
+   // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
+   struct
+   {
+      uint32_t data_value_A;     // Data value first chanel (istant value)
+      uint32_t data_value_B;     // Data value optional second chanel (istant value)
+      uint8_t module_type;       // Type of remote module
+      uint8_t module_version;    // Version RMAP
+      uint8_t module_revision;   // Revision RMAP
+      bool is_online;            // Node current on line
+      uint16_t last_acquire;     // Last acquire data (refered to...)
+   }
+   data_slave[BOARDS_COUNT_MAX];
 
 } system_status_t;
 

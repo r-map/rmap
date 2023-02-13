@@ -1383,6 +1383,21 @@ void canardClass::slave::rmap_service::set_module_type(Module_Type module_type) 
         case Module_Type::th:
             _response = malloc(sizeof(rmap_service_module_TH_Response_1_0));
             break;
+        case Module_Type::rain:
+            _response = malloc(sizeof(rmap_service_module_Rain_Response_1_0));
+            break;
+        case Module_Type::radiation:
+            _response = malloc(sizeof(rmap_service_module_Radiation_Response_1_0));
+            break;
+        case Module_Type::power:
+            _response = malloc(sizeof(rmap_service_module_Power_Response_1_0));
+            break;
+        case Module_Type::vwc:
+            _response = malloc(sizeof(rmap_service_module_VWC_Response_1_0));
+            break;
+        case Module_Type::wind:
+            _response = malloc(sizeof(rmap_service_module_Wind_Response_1_0));
+            break;
         default:
             _response = NULL;
     }

@@ -117,7 +117,7 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
 {
     #ifdef CHECK_FLASH_WRITE
     // check data (W->R) Verify Flash integrity OK    
-    uint8_t check_data[256];
+    uint8_t check_data[FLASH_BUFFER_SIZE];
     #endif
     // Request New File Init Upload
     if(rewrite) {
@@ -301,8 +301,8 @@ void MmcTask::Run()
   uint8_t retry;
   bool message_traced = false;
   bool is_getted_rtc;
-  // Queue Logging
-  char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
+  // Queue buffer
+  char queueBuffer[RMAP_PUT_DATA_ELEMENT_SIZE > LOG_PUT_DATA_ELEMENT_SIZE ? RMAP_PUT_DATA_ELEMENT_SIZE : LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
   // Queue file put from external Task
   file_queue_t data_file_queue;
@@ -436,17 +436,32 @@ void MmcTask::Run()
           }
         }
         // Get message from queue
-        if(param.dataLogPutQueue->Dequeue(logMessage)) {
+        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
           // Put to MMC ( APPEND File )
           FileOpenSecurity(&logFile, "log/log.txt", FA_OPEN_APPEND | FA_WRITE);
           logFile.print(logIntest);
-          logFile.write(logMessage, strlen(logMessage) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logMessage) : LOG_PUT_DATA_ELEMENT_SIZE);
+          logFile.write(queueBuffer, strlen(queueBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(queueBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
           logFile.println();
           logFile.close();
         }
       }
       // *********************************************************
       //             End OF perform LOG append message
+      // *********************************************************
+
+      // *********************************************************
+      //           Perform RMAP Data append get message
+      // *********************************************************
+      // If element get all element from the queue and Put to MMC
+      while(!param.dataRmapPutQueue->IsEmpty()) {
+        // Get message from queue
+        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
+          // TODO:
+          // Put to MMC ( APPEND to File in Format ready to SEND Mqtt Format )
+        }
+      }
+      // *********************************************************
+      //            End OF perform RMAP append message
       // *********************************************************
 
       // *********************************************************

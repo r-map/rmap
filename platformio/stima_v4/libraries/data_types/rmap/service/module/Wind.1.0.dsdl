@@ -1,11 +1,15 @@
-rmap.service.setmode.1.0 parametri
+rmap.service.setmode.1.0 parameter
 
 @sealed
 
 ---
 
-uint4 stato
-#interprete stato risposta modulo dati
+#RMAP Response state
+uint4 state
+
+#RMAP version and revision
+uint8 version
+uint8 revision
 
 rmap.sensors.WindAvgVect10.1.0 DWA
 rmap.sensors.WindAvgVect.1.0 DWB

@@ -47,6 +47,16 @@
 // Namespace RMAP
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>
+#include <rmap/_module/RAIN_1_0.h>
+#include <rmap/service/_module/RAIN_1_0.h>
+#include <rmap/_module/POWER_1_0.h>
+#include <rmap/service/_module/POWER_1_0.h>
+#include <rmap/_module/RADIATION_1_0.h>
+#include <rmap/service/_module/RADIATION_1_0.h>
+#include <rmap/_module/VWC_1_0.h>
+#include <rmap/service/_module/VWC_1_0.h>
+#include <rmap/_module/WIND_1_0.h>
+#include <rmap/service/_module/WIND_1_0.h>
 
 #ifndef _CANARD_CLASS_H
 #define _CANARD_CLASS_H

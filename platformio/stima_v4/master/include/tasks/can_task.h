@@ -97,6 +97,8 @@ using namespace cpp_freertos;
 // Task waiting Semaphore Driver access
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
 
+#define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (2000)
+
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 // #define LED_ON_SYNCRO_TIME
@@ -121,8 +123,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::Queue *systemMessageQueue;
-  // cpp_freertos::Queue *requestDataQueue;
-  // cpp_freertos::Queue *reportDataQueue;
+  cpp_freertos::Queue *dataRmapPutQueue;
   Flash *flash;
   EEprom *eeprom;
   EERegister *clRegister;
@@ -169,6 +170,8 @@ private:
   inline static EERegister *localRegister;
   inline static cpp_freertos::BinarySemaphore *localQspiLock;
   inline static cpp_freertos::BinarySemaphore *localRegisterAccessLock;
+  inline static cpp_freertos::BinarySemaphore *localSystemStatusLock;
+  inline static system_status_t *localSystemStatus;
   inline static Flash *localFlash;
   inline static uint64_t canFlashPtr = 0;
   inline static uint16_t canFlashBlock = 0;

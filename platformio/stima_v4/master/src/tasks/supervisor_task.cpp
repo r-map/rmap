@@ -102,7 +102,7 @@ void SupervisorTask::Run()
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
 
   // TODO: remove
-  bool test_put_firmware = false;
+  bool test_put_firmware = true;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -136,6 +136,10 @@ void SupervisorTask::Run()
 
         param.systemStatusLock->Take();
         param.system_status->configuration.is_loaded = true;
+        // Init acquire base datetime (for get next)
+        uint32_t curEpoch = rtc.getEpoch();
+        param.system_status->datetime.next_ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
+        param.system_status->datetime.next_ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
         // Init default security value
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;

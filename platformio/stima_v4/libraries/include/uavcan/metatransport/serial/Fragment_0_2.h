@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/metatransport/serial/Fragment.0.2.dsdl
-// Generated at:  2022-12-30 11:15:45.390147 UTC
+// Generated at:  2023-02-13 19:08:40.176607 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.metatransport.serial.Fragment

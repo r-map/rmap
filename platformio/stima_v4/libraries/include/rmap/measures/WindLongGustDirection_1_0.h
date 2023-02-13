@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/measures/WindLongGustDirection.1.0.dsdl
-// Generated at:  2022-12-30 11:15:46.657476 UTC
+// Generated at:  2023-02-13 19:08:41.368569 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.measures.WindLongGustDirection

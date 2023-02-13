@@ -141,9 +141,9 @@ void setup() {
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
   connectionRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(connection_request_t));
   connectionResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(connection_response_t));
-  dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
   dataFirmwarePutRequestQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_queue_t));
   dataFirmwarePutResponseQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(system_response_t));
+  dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n\r\n"));
@@ -271,8 +271,7 @@ void setup() {
   canParam.systemStatusLock = systemStatusLock;
   canParam.registerAccessLock = registerAccessLock;
   canParam.systemMessageQueue = systemMessageQueue;
-  // canParam.requestDataQueue = requestDataQueue;
-  // canParam.reportDataQueue = reportDataQueue;
+  canParam.dataRmapPutQueue = dataRmapPutQueue;
   canParam.eeprom = &memEprom;
   canParam.clRegister = &clRegister;
   canParam.flash = &memFlash;

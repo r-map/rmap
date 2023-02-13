@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/Wind.1.0.dsdl
-// Generated at:  2022-12-30 11:15:46.578556 UTC
+// Generated at:  2023-02-13 19:08:41.571461 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Wind
@@ -89,8 +89,8 @@ static_assert(rmap_service_module_Wind_Request_1_0_EXTENT_BYTES_ >= rmap_service
 
 typedef struct
 {
-    /// rmap.service.setmode.1.0 parametri
-    rmap_service_setmode_1_0 parametri;
+    /// rmap.service.setmode.1.0 parameter
+    rmap_service_setmode_1_0 parameter;
 } rmap_service_module_Wind_Request_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -131,10 +131,10 @@ static inline int8_t rmap_service_module_Wind_Request_1_0_serialize_(
 
 
 
-    {   // rmap.service.setmode.1.0 parametri
+    {   // rmap.service.setmode.1.0 parameter
         size_t _size_bytes0_ = 4UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = rmap_service_setmode_1_0_serialize_(
-            &obj->parametri, &buffer[offset_bits / 8U], &_size_bytes0_);
+            &obj->parameter, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
         {
             return _err0_;
@@ -204,11 +204,11 @@ static inline int8_t rmap_service_module_Wind_Request_1_0_deserialize_(
 
 
 
-    // rmap.service.setmode.1.0 parametri
+    // rmap.service.setmode.1.0 parameter
     {
         size_t _size_bytes1_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
         const int8_t _err2_ = rmap_service_setmode_1_0_deserialize_(
-            &out_obj->parametri, &buffer[offset_bits / 8U], &_size_bytes1_);
+            &out_obj->parameter, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
         {
             return _err2_;
@@ -253,15 +253,21 @@ static inline void rmap_service_module_Wind_Request_1_0_initialize_(rmap_service
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_Wind_Response_1_0_EXTENT_BYTES_                    118UL
-#define rmap_service_module_Wind_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 118UL
+#define rmap_service_module_Wind_Response_1_0_EXTENT_BYTES_                    120UL
+#define rmap_service_module_Wind_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 120UL
 static_assert(rmap_service_module_Wind_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_Wind_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
 typedef struct
 {
-    /// saturated uint4 stato
-    uint8_t stato;
+    /// saturated uint4 state
+    uint8_t state;
+
+    /// saturated uint8 version
+    uint8_t version;
+
+    /// saturated uint8 revision
+    uint8_t revision;
 
     /// rmap.sensors.WindAvgVect10.1.0 DWA
     rmap_sensors_WindAvgVect10_1_0 DWA;
@@ -308,7 +314,7 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 944UL)
+    if ((8U * (size_t) capacity_bytes) < 960UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -320,8 +326,8 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
 
 
 
-    {   // saturated uint4 stato
-        uint8_t _sat0_ = obj->stato;
+    {   // saturated uint4 state
+        uint8_t _sat0_ = obj->state;
         if (_sat0_ > 15U)
         {
             _sat0_ = 15U;
@@ -331,24 +337,50 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     }
 
 
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err3_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad1_);  // Optimize?
+
+
+    {   // saturated uint8 version
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        const int8_t _err3_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, obj->version, 8U);
         if (_err3_ < 0)
         {
             return _err3_;
+        }
+        offset_bits += 8U;
+    }
+
+
+
+
+    {   // saturated uint8 revision
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        const int8_t _err4_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, obj->revision, 8U);
+        if (_err4_ < 0)
+        {
+            return _err4_;
+        }
+        offset_bits += 8U;
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err5_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad1_);  // Optimize?
+        if (_err5_ < 0)
+        {
+            return _err5_;
         }
         offset_bits += _pad1_;
     }
 
     {   // rmap.sensors.WindAvgVect10.1.0 DWA
         size_t _size_bytes2_ = 19UL;  // Nested object (max) size, in bytes.
-        int8_t _err4_ = rmap_sensors_WindAvgVect10_1_0_serialize_(
+        int8_t _err6_ = rmap_sensors_WindAvgVect10_1_0_serialize_(
             &obj->DWA, &buffer[offset_bits / 8U], &_size_bytes2_);
-        if (_err4_ < 0)
+        if (_err6_ < 0)
         {
-            return _err4_;
+            return _err6_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested object.
@@ -358,21 +390,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad2_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err5_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad2_);  // Optimize?
-        if (_err5_ < 0)
+        const int8_t _err7_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad2_);  // Optimize?
+        if (_err7_ < 0)
         {
-            return _err5_;
+            return _err7_;
         }
         offset_bits += _pad2_;
     }
 
     {   // rmap.sensors.WindAvgVect.1.0 DWB
         size_t _size_bytes3_ = 19UL;  // Nested object (max) size, in bytes.
-        int8_t _err6_ = rmap_sensors_WindAvgVect_1_0_serialize_(
+        int8_t _err8_ = rmap_sensors_WindAvgVect_1_0_serialize_(
             &obj->DWB, &buffer[offset_bits / 8U], &_size_bytes3_);
-        if (_err6_ < 0)
+        if (_err8_ < 0)
         {
-            return _err6_;
+            return _err8_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested object.
@@ -382,21 +414,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad3_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err7_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad3_);  // Optimize?
-        if (_err7_ < 0)
+        const int8_t _err9_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad3_);  // Optimize?
+        if (_err9_ < 0)
         {
-            return _err7_;
+            return _err9_;
         }
         offset_bits += _pad3_;
     }
 
     {   // rmap.sensors.WindGustSpeed.1.0 DWC
         size_t _size_bytes4_ = 19UL;  // Nested object (max) size, in bytes.
-        int8_t _err8_ = rmap_sensors_WindGustSpeed_1_0_serialize_(
+        int8_t _err10_ = rmap_sensors_WindGustSpeed_1_0_serialize_(
             &obj->DWC, &buffer[offset_bits / 8U], &_size_bytes4_);
-        if (_err8_ < 0)
+        if (_err10_ < 0)
         {
-            return _err8_;
+            return _err10_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested object.
@@ -406,21 +438,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad4_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err9_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad4_);  // Optimize?
-        if (_err9_ < 0)
+        const int8_t _err11_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad4_);  // Optimize?
+        if (_err11_ < 0)
         {
-            return _err9_;
+            return _err11_;
         }
         offset_bits += _pad4_;
     }
 
     {   // rmap.sensors.WindAvgSpeed.1.0 DWD
         size_t _size_bytes5_ = 16UL;  // Nested object (max) size, in bytes.
-        int8_t _err10_ = rmap_sensors_WindAvgSpeed_1_0_serialize_(
+        int8_t _err12_ = rmap_sensors_WindAvgSpeed_1_0_serialize_(
             &obj->DWD, &buffer[offset_bits / 8U], &_size_bytes5_);
-        if (_err10_ < 0)
+        if (_err12_ < 0)
         {
-            return _err10_;
+            return _err12_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested object.
@@ -430,21 +462,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad5_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err11_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad5_);  // Optimize?
-        if (_err11_ < 0)
+        const int8_t _err13_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad5_);  // Optimize?
+        if (_err13_ < 0)
         {
-            return _err11_;
+            return _err13_;
         }
         offset_bits += _pad5_;
     }
 
     {   // rmap.sensors.WindClassSpeed.1.0 DWE
         size_t _size_bytes6_ = 25UL;  // Nested object (max) size, in bytes.
-        int8_t _err12_ = rmap_sensors_WindClassSpeed_1_0_serialize_(
+        int8_t _err14_ = rmap_sensors_WindClassSpeed_1_0_serialize_(
             &obj->DWE, &buffer[offset_bits / 8U], &_size_bytes6_);
-        if (_err12_ < 0)
+        if (_err14_ < 0)
         {
-            return _err12_;
+            return _err14_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested object.
@@ -454,21 +486,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad6_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err13_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad6_);  // Optimize?
-        if (_err13_ < 0)
+        const int8_t _err15_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad6_);  // Optimize?
+        if (_err15_ < 0)
         {
-            return _err13_;
+            return _err15_;
         }
         offset_bits += _pad6_;
     }
 
     {   // rmap.sensors.WindGustDirection.1.0 DWF
         size_t _size_bytes7_ = 19UL;  // Nested object (max) size, in bytes.
-        int8_t _err14_ = rmap_sensors_WindGustDirection_1_0_serialize_(
+        int8_t _err16_ = rmap_sensors_WindGustDirection_1_0_serialize_(
             &obj->DWF, &buffer[offset_bits / 8U], &_size_bytes7_);
-        if (_err14_ < 0)
+        if (_err16_ < 0)
         {
-            return _err14_;
+            return _err16_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested object.
@@ -478,10 +510,10 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad7_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err15_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad7_);  // Optimize?
-        if (_err15_ < 0)
+        const int8_t _err17_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad7_);  // Optimize?
+        if (_err17_ < 0)
         {
-            return _err15_;
+            return _err17_;
         }
         offset_bits += _pad7_;
     }
@@ -535,16 +567,30 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
 
 
 
-    // saturated uint4 stato
+    // saturated uint4 state
     if ((offset_bits + 4U) <= capacity_bits)
     {
-        out_obj->stato = buffer[offset_bits / 8U] & 15U;
+        out_obj->state = buffer[offset_bits / 8U] & 15U;
     }
     else
     {
-        out_obj->stato = 0U;
+        out_obj->state = 0U;
     }
     offset_bits += 4U;
+
+
+
+
+    // saturated uint8 version
+    out_obj->version = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 8);
+    offset_bits += 8U;
+
+
+
+
+    // saturated uint8 revision
+    out_obj->revision = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 8);
+    offset_bits += 8U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
@@ -552,11 +598,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindAvgVect10.1.0 DWA
     {
         size_t _size_bytes8_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err16_ = rmap_sensors_WindAvgVect10_1_0_deserialize_(
+        const int8_t _err18_ = rmap_sensors_WindAvgVect10_1_0_deserialize_(
             &out_obj->DWA, &buffer[offset_bits / 8U], &_size_bytes8_);
-        if (_err16_ < 0)
+        if (_err18_ < 0)
         {
-            return _err16_;
+            return _err18_;
         }
         offset_bits += _size_bytes8_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -567,11 +613,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindAvgVect.1.0 DWB
     {
         size_t _size_bytes9_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err17_ = rmap_sensors_WindAvgVect_1_0_deserialize_(
+        const int8_t _err19_ = rmap_sensors_WindAvgVect_1_0_deserialize_(
             &out_obj->DWB, &buffer[offset_bits / 8U], &_size_bytes9_);
-        if (_err17_ < 0)
+        if (_err19_ < 0)
         {
-            return _err17_;
+            return _err19_;
         }
         offset_bits += _size_bytes9_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -582,11 +628,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindGustSpeed.1.0 DWC
     {
         size_t _size_bytes10_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err18_ = rmap_sensors_WindGustSpeed_1_0_deserialize_(
+        const int8_t _err20_ = rmap_sensors_WindGustSpeed_1_0_deserialize_(
             &out_obj->DWC, &buffer[offset_bits / 8U], &_size_bytes10_);
-        if (_err18_ < 0)
+        if (_err20_ < 0)
         {
-            return _err18_;
+            return _err20_;
         }
         offset_bits += _size_bytes10_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -597,11 +643,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindAvgSpeed.1.0 DWD
     {
         size_t _size_bytes11_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err19_ = rmap_sensors_WindAvgSpeed_1_0_deserialize_(
+        const int8_t _err21_ = rmap_sensors_WindAvgSpeed_1_0_deserialize_(
             &out_obj->DWD, &buffer[offset_bits / 8U], &_size_bytes11_);
-        if (_err19_ < 0)
+        if (_err21_ < 0)
         {
-            return _err19_;
+            return _err21_;
         }
         offset_bits += _size_bytes11_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -612,11 +658,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindClassSpeed.1.0 DWE
     {
         size_t _size_bytes12_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err20_ = rmap_sensors_WindClassSpeed_1_0_deserialize_(
+        const int8_t _err22_ = rmap_sensors_WindClassSpeed_1_0_deserialize_(
             &out_obj->DWE, &buffer[offset_bits / 8U], &_size_bytes12_);
-        if (_err20_ < 0)
+        if (_err22_ < 0)
         {
-            return _err20_;
+            return _err22_;
         }
         offset_bits += _size_bytes12_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -627,11 +673,11 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     // rmap.sensors.WindGustDirection.1.0 DWF
     {
         size_t _size_bytes13_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err21_ = rmap_sensors_WindGustDirection_1_0_deserialize_(
+        const int8_t _err23_ = rmap_sensors_WindGustDirection_1_0_deserialize_(
             &out_obj->DWF, &buffer[offset_bits / 8U], &_size_bytes13_);
-        if (_err21_ < 0)
+        if (_err23_ < 0)
         {
-            return _err21_;
+            return _err23_;
         }
         offset_bits += _size_bytes13_ * 8U;  // Advance by the size of the nested serialized representation.
     }
