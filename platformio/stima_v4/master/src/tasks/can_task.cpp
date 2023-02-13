@@ -123,7 +123,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
 {
     #ifdef CHECK_FLASH_WRITE
     // check data (W->R) Verify Flash integrity OK    
-    uint8_t check_data[256];
+    uint8_t check_data[FLASH_BUFFER_SIZE];
     #endif
     // Request New File Init Upload
     if(rewrite) {
@@ -1024,7 +1024,7 @@ void CanTask::Run() {
     CanardMicrosecond next_timesyncro_msg;
 
     // Buffer to queue Out to MMC
-    uint8_t dataQueue[256];
+    uint8_t dataQueue[RMAP_PUT_DATA_ELEMENT_SIZE];
 
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
