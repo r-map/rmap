@@ -69,6 +69,9 @@ protected:
   virtual void Run();
 
 private:
+
+  STM32RTC& rtc = STM32RTC::getInstance();
+
   WdtParam_t param;
 
 };

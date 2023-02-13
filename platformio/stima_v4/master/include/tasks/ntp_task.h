@@ -87,6 +87,8 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   NtpState_t state;
   NtpParam_t param;
   SntpClientContext sntpClientContext;

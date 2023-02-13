@@ -116,6 +116,8 @@ private:
 
   void FileOpenSecurity(File *reqFile, char* file_name, uint8_t file_mode);
 
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   MmcState_t state;
   MmcParam_t param;
 

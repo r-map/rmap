@@ -125,6 +125,8 @@ private:
   // Istance SD Card
   SdFat SD;
 
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   // Local flashPointer
   uint64_t sdFlashPtr;
   uint16_t sdFlashBlock;

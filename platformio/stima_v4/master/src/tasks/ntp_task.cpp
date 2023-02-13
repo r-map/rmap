@@ -105,7 +105,6 @@ void NtpTask::Run() {
   DateTime date;
   IpAddr ipAddr;
   NtpTimestamp timestamp;
-  STM32RTC &rtc = STM32RTC::getInstance();
 
   connection_request_t connection_request;
   connection_response_t connection_response;

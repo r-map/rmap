@@ -301,7 +301,6 @@ void MmcTask::Run()
   uint8_t retry;
   bool message_traced = false;
   bool is_getted_rtc;
-  STM32RTC &rtc = STM32RTC::getInstance();
   // Queue Logging
   char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};

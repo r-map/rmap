@@ -39,7 +39,6 @@ WdtTask::WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, Wdt
 
 void WdtTask::Run() {
   bool firsCheck = true;
-  STM32RTC &rtc = STM32RTC::getInstance();
   u_int16_t stackUsage;
   char strTask[12] = {0};
   bootloader_t boot_check;
