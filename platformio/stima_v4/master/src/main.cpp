@@ -255,6 +255,7 @@ void setup() {
   lcdParam.system_status = &system_status;
   lcdParam.configurationLock = configurationLock;
   lcdParam.systemStatusLock = systemStatusLock;
+  lcdParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
   lcdParam.wire = &Wire2;
   lcdParam.wireLock = wire2Lock;

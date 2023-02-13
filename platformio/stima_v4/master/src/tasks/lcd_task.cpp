@@ -6,7 +6,7 @@
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+ * <h2><center>&copy; Copyright (C) 2022 Cristiano Souza Paz <c.souzapaz@digiteco.it>
  * All rights reserved.</center></h2>
  *
  * This program is free software; you can redistribute it and/or
@@ -439,7 +439,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     if (data.channel[channel].maintenance_mode) {
         display.setFont(u8g2_font_helvR08_tf);
         display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
-        display.print("Maintenance mode");
+        display.print(F("Maintenance mode"));
     }
 
     // Apply the updates to display
@@ -472,7 +472,7 @@ void LCDTask::display_print_default_interface() {
     display.drawHLine(X_RECT, Y_RECT_HEADER, display.getWidth() - X_RECT_HEADER_MARGIN);
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FROM_RECT);
     display.setFont(u8g2_font_helvR08_tf);
-    display.print("Stima: Digiteco-Arpae");
+    display.print(F("Stima: Digiteco-Arpae"));
 }
 
 /**
@@ -482,6 +482,7 @@ void LCDTask::display_print_default_interface() {
 void LCDTask::display_print_main_interface() {
     char station[STATION_LCD_LENGTH];
     char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
+    char dtIntest[18] = {0};
 
     // Process strings format to print
     (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
@@ -489,7 +490,14 @@ void LCDTask::display_print_main_interface() {
 
     // Print data and time
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-    display.print("08/02/23 15:00:00");
+
+    // Get Date and Time
+    if(param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+        sprintf(dtIntest, "%02d/%02d/%02d %02d:%02d:00",
+            rtc.getDay(), rtc.getMonth(), rtc.getYear(), rtc.getHours(), rtc.getMinutes());
+        param.rtcLock->Give();
+    }
+    display.print(dtIntest);
 
     // Print station name
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + LINE_BREAK);

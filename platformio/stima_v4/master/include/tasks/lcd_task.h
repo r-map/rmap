@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * <h2><center>&copy; Copyright (C) 2022 Cristiano Souza Paz <c.souzapaz@digiteco.it>
   * All rights reserved.</center></h2>
   *
   * This program is free software; you can redistribute it and/or
@@ -45,6 +45,8 @@
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "queue.hpp"
+
+#include <STM32RTC.h>
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
@@ -102,6 +104,7 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
 } LCDParam_t;
@@ -161,6 +164,8 @@ bool data_printed;
   char pin_bottom_right_encoder;
   char pin_top_left_encoder;
  
+  STM32RTC &rtc = STM32RTC::getInstance();
+
   LCDState_t state;
   LCDParam_t param;
 };
