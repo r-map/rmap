@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/ntp_task.h"
 
-using namespace cpp_freertos;
-
 #if (USE_NTP)
+
+using namespace cpp_freertos;
 
 NtpTask::NtpTask(const char *taskName, uint16_t stackSize, uint8_t priority, NtpParam_t ntpParam) : Thread(taskName, stackSize, priority), param(ntpParam)
 {
@@ -105,11 +105,10 @@ void NtpTask::Run() {
   DateTime date;
   IpAddr ipAddr;
   NtpTimestamp timestamp;
-
   STM32RTC &rtc = STM32RTC::getInstance();
 
-  system_request_t request;
-  system_response_t response;
+  connection_request_t connection_request;
+  connection_response_t connection_response;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -133,13 +132,13 @@ void NtpTask::Run() {
       // wait connection request
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
+      if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do ntp sync
-        if (request.connection.do_ntp_sync)
+        if (connection_request.do_ntp_sync)
         {
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           TRACE_VERBOSE_F(F("NTP_STATE_WAIT_NET_EVENT -> NTP_STATE_DO_NTP_SYNC\r\n"));
           state = NTP_STATE_DO_NTP_SYNC;
         }
@@ -250,9 +249,9 @@ void NtpTask::Run() {
 
         sntpClientDeinit(&sntpClientContext);
 
-        memset(&response, 0, sizeof(system_response_t));
-        response.connection.done_ntp_synchronized = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
+        memset(&connection_response, 0, sizeof(connection_response_t));
+        connection_response.done_ntp_synchronized = true;
+        param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
@@ -275,9 +274,9 @@ void NtpTask::Run() {
 
         sntpClientDeinit(&sntpClientContext);
 
-        memset(&response, 0, sizeof(system_response_t));
-        response.connection.error_ntp_synchronized = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
+        memset(&connection_response, 0, sizeof(connection_response_t));
+        connection_response.error_ntp_synchronized = true;
+        param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));

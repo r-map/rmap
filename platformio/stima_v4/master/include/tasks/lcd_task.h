@@ -30,16 +30,16 @@
 #ifndef _LCD_TASK_H
 #define _LCD_TASK_H
 
-#define LCD_TASK_PRINT_DELAY_MS   (5000)
-#define LCD_TASK_WAIT_DELAY_MS    (10)
-
-#include "display_config.hpp"
-
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "str.h"
 #include "stima_utility.h"
+
+#if (ENABLE_LCD)
+
 #include "drivers/module_master_hal.hpp"
+
+#include "display_config.hpp"
 
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
@@ -52,6 +52,9 @@
 #endif
 
 #include "debug_F.h"
+
+#define LCD_TASK_PRINT_DELAY_MS   (5000)
+#define LCD_TASK_WAIT_DELAY_MS    (10)
 
 // CHECK*********
 
@@ -103,8 +106,6 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
   cpp_freertos::BinarySemaphore *wireLock;
   TwoWire *wire;
 } LCDParam_t;
@@ -173,4 +174,5 @@ bool data_printed;
   LCDParam_t param;
 };
 
+#endif
 #endif

@@ -71,6 +71,12 @@ bool SDClass::begin(uint32_t detectpin)
   return false;
 }
 
+bool SDClass::end()
+{
+  /*##-1- Initializes SD IOs #############################################*/
+  return _fatFs.end();
+}
+
 /**
   * @brief  Check if a file or folder exist on the SD disk
   * @param  filename: File name

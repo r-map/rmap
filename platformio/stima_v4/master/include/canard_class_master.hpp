@@ -259,7 +259,7 @@ class canardClass {
                 private:
 
                 uint8_t  _node_id;
-                char     _filename[FILE_NAME_SIZE_MAX];
+                char     _filename[CAN_FILE_NAME_SIZE_MAX];
                 bool     _is_firmware;
                 bool     _updating;
                 uint8_t  _updating_retry;
@@ -453,7 +453,7 @@ class canardClass {
                 private:
 
                 FileServer_State _state;         // Stato del file server
-                char     _filename[FILE_NAME_SIZE_MAX]; // Nome del file presentato allo slave
+                char     _filename[CAN_FILE_NAME_SIZE_MAX]; // Nome del file presentato allo slave
                 bool     _is_firmware;           // Comunico se file in TX è un Firmware o altro
                 uint64_t _timeout_us;            // Time command Remoto x Verifica deadLine Request
                 bool     _is_pending;            // Funzione in pending (inviato, attesa risposta o timeout)

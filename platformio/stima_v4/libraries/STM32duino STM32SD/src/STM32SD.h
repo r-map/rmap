@@ -82,6 +82,7 @@ class SDClass {
 
     /* Initialize the SD peripheral */
     bool begin(uint32_t detectpin = SD_DETECT_NONE);
+    bool end(void);
     static File open(const char *filepath, uint8_t mode);
     static File open(const char *filepath);
     static bool exists(const char *filepath);

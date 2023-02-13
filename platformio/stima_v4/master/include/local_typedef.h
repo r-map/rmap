@@ -125,6 +125,7 @@ typedef struct
    uint8_t running_sub;    // Optional SubState of Task
 } task_t;
 
+// System status (Status of Stima)
 typedef struct
 {
    struct
@@ -135,12 +136,14 @@ typedef struct
    // Info Task && WDT
    task_t tasks[TOTAL_INFO_TASK];
 
+   // Configuration Flag
    struct
    {
       bool is_loaded;
       bool is_saved;
    } configuration;
 
+   // Connection NET Flag
    struct
    {
       bool is_connected;
@@ -164,8 +167,11 @@ typedef struct
       bool is_http_configuration_updating;
       bool is_http_firmware_upgraded;
       bool is_http_firmware_upgrading;
+
+      uint32_t mqtt_data_published;
    } connection;
 
+   // GSM Flag
    struct
    {
       // Signal status for last connect
@@ -182,54 +188,63 @@ typedef struct
       uint16_t connection_completed;
    } modem;
 
-   uint32_t mqtt_data_published;
+   // MMC/SD Flag
+   struct
+   {
+      bool is_ready;
+   } sd_card;
+
 } system_status_t;
 
+// Queue for Supervisor Request connection (GSM/NET)
 typedef struct
 {
-   struct
-   {
-      bool do_connect;
-      bool do_disconnect;
+   bool do_connect;
+   bool do_disconnect;
 
-      bool do_ntp_sync;
+   bool do_ntp_sync;
 
-      bool do_mqtt_connect;
+   bool do_mqtt_connect;
 
-      bool do_http_get_configuration;
-      bool do_http_get_firmware;
-   } connection;
-} system_request_t;
+   bool do_http_get_configuration;
+   bool do_http_get_firmware;
 
+} connection_request_t;
+
+// Queue for response to supervisor for Connetcion (GSM/NET)
 typedef struct
 {
-   struct
-   {
-      bool error_connected;
-      bool done_connected;
+   bool error_connected;
+   bool done_connected;
 
-      bool error_disconnected;
-      bool done_disconnected;
+   bool error_disconnected;
+   bool done_disconnected;
 
-      bool done_ntp_synchronized;
-      bool error_ntp_synchronized;
+   bool done_ntp_synchronized;
+   bool error_ntp_synchronized;
 
-      bool done_mqtt_connected;
-      bool error_mqtt_connected;
-      
-      bool done_http_configuration_getted;
-      bool error_http_configuration_getted;
+   bool done_mqtt_connected;
+   bool error_mqtt_connected;
+   
+   bool done_http_configuration_getted;
+   bool error_http_configuration_getted;
 
-      bool done_http_firmware_getted;
-      bool error_http_firmware_getted;
-   } connection;
+   bool done_http_firmware_getted;
+   bool error_http_firmware_getted;
 
    uint16_t number_of_mqtt_data_sent;
 
+} connection_response_t;
+
+// Queue for generic waiting / response operation private queue message
+typedef struct
+{
+   bool done_operation;
+   bool error_operation;
+
 } system_response_t;
 
-
-// System message for queue
+// System public message task for queue
 typedef struct
 {
    uint8_t task_dest;
@@ -247,6 +262,22 @@ typedef struct
    uint32_t param;   // 32 Bit for generic data or casting to pointer
 
 } system_message_t;
+
+// File type enum for queue file upload block
+enum file_block_type {
+   file_name      = 0,  // Block is name file (starting block, create file)
+   data_chunck    = 1,  // Block is data block (file...)
+   end_of_file    = 2,  // Block is end of file (Normal)
+   ctrl_checksum  = 3   // Block is end of file (Required checksum control)
+};
+
+// Queue message (data) for file (firmware) put/get
+typedef struct
+{
+   file_block_type   block_type;
+   uint16_t          block_lenght;
+   uint8_t           block[FILE_PUT_DATA_BLOCK_SIZE];
+} file_queue_t;
 
 // Backup && Upload Firmware TypeDef
 typedef struct

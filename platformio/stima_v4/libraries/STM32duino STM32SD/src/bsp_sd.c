@@ -60,7 +60,8 @@
 #define SD_BUS_WIDE_8B           SDMMC_BUS_WIDE_8B
 #define SD_HW_FLOW_CTRL_ENABLE   SDMMC_HARDWARE_FLOW_CONTROL_ENABLE
 #define SD_HW_FLOW_CTRL_DISABLE  SDMMC_HARDWARE_FLOW_CONTROL_DISABLE
-#define SD_CLK_DIV               (8) // L4 TRANSFER CLOCK DIVIDE SECURITY TRANSFER
+#define SD_CLK_DIV_FULL_SPEED    (0x8) // L4 TRANSFER CLOCK DIVIDE SECURITY TRANSFER (0xA = 4MHZ)
+#define SD_CLK_DIV_INIT          SDMMC_INIT_CLK_DIV
 
 #ifndef SD_CLK_DIV
 #ifdef STM32H7xx
@@ -132,6 +133,9 @@ uint8_t BSP_SD_Init(void)
 {
   uint8_t sd_state = MSD_OK;
 
+  // Call DEInit First
+  BSP_SD_DeInit();
+
   /* uSD device interface configuration */
   uSdHandle.Instance = SD_INSTANCE;
 
@@ -142,7 +146,7 @@ uint8_t BSP_SD_Init(void)
   uSdHandle.Init.ClockPowerSave      = SD_CLK_PWR_SAVE;
   uSdHandle.Init.BusWide             = SD_BUS_WIDE_1B;
   uSdHandle.Init.HardwareFlowControl = SD_HW_FLOW_CTRL;
-  uSdHandle.Init.ClockDiv            = SD_CLK_DIV;
+  uSdHandle.Init.ClockDiv            = SD_CLK_DIV_INIT;
 #ifdef SDMMC_TRANSCEIVER_ENABLE
   uSdHandle.Init.Transceiver = SD_TRANSCEIVER_MODE;
   if (SD_TRANSCEIVER_MODE == SD_TRANSCEIVER_ENABLE) {
@@ -181,6 +185,10 @@ uint8_t BSP_SD_Init(void)
       sd_state = MSD_OK;
     }
   }
+
+  // Set MAX Speed to desired speed
+  uSdHandle.Init.ClockDiv            = SD_CLK_DIV_FULL_SPEED;
+
   return  sd_state;
 }
 

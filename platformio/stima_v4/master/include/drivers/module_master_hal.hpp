@@ -103,6 +103,7 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_SPI_SCK     PA5
 #define PIN_SPI_MOSI    PB5
 #define PIN_SPI_MISO    PB4
+#define PIN_SPI_SS      PA15
 
 // I2C1 Esterna (Upin 27 A4/A5)
 #define PIN_I2C1_SDA    PB7
@@ -239,6 +240,11 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
 void MX_QUADSPI_Init(void);
 void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
 void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
+#endif
+
+#if (ENABLE_SPI1)
+void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi);
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi);
 #endif
 
 #endif // __MODULE_MASTER_HAL_H

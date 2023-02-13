@@ -67,8 +67,8 @@ typedef struct
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemRequestQueue;
-  cpp_freertos::Queue *systemResponseQueue;
+  cpp_freertos::Queue *connectionRequestQueue;
+  cpp_freertos::Queue *connectionResponseQueue;
 } ModemParam_t;
 
 class ModemTask : public cpp_freertos::Thread {

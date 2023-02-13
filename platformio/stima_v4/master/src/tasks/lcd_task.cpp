@@ -31,7 +31,7 @@
 
 #include "tasks/lcd_task.h"
 
-#include <U8g2lib.h>
+#if (ENABLE_LCD)
 
 using namespace cpp_freertos;
 
@@ -555,3 +555,5 @@ void LCDTask::switch_interface() {
 
     encoder_state = DIR_NONE;
 }
+
+#endif

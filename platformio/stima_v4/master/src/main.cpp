@@ -25,6 +25,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "main.h"
 
+// #define SD_FAT_TYPE 3
+
+// #define SPI_SPEED SD_SCK_MHZ(4)
+
+// // SD card chip select
+// int chipSelect;
+
+// #   include <SPI.h>
+// #   include "SdFat.h"
+
+// SdFs sd;
+// FsFile file;
+
+
 void setup() {
  
   // Semaphore, Queue && Param Config for TASK
@@ -54,10 +68,12 @@ void setup() {
   // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
   // Data queue (Request / exchange data from Data Task)
-  static Queue *systemRequestQueue;
-  static Queue *systemResponseQueue;
-  //Data MMC WR/RD
+  static Queue *connectionRequestQueue;
+  static Queue *connectionResponseQueue;
+  //Data MMC/SD WR/RD
   static Queue *dataRmapPutQueue;
+  static Queue *dataFirmwarePutRequestQueue;
+  static Queue *dataFirmwarePutResponseQueue;
   static Queue *dataLogPutQueue;
 
   // System and status configuration struct
@@ -123,9 +139,11 @@ void setup() {
 
   // Creating queue
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
-  systemRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(system_request_t));
-  systemResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(system_response_t));
+  connectionRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(connection_request_t));
+  connectionResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(connection_response_t));
   dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
+  dataFirmwarePutRequestQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_queue_t));
+  dataFirmwarePutResponseQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(system_response_t));
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n\r\n"));
@@ -147,6 +165,24 @@ void setup() {
   // ***************************************************************
   //                  Setup parameter for Task
   // ***************************************************************
+
+// chipSelect = PIN_SPI_SS;
+//     pinMode(chipSelect, OUTPUT);
+//     digitalWrite(chipSelect, HIGH);
+
+//   while (!sd.begin(chipSelect, SPI_SPEED)) {
+//     if (sd.card()->errorCode()) {
+//       Serial.print(sd.card()->errorCode());
+//     }
+//   }
+//       if(!sd.exists("firmware")) sd.mkdir("firmware");
+
+// File dir;
+//       dir = sd.open("/firmware");
+// Serial.print(sd.clusterCount());
+//   //while (!sdLoc.begin(PIN_SPI_SS, SD_SCK_MHZ(4))) {
+//   //}
+
 
 #if (ENABLE_I2C2)
   // Load Info from E2 boot_check flag and send to Config
@@ -185,12 +221,31 @@ void setup() {
   mmcParam.system_status = &system_status;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
   mmcParam.dataLogPutQueue = dataLogPutQueue;
+  mmcParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
+  mmcParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
   mmcParam.flash = &memFlash;
   mmcParam.eeprom = &memEprom;
   mmcParam.qspiLock = qspiLock;  
   mmcParam.rtcLock = rtcLock;
   mmcParam.configurationLock = configurationLock;
   mmcParam.systemStatusLock = systemStatusLock;
+#endif
+
+#if (ENABLE_SD)
+ // TASK SUPERVISOR PARAM CONFIG
+  static SdParam_t sdParam = {0};
+  sdParam.configuration = &configuration;
+  sdParam.system_status = &system_status;
+  sdParam.dataRmapPutQueue = dataRmapPutQueue;
+  sdParam.dataLogPutQueue = dataLogPutQueue;
+  sdParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
+  sdParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
+  sdParam.flash = &memFlash;
+  sdParam.eeprom = &memEprom;
+  sdParam.qspiLock = qspiLock;  
+  sdParam.rtcLock = rtcLock;
+  sdParam.configurationLock = configurationLock;
+  sdParam.systemStatusLock = systemStatusLock;
 #endif
 
 #if (ENABLE_LCD)
@@ -200,8 +255,6 @@ void setup() {
   lcdParam.system_status = &system_status;
   lcdParam.configurationLock = configurationLock;
   lcdParam.systemStatusLock = systemStatusLock;
-  lcdParam.systemRequestQueue = systemRequestQueue;
-  lcdParam.systemResponseQueue = systemResponseQueue;
 #if (ENABLE_I2C2)
   lcdParam.wire = &Wire2;
   lcdParam.wireLock = wire2Lock;
@@ -234,8 +287,10 @@ void setup() {
   supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
-  supervisorParam.systemRequestQueue = systemRequestQueue;
-  supervisorParam.systemResponseQueue = systemResponseQueue;
+  supervisorParam.connectionRequestQueue = connectionRequestQueue;
+  supervisorParam.connectionResponseQueue = connectionResponseQueue;
+  supervisorParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
+  supervisorParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
   supervisorParam.eeprom = &memEprom;
   supervisorParam.clRegister = &clRegister;
 
@@ -246,8 +301,8 @@ void setup() {
   modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
   modemParam.systemStatusLock = systemStatusLock;
-  modemParam.systemRequestQueue = systemRequestQueue;
-  modemParam.systemResponseQueue = systemResponseQueue;
+  modemParam.connectionRequestQueue = connectionRequestQueue;
+  modemParam.connectionResponseQueue = connectionResponseQueue;
 #endif
 
 #if (USE_NTP)
@@ -258,8 +313,8 @@ void setup() {
   ntpParam.rtcLock = rtcLock;
   ntpParam.configurationLock = configurationLock;
   ntpParam.systemStatusLock = systemStatusLock;
-  ntpParam.systemRequestQueue = systemRequestQueue;
-  ntpParam.systemResponseQueue = systemResponseQueue;
+  ntpParam.connectionRequestQueue = connectionRequestQueue;
+  ntpParam.connectionResponseQueue = connectionResponseQueue;
 #endif
 
 #if (USE_HTTP)
@@ -269,8 +324,8 @@ void setup() {
   httpParam.system_status = &system_status;
   httpParam.configurationLock = configurationLock;
   httpParam.systemStatusLock = systemStatusLock;
-  httpParam.systemRequestQueue = systemRequestQueue;
-  httpParam.systemResponseQueue = systemResponseQueue;
+  httpParam.connectionRequestQueue = connectionRequestQueue;
+  httpParam.connectionResponseQueue = connectionResponseQueue;
 #endif
 
 #if (USE_MQTT)
@@ -280,8 +335,8 @@ void setup() {
   mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
   mqttParam.systemStatusLock = systemStatusLock;
-  mqttParam.systemRequestQueue = systemRequestQueue;
-  mqttParam.systemResponseQueue = systemResponseQueue;
+  mqttParam.connectionRequestQueue = connectionRequestQueue;
+  mqttParam.connectionResponseQueue = connectionResponseQueue;
   mqttParam.yarrowContext = &yarrowContext;
 #endif
 
@@ -289,10 +344,13 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 450, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
   static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
+#endif
+#if (ENABLE_SD)
+  static SdTask sd_task("SdTask", 1350, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_LCD)
@@ -300,7 +358,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 11400, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 11800, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
@@ -333,9 +391,10 @@ void loop() {
   #endif
 }
 
-// Setup Wire I2C Interface
+// Setup Wire I2C SPI Interface
 void init_wire()
 {
+  // Setup I2C
 #if (ENABLE_I2C1)
   Wire.begin();
   Wire.setClock(I2C1_BUS_CLOCK_HZ);
@@ -344,6 +403,14 @@ void init_wire()
 #if (ENABLE_I2C2)
   Wire2.begin();
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
+#endif
+
+  // Setup SPI
+#if (ENABLE_SPI1)
+ SPI.setMOSI(PIN_SPI_MOSI);
+ SPI.setMISO(PIN_SPI_MISO);
+ SPI.setSCLK(PIN_SPI_SCK);
+ SPI.begin();        
 #endif
 }
 

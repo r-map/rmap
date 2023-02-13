@@ -51,6 +51,17 @@ bool SdFatFs::init(void)
   return false;
 }
 
+bool SdFatFs::end(void)
+{
+  if (f_mount(NULL, (TCHAR const *)_SDPath, 1) == FR_OK) {
+    /* FatFs Initialization done */
+    if (FATFS_UnLinkDriver(_SDPath) == 0) {    
+      return true;
+    }
+  }
+  return false;
+}
+
 uint8_t SdFatFs::fatType(void)
 {
   switch (_SDFatFs.fs_type) {

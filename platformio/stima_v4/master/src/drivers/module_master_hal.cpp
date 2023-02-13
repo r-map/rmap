@@ -49,8 +49,6 @@ CAN_HandleTypeDef hcan1;
 QSPI_HandleTypeDef hqspi;
 #endif
 
-SD_HandleTypeDef hsd1;
-
 // ********************************************************************************
 //  LOCAL REDEFINITION Weak PinMap ARDUINO for SETUP PIN Base or Alternate Function
 // ********************************************************************************
@@ -164,7 +162,7 @@ const PinMap PinMap_QUADSPI_SSEL[] = {
 };
 #endif
 
-// SD MMC1
+// MMC1
 #ifdef HAL_SD_MODULE_ENABLED
 const PinMap PinMap_SD[] = {
   {PC_8,  SDMMC1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_NOPULL, GPIO_AF12_SDMMC1)}, // SDMMC1_D0
@@ -500,7 +498,7 @@ void MX_GPIO_Init(void)
   // ********** SETUP Port A *************
  
   /* Unused PAx (esclude UPIN27) */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_15;
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -744,7 +742,7 @@ extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
 * @param hqspi: QSPI handle pointer
 * @retval None
 */
-void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
+extern "C" void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
 {
   if(hqspi->Instance==QUADSPI)
   {
@@ -772,6 +770,85 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
     /* USER CODE BEGIN QUADSPI_MspDeInit 1 */
 
     /* USER CODE END QUADSPI_MspDeInit 1 */
+  }
+
+}
+#endif
+
+#if (ENABLE_SPI1)
+/**
+* @brief SPI MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hspi: SPI handle pointer
+* @retval None
+*/
+extern "C" void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspInit 0 */
+
+  /* USER CODE END SPI1_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_SPI1_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PB4 (NJTRST)     ------> SPI1_MISO
+    PB5     ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN SPI1_MspInit 1 */
+
+  /* USER CODE END SPI1_MspInit 1 */
+  }
+
+}
+
+/**
+* @brief SPI MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hspi: SPI handle pointer
+* @retval None
+*/
+extern "C" void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
+{
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspDeInit 0 */
+
+  /* USER CODE END SPI1_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_SPI1_CLK_DISABLE();
+
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PB4 (NJTRST)     ------> SPI1_MISO
+    PB5     ------> SPI1_MOSI
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5);
+
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_4|GPIO_PIN_5);
+
+  /* USER CODE BEGIN SPI1_MspDeInit 1 */
+
+  /* USER CODE END SPI1_MspDeInit 1 */
   }
 
 }

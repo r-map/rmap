@@ -35,6 +35,8 @@
 #include "str.h"
 #include "stima_utility.h"
 
+#if (ENABLE_CAN)
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -172,4 +174,5 @@ private:
   inline static uint16_t canFlashBlock = 0;
 };
 
+#endif
 #endif

@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/mqtt_task.h"
 
-using namespace cpp_freertos;
-
 #if (USE_MQTT)
+
+using namespace cpp_freertos;
 
 /* 
   TEST VALUE FIXED PSK KEY
@@ -120,8 +120,8 @@ void MqttTask::Run()
   bool is_subscribed;
   bool mqtt_connection_estabilished;
   error_t error;
-  system_request_t request;
-  system_response_t response;
+  connection_request_t connection_request;
+  connection_response_t connection_response;
   IpAddr ipAddr;
   bool is_data_publish_end = false;
 
@@ -155,12 +155,12 @@ void MqttTask::Run()
 
       // wait connection request
       // Suspend TASK Controller for queue waiting portMAX_DELAY
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+      if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do mqtt connection
-        if (request.connection.do_mqtt_connect)
+        if (connection_request.do_mqtt_connect)
         {
           MqttServer = param.configuration->mqtt_server;
           // strSafeCopy(MqttServer, param.configuration->mqtt_server, MQTT_SERVER_LENGTH);
@@ -168,7 +168,7 @@ void MqttTask::Run()
           // Start new connection sequence
           mqtt_connection_estabilished = false;
 
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_CONNECT\r\n"));
           state = MQTT_STATE_CONNECT;
         }
@@ -188,7 +188,9 @@ void MqttTask::Run()
 
       TRACE_INFO_F(F("%s Resolving mqtt server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
       // Resolve MQTT server name
+      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
+      TaskState(state, 1, task_flag::normal); // Resume
       if (error)
       {
         is_error = true;
@@ -278,16 +280,16 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_connecting = false;
       // Checked for end of transmission
       param.system_status->connection.is_mqtt_publishing_end = false;
-      param.system_status->mqtt_data_published = 0;
+      param.system_status->connection.mqtt_data_published = 0;
       param.systemStatusLock->Give();
 
       // Session connection complete (send response to request command)
       // No other response from TASK with this session connection
       mqtt_connection_estabilished = true;
       // Response direct when connection complete
-      memset(&response, 0, sizeof(system_response_t));
-      response.connection.done_mqtt_connected = true;
-      param.systemResponseQueue->Enqueue(&response, 0);
+      memset(&connection_response, 0, sizeof(connection_response_t));
+      connection_response.done_mqtt_connected = true;
+      param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
       // Successful connection?
       state = MQTT_STATE_PUBLISH;
@@ -315,7 +317,7 @@ void MqttTask::Run()
         // Starting publishing
         param.systemStatusLock->Take();
         param.system_status->connection.is_mqtt_publishing = true;
-        param.system_status->mqtt_data_published++;
+        param.system_status->connection.mqtt_data_published++;
         param.systemStatusLock->Give();
       }
 
@@ -325,7 +327,7 @@ void MqttTask::Run()
       Delay(Ticks::MsToTicks(5000));
       //TODO:REMOVE End connecction on END Data... >=3 Remove...
       //TODO: is_data_publish_end = true when data END !!!
-      if(param.system_status->mqtt_data_published >= 3) {
+      if(param.system_status->connection.mqtt_data_published >= 3) {
         param.systemStatusLock->Take();
         is_data_publish_end = true;
         param.systemStatusLock->Give();
@@ -370,9 +372,9 @@ void MqttTask::Run()
           break;
         } else {
           // Send response to request
-          memset(&response, 0, sizeof(system_response_t));
-          response.connection.error_mqtt_connected = true;
-          param.systemResponseQueue->Enqueue(&response, 0);
+          memset(&connection_response, 0, sizeof(connection_response_t));
+          connection_response.error_mqtt_connected = true;
+          param.connectionResponseQueue->Enqueue(&connection_response, 0);
         }
       }
 

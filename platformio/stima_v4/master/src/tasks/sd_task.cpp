@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    mmc_task.cpp
+  * @file    sd_task.cpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   mmc_task source file (SDMMC StimaV4)
+  * @brief   sd_task source file (SD SPI StimaV4)
   ******************************************************************************
   * @attention
   *
@@ -27,32 +27,32 @@
   ******************************************************************************
 */
 
-#define TRACE_LEVEL     MMC_TASK_TRACE_LEVEL
-#define LOCAL_TASK_ID   MMC_TASK_ID
+#define TRACE_LEVEL     SD_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID   SD_TASK_ID
 
-#include "tasks/mmc_task.h"
+#include "tasks/sd_task.h"
 
-#if (ENABLE_MMC)
+#if (ENABLE_SD)
 
 using namespace cpp_freertos;
 
-MmcTask::MmcTask(const char *taskName, uint16_t stackSize, uint8_t priority, MmcParam_t mmcParam) : Thread(taskName, stackSize, priority), param(mmcParam)
+SdTask::SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t sdParam) : Thread(taskName, stackSize, priority), param(sdParam)
 {
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
-  TaskState(MMC_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
+  TaskState(SD_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Init val
-  mmcFlashPtr = 0;
-  mmcFlashBlock = 0;
+  sdFlashPtr = 0;
+  sdFlashBlock = 0;
 
-  state = MMC_STATE_INIT;
+  state = SD_STATE_INIT;
   Start();
 };
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-void MmcTask::TaskMonitorStack()
+void SdTask::TaskMonitorStack()
 {
   u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
   if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
@@ -67,7 +67,7 @@ void MmcTask::TaskMonitorStack()
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void MmcTask::TaskWatchDog(uint32_t millis_standby)
+void SdTask::TaskWatchDog(uint32_t millis_standby)
 {
   // Local TaskWatchDog update
   param.systemStatusLock->Take();
@@ -92,7 +92,7 @@ void MmcTask::TaskWatchDog(uint32_t millis_standby)
 /// @param state_position Sw_Position (Local STATE)
 /// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
 /// @param state_operation operative mode flag status for this task
-void MmcTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
+void SdTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
 {
   // Local TaskWatchDog update
   param.systemStatusLock->Take();
@@ -113,7 +113,7 @@ void MmcTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
 /// @param buf blocco dati da scrivere in formato UAVCAN [256 Bytes]
 /// @param count numero del blocco da scrivere in formato UAVCAN [Blocco x Buffer]
 /// @return true if block saved OK, false on any error
-bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
+bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
 {
     #ifdef CHECK_FLASH_WRITE
     // check data (W->R) Verify Flash integrity OK    
@@ -137,27 +137,27 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             // Start From PtrFlash 0x100 (Reserve 256 Bytes For InfoFile)
             if (is_firmware) {
                 // Firmware Flash
-                mmcFlashPtr = FLASH_FW_POSITION;
+                sdFlashPtr = FLASH_FW_POSITION;
             } else {
                 // Standard File Data Upload
-                mmcFlashPtr = FLASH_FILE_POSITION;
+                sdFlashPtr = FLASH_FILE_POSITION;
             }
             // Get Block Current into Flash
-            mmcFlashBlock = mmcFlashPtr / AT25SF641_BLOCK_SIZE;
+            sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
             // Erase First Block Block (Block OF 4KBytes)
-            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), mmcFlashBlock);
-            if (param.flash->BSP_QSPI_Erase_Block(mmcFlashBlock)) {
+            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+            if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
                 param.qspiLock->Give();
                 return false;
             }
             // Write Name File (Size at Eof...)
             uint8_t file_flash_name[FLASH_FILE_SIZE_LEN] = {0};
             memcpy(file_flash_name, file_name, strlen(file_name));
-            param.flash->BSP_QSPI_Write(file_flash_name, mmcFlashPtr, FLASH_FILE_SIZE_LEN);
+            param.flash->BSP_QSPI_Write(file_flash_name, sdFlashPtr, FLASH_FILE_SIZE_LEN);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, mmcFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, sdFlashPtr);
             #ifdef CHECK_FLASH_WRITE
-            param.flash->BSP_QSPI_Read(check_data, mmcFlashPtr, FLASH_FILE_SIZE_LEN);
+            param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, FLASH_FILE_SIZE_LEN);
             if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -167,7 +167,7 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             }
             #endif
             // Start Page...
-            mmcFlashPtr += FLASH_INFO_SIZE_LEN;
+            sdFlashPtr += FLASH_INFO_SIZE_LEN;
             param.qspiLock->Give();
         }
     }
@@ -178,11 +178,11 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
         if(count!=0) {
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, mmcFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, sdFlashPtr);
             // Starting Write at OFFSET Required... Erase here is Done
-            param.flash->BSP_QSPI_Write((uint8_t*)buf, mmcFlashPtr, count);
+            param.flash->BSP_QSPI_Write((uint8_t*)buf, sdFlashPtr, count);
             #ifdef CHECK_FLASH_WRITE
-            param.flash->BSP_QSPI_Read(check_data, mmcFlashPtr, count);
+            param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, count);
             if(memcmp(buf, check_data, count)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -191,13 +191,13 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
                 return false;
             }
             #endif
-            mmcFlashPtr += count;
+            sdFlashPtr += count;
             // Check if Next Page Addressed (For Erase Next Block)
-            if((mmcFlashPtr / AT25SF641_BLOCK_SIZE) != mmcFlashBlock) {
-                mmcFlashBlock = mmcFlashPtr / AT25SF641_BLOCK_SIZE;
+            if((sdFlashPtr / AT25SF641_BLOCK_SIZE) != sdFlashBlock) {
+                sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
                 // Erase First Block Block (Block OF 4KBytes)
-                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), mmcFlashBlock);
-                if (param.flash->BSP_QSPI_Erase_Block(mmcFlashBlock)) {
+                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+                if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
                     param.qspiLock->Give();
                     return false;
                 }
@@ -207,19 +207,19 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         if(count!=0x100) {
             // Write Info File for Closing...
             // Size at 
-            uint64_t lenghtFile = mmcFlashPtr - FLASH_INFO_SIZE_LEN;
+            uint64_t lenghtFile = sdFlashPtr - FLASH_INFO_SIZE_LEN;
             if (is_firmware) {
                 // Firmware Flash
-                mmcFlashPtr = FLASH_FW_POSITION;
+                sdFlashPtr = FLASH_FW_POSITION;
             } else {
                 // Standard File Data Upload
-                mmcFlashPtr = FLASH_FILE_POSITION;
+                sdFlashPtr = FLASH_FILE_POSITION;
             }
-            param.flash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(mmcFlashPtr), FLASH_INFO_SIZE_U64);
+            param.flash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, mmcFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, sdFlashPtr);
             #ifdef CHECK_FLASH_WRITE
-            param.flash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(mmcFlashPtr), FLASH_INFO_SIZE_U64);
+            param.flash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
             if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
                 TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
             } else {
@@ -238,7 +238,7 @@ bool MmcTask::putFlashFile(const char* const file_name, const bool is_firmware, 
 /// @param revision revision firmware
 /// @param len length of file in bytes
 /// @return true if exixst
-bool MmcTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len)
+bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len)
 {
     uint8_t block[FLASH_FILE_SIZE_LEN];
     bool fileReady = false;
@@ -269,33 +269,7 @@ bool MmcTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
     return fileReady;
 }
 
-/// @brief File Open with check SD Status (Various ISUUE... Resolving Resolution in progress STM32 Staff )
-///        on STM32 CubeMX. STM32Duino SD not Not currently managed Inserted by digiteco according to the
-///        various ISUEE some solutions that limit the problem
-/// @param reqFile File object
-/// @param file_name nameFile
-/// @param file_mode file_mode open (WR/RD ecc..)
-void MmcTask::FileOpenSecurity(File *reqFile, char* file_name, uint8_t file_mode) {
-  *reqFile = SD.open(file_name, file_mode);
-  if(!(*reqFile)) {
-    // Disable the MMC1 peripheral
-    SDMMC1->POWER = 0;
-    RCC->APB2ENR &= ~RCC_APB2ENR_SDMMC1EN;
-    // Waiting before RESET HW Complete
-    Delay(200);
-    SD.end();
-    while(!SD.begin(PIN_MMC1_DTC)) {
-      // Disable the MMC1 peripheral
-      SDMMC1->POWER = 0;
-      RCC->APB2ENR &= ~RCC_APB2ENR_SDMMC1EN;
-      Delay(200);
-      SD.end();
-    }
-    *reqFile = SD.open(file_name, file_mode);
-  }
-}
-
-void MmcTask::Run()
+void SdTask::Run()
 {
   // Generic retry
   uint8_t retry;
@@ -310,14 +284,17 @@ void MmcTask::Run()
   system_response_t system_response;
   char remote_file_name[128];
   // Local Firmware check and update
-  char data_block[MMC_FW_BLOCK_SIZE];
+  char data_block[SD_FW_BLOCK_SIZE];
   char stima_name[STIMA_MODULE_NAME_LENGTH];
-  char local_file_name[128];
-  uint16_t idxList;
+  char local_file_name[FILE_NAME_MAX_LENGHT];
   uint8_t module_type, fw_version, fw_revision;
   bool fw_found;
   File logFile;
   File putFile;
+  File dir, entry; // Access dir List
+  #if (ENABLE_SPI1)
+  //SPIClass spiPort(PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_SCK);
+  #endif
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -332,6 +309,7 @@ void MmcTask::Run()
    * SD.error... Delay (500ms) Next -> SD.begin(); Resync State
    * File.OpenNext (ARDUINO Leak Memory problem)
    *    -> Create ListIndex (WORK FINE WITH ONLY FILE LIST)
+   * rewrite ? O_RDWR | O_CREAT | O_TRUNC : O_RDWR | O_APPEND
   *************************************************************/
 
   while (true)
@@ -339,12 +317,15 @@ void MmcTask::Run()
 
     switch (state)
     {
-    case MMC_STATE_INIT:
-
+    case SD_STATE_INIT:
       // Check SD or Resynch after Error
-      if (MMCCard_Present()) {
-        TRACE_VERBOSE_F(F("MMC Card slot ready -> MMC_STATE_CHECK_SD\r\n"));
-        state = MMC_STATE_CHECK_SD;
+      if (!SD.begin(PIN_SPI_SS, SD_SCK_MHZ(18))) {
+        TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_SD\r\n"));
+        // SD Was Ready... for System
+        param.systemStatusLock->Take();
+        param.system_status->sd_card.is_ready = true;
+        param.systemStatusLock->Give();
+        state = SD_STATE_CHECK_SD;
         message_traced = false;
       } else {
         // Only one TRACE message... SD Not present
@@ -353,58 +334,39 @@ void MmcTask::Run()
           param.systemStatusLock->Take();
           param.system_status->sd_card.is_ready = false;
           param.systemStatusLock->Give();
-          TRACE_VERBOSE_F(F("MMC Card slot empty, MMC function disabled\r\n"));
+          TRACE_VERBOSE_F(F("SD Card slot empty, SD function disabled\r\n"));
           message_traced = true;
         }
       }
       break;
 
-    case MMC_STATE_CHECK_SD:
-      // Setup SD Card
-      if (SD.begin()) {
-        // SD Was Ready... for System
-        param.systemStatusLock->Take();
-        param.system_status->sd_card.is_ready = true;
-        param.systemStatusLock->Give();
-        TRACE_VERBOSE_F(F("MMC Card init complete -> MMC_STATE_WAITING_EVENT\r\n"));
-        // Optional Trace Type of CARD... and Size
-        // Check or create directory Structure...
-        if(!SD.exists("firmware")) SD.mkdir("firmware");
-        if(!SD.exists("log")) SD.mkdir("log");
-        if(!SD.exists("data")) SD.mkdir("data");
-
-        #if (TRACE_LEVEL > TRACE_LEVEL_OFF)
-        // Trace Firmware List present on SD Card.
-        // Charged in SD or getted from remote HTTP
-        // Check firmware file present Type, model and version
-        idxList = 0;
-        // Check list Firmware File (Added Function to SD Class)
-        while(SD.listIndex("/firmware", idxList++, local_file_name)) {
-          // Found firmware file?
-          if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
-            getStimaNameByType(stima_name, module_type);
-            TRACE_INFO_F(F("MMC: found firmware type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
-          }
+    case SD_STATE_CHECK_SD:
+      // Optional Trace Type of CARD... and Size
+      // Check or create directory Structure...
+      if(!SD.exists("firmware")) SD.mkdir("firmware");
+      if(!SD.exists("log")) SD.mkdir("log");
+      if(!SD.exists("data")) SD.mkdir("data");
+      TRACE_VERBOSE_F(F("SD Card init complete -> SD_STATE_WAITING_EVENT\r\n"));
+      #if (TRACE_LEVEL > TRACE_LEVEL_OFF)
+      // Trace Firmware List present on SD Card.
+      // Charged in SD or getted from remote HTTP
+      // Check firmware file present Type, model and version from list file in firmware dir
+      dir = SD.open("/firmware");
+      while(true) {
+        entry = dir.openNextFile();
+        // Found firmware file?
+        entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+        if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
+          getStimaNameByType(stima_name, module_type);
+          TRACE_INFO_F(F("SD: found firmware type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
         }
-        #endif
-
-        // Push firmware to Flash
-        state = MMC_STATE_WAITING_EVENT;
-      } else {
-        // Waiting to Start MMC (Only one trace and modify system_status do mmc not ready)
-        if(!message_traced) {
-          message_traced = true;
-          // SD Was NOT Ready... for System
-          param.systemStatusLock->Take();
-          param.system_status->sd_card.is_ready = false;
-          param.systemStatusLock->Give();
-          TRACE_VERBOSE_F(F("MMC Card waiting to begin...\r\n"));
-          message_traced = true;
-        }          
+        entry.close();
       }
+      dir.close();
+      #endif
       break;
 
-    case MMC_STATE_WAITING_EVENT:
+    case SD_STATE_WAITING_EVENT:
 
       // If System SLEEP...  Long WAIT
       // Else check all queue input
@@ -415,14 +377,14 @@ void MmcTask::Run()
       if(0)
       {
         retry = 0;
-        state = MMC_UPLOAD_FIRMWARE_TO_FLASH;
+        state = SD_UPLOAD_FIRMWARE_TO_FLASH;
         break;
       }
 
       // *********************************************************
       //             Perform LOG WRITE append message
       // *********************************************************
-      // If element get all element from the queue and Put to MMC
+      // If element get all element from the queue and Put to SD
       // Typical Put of Logging are Time controlled from TASK (If queue are free into reasonable time LOG is pushed)
       // Log queue element is reasonable sized to avoid problems
       is_getted_rtc = false;
@@ -438,12 +400,14 @@ void MmcTask::Run()
         }
         // Get message from queue
         if(param.dataLogPutQueue->Dequeue(logMessage)) {
-          // Put to MMC ( APPEND File )
-          FileOpenSecurity(&logFile, "log/log.txt", FA_OPEN_APPEND | FA_WRITE);
-          logFile.print(logIntest);
-          logFile.write(logMessage, strlen(logMessage) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logMessage) : LOG_PUT_DATA_ELEMENT_SIZE);
-          logFile.println();
-          logFile.close();
+          // Put to SD ( APPEND File )
+          logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
+          if(logFile) {          
+            logFile.print(logIntest);
+            logFile.write(logMessage, strlen(logMessage) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logMessage) : LOG_PUT_DATA_ELEMENT_SIZE);
+            logFile.println();
+            logFile.close();
+          }
         }
       }
       // *********************************************************
@@ -453,14 +417,14 @@ void MmcTask::Run()
       // *********************************************************
       //       Perform FILE (FIRMWARE) WRITE append message
       // *********************************************************
-      // If element get all element from the queue and Put to MMC N.B. If session running (Uploading...) Name File != NULL
+      // If element get all element from the queue and Put to SD N.B. If session running (Uploading...) Name File != NULL
       // If remote_file_name != NULL remote_file_name is not ready to system (Put firmware into module local and remote)
       // Any request for file (es. Cypal Request firmware are blocked)
       while(!param.dataFirmwarePutRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         if(param.dataFirmwarePutRequestQueue->Dequeue(&data_file_queue)) {
-          // Put to MMC ( CREATE / APPEND Firmware Block File session )
+          // Put to SD ( CREATE / APPEND Firmware Block File session )
           if(data_file_queue.block_type == file_block_type::file_name) {
             // Get File name set file name Upload (session current START)
             memset(remote_file_name, 0, sizeof(remote_file_name));
@@ -469,8 +433,18 @@ void MmcTask::Run()
             // Create File in ReWrite Mode
             // Locking file session (uploading...)
             memset(&system_response, 0, sizeof(system_response));
+            if(SD.exists(remote_file_name)) {
+              SD.remove(remote_file_name);
+              Delay(100);
+              Serial.print("ReMOVED");
+            }
             // Open Put File
-            FileOpenSecurity(&putFile, remote_file_name, FA_WRITE | FA_CREATE_ALWAYS);
+            putFile = SD.open(remote_file_name, O_RDWR | O_CREAT | O_TRUNC);
+            if(!putFile) {
+              Serial.print("HEREEEEEEE ERRORRRRRRRRR");
+              Delay(500);
+            }
+            Serial.print("BBBBBBBBB");
             system_response.done_operation = true;
             // Send response to caller
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
@@ -478,10 +452,14 @@ void MmcTask::Run()
             memset(&system_response, 0, sizeof(system_response));
             if(putFile) {
               putFile.write(data_file_queue.block, data_file_queue.block_lenght);
+              Delay(2);
               system_response.done_operation = true;
+              Serial.print('+');
             } else {
+              Serial.print('!');
               system_response.error_operation = true;
             }
+                Serial.print("CCCCCCCCCCC");
             // Send response to caller
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::end_of_file) {
@@ -489,10 +467,15 @@ void MmcTask::Run()
             // Unlock session. File is ready for the system (without integrity control)
             memset(remote_file_name, 0, sizeof(remote_file_name));
             // Send response to caller ... OK done
+                Serial.print("DDDDDDDDD");
             putFile.close();
+                Serial.print("EEEEEEEEEEE");
+
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+                Serial.print("FFFFFFFFFFF");
+
           } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
@@ -505,6 +488,8 @@ void MmcTask::Run()
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
           }
         }
+        Serial.print("GGGGGGGGG");
+
       }
       // *********************************************************
       //        End OF FILE (FIRMWARE) WRITE append message
@@ -512,128 +497,132 @@ void MmcTask::Run()
 
       break;
     
-    case MMC_UPLOAD_FIRMWARE_TO_FLASH:
+    case SD_UPLOAD_FIRMWARE_TO_FLASH:
 
       // *********************************************************
       //           Perform Local Firmware FLASH Update
       // *********************************************************
 
       // N.B TODO: Need to Inform Other TASK Priority MAX to Upload Firmware To Flash
-      // All operation are to suspend, MMC Task End to Responding at Standard Queue request
+      // All operation are to suspend, SD Task End to Responding at Standard Queue request
 
       // Check firmware file present Type, model and version
       fw_found = false;
       // Name of module
       getStimaNameByType(stima_name, param.configuration->module_type);
       // Check list Firmware File
-      idxList = 0;
-      while(SD.listIndex("/firmware", idxList++, local_file_name)) {
+      dir = SD.open("/firmware");
+      while(true) {
+        entry = dir.openNextFile();
         // Found firmware file?
-        if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
+        entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+        if(!checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
+          entry.close();
+        } else {
           // Is this module ?
-          if(module_type == param.configuration->module_type) {
+          if(module_type != param.configuration->module_type) {
+            entry.close();
+          } else {
             fw_found = true;
             if((fw_version > param.configuration->module_main_version) ||
               ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version)))
             {
-              TRACE_INFO_F(F("MMC: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
-              TRACE_INFO_F(F("MMC: starting firmware upgrade...\n\r"));
-              // SetName File
-              memset(data_block, 0, MMC_FW_BLOCK_SIZE);
-              strcpy(data_block,"/firmware/");
-              strcat(data_block, local_file_name);
-              // Open file SD
-              putFile = SD.open(data_block);
+              // Get full name for local operation
+              entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+              TRACE_INFO_F(F("SD: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+              TRACE_INFO_F(F("SD: starting firmware upgrade...\n\r"));
               // Flag
               bool bFirstBlock = true;
               bool is_error = false;
               // Is file opened?
-              if(putFile) {
+              if(entry) {
                 int len_block;
                 // Put firmware in correct Flash Location
                 while(1) {
                   // *************  PREPARE FLASHING *************
                   // Read block data from file
-                  len_block = putFile.read(data_block, MMC_FW_BLOCK_SIZE);
+                  len_block = entry.read(data_block, SD_FW_BLOCK_SIZE);
                   if(len_block < 0) {
                     is_error = true;
                     break;
                   }
                   // Append block firmware file to flash (same of CAN FW Upgrade)
-                  // EOF when block != MMC_FW_BLOCK_SIZE (UAVCAN TYPE_LEN 256 BYTES)
+                  // EOF when block != SD_FW_BLOCK_SIZE (UAVCAN TYPE_LEN 256 BYTES)
                   if(!putFlashFile(local_file_name, true, bFirstBlock, data_block, len_block)) {
                     is_error = true;
                     break;
                   }
                   bFirstBlock = false;
-                  if(len_block != MMC_FW_BLOCK_SIZE) {
+                  if(len_block != SD_FW_BLOCK_SIZE) {
                     // EOF
                     break;
                   }
                   // WDT non blocking task (Delay basic operation)
-                  TaskWatchDog(MMC_TASK_WAIT_OPERATION_DELAY_MS);
-                  Delay(Ticks::MsToTicks(MMC_TASK_WAIT_OPERATION_DELAY_MS));
+                  TaskWatchDog(SD_TASK_WAIT_OPERATION_DELAY_MS);
+                  Delay(Ticks::MsToTicks(SD_TASK_WAIT_OPERATION_DELAY_MS));
                 }
-                putFile.close();
+                entry.close();
                 // Nothing error, starting firmware upgrade
                 if(!is_error) {
                   // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
                   SD.remove(local_file_name);
                   // Optional send SIGTerm to all task
                   // WDT non blocking task (Delay basic operation)
-                  TRACE_INFO_F(F("MMC: firmware upgrading complete waiting reboot for start flashing...\n\r"));
-                  TaskWatchDog(MMC_TASK_WAIT_REBOOT_MS);
-                  Delay(Ticks::MsToTicks(MMC_TASK_WAIT_REBOOT_MS));
+                  TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\n\r"));
+                  TaskWatchDog(SD_TASK_WAIT_REBOOT_MS);
+                  Delay(Ticks::MsToTicks(SD_TASK_WAIT_REBOOT_MS));
                   NVIC_SystemReset();
                 }
               }
               // Error opening file or procedure upload
               // is_error (open_file OK, procedure error)
               // !is_error (open_file error)
-              if(++retry>MMC_TASK_GENERIC_RETRY) {
+              if(++retry>SD_TASK_GENERIC_RETRY) {
                 // Abort MAX Retry
-                TRACE_INFO_F(F("MMC: firmware upgrading error, Max retry reached up. Abort flashing!!!\n\r"));
+                TRACE_INFO_F(F("SD: firmware upgrading error, Max retry reached up. Abort flashing!!!\n\r"));
                 if(!is_error) {
                   // ReSynch SD Card... Error when opening file
-                  TRACE_VERBOSE_F(F("MMC_UPLOAD_FIRMWARE_TO_FLASH -> MMC_STATE_ERROR\r\n"));
-                  state = MMC_STATE_ERROR;
+                  TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_ERROR\r\n"));
+                  state = SD_STATE_ERROR;
                 } else {
                   // Error procedure Flashing... Can Retry from extern
-                  TRACE_VERBOSE_F(F("MMC_UPLOAD_FIRMWARE_TO_FLASH -> MMC_STATE_WAITING_EVENT\r\n"));
-                  state = MMC_STATE_WAITING_EVENT;
+                  TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
+                  state = SD_STATE_WAITING_EVENT;
                 }
               } else {
                 // Error, next Retry
-                TRACE_INFO_F(F("MMC: firmware upgrading error waiting retry\n\r"));
-                TaskWatchDog(MMC_TASK_GENERIC_RETRY_DELAY_MS);
-                Delay(Ticks::MsToTicks(MMC_TASK_GENERIC_RETRY_DELAY_MS));
+                TRACE_INFO_F(F("SD: firmware upgrading error waiting retry\n\r"));
+                TaskWatchDog(SD_TASK_GENERIC_RETRY_DELAY_MS);
+                Delay(Ticks::MsToTicks(SD_TASK_GENERIC_RETRY_DELAY_MS));
               }
             }
             else
             {
+              entry.close();
               // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
               SD.remove(local_file_name);
-              TRACE_INFO_F(F("MMC: found firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
-              TRACE_INFO_F(F("MMC: firmware upgrade abort!!!\n\r"));
-              TRACE_VERBOSE_F(F("MMC_UPLOAD_FIRMWARE_TO_FLASH -> MMC_STATE_WAITING_EVENT\r\n"));
-              state = MMC_STATE_WAITING_EVENT;
+              TRACE_INFO_F(F("SD: found firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+              TRACE_INFO_F(F("SD: firmware upgrade abort!!!\n\r"));
+              TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
+              state = SD_STATE_WAITING_EVENT;
             }
             break;
           }
         }
       }
+      dir.close();
       // Firmware not Found
       if(!fw_found) {
-        TRACE_INFO_F(F("MMC: module firmware for module %s not found\r\n"), stima_name);
-        TRACE_VERBOSE_F(F("MMC_UPLOAD_FIRMWARE_TO_FLASH -> MMC_STATE_WAITING_EVENT\r\n"));
-        state = MMC_STATE_WAITING_EVENT;
+        TRACE_INFO_F(F("SD: module firmware for module %s not found\r\n"), stima_name);
+        TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
+        state = SD_STATE_WAITING_EVENT;
       }
       break;
 
-    case MMC_STATE_ERROR:
+    case SD_STATE_ERROR:
       // Gest Error... Resynch SD
-      TRACE_VERBOSE_F(F("MMC_STATE_ERROR -> MMC_STATE_INIT\r\n"));
-      state = MMC_STATE_INIT;
+      TRACE_VERBOSE_F(F("SD_STATE_ERROR -> SD_STATE_INIT\r\n"));
+      state = SD_STATE_INIT;
       break;
     }
 
@@ -642,8 +631,8 @@ void MmcTask::Run()
     #endif
 
     // One step base non blocking switch
-    TaskWatchDog(MMC_TASK_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(MMC_TASK_WAIT_DELAY_MS));
+    TaskWatchDog(SD_TASK_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(SD_TASK_WAIT_DELAY_MS));
 
   }
 }

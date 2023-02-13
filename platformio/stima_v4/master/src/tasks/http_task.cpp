@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/http_task.h"
 
-using namespace cpp_freertos;
-
 #if (USE_HTTP)
+
+using namespace cpp_freertos;
 
 HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam)
 {
@@ -294,8 +294,8 @@ void HttpTask::Run() {
   bool is_get_configuration;
   bool is_get_firmware;
 
-  system_request_t request;
-  system_response_t response;
+  connection_request_t connection_request;
+  connection_response_t connection_response;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -321,22 +321,22 @@ void HttpTask::Run() {
       // wait connection request
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
+      if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do http get configuration
-        if (request.connection.do_http_get_configuration)
+        if (connection_request.do_http_get_configuration)
         {
           is_get_configuration = true;
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           state = HTTP_STATE_SEND_REQUEST;
           TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
         }
         // do http get firmware
-        else if (request.connection.do_http_get_firmware)
+        else if (connection_request.do_http_get_firmware)
         {
           is_get_firmware = true;
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           state = HTTP_STATE_SEND_REQUEST;
           TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
         }
@@ -354,7 +354,9 @@ void HttpTask::Run() {
       TRACE_INFO_F(F("%s Resolving http server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
 
       // Resolve HTTP server name
+      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
+      TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
       {
@@ -392,8 +394,10 @@ void HttpTask::Run() {
         break;
       }
 
+      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       // Connect to the HTTP server
       error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_PORT);
+      TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
       {
@@ -466,8 +470,11 @@ void HttpTask::Run() {
       break;
 
     case HTTP_STATE_GET_RESPONSE:
+
+      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       // Receive HTTP response header
       error = httpClientReadHeader(&httpClientContext);
+      TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
       {
@@ -516,8 +523,11 @@ void HttpTask::Run() {
         {
           // change http_buffer with firmware buffer
         }
-        
+
+        TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
+        // Receive HTTP body
         error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
+        TaskState(state, 1, task_flag::normal); // Resume
         if (!error)
         {
           // Properly terminate the string with a NULL character
@@ -581,12 +591,12 @@ void HttpTask::Run() {
 
         httpClientDeinit(&httpClientContext);
 
-        memset(&response, 0, sizeof(system_response_t));
-        response.connection.done_http_configuration_getted = is_get_configuration;
-        response.connection.error_http_configuration_getted = false;
-        response.connection.done_http_firmware_getted = is_get_firmware;
-        response.connection.error_http_firmware_getted = false;
-        param.systemResponseQueue->Enqueue(&response, 0);
+        memset(&connection_response, 0, sizeof(connection_response_t));
+        connection_response.done_http_configuration_getted = is_get_configuration;
+        connection_response.error_http_configuration_getted = false;
+        connection_response.done_http_firmware_getted = is_get_firmware;
+        connection_response.error_http_firmware_getted = false;
+        param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
@@ -612,12 +622,12 @@ void HttpTask::Run() {
 
         httpClientDeinit(&httpClientContext);
 
-        memset(&response, 0, sizeof(system_response_t));
-        response.connection.done_http_configuration_getted = false;
-        response.connection.error_http_configuration_getted = is_get_configuration;
-        response.connection.done_http_firmware_getted = false;
-        response.connection.error_http_firmware_getted = is_get_firmware;
-        param.systemResponseQueue->Enqueue(&response, 0);
+        memset(&connection_response, 0, sizeof(connection_response_t));
+        connection_response.done_http_configuration_getted = false;
+        connection_response.error_http_configuration_getted = is_get_configuration;
+        connection_response.done_http_firmware_getted = false;
+        connection_response.error_http_firmware_getted = is_get_firmware;
+        param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));

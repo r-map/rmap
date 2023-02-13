@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
- * @file    mmc_task.h
+ * @file    sd_task.h
  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
- * @brief   mmc_task header file (SDMMC StimaV4)
+ * @brief   sd_task header file (SD SPI StimaV4)
  ******************************************************************************
  * @attention
  *
@@ -27,15 +27,15 @@
  ******************************************************************************
 */
 
-#ifndef _MMC_TASK_H
-#define _MMC_TASK_H
+#ifndef _SD_TASK_H
+#define _SD_TASK_H
 
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
 #include "str.h"
 
-#if (ENABLE_MMC)
+#if (ENABLE_SD)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -44,40 +44,45 @@
 #include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 
-#include <STM32RTC.h>
-#include <STM32SD.h>
-
-// Flash Access
-#include "drivers/flash.h"
-
-#define MMC_TASK_WAIT_DELAY_MS            (50)
-#define MMC_TASK_WAIT_OPERATION_DELAY_MS  (1)
-
-#define MMC_TASK_WAIT_REBOOT_MS           (2500)
-
-#define MMC_TASK_GENERIC_RETRY_DELAY_MS   (5000)
-#define MMC_TASK_GENERIC_RETRY            (3)
-
-#define MMC_FW_BLOCK_SIZE                 (256)
-
-#if (ENABLE_I2C1 || ENABLE_I2C2)
-#include <Wire.h>
-#include "drivers/eeprom.h"
+#if (ENABLE_SPI1)
+#include <SPI.h>
 #endif
+
+// SD Fat
+#include "SdFat.h"
+
+#include <STM32RTC.h>
+
+// Memory device Access
+#include "drivers/flash.h"
+#include "drivers/eeprom.h"
+
+#define SD_TASK_WAIT_DELAY_MS            (50)
+#define SD_TASK_WAIT_OPERATION_DELAY_MS  (1)
+
+#define SD_TASK_WAIT_REBOOT_MS           (2500)
+
+#define SD_TASK_GENERIC_RETRY_DELAY_MS   (5000)
+#define SD_TASK_GENERIC_RETRY            (3)
+
+#define SD_FW_BLOCK_SIZE                 (256)
+
+#define FILE_NAME_MAX_LENGHT             (128)
 
 #include "debug_F.h"
 
-#define MMCCard_Present()     (!digitalRead(PIN_MMC1_DTC))
+#define errorExit(msg) errorHalt(F(msg))
+#define initError(msg) initErrorHalt(F(msg))
 
 typedef enum
 {
-  MMC_STATE_CREATE,
-  MMC_STATE_INIT,
-  MMC_STATE_CHECK_SD,    
-  MMC_STATE_WAITING_EVENT,
-  MMC_UPLOAD_FIRMWARE_TO_FLASH,
-  MMC_STATE_ERROR
-} MmcState_t;
+  SD_STATE_CREATE,
+  SD_STATE_INIT,
+  SD_STATE_CHECK_SD,    
+  SD_STATE_WAITING_EVENT,
+  SD_UPLOAD_FIRMWARE_TO_FLASH,
+  SD_STATE_ERROR
+} SdState_t;
 
 typedef struct {
   configuration_t *configuration;
@@ -93,12 +98,12 @@ typedef struct {
   cpp_freertos::Queue *dataFirmwarePutResponseQueue;
   Flash *flash;
   EEprom *eeprom;
-} MmcParam_t;
+} SdParam_t;
 
-class MmcTask : public cpp_freertos::Thread {
+class SdTask : public cpp_freertos::Thread {
 
 public:
-  MmcTask(const char *taskName, uint16_t stackSize, uint8_t priority, MmcParam_t MmcParam);
+  SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t SdParam);
 
 protected:
   virtual void Run();
@@ -114,14 +119,15 @@ private:
   bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
   bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
 
-  void FileOpenSecurity(File *reqFile, char* file_name, uint8_t file_mode);
+  SdState_t state;
+  SdParam_t param;
 
-  MmcState_t state;
-  MmcParam_t param;
+  // Istance SD Card
+  SdFat SD;
 
   // Local flashPointer
-  uint64_t mmcFlashPtr;
-  uint16_t mmcFlashBlock;
+  uint64_t sdFlashPtr;
+  uint16_t sdFlashBlock;
 };
 
 #endif

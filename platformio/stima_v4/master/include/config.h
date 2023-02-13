@@ -58,12 +58,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define DEBUG_MODE            (true)
 
 // HW device
+#define ENABLE_SPI1           (false)
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_LCD            (true)
 #define ENABLE_MMC            (true)
+#define ENABLE_SD             (false)
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
@@ -144,10 +146,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
 #define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
+#define FILE_PUT_DATA_QUEUE_LENGTH  (1)
 #define LOG_PUT_DATA_QUEUE_LENGTH   (10)
 // Queu Size block MAX
-#define RMAP_PUT_DATA_ELEMENT_SIZE (256)
-#define LOG_PUT_DATA_ELEMENT_SIZE  (128)
+#define FILE_PUT_DATA_BLOCK_SIZE    (512)
+#define RMAP_PUT_DATA_ELEMENT_SIZE  (256)
+#define LOG_PUT_DATA_ELEMENT_SIZE   (128)
 
 // Task system_status and queue ID message
 #define ALL_TASK_ID                 (99)      // Send message to ALL Task
@@ -159,6 +163,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HTTP_TASK_ID                (5)
 #define MQTT_TASK_ID                (6)
 #define MMC_TASK_ID                 (7)
+#define SD_TASK_ID                  (7)
 #define WDT_TASK_ID                 (8)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 

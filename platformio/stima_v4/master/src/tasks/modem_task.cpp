@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/modem_task.h"
 
-using namespace cpp_freertos;
-
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+
+using namespace cpp_freertos;
 
 ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam) : Thread(taskName, stackSize, priority), param(modemParam)
 {
@@ -101,10 +101,11 @@ void ModemTask::Run() {
   bool is_error;
   error_t error;
   sim7600_status_t status;
-  system_request_t request;
-  system_response_t response;
   Ipv4Addr ipv4Addr;
   bool try_connection = false;
+
+  connection_request_t connection_request;
+  connection_response_t connection_response;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -173,11 +174,11 @@ void ModemTask::Run() {
       // wait connection request
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemRequestQueue->Peek(&request, portMAX_DELAY))
+      if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do connection
-        if (request.connection.do_connect)
+        if (connection_request.do_connect)
         {
           // Test connection estabilished ok (return done or error)
           try_connection = true;
@@ -188,14 +189,14 @@ void ModemTask::Run() {
           strSafeCopy(password, param.configuration->gsm_password, GSM_PASSWORD_LENGTH);
           param.configurationLock->Give();
 
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
           state = MODEM_STATE_SWITCH_ON;
         }
         // do disconnect
-        else if (request.connection.do_disconnect)
+        else if (connection_request.do_disconnect)
         {
-          param.systemRequestQueue->Dequeue(&request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request, 0);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_DISCONNECT\r\n"));
           state = MODEM_STATE_DISCONNECT;
         }
@@ -324,9 +325,9 @@ void ModemTask::Run() {
 
         TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
-        memset(&response, 0, sizeof(system_response_t));
-        response.connection.done_connected = true;
-        param.systemResponseQueue->Enqueue(&response, 0);
+        memset(&connection_response, 0, sizeof(connection_response_t));
+        connection_response.done_connected = true;
+        param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
         state = MODEM_STATE_WAIT_NET_EVENT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
@@ -396,15 +397,15 @@ void ModemTask::Run() {
       break;
 
     case MODEM_STATE_END:
-      memset(&response, 0, sizeof(system_response_t));
+      memset(&connection_response, 0, sizeof(connection_response_t));
       if(try_connection) {
         // If required connection -> Error to connect
-        response.connection.error_connected = true;
+        connection_response.error_connected = true;
       } else {
         // If required disconnection -> done_disconnect
-        response.connection.done_disconnected = true;
+        connection_response.done_disconnected = true;
       }
-      param.systemResponseQueue->Enqueue(&response, 0);
+      param.connectionResponseQueue->Enqueue(&connection_response, 0);
       
       // Exit (Retry connection is extern from Modem)
       state = MODEM_STATE_WAIT_NET_EVENT;

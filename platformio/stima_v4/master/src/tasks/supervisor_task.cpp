@@ -97,9 +97,12 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 void SupervisorTask::Run()
 {
   uint8_t retry;
-  system_request_t request;
-  system_response_t response;
+  connection_request_t connection_request;
+  connection_response_t connection_response;
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
+
+  // TODO: remove
+  bool test_put_firmware = false;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -130,10 +133,10 @@ void SupervisorTask::Run()
       if (is_loaded)
       {
         retry = 0;
-        
+
         param.systemStatusLock->Take();
         param.system_status->configuration.is_loaded = true;
-        // Int default security value
+        // Init default security value
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
         param.systemStatusLock->Give();
@@ -175,14 +178,104 @@ void SupervisorTask::Run()
 
       TaskWatchDog(2500);
       Delay(Ticks::MsToTicks(2500));
-      
+
+      // **************************************
+      //    TEST PUT Firmware Queue Usage
+      // **************************************
+      if(!test_put_firmware) {
+
+        test_put_firmware = true;
+
+        file_queue_t firmwareDownloadChunck;
+        system_response_t mmc_task_response;
+        bool file_upload_error = false;
+
+        // MMC have to GET Ready before Push DATA
+        // EXIT from function if not MMC Ready or present into system_status
+        if(!param.system_status->sd_card.is_ready) {
+          TRACE_VERBOSE_F(F("SUPERVISOR: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+          break;
+        }
+
+        // First block NAME OF FILE (Prepare name and Put to queue)
+        // TODO: Get From HTTP
+        memset(&firmwareDownloadChunck, 0, sizeof(file_queue_t));
+        firmwareDownloadChunck.block_type = file_block_type::file_name;
+        strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
+        firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
+        TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
+        // Push data request to queue MMC
+        param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+
+        // Non blocking task
+        TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
+        // Waiting response from MMC with TimeOUT
+        memset(&mmc_task_response, 0, sizeof(system_response_t));
+        TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+        file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+        file_upload_error |= !mmc_task_response.done_operation;
+        // Add Data Chunck... TODO: Get From HTTP...
+        if(!file_upload_error) {
+          // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
+          firmwareDownloadChunck.block_type = file_block_type::data_chunck;
+          for(u_int16_t j=0; j<512; j++) {
+            // ASCII Char... Fill example
+            // TODO: Correct bytes read from buffer http...
+            firmwareDownloadChunck.block[j] = 48 + (j % 10);
+          }
+          firmwareDownloadChunck.block_lenght = 512;
+          // Try 100 Block Data chunk... Queue to MMC (x 512 Bytes -> 51200 Bytes to Write)
+          for(uint8_t i=0; i<100; i++) {
+            // Push data request to queue MMC
+            param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+
+            Serial.print('>');
+
+            // Waiting response from MMC with TimeOUT
+            memset(&mmc_task_response, 0, sizeof(system_response_t));
+            TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+            file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+            file_upload_error |= !mmc_task_response.done_operation;
+
+            // Non blocking task
+            TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+            Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
+            // Any error? Exit Uploading
+            if (file_upload_error) {
+              Serial.print("ERROR");
+              break;
+            }
+          }
+
+          // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
+          firmwareDownloadChunck.block_type = file_block_type::end_of_file;
+          // Push data request to queue MMC
+          param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+
+          // Waiting response from MMC with TimeOUT
+          memset(&mmc_task_response, 0, sizeof(system_response_t));
+          TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+          file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+          file_upload_error |= !mmc_task_response.done_operation;
+        }
+
+        // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
+        TRACE_VERBOSE_F(F("\r\n\r\n\r\nUploading file (Firmware) [ %s ]\r\n\r\n\r\n\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+      }
+      // **************************************
+      //   END TEST PUT Firmware Queue Usage
+      // **************************************
+
       // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
       param.systemStatusLock->Take();
       param.system_status->connection.is_ntp_synchronized = false;
       param.system_status->connection.is_http_configuration_updated = false;
       param.system_status->connection.is_mqtt_connected = false;
       param.systemStatusLock->Give();
-      
+
       // Start state check connection
       state_check_connection = CONNECTION_INIT;
       state = SUPERVISOR_STATE_CONNECTION_OPERATION;
@@ -233,9 +326,9 @@ void SupervisorTask::Run()
           if (!param.system_status->connection.is_ntp_synchronized) // Already Syncronized?
           {
             // Request ntp sync
-            memset(&request, 0, sizeof(system_request_t));
-            request.connection.do_ntp_sync = true;
-            param.systemRequestQueue->Enqueue(&request, 0);
+            memset(&connection_request, 0, sizeof(connection_request_t));
+            connection_request.do_ntp_sync = true;
+            param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_NTP\r\n"));
             state = SUPERVISOR_STATE_DO_NTP;
@@ -250,9 +343,9 @@ void SupervisorTask::Run()
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
 
             // Request configuration update by http request
-            memset(&request, 0, sizeof(system_request_t));
-            request.connection.do_http_get_configuration = true;
-            param.systemRequestQueue->Enqueue(&request, 0);
+            memset(&connection_request, 0, sizeof(connection_request_t));
+            connection_request.do_http_get_configuration = true;
+            param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
             state = SUPERVISOR_STATE_DO_HTTP;
@@ -265,9 +358,9 @@ void SupervisorTask::Run()
           if (!param.system_status->connection.is_mqtt_connected) // Mqtt connected?
           {
             // Request mqtt connection
-            memset(&request, 0, sizeof(system_request_t));
-            request.connection.do_mqtt_connect = true;
-            param.systemRequestQueue->Enqueue(&request, 0);
+            memset(&connection_request, 0, sizeof(connection_request_t));
+            connection_request.do_mqtt_connect = true;
+            param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_MQTT\r\n"));
             state = SUPERVISOR_STATE_DO_MQTT;
@@ -352,9 +445,9 @@ void SupervisorTask::Run()
         param.system_status->connection.is_connecting = true;
         param.systemStatusLock->Give();
 
-        memset(&request, 0, sizeof(system_request_t));
-        request.connection.do_connect = true;                
-        param.systemRequestQueue->Enqueue(&request, 0);
+        memset(&connection_request, 0, sizeof(connection_request_t));
+        connection_request.do_connect = true;                
+        param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION\r\n"));
         state = SUPERVISOR_STATE_CHECK_CONNECTION;
@@ -364,14 +457,14 @@ void SupervisorTask::Run()
     case SUPERVISOR_STATE_CHECK_CONNECTION:
       // wait connection
       // Suspend TASK Controller for queue waiting portMAX_DELAY
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+      if (param.connectionResponseQueue->Peek(&connection_response, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok connected
-        if (response.connection.done_connected)
+        if (connection_response.done_connected)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = true;
           param.system_status->connection.is_connecting = false;
@@ -384,9 +477,9 @@ void SupervisorTask::Run()
           state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // Error connection?
-        else if (response.connection.error_connected) {
+        else if (connection_response.error_connected) {
           retry++; // Add error retry
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connecting = false;
@@ -415,22 +508,22 @@ void SupervisorTask::Run()
       // wait ntp to be sync
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
+      if (param.connectionResponseQueue->Peek(&connection_response, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok ntp synchronized
-        if (response.connection.done_ntp_synchronized)
+        if (connection_response.done_ntp_synchronized)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           TRACE_INFO_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
           state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // error: ntp syncronized
-        else if (response.connection.error_ntp_synchronized)
+        else if (connection_response.error_ntp_synchronized)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           TRACE_ERROR_F(F("%s NTP synchronization [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_NTP -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
@@ -443,17 +536,17 @@ void SupervisorTask::Run()
       // wait http to be connected
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
+      if (param.connectionResponseQueue->Peek(&connection_response, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok http gettet configuration or firmware
-        if (response.connection.done_http_configuration_getted || response.connection.done_http_firmware_getted)
+        if (connection_response.done_http_configuration_getted || connection_response.done_http_firmware_getted)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
-          if(response.connection.done_http_configuration_getted) {
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
+          if(connection_response.done_http_configuration_getted) {
             TRACE_INFO_F(F("%s HTTP connected [ get config ] [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
           }
-          if(response.connection.done_http_firmware_getted) {
+          if(connection_response.done_http_firmware_getted) {
             TRACE_INFO_F(F("%s HTTP connected [ get firmware ] [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
           }
 
@@ -461,13 +554,13 @@ void SupervisorTask::Run()
           state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // error: http not gettet configuration or firmware
-        else if (response.connection.error_http_configuration_getted || response.connection.error_http_firmware_getted)
+        else if (connection_response.error_http_configuration_getted || connection_response.error_http_firmware_getted)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
-          if(response.connection.error_http_configuration_getted) {
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
+          if(connection_response.error_http_configuration_getted) {
             TRACE_INFO_F(F("%s HTTP request [ get config ] [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
           }
-          if(response.connection.error_http_firmware_getted) {
+          if(connection_response.error_http_firmware_getted) {
             TRACE_INFO_F(F("%s HTTP request [ get firmware ] [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
           }
 
@@ -481,22 +574,22 @@ void SupervisorTask::Run()
       // wait mqtt to be connected
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY))
+      if (param.connectionResponseQueue->Peek(&connection_response, portMAX_DELAY))
       {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok mqtt connected
-        if (response.connection.done_mqtt_connected)
+        if (connection_response.done_mqtt_connected)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           TRACE_INFO_F(F("%s MQTT connected [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
           state = SUPERVISOR_STATE_CONNECTION_OPERATION;
         }
         // error: not connected
-        else if (response.connection.error_mqtt_connected)
+        else if (connection_response.error_mqtt_connected)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           TRACE_ERROR_F(F("%s MQTT connection [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
 
           TRACE_VERBOSE_F(F("SUPERVISOR_STATE_DO_MQTT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
@@ -519,9 +612,9 @@ void SupervisorTask::Run()
         param.system_status->connection.is_disconnecting = true;
         param.systemStatusLock->Give();
 
-        memset(&request, 0, sizeof(system_request_t));
-        request.connection.do_disconnect = true;
-        param.systemRequestQueue->Enqueue(&request, 0);
+        memset(&connection_request, 0, sizeof(connection_request_t));
+        connection_request.do_disconnect = true;
+        param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_DISCONNECTION -> SUPERVISOR_STATE_CHECK_DISCONNECTION\r\n"));
         state = SUPERVISOR_STATE_CHECK_DISCONNECTION;
@@ -532,12 +625,12 @@ void SupervisorTask::Run()
       // wait connection
       // Suspend TASK Controller for queue waiting portMAX_DELAY
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.systemResponseQueue->Peek(&response, portMAX_DELAY)) {
+      if (param.connectionResponseQueue->Peek(&connection_response, portMAX_DELAY)) {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // ok disconnected
-        if (response.connection.done_disconnected)
+        if (connection_response.done_disconnected)
         {
-          param.systemResponseQueue->Dequeue(&response, 0);
+          param.connectionResponseQueue->Dequeue(&connection_response, 0);
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connecting = false;

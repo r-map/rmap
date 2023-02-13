@@ -268,7 +268,7 @@ class canardClass {
                 private:
 
                 uint8_t  _node_id;
-                char     _filename[FILE_NAME_SIZE_MAX];
+                char     _filename[CAN_FILE_NAME_SIZE_MAX];
                 bool     _is_firmware;
                 bool     _updating;
                 uint8_t  _updating_retry;

@@ -119,6 +119,9 @@ uint8_t FATFS_UnLinkDriverEx(char *path, uint8_t lun)
     {
       disk.drv[DiskNum] = 0;
       disk.lun[DiskNum] = 0;
+      if(DiskNum==0) {
+        disk.is_initialized[DiskNum] = 0;
+      }
       disk.nbr--;
       ret = 0;
     }

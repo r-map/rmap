@@ -56,7 +56,6 @@ typedef struct {
   system_status_t *system_status;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   EEprom *eeprom;
 } WdtParam_t;

@@ -32,6 +32,8 @@
 
 #include "tasks/can_task.h"
 
+#if (ENABLE_CAN)
+
 using namespace cpp_freertos;
 
 // ***************************************************************************************************
@@ -1850,3 +1852,5 @@ void CanTask::Run() {
         }
     }
 }
+
+#endif
