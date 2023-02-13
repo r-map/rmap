@@ -289,6 +289,7 @@ void HttpTask::Run() {
   const char_t *value;
 
   char uri[HTTP_URI_LENGTH];
+  char header[HTTP_HEADER_SIZE];
   char user_agents[HTTP_USER_AGENTS_LENGTH];
 
   bool is_get_configuration;
@@ -433,8 +434,15 @@ void HttpTask::Run() {
       // Add HTTP header fields
       httpClientAddHeaderField(&httpClientContext, "Host", param.configuration->mqtt_server);
 
+      if (is_get_firmware)
+      {
+        snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
+        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", "123456"); // Patruno: 123456 esempio di BOARD-MAC che dovrebbe essere il seriale univoco necessario per il P&P
+      }
+
       getStimaNameByType(user_agents, param.configuration->module_type);
-      snprintf(user_agents, sizeof(user_agents), "%s/%d.%d", user_agents, param.configuration->module_main_version, param.configuration->module_minor_version);
+      snprintf(user_agents, sizeof(user_agents), "%s/%d", user_agents, 123456); // Patruno: 123456 esempio di BOARD-MAC che dovrebbe essere il seriale univoco necessario per il P&P
       httpClientAddHeaderField(&httpClientContext, "User-Agent", user_agents);
 
       // Send HTTP request header

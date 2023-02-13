@@ -29,118 +29,262 @@ void getStimaNameByType(char *name, uint8_t type)
 {
   switch (type)
   {
-  case STIMA_MODULE_TYPE_MASTER_ETH:
-    strncpy(name, STIMA_MODULE_NAME_MASTER_ETH, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_MASTER_ETH:
+      strncpy(name, STIMA_MODULE_NAME_MASTER_ETH, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_MASTER_GSM:
-    strncpy(name, STIMA_MODULE_NAME_MASTER_GSM, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_MASTER_GSM:
+      strncpy(name, STIMA_MODULE_NAME_MASTER_GSM, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_RAIN:
-    strncpy(name, STIMA_MODULE_NAME_RAIN, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_RAIN:
+      strncpy(name, STIMA_MODULE_NAME_RAIN, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_TH:
-    strncpy(name, STIMA_MODULE_NAME_TH, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_TH:
+      strncpy(name, STIMA_MODULE_NAME_TH, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_THR:
-    strncpy(name, STIMA_MODULE_NAME_THR, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_THR:
+      strncpy(name, STIMA_MODULE_NAME_THR, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_OPC:
-    strncpy(name, STIMA_MODULE_NAME_OPC, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_OPC:
+      strncpy(name, STIMA_MODULE_NAME_OPC, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_LEAF:
-    strncpy(name, STIMA_MODULE_NAME_LEAF, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_LEAF:
+      strncpy(name, STIMA_MODULE_NAME_LEAF, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_WIND:
-    strncpy(name, STIMA_MODULE_NAME_WIND, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_WIND:
+      strncpy(name, STIMA_MODULE_NAME_WIND, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_SOLAR_RADIATION:
-    strncpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+      strncpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_GAS:
-    strncpy(name, STIMA_MODULE_NAME_GAS, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_GAS:
+      strncpy(name, STIMA_MODULE_NAME_GAS, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_POWER_MPPT:
-    strncpy(name, STIMA_MODULE_NAME_POWER_MPPT, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_POWER_MPPT:
+      strncpy(name, STIMA_MODULE_NAME_POWER_MPPT, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_VVC:
-    strncpy(name, STIMA_MODULE_NAME_VVC, STIMA_MODULE_NAME_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_VVC:
+      strncpy(name, STIMA_MODULE_NAME_VVC, STIMA_MODULE_NAME_LENGTH);
+      break;
 
-  default:
-    strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
-    break;
-    }
+    default:
+      strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
+      break;
+  }
 }
 
 void getStimaDescriptionByType(char *description, uint8_t type)
 {
   switch (type)
   {
-  case STIMA_MODULE_TYPE_MASTER_ETH:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_ETH, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_MASTER_ETH:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_ETH, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_MASTER_GSM:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_GSM, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_MASTER_GSM:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_MASTER_GSM, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_RAIN:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_RAIN, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_RAIN:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_RAIN, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_TH:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_TH, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_TH:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_TH, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_THR:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_THR, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_THR:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_THR, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_OPC:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_OPC, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_OPC:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_OPC, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_LEAF:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_LEAF, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_LEAF:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_LEAF, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_WIND:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_WIND, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_WIND:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_WIND, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_SOLAR_RADIATION:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_SOLAR_RADIATION, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_SOLAR_RADIATION, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_GAS:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_GAS, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_GAS:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_GAS, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_POWER_MPPT:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_POWER_MPPT, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_POWER_MPPT:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_POWER_MPPT, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  case STIMA_MODULE_TYPE_VVC:
-    strncpy(description, STIMA_MODULE_DESCRIPTION_VVC, STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
+    case STIMA_MODULE_TYPE_VVC:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_VVC, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
 
-  default:
-    strncpy(description, "ERROR", STIMA_MODULE_DESCRIPTION_LENGTH);
-    break;
-    }
+    default:
+      strncpy(description, "ERROR", STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
+  }
 }
 
+void getStimaLcdDescriptionByType(char *lcd_description, uint8_t type)
+{
+	switch (type) 
+  {
+    case STIMA_MODULE_TYPE_RAIN:
+    	strncpy(lcd_description, STIMA_LCD_DESCRIPTION_RAIN, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_TH:
+    	strncpy(lcd_description, STIMA_LCD_DESCRIPTION_TEMPERATURE, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_THR:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_TEMPERATURE, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
+
+    case STIMA_MODULE_TYPE_OPC:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_OPC, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
+
+    case STIMA_MODULE_TYPE_LEAF:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_LEAF, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_WIND:
+    	strncpy(lcd_description, STIMA_LCD_DESCRIPTION_WIND_DIRECTION, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_SOLAR_RADIATION, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_GAS:
+      break;
+
+    case STIMA_MODULE_TYPE_POWER_MPPT:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_POWER_MPPT, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_VVC:
+      strncpy(lcd_description, STIMA_LCD_DESCRIPTION_VVC, STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+
+		default:
+    	strncpy(lcd_description, "ERROR", STIMA_LCD_DESCRIPTION_LENGTH);
+    	break;
+	}
+}
+
+void getStimaLcdUnitTypeByType(char *lcd_unit_type, uint8_t type)
+{
+	switch (type) 
+  {
+		case STIMA_MODULE_TYPE_RAIN:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_MILLIMETERS, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_TH:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_CELSIUS_DEGREES, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_THR:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_CELSIUS_DEGREES, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_OPC:
+    	break;
+
+    case STIMA_MODULE_TYPE_LEAF:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_WIND:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_METERS_PER_SECOND, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_WATTS_PER_SQUARE_METER, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_GAS:
+      break;
+
+    case STIMA_MODULE_TYPE_POWER_MPPT:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+    case STIMA_MODULE_TYPE_VVC:
+    	strncpy(lcd_unit_type, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+
+		default:
+    	strncpy(lcd_unit_type, "ERROR", STIMA_LCD_UNIT_TYPE_LENGTH);
+    	break;
+	}
+}
+
+void getStimaLcdDecimalsByType(uint8_t *decimals, uint8_t type) 
+{
+  switch (type) 
+  {
+    case STIMA_MODULE_TYPE_RAIN:
+      *decimals = STIMA_LCD_DECIMALS_TWO;
+    	break;
+
+    case STIMA_MODULE_TYPE_TH:
+      *decimals = STIMA_LCD_DECIMALS_TWO;
+    	break;
+
+    case STIMA_MODULE_TYPE_THR:
+      *decimals = STIMA_LCD_DECIMALS_TWO;
+    	break;
+
+    case STIMA_MODULE_TYPE_OPC:
+    	break;
+
+    case STIMA_MODULE_TYPE_LEAF:
+      *decimals = STIMA_LCD_DECIMALS_ZERO;
+    	break;
+
+    case STIMA_MODULE_TYPE_WIND:
+      *decimals = STIMA_LCD_DECIMALS_ONE;
+    	break;
+
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+      *decimals = STIMA_LCD_DECIMALS_ZERO;
+    	break;
+
+    case STIMA_MODULE_TYPE_GAS:
+      break;
+
+    case STIMA_MODULE_TYPE_POWER_MPPT:
+      *decimals = STIMA_LCD_DECIMALS_TWO;
+    	break;
+
+    case STIMA_MODULE_TYPE_VVC:
+      *decimals = STIMA_LCD_DECIMALS_TWO;
+    	break;
+
+		default:
+    	*decimals = STIMA_LCD_DECIMALS_ZERO;
+    	break;
+  }
+}
 
 bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)
 {

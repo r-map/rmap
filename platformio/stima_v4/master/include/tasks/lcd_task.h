@@ -87,15 +87,11 @@ typedef union Encoder {
 
 typedef struct Channel {
   bool maintenance_mode;
-  char description[MAX_LENGTH_DESCRIPTION];
-  char unit_type[MAX_LENGTH_UNIT_TYPE];
   float value;
+  uint8_t module_type;
 } channel_t;
 
 typedef struct Data {
-  char date[MAX_LENGTH_DATE];
-  char time[MAX_LENGTH_TIME];
-  char name_station[MAX_LENGTH_NAME_STATION] = "Diga di Brasimone"; 
   channel_t channel[MAX_CHANNELS];
 } data_t;
 
@@ -129,12 +125,10 @@ private:
 const char* get_command_name_from_enum(stima4_commands_t command);
   static void encoder_process(uint8_t new_value, uint8_t old_value);
   static void ISR_input_pression_pin_encoder(void);
-  static void ISR_input_rotation_pin_encoder_a(void);
-  static void ISR_input_rotation_pin_encoder_b(void);
   static void ISR_input_rotation_pin_encoder(void);
   void display_off(void);
   void display_on(void);
-  void display_print_channel_interface(void);
+  void display_print_channel_interface(uint8_t module_type);
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
   void display_print_main_interface(void);
@@ -146,13 +140,10 @@ bool data_printed;
   bool display_is_off;
   char taskName[configMAX_TASK_NAME_LEN];
   data_t data = {
-    .date = "17/11/22",
-    .time = "13:00:00",
-    .channel = {{false, "Temperature", "°C", 25.40},
-                {false, "Humidity", "%", 54.00},
-                {false, "Rain", "mm", 0.00},
-                {false, "Wind speed", "m/s", 2.30},
-                {false, "Global radiation", "W/m2", 145.00}}};
+    .channel = {{false, 0, STIMA_MODULE_TYPE_RAIN},
+                {false, 100, STIMA_MODULE_TYPE_LEAF},
+                {false, 2.3, STIMA_MODULE_TYPE_WIND},
+                {false, 453, STIMA_MODULE_TYPE_SOLAR_RADIATION}}};
   inline static bool pression_event, rotation_event;
   inline static encoder_t encoder, encoder_old;
   inline static uint32_t debounce_millis;

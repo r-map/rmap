@@ -44,8 +44,35 @@ void getStimaNameByType(char *name, uint8_t type);
 \param[in] *type module type stored in configuration.
 \return void.
 */
+
 void getStimaDescriptionByType(char *description, uint8_t type);
 
+/*!
+\fn void getStimaLcdDescriptionByType(char *lcd_description, uint8_t type)
+\brief Return a STIMA's description to print with LCD display from a module type stored in configuration.
+\param[out] *description STIMA's description.
+\param[in] *type module type stored in configuration.
+\return void.
+*/
+void getStimaLcdDescriptionByType(char *lcd_description, uint8_t type);
+
+/*!
+\fn void getStimaLcdUnitTypeByType(char *lcd_unit_type, uint8_t type)
+\brief Return a STIMA's Unit type to print with LCD display from a module type stored in configuration.
+\param[out] *description STIMA's description.
+\param[in] *type module type stored in configuration.
+\return void.
+*/
+void getStimaLcdUnitTypeByType(char *lcd_unit_type, uint8_t type);
+
+/*!
+\fn void getStimaLcdDecimalsByType(uint8_t *decimals, uint8_t type)
+\brief Return a STIMA's Decimals for use to print value of measurement with LCD display from a module type stored in configuration.
+\param[out] *description STIMA's description.
+\param[in] *type module type stored in configuration.
+\return void.
+*/
+void getStimaLcdDecimalsByType(uint8_t *decimals, uint8_t type);
 
 /*!
 \fn void checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)
