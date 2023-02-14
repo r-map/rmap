@@ -307,11 +307,11 @@ void MmcTask::Run()
   // Queue file put from external Task
   file_queue_t data_file_queue;
   system_response_t system_response;
-  char remote_file_name[128];
+  char remote_file_name[FILE_NAME_MAX_LENGHT];
   // Local Firmware check and update
   char data_block[MMC_FW_BLOCK_SIZE];
   char stima_name[STIMA_MODULE_NAME_LENGTH];
-  char local_file_name[128];
+  char local_file_name[FILE_NAME_MAX_LENGHT];
   uint16_t idxList;
   uint8_t module_type, fw_version, fw_revision;
   bool fw_found;

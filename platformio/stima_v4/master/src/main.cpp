@@ -25,20 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "main.h"
 
-// #define SD_FAT_TYPE 3
-
-// #define SPI_SPEED SD_SCK_MHZ(4)
-
-// // SD card chip select
-// int chipSelect;
-
-// #   include <SPI.h>
-// #   include "SdFat.h"
-
-// SdFs sd;
-// FsFile file;
-
-
 void setup() {
  
   // Semaphore, Queue && Param Config for TASK
@@ -165,24 +151,6 @@ void setup() {
   // ***************************************************************
   //                  Setup parameter for Task
   // ***************************************************************
-
-// chipSelect = PIN_SPI_SS;
-//     pinMode(chipSelect, OUTPUT);
-//     digitalWrite(chipSelect, HIGH);
-
-//   while (!sd.begin(chipSelect, SPI_SPEED)) {
-//     if (sd.card()->errorCode()) {
-//       Serial.print(sd.card()->errorCode());
-//     }
-//   }
-//       if(!sd.exists("firmware")) sd.mkdir("firmware");
-
-// File dir;
-//       dir = sd.open("/firmware");
-// Serial.print(sd.clusterCount());
-//   //while (!sdLoc.begin(PIN_SPI_SS, SD_SCK_MHZ(4))) {
-//   //}
-
 
 #if (ENABLE_I2C2)
   // Load Info from E2 boot_check flag and send to Config
@@ -350,7 +318,7 @@ void setup() {
   static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
 #endif
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 1350, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 2500, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_LCD)
@@ -405,13 +373,13 @@ void init_wire()
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
 #endif
 
-  // Setup SPI
-#if (ENABLE_SPI1)
- SPI.setMOSI(PIN_SPI_MOSI);
- SPI.setMISO(PIN_SPI_MISO);
- SPI.setSCLK(PIN_SPI_SCK);
- SPI.begin();        
-#endif
+ // Setup SPI
+ #if (ENABLE_SPI1)
+  // SPI.setMOSI(PIN_SPI_MOSI);
+  // SPI.setMISO(PIN_SPI_MISO);
+  // SPI.setSCLK(PIN_SPI_SCK);
+  SPI.begin();        
+ #endif
 }
 
 // Setup RTC HW && LowPower Class STM32

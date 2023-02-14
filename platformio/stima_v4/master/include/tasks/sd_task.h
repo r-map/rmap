@@ -37,6 +37,10 @@
 
 #if (ENABLE_SD)
 
+// SD Param FS and Speed
+#define SD_FAT_TYPE 3
+#define SPI_SPEED SD_SCK_MHZ(8)
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -122,10 +126,9 @@ private:
   SdState_t state;
   SdParam_t param;
 
-  // Istance SD Card
-  SdFat SD;
-
   STM32RTC &rtc = STM32RTC::getInstance();
+
+  SdFs SD; // SD Istance
 
   // Local flashPointer
   uint64_t sdFlashPtr;

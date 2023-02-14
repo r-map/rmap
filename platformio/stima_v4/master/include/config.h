@@ -58,14 +58,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define DEBUG_MODE            (true)
 
 // HW device
-#define ENABLE_SPI1           (false)
+#define ENABLE_SPI1           (true)
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_LCD            (true)
-#define ENABLE_MMC            (true)
-#define ENABLE_SD             (false)
+#define ENABLE_MMC            (false)
+#define ENABLE_SD             (true)
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 

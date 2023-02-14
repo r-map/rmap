@@ -275,13 +275,13 @@ void SdTask::Run()
   uint8_t retry;
   bool message_traced = false;
   bool is_getted_rtc;
-  // Queue Logging
-  char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
+  // Queue buffer
+  char queueBuffer[RMAP_PUT_DATA_ELEMENT_SIZE > LOG_PUT_DATA_ELEMENT_SIZE ? RMAP_PUT_DATA_ELEMENT_SIZE : LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
   // Queue file put from external Task
   file_queue_t data_file_queue;
   system_response_t system_response;
-  char remote_file_name[128];
+  char remote_file_name[FILE_NAME_MAX_LENGHT];
   // Local Firmware check and update
   char data_block[SD_FW_BLOCK_SIZE];
   char stima_name[STIMA_MODULE_NAME_LENGTH];
@@ -291,9 +291,6 @@ void SdTask::Run()
   File logFile;
   File putFile;
   File dir, entry; // Access dir List
-  #if (ENABLE_SPI1)
-  //SPIClass spiPort(PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_SCK);
-  #endif
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -301,15 +298,9 @@ void SdTask::Run()
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-  /************************************************************
-   *                     SD USAGE - NOTE
-   * *********************************************************
-   * SD.remove("test.txt"); -> Delay (1ms) before NextOperation
-   * SD.error... Delay (500ms) Next -> SD.begin(); Resync State
-   * File.OpenNext (ARDUINO Leak Memory problem)
-   *    -> Create ListIndex (WORK FINE WITH ONLY FILE LIST)
-   * rewrite ? O_RDWR | O_CREAT | O_TRUNC : O_RDWR | O_APPEND
-  *************************************************************/
+  // Setup PIN CS SD
+  pinMode(PIN_SPI_SS, OUTPUT);
+  digitalWrite(PIN_SPI_SS, HIGH);
 
   while (true)
   {
@@ -318,7 +309,7 @@ void SdTask::Run()
     {
     case SD_STATE_INIT:
       // Check SD or Resynch after Error
-      if (!SD.begin(PIN_SPI_SS, SD_SCK_MHZ(18))) {
+      if (SD.begin(PIN_SPI_SS, SPI_SPEED)) {
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_SD\r\n"));
         // SD Was Ready... for System
         param.systemStatusLock->Take();
@@ -333,7 +324,7 @@ void SdTask::Run()
           param.systemStatusLock->Take();
           param.system_status->sd_card.is_ready = false;
           param.systemStatusLock->Give();
-          TRACE_VERBOSE_F(F("SD Card slot empty, SD function disabled\r\n"));
+          TRACE_VERBOSE_F(F("SD Card waiting to begin\r\n"));
           message_traced = true;
         }
       }
@@ -353,6 +344,7 @@ void SdTask::Run()
       dir = SD.open("/firmware");
       while(true) {
         entry = dir.openNextFile();
+        if(!entry) break;
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
         if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
@@ -363,6 +355,7 @@ void SdTask::Run()
       }
       dir.close();
       #endif
+      state = SD_STATE_WAITING_EVENT;
       break;
 
     case SD_STATE_WAITING_EVENT:
@@ -398,12 +391,12 @@ void SdTask::Run()
           }
         }
         // Get message from queue
-        if(param.dataLogPutQueue->Dequeue(logMessage)) {
+        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
           // Put to SD ( APPEND File )
           logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
           if(logFile) {          
             logFile.print(logIntest);
-            logFile.write(logMessage, strlen(logMessage) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logMessage) : LOG_PUT_DATA_ELEMENT_SIZE);
+            logFile.write(queueBuffer, strlen(queueBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(queueBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
             logFile.println();
             logFile.close();
           }
@@ -411,6 +404,21 @@ void SdTask::Run()
       }
       // *********************************************************
       //             End OF perform LOG append message
+      // *********************************************************
+
+      // *********************************************************
+      //           Perform RMAP Data append get message
+      // *********************************************************
+      // If element get all element from the queue and Put to MMC
+      while(!param.dataRmapPutQueue->IsEmpty()) {
+        // Get message from queue
+        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
+          // TODO:
+          // Put to MMC ( APPEND to File in Format ready to SEND Mqtt Format )
+        }
+      }
+      // *********************************************************
+      //            End OF perform RMAP append message
       // *********************************************************
 
       // *********************************************************
@@ -432,33 +440,27 @@ void SdTask::Run()
             // Create File in ReWrite Mode
             // Locking file session (uploading...)
             memset(&system_response, 0, sizeof(system_response));
-            if(SD.exists(remote_file_name)) {
-              SD.remove(remote_file_name);
-              Delay(100);
-              Serial.print("ReMOVED");
-            }
             // Open Put File
             putFile = SD.open(remote_file_name, O_RDWR | O_CREAT | O_TRUNC);
-            if(!putFile) {
-              Serial.print("HEREEEEEEE ERRORRRRRRRRR");
-              Delay(500);
-            }
-            Serial.print("BBBBBBBBB");
-            system_response.done_operation = true;
+            if(!putFile)
+              system_response.done_operation = false;
+            else
+              system_response.done_operation = true;
             // Send response to caller
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::data_chunck) {
             memset(&system_response, 0, sizeof(system_response));
             if(putFile) {
-              putFile.write(data_file_queue.block, data_file_queue.block_lenght);
-              Delay(2);
-              system_response.done_operation = true;
-              Serial.print('+');
+              uint16_t writtenBytes;
+              writtenBytes = putFile.write(data_file_queue.block, data_file_queue.block_lenght);
+              // Bytes written is ok)
+              if(writtenBytes == data_file_queue.block_lenght)
+                system_response.done_operation = true;
+              else
+                system_response.error_operation = true;
             } else {
-              Serial.print('!');
               system_response.error_operation = true;
             }
-                Serial.print("CCCCCCCCCCC");
             // Send response to caller
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::end_of_file) {
@@ -466,15 +468,10 @@ void SdTask::Run()
             // Unlock session. File is ready for the system (without integrity control)
             memset(remote_file_name, 0, sizeof(remote_file_name));
             // Send response to caller ... OK done
-                Serial.print("DDDDDDDDD");
             putFile.close();
-                Serial.print("EEEEEEEEEEE");
-
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
-                Serial.print("FFFFFFFFFFF");
-
           } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
@@ -487,8 +484,6 @@ void SdTask::Run()
             param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
           }
         }
-        Serial.print("GGGGGGGGG");
-
       }
       // *********************************************************
       //        End OF FILE (FIRMWARE) WRITE append message
@@ -513,6 +508,7 @@ void SdTask::Run()
       dir = SD.open("/firmware");
       while(true) {
         entry = dir.openNextFile();
+        if(!entry) break;
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
         if(!checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
