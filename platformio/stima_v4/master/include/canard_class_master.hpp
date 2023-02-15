@@ -71,14 +71,18 @@ class canardClass {
         // Tipologia di moduli disponibili Stima V4 x PNP e InfoNode
         enum Module_Type : uint8_t {
             undefined   = 0x00,
-            th          = STIMA_MODULE_TYPE_TH,
+            server_eth  = STIMA_MODULE_TYPE_MASTER_ETH,
+            server_gsm  = STIMA_MODULE_TYPE_MASTER_GSM,
             rain        = STIMA_MODULE_TYPE_RAIN,
+            th          = STIMA_MODULE_TYPE_TH,
+            thr         = STIMA_MODULE_TYPE_THR,
+            opc         = STIMA_MODULE_TYPE_OPC,
+            leaf        = STIMA_MODULE_TYPE_LEAF,
             wind        = STIMA_MODULE_TYPE_WIND,
             radiation   = STIMA_MODULE_TYPE_SOLAR_RADIATION,
-            vwc         = STIMA_MODULE_TYPE_VVC,
+            gas         = STIMA_MODULE_TYPE_GAS,
             power       = STIMA_MODULE_TYPE_POWER_MPPT,
-            server_eth  = STIMA_MODULE_TYPE_MASTER_ETH,
-            server_gsm  = STIMA_MODULE_TYPE_MASTER_GSM
+            vwc         = STIMA_MODULE_TYPE_VVC
         };
 
         // Modalità di accesso a getMicros()

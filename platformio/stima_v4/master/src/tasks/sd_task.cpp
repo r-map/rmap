@@ -303,9 +303,13 @@ void SdTask::Run()
   char logIntest[23] = {0};
   // Name file for data append es. /data/2023_01_30.dat [20]
   char data_file_name[20] = {0};
-  // Queue file put from external Task
-  file_put_request_t data_file_queue;
-  file_put_response_t system_response;
+  // Queue file put and get from external Task
+  // Put From extern task to card ( Es. Receive firmware from http to SD )
+  file_put_request_t file_put_request;
+  file_put_response_t file_put_response;
+  // Get from card to extern task ( Es. Transmit firmware from SD to CAN module )
+  file_get_request_t file_get_request;
+  file_get_response_t file_get_response;
   char remote_file_name[FILE_NAME_MAX_LENGHT];
   // Local Firmware check and update
   char data_block[SD_FW_BLOCK_SIZE];
@@ -313,10 +317,7 @@ void SdTask::Run()
   char local_file_name[FILE_NAME_MAX_LENGHT];
   uint8_t module_type, fw_version, fw_revision;
   bool fw_found;
-  File logFile;
-  File dataFile;
-  File putFile;
-  File getFile;
+  File logFile, dataFile, putFile, getFile; // Local file
   File dir, entry; // Access dir List
 
   // Start Running Monitor and First WDT normal state
@@ -363,11 +364,11 @@ void SdTask::Run()
       if(!SD.exists("firmware")) SD.mkdir("firmware");
       if(!SD.exists("log")) SD.mkdir("log");
       if(!SD.exists("data")) SD.mkdir("data");
-      TRACE_VERBOSE_F(F("SD Card init complete -> SD_STATE_WAITING_EVENT\r\n"));
-      #if (TRACE_LEVEL > TRACE_LEVEL_OFF)
-      // Trace Firmware List present on SD Card.
-      // Charged in SD or getted from remote HTTP
+
+      // **********************************************************************************
       // Check firmware file present Type, model and version from list file in firmware dir
+      // Full system_status inform struct with firmware present on SD CARD
+      // **********************************************************************************
       dir = SD.open("/firmware");
       while(true) {
         entry = dir.openNextFile();
@@ -376,12 +377,46 @@ void SdTask::Run()
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
         if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
           getStimaNameByType(stima_name, module_type);
+          // Update info Fw File module array (system_status)
           TRACE_INFO_F(F("SD: found firmware type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+          // Check if already module file are detected and processed (first occurance or update if version major found)
+          fw_found = false;
+          for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+            if(param.system_status->boards_update_avaiable[brd].module_type == module_type) {
+              fw_found = true;
+              break;
+            }
+          }
+          // If Version> last file version or Version== and Revision >... Update module version/revision firmware avaiable struct
+          for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+            // First occurance or Found...            
+            if( ((!fw_found)&&(param.system_status->boards_update_avaiable[brd].module_type == 0)) ||
+                (param.system_status->boards_update_avaiable[brd].module_type==module_type)) {
+              if((fw_version>param.system_status->boards_update_avaiable[brd].version) ||
+                ((fw_version==param.system_status->boards_update_avaiable[brd].version)&&(fw_revision>param.system_status->boards_update_avaiable[brd].revision)))
+                param.systemStatusLock->Take();
+                param.system_status->boards_update_avaiable[brd].module_type = module_type;
+                param.system_status->boards_update_avaiable[brd].version = fw_version;
+                param.system_status->boards_update_avaiable[brd].revision = fw_revision;
+                // Is this module (check direct if fw upgrade is avaiable with last version file present)
+                if(param.configuration->module_type == module_type) {
+                  if((fw_version > param.configuration->module_main_version) ||
+                    ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))) {
+                    param.system_status->data_master.fw_upgrade = true;
+                  }
+                }
+                param.systemStatusLock->Give();
+              break;
+            }
+          }
         }
         entry.close();
       }
       dir.close();
-      #endif
+      // **********************************************************************************
+
+      TRACE_VERBOSE_F(F("SD Card init complete -> SD_STATE_WAITING_EVENT\r\n"));
+
       state = SD_STATE_WAITING_EVENT;
       break;
 
@@ -468,58 +503,58 @@ void SdTask::Run()
       while(!param.dataFilePutRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
-        if(param.dataFilePutRequestQueue->Dequeue(&data_file_queue)) {
+        if(param.dataFilePutRequestQueue->Dequeue(&file_put_request)) {
           // Put to SD ( CREATE / APPEND Firmware Block File session )
-          if(data_file_queue.block_type == file_block_type::file_name) {
+          if(file_put_request.block_type == file_block_type::file_name) {
             // Get File name set file name Upload (session current START)
             memset(remote_file_name, 0, sizeof(remote_file_name));
             strcpy(remote_file_name, "/firmware/");
-            memcpy(remote_file_name + strlen(remote_file_name), data_file_queue.block, data_file_queue.block_lenght);
+            memcpy(remote_file_name + strlen(remote_file_name), file_put_request.block, file_put_request.block_lenght);
             // Create File in ReWrite Mode
             // Locking file session (uploading...)
-            memset(&system_response, 0, sizeof(system_response));
+            memset(&file_put_response, 0, sizeof(file_put_response));
             // Open Put File
             putFile = SD.open(remote_file_name, O_RDWR | O_CREAT | O_TRUNC);
             if(!putFile)
-              system_response.done_operation = false;
+              file_put_response.done_operation = false;
             else
-              system_response.done_operation = true;
+              file_put_response.done_operation = true;
             // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::data_chunck) {
-            memset(&system_response, 0, sizeof(system_response));
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+          } else if(file_put_request.block_type == file_block_type::data_chunck) {
+            memset(&file_put_response, 0, sizeof(file_put_response));
             if(putFile) {
               uint16_t writtenBytes;
-              writtenBytes = putFile.write(data_file_queue.block, data_file_queue.block_lenght);
+              writtenBytes = putFile.write(file_put_request.block, file_put_request.block_lenght);
               // Bytes written is ok)
-              if(writtenBytes == data_file_queue.block_lenght)
-                system_response.done_operation = true;
+              if(writtenBytes == file_put_request.block_lenght)
+                file_put_response.done_operation = true;
               else
-                system_response.error_operation = true;
+                file_put_response.error_operation = true;
             } else {
-              system_response.error_operation = true;
+              file_put_response.error_operation = true;
             }
             // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::end_of_file) {
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+          } else if(file_put_request.block_type == file_block_type::end_of_file) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system (without integrity control)
             memset(remote_file_name, 0, sizeof(remote_file_name));
             // Send response to caller ... OK done
             putFile.close();
-            memset(&system_response, 0, sizeof(system_response));
-            system_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
+            memset(&file_put_response, 0, sizeof(file_put_response));
+            file_put_response.done_operation = true;
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+          } else if(file_put_request.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
             // Need to control checksum (if any error file have to delete)
             memset(remote_file_name, 0, sizeof(remote_file_name));
             // TODO: checksum... other control file
             // Send response to caller ... OK done
-            memset(&system_response, 0, sizeof(system_response));
-            system_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+            memset(&file_put_response, 0, sizeof(file_put_response));
+            file_put_response.done_operation = true;
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
           }
         }
       }
@@ -536,58 +571,43 @@ void SdTask::Run()
       while(!param.dataFileGetRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
-        if(param.dataFileGetRequestQueue->Dequeue(&data_file_queue)) {
-          // Put to SD ( CREATE / APPEND Firmware Block File session )
-          if(data_file_queue.block_type == file_block_type::file_name) {
+        if(param.dataFileGetRequestQueue->Dequeue(&file_get_request)) {
+          // Put to SD ( Start Read Firmware Block File session )
+          if(file_get_request.block_id==0) {
+            // Closing if file already used for other Session (preserve memoryLeak error)
+            if(getFile) getFile.close();
             // Get File name set file name Upload (session current START)
-            memset(local_file_name, 0, sizeof(remote_file_name));
+            memset(local_file_name, 0, sizeof(local_file_name));
             strcpy(local_file_name, "/firmware/");
-            memcpy(local_file_name + strlen(local_file_name), data_file_queue.block, data_file_queue.block_lenght);
+            strcat(local_file_name + strlen(local_file_name), file_get_request.file_name);
             // Create File in ReWrite Mode
             // Locking file session (uploading...)
-            memset(&system_response, 0, sizeof(system_response));
-            // Open Get File
-            getFile = SD.open(remote_file_name, O_RDONLY);
-            if(!getFile)
-              system_response.done_operation = false;
-            else
-              system_response.done_operation = true;
-            // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::data_chunck) {
-            memset(&system_response, 0, sizeof(system_response));
+            memset(&file_get_response, 0, sizeof(file_get_response));
+            // Open Get File (for reading)
+            getFile = SD.open(local_file_name, O_RDONLY);
             if(getFile) {
-              uint16_t writtenBytes;
-              writtenBytes = getFile.write(data_file_queue.block, data_file_queue.block_lenght);
-              // Bytes written is ok)
-              if(writtenBytes == data_file_queue.block_lenght)
-                system_response.done_operation = true;
-              else
-                system_response.error_operation = true;
-            } else {
-              system_response.error_operation = true;
+              // Read the first block data (return number of bytes read)
+              file_get_response.done_operation = true;
+              file_get_response.block_lenght = getFile.readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+            } else
+              file_get_response.done_operation = false;
+            // Send response to caller
+            param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+          } else {
+            // Set Seek Position or Reading Next Block (only if block_read_next not called)
+            if(!file_get_request.block_read_next) 
+              getFile.seek(FILE_GET_DATA_BLOCK_SIZE * file_get_request.block_id);
+            // Read the first block data (return number of bytes read)
+            file_get_response.done_operation = true;
+            file_get_response.block_lenght = getFile.readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+            // Closing automatic of file if block not completed (EOF)
+            if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
+              getFile.close();
+              // Unlock file (clear name)
+              memset(local_file_name, 0, sizeof(local_file_name));
             }
             // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::end_of_file) {
-            // Remove file name Upload (session current END)
-            // Unlock session. File is ready for the system (without integrity control)
-            memset(remote_file_name, 0, sizeof(remote_file_name));
-            // Send response to caller ... OK done
-            putFile.close();
-            memset(&system_response, 0, sizeof(system_response));
-            system_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
-          } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
-            // Remove file name Upload (session current END)
-            // Unlock session. File is ready for the system
-            // Need to control checksum (if any error file have to delete)
-            memset(remote_file_name, 0, sizeof(remote_file_name));
-            // TODO: checksum... other control file
-            // Send response to caller ... OK done
-            memset(&system_response, 0, sizeof(system_response));
-            system_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
           }
         }
       }
@@ -624,10 +644,22 @@ void SdTask::Run()
           if(module_type != param.configuration->module_type) {
             entry.close();
           } else {
-            fw_found = true;
-            if((fw_version > param.configuration->module_main_version) ||
-              ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version)))
+            // if current version (last version into SD CARD?)
+            bool is_last_firmware_on_sd = false;
+            for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+              if(param.system_status->boards_update_avaiable[brd].module_type == module_type) {
+                if((fw_version == param.system_status->boards_update_avaiable[brd].version) &&
+                   (fw_revision == param.system_status->boards_update_avaiable[brd].revision))
+                is_last_firmware_on_sd = true;
+                break;
+              }
+            }
+            // Is Last Firmware and Is Version i Major of Current Version?            
+            if((is_last_firmware_on_sd) &&
+                ((fw_version > param.configuration->module_main_version) ||
+                ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))))
             {
+              fw_found = true;
               // Get full name for local operation
               entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
               TRACE_INFO_F(F("SD: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
@@ -702,10 +734,7 @@ void SdTask::Run()
               entry.close();
               // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
               SD.remove(local_file_name);
-              TRACE_INFO_F(F("SD: found firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
-              TRACE_INFO_F(F("SD: firmware upgrade abort!!!\n\r"));
-              TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
-              state = SD_STATE_WAITING_EVENT;
+              TRACE_INFO_F(F("SD: found and delete firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
             }
             break;
           }

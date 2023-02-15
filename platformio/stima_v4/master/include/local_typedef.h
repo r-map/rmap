@@ -147,6 +147,15 @@ typedef struct
       bool is_saved;
    } configuration;
 
+   // Archived module firmware boards (Version/Revision/Type) Need for Checking Uploading Firmware is avaiable
+   // When module_type firmware is present on sd card, version revision and module are charged into this struct
+   struct
+   {
+      uint8_t module_type;
+      uint8_t version;
+      uint8_t revision;
+   } boards_update_avaiable[STIMA_MODULE_TYPE_MAX_AVAIABLE];
+
   // Connection NET Flag
   struct
   {
@@ -210,6 +219,12 @@ typedef struct
       uint8_t module_type;      // Type of remote module
       uint8_t module_version;   // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];
+
+   // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
+   struct
+   {
+      bool fw_upgrade;          // Fw upgrade flag
+   } data_master;
 
    // Hw/Sw Flags
    struct
@@ -303,23 +318,24 @@ typedef struct
    uint8_t           block[FILE_PUT_DATA_BLOCK_SIZE];
 } file_put_request_t;
 
+// Queue for file request read data (block and file)
+typedef struct
+{
+   char *file_name;        // Name file (need with first block block_id = 0. Start Reading session file)
+   bool block_read_next;   // simply fast read a next block from last
+   uint16_t block_id;      // Seek a fixed block into a file
+
+} file_get_request_t;
+
 // Queue for response put file operation
 typedef struct
 {
    bool done_operation;
    bool error_operation;
    uint16_t block_lenght;
-   uint8_t  block[FILE_PUT_DATA_BLOCK_SIZE];
+   uint8_t  block[FILE_GET_DATA_BLOCK_SIZE];
 
 } file_get_response_t;
-
-// Queue for file request read data (block and file)
-typedef struct
-{
-   char *file_name;
-   uint16_t block_id;
-
-} file_get_request_t;
 
 // Backup && Upload Firmware TypeDef
 typedef struct
