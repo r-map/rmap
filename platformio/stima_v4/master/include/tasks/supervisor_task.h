@@ -92,8 +92,8 @@ typedef struct {
   cpp_freertos::BinarySemaphore *registerAccessLock;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
-  cpp_freertos::Queue *dataFirmwarePutRequestQueue;
-  cpp_freertos::Queue *dataFirmwarePutResponseQueue;
+  cpp_freertos::Queue *dataFilePutRequestQueue;
+  cpp_freertos::Queue *dataFilePutResponseQueue;
   EEprom *eeprom;
   EERegister *clRegister;
 } SupervisorParam_t;

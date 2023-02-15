@@ -75,6 +75,17 @@
 
 #include "debug_F.h"
 
+// TIME CONST and Define for Epoch function
+#define	EPOCH_YR	              1970
+#define	SECS_DAY	              86400ul
+#define	LEAPYEAR(year)	        (!((year) % 4) && (((year) % 100) || !((year) % 400)))
+#define	YEARSIZE(year)	        (LEAPYEAR(year) ? 366 : 365)
+const int _ytab[2][12] = 
+{
+  {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+  {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+};
+
 #define errorExit(msg) errorHalt(F(msg))
 #define initError(msg) initErrorHalt(F(msg))
 
@@ -98,8 +109,10 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *dataRmapPutQueue;
   cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *dataFirmwarePutRequestQueue;
-  cpp_freertos::Queue *dataFirmwarePutResponseQueue;
+  cpp_freertos::Queue *dataFilePutRequestQueue;
+  cpp_freertos::Queue *dataFilePutResponseQueue;
+  cpp_freertos::Queue *dataFileGetRequestQueue;
+  cpp_freertos::Queue *dataFileGetResponseQueue;
   Flash *flash;
   EEprom *eeprom;
 } SdParam_t;
@@ -122,6 +135,8 @@ private:
 
   bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
   bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
+
+  void namingFileData(uint32_t time, char *dirPrefix, char* nameFile);
 
   SdState_t state;
   SdParam_t param;

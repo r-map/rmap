@@ -67,6 +67,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_MMC            (false)
 #define ENABLE_SD             (true)
 
+#if (ENABLE_MMC) && (ENABLE_SD)
+    #error Configuration error, you need to define only one method for TASK SD CARD: MMC or SD
+#endif
+
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
@@ -146,11 +150,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
 #define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
+#define FILE_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_PUT_DATA_QUEUE_LENGTH  (1)
 #define LOG_PUT_DATA_QUEUE_LENGTH   (10)
-// Queu Size block MAX
+// Queue Size block MAX
+#define FILE_GET_DATA_BLOCK_SIZE    (256)
 #define FILE_PUT_DATA_BLOCK_SIZE    (512)
-#define RMAP_PUT_DATA_ELEMENT_SIZE  (160)   // MAX LEN TH = 144 Bytes + INFO Block 3 Bytes
+#define RMAP_PUT_DATA_ELEMENT_SIZE  (160)   // MAX LEN TH = 144 Bytes + INFO Block 1+4 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128)
 
 // Task system_status and queue ID message

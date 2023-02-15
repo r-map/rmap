@@ -106,6 +106,29 @@ void SdTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_f
   param.systemStatusLock->Give();
 }
 
+/// @brief Return a STIMA's name file data for archive value starting by current block of data time in epoch style (uint32)
+/// @param time IN uint32 epoch datetime (in format RMAP of data to archive).
+/// @param dirPrefix IN directory prefix (add to filename to create complete path and fileName).
+/// @param nameFile OUT Complete name of file with path.
+void SdTask::namingFileData(uint32_t time, char *dirPrefix, char* nameFile)
+{
+  uint32_t dayno = time / SECS_DAY;
+  int year = EPOCH_YR;
+  uint8_t month = 0;
+
+  while (dayno >= YEARSIZE(year)) {
+    dayno -= YEARSIZE(year);
+    year++;
+  }
+  while (dayno >= _ytab[LEAPYEAR(year)][month]) {
+    dayno -= _ytab[LEAPYEAR(year)][month];
+    month++;
+  }
+
+  sprintf(nameFile, "%s/%04d_%02d_%02d.dat", dirPrefix, year, ++month, ++dayno);
+}
+
+
 /// @brief Scrive dati in append su Flash per scrittura sequenziale file data remoto
 /// @param file_name nome del file UAVCAN
 /// @param is_firmware true se il file +-è di tipo firmware
@@ -278,9 +301,11 @@ void SdTask::Run()
   // Queue buffer
   char queueBuffer[RMAP_PUT_DATA_ELEMENT_SIZE > LOG_PUT_DATA_ELEMENT_SIZE ? RMAP_PUT_DATA_ELEMENT_SIZE : LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
+  // Name file for data append es. /data/2023_01_30.dat [20]
+  char data_file_name[20] = {0};
   // Queue file put from external Task
-  file_queue_t data_file_queue;
-  system_response_t system_response;
+  file_put_request_t data_file_queue;
+  file_put_response_t system_response;
   char remote_file_name[FILE_NAME_MAX_LENGHT];
   // Local Firmware check and update
   char data_block[SD_FW_BLOCK_SIZE];
@@ -289,7 +314,9 @@ void SdTask::Run()
   uint8_t module_type, fw_version, fw_revision;
   bool fw_found;
   File logFile;
+  File dataFile;
   File putFile;
+  File getFile;
   File dir, entry; // Access dir List
 
   // Start Running Monitor and First WDT normal state
@@ -313,7 +340,7 @@ void SdTask::Run()
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_SD\r\n"));
         // SD Was Ready... for System
         param.systemStatusLock->Take();
-        param.system_status->sd_card.is_ready = true;
+        param.system_status->flags.sd_card_ready = true;
         param.systemStatusLock->Give();
         state = SD_STATE_CHECK_SD;
         message_traced = false;
@@ -322,7 +349,7 @@ void SdTask::Run()
         if(!message_traced) {
           // SD Was NOT Ready... for System
           param.systemStatusLock->Take();
-          param.system_status->sd_card.is_ready = false;
+          param.system_status->flags.sd_card_ready = false;
           param.systemStatusLock->Give();
           TRACE_VERBOSE_F(F("SD Card waiting to begin\r\n"));
           message_traced = true;
@@ -412,9 +439,20 @@ void SdTask::Run()
       // If element get all element from the queue and Put to MMC
       while(!param.dataRmapPutQueue->IsEmpty()) {
         // Get message from queue
-        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
-          // TODO:
-          // Put to MMC ( APPEND to File in Format ready to SEND Mqtt Format )
+        if(param.dataRmapPutQueue->Dequeue(queueBuffer)) {
+          // Put to MMC ( APPEND to File in Native Format )
+          // Byte 0     = Module_Type
+          // Byte 1..4  = Uint32 Get Epoch (Data acquire)
+          // Byte 5..X  = RMAP Uavcan Module data casting
+          // DATA FILE NAME (dd/mm/yyyy.dat) One file for day
+          uint32_t epochDateTimeRecord;
+          memcpy(&epochDateTimeRecord, &queueBuffer[1], sizeof(epochDateTimeRecord));
+          namingFileData(epochDateTimeRecord, "/data", data_file_name);
+          dataFile = SD.open(data_file_name, O_RDWR | O_APPEND);
+          if(dataFile) {          
+            dataFile.write(queueBuffer, RMAP_PUT_DATA_ELEMENT_SIZE);
+            dataFile.close();
+          }
         }
       }
       // *********************************************************
@@ -427,10 +465,10 @@ void SdTask::Run()
       // If element get all element from the queue and Put to SD N.B. If session running (Uploading...) Name File != NULL
       // If remote_file_name != NULL remote_file_name is not ready to system (Put firmware into module local and remote)
       // Any request for file (es. Cypal Request firmware are blocked)
-      while(!param.dataFirmwarePutRequestQueue->IsEmpty()) {
+      while(!param.dataFilePutRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
-        if(param.dataFirmwarePutRequestQueue->Dequeue(&data_file_queue)) {
+        if(param.dataFilePutRequestQueue->Dequeue(&data_file_queue)) {
           // Put to SD ( CREATE / APPEND Firmware Block File session )
           if(data_file_queue.block_type == file_block_type::file_name) {
             // Get File name set file name Upload (session current START)
@@ -447,7 +485,7 @@ void SdTask::Run()
             else
               system_response.done_operation = true;
             // Send response to caller
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::data_chunck) {
             memset(&system_response, 0, sizeof(system_response));
             if(putFile) {
@@ -462,7 +500,7 @@ void SdTask::Run()
               system_response.error_operation = true;
             }
             // Send response to caller
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::end_of_file) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system (without integrity control)
@@ -471,7 +509,7 @@ void SdTask::Run()
             putFile.close();
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
@@ -481,7 +519,75 @@ void SdTask::Run()
             // Send response to caller ... OK done
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+          }
+        }
+      }
+      // *********************************************************
+      //        End OF FILE (FIRMWARE) WRITE append message
+      // *********************************************************
+
+      // *********************************************************
+      //        Perform FILE (FIRMWARE) READ block message
+      // *********************************************************
+      // External request Firmware data block (Cypal...)
+      // Get Block and send with queue to CAN and CAN Upload remote module... FW/File Update command
+      // Flag Firmware (Receive from Network) toBe Completed before request to upload can start
+      while(!param.dataFileGetRequestQueue->IsEmpty()) {
+        // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
+        // Send response -> system_reesponse generic mode to request
+        if(param.dataFileGetRequestQueue->Dequeue(&data_file_queue)) {
+          // Put to SD ( CREATE / APPEND Firmware Block File session )
+          if(data_file_queue.block_type == file_block_type::file_name) {
+            // Get File name set file name Upload (session current START)
+            memset(local_file_name, 0, sizeof(remote_file_name));
+            strcpy(local_file_name, "/firmware/");
+            memcpy(local_file_name + strlen(local_file_name), data_file_queue.block, data_file_queue.block_lenght);
+            // Create File in ReWrite Mode
+            // Locking file session (uploading...)
+            memset(&system_response, 0, sizeof(system_response));
+            // Open Get File
+            getFile = SD.open(remote_file_name, O_RDONLY);
+            if(!getFile)
+              system_response.done_operation = false;
+            else
+              system_response.done_operation = true;
+            // Send response to caller
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+          } else if(data_file_queue.block_type == file_block_type::data_chunck) {
+            memset(&system_response, 0, sizeof(system_response));
+            if(getFile) {
+              uint16_t writtenBytes;
+              writtenBytes = getFile.write(data_file_queue.block, data_file_queue.block_lenght);
+              // Bytes written is ok)
+              if(writtenBytes == data_file_queue.block_lenght)
+                system_response.done_operation = true;
+              else
+                system_response.error_operation = true;
+            } else {
+              system_response.error_operation = true;
+            }
+            // Send response to caller
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+          } else if(data_file_queue.block_type == file_block_type::end_of_file) {
+            // Remove file name Upload (session current END)
+            // Unlock session. File is ready for the system (without integrity control)
+            memset(remote_file_name, 0, sizeof(remote_file_name));
+            // Send response to caller ... OK done
+            putFile.close();
+            memset(&system_response, 0, sizeof(system_response));
+            system_response.done_operation = true;
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
+          } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
+            // Remove file name Upload (session current END)
+            // Unlock session. File is ready for the system
+            // Need to control checksum (if any error file have to delete)
+            memset(remote_file_name, 0, sizeof(remote_file_name));
+            // TODO: checksum... other control file
+            // Send response to caller ... OK done
+            memset(&system_response, 0, sizeof(system_response));
+            system_response.done_operation = true;
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           }
         }
       }
@@ -490,7 +596,7 @@ void SdTask::Run()
       // *********************************************************
 
       break;
-    
+
     case SD_UPLOAD_FIRMWARE_TO_FLASH:
 
       // *********************************************************

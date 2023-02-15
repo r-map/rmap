@@ -138,8 +138,8 @@ void SupervisorTask::Run()
         param.system_status->configuration.is_loaded = true;
         // Init acquire base datetime (for get next)
         uint32_t curEpoch = rtc.getEpoch();
-        param.system_status->datetime.next_ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
-        param.system_status->datetime.next_ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+        param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
+        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
         // Init default security value
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
@@ -190,36 +190,36 @@ void SupervisorTask::Run()
 
         test_put_firmware = true;
 
-        file_queue_t firmwareDownloadChunck;
-        system_response_t mmc_task_response;
+        file_put_request_t firmwareDownloadChunck;
+        file_put_response_t sdcard_task_response;
         bool file_upload_error = false;
 
         // MMC have to GET Ready before Push DATA
         // EXIT from function if not MMC Ready or present into system_status
-        if(!param.system_status->sd_card.is_ready) {
+        if(!param.system_status->flags.sd_card_ready) {
           TRACE_VERBOSE_F(F("SUPERVISOR: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
           break;
         }
 
         // First block NAME OF FILE (Prepare name and Put to queue)
         // TODO: Get From HTTP
-        memset(&firmwareDownloadChunck, 0, sizeof(file_queue_t));
+        memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
         firmwareDownloadChunck.block_type = file_block_type::file_name;
         strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
         firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
         TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
         // Push data request to queue MMC
-        param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+        param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
 
         // Non blocking task
         TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
         Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
 
         // Waiting response from MMC with TimeOUT
-        memset(&mmc_task_response, 0, sizeof(system_response_t));
+        memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
         TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-        file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-        file_upload_error |= !mmc_task_response.done_operation;
+        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+        file_upload_error |= !sdcard_task_response.done_operation;
         // Add Data Chunck... TODO: Get From HTTP...
         if(!file_upload_error) {
           // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
@@ -233,41 +233,35 @@ void SupervisorTask::Run()
           // Try 100 Block Data chunk... Queue to MMC (x 512 Bytes -> 51200 Bytes to Write)
           for(uint8_t i=0; i<100; i++) {
             // Push data request to queue MMC
-            param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-
-            Serial.print('>');
-
+            param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
             // Waiting response from MMC with TimeOUT
-            memset(&mmc_task_response, 0, sizeof(system_response_t));
+            memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
             TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-            file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-            file_upload_error |= !mmc_task_response.done_operation;
-
+            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+            file_upload_error |= !sdcard_task_response.done_operation;
             // Non blocking task
             TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
             Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-
             // Any error? Exit Uploading
             if (file_upload_error) {
-              Serial.print("ERROR");
+              TRACE_VERBOSE_F(F("Uploading file error!!!\r\n"));
               break;
             }
           }
-
           // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
           firmwareDownloadChunck.block_type = file_block_type::end_of_file;
           // Push data request to queue MMC
-          param.dataFirmwarePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+          param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
 
           // Waiting response from MMC with TimeOUT
-          memset(&mmc_task_response, 0, sizeof(system_response_t));
+          memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
           TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-          file_upload_error = !param.dataFirmwarePutResponseQueue->Dequeue(&mmc_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-          file_upload_error |= !mmc_task_response.done_operation;
+          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+          file_upload_error |= !sdcard_task_response.done_operation;
         }
 
         // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
-        TRACE_VERBOSE_F(F("\r\n\r\n\r\nUploading file (Firmware) [ %s ]\r\n\r\n\r\n\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+        TRACE_VERBOSE_F(F("Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
       }
       // **************************************
       //   END TEST PUT Firmware Queue Usage

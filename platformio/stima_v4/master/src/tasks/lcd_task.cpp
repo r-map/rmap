@@ -392,6 +392,11 @@ void LCDTask::display_off() {
   // Updating
   display_is_off = true;
   state = LCD_STATE_STANDBY;
+
+  // Set to system status
+  param.systemStatusLock->Take();
+  param.system_status->flags.display_on = false;
+  param.systemStatusLock->Give();
 }
 
 /**

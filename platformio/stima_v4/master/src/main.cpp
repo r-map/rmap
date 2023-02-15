@@ -58,8 +58,10 @@ void setup() {
   static Queue *connectionResponseQueue;
   //Data MMC/SD WR/RD
   static Queue *dataRmapPutQueue;
-  static Queue *dataFirmwarePutRequestQueue;
-  static Queue *dataFirmwarePutResponseQueue;
+  static Queue *dataFilePutRequestQueue;
+  static Queue *dataFilePutResponseQueue;
+  static Queue *dataFileGetRequestQueue;
+  static Queue *dataFileGetResponseQueue;
   static Queue *dataLogPutQueue;
 
   // System and status configuration struct
@@ -127,8 +129,10 @@ void setup() {
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
   connectionRequestQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(connection_request_t));
   connectionResponseQueue = new Queue(RESPONSE_DATA_QUEUE_LENGTH, sizeof(connection_response_t));
-  dataFirmwarePutRequestQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_queue_t));
-  dataFirmwarePutResponseQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(system_response_t));
+  dataFilePutRequestQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_put_request_t));
+  dataFilePutResponseQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_put_response_t));
+  dataFileGetRequestQueue = new Queue(FILE_GET_DATA_QUEUE_LENGTH, sizeof(file_get_request_t));
+  dataFileGetResponseQueue = new Queue(FILE_GET_DATA_QUEUE_LENGTH, sizeof(file_get_response_t));
   dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
 
@@ -189,8 +193,10 @@ void setup() {
   mmcParam.system_status = &system_status;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
   mmcParam.dataLogPutQueue = dataLogPutQueue;
-  mmcParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
-  mmcParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
+  mmcParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
+  mmcParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
+  mmcParam.dataFileGetRequestQueue = dataFileGetRequestQueue;
+  mmcParam.dataFileGetResponseQueue = dataFileGetResponseQueue;
   mmcParam.flash = &memFlash;
   mmcParam.eeprom = &memEprom;
   mmcParam.qspiLock = qspiLock;  
@@ -206,8 +212,10 @@ void setup() {
   sdParam.system_status = &system_status;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
   sdParam.dataLogPutQueue = dataLogPutQueue;
-  sdParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
-  sdParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
+  sdParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
+  sdParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
+  sdParam.dataFileGetRequestQueue = dataFileGetRequestQueue;
+  sdParam.dataFileGetResponseQueue = dataFileGetResponseQueue;
   sdParam.flash = &memFlash;
   sdParam.eeprom = &memEprom;
   sdParam.qspiLock = qspiLock;  
@@ -257,8 +265,8 @@ void setup() {
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
-  supervisorParam.dataFirmwarePutRequestQueue = dataFirmwarePutRequestQueue;
-  supervisorParam.dataFirmwarePutResponseQueue = dataFirmwarePutResponseQueue;
+  supervisorParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
+  supervisorParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
   supervisorParam.eeprom = &memEprom;
   supervisorParam.clRegister = &clRegister;
 
@@ -318,7 +326,7 @@ void setup() {
   static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
 #endif
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 2500, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 900, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_LCD)
@@ -375,9 +383,6 @@ void init_wire()
 
  // Setup SPI
  #if (ENABLE_SPI1)
-  // SPI.setMOSI(PIN_SPI_MOSI);
-  // SPI.setMISO(PIN_SPI_MISO);
-  // SPI.setSCLK(PIN_SPI_SCK);
   SPI.begin();        
  #endif
 }

@@ -305,8 +305,8 @@ void MmcTask::Run()
   char queueBuffer[RMAP_PUT_DATA_ELEMENT_SIZE > LOG_PUT_DATA_ELEMENT_SIZE ? RMAP_PUT_DATA_ELEMENT_SIZE : LOG_PUT_DATA_ELEMENT_SIZE] = {0};
   char logIntest[23] = {0};
   // Queue file put from external Task
-  file_queue_t data_file_queue;
-  system_response_t system_response;
+  file_put_request_t data_file_queue;
+  file_put_response_t system_response;
   char remote_file_name[FILE_NAME_MAX_LENGHT];
   // Local Firmware check and update
   char data_block[MMC_FW_BLOCK_SIZE];
@@ -350,7 +350,7 @@ void MmcTask::Run()
         if(!message_traced) {
           // SD Was NOT Ready... for System
           param.systemStatusLock->Take();
-          param.system_status->sd_card.is_ready = false;
+          param.system_status->flags.sd_card_ready = false;
           param.systemStatusLock->Give();
           TRACE_VERBOSE_F(F("MMC Card slot empty, MMC function disabled\r\n"));
           message_traced = true;
@@ -363,7 +363,7 @@ void MmcTask::Run()
       if (SD.begin()) {
         // SD Was Ready... for System
         param.systemStatusLock->Take();
-        param.system_status->sd_card.is_ready = true;
+        param.system_status->flags.sd_card_ready = true;
         param.systemStatusLock->Give();
         TRACE_VERBOSE_F(F("MMC Card init complete -> MMC_STATE_WAITING_EVENT\r\n"));
         // Optional Trace Type of CARD... and Size
@@ -395,7 +395,7 @@ void MmcTask::Run()
           message_traced = true;
           // SD Was NOT Ready... for System
           param.systemStatusLock->Take();
-          param.system_status->sd_card.is_ready = false;
+          param.system_status->flags.sd_card_ready = false;
           param.systemStatusLock->Give();
           TRACE_VERBOSE_F(F("MMC Card waiting to begin...\r\n"));
           message_traced = true;
@@ -470,10 +470,10 @@ void MmcTask::Run()
       // If element get all element from the queue and Put to MMC N.B. If session running (Uploading...) Name File != NULL
       // If remote_file_name != NULL remote_file_name is not ready to system (Put firmware into module local and remote)
       // Any request for file (es. Cypal Request firmware are blocked)
-      while(!param.dataFirmwarePutRequestQueue->IsEmpty()) {
+      while(!param.dataFilePutRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
-        if(param.dataFirmwarePutRequestQueue->Dequeue(&data_file_queue)) {
+        if(param.dataFilePutRequestQueue->Dequeue(&data_file_queue)) {
           // Put to MMC ( CREATE / APPEND Firmware Block File session )
           if(data_file_queue.block_type == file_block_type::file_name) {
             // Get File name set file name Upload (session current START)
@@ -487,7 +487,7 @@ void MmcTask::Run()
             FileOpenSecurity(&putFile, remote_file_name, FA_WRITE | FA_CREATE_ALWAYS);
             system_response.done_operation = true;
             // Send response to caller
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::data_chunck) {
             memset(&system_response, 0, sizeof(system_response));
             if(putFile) {
@@ -497,7 +497,7 @@ void MmcTask::Run()
               system_response.error_operation = true;
             }
             // Send response to caller
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::end_of_file) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system (without integrity control)
@@ -506,7 +506,7 @@ void MmcTask::Run()
             putFile.close();
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           } else if(data_file_queue.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
@@ -516,7 +516,7 @@ void MmcTask::Run()
             // Send response to caller ... OK done
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
-            param.dataFirmwarePutResponseQueue->Enqueue(&system_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&system_response, 0);
           }
         }
       }

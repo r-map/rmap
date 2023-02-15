@@ -89,8 +89,8 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *dataRmapPutQueue;
   cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *dataFirmwarePutRequestQueue;
-  cpp_freertos::Queue *dataFirmwarePutResponseQueue;
+  cpp_freertos::Queue *dataFilePutRequestQueue;
+  cpp_freertos::Queue *dataFilePutResponseQueue;
   Flash *flash;
   EEprom *eeprom;
 } MmcParam_t;

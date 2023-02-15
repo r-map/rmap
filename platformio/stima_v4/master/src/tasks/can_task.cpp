@@ -1443,16 +1443,24 @@ void CanTask::Run() {
                 bool bStartGetData = false;
 
                 // need do acquire istant value for display?
-                if ((curEpoch / param.configuration->observation_s) != param.system_status->datetime.next_ptr_time_for_sensors_get_istant) {
-                    param.systemStatusLock->Take();
-                    param.system_status->datetime.next_ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
-                    param.systemStatusLock->Give();
-                    bStartGetIstant = true;
-                }                
+                // Read data only if Display or other Task need to show/get this value
+                if(param.system_status->flags.display_on) {
+                    if ((curEpoch / param.configuration->observation_s) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
+                        param.systemStatusLock->Take();
+                        uint16_t obs_istant;
+                        // Get minim acquire for get request to remote data for Display
+                        obs_istant = param.configuration->observation_s < MIN_ACQUIRE_GET_ISTANT_VALUE_SEC ? MIN_ACQUIRE_GET_ISTANT_VALUE_SEC : param.configuration->observation_s;
+                        param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / obs_istant;
+                        param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / obs_istant) * obs_istant;
+                        param.systemStatusLock->Give();
+                        bStartGetIstant = true;
+                    }
+                }
                 // need do acquire data value for RMAP Archive?
-                if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.next_ptr_time_for_sensors_get_value) {      
+                if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                     param.systemStatusLock->Take();
-                    param.system_status->datetime.next_ptr_time_for_sensors_get_value = curEpoch % param.configuration->report_s;
+                    param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+                    param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
                     param.systemStatusLock->Give();
                     bStartGetData = true;
                 }
@@ -1608,15 +1616,19 @@ void CanTask::Run() {
                                 param.system_status->data_slave[queueId].data_value_A = retData->STH.temperature.val.value;
                                 param.system_status->data_slave[queueId].data_value_B = retData->STH.humidity.val.value;
                                 // Add info RMAP to system
-                                param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.next_ptr_time_for_sensors_get_istant;
+                                if(bStartGetIstant)
+                                    param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
+                                else
+                                    param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
                                 param.systemStatusLock->Give();
                                 // Set data into queue if data value (not for istant observation acquire)
                                 if(bStartGetData) {
                                     memset(dataQueue, 0, sizeof(dataQueue));
+                                    // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                     dataQueue[0] = clCanard.slave[queueId].get_module_type();
-                                    dataQueue[1] = (uint8_t) (param.system_status->datetime.next_ptr_time_for_sensors_get_value >> 8) & 0xFF;
-                                    dataQueue[2] = (uint8_t) (param.system_status->datetime.next_ptr_time_for_sensors_get_value % 0xFF);
-                                    memcpy((void*)dataQueue[3], retData, sizeof(retData));
+                                    memcpy(&dataQueue[1], &param.system_status->datetime.epoch_sensors_get_value,
+                                        sizeof(param.system_status->datetime.epoch_sensors_get_value));
+                                    memcpy((void*)dataQueue[5], retData, sizeof(retData));
                                     // Send queue to MMC/SD for direct archive data
                                     // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                     param.dataRmapPutQueue->Enqueue(&dataQueue, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
