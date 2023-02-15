@@ -199,6 +199,7 @@ void LCDTask::Run() {
         // ************************* VARIABLES INITIALIZATION ***********************
         // **************************************************************************
 
+        board_count = 0;
         channel = -1;
         data_printed = false;
         display_is_off = false;
@@ -206,6 +207,13 @@ void LCDTask::Run() {
         stima4_command = MAINTENANCE;
         stima4_menu_ui = MAIN;
         command_selector_pos = 0;
+
+        // Count the number of board configurated
+        for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
+          if (param.system_status->data_slave[i].module_type != 0) {
+            board_count++;
+          }
+        }
 
         // **************************************************************************
         // ************************* ENCODER INITIALIZATION *************************
@@ -422,8 +430,12 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   getStimaLcdDecimalsByType(&decimals, module_type);
 
   // Process string format to print
-  dtostrf(param.system_status->data_slave[channel].data_value_A, 0, decimals, measure);
-  (void)snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
+  if (param.system_status->data_slave[channel].is_online) {
+    dtostrf(param.system_status->data_slave[channel].data_value_A, 0, decimals, measure);
+    (void)snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
+  } else {
+    (void)snprintf(measure, sizeof(measure), "-- %s", unit_type);
+  }
 
   // Print description of measure
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
@@ -451,19 +463,18 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
  *
  */
 void LCDTask::display_print_config_menu_interface() {
+  // Used for
+  uint8_t row_printed = 0;
+
+  // Print a triangle to select the option
   display.drawTriangle(X_TEXT_FROM_RECT, Y_TOP_TRIANGLE + command_selector_pos * LINE_BREAK, X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 10 * command_selector_pos, X_PEAK_TRIANGLE, Y_PEAK_TRIANGLE + 10 * command_selector_pos);
 
-  display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE);
-  display.print(get_command_name_from_enum(MAINTENANCE));
-
-  if (!param.system_status->data_slave[channel].fw_upgrade) {
-    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + LINE_BREAK);
-    display.print(get_command_name_from_enum(EXIT));
-  } else {
-    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + LINE_BREAK);
-    display.print(get_command_name_from_enum(UPGRADE_FIRMWARE));
-    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
-    display.print(get_command_name_from_enum(EXIT));
+  // Print command options
+  for (uint8_t i = 0; i < (stima4_commands_t)EXIT + 1; i++) {
+    if (!param.system_status->data_slave[channel].fw_upgrade && (stima4_commands_t)i == UPGRADE_FIRMWARE) continue;
+    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + row_printed * LINE_BREAK);
+    display.print(get_command_name_from_enum((stima4_commands_t)i));
+    row_printed++;
   }
 
   // Apply the updates to display
@@ -564,10 +575,12 @@ void LCDTask::switch_interface() {
     // **************************************************************************
     // ************************* CLOCK WISE MANAGEMENT **************************
     // **************************************************************************
+
     if (encoder_state == DIR_CLOCK_WISE) {
       // **************************************************************************
       // ************************* CONFIG MENU MANAGEMENT *************************
       // **************************************************************************
+
       if (stima4_menu_ui == CONFIGURATION) {
         command_selector_pos = stima4_command == EXIT ? 0 : command_selector_pos + 1;
         stima4_command = stima4_command == EXIT ? MAINTENANCE : (stima4_commands_t)(stima4_command + 1);
@@ -578,19 +591,22 @@ void LCDTask::switch_interface() {
       // **************************************************************************
       // ************************* CHANNELS MANAGEMENT ****************************
       // **************************************************************************
+
       else {
         channel = channel == -1 ? 0 : channel + 1;
-        stima4_menu_ui = channel == MAX_CHANNELS ? MAIN : CHANNEL;
-        channel = channel == MAX_CHANNELS ? -1 : channel;
+        stima4_menu_ui = channel == board_count ? MAIN : CHANNEL;
+        channel = channel == board_count ? -1 : channel;
       }
     }
     // **************************************************************************
     // ************************* COUNTER CLOCK WISE MANAGEMENT ******************
     // **************************************************************************
+
     else {
       // **************************************************************************
       // ************************* CONFIG MENU MANAGEMENT *************************
       // **************************************************************************
+
       if (stima4_menu_ui == CONFIGURATION) {
         if (!param.system_status->data_slave[channel].fw_upgrade) {
           command_selector_pos = stima4_command == MAINTENANCE ? 1 : command_selector_pos - 1;
@@ -606,7 +622,7 @@ void LCDTask::switch_interface() {
       // ************************* CHANNELS MANAGEMENT ****************************
       // **************************************************************************
       else {
-        channel = channel == -1 ? MAX_CHANNELS - 1 : channel - 1;
+        channel = channel == -1 ? board_count - 1 : channel - 1;
         stima4_menu_ui = channel == -1 ? MAIN : CHANNEL;
       }
     }
@@ -622,12 +638,14 @@ void LCDTask::switch_interface() {
       stima4_menu_ui_last = stima4_menu_ui;
       stima4_menu_ui = CONFIGURATION;
     } else if (stima4_menu_ui == CONFIGURATION) {
-      // ************************* SEND COMMAND *******************************
+      // ************************************************************************
+      // ************************* SEND COMMAND *********************************
+      // ************************************************************************
       elaborate_command(stima4_command);
-      // **********************************************************************
+
+      command_selector_pos = 0;
       stima4_command = MAINTENANCE;
       stima4_menu_ui = stima4_menu_ui_last;
-      command_selector_pos = 0;
     }
     pression_event = false;
     data_printed = false;

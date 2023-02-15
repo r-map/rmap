@@ -84,17 +84,6 @@ typedef union Encoder {
 
 } encoder_t;
 
-typedef struct Channel {
-  bool firmware_upgrade_available;
-  bool maintenance_mode;
-  float value;
-  uint8_t module_type;
-} channel_t;
-
-typedef struct Data {
-  channel_t channel[MAX_CHANNELS];
-} data_t;
-
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
@@ -133,21 +122,45 @@ class LCDTask : public cpp_freertos::Thread {
   void elaborate_command(stima4_commands_t command);
   void switch_interface(void);
 
+  // Indicates whether the display has printed the updates or not
   bool data_printed;
+  // Indicates whether the display is off or not
   bool display_is_off;
+  // It contains the name of the LCD task
   char taskName[configMAX_TASK_NAME_LEN];
-  inline static bool pression_event, rotation_event;
-  inline static encoder_t encoder, encoder_old;
+  // Indicates if the pressure event has occurred or not
+  inline static bool pression_event;
+  // Indicates if the rotation event has occurred or not
+  inline static bool rotation_event;
+  // It contains the current logic state of the encoder
+  inline static encoder_t encoder;
+  // It contains the old logic state of the encoder
+  inline static encoder_t encoder_old;
+  // The time in milliseconds for debounce management
   inline static uint32_t debounce_millis;
+  // The last time in milliseconds from any interactions with encoder for power display management
   inline static uint32_t last_display_timeout;
+  // It contains the final result of the encoder state
   inline static uint8_t encoder_state;
+  // Index used for read the data from array of slave boards
   int8_t channel;
+  // Used for configuration menu management of commands
   stima4_commands_t stima4_command;
-  stima4_menu_ui_t stima4_menu_ui, stima4_menu_ui_last;
+  // Current menu state
+  stima4_menu_ui_t stima4_menu_ui;
+  // Last menu state
+  stima4_menu_ui_t stima4_menu_ui_last;
+  // Display instance
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
+  // Contains the stack size allocated by LCD task
   uint16_t stackSize;
+  // It contains the current time in milliseconds
   uint32_t read_millis;
+  // Number of configurated boards
+  uint8_t board_count;
+  // Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
+  // Contains the priority assigned to LCD task
   uint8_t priority;
 
   char pin_bottom_left_encoder;
