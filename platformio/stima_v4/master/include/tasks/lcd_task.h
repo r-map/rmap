@@ -63,13 +63,19 @@ typedef enum LCDState {
   LCD_STATE_STANDBY
 } LCDState_t;
 
-typedef enum Stimacommands {
-  MAINTENANCE,
-  UPGRADE_FIRMWARE,
-  EXIT  // Always the latest element
-} stima4_commands_t;
+typedef enum LCDMasterCommands {
+  MASTER_COMMAND_SDCARD,
+  MASTER_COMMAND_FIRMWARE_UPGRADE,
+  MASTER_COMMAND_EXIT  // Always the latest element
+} stima4_master_commands_t;
 
-typedef enum Stimamenu {
+typedef enum LCDSlaveCommands {
+  SLAVE_COMMAND_MAINTENANCE,
+  SLAVE_COMMAND_FIRMWARE_UPGRADE,
+  SLAVE_COMMAND_EXIT  // Always the latest element
+} stima4_slave_commands_t;
+
+typedef enum LCDMenu {
   MAIN,
   CHANNEL,
   CONFIGURATION
@@ -108,7 +114,8 @@ class LCDTask : public cpp_freertos::Thread {
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  const char *get_command_name_from_enum(stima4_commands_t command);
+  const char *get_master_command_name_from_enum(stima4_master_commands_t command);
+  const char *get_slave_command_name_from_enum(stima4_slave_commands_t command);
   static void encoder_process(uint8_t new_value, uint8_t old_value);
   static void ISR_input_pression_pin_encoder(void);
   static void ISR_input_rotation_pin_encoder(void);
@@ -119,7 +126,8 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_default_interface(void);
   void display_print_main_interface(void);
   void display_setup(void);
-  void elaborate_command(stima4_commands_t command);
+  void elaborate_master_command(stima4_master_commands_t command);
+  void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
 
   // Indicates whether the display has printed the updates or not
@@ -144,8 +152,10 @@ class LCDTask : public cpp_freertos::Thread {
   inline static uint8_t encoder_state;
   // Index used for read the data from array of slave boards
   int8_t channel;
-  // Used for configuration menu management of commands
-  stima4_commands_t stima4_command;
+  // Used for master configuration menu management of commands
+  stima4_master_commands_t stima4_master_command;
+  // Used for slave configuration menu management of commands
+  stima4_slave_commands_t stima4_slave_command;
   // Current menu state
   stima4_menu_ui_t stima4_menu_ui;
   // Last menu state

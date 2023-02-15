@@ -192,6 +192,11 @@ typedef struct
       uint16_t connection_completed;
    } modem;
 
+   struct
+   {
+      bool fw_upgrade;          // Fw upgrade flag
+   } data_master;
+
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
