@@ -457,10 +457,21 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
 
   // Process string format to print
   if (param.system_status->data_slave[channel].is_online) {
-    dtostrf(param.system_status->data_slave[channel].data_value_A, 0, decimals, measure);
-    (void)snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
+    float value_display = param.system_status->data_slave[channel].data_value_A;
+    switch (param.system_status->data_slave[channel].module_type) {
+      // Adjust UDM with comprensible value
+      case canardClass::Module_Type::th:
+        value_display = param.system_status->data_slave[channel].data_value_A - 27315;
+        value_display /= 100;
+        break;
+      default:
+        value_display = param.system_status->data_slave[channel].data_value_A;
+        break;
+    }
+    dtostrf(value_display, 0, decimals, measure);
+    snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
   } else {
-    (void)snprintf(measure, sizeof(measure), "-- %s", unit_type);
+    snprintf(measure, sizeof(measure), "N.P. %s", unit_type);
   }
 
   // Print description of measure

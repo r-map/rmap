@@ -138,7 +138,7 @@ void SupervisorTask::Run()
         param.system_status->configuration.is_loaded = true;
         // Init acquire base datetime (for get next)
         uint32_t curEpoch = rtc.getEpoch();
-        param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
+        param.system_status->datetime.ptr_time_for_sensors_get_istant = 0; // Force get istant at startup...
         param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
         // Init default security value
         param.system_status->connection.is_disconnected = true;

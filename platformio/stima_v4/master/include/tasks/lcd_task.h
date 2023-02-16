@@ -46,6 +46,8 @@
 #include "thread.hpp"
 #include "ticks.hpp"
 
+#include "canard_class_master.hpp"
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <U8g2lib.h>
 #include <Wire.h>

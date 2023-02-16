@@ -1140,6 +1140,9 @@ void CanTask::Run() {
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
                     clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
+                } else {
+                    // Master must start with an ID Node (if not registerede start with default value NODE_MASTER_ID)
+                    clCanard.set_canard_node_id((CanardNodeID) NODE_MASTER_ID);
                 }
                 #endif
 
@@ -1667,9 +1670,9 @@ void CanTask::Run() {
                                     // Check if module can be updated
                                     for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
                                         if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                            if((retData->version > param.system_status->boards_update_avaiable[checkId].version) ||
-                                                ((retData->version == param.system_status->boards_update_avaiable[checkId].version) && 
-                                                 (retData->revision > param.system_status->boards_update_avaiable[checkId].revision))) {
+                                            if((param.system_status->boards_update_avaiable[checkId].version > retData->version) ||
+                                                ((param.system_status->boards_update_avaiable[checkId].version == retData->version) && 
+                                                 (param.system_status->boards_update_avaiable[checkId].revision > retData->revision))) {
                                                 // Found an upgradable boards
                                                 param.system_status->data_slave[queueId].fw_upgrade = true;
                                             }

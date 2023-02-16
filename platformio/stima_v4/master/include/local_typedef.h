@@ -133,8 +133,8 @@ typedef struct
    {
       uint32_t epoch_sensors_get_istant;           // Date Time epoch for data istant value
       uint32_t epoch_sensors_get_value;            // Date time epoch for data archive value
-      uint16_t ptr_time_for_sensors_get_istant;    // Divider time ptr to determine next istant
-      uint16_t ptr_time_for_sensors_get_value;     // Divider time ptr to determine next acquire
+      uint32_t ptr_time_for_sensors_get_istant;    // Divider time ptr to determine next istant
+      uint32_t ptr_time_for_sensors_get_value;     // Divider time ptr to determine next acquire
    } datetime;
 
    // Info Task && WDT
