@@ -699,8 +699,10 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
             TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
           }
 
-          // Ritorno lo stato (Copia dal comando...)
+          // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
+          resp.version = MODULE_MAIN_VERSION;
+          resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)

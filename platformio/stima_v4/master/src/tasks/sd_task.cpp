@@ -317,7 +317,8 @@ void SdTask::Run()
   char local_file_name[FILE_NAME_MAX_LENGHT];
   uint8_t module_type, fw_version, fw_revision;
   bool fw_found;
-  File logFile, dataFile, putFile, getFile; // Local file
+  File logFile, dataFile, putFile; // Local file (PUT to SD with remote request)
+  File getFile[BOARDS_COUNT_MAX]; // File for remote boards multi file server (ONE File for each Boards MAX at time)
   File dir, entry; // Access dir List
 
   // Start Running Monitor and First WDT normal state
@@ -575,7 +576,7 @@ void SdTask::Run()
           // Put to SD ( Start Read Firmware Block File session )
           if(file_get_request.block_id==0) {
             // Closing if file already used for other Session (preserve memoryLeak error)
-            if(getFile) getFile.close();
+            if(getFile[file_get_request.board_id]) getFile[file_get_request.board_id].close();
             // Get File name set file name Upload (session current START)
             memset(local_file_name, 0, sizeof(local_file_name));
             strcpy(local_file_name, "/firmware/");
@@ -584,25 +585,31 @@ void SdTask::Run()
             // Locking file session (uploading...)
             memset(&file_get_response, 0, sizeof(file_get_response));
             // Open Get File (for reading)
-            getFile = SD.open(local_file_name, O_RDONLY);
+            getFile[file_get_request.board_id] = SD.open(local_file_name, O_RDONLY);
             if(getFile) {
               // Read the first block data (return number of bytes read)
               file_get_response.done_operation = true;
-              file_get_response.block_lenght = getFile.readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+              file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
             } else
               file_get_response.done_operation = false;
             // Send response to caller
+            // Closing automatic of file if block not completed (EOF)
+            if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
+              getFile[file_get_request.board_id].close();
+              // Unlock file (clear name)
+              memset(local_file_name, 0, sizeof(local_file_name));
+            }
             param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
           } else {
             // Set Seek Position or Reading Next Block (only if block_read_next not called)
             if(!file_get_request.block_read_next) 
-              getFile.seek(FILE_GET_DATA_BLOCK_SIZE * file_get_request.block_id);
+              getFile[file_get_request.board_id].seek(FILE_GET_DATA_BLOCK_SIZE * file_get_request.block_id);
             // Read the first block data (return number of bytes read)
             file_get_response.done_operation = true;
-            file_get_response.block_lenght = getFile.readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+            file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
             // Closing automatic of file if block not completed (EOF)
             if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
-              getFile.close();
+              getFile[file_get_request.board_id].close();
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
             }

@@ -85,4 +85,15 @@ void getStimaLcdDecimalsByType(uint8_t *decimals, uint8_t type);
 */
 bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision);
 
+/*!
+\fn void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision)
+\brief Return a STIMA's name file firmware by Type Version and Revision requested.
+\param[in] types Type of module checked.
+\param[in] version Version firmware of module checked.
+\param[in] revision Revision firmware of module checked.
+\param[out] *file_name module named correct cyphal.
+\return true if file name is correct, false if not
+*/
+void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision);
+
 #endif

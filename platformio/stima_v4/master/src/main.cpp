@@ -231,6 +231,7 @@ void setup() {
   lcdParam.system_status = &system_status;
   lcdParam.configurationLock = configurationLock;
   lcdParam.systemStatusLock = systemStatusLock;
+  lcdParam.dataLogPutQueue = dataLogPutQueue;
   lcdParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
   lcdParam.wire = &Wire2;
@@ -248,6 +249,9 @@ void setup() {
   canParam.registerAccessLock = registerAccessLock;
   canParam.systemMessageQueue = systemMessageQueue;
   canParam.dataRmapPutQueue = dataRmapPutQueue;
+  canParam.dataLogPutQueue = dataLogPutQueue;
+  canParam.dataFileGetRequestQueue = dataFileGetRequestQueue;
+  canParam.dataFileGetResponseQueue = dataFileGetResponseQueue;
   canParam.eeprom = &memEprom;
   canParam.clRegister = &clRegister;
   canParam.flash = &memFlash;
@@ -265,6 +269,7 @@ void setup() {
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
+  supervisorParam.dataLogPutQueue = dataLogPutQueue;
   supervisorParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
   supervisorParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
   supervisorParam.eeprom = &memEprom;
@@ -277,6 +282,7 @@ void setup() {
   modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
   modemParam.systemStatusLock = systemStatusLock;
+  modemParam.dataLogPutQueue = dataLogPutQueue;
   modemParam.connectionRequestQueue = connectionRequestQueue;
   modemParam.connectionResponseQueue = connectionResponseQueue;
 #endif
@@ -289,6 +295,7 @@ void setup() {
   ntpParam.rtcLock = rtcLock;
   ntpParam.configurationLock = configurationLock;
   ntpParam.systemStatusLock = systemStatusLock;
+  ntpParam.dataLogPutQueue = dataLogPutQueue;
   ntpParam.connectionRequestQueue = connectionRequestQueue;
   ntpParam.connectionResponseQueue = connectionResponseQueue;
 #endif
@@ -300,6 +307,7 @@ void setup() {
   httpParam.system_status = &system_status;
   httpParam.configurationLock = configurationLock;
   httpParam.systemStatusLock = systemStatusLock;
+  httpParam.dataLogPutQueue = dataLogPutQueue;
   httpParam.connectionRequestQueue = connectionRequestQueue;
   httpParam.connectionResponseQueue = connectionResponseQueue;
 #endif
@@ -311,6 +319,7 @@ void setup() {
   mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
   mqttParam.systemStatusLock = systemStatusLock;
+  mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;
   mqttParam.yarrowContext = &yarrowContext;
@@ -323,10 +332,10 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
-  static MmcTask mmc_task("MmcTask", 1350, OS_TASK_PRIORITY_01, mmcParam);
+  static MmcTask mmc_task("MmcTask", 1400, OS_TASK_PRIORITY_01, mmcParam);
 #endif
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 900, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 1400, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_LCD)

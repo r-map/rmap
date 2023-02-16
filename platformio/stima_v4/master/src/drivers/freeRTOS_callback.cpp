@@ -128,7 +128,7 @@ static void faultStimaV4(int n) {
   \param[in] pcTaskName Task name
   */
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
-  // Use Serial.print direct for prevent Malloc from RTOS (ISR Malloc ASSERT Error)
+  // Ned to use Serial.print direct for prevent Malloc from RTOS (ISR Malloc ASSERT Error)
   Serial.print("Error stack overflow form task: ");
   Serial.print(pcTaskName);
   Serial.flush();
@@ -147,6 +147,7 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
 extern "C" void _Error_Handler(const char *msg, int val)
 {
   /* User can add his own implementation to report the HAL error return state */
+  // Ned to use Serial.print direct for prevent Malloc from RTOS (ISR Malloc ASSERT Error)
   Serial.print("Error handler: ");
   Serial.print(msg);
   Serial.print(", ");

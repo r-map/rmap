@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "ctype.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 void getStimaNameByType(char *name, uint8_t type) {
   switch (type) {
@@ -365,4 +366,14 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
   if (*ptrcheck != '.') return false;
 
   return true;
+}
+
+void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision) {
+  // Standard Cyphal-Yakut file Name
+  // node_name-Ver.Rev.app.hex -> stima4.module_th-4.1-app.hex
+  char suffix[16] = {0};
+  getStimaNameByType(file_name, type);
+  // Add suffix
+  sprintf(suffix, "-%d.%d-app.hex", version, revision);
+  strcat(file_name, suffix);
 }

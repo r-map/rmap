@@ -45,8 +45,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SUPERVISOR_TASK_NTP_SYNC_RETRY_DELAY_MS (5000)
 #define SUPERVISOR_TASK_NTP_SYNC_RETRY          (3)
 
-#define SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT  (3000)
-
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #include "drivers/eeprom.h"
@@ -90,6 +88,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;
+  cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
   cpp_freertos::Queue *dataFilePutRequestQueue;

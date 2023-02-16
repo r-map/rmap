@@ -217,8 +217,8 @@ void SupervisorTask::Run()
 
         // Waiting response from MMC with TimeOUT
         memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-        TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+        TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
+        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
         file_upload_error |= !sdcard_task_response.done_operation;
         // Add Data Chunck... TODO: Get From HTTP...
         if(!file_upload_error) {
@@ -236,8 +236,8 @@ void SupervisorTask::Run()
             param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
             // Waiting response from MMC with TimeOUT
             memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-            TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+            TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
+            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
             file_upload_error |= !sdcard_task_response.done_operation;
             // Non blocking task
             TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
@@ -255,8 +255,8 @@ void SupervisorTask::Run()
 
           // Waiting response from MMC with TimeOUT
           memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-          TaskWatchDog(SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
-          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, SUPERVISOR_TASK_PUT_DATA_QUEUE_TIMEOUT);
+          TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
+          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
           file_upload_error |= !sdcard_task_response.done_operation;
         }
 

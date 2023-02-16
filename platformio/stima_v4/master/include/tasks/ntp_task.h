@@ -67,6 +67,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *rtcLock;
+  cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
 } NtpParam_t;

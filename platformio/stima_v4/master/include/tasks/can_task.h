@@ -122,8 +122,11 @@ typedef struct {
   cpp_freertos::BinarySemaphore *canLock;
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;
+  cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataRmapPutQueue;
+  cpp_freertos::Queue *dataFileGetRequestQueue;
+  cpp_freertos::Queue *dataFileGetResponseQueue;
   Flash *flash;
   EEprom *eeprom;
   EERegister *clRegister;
@@ -149,6 +152,7 @@ private:
   void TaskMonitorStack();
   #endif
   void TaskWatchDog(uint32_t millis_standby);
+  static void LocalTaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   static void HW_CAN_Power(CAN_ModePower ModeCan);
@@ -160,11 +164,21 @@ private:
   static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo();
   static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer);
 
+  // Param local and state
   State_t state;
   CanParam_t param;
 
+  // Acces static memeber parameter of class
   inline static cpp_freertos::Queue *localSystemMessageQueue;
+  inline static cpp_freertos::Queue *localDataFileGetRequestQueue;
+  inline static cpp_freertos::Queue *localDataFileGetResponseQueue;
+  // Upload file to can (File server)
+  inline static uint8_t firmwareState;
+  inline static file_get_request_t firmwareDownloadChunck;
+  inline static file_get_response_t sdcard_task_response;
+  // Power module CAN
   inline static CAN_ModePower canPower;
+  // RTC
   inline static STM32RTC& rtc = STM32RTC::getInstance();
   // Register access && Flash (Firmware and data log archive)
   inline static EERegister *localRegister;
@@ -174,7 +188,7 @@ private:
   inline static system_status_t *localSystemStatus;
   inline static Flash *localFlash;
   inline static uint64_t canFlashPtr = 0;
-  inline static uint16_t canFlashBlock = 0;
+  inline static uint16_t canFlashBlock = 0;  
 };
 
 #endif

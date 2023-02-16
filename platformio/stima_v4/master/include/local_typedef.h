@@ -201,6 +201,7 @@ typedef struct
       uint16_t connection_completed;
    } modem;
 
+   // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
       bool fw_upgrade;          // Fw upgrade flag
@@ -219,12 +220,6 @@ typedef struct
       uint8_t module_type;      // Type of remote module
       uint8_t module_version;   // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];
-
-   // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
-   struct
-   {
-      bool fw_upgrade;          // Fw upgrade flag
-   } data_master;
 
    // Hw/Sw Flags
    struct
@@ -321,6 +316,7 @@ typedef struct
 // Queue for file request read data (block and file)
 typedef struct
 {
+   uint8_t board_id;       // Board ID board_id(For create a multi server file rapid access. More open file server 0xFF unused)
    char *file_name;        // Name file (need with first block block_id = 0. Start Reading session file)
    bool block_read_next;   // simply fast read a next block from last
    uint16_t block_id;      // Seek a fixed block into a file

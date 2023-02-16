@@ -118,6 +118,7 @@ typedef struct
   system_status_t *system_status;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
   YarrowContext *yarrowContext;

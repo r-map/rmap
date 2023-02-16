@@ -97,6 +97,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::Queue *dataLogPutQueue;
   TwoWire *wire;
 } LCDParam_t;
 
