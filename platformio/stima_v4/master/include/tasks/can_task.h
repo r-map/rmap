@@ -101,7 +101,6 @@ using namespace cpp_freertos;
 
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
-// #define LED_ON_SYNCRO_TIME
 
 // Mode Power HW CanBus Controller
 enum CAN_ModePower

@@ -1,7 +1,0 @@
-Modifica sdella scheda INSERIMENTO VARIANTE SCHEDA STIMA_v4_MASTER ARDUINO
-
-XXXX\.platformio\platforms\ststm32\boards -> stimav4_master.json
-
-XXXX\.platformio\packages\framework-arduinoststm32\variants\STM32L4xx\L496V(E-G)T_L4A6VGT  ->
-	Aggiungi ldscript.ld
-	+ 2 files variant

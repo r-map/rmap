@@ -70,7 +70,7 @@ class canardClass {
 
         // Tipologia di moduli disponibili Stima V4 x PNP e InfoNode
         enum Module_Type : uint8_t {
-            undefined   = 0x00,
+            undefined   = STIMA_MODULE_TYPE_UNDEFINED,
             server_eth  = STIMA_MODULE_TYPE_MASTER_ETH,
             server_gsm  = STIMA_MODULE_TYPE_MASTER_GSM,
             rain        = STIMA_MODULE_TYPE_RAIN,

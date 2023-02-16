@@ -43,6 +43,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_MAX_AVAIABLE              (12)
 
 /*!
+\def STIMA_MODULE_TYPE_UNDEFINED
+\brief Module type stima not defined.
+*/
+#define STIMA_MODULE_TYPE_UNDEFINED                 (0)
+
+/*!
 \def STIMA_MODULE_TYPE_MASTER_ETH
 \brief This module send report over ethernet.
 */

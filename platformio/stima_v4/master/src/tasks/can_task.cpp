@@ -822,7 +822,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         clCanard.master.file.reset_pending(resp.data.value.count);
                     } else {
                         // Error Save... Abort request
-                        TRACE_ERROR_F(F("SAVING BLOCK FILE ERROR, ABORT RX !!!"));
+                        TRACE_ERROR_F(F("SAVING BLOCK FILE ERROR, ABORT RX !!!\r\n"));
                         clCanard.master.file.download_end();
                     }
                 }
@@ -1155,7 +1155,8 @@ void CanTask::Run() {
                 // Read Config Slave Node x Lettura porte e servizi.
                 // Possibilità di utilizzo come sotto (registri) - Fixed Value adesso !!!
                 #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-                clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 0);    
+                clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 0);
+                param.system_status->data_slave[0].module_type = canardClass::Module_Type::th;
                 // clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 5678);    
                 #else
                 clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100);    
@@ -1501,7 +1502,8 @@ void CanTask::Run() {
 
                 // need do acquire istant value for display?
                 // Read data only if Display or other Task need to show/get this value
-                if(param.system_status->flags.display_on) {
+                if(1) {
+//////////////                if(param.system_status->flags.display_on) {
                     if ((curEpoch / param.configuration->observation_s) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
                         param.systemStatusLock->Take();
                         uint16_t obs_istant;
@@ -1605,7 +1607,7 @@ void CanTask::Run() {
                             // Comman are sending without other Pending Command
                             // Service request structure is same for all RMAP object to simplify function
                             if(!clCanard.slave[queueId].rmap_service.is_pending()) {
-                                TRACE_INFO_F(F("Inviato richiesta dati al nodo remoto: %d"), clCanard.slave[queueId].get_node_id());
+                                TRACE_INFO_F(F("Inviato richiesta dati al nodo remoto: %d\r\n"), clCanard.slave[queueId].get_node_id());
                                 // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
                                 // parametri.run_for_second = 900; ( not used for get_istant )
                                 rmap_service_setmode_1_0 paramRequest;
@@ -1632,7 +1634,7 @@ void CanTask::Run() {
                         // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
                         clCanard.slave[queueId].rmap_service.reset_pending();
                         // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
-                        TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]"),
+                        TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
                             clCanard.slave[queueId].get_node_id());
                     }
                 }
@@ -1655,12 +1657,13 @@ void CanTask::Run() {
                                 char stimaName[STIMA_MODULE_NAME_LENGTH];
                                 getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                 #endif
-                                // Put data in system_status with module_type and RMAP Ver.Rev at first access
-                                if(param.system_status->data_slave[queueId].module_type == canardClass::Module_Type::undefined) {
+                                // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
+                                if(!param.system_status->data_slave[queueId].module_version) {
                                     param.systemStatusLock->Take();
                                     param.system_status->data_slave[queueId].module_version = retData->version;
                                     param.system_status->data_slave[queueId].module_revision = retData->revision;
-                                    param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                    // Module type also setted on load config module CAN
+                                    // param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                     // Check if module can be updated
                                     for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
                                         if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
@@ -1676,9 +1679,9 @@ void CanTask::Run() {
                                     param.systemStatusLock->Give();
                                 }
                                 // TRACE Info data
-                                TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d"),
+                                TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                     stimaName, clCanard.slave[queueId].get_node_id(), retData->state);
-                                TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
+                                TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
                                 // Put data in system_status
                                 param.systemStatusLock->Take();
                                 // Set data istant value
@@ -1706,7 +1709,7 @@ void CanTask::Run() {
 
                             default:
                                 // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
-                                TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d"),
+                                TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d\r\n"),
                                     clCanard.slave[queueId].get_node_id(), retData->state);
                                 break;
                         }
@@ -1866,7 +1869,7 @@ void CanTask::Run() {
                             if(clCanard.slave[file_server_queueId].command.event_timeout()) {
                                 // Counico al server l'errore di timeOut Command Update Start ed esco
                                 clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                TRACE_VERBOSE_F(F("Node [ %d ], TimeOut Command Start Send file, uploading %s"),
+                                TRACE_VERBOSE_F(F("Node [ %d ], TimeOut Command Start Send file, uploading %s\r\n"),
                                     clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                 // Se decido di uscire nella procedura di OffLine, la comunicazione
                                 // al server di eventuali errori deve essere gestita al momento dell'OffLine
@@ -1885,7 +1888,7 @@ void CanTask::Run() {
                                     // nella sezione request del file dallo slave.
                                     clCanard.slave[file_server_queueId].file_server.next_state();
                                     // Stampo lo stato
-                                    TRACE_VERBOSE_F(F("Node [ %d ] upload Start Send file %s"),
+                                    TRACE_VERBOSE_F(F("Node [ %d ] upload Start Send file %s\r\n"),
                                         clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
                                     // Imposto il timeOUT per controllo Deadline con pending per sequenza di download
                                     clCanard.slave[file_server_queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
@@ -1893,7 +1896,7 @@ void CanTask::Run() {
                                     // Errore comando eseguito ma risposta non valida. Annullo il trasferimento
                                     clCanard.slave[file_server_queueId].file_server.end_transmission();
                                     // ...counico al server (RMAP remoto) l'errore per il mancato aggiornamento ed esco
-                                    TRACE_VERBOSE_F(F("Node [ %d ] response Cmd Error in Send file %s"),
+                                    TRACE_VERBOSE_F(F("Node [ %d ] response Cmd Error in Send file %s\r\n"),
                                         clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                 }
                             }
@@ -1904,7 +1907,7 @@ void CanTask::Run() {
                             if(clCanard.slave[file_server_queueId].file_server.event_timeout()) {
                                 // Counico al server l'errore di timeOut Command Update Start ed esco
                                 clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                TRACE_VERBOSE_F(F("Node [ %d ] TimeOut Request/Response send file %s"),
+                                TRACE_VERBOSE_F(F("Node [ %d ] TimeOut Request/Response send file %s\r\n"),
                                     clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                 // Se decido di uscire nella procedura di OffLine, la comunicazione
                                 // al server di eventuali errori deve essere gestita al momento dell'OffLine
@@ -1920,7 +1923,7 @@ void CanTask::Run() {
                             // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
                             // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
                             clCanard.slave[file_server_queueId].file_server.end_transmission();
-                            TRACE_VERBOSE_F(F("Node [ %d ] sending completed %s"),
+                            TRACE_VERBOSE_F(F("Node [ %d ] sending completed %s\r\n"),
                                 clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
                             break;
                     }
