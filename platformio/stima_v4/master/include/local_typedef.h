@@ -228,6 +228,7 @@ typedef struct
       bool sd_card_ready;        // Flag SD CARD Ready and full functional
       bool display_on;           // Display powered ON (Require Istant and other data)
       bool file_server_running;  // True if file server are running
+      bool cmd_server_running;   // True if command server are running
    } flags;
 
 } system_status_t;
@@ -280,7 +281,10 @@ typedef struct
    {
       uint8_t do_update_fw : 1;  // Request update firmware (node or master) from SD file
       uint8_t do_inibith   : 1;  // Request inibith sleep
+      uint8_t undo_inibith : 1;  // Remove inibith sleep
       uint8_t do_maint     : 1;  // Request maintenance
+      uint8_t undo_maint   : 1;  // Remove maintenance
+      uint8_t do_calib_acc : 1;  // Request set calibration accellerometer
       uint8_t do_sleep     : 1;  // Optional param for difference level Sleep
       uint8_t do_cmd       : 1;  // Using param to determine type of message command
       uint8_t done_cmd     : 1;  // Using param to determine type of message response

@@ -706,18 +706,19 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 
                     if(!localSystemStatus->flags.sd_card_ready) {
                         file_download_error = true;
-                        TRACE_VERBOSE_F(F("CAN: Reject request upload file (Firmware) SD CARD was not ready [ %s ]\r\n"), ERROR_STRING);
+                        TRACE_ERROR_F(F("File server: Reject request uploading file. SD CARD not ready [ %s ]\r\n"), ERROR_STRING);
                     } else {
-                        // Is first block? Perform an request to open file into task sd card
+                        // Is first block? Perform an request to open file with name into task sd card
                         if((req.offset / FILE_GET_DATA_BLOCK_SIZE) == 0) {
                             // First block NAME OF FILE (Prepare queue GET struct with file_name and start position)                            
                             memset(&firmwareDownloadChunck, 0, sizeof(file_get_request_t));
                             // Init name file (only first blcok for any board_id request)
-                            firmwareDownloadChunck.file_name = clCanard.slave[queueId].file_server.get_file_name();
-                            firmwareDownloadChunck.block_read_next = false;
-                            TRACE_VERBOSE_F(F("Starting upload file (Firmware) from local SD Card to remote module CAN [ %s ]\r\n"), firmwareDownloadChunck.file_name);
+                            firmwareDownloadChunck.file_name = clCanard.slave[queueId].file_server.get_file_name();                            
+                            TRACE_INFO_F(F("File server: Starting upload file from local SD Card to remote module CAN [ %s ]\r\n"), firmwareDownloadChunck.file_name);
                         }
                         // Switch state of queue download file from sd card
+                        // Method Reading with block request, disable read_next block in request
+                        firmwareDownloadChunck.block_read_next = false;
                         firmwareDownloadChunck.block_id = req.offset / FILE_GET_DATA_BLOCK_SIZE;
                         firmwareDownloadChunck.board_id = queueId; // Set BOARDS Require File (Need for multiserver file request)
                         // Pushing data request to queue task sd card
@@ -732,7 +733,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Block data is avaiable? -> Send to remote node
                     if(file_download_error) {
                         // any error? (optional retry... from remote node. File server wait another request)
-                        TRACE_VERBOSE_F(F("Download data file from queue error!!!\r\n"));
+                        TRACE_ERROR_F(F("File server: Download data file from queue error!!!\r\n"));
                         resp._error.value = uavcan_file_Error_1_0_IO_ERROR;
                         dataLen = 0;
                     } else {
@@ -740,10 +741,10 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         if(sdcard_task_response.block_lenght!=FILE_GET_DATA_BLOCK_SIZE) {
                             // EOF Last Block (bytes read != FILE_GET_DATA_BLOCK_SIZE)
                             // No other response/request are to get
-                            TRACE_VERBOSE_F(F("End of data block data, readed [ %lu ] bytes\r\n"), ((uint32_t)(firmwareDownloadChunck.block_id) * (uint32_t)(FILE_GET_DATA_BLOCK_SIZE)) + sdcard_task_response.block_lenght);
+                            TRACE_INFO_F(F("File server: End of data block data, readed [ %lu ] bytes\r\n"), ((uint32_t)(firmwareDownloadChunck.block_id) * (uint32_t)(FILE_GET_DATA_BLOCK_SIZE)) + sdcard_task_response.block_lenght);
                         } else {
                             // Normal block, prepare for next block
-                            TRACE_VERBOSE_F(F("Read data block id:%d and increment file pointer\r\n"), firmwareDownloadChunck.block_id++);
+                            TRACE_VERBOSE_F(F("File serve: Readed data block id: [ %d ]\r\n"), firmwareDownloadChunck.block_id);
                         }
                     }
                     // *********** END GET Data File (Firmware) from SD CARD Queue ************
@@ -1374,8 +1375,7 @@ void CanTask::Run() {
                         // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
                         if (clCanard.slave[queueId].is_entered_offline()) {
                             // Entro in OffLine
-                            Serial.print(F("Nodo OFFLINE !!! Alert -> : "));
-                            Serial.println(clCanard.slave[queueId].get_node_id());
+                            TRACE_INFO_F(F("Nodo OFFLINE !!! Alert -> : %d"), clCanard.slave[queueId].get_node_id());
                             // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                             // Eventuali altre operazioni quà su Reset Comandi
                             clCanard.slave[queueId].command.reset_pending();
@@ -1482,31 +1482,29 @@ void CanTask::Run() {
                     (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
                     TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
-                    // Update publisher
-                    last_pub_heartbeat += MEGA * TIME_PUBLISH_HEARTBEAT;
+                    // Update next publisher
+                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
                 }
 
                 // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
                 if (clCanard.getMicros(clCanard.syncronized_time) >= next_timesyncro_msg)
                 {
-                    #ifdef LOG_TIMESYNCRO
-                    Serial.println(F("Publish MASTER Time Syncronization -->> [1 sec]"));
-                    #endif
-                    next_timesyncro_msg += MEGA;
+                    TRACE_INFO_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
+                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
                     clCanard.master_timestamp_send_syncronization();
                 }
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
                 if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
                     TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                    last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
+                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
                     // Update publisher
                     clCanard.master_servicelist_send_message();
                 }
 
-                // *******************************************************************************************
-                // ********************* GET SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
-                // *******************************************************************************************
+                // ***********************************************************************
+                // **************** GET SYNCRO ACTIVITY FOR CYPAL FUNCTION ***************
+                // ***********************************************************************
                 // Test if data are to acquire (one time for second)
                 if(clCanard.getUpTimeSecond()!=getUpTimeSecondCurr)
                 {
@@ -1534,81 +1532,93 @@ void CanTask::Run() {
                         bStartGetData = true;
                     }
                 }
-                // ********************* END SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
+                // ************* END GET SYNCRO ACTIVITY FOR CYPAL FUNCTION **************
 
-                #ifdef TEST_COMMAND
-                // ********************** TEST COMANDO TX-> RX<- *************************
-                // LOOP HANDLER >> 0..15 SECONDI x TEST COMANDI <<
-                if ((clCanard.getMicros(clCanard.syncronized_time) >= test_cmd_cs_iter_at)) {
-                    // TimeOUT variabile in 15 secondi
-                    test_cmd_cs_iter_at += MEGA * ((float)(rand() % 60)/4.0);
-                    // Invio un comando di test in prova al nodo 125
-                    // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
-                    // Abilito disabilito pubblicazione dei dati ogni 3 secondi...
-                    uint8_t queueId = clCanard.getSlaveIstanceFromId(125);
-                    // Il comando viene inviato solamente se il nodo è ONLine
-                    if(clCanard.slave[queueId].is_online()) {
-                        // Il comando viene inviato solamente senza altri Pending di Comandi
-                        // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                        if(!clCanard.slave[queueId].command.is_pending()) {
-                            // Eliminare solo per gestione multi comando con file...
-                            // Attivo il reset pending standard solo se eseguito il comando quà
-                            is_test_command_send = true;
-                            // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                            // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
-                            // Il comando inverte il servizio di pubblicazione continua dei dati remoti
-                            // Semplice TEST di esempio (queueId = IDX di coda, diventerà l'istanza relativa)
-                            bEnabService = !bEnabService;
-                            if (bEnabService) {
-                                Serial.print(F("Inviato comando PUBLISH DISABLE al nodo remoto: "));
-                                Serial.println(clCanard.slave[0].get_node_id());
-                                clCanard.send_command_pending(queueId, NODE_COMMAND_TIMEOUT_US,
-                                    canardClass::Command_Private::disable_publish_rmap, NULL, 0);
-                            } else {
-                                Serial.print(F("Inviato comando PUBLISH ENABLE al nodo remoto: "));
-                                Serial.println(clCanard.slave[0].get_node_id());
-                                clCanard.send_command_pending(queueId, NODE_COMMAND_TIMEOUT_US,
-                                    canardClass::Command_Private::enable_publish_rmap, NULL, 0);
+                // ***********************************************************************
+                // ********************* REMOTE RPC COMMAND SERVER ***********************
+                // ***********************************************************************
+
+                // Get coda comandi da system_message... se richiesto comando da LCD o RPC Remota
+                // Da inoltrare al nodo selezionato in coda, parametro
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        // Procedure can continue only without other command in pending state
+                        // If command not starting, time_out remove the command and queue can be free from item
+                        if(!clCanard.slave[system_message.param].command.is_pending()) {
+                            // ENTER MAINTENANCE
+                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_maint)) {
+                                // Remove message from the queue
+                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                char do_maint = 1;
+                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                    canardClass::Command_Private::module_maintenance, &do_maint, sizeof(do_maint));                            
+                            }
+                            // UNDO MAINTENANCE
+                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.undo_maint)) {
+                                // Remove message from the queue
+                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                char undo_maint = 0;
+                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                    canardClass::Command_Private::module_maintenance, &undo_maint, sizeof(undo_maint));                            
+                            }
+                            // STARTING CALIBRATION (Accellerometer)
+                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_calib_acc)) {
+                                // Remove message from the queue
+                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                    canardClass::Command_Private::calibrate_accelerometer, NULL, 0);                            
                             }
                         }
                     }
-                    // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
-                    // popolata nel'apposito registro di state service_module del il servizio relativo
-                    // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
-                    // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
-                    // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
                 }
 
-                // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
-                // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-                if (is_test_command_send) {
-                    if (clCanard.slave[0].command.event_timeout()) {
-                        // Adesso elimino solo gli stati
-                        clCanard.slave[0].command.reset_pending();
-                        // TimeOUT di un comando in attesa... gestisco il da farsi
-                        Serial.print(F("Timeout risposta su invio comando al nodo remoto: "));
-                        Serial.print(clCanard.slave[0].get_node_id());
-                        Serial.println(F(", Warning [restore pending command]"));
-                        is_test_command_send = false;
-                    }
-                    if (clCanard.slave[0].command.is_executed()) {
-                        // Adesso elimino solo gli stati
-                        clCanard.slave[0].command.reset_pending();
-                        Serial.print(F("Ricevuto conferma di comando dal nodo remoto: "));
-                        Serial.print(clCanard.slave[0].get_node_id());
-                        Serial.print(F(", cod. risposta ->: "));
-                        Serial.println(clCanard.slave[0].command.get_response());
-                        is_test_command_send = false;
+                // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
+                // popolata nel'apposito registro di state service_module del il servizio relativo
+                // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
+                // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
+                // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
+                // Are command server running? Process request or verify END procedure
+                if(param.system_status->flags.cmd_server_running) {
+
+                    // Check if file server are current in running state
+                    bool cmdServerEnd = true;
+
+                    for(uint8_t cmd_server_queueId=0; cmd_server_queueId<MAX_NODE_CONNECT; cmd_server_queueId++) {
+
+                        // state != standby? Running current procedure...
+                        if(clCanard.slave[cmd_server_queueId].command.is_pending())
+                            cmdServerEnd = false;
+
+                        if (clCanard.slave[cmd_server_queueId].command.event_timeout()) {
+                            // Rimupvo gli stati
+                            clCanard.slave[cmd_server_queueId].command.reset_pending();
+                            // TimeOUT di un comando in attesa... gestisco il da farsi Retry? Abort? Signal?
+                            TRACE_ERROR_F(F("Command server: time out command at Node: [ %d ], Warning [restore pending command]"),
+                                clCanard.slave[system_message.param].get_node_id());
+                        }
+                        if (clCanard.slave[cmd_server_queueId].command.is_executed()) {
+                            // Rimuovo gli stati
+                            clCanard.slave[cmd_server_queueId].command.reset_pending();
+                            // Command OK. Signal?
+                            TRACE_INFO_F(F("Command server: confirmed command at Node: [ %d ], response code value: [ %d ]"),
+                                clCanard.slave[system_message.param].get_node_id(), clCanard.slave[cmd_server_queueId].command.get_response());
+                        }
                     }
                 }
-                // ***************** FINE TEST COMANDO TX-> RX<- *************************
-                #endif
+                // ************************* END COMMAND SERVER **************************
 
                 // ***********************************************************************
                 // ********************** RMAP GETDATA TX-> RX<- *************************
                 // ***********************************************************************
 
-                // START COMMAND REQUEST
+                // IS START COMMAND REQUEST?
                 // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
                 if ((bStartGetIstant)||(bStartGetData)) {
                     // For all node
@@ -1645,7 +1655,6 @@ void CanTask::Run() {
                 // EVENT GESTION OF TIMEOUT AT REQUEST
                 for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                     if (clCanard.slave[queueId].rmap_service.event_timeout()) {
-                        // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
                         clCanard.slave[queueId].rmap_service.reset_pending();
                         // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
                         TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
@@ -1655,7 +1664,6 @@ void CanTask::Run() {
                 // EVENT GESTION OF RECIVED DATA AT REQUEST
                 for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                     if(clCanard.slave[queueId].rmap_service.is_executed()) {
-                        // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
                         clCanard.slave[queueId].rmap_service.reset_pending();
                         // Interprete del messaggio in casting dal puntatore dinamico
                         // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
@@ -1836,24 +1844,6 @@ void CanTask::Run() {
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
-                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_maint)) {
-                            // Remove message from the queue
-                            param.systemMessageQueue->Dequeue(&system_message, 0);
-                            // Request start update firmware from LCD or Remote RPC
-                            // Start flags and state for file_server start
-                            // param.systemStatusLock->Take();
-                            // param.system_status->flags.file_server_running = true;
-                            // param.systemStatusLock->Give();
-                            // // Set STATE for boards request in firmware upgrade
-                            // clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
-                        }
-                    }
-                }
-
-                // Get coda comandi da system_message... se richiesto aggiornamento del firmware
-                if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
-                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
                             // Remove message from the queue
                             param.systemMessageQueue->Dequeue(&system_message, 0);
@@ -1931,7 +1921,7 @@ void CanTask::Run() {
                                 if(clCanard.slave[file_server_queueId].command.event_timeout()) {
                                     // Counico al server l'errore di timeOut Command Update Start ed esco
                                     clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                    TRACE_VERBOSE_F(F("Node [ %d ], TimeOut Command Start Send file, uploading %s\r\n"),
+                                    TRACE_ERROR_F(F("File server: Node [ %d ], TimeOut Command Start Send file, uploading %s\r\n"),
                                         clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                     // Se decido di uscire nella procedura di OffLine, la comunicazione
                                     // al server di eventuali errori deve essere gestita al momento dell'OffLine
@@ -1954,7 +1944,7 @@ void CanTask::Run() {
                                         param.systemStatusLock->Give();
                                         clCanard.slave[file_server_queueId].file_server.next_state();
                                         // Stampo lo stato
-                                        TRACE_VERBOSE_F(F("Node [ %d ] upload Start Send file %s\r\n"),
+                                        TRACE_INFO_F(F("File server: Node [ %d ] upload Start Send file %s\r\n"),
                                             clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
                                         // Imposto il timeOUT per controllo Deadline con pending per sequenza di download
                                         clCanard.slave[file_server_queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
@@ -1962,7 +1952,7 @@ void CanTask::Run() {
                                         // Errore comando eseguito ma risposta non valida. Annullo il trasferimento
                                         clCanard.slave[file_server_queueId].file_server.end_transmission();
                                         // ...counico al server (RMAP remoto) l'errore per il mancato aggiornamento ed esco
-                                        TRACE_VERBOSE_F(F("Node [ %d ] response Cmd Error in Send file %s\r\n"),
+                                        TRACE_ERROR_F(F("File server: Node [ %d ] response Cmd Error in Send file %s\r\n"),
                                             clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                     }
                                 }
@@ -1973,7 +1963,7 @@ void CanTask::Run() {
                                 if(clCanard.slave[file_server_queueId].file_server.event_timeout()) {
                                     // Counico al server l'errore di timeOut Command Update Start ed esco
                                     clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                    TRACE_VERBOSE_F(F("Node [ %d ] TimeOut Request/Response send file %s\r\n"),
+                                    TRACE_ERROR_F(F("File server: Node [ %d ] TimeOut Request/Response send file %s\r\n"),
                                         clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                     // Se decido di uscire nella procedura di OffLine, la comunicazione
                                     // al server di eventuali errori deve essere gestita al momento dell'OffLine
@@ -1989,7 +1979,7 @@ void CanTask::Run() {
                                 // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
                                 // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
                                 clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                TRACE_VERBOSE_F(F("Node [ %d ] sending completed %s\r\n"),
+                                TRACE_INFO_F(F("File server: Node [ %d ] uploading completed %s\r\n"),
                                     clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
                                 break;
                         }
