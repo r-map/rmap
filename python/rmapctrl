@@ -62,7 +62,7 @@ def initdb(cwd):
         not options.exportmqttpskkey and\
         not options.exportmqttacl) :
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata or one of the export options")
 
 
     if (options.changeuser):
