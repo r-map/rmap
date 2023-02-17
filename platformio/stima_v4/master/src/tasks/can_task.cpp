@@ -1127,7 +1127,7 @@ void CanTask::Run() {
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
                 // Restore the node-ID from the corresponding standard Register. Default to anonymous.
-                #ifdef USE_NODE_SLAVE_ID_FIXED
+                #ifdef USE_NODE_MASTER_ID_FIXED
                 // Canard Master NODE ID Fixed dal defined value in module_config
                 clCanard.set_canard_node_id((CanardNodeID) NODE_MASTER_ID);
                 #else
