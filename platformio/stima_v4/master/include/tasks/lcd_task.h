@@ -168,7 +168,7 @@ class LCDTask : public cpp_freertos::Thread {
   stima4_slave_commands_t stima4_slave_command;
   // Current menu state
   stima4_menu_ui_t stima4_menu_ui;
-  // Last menu state
+  // Last menu state before configuration state
   stima4_menu_ui_t stima4_menu_ui_last;
   // Display instance
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
@@ -180,6 +180,10 @@ class LCDTask : public cpp_freertos::Thread {
   uint8_t board_count;
   // Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
+  // Contains the number of commands available for master board
+  uint8_t commands_master_number;
+  // Contains the number of commands available for each slave board
+  uint8_t commands_slave_number;
   // Contains the priority assigned to LCD task
   uint8_t priority;
 
