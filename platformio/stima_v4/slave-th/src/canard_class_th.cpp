@@ -587,6 +587,8 @@ void canardClass::master::file::start_request(uint8_t remote_node, uint8_t *para
     // Start Offset File
     _offset = 0;
     _updating_retry = 0;
+    // Set first pending
+    _timeout_us = _syncMicros + NODE_GETFILE_TIMEOUT_US;
 }
 
 /// @brief Nome del file in download

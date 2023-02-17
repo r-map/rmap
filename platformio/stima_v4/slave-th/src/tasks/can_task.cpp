@@ -1029,7 +1029,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_register_List_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -1568,7 +1568,7 @@ void CanTask::Run() {
                 if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         uavcan_register_List_1_0_FIXED_PORT_ID_,
                                         uavcan_register_List_Request_1_0_EXTENT_BYTES_,
-                                        CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                        CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
 
@@ -1584,7 +1584,7 @@ void CanTask::Run() {
                 if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                         uavcan_file_Read_1_1_FIXED_PORT_ID_,
                                         uavcan_file_Read_Response_1_1_EXTENT_BYTES_,
-                                        CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                        CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
 
