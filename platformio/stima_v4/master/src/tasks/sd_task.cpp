@@ -586,7 +586,7 @@ void SdTask::Run()
             memset(&file_get_response, 0, sizeof(file_get_response));
             // Open Get File (for reading)
             getFile[file_get_request.board_id] = SD.open(local_file_name, O_RDONLY);
-            if(getFile) {
+            if(getFile[file_get_request.board_id]) {
               // Read the first block data (return number of bytes read)
               file_get_response.done_operation = true;
               file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);

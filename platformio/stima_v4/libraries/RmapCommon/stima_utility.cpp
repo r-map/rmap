@@ -374,6 +374,6 @@ void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_
   char suffix[16] = {0};
   getStimaNameByType(file_name, type);
   // Add suffix
-  sprintf(suffix, "-%d.%d-app.hex", version, revision);
+  sprintf(suffix, "-%d.%d.app.hex", version, revision);
   strcat(file_name, suffix);
 }

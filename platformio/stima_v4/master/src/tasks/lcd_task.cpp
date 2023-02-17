@@ -657,7 +657,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
     case SLAVE_COMMAND_FIRMWARE_UPGRADE: {
       system_message_t system_message = {0};
       system_message.task_dest = CAN_TASK_ID;
-      system_message.command.do_update_fw;
+      system_message.command.do_update_fw = true;
       // chanel = current boards (-1 is master, only into elaborate_master_command)
       system_message.param = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
