@@ -70,6 +70,7 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   // ************************* START TASK *************************************
   // **************************************************************************
 
+<<<<<<< Updated upstream
   display_off();
   
 =======
