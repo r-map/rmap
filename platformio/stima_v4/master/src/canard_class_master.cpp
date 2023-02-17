@@ -651,7 +651,7 @@ bool canardClass::master_servicelist_send_message(void)
                 .transfer_id    = (CanardTransferID) (next_transfer_id.uavcan_node_port_list()),
             };
             // Send a 2 secondi
-            send(MEGA * 2, &meta, serialized_size, &serialized[0]);
+            send(CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC, &meta, serialized_size, &serialized[0]);
             return true;
         }
     }

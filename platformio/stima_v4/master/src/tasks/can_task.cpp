@@ -652,7 +652,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 uint8_t serialized[uavcan_register_List_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t  serialized_size = sizeof(serialized);
                 if (uavcan_register_List_Response_1_0_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
-                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    clCanard.sendResponse(CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -728,6 +728,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         file_download_error = !localDataFileGetResponseQueue->Dequeue(&sdcard_task_response, FILE_GET_DATA_QUEUE_TIMEOUT);
                         file_download_error |= !sdcard_task_response.done_operation;
                     }
+
                     // Block data is avaiable? -> Send to remote node
                     if(file_download_error) {
                         // any error? (optional retry... from remote node. File server wait another request)
@@ -746,14 +747,14 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         }
                     }
                     // *********** END GET Data File (Firmware) from SD CARD Queue ************
-
                     // Preparo la risposta corretta
-                    resp.data.value.count = sdcard_task_response.block_lenght;
-                    memcpy(resp.data.value.elements, sdcard_task_response.block, sdcard_task_response.block_lenght);
+                    resp.data.value.count = (size_t)sdcard_task_response.block_lenght;
+                    memcpy(resp.data.value.elements, sdcard_task_response.block, resp.data.value.count);
                     uint8_t serialized[uavcan_file_Read_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                     size_t  serialized_size = sizeof(serialized);
                     if (uavcan_file_Read_Response_1_1_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
-                        clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                        clCanard.slave[queueId].file_server.reset_pending(resp.data.value.count);
+                        clCanard.sendResponse(CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC, &transfer->metadata, serialized_size, &serialized[0]);
                     }
                 }
             }
@@ -1835,6 +1836,24 @@ void CanTask::Run() {
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_maint)) {
+                            // Remove message from the queue
+                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            // Request start update firmware from LCD or Remote RPC
+                            // Start flags and state for file_server start
+                            // param.systemStatusLock->Take();
+                            // param.system_status->flags.file_server_running = true;
+                            // param.systemStatusLock->Give();
+                            // // Set STATE for boards request in firmware upgrade
+                            // clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                        }
+                    }
+                }
+
+                // Get coda comandi da system_message... se richiesto aggiornamento del firmware
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
                             // Remove message from the queue
                             param.systemMessageQueue->Dequeue(&system_message, 0);
@@ -2034,7 +2053,7 @@ void CanTask::Run() {
 
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE
-        if(clCanard.master.file.download_request()) {            
+        if(clCanard.master.file.download_request() || param.system_status->flags.file_server_running) {            
             DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_REALTIME_DELAY_MS));
         }
         else

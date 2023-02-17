@@ -573,6 +573,8 @@ void SdTask::Run()
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         if(param.dataFileGetRequestQueue->Dequeue(&file_get_request)) {
+          // Locking file session (uploading...)
+          memset(&file_get_response, 0, sizeof(file_get_response));
           // Put to SD ( Start Read Firmware Block File session )
           if(file_get_request.block_id==0) {
             // Closing if file already used for other Session (preserve memoryLeak error)
@@ -582,39 +584,45 @@ void SdTask::Run()
             strcpy(local_file_name, "/firmware/");
             strcat(local_file_name + strlen(local_file_name), file_get_request.file_name);
             // Create File in ReWrite Mode
-            // Locking file session (uploading...)
-            memset(&file_get_response, 0, sizeof(file_get_response));
             // Open Get File (for reading)
             getFile[file_get_request.board_id] = SD.open(local_file_name, O_RDONLY);
             if(getFile[file_get_request.board_id]) {
               // Read the first block data (return number of bytes read)
               file_get_response.done_operation = true;
-              file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+              uint32_t avaiables = getFile[file_get_request.board_id].available();
+              if(avaiables > FILE_GET_DATA_BLOCK_SIZE) avaiables = FILE_GET_DATA_BLOCK_SIZE;
+              file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, avaiables);
             } else
               file_get_response.done_operation = false;
             // Send response to caller
             // Closing automatic of file if block not completed (EOF)
             if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
+              // Rapid return, before closing file
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
               getFile[file_get_request.board_id].close();
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
-            }
-            param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+            } else
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
           } else {
             // Set Seek Position or Reading Next Block (only if block_read_next not called)
             if(!file_get_request.block_read_next) 
               getFile[file_get_request.board_id].seek(FILE_GET_DATA_BLOCK_SIZE * file_get_request.block_id);
             // Read the first block data (return number of bytes read)
             file_get_response.done_operation = true;
-            file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, FILE_GET_DATA_BLOCK_SIZE);
+            uint32_t avaiables = getFile[file_get_request.board_id].available();
+            if(avaiables > FILE_GET_DATA_BLOCK_SIZE) avaiables = FILE_GET_DATA_BLOCK_SIZE;
+            file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, avaiables);
             // Closing automatic of file if block not completed (EOF)
             if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
+              // Rapid return before closing file
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
               getFile[file_get_request.board_id].close();
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
-            }
-            // Send response to caller
-            param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+            } else
+              // Send response to caller
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
           }
         }
       }
