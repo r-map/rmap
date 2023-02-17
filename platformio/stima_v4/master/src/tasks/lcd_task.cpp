@@ -70,16 +70,8 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   // ************************* START TASK *************************************
   // **************************************************************************
 
-<<<<<<< Updated upstream
   display_off();
   
-=======
-  // Indicates whether the display is off or not
-  display_is_off = true;
-
-  state = LCD_STATE_INIT;
-
->>>>>>> Stashed changes
   Start();
 };
 
@@ -269,9 +261,9 @@ void LCDTask::Run() {
 
               // Calculate number of commands for master/each slave board
               if (stima4_menu_ui_last == MAIN) {
-                commands_master_number = param.system_status->data_master.fw_upgrade == true ? 3 : 2;
+                commands_master_number = param.system_status->data_master.fw_upgradable == true ? 3 : 2;
               } else {
-                commands_slave_number = param.system_status->data_slave[channel].fw_upgrade == true ? 3 : 2;
+                commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 3 : 2;
               }
 
               // Display CONFIGURATION MENU interface
@@ -695,15 +687,9 @@ void LCDTask::switch_interface() {
         // **************************************************************************
 
         if (stima4_menu_ui_last == MAIN) {
-<<<<<<< Updated upstream
           command_selector_pos = stima4_master_command == MASTER_COMMAND_EXIT ? commands_master_number - 1 : command_selector_pos + 1;
           stima4_master_command = stima4_master_command == MASTER_COMMAND_EXIT ? MASTER_COMMAND_EXIT : (stima4_master_commands_t)(stima4_master_command + 1);
-          if (!param.system_status->data_master.fw_upgrade && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
-=======
-          command_selector_pos = stima4_master_command == MASTER_COMMAND_EXIT ? 0 : command_selector_pos + 1;
-          stima4_master_command = stima4_master_command == MASTER_COMMAND_EXIT ? MASTER_COMMAND_SDCARD : (stima4_master_commands_t)(stima4_master_command + 1);
           if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
->>>>>>> Stashed changes
             stima4_master_command = (stima4_master_commands_t)(stima4_master_command + 1);
           }
         }
@@ -751,19 +737,9 @@ void LCDTask::switch_interface() {
         // **************************************************************************
 
         if (stima4_menu_ui_last == MAIN) {
-<<<<<<< Updated upstream
           command_selector_pos = stima4_master_command == MASTER_COMMAND_SDCARD ? 0 : command_selector_pos - 1;
           stima4_master_command = stima4_master_command == MASTER_COMMAND_SDCARD ? MASTER_COMMAND_SDCARD : (stima4_master_commands_t)(stima4_master_command - 1);
-          if (!param.system_status->data_master.fw_upgrade && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
-=======
-          if (!param.system_status->data_master.fw_upgradable) {
-            command_selector_pos = stima4_master_command == (stima4_master_commands_t)0 ? 1 : command_selector_pos - 1;
-          } else {
-            command_selector_pos = stima4_master_command == (stima4_master_commands_t)0 ? 2 : command_selector_pos - 1;
-          }
-          stima4_master_command = stima4_master_command == (stima4_master_commands_t)0 ? MASTER_COMMAND_EXIT : (stima4_master_commands_t)(stima4_master_command - 1);
           if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
->>>>>>> Stashed changes
             stima4_master_command = (stima4_master_commands_t)(stima4_master_command - 1);
           }
         }
@@ -772,19 +748,9 @@ void LCDTask::switch_interface() {
         // **************************************************************************
 
         else {
-<<<<<<< Updated upstream
           command_selector_pos = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? 0 : command_selector_pos - 1;
           stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command - 1);
-          if (!param.system_status->data_slave[channel].fw_upgrade && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
-=======
-          if (!param.system_status->data_slave[channel].fw_upgradable) {
-            command_selector_pos = stima4_slave_command == (stima4_slave_commands_t)0 ? 1 : command_selector_pos - 1;
-          } else {
-            command_selector_pos = stima4_slave_command == (stima4_slave_commands_t)0 ? 2 : command_selector_pos - 1;
-          }
-          stima4_slave_command = stima4_slave_command == (stima4_slave_commands_t)0 ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command - 1);
           if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
->>>>>>> Stashed changes
             stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
           }
         }
