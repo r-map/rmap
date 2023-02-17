@@ -67,11 +67,16 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   display_setup();
 
   // **************************************************************************
+  // ************************* VARIABLES INITIALIZATION ***********************
+  // **************************************************************************
+  display_off();
+  pression_event = false;
+  rotation_event = false;
+
+  // **************************************************************************
   // ************************* START TASK *************************************
   // **************************************************************************
 
-  display_off();
-  
   Start();
 };
 
@@ -134,8 +139,6 @@ void LCDTask::Run() {
   TaskMonitorStack();
 #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
-  display_off();
 
   while (true) {
 // check if display is on and print every LCD_TASK_PRINT_DELAY_MS some variables in system status
@@ -416,20 +419,19 @@ void LCDTask::ISR_input_rotation_pin_encoder() {
 void LCDTask::display_off() {
   TRACE_INFO_F(F("LCD: Display OFF\r\n"));
 
-  param.systemStatusLock->Take();
-  param.system_status->flags.display_on = false;
-  param.systemStatusLock->Give();
-
-  // Processing
+  // Processing light of display
   display.noDisplay();
 
   // Turn low phisicals pins
   digitalWrite(PIN_ENCODER_EN5, LOW);
   digitalWrite(PIN_DSP_POWER, LOW);
 
-  // Updating
+  // Set flags and states
   display_is_off = true;
   state = LCD_STATE_STANDBY;
+  param.systemStatusLock->Take();
+  param.system_status->flags.display_on = false;
+  param.systemStatusLock->Give();
 }
 
 /**
@@ -443,14 +445,13 @@ void LCDTask::display_on() {
   digitalWrite(PIN_ENCODER_EN5, HIGH);
   digitalWrite(PIN_DSP_POWER, HIGH);
 
-  // Processing
+  // Processing light of display
   display.display();
 
-  // Updating
+  // Set flags and states
   display_is_off = false;
   last_display_timeout = millis();
   state = LCD_STATE_INIT;
-
   param.systemStatusLock->Take();
   param.system_status->flags.display_on = true;
   param.systemStatusLock->Give();
@@ -461,12 +462,12 @@ void LCDTask::display_on() {
  *
  */
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
-  char description[STIMA_LCD_DESCRIPTION_LENGTH];
-  char unit_type[STIMA_LCD_UNIT_TYPE_LENGTH];
-  char measure[STIMA_LCD_MEASURE_LENGTH];
-  uint8_t decimals;
   bool bMeasValid_A = true;
   bool bMeasValid_B = true;
+  char description[STIMA_LCD_DESCRIPTION_LENGTH];
+  char measure[STIMA_LCD_MEASURE_LENGTH];
+  char unit_type[STIMA_LCD_UNIT_TYPE_LENGTH];
+  uint8_t decimals;
 
   // Take the informations to print
   getStimaLcdDescriptionByType(description, module_type);
@@ -513,6 +514,13 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     display.setFont(u8g2_font_helvR08_tf);
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
     display.print(F("Maintenance mode"));
+  }
+
+  // Print message of upgrading firmware when is running
+  if (param.system_status->data_slave[channel].is_fw_upgrading) {
+    display.setFont(u8g2_font_helvR08_tf);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9 * LINE_BREAK);
+    display.print(F("Firmware is upgrading..."));
   }
 
   // Apply the updates to display
@@ -626,11 +634,18 @@ void LCDTask::display_setup() {
  * @param command type of elaboration based on master command
  */
 void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
+  system_message_t system_message = {0};
+
   switch (command) {
     case MASTER_COMMAND_SDCARD: {
       break;
     }
     case MASTER_COMMAND_FIRMWARE_UPGRADE: {
+      // Set the queue to send
+      system_message.task_dest = MMC_TASK_ID;
+      system_message.command.do_update_fw;
+      system_message.param = 0xFF;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
     case SLAVE_COMMAND_EXIT: {
@@ -647,18 +662,25 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
  * @param command type of elaboration based on slave command
  */
 void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
+  system_message_t system_message = {0};
+
   switch (command) {
     case SLAVE_COMMAND_MAINTENANCE: {
+      // Set the flag of maintenance
       param.systemStatusLock->Take();
       param.system_status->data_slave[channel].maintenance_mode = !param.system_status->data_slave[channel].maintenance_mode;
       param.systemStatusLock->Give();
+      // Set the queue to send
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_maint;
+      system_message.param = channel;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
     case SLAVE_COMMAND_FIRMWARE_UPGRADE: {
-      system_message_t system_message = {0};
+      // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_update_fw;
-      // chanel = current boards (-1 is master, only into elaborate_master_command)
       system_message.param = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
