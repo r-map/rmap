@@ -38,6 +38,7 @@
 #if (ENABLE_LCD)
 
 #include <STM32RTC.h>
+#include <time.h>
 
 #include "STM32FreeRTOS.h"
 #include "display_config.hpp"
@@ -54,6 +55,12 @@
 #endif
 
 #include "debug_F.h"
+
+// Limit range for module sensor (LCD)
+#define MAX_VALID_TEMPERATURE       (100.0)
+#define MIN_VALID_TEMPERATURE       (-50.0)
+#define MAX_VALID_HUMIDITY          (100.0)
+#define MIN_VALID_HUMIDITY          (0.0)
 
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)

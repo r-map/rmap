@@ -431,6 +431,9 @@ void LCDTask::display_on() {
   digitalWrite(PIN_ENCODER_EN5, HIGH);
   digitalWrite(PIN_DSP_POWER, HIGH);
 
+  // Waiting circuit powered
+  Delay(50);
+
   // Processing
   display.display();
 
@@ -449,6 +452,8 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   char unit_type[STIMA_LCD_UNIT_TYPE_LENGTH];
   char measure[STIMA_LCD_MEASURE_LENGTH];
   uint8_t decimals;
+  bool bMeasValid_A = true;
+  bool bMeasValid_B = true;
 
   // Take the informations to print
   getStimaLcdDescriptionByType(description, module_type);
@@ -463,15 +468,24 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
       case canardClass::Module_Type::th:
         value_display = param.system_status->data_slave[channel].data_value_A - 27315;
         value_display /= 100;
+        if(value_display < MIN_VALID_TEMPERATURE) bMeasValid_A = false;
+        if(value_display > MAX_VALID_TEMPERATURE) bMeasValid_A = false;
         break;
       default:
         value_display = param.system_status->data_slave[channel].data_value_A;
         break;
     }
     dtostrf(value_display, 0, decimals, measure);
+  } else {
+    bMeasValid_A = false;
+    bMeasValid_B = false;
+  }
+  
+  // Ok to display?
+  if(bMeasValid_A) {
     snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
   } else {
-    snprintf(measure, sizeof(measure), "N.P. %s", unit_type);
+    snprintf(measure, sizeof(measure), "--- %s", unit_type);
   }
 
   // Print description of measure
