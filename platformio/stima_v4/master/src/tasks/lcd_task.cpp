@@ -654,6 +654,15 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       param.systemStatusLock->Give();
       break;
     }
+    case SLAVE_COMMAND_FIRMWARE_UPGRADE: {
+      system_message_t system_message = {0};
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_update_fw;
+      // chanel = current boards (-1 is master, only into elaborate_master_command)
+      system_message.param = channel;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
+      break;
+    }
     case SLAVE_COMMAND_EXIT: {
       break;
     }
@@ -698,15 +707,9 @@ void LCDTask::switch_interface() {
         // **************************************************************************
 
         else {
-<<<<<<< Updated upstream
           command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? commands_slave_number - 1 : command_selector_pos + 1;
           stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command + 1);
-          if (!param.system_status->data_slave[channel].fw_upgrade && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
-=======
-          command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? 0 : command_selector_pos + 1;
-          stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command + 1);
           if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
->>>>>>> Stashed changes
             stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
           }
         }
