@@ -565,6 +565,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         // Set system_status from local to static access (Set Node Online)
                         localSystemStatusLock->Take();
                         localSystemStatus->data_slave[queueId].is_online = true;
+                        localSystemStatus->datetime.ptr_time_for_sensors_get_istant = 0; // Force get istant data for display
                         localSystemStatusLock->Give();
                     }
                 }
@@ -1096,6 +1097,12 @@ void CanTask::Run() {
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
 
+    // Starting acquire IST and value control var
+    uint32_t getUpTimeSecondCurr;
+    uint32_t curEpoch;
+    bool bStartGetIstant = false;
+    bool bStartGetData = false;
+
     // Start Running Monitor and First WDT normal state
     #if (ENABLE_STACK_USAGE)
     TaskMonitorStack();
@@ -1127,7 +1134,7 @@ void CanTask::Run() {
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
                 // Restore the node-ID from the corresponding standard Register. Default to anonymous.
-                #ifdef USE_NODE_SLAVE_ID_FIXED
+                #ifdef USE_NODE_MASTER_ID_FIXED
                 // Canard Master NODE ID Fixed dal defined value in module_config
                 clCanard.set_canard_node_id((CanardNodeID) NODE_MASTER_ID);
                 #else
@@ -1140,6 +1147,9 @@ void CanTask::Run() {
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
                     clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
+                } else {
+                    // Master must start with an ID Node (if not registerede start with default value NODE_MASTER_ID)
+                    clCanard.set_canard_node_id((CanardNodeID) NODE_MASTER_ID);
                 }
                 #endif
 
@@ -1496,32 +1506,32 @@ void CanTask::Run() {
                 // *******************************************************************************************
                 // ********************* GET SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
                 // *******************************************************************************************
-                uint32_t curEpoch = rtc.getEpoch();
-                bool bStartGetIstant = false;
-                bool bStartGetData = false;
-
-                // need do acquire istant value for display?
-                // Read data only if Display or other Task need to show/get this value
-                if(1) {
-//////////////                if(param.system_status->flags.display_on) {
-                    if ((curEpoch / param.configuration->observation_s) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
-                        param.systemStatusLock->Take();
-                        uint16_t obs_istant;
-                        // Get minim acquire for get request to remote data for Display
-                        obs_istant = param.configuration->observation_s < MIN_ACQUIRE_GET_ISTANT_VALUE_SEC ? MIN_ACQUIRE_GET_ISTANT_VALUE_SEC : param.configuration->observation_s;
-                        param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / obs_istant;
-                        param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / obs_istant) * obs_istant;
-                        param.systemStatusLock->Give();
-                        bStartGetIstant = true;
+                // Test if data are to acquire (one time for second)
+                if(clCanard.getUpTimeSecond()!=getUpTimeSecondCurr)
+                {
+                    // Update check next acquire test
+                    getUpTimeSecondCurr = clCanard.getUpTimeSecond();
+                    curEpoch = rtc.getEpoch();
+                    // need do acquire istant value for display?
+                    // N.B. param.system_status->datetime.ptr_time_for_sensors_get_istant automatic resetted when node entering onLine from offLine
+                    // Read data only if Display or other Task need to show/get this value
+                    if(param.system_status->flags.display_on) {
+                        if ((curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
+                            param.systemStatusLock->Take();
+                            param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S;
+                            param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S) * CONFIGURATION_DEFAULT_DISPLAY_IST_S;
+                            param.systemStatusLock->Give();
+                            bStartGetIstant = true;
+                        }
                     }
-                }
-                // need do acquire data value for RMAP Archive?
-                if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
-                    param.systemStatusLock->Take();
-                    param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
-                    param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
-                    param.systemStatusLock->Give();
-                    bStartGetData = true;
+                    // need do acquire data value for RMAP Archive?
+                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                        param.systemStatusLock->Take();
+                        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+                        param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
+                        param.systemStatusLock->Give();
+                        bStartGetData = true;
+                    }
                 }
                 // ********************* END SYNCRO ACTIVITY FOR CYPAL FUNCTION ******************************
 
@@ -1613,11 +1623,11 @@ void CanTask::Run() {
                                 rmap_service_setmode_1_0 paramRequest;
                                 paramRequest.chanel = 0; // Request only for chanel analog/digital adressed 1..X
                                 if(bStartGetData) {
-                                    paramRequest.command = rmap_service_setmode_1_0_get_istant;
+                                    paramRequest.command = rmap_service_setmode_1_0_get_last;
                                     paramRequest.obs_sectime = param.configuration->observation_s;
                                     paramRequest.run_sectime = param.configuration->report_s;
                                 } else {
-                                    paramRequest.command = rmap_service_setmode_1_0_get_last;
+                                    paramRequest.command = rmap_service_setmode_1_0_get_istant;
                                     paramRequest.obs_sectime = 0;
                                     paramRequest.run_sectime = 0;
                                 }
@@ -1627,6 +1637,9 @@ void CanTask::Run() {
                             }
                         }
                     }
+                    // Remove start command request when command are sent
+                    bStartGetIstant = false;
+                    bStartGetData = false;
                 }
                 // EVENT GESTION OF TIMEOUT AT REQUEST
                 for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
@@ -1667,11 +1680,11 @@ void CanTask::Run() {
                                     // Check if module can be updated
                                     for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
                                         if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                            if((retData->version > param.system_status->boards_update_avaiable[checkId].version) ||
-                                                ((retData->version == param.system_status->boards_update_avaiable[checkId].version) && 
-                                                 (retData->revision > param.system_status->boards_update_avaiable[checkId].revision))) {
+                                            if((param.system_status->boards_update_avaiable[checkId].version > retData->version) ||
+                                                ((param.system_status->boards_update_avaiable[checkId].version == retData->version) && 
+                                                 (param.system_status->boards_update_avaiable[checkId].revision > retData->revision))) {
                                                 // Found an upgradable boards
-                                                param.system_status->data_slave[queueId].fw_upgrade = true;
+                                                param.system_status->data_slave[queueId].fw_upgradable = true;
                                             }
                                             break;
                                         }
@@ -1817,115 +1830,160 @@ void CanTask::Run() {
                 // in TimeOut e la procedura non finisce (senza causare quindi irregolari trasferimenti)
                 // Al termine del trasferimento, esco dalla modalità >> FILE_STATE_WAIT_COMMAND <<
                 // direttamente nell' invio dell' ultimo pacchetto dati. E mi preparo a nuovo invio...
-                bool file_server_running = true;
-                uint8_t file_server_queueId = 0xFF;
-                // Request to update (file_server_running?) on valid node
-                if((file_server_running)&&(file_server_queueId<BOARDS_COUNT_MAX)) {
 
-                    // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
-                    switch(clCanard.slave[file_server_queueId].file_server.get_state()) {
+                // Get coda comandi da system_message... se richiesto aggiornamento del firmware
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
+                            // Remove message from the queue
+                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            // Request start update firmware from LCD or Remote RPC
+                            // Start flags and state for file_server start
+                            param.systemStatusLock->Take();
+                            param.system_status->flags.file_server_running = true;
+                            param.systemStatusLock->Give();
+                            // Set STATE for boards request in firmware upgrade
+                            clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                        }
+                    }
+                }
 
-                        default: // -->> FILE_STATE_ERROR STATE:
-                            clCanard.slave[file_server_queueId].file_server.end_transmission();
-                            break;
+                // Are file server running? Process request or verify END procedure
+                if(param.system_status->flags.file_server_running) {
 
-                        case canardClass::FileServer_State::standby:
-                            // Starting request remote from any system
-                            char file_name[CAN_FILE_NAME_SIZE_MAX];
-                            // Set correct name of file from last avaiable (by module)
-                            setStimaFirmwareName(file_name,
-                                param.system_status->boards_update_avaiable[file_server_queueId].module_type,
-                                param.system_status->boards_update_avaiable[file_server_queueId].version,
-                                param.system_status->boards_update_avaiable[file_server_queueId].revision);
-                            // Start upload file with module_type last version found on SD Card
-                            clCanard.slave[file_server_queueId].file_server.set_file_name(file_name, true);
-                            break;
+                    // Check if file server are current in running state
+                    bool fileServerEnd = true;
 
-                        case canardClass::FileServer_State::begin_update:
-                            // Avvio comando di aggiornamento, controllo coerenza ed esistenza file già effettuato
-                            // Se non ci sono altre problematiche (aggiornamenti vari, download blocchi ecc.. avvio...)
-                            // Avvio il comando nel nodo remoto
-                            clCanard.slave[file_server_queueId].file_server.next_state();
-                            // else
-                                // Annullo la richiesta (Invio Error al Remoto su Request File)
+                    for(uint8_t file_server_queueId=0; file_server_queueId<MAX_NODE_CONNECT; file_server_queueId++) {
+
+                        // state != standby? Running current procedure...
+                        if(clCanard.slave[file_server_queueId].file_server.get_state() != canardClass::FileServer_State::standby)
+                            fileServerEnd = false;
+
+                        // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
+                        switch(clCanard.slave[file_server_queueId].file_server.get_state()) {
+
+                            default: // -->> FILE_STATE_ERROR STATE:
+                                clCanard.slave[file_server_queueId].file_server.end_transmission();
+                                break;
+
+                            case canardClass::FileServer_State::standby:
+                                // Nothing to do. Start Case is external from this state
+                                // The current boards are in normal state. Check next boards...
+                                break;
+
+                            case canardClass::FileServer_State::start_request:
+                                // Starting request remote from any system
+                                char file_name[CAN_FILE_NAME_SIZE_MAX];
+                                // Set correct name of file from last avaiable (by module)
+                                setStimaFirmwareName(file_name,
+                                    param.system_status->boards_update_avaiable[file_server_queueId].module_type,
+                                    param.system_status->boards_update_avaiable[file_server_queueId].version,
+                                    param.system_status->boards_update_avaiable[file_server_queueId].revision);
+                                // Start upload file with module_type last version found on SD Card
+                                clCanard.slave[file_server_queueId].file_server.set_file_name(file_name, true);
+                                break;
+
+                            case canardClass::FileServer_State::begin_update:
+                                // Avvio comando di aggiornamento, controllo coerenza ed esistenza file già effettuato
+                                // Se non ci sono altre problematiche (aggiornamenti vari, download blocchi ecc.. avvio...)
+                                // Avvio il comando nel nodo remoto
+                                clCanard.slave[file_server_queueId].file_server.next_state();
+                                // altrimenti Annullo la richiesta (Invio Error al Remoto su Request File)
                                 // O smetto di rispondere al servizio per quella richiesta (TimeOut)
-                                // clCanard.slave[queueId].file_server.end_transmission();
-                            break;
+                                // clCanard.slave[queueId].file_server.end_transmission(); -> ANNULLA!!!
+                                break;
 
-                        case canardClass::FileServer_State::command_send:
-                            // Invio comando di aggiornamento File (in attesa in coda con switch...)
-                            // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
-                            if(!clCanard.slave[file_server_queueId].command.is_pending()) {
-                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                                // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
-                                // Il comando comunica la presenza del file di download nel remoto e avvia dowload
-                                clCanard.send_command_file_server_pending(file_server_queueId, NODE_COMMAND_TIMEOUT_US);
-                                clCanard.slave[file_server_queueId].file_server.next_state();
-                            }
-                            break;
-
-                        case canardClass::FileServer_State::command_wait:
-                            // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
-                            if(clCanard.slave[file_server_queueId].command.event_timeout()) {
-                                // Counico al server l'errore di timeOut Command Update Start ed esco
-                                clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                TRACE_VERBOSE_F(F("Node [ %d ], TimeOut Command Start Send file, uploading %s\r\n"),
-                                    clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
-                                // Se decido di uscire nella procedura di OffLine, la comunicazione
-                                // al server di eventuali errori deve essere gestita al momento dell'OffLine
-                            }
-                            // Comando eseguito,verifico la correttezza della risposta
-                            if(clCanard.slave[file_server_queueId].command.is_executed()) {
-                                // La risposta si trova in command_response fon flag pending azzerrato.
-                                if(clCanard.slave[file_server_queueId].command.get_response() == 
-                                    uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS) {
-                                    // Sequenza terminata, avvio il file transfer !!!
-                                    // Essendo una procedura server e non avendo nessun controllo sui comandi
-                                    // La classe si limita a fornire gli elementi di controllo timeOut per
-                                    // la verifica di coerenza e gestione del download dal remoto ed internamente
-                                    // gestisco le fasi dell'upload. Non è richiesta nessun altra gestione e per
-                                    // comodità gestisco l'aggiornamento del timeOut direttamente nella callBack
-                                    // nella sezione request del file dallo slave.
+                            case canardClass::FileServer_State::command_send:
+                                // Invio comando di aggiornamento File (in attesa in coda con switch...)
+                                // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
+                                if(!clCanard.slave[file_server_queueId].command.is_pending()) {
+                                    // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                                    // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
+                                    // Il comando comunica la presenza del file di download nel remoto e avvia dowload
+                                    clCanard.send_command_file_server_pending(file_server_queueId, NODE_COMMAND_TIMEOUT_US);
                                     clCanard.slave[file_server_queueId].file_server.next_state();
-                                    // Stampo lo stato
-                                    TRACE_VERBOSE_F(F("Node [ %d ] upload Start Send file %s\r\n"),
-                                        clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
-                                    // Imposto il timeOUT per controllo Deadline con pending per sequenza di download
-                                    clCanard.slave[file_server_queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
-                                } else {
-                                    // Errore comando eseguito ma risposta non valida. Annullo il trasferimento
-                                    clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                    // ...counico al server (RMAP remoto) l'errore per il mancato aggiornamento ed esco
-                                    TRACE_VERBOSE_F(F("Node [ %d ] response Cmd Error in Send file %s\r\n"),
-                                        clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
                                 }
-                            }
-                            break;
+                                break;
 
-                        case canardClass::FileServer_State::state_uploading:
-                            // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
-                            if(clCanard.slave[file_server_queueId].file_server.event_timeout()) {
-                                // Counico al server l'errore di timeOut Command Update Start ed esco
+                            case canardClass::FileServer_State::command_wait:
+                                // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                                if(clCanard.slave[file_server_queueId].command.event_timeout()) {
+                                    // Counico al server l'errore di timeOut Command Update Start ed esco
+                                    clCanard.slave[file_server_queueId].file_server.end_transmission();
+                                    TRACE_VERBOSE_F(F("Node [ %d ], TimeOut Command Start Send file, uploading %s\r\n"),
+                                        clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
+                                    // Se decido di uscire nella procedura di OffLine, la comunicazione
+                                    // al server di eventuali errori deve essere gestita al momento dell'OffLine
+                                }
+                                // Comando eseguito,verifico la correttezza della risposta
+                                if(clCanard.slave[file_server_queueId].command.is_executed()) {
+                                    // La risposta si trova in command_response fon flag pending azzerrato.
+                                    if(clCanard.slave[file_server_queueId].command.get_response() == 
+                                        uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS) {
+                                        // Sequenza terminata, avvio il file transfer !!!
+                                        // Essendo una procedura server e non avendo nessun controllo sui comandi
+                                        // La classe si limita a fornire gli elementi di controllo timeOut per
+                                        // la verifica di coerenza e gestione del download dal remoto ed internamente
+                                        // gestisco le fasi dell'upload. Non è richiesta nessun altra gestione e per
+                                        // comodità gestisco l'aggiornamento del timeOut direttamente nella callBack
+                                        // nella sezione request del file dallo slave.
+                                        // Avvio il flag di aggiornamento corrente in corso... a Display
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[file_server_queueId].is_fw_upgrading = true;
+                                        param.systemStatusLock->Give();
+                                        clCanard.slave[file_server_queueId].file_server.next_state();
+                                        // Stampo lo stato
+                                        TRACE_VERBOSE_F(F("Node [ %d ] upload Start Send file %s\r\n"),
+                                            clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
+                                        // Imposto il timeOUT per controllo Deadline con pending per sequenza di download
+                                        clCanard.slave[file_server_queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
+                                    } else {
+                                        // Errore comando eseguito ma risposta non valida. Annullo il trasferimento
+                                        clCanard.slave[file_server_queueId].file_server.end_transmission();
+                                        // ...counico al server (RMAP remoto) l'errore per il mancato aggiornamento ed esco
+                                        TRACE_VERBOSE_F(F("Node [ %d ] response Cmd Error in Send file %s\r\n"),
+                                            clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
+                                    }
+                                }
+                                break;
+
+                            case canardClass::FileServer_State::state_uploading:
+                                // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                                if(clCanard.slave[file_server_queueId].file_server.event_timeout()) {
+                                    // Counico al server l'errore di timeOut Command Update Start ed esco
+                                    clCanard.slave[file_server_queueId].file_server.end_transmission();
+                                    TRACE_VERBOSE_F(F("Node [ %d ] TimeOut Request/Response send file %s\r\n"),
+                                        clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
+                                    // Se decido di uscire nella procedura di OffLine, la comunicazione
+                                    // al server di eventuali errori deve essere gestita al momento dell'OffLine
+                                }
+                                // Evento completato (file_server) terminato con successo, vado a step finale
+                                if(clCanard.slave[file_server_queueId].file_server.is_executed()) {
+                                    clCanard.slave[file_server_queueId].file_server.next_state();
+                                }
+                                break;
+
+                            case canardClass::FileServer_State::upload_complete:
+                                // Counico al server file upload Complete ed esco (nuova procedura ready)
+                                // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
+                                // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
                                 clCanard.slave[file_server_queueId].file_server.end_transmission();
-                                TRACE_VERBOSE_F(F("Node [ %d ] TimeOut Request/Response send file %s\r\n"),
-                                    clCanard.slave[file_server_queueId].get_node_id(), ABORT_STRING);
-                                // Se decido di uscire nella procedura di OffLine, la comunicazione
-                                // al server di eventuali errori deve essere gestita al momento dell'OffLine
-                            }
-                            // Evento completato (file_server) terminato con successo, vado a step finale
-                            if(clCanard.slave[file_server_queueId].file_server.is_executed()) {
-                                clCanard.slave[file_server_queueId].file_server.next_state();
-                            }
-                            break;
+                                TRACE_VERBOSE_F(F("Node [ %d ] sending completed %s\r\n"),
+                                    clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
+                                break;
+                        }
+                    }
 
-                        case canardClass::FileServer_State::upload_complete:
-                            // Counico al server file upload Complete ed esco (nuova procedura ready)
-                            // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
-                            // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
-                            clCanard.slave[file_server_queueId].file_server.end_transmission();
-                            TRACE_VERBOSE_F(F("Node [ %d ] sending completed %s\r\n"),
-                                clCanard.slave[file_server_queueId].get_node_id(), OK_STRING);
-                            break;
+                    // End of Running file server...
+                    if(fileServerEnd) {
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.file_server_running = false;
+                        for(uint8_t file_server_queueId=0; file_server_queueId<MAX_NODE_CONNECT; file_server_queueId++) {
+                            param.system_status->data_slave[file_server_queueId].is_fw_upgrading = false;
+                        }
+                        param.systemStatusLock->Give();
                     }
                 }
                 // ********************* END FILE SERVER CAN UPLOADER ********************

@@ -55,10 +55,11 @@
 // Nodi Fissi per Moduli Master e Yakut
 #define NODE_YAKUT_ID   127
 #define NODE_MASTER_ID  100
-
-// Parametri default per Modulo Master (INIT_PARAMETER) Servizi futuri...
 #define PORT_SERVICE_MASTER 100
 #define SUBJECTID_PUBLISH_MASTER 2100
+
+// Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
+#define USE_NODE_MASTER_ID_FIXED
 
 // Utilizza metodo di sottoscrizione al publisher per acceso ai dati slave remoti
 // Opzionale se non utilizzata per il popolamento di dati come ad. esempio display

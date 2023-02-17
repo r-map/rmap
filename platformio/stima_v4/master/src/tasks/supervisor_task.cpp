@@ -138,7 +138,7 @@ void SupervisorTask::Run()
         param.system_status->configuration.is_loaded = true;
         // Init acquire base datetime (for get next)
         uint32_t curEpoch = rtc.getEpoch();
-        param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / param.configuration->observation_s;
+        param.system_status->datetime.ptr_time_for_sensors_get_istant = 0; // Force get istant at startup display...
         param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
         // Init default security value
         param.system_status->connection.is_disconnected = true;
@@ -205,7 +205,10 @@ void SupervisorTask::Run()
         // TODO: Get From HTTP
         memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
         firmwareDownloadChunck.block_type = file_block_type::file_name;
+        // Chose one method to put name file (only name file without prefix directory)
         strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
+        // OR FILE NAME FROM TYPE... IF HTTP Responding with Module, Version and Revision...
+        // setStimaFirmwareName((char*)firmwareDownloadChunck.block, STIMA_MODULE_TYPE_TH, 4, 3);
         firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
         TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
         // Push data request to queue MMC

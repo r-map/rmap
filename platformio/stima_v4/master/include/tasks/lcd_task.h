@@ -38,6 +38,7 @@
 #if (ENABLE_LCD)
 
 #include <STM32RTC.h>
+#include <time.h>
 
 #include "STM32FreeRTOS.h"
 #include "display_config.hpp"
@@ -46,12 +47,20 @@
 #include "thread.hpp"
 #include "ticks.hpp"
 
+#include "canard_class_master.hpp"
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <U8g2lib.h>
 #include <Wire.h>
 #endif
 
 #include "debug_F.h"
+
+// Limit range for module sensor (LCD)
+#define MAX_VALID_TEMPERATURE       (100.0)
+#define MIN_VALID_TEMPERATURE       (-50.0)
+#define MAX_VALID_HUMIDITY          (100.0)
+#define MIN_VALID_HUMIDITY          (0.0)
 
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
@@ -97,6 +106,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   TwoWire *wire;
 } LCDParam_t;
@@ -135,8 +145,6 @@ class LCDTask : public cpp_freertos::Thread {
   bool data_printed;
   // Indicates whether the display is off or not
   bool display_is_off;
-  // It contains the name of the LCD task
-  char taskName[configMAX_TASK_NAME_LEN];
   // Indicates if the pressure event has occurred or not
   inline static bool pression_event;
   // Indicates if the rotation event has occurred or not
@@ -159,7 +167,7 @@ class LCDTask : public cpp_freertos::Thread {
   stima4_slave_commands_t stima4_slave_command;
   // Current menu state
   stima4_menu_ui_t stima4_menu_ui;
-  // Last menu state
+  // Last menu state before configuration state
   stima4_menu_ui_t stima4_menu_ui_last;
   // Display instance
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
@@ -171,6 +179,10 @@ class LCDTask : public cpp_freertos::Thread {
   uint8_t board_count;
   // Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
+  // Contains the number of commands available for master board
+  uint8_t commands_master_number;
+  // Contains the number of commands available for each slave board
+  uint8_t commands_slave_number;
   // Contains the priority assigned to LCD task
   uint8_t priority;
 
