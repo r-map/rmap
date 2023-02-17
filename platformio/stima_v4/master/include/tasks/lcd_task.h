@@ -106,6 +106,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *wireLock;
+  cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   TwoWire *wire;
 } LCDParam_t;
@@ -144,8 +145,6 @@ class LCDTask : public cpp_freertos::Thread {
   bool data_printed;
   // Indicates whether the display is off or not
   bool display_is_off;
-  // It contains the name of the LCD task
-  char taskName[configMAX_TASK_NAME_LEN];
   // Indicates if the pressure event has occurred or not
   inline static bool pression_event;
   // Indicates if the rotation event has occurred or not

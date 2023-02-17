@@ -102,6 +102,7 @@ class canardClass {
         // Gestione modalità file server Upload
         enum FileServer_State : uint8_t {
             standby,
+            start_request,
             begin_update,
             command_send,
             command_wait,
@@ -454,6 +455,7 @@ class canardClass {
                 void     set_file_name(char* file_name, bool is_firmware);
                 char*    get_file_name(void);
                 FileServer_State get_state(void);
+                FileServer_State start_state(void);
                 FileServer_State next_state(void);
                 bool     is_firmware(void);
                 void     end_transmission(void);

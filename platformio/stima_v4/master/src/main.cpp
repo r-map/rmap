@@ -191,6 +191,7 @@ void setup() {
   static MmcParam_t mmcParam = {0};
   mmcParam.configuration = &configuration;
   mmcParam.system_status = &system_status;
+  mmcParam.systemMessageQueue = systemMessageQueue;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
   mmcParam.dataLogPutQueue = dataLogPutQueue;
   mmcParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
@@ -210,6 +211,7 @@ void setup() {
   static SdParam_t sdParam = {0};
   sdParam.configuration = &configuration;
   sdParam.system_status = &system_status;
+  sdParam.systemMessageQueue = systemMessageQueue;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
   sdParam.dataLogPutQueue = dataLogPutQueue;
   sdParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
@@ -228,9 +230,10 @@ void setup() {
   // TASK LCD DISPLAY PARAM CONFIG
   static LCDParam_t lcdParam = {0};
   lcdParam.configuration = &configuration;
-  lcdParam.system_status = &system_status;
+  lcdParam.system_status = &system_status;  
   lcdParam.configurationLock = configurationLock;
   lcdParam.systemStatusLock = systemStatusLock;
+  lcdParam.systemMessageQueue = systemMessageQueue;
   lcdParam.dataLogPutQueue = dataLogPutQueue;
   lcdParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
@@ -267,6 +270,7 @@ void setup() {
   supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.configurationLock = configurationLock;
   supervisorParam.systemStatusLock = systemStatusLock;
+  supervisorParam.systemMessageQueue = systemMessageQueue;
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
   supervisorParam.dataLogPutQueue = dataLogPutQueue;
@@ -282,6 +286,7 @@ void setup() {
   modemParam.system_status = &system_status;
   modemParam.configurationLock = configurationLock;
   modemParam.systemStatusLock = systemStatusLock;
+  modemParam.systemMessageQueue = systemMessageQueue;
   modemParam.dataLogPutQueue = dataLogPutQueue;
   modemParam.connectionRequestQueue = connectionRequestQueue;
   modemParam.connectionResponseQueue = connectionResponseQueue;
@@ -295,6 +300,7 @@ void setup() {
   ntpParam.rtcLock = rtcLock;
   ntpParam.configurationLock = configurationLock;
   ntpParam.systemStatusLock = systemStatusLock;
+  ntpParam.systemMessageQueue = systemMessageQueue;
   ntpParam.dataLogPutQueue = dataLogPutQueue;
   ntpParam.connectionRequestQueue = connectionRequestQueue;
   ntpParam.connectionResponseQueue = connectionResponseQueue;
@@ -307,6 +313,7 @@ void setup() {
   httpParam.system_status = &system_status;
   httpParam.configurationLock = configurationLock;
   httpParam.systemStatusLock = systemStatusLock;
+  httpParam.systemMessageQueue = systemMessageQueue;
   httpParam.dataLogPutQueue = dataLogPutQueue;
   httpParam.connectionRequestQueue = connectionRequestQueue;
   httpParam.connectionResponseQueue = connectionResponseQueue;
@@ -319,6 +326,7 @@ void setup() {
   mqttParam.system_status = &system_status;
   mqttParam.configurationLock = configurationLock;
   mqttParam.systemStatusLock = systemStatusLock;
+  mqttParam.systemMessageQueue = systemMessageQueue;
   mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;

@@ -403,7 +403,7 @@ void SdTask::Run()
                 if(param.configuration->module_type == module_type) {
                   if((fw_version > param.configuration->module_main_version) ||
                     ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))) {
-                    param.system_status->data_master.fw_upgrade = true;
+                    param.system_status->data_master.fw_upgradable = true;
                   }
                 }
                 param.systemStatusLock->Give();

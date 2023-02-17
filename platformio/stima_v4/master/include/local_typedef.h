@@ -204,13 +204,14 @@ typedef struct
    // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
-      bool fw_upgrade;          // Fw upgrade flag
+      bool fw_upgradable;          // Fw upgrade flag
    } data_master;
 
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
-      bool fw_upgrade;          // Fw upgrade flag
+      bool fw_upgradable;       // Fw upgradable flag
+      bool is_fw_upgrading;     // Fw upgrading current flag
       bool is_online;           // Node current on line
       bool maintenance_mode;    // Maintenance mode flag
       uint16_t last_acquire;    // Last acquire data (refered to...)
@@ -226,6 +227,7 @@ typedef struct
    {
       bool sd_card_ready;        // Flag SD CARD Ready and full functional
       bool display_on;           // Display powered ON (Require Istant and other data)
+      bool file_server_running;  // True if file server are running
    } flags;
 
 } system_status_t;
@@ -276,14 +278,12 @@ typedef struct
    uint8_t task_dest;
    struct
    {
-      uint8_t do_init : 1;
-      uint8_t do_load : 1;
-      uint8_t do_save : 1;
-      uint8_t do_inibith : 1;  // Request inibith sleep (system_status)
-      uint8_t do_maint : 1;    // Request maintenance (system_status)
-      uint8_t do_sleep : 1;    // Optional param for difference level Sleep
-      uint8_t do_cmd : 1;      // Using param to determine type of message command
-      uint8_t done_cmd : 1;    // Using param to determine type of message response
+      uint8_t do_update_fw : 1;  // Request update firmware (node or master) from SD file
+      uint8_t do_inibith   : 1;  // Request inibith sleep
+      uint8_t do_maint     : 1;  // Request maintenance
+      uint8_t do_sleep     : 1;  // Optional param for difference level Sleep
+      uint8_t do_cmd       : 1;  // Using param to determine type of message command
+      uint8_t done_cmd     : 1;  // Using param to determine type of message response
    } command;
    uint32_t param;  // 32 Bit for generic data or casting to pointer
 

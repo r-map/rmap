@@ -1498,6 +1498,14 @@ canardClass::FileServer_State canardClass::slave::file_server::get_state(void) {
     return _state;
 }
 
+/// @brief Accede al primo stato previsto del server file_server transfer
+/// @param  None
+/// @return Stato di avvio
+canardClass::FileServer_State canardClass::slave::file_server::start_state(void) {
+    _state = FileServer_State::start_request;
+    return _state;
+}
+
 /// @brief Accede al prossimo stato previsto del server file_server transfer
 /// @param  None
 /// @return Nuovo stato
