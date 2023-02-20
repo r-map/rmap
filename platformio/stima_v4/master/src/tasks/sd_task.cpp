@@ -292,17 +292,24 @@ bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t 
     return fileReady;
 }
 
+#define DATA_FILENAME_LEN 20
 void SdTask::Run()
 {
   // Generic retry
   uint8_t retry;
   bool message_traced = false;
   bool is_getted_rtc;
-  // Queue buffer
-  char queueBuffer[RMAP_PUT_DATA_ELEMENT_SIZE > LOG_PUT_DATA_ELEMENT_SIZE ? RMAP_PUT_DATA_ELEMENT_SIZE : LOG_PUT_DATA_ELEMENT_SIZE] = {0};
+  // Queue buffer for logging
+  char logBuffer[LOG_PUT_DATA_ELEMENT_SIZE];
   char logIntest[23] = {0};
+  // Data buffer for RMAP queue
+  rmap_archive_data_t rmap_put_archive_data;
+  rmap_get_request_t rmap_get_request;
+  rmap_get_response_t rmap_get_response;
   // Name file for data append es. /data/2023_01_30.dat [20]
-  char data_file_name[20] = {0};
+  char data_file_name[DATA_FILENAME_LEN] = {0};
+  uint32_t rmap_pointer_seek;
+  uint32_t rmap_pointer_datetime;
   // Queue file put and get from external Task
   // Put From extern task to card ( Es. Receive firmware from http to SD )
   file_put_request_t file_put_request;
@@ -315,9 +322,10 @@ void SdTask::Run()
   char data_block[SD_FW_BLOCK_SIZE];
   char stima_name[STIMA_MODULE_NAME_LENGTH];
   char local_file_name[FILE_NAME_MAX_LENGHT];
-  uint8_t module_type, fw_version, fw_revision;
+  Module_Type module_type;
+  uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
-  File logFile, dataFile, putFile; // Local file (PUT to SD with remote request)
+  File logFile, rmapFile, putFile; // Local file (PUT to SD with remote request)
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards multi file server (ONE File for each Boards MAX at time)
   File dir, entry; // Access dir List
 
@@ -340,10 +348,6 @@ void SdTask::Run()
       // Check SD or Resynch after Error
       if (SD.begin(PIN_SPI_SS, SPI_SPEED)) {
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_SD\r\n"));
-        // SD Was Ready... for System
-        param.systemStatusLock->Take();
-        param.system_status->flags.sd_card_ready = true;
-        param.systemStatusLock->Give();
         state = SD_STATE_CHECK_SD;
         message_traced = false;
       } else {
@@ -366,6 +370,47 @@ void SdTask::Run()
       if(!SD.exists("log")) SD.mkdir("log");
       if(!SD.exists("data")) SD.mkdir("data");
 
+      // Open/Create File data pointer... and check if SD Starting OK
+      // Check data Pointer and create if not exist
+      if(SD.exists("/data/pointer.dat")) {
+        rmapFile = SD.open("/data/pointer.dat", O_RDONLY);
+        if(rmapFile) {
+          rmapFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+          rmapFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          rmapFile.close();
+        } else {
+          // SD Pointer Error, general Openon first File...
+          // Error. Send to system_stae and retry OPEN INIT SD
+          state = SD_STATE_INIT;
+          break;
+        }
+      } else {
+        rmapFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
+        if(rmapFile) {
+          rmap_pointer_seek = 0;
+          rmap_pointer_datetime = rtc.getEpoch();  // Init to Current Epoch
+          // System status enter in data not ready for SENT (no data present)
+          param.systemStatusLock->Take();
+          param.system_status->flags.new_data_to_send = false;
+          param.systemStatusLock->Give();
+          rmapFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+          rmapFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          rmapFile.close();
+        } else {
+          // SD Pointer Error, general Openon first File...
+          // Error. Send to system_stae and retry OPEN INIT SD
+          state = SD_STATE_INIT;
+          break;
+        }
+      }
+
+      // ***************************************************
+      // SD Was Ready... for System Structure and Pointer OK
+      // ***************************************************
+      param.systemStatusLock->Take();
+      param.system_status->flags.sd_card_ready = true;
+      param.systemStatusLock->Give();
+
       // **********************************************************************************
       // Check firmware file present Type, model and version from list file in firmware dir
       // Full system_status inform struct with firmware present on SD CARD
@@ -376,7 +421,8 @@ void SdTask::Run()
         if(!entry) break;
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
-        if(checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
+        if(checkStimaFirmwareType(local_file_name, &module_type_cast, &fw_version, &fw_revision)) {
+          module_type = static_cast<Module_Type>(module_type_cast);
           getStimaNameByType(stima_name, module_type);
           // Update info Fw File module array (system_status)
           TRACE_INFO_F(F("SD: found firmware type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
@@ -454,12 +500,12 @@ void SdTask::Run()
           }
         }
         // Get message from queue
-        if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
+        if(param.dataLogPutQueue->Dequeue(logBuffer)) {
           // Put to SD ( APPEND File )
           logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
           if(logFile) {          
             logFile.print(logIntest);
-            logFile.write(queueBuffer, strlen(queueBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(queueBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
+            logFile.write(logBuffer, strlen(logBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
             logFile.println();
             logFile.close();
           }
@@ -473,26 +519,95 @@ void SdTask::Run()
       //           Perform RMAP Data append get message
       // *********************************************************
       // If element get all element from the queue and Put to MMC
+      // rmap_put_archive_data.date_time is epoch_style dateTime Archive record field
       while(!param.dataRmapPutQueue->IsEmpty()) {
         // Get message from queue
-        if(param.dataRmapPutQueue->Dequeue(queueBuffer)) {
-          // Put to MMC ( APPEND to File in Native Format )
-          // Byte 0     = Module_Type
-          // Byte 1..4  = Uint32 Get Epoch (Data acquire)
-          // Byte 5..X  = RMAP Uavcan Module data casting
-          // DATA FILE NAME (dd/mm/yyyy.dat) One file for day
-          uint32_t epochDateTimeRecord;
-          memcpy(&epochDateTimeRecord, &queueBuffer[1], sizeof(epochDateTimeRecord));
-          namingFileData(epochDateTimeRecord, "/data", data_file_name);
-          dataFile = SD.open(data_file_name, O_RDWR | O_APPEND);
-          if(dataFile) {          
-            dataFile.write(queueBuffer, RMAP_PUT_DATA_ELEMENT_SIZE);
-            dataFile.close();
+        if(param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data)) {
+          // Put to MMC ( APPEND to File in Native Format. Check naming file )
+          namingFileData(rmap_put_archive_data.date_time, "/data", data_file_name);
+          // Not opened? Open...
+          rmapFile = SD.open(data_file_name, O_RDWR | O_APPEND);
+          // All correct... Write Block of data
+          if(rmapFile) {
+            rmapFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
+            rmapFile.close();
+            // System status enter in data ready for SENT (new data present)
+            param.systemStatusLock->Take();
+            param.system_status->flags.new_data_to_send = true;
+            param.systemStatusLock->Give();
           }
         }
       }
       // *********************************************************
       //            End OF perform RMAP append message
+      // *********************************************************
+
+      // *********************************************************
+      //         Perform FILE (DATA RMAP) READ data block
+      // *********************************************************
+      // External request RMAP data block (Cypal DSDL Format)
+      // Get Block and send with queue to REQUEST (MQTT Task) Get Data Update command
+      while(!param.dataRmapGetRequestQueue->IsEmpty()) {
+        // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
+        // Send response -> system_reesponse generic mode to request
+        if(param.dataRmapGetRequestQueue->Dequeue(&rmap_get_request)) {
+          // Locking data session (Get)
+          memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+          // Request set pointer to date/time
+          if(rmap_get_request.command.do_synch_ptr) {
+            // TODO: Set pointer and Seek Variables
+          }
+          // Request next avaiable data?
+          if(rmap_get_request.command.do_get_data) {
+            namingFileData(rmap_pointer_datetime, "/data", data_file_name);
+            rmapFile = SD.open(data_file_name, O_RDONLY);
+            memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+            if(rmapFile) {
+              // Seek last position and read from this pointer
+              rmapFile.seek(rmap_pointer_seek);
+              // Not avaiable, EOF...
+              if(rmapFile.available()) {
+                // Not read size correct block?... Error
+                int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                if(bytes_readed == sizeof(rmap_put_archive_data)) {
+                  rmap_pointer_seek += sizeof(rmap_put_archive_data);
+                  rmap_get_response.command.done_get_data = true;
+                  // Send an EOF with a block data if last block
+                  if(rmapFile.available()) {
+                    rmap_get_response.command.end_of_data = true;
+                    // No more data avaiable
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.new_data_to_send = true;
+                    param.systemStatusLock->Give();
+                  }
+                } else {
+                  // Error readed block not correctly dimensioned
+                  rmap_get_response.command.event_error = true;
+                }
+              } else {
+                // EOF
+                rmap_get_response.command.end_of_data = true;
+                // No more data avaiable
+                param.systemStatusLock->Take();
+                param.system_status->flags.new_data_to_send = true;
+                param.systemStatusLock->Give();
+              }
+              rmapFile.close();
+              // System status enter in data ready for SENT (new data present)
+              param.systemStatusLock->Take();
+              param.system_status->flags.new_data_to_send = true;
+              param.systemStatusLock->Give();
+              // ***** Send response to request *****
+              param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+            } else {
+              // Error on open file
+              rmap_get_response.command.event_error = true;
+            }
+          }
+        }
+      }
+      // *********************************************************
+      //       END Perform FILE (DATA RMAP) READ data block
       // *********************************************************
 
       // *********************************************************
@@ -652,9 +767,10 @@ void SdTask::Run()
         if(!entry) break;
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
-        if(!checkStimaFirmwareType(local_file_name, &module_type, &fw_version, &fw_revision)) {
+        if(!checkStimaFirmwareType(local_file_name, &module_type_cast, &fw_version, &fw_revision)) {
           entry.close();
         } else {
+          module_type = static_cast<Module_Type>(module_type_cast);
           // Is this module ?
           if(module_type != param.configuration->module_type) {
             entry.close();

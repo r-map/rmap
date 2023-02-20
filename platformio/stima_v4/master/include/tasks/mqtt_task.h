@@ -119,6 +119,8 @@ typedef struct
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
+  cpp_freertos::Queue *dataRmapGetRequestQueue;
+  cpp_freertos::Queue *dataRmapGetResponseQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
@@ -157,7 +159,6 @@ private:
   char sensors_topic[MQTT_SENSOR_TOPIC_LENGTH];
   char message[MQTT_MESSAGE_LENGTH];
   char clientIdentifier[MQTT_CLIENT_ID_LENGTH];
-
   
   inline static YarrowContext *MqttYarrowContext;
 

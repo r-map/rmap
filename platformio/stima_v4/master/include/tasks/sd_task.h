@@ -108,6 +108,8 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
+  cpp_freertos::Queue *dataRmapGetRequestQueue;
+  cpp_freertos::Queue *dataRmapGetResponseQueue;
   cpp_freertos::Queue *dataRmapPutQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *dataFilePutRequestQueue;

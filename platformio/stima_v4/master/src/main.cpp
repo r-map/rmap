@@ -58,6 +58,8 @@ void setup() {
   static Queue *connectionResponseQueue;
   //Data MMC/SD WR/RD
   static Queue *dataRmapPutQueue;
+  static Queue *dataRmapGetRequestQueue;
+  static Queue *dataRmapGetResponseQueue;
   static Queue *dataFilePutRequestQueue;
   static Queue *dataFilePutResponseQueue;
   static Queue *dataFileGetRequestQueue;
@@ -133,7 +135,9 @@ void setup() {
   dataFilePutResponseQueue = new Queue(FILE_PUT_DATA_QUEUE_LENGTH, sizeof(file_put_response_t));
   dataFileGetRequestQueue = new Queue(FILE_GET_DATA_QUEUE_LENGTH, sizeof(file_get_request_t));
   dataFileGetResponseQueue = new Queue(FILE_GET_DATA_QUEUE_LENGTH, sizeof(file_get_response_t));
-  dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, RMAP_PUT_DATA_ELEMENT_SIZE);
+  dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, sizeof(rmap_archive_data_t));
+  dataRmapGetRequestQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_request_t));
+  dataRmapGetResponseQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_response_t));
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n\r\n"));
@@ -193,6 +197,8 @@ void setup() {
   mmcParam.system_status = &system_status;
   mmcParam.systemMessageQueue = systemMessageQueue;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
+  mmcParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
+  mmcParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   mmcParam.dataLogPutQueue = dataLogPutQueue;
   mmcParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
   mmcParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
@@ -213,6 +219,8 @@ void setup() {
   sdParam.system_status = &system_status;
   sdParam.systemMessageQueue = systemMessageQueue;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
+  sdParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
+  sdParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   sdParam.dataLogPutQueue = dataLogPutQueue;
   sdParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
   sdParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
@@ -327,6 +335,8 @@ void setup() {
   mqttParam.configurationLock = configurationLock;
   mqttParam.systemStatusLock = systemStatusLock;
   mqttParam.systemMessageQueue = systemMessageQueue;
+  mqttParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
+  mqttParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;

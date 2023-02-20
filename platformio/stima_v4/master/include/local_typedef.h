@@ -320,6 +320,41 @@ typedef struct
 
 } system_message_t;
 
+// Archive data type of RMAP generic data block for queue
+typedef struct
+{
+   Module_Type module_type;   // 8 Bit Module_type for reitepreter cast block of data
+   uint32_t date_time;        // 32 Bit date time epoch_style d
+   uint8_t  block[RMAP_DATA_MAX_ELEMENT_SIZE];   // RMAP Type block of data with info block
+
+} rmap_archive_data_t;
+
+// RMAP data archive response block from memory task (MMC/SD) to request
+typedef struct
+{
+   struct
+   {
+      uint8_t done_synch    : 1;  // Done set pointer request
+      uint8_t done_get_data : 1;  // Done get data (next data request)
+      uint8_t end_of_data   : 1;  // Data is last on queue (next request give an error)
+      uint8_t event_error   : 1;  // Signal error generic on read/request data
+   } command;
+   rmap_archive_data_t rmap_data; // RMAP Archive data value on response
+
+} rmap_get_response_t;
+
+// RMAP data archive request from any task to memory task (MMC/SD)
+typedef struct
+{
+   struct
+   {
+      uint8_t do_synch_ptr  : 1;  // Request synch pointer data rmap with param (set pointer)
+      uint8_t do_get_data   : 1;  // Get first data avaiable and set pointer to next data
+   } command;
+   uint32_t param;  // 32 Bit for generic data or casting to pointer
+
+} rmap_get_request_t;
+
 // File type enum for queue file get/put block
 enum file_block_type {
    file_name = 0,     // Block is name file (starting block, create file)

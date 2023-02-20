@@ -1093,8 +1093,8 @@ void CanTask::Run() {
     CanardMicrosecond last_pub_port_list;
     CanardMicrosecond next_timesyncro_msg;
 
-    // Buffer to queue Out to MMC
-    uint8_t dataQueue[RMAP_PUT_DATA_ELEMENT_SIZE];
+    // RMAP Queue data Put to memory MMC/SD Card
+    rmap_archive_data_t rmap_archive_data;
 
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
@@ -1717,15 +1717,14 @@ void CanTask::Run() {
                                 param.systemStatusLock->Give();
                                 // Set data into queue if data value (not for istant observation acquire)
                                 if(bStartGetData) {
-                                    memset(dataQueue, 0, sizeof(dataQueue));
+                                    memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                     // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
-                                    dataQueue[0] = clCanard.slave[queueId].get_module_type();
-                                    memcpy(&dataQueue[1], &param.system_status->datetime.epoch_sensors_get_value,
-                                        sizeof(param.system_status->datetime.epoch_sensors_get_value));
-                                    memcpy((void*)dataQueue[5], retData, sizeof(retData));
+                                    rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
+                                    rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
+                                    memcpy(rmap_archive_data.block, retData, sizeof(retData));
                                     // Send queue to MMC/SD for direct archive data
                                     // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                    param.dataRmapPutQueue->Enqueue(&dataQueue, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                    param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                 }
                                 break;
 

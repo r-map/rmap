@@ -150,13 +150,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
 #define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
+#define RMAP_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_PUT_DATA_QUEUE_LENGTH  (1)
 #define LOG_PUT_DATA_QUEUE_LENGTH   (10)
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_PUT_DATA_BLOCK_SIZE    (512U)
-#define RMAP_PUT_DATA_ELEMENT_SIZE  (160U)  // MAX LEN TH = 144 Bytes + INFO Block 1+4 Bytes
+#define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN TH = 144 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128U)
 
 // Queue timeOut
