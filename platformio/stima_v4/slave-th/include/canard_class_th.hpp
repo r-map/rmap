@@ -29,6 +29,7 @@
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"
+#include "local_typedef.h"
 // Arduino
 #include <Arduino.h>
 // Libcanard
@@ -71,14 +72,6 @@ class canardClass {
         enum GetMonotonicTime_Type : uint8_t {
             syncronized_time,
             start_syncronization
-        };
-
-        // Gestione modalità Power ( x Canard e Nodo in generale)
-        enum Power_Mode : uint8_t {
-            pwr_on,         // Never (All ON, test o gestione locale)
-            pwr_nominal,    // Normal Sleep mode (Nominale base)
-            pwr_deep_save,  // Deep mode (Very Low Power)
-            pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
         };
 
         // Gestione porte e subject di Canard

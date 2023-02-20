@@ -1080,7 +1080,7 @@ CanardNodeID canardClass::slave::get_node_id(void) {
 /// @brief Tipo di modulo dell'istanza slave
 /// @param  None
 /// @return Tipo di modulo
-canardClass::Module_Type canardClass::slave::get_module_type(void) {
+Module_Type canardClass::slave::get_module_type(void) {
     return rmap_service.get_module_type();
 }
 
@@ -1167,7 +1167,7 @@ uint8_t canardClass::slave::heartbeat::get_mode(void) {
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
 /// @param  None
 /// @return Modalità power (CanardClass::Power_Mode)
-canardClass::Power_Mode canardClass::slave::heartbeat::get_power_mode(void) {
+Power_Mode canardClass::slave::heartbeat::get_power_mode(void) {
     return _heartLocalVSC.powerMode;
 }
 
@@ -1408,7 +1408,7 @@ void canardClass::slave::rmap_service::set_module_type(Module_Type module_type) 
 /// @brief Legge il tipo di modulo dello slave
 /// @param  None
 /// @return Module_Type della classe Canard
-canardClass::Module_Type canardClass::slave::rmap_service::get_module_type(void) {
+Module_Type canardClass::slave::rmap_service::get_module_type(void) {
     return _module_type;
 }
 
@@ -1712,7 +1712,7 @@ void canardClass::flag::set_local_module_error(bool moduleError) {
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
 /// @param  None
 /// @return Modalità power (CanardClass::Power_Mode)
-canardClass::Power_Mode canardClass::flag::get_local_power_mode(void) {
+Power_Mode canardClass::flag::get_local_power_mode(void) {
     return _heartLocalVSC.powerMode;
 }
 

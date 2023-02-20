@@ -1011,7 +1011,7 @@ void canardClass::flag::set_local_module_error(bool moduleError) {
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
 /// @param  None
 /// @return Modalità power (CanardClass::Power_Mode)
-canardClass::Power_Mode canardClass::flag::get_local_power_mode(void) {
+Power_Mode canardClass::flag::get_local_power_mode(void) {
     return _heartLocalVSC.powerMode;
 }
 

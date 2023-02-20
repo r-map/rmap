@@ -458,29 +458,29 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 // Il nodo deve essere compatibile con il tipo di modulo previsto da allocare
                 TRACE_VERBOSE_F(F("RX PNP Allocation message request from -> "));
                 switch(msg.unique_id_hash & 0xFF) {
-                    case canardClass::Module_Type::th:
+                    case Module_Type::th:
                         TRACE_VERBOSE_F(F("Anonimous module TH"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::th);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::th);
                         break;
-                    case canardClass::Module_Type::rain:
+                    case Module_Type::rain:
                         TRACE_VERBOSE_F(F("Anonimous module RAIN"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::rain);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::rain);
                         break;
-                    case canardClass::Module_Type::wind:
+                    case Module_Type::wind:
                         TRACE_VERBOSE_F(F("Anonimous module WIND"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::wind);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::wind);
                         break;
-                    case canardClass::Module_Type::radiation:
+                    case Module_Type::radiation:
                         TRACE_VERBOSE_F(F("Anonimous module RADIATION"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::radiation);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::radiation);
                         break;
-                    case canardClass::Module_Type::vwc:
+                    case Module_Type::vwc:
                         TRACE_VERBOSE_F(F("Anonimous module VWC"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::vwc);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::vwc);
                         break;
-                    case canardClass::Module_Type::power:
+                    case Module_Type::power:
                         TRACE_VERBOSE_F(F("Anonimous module POWER"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::power);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::power);
                         break;
                     default:
                         // PNP Non gestibile
@@ -586,7 +586,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 if (transfer->metadata.port_id == clCanard.slave[queueId].publisher.get_subject_id())
                 {                
                     // *************            Service Modulo TH Response            *************
-                    if(clCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::th) {
                         // Processato il messaggio con il relativo Handler. OK
                         bKindMessageProcessed = true;
                         // Modulo TH, leggo e deserializzo il messaggio in ingresso
@@ -848,7 +848,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 if (transfer->metadata.port_id == clCanard.slave[queueId].rmap_service.get_port_id())
                 {                
                     // *************            Service Modulo TH Response            *************
-                    if(clCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::th) {
                         // Modulo TH, leggo e deserializzo il messaggio in ingresso
                         rmap_service_module_TH_Response_1_0 resp = {0};
                         size_t                              size = transfer->payload_size;
@@ -1167,11 +1167,11 @@ void CanTask::Run() {
                 // Read Config Slave Node x Lettura porte e servizi.
                 // Possibilità di utilizzo come sotto (registri) - Fixed Value adesso !!!
                 #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-                clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 0);
-                param.system_status->data_slave[0].module_type = canardClass::Module_Type::th;
-                // clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 5678);    
+                clCanard.slave[0].configure(125, Module_Type::th, 100, 0);
+                param.system_status->data_slave[0].module_type = Module_Type::th;
+                // clCanard.slave[0].configure(125, Module_Type::th, 100, 5678);    
                 #else
-                clCanard.slave[0].configure(125, canardClass::Module_Type::th, 100);    
+                clCanard.slave[0].configure(125, Module_Type::th, 100);    
                 #endif
 
                 // TODO: Register Config ID Node in Array... non N registri
@@ -1309,7 +1309,7 @@ void CanTask::Run() {
                     if ((clCanard.slave[queueId].rmap_service.get_response()) &&
                         (clCanard.slave[queueId].rmap_service.get_port_id() <= CANARD_SERVICE_ID_MAX)) {
                         // Controllo le varie tipologie di request/service per il nodo
-                        if(clCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {     
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::th) {     
                             // Alloco la stottoscrizione in funzione del tipo di modulo
                             // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
@@ -1326,7 +1326,7 @@ void CanTask::Run() {
                     // Non alloco niente per il publish (gestione esempio display o altro debug interno da gestire)
                     if (clCanard.slave[queueId].publisher.get_subject_id() <= CANARD_SUBJECT_ID_MAX) {
                         // Controllo le varie tipologie di request/service per il nodo
-                        if(clCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {            
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::th) {            
                             // Alloco la stottoscrizione in funzione del tipo di modulo
                             // Service client: -> Sottoscrizione per ModuleTH (come master)
                             if (!clCanard.rxSubscribe(CanardTransferKindMessage,
@@ -1669,7 +1669,7 @@ void CanTask::Run() {
                         // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
                         // in funzione di clCanard.slave[x].node_type
                         switch (clCanard.slave[queueId].get_module_type()) {
-                            case canardClass::Module_Type::th:
+                            case Module_Type::th:
                                 // Cast to th module
                                 rmap_service_module_TH_Response_1_0* retData;
                                 retData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();

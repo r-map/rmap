@@ -215,7 +215,7 @@ void LCDTask::Run() {
 
         // Count the number of board configurated
         for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
-          if (param.system_status->data_slave[i].module_type != canardClass::Module_Type::undefined) {
+          if (param.system_status->data_slave[i].module_type != Module_Type::undefined) {
             board_count++;
           }
         }
@@ -479,7 +479,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     float value_display = param.system_status->data_slave[channel].data_value_A;
     switch (param.system_status->data_slave[channel].module_type) {
       // Adjust UDM with comprensible value
-      case canardClass::Module_Type::th:
+      case Module_Type::th:
         value_display = param.system_status->data_slave[channel].data_value_A - 27315;
         value_display /= 100;
         if (value_display < MIN_VALID_TEMPERATURE) bMeasValid_A = false;

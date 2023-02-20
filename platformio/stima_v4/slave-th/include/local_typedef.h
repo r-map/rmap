@@ -27,6 +27,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
+// Gestione modalità Power ( x Canard e Nodo in generale)
+enum Power_Mode : uint8_t {
+   pwr_on,         // Never (All ON, test o gestione locale)
+   pwr_nominal,    // Normal Sleep mode (Nominale base)
+   pwr_deep_save,  // Deep mode (Very Low Power)
+   pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
+};
+
 // Sensor configuration
 typedef struct
 {

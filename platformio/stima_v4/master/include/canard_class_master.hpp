@@ -29,6 +29,7 @@
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"
+#include "local_typedef.h"
 // Arduino
 #include <Arduino.h>
 // Libcanard
@@ -68,35 +69,10 @@ class canardClass {
 
         // ********************   Tipi di Dati    *****************
 
-        // Tipologia di moduli disponibili Stima V4 x PNP e InfoNode
-        enum Module_Type : uint8_t {
-            undefined   = STIMA_MODULE_TYPE_UNDEFINED,
-            server_eth  = STIMA_MODULE_TYPE_MASTER_ETH,
-            server_gsm  = STIMA_MODULE_TYPE_MASTER_GSM,
-            rain        = STIMA_MODULE_TYPE_RAIN,
-            th          = STIMA_MODULE_TYPE_TH,
-            thr         = STIMA_MODULE_TYPE_THR,
-            opc         = STIMA_MODULE_TYPE_OPC,
-            leaf        = STIMA_MODULE_TYPE_LEAF,
-            wind        = STIMA_MODULE_TYPE_WIND,
-            radiation   = STIMA_MODULE_TYPE_SOLAR_RADIATION,
-            gas         = STIMA_MODULE_TYPE_GAS,
-            power       = STIMA_MODULE_TYPE_POWER_MPPT,
-            vwc         = STIMA_MODULE_TYPE_VVC
-        };
-
         // Modalità di accesso a getMicros()
         enum GetMonotonicTime_Type : uint8_t {
             syncronized_time,
             start_syncronization
-        };
-
-        // Gestione modalità Power ( x Canard e Nodo in generale) 
-        enum Power_Mode : uint8_t {
-            pwr_on,         // Never (All ON, test o gestione locale)
-            pwr_nominal,    // Every Second (Nominale base)
-            pwr_deep_save,  // Deep mode (Very Low Power)
-            pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
         };
 
         // Gestione modalità file server Upload

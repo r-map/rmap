@@ -27,6 +27,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
+// Power mode (Canard and general Node) 
+enum Power_Mode : uint8_t {
+   pwr_on,         // Never (All ON, test o gestione locale)
+   pwr_nominal,    // Every Second (Nominale base)
+   pwr_deep_save,  // Deep mode (Very Low Power)
+   pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
+};
+
+// Type of module type on enum for local usage, and Canard PnP, info Node
+enum Module_Type : uint8_t {
+   undefined   = STIMA_MODULE_TYPE_UNDEFINED,
+   server_eth  = STIMA_MODULE_TYPE_MASTER_ETH,
+   server_gsm  = STIMA_MODULE_TYPE_MASTER_GSM,
+   rain        = STIMA_MODULE_TYPE_RAIN,
+   th          = STIMA_MODULE_TYPE_TH,
+   thr         = STIMA_MODULE_TYPE_THR,
+   opc         = STIMA_MODULE_TYPE_OPC,
+   leaf        = STIMA_MODULE_TYPE_LEAF,
+   wind        = STIMA_MODULE_TYPE_WIND,
+   radiation   = STIMA_MODULE_TYPE_SOLAR_RADIATION,
+   gas         = STIMA_MODULE_TYPE_GAS,
+   power       = STIMA_MODULE_TYPE_POWER_MPPT,
+   vwc         = STIMA_MODULE_TYPE_VVC
+};
+
 /*!
 \struct sensordata_t
 \brief constant station data (station name, station height ...) parameters.
@@ -51,7 +76,7 @@ typedef struct
    uint8_t module_main_version;                          //!< module main version
    uint8_t module_minor_version;                         //!< module minor version
    uint8_t configuration_version;                        //!< module configuration version
-   uint8_t module_type;                                  //!< module type
+   Module_Type module_type;                              //!< module type
    board_configuration_t board_master;                   //!< board configurations local (Master)
    board_configuration_t board_slave[BOARDS_COUNT_MAX];  //!< board configurations remote (Slave)
    uint16_t observation_s;                               //!< observations time in seconds
@@ -151,7 +176,7 @@ typedef struct
    // When module_type firmware is present on sd card, version revision and module are charged into this struct
    struct
    {
-      uint8_t module_type;
+      Module_Type module_type;
       uint8_t version;
       uint8_t revision;
    } boards_update_avaiable[STIMA_MODULE_TYPE_MAX_AVAIABLE];
@@ -218,7 +243,7 @@ typedef struct
       uint32_t data_value_A;    // Data value first chanel (istant value)
       uint32_t data_value_B;    // Data value optional second chanel (istant value)
       uint8_t module_revision;  // Revision RMAP
-      uint8_t module_type;      // Type of remote module
+      Module_Type module_type;  // Type of remote module
       uint8_t module_version;   // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];
 
@@ -229,6 +254,8 @@ typedef struct
       bool display_on;           // Display powered ON (Require Istant and other data)
       bool file_server_running;  // True if file server are running
       bool cmd_server_running;   // True if command server are running
+      bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
+      Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;
 
 } system_status_t;

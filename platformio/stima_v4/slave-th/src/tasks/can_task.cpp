@@ -872,7 +872,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // }
 
                     // Gestisco lo stato Power come richiesto dal Master immediatamente se != power_on
-                    if(remoteVSC.powerMode == canardClass::Power_Mode::pwr_nominal) {
+                    if(remoteVSC.powerMode == Power_Mode::pwr_nominal) {
                         // ENTER STANDARD SLEEP FROM CAN COMMAND
                         #ifndef _EXIT_SLEEP_FOR_DEBUGGING
                         system_message.task_dest = ALL_TASK_ID;
