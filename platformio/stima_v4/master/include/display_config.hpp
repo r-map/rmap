@@ -10,6 +10,7 @@
 #define X_RECT_HEADER_MARGIN                 (X_RECT + 2)
 #define X_TEXT_FROM_RECT                     5
 #define X_TEXT_FROM_RECT_DESCRIPTION_COMMAND (X_TEXT_FROM_RECT + 13)
+#define X_TEXT_SYSTEM_MESSAGE                (X_TEXT_FROM_RECT + 20)
 #define Y_PEAK_TRIANGLE                      24
 #define Y_RECT                               0
 #define Y_RECT_HEADER                        (WIDTH_RECT_HEADER + Y_RECT)
@@ -33,3 +34,8 @@
 #define DIR_CLOCK_WISE         1
 #define DIR_COUNTER_CLOCK_WISE 2
 #define DIR_NONE               0
+// ************************************************************************************
+// ****************************** SYMBOLS *********************************************
+// ************************************************************************************
+#define U8G2_SYMBOL_DOWNLOAD    84
+#define U8G2_SYMBOL_MAINTENANCE 72

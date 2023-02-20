@@ -464,62 +464,82 @@ void LCDTask::display_on() {
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
   bool bMeasValid_A = true;
   bool bMeasValid_B = true;
-  char description[STIMA_LCD_DESCRIPTION_LENGTH];
-  char measure[STIMA_LCD_MEASURE_LENGTH];
-  char unit_type[STIMA_LCD_UNIT_TYPE_LENGTH];
-  uint8_t decimals;
+  char description_A[STIMA_LCD_DESCRIPTION_LENGTH], description_B[STIMA_LCD_DESCRIPTION_LENGTH];
+  char measure_A[STIMA_LCD_MEASURE_LENGTH], measure_B[STIMA_LCD_MEASURE_LENGTH];
+  char unit_type_A[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_B[STIMA_LCD_UNIT_TYPE_LENGTH];
+  float value_display_A, value_display_B;
+  uint8_t decimals_A, decimals_B;
 
   // Take the informations to print
-  getStimaLcdDescriptionByType(description, module_type);
-  getStimaLcdUnitTypeByType(unit_type, module_type);
-  getStimaLcdDecimalsByType(&decimals, module_type);
+  getStimaLcdDescriptionByType(description_A, description_B, module_type);
+  getStimaLcdUnitTypeByType(unit_type_A, unit_type_B, module_type);
+  getStimaLcdDecimalsByType(&decimals_A, &decimals_B, module_type);
 
   // Process string format to print
   if (param.system_status->data_slave[channel].is_online) {
-    float value_display = param.system_status->data_slave[channel].data_value_A;
     switch (param.system_status->data_slave[channel].module_type) {
+      value_display_A = param.system_status->data_slave[channel].data_value_A;
+      value_display_B = param.system_status->data_slave[channel].data_value_B;
       // Adjust UDM with comprensible value
       case Module_Type::th:
-        value_display = param.system_status->data_slave[channel].data_value_A - 27315;
-        value_display /= 100;
-        if (value_display < MIN_VALID_TEMPERATURE) bMeasValid_A = false;
-        if (value_display > MAX_VALID_TEMPERATURE) bMeasValid_A = false;
+        value_display_A = param.system_status->data_slave[channel].data_value_A - 27315;
+        value_display_A /= 100;
+        value_display_B = param.system_status->data_slave[channel].data_value_B;
+        if ((value_display_A < MIN_VALID_TEMPERATURE) || (value_display_A > MAX_VALID_TEMPERATURE)) bMeasValid_A = false;
+        if ((value_display_B < MIN_VALID_HUMIDITY) || (value_display_B > MAX_VALID_HUMIDITY)) bMeasValid_B = false;
         break;
       default:
-        value_display = param.system_status->data_slave[channel].data_value_A;
+        value_display_A = param.system_status->data_slave[channel].data_value_A;
+        value_display_B = param.system_status->data_slave[channel].data_value_B;
         break;
     }
-    dtostrf(value_display, 0, decimals, measure);
+    dtostrf(value_display_A, 0, decimals_A, measure_A);
+    dtostrf(value_display_B, 0, decimals_B, measure_B);
   } else {
     bMeasValid_A = false;
     bMeasValid_B = false;
   }
-  if (bMeasValid_A) {
-    snprintf(measure, sizeof(measure), "%s %s", measure, unit_type);
-  } else {
-    snprintf(measure, sizeof(measure), "--- %s", unit_type);
-  }
+  bMeasValid_A == true ? snprintf(measure_A, sizeof(measure_A), "%s %s", measure_A, unit_type_A) : snprintf(measure_A, sizeof(measure_A), "--- %s", unit_type_A);
+  bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
 
   // Print description of measure
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(description);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
+  display.setFont(u8g2_font_helvR08_tf);
+  display.print(description_A);
 
   // Print measurement information
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
-  display.setFont(u8g2_font_helvB12_tf);
-  display.print(measure);
+  display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE  + 0.5 * LINE_BREAK);
+  display.setFont(u8g2_font_helvR10_tf);
+  display.print(measure_A);
+
+  // Print the second measure for special cases
+  if (param.system_status->data_slave[channel].module_type == Module_Type::th) {
+    // Print description of measure
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
+    display.setFont(u8g2_font_helvR08_tf);
+    display.print(description_B);
+
+    // Print measurement information
+    display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE  + 2.5 * LINE_BREAK);
+    display.setFont(u8g2_font_helvR10_tf);
+    display.print(measure_B);
+  }
 
   // Print maintenance information if enabled
   if (param.system_status->data_slave[channel].maintenance_mode) {
+    display.setFont(u8g2_font_open_iconic_embedded_2x_t);
+    display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.75 * LINE_BREAK, U8G2_SYMBOL_MAINTENANCE);
     display.setFont(u8g2_font_helvR08_tf);
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
+    display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
     display.print(F("Maintenance mode"));
   }
 
   // Print message of upgrading firmware when is running
   if (param.system_status->data_slave[channel].is_fw_upgrading) {
+    display.setFont(u8g2_font_open_iconic_arrow_2x_t);
+    display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_DOWNLOAD);
     display.setFont(u8g2_font_helvR08_tf);
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9 * LINE_BREAK);
+    display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
     display.print(F("Firmware is upgrading..."));
   }
 
@@ -607,11 +627,7 @@ void LCDTask::display_print_main_interface() {
 
   // Print SD card status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
-  if (param.system_status->flags.sd_card_ready) {
-    display.print("SD card status: OK");
-  } else {
-    display.print("SD card status: ERR");
-  }
+  param.system_status->flags.sd_card_ready == true ? display.print("SD card status: OK") : display.print("SD card status: ERR");
 
   // Apply the updates to display
   display.sendBuffer();

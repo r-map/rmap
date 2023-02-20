@@ -262,7 +262,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /*!
 \brief Max length of strings used to take the information
 */
-#define STIMA_LCD_DESCRIPTION_LENGTH               (30)
+#define STIMA_LCD_DESCRIPTION_LENGTH               (20)
 #define STIMA_LCD_MEASURE_LENGTH                   (20)
 #define STIMA_LCD_UNIT_TYPE_LENGTH                 (10)
 #define STIMA_MODULE_DESCRIPTION_LENGTH            (50)
