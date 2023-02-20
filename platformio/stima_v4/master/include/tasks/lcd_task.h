@@ -78,6 +78,7 @@ typedef enum LCDMasterCommands {
 
 typedef enum LCDSlaveCommands {
   SLAVE_COMMAND_MAINTENANCE,
+  SLAVE_COMMAND_CALIBRATION_ACCELEROMETER,
   SLAVE_COMMAND_FIRMWARE_UPGRADE,
   SLAVE_COMMAND_EXIT  // Always the latest element
 } stima4_slave_commands_t;
