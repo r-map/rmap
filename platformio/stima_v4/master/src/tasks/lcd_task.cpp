@@ -638,7 +638,7 @@ void LCDTask::display_print_main_interface() {
 
   // Print SD card status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
-  param.system_status->flags.sd_card_ready == true ? display.print("SD card status: OK") : display.print("SD card status: ERR");
+  param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
 
   // Apply the updates to display
   display.sendBuffer();
@@ -700,6 +700,14 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_maint = true;
+      system_message.param = channel;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
+      break;
+    }
+    case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {
+      // Set the queue to send
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_calib_acc = true;
       system_message.param = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
