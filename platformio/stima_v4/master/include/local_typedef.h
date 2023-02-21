@@ -229,22 +229,24 @@ typedef struct
    // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
+      bool is_new_info_ready;      // New info available
       bool fw_upgradable;          // Fw upgrade flag
    } data_master;
 
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
-      bool fw_upgradable;       // Fw upgradable flag
-      bool is_fw_upgrading;     // Fw upgrading current flag
-      bool is_online;           // Node current on line
-      bool maintenance_mode;    // Maintenance mode flag
-      uint16_t last_acquire;    // Last acquire data (refered to...)
-      uint32_t data_value_A;    // Data value first chanel (istant value)
-      uint32_t data_value_B;    // Data value optional second chanel (istant value)
-      uint8_t module_revision;  // Revision RMAP
-      Module_Type module_type;  // Type of remote module
-      uint8_t module_version;   // Version RMAP
+      bool fw_upgradable;           // Fw upgradable flag
+      bool is_fw_upgrading;         // Fw upgrading current flag
+      bool is_new_ist_data_ready;   // New ist data available
+      bool is_online;               // Node current on line
+      bool maintenance_mode;        // Maintenance mode flag
+      Module_Type module_type;      // Type of remote module
+      uint16_t last_acquire;        // Last acquire data (refered to...)
+      uint32_t data_value_A;        // Data value first chanel (istant value)
+      uint32_t data_value_B;        // Data value optional second chanel (istant value)
+      uint8_t module_revision;      // Revision RMAP
+      uint8_t module_version;       // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];
 
    // Hw/Sw Flags
