@@ -1,0 +1,7 @@
+# refresh pre shared keys for stunnel
+
+MAILTO=root
+
+45 03 * * *  root /usr/bin/rmapctrl --exportmqttpsk > /etc/stunnel/file.psk; /bin/systemctl restart stunnel.service
+
+

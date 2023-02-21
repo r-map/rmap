@@ -190,6 +190,7 @@ Aggiunta repository e installazione pacchetti
   dnf install python3-django-dynamic-map-borinud
   dnf install mosquitto mosquitto-auth-plug
   dnf install arkimet
+  dnf install stunnel
   useradd rmap
   
 /etc/selinux/config::
@@ -307,7 +308,28 @@ Collect static files from django apps:
    
    chkconfig httpd on``
    service httpd start``
+
+
+Stunnel
+.......
+
+Create file with psk keys:
+::
    
+   rmapctrl --exportmqttpsk > /etc/stunnel/file.psk
+
+   
+`/etc/stunnel/stunnel.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/stunnel/stunnel.conf>`_
+
+`/etc/cron.d/stunnel_presharedkey  <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/stunnel_presharedkey>`_
+
+
+::
+   
+   chkconfig stunnel on``
+   service stunnel start``
+
+
 Arkimet
 .......
 

@@ -1632,9 +1632,7 @@ Riassuntivo di una misurazione in un dato mese:
 I dati restituiti sono analoghi a quelli restituiti con una richiesta
 dati fatto salvo che:
 - i dati non sono presenti ( "v": null )
-- il campo date è un array che riporta la data inizio presenza dati e
-  la data fine presenza dati ( "date": ["2023-02-15T00:00:00",
-  "2023-02-21T07:15:00"])
+- il campo date è un array che riporta la data inizio presenza dati e la data fine presenza dati ( "date": ["2023-02-15T00:00:00",  "2023-02-21T07:15:00"])
 
 Formati dati
 ------------
