@@ -144,25 +144,25 @@ Se una funzionalità usa varie app Django e deve quindi “assemblare”
 varie interfacce insieme, allora è necessario fare un repository per la
 singola funzionalità che dipende dalle app Django richieste.
 
-.. |image0| image:: images/Pictures/100000000000070A0000053E6107640098E107D3.png
+.. |image0| image:: flussodati.png
    :width: 16.51cm
    :height: 12.312cm
-.. |image1| image:: images/Pictures/10000000000006F3000006BFD6FD52DC1D86FE41.png
+.. |image1| image:: dataingestion.png
    :width: 16.51cm
    :height: 16.016cm
-.. |image2| image:: images/Pictures/100002010000080000000507B85AB66754A5EF29.png
+.. |image2| image:: stationmanager.png
    :width: 16.51cm
    :height: 10.372cm
-.. |image3| image:: images/Pictures/10000000000005B80000043555ABB73FC42635F9.png
+.. |image3| image:: registrazione_utenti.png
    :width: 16.51cm
    :height: 12.136cm
-.. |image4| image:: images/Pictures/1000020100000800000003D765E8704309FFEAAE.png
+.. |image4| image:: borinud_showdata.png
    :width: 16.51cm
    :height: 7.938cm
-.. |image5| image:: images/Pictures/1000020100000800000007ABE34B7E3A4D8E30E3.png
+.. |image5| image:: cosudo.png
    :width: 16.51cm
    :height: 15.84cm
-.. |image6| image:: images/Pictures/1000020100000800000004695F2A049FAE8C7BE3.png
+.. |image6| image:: insertdata_geoimage.png
    :width: 16.51cm
    :height: 9.102cm
 
