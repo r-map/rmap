@@ -160,9 +160,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN TH = 144 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128U)
 
-// Queue timeOut
-#define FILE_PUT_DATA_QUEUE_TIMEOUT (2500)  // Time out before error to R/W operartion with queue File
-#define FILE_GET_DATA_QUEUE_TIMEOUT (2500)  // Time out before error to R/W operartion with queue File
+// Queue timeOut on FILE SD/MMC ACCESS
+#define FILE_IO_DATA_QUEUE_TIMEOUT  (2500)  // Time out before error to R/W operartion with queue File
 
 // Task system_status and queue ID message
 #define ALL_TASK_ID                 (99)      // Send message to ALL Task

@@ -482,6 +482,35 @@ void SdTask::Run()
         break;
       }
 
+      // TEST CREATE DATA FILE TO GET/SET Pointer and GET DATA
+      // Create file with fake data over 15 min. For Test SET Pointer, GET Data, Send MQTT, Queue Get Req/Resp
+      if(0)
+      {
+        uint32_t dateTimePtrCreate = 1671494400ul; // Set create file from 20/12/2022... To Now()
+        uint32_t dateTimeEpoch = rtc.getEpoch();
+        char data_file_old[DATA_FILENAME_LEN];
+        // Fake data with all 0
+        memset(&rmap_put_archive_data, 0, sizeof(rmap_put_archive_data));
+        rmap_put_archive_data.module_type = Module_Type::th;
+        while(dateTimePtrCreate<dateTimeEpoch) {
+          namingFileData(dateTimePtrCreate, "/data", data_file_name);
+          if(strncmp(data_file_name, data_file_old, strlen(data_file_name))) {
+            if(rmapFile) rmapFile.close();
+            // Create NEW File
+            strcpy(data_file_old, data_file_name);
+            rmapFile = SD.open(data_file_name, O_WRONLY | O_CREAT);
+          }
+          // Change data of block archive
+          rmap_put_archive_data.date_time = dateTimePtrCreate;
+          dateTimePtrCreate+=900; // Add 15 min.
+          rmapFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
+          // WDT and Delay
+          TaskWatchDog(1);
+          Delay(Ticks::MsToTicks(1));
+        }
+        rmapFile.close();
+      }
+
       // *********************************************************
       //             Perform LOG WRITE append message
       // *********************************************************
@@ -556,40 +585,67 @@ void SdTask::Run()
         if(param.dataRmapGetRequestQueue->Dequeue(&rmap_get_request)) {
           // Locking data session (Get)
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-          // Request set pointer to date/time
+          // Request is set pointer to date/time?
           if(rmap_get_request.command.do_synch_ptr) {
             bool is_found = false;
             uint32_t dateTimeSearch = rmap_get_request.param;
             namingFileData(dateTimeSearch, "/data", data_file_name);
+            // If Exist, search pointer (correct position) into file
+            // Search block dateTime to synch pointer requested
             if(SD.exists(data_file_name)) {
+              // Request Name File EXIST
+              // Found OK
               is_found = true;
+              // Reset current dateTime control position
               uint32_t currReadDateTimeFile = 0;
               // Search pointer into file...
               rmapFile = SD.open(data_file_name, O_RDONLY);
-              while(dateTimeSearch>currReadDateTimeFile) {
-                // currReadDateTimeFile =
-                int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
-                if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
-                  rmap_pointer_seek += sizeof(rmap_get_response.rmap_data);
-                  rmap_get_response.command.done_get_data = true;
-                  // Send an EOF with a block data if last block
-                  if(rmapFile.available()) {
-                    rmap_get_response.command.end_of_data = true;
-                    // No more data avaiable
-                    param.systemStatusLock->Take();
-                    param.system_status->flags.new_data_to_send = true;
-                    param.systemStatusLock->Give();
+              // Correctly opened..
+              if(rmapFile) {
+                // Search wile dateTime block into file are >= to requested dateTime block
+                while(true) {
+                  // Save position before read dateTime (set back)
+                  uint32_t peek_rmap_pointer = rmapFile.curPosition();
+                  // No more data avaiable?... Not Found
+                  if(!rmapFile.available()) {
+                    // EOF Not found, but searching procedure are correct 
+                    // Pointer requested is over last data. Set Value to CurrentPosition (DateTime to Request)
+                    rmap_pointer_seek = peek_rmap_pointer;
+                    rmap_pointer_datetime = dateTimeSearch;
+                    // Procedure can go right (response... no more data avaiable)
+                    break;
                   }
-                } else {
-                  // Error readed block not correctly dimensioned
-                  rmap_get_response.command.event_error = true;
+                  // Read block RMAP (to check dateTime)
+                  int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                  // Block read size is correct
+                  if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
+                    // Get dateTime of block
+                    currReadDateTimeFile = rmap_get_response.rmap_data.date_time;
+                    // Check if block DateTime is found
+                    if(currReadDateTimeFile >= dateTimeSearch) {
+                      // Found first dateTime block compilant with initial position read (peek...)
+                      rmap_pointer_seek = peek_rmap_pointer;
+                      rmap_pointer_datetime = currReadDateTimeFile;
+                      break;
+                    }
+                  } else {
+                    // Error readed block not correctly dimensioned
+                    file_get_response.error_operation = true;
+                    break;
+                  }
                 }
-
-              }
+                rmapFile.close();
+              } else {
+                // Error opening file
+                file_get_response.error_operation = true;
+              }              
             } else {
-              uint32_t currEpochCheck;
+              // Request Name File NOT EXIST (Search another file in date sequence)
+              // Reading Current epoch to STOP Searching (No data avaiable in the future)
+              // Stop on first data found over requested date pointer
+              uint32_t currEpochLimitCheck;
               if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
-                currEpochCheck = rtc.getEpoch();
+                currEpochLimitCheck = rtc.getEpoch();
                 param.rtcLock->Give();
               }
               while(true) {
@@ -609,20 +665,21 @@ void SdTask::Run()
                   // Exit when date_time is > now()
                   // No data found...
                   // No modify date_time pointer RMAP
-                  if(dateTimeSearch >= currEpochCheck) break;
+                  if(dateTimeSearch >= currEpochLimitCheck) break;
                 }
               }
             }
-            if(is_found) {
-              // Start with next procedure
-              rmap_get_request.command.do_get_data = true;
+            // Found file and position correct?...
+            if((!is_found)||(rmap_get_response.result.event_error)) {
+              // Error procedure... or Not Found
+              rmap_get_response.result.event_error = true;
             } else {
-              // Responding no data avaiable (NOT FOUND)
-              rmap_get_response.command.done_synch = true;
+              // Responding data pointer Setted
+              rmap_get_response.result.done_synch = true;
             }
           }
           // Request next avaiable data?
-          if(rmap_get_request.command.do_get_data) {
+          else if(rmap_get_request.command.do_get_data) {
             namingFileData(rmap_pointer_datetime, "/data", data_file_name);
             rmapFile = SD.open(data_file_name, O_RDONLY);
             memset(&rmap_get_response, 0, sizeof(rmap_get_response));
@@ -633,12 +690,12 @@ void SdTask::Run()
               if(rmapFile.available()) {
                 // Not read size correct block?... Error
                 int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
-                if(bytes_readed == sizeof(rmap_put_archive_data)) {
-                  rmap_pointer_seek += sizeof(rmap_put_archive_data);
-                  rmap_get_response.command.done_get_data = true;
+                if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
+                  rmap_pointer_seek += sizeof(rmap_get_response.rmap_data);
+                  rmap_get_response.result.done_get_data = true;
                   // Send an EOF with a block data if last block
                   if(rmapFile.available()) {
-                    rmap_get_response.command.end_of_data = true;
+                    rmap_get_response.result.end_of_data = true;
                     // No more data avaiable
                     param.systemStatusLock->Take();
                     param.system_status->flags.new_data_to_send = true;
@@ -646,11 +703,11 @@ void SdTask::Run()
                   }
                 } else {
                   // Error readed block not correctly dimensioned
-                  rmap_get_response.command.event_error = true;
+                  rmap_get_response.result.event_error = true;
                 }
               } else {
                 // EOF
-                rmap_get_response.command.end_of_data = true;
+                rmap_get_response.result.end_of_data = true;
                 // No more data avaiable
                 param.systemStatusLock->Take();
                 param.system_status->flags.new_data_to_send = true;
@@ -665,7 +722,7 @@ void SdTask::Run()
               param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
             } else {
               // Error on open file
-              rmap_get_response.command.event_error = true;
+              rmap_get_response.result.event_error = true;
             }
           }
         }

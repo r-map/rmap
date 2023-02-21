@@ -725,8 +725,8 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         localDataFileGetRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
                         // Waiting response from MMC with TimeOUT
                         memset(&sdcard_task_response, 0, sizeof(file_get_response_t));
-                        LocalTaskWatchDog(FILE_GET_DATA_QUEUE_TIMEOUT);
-                        file_download_error = !localDataFileGetResponseQueue->Dequeue(&sdcard_task_response, FILE_GET_DATA_QUEUE_TIMEOUT);
+                        LocalTaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+                        file_download_error = !localDataFileGetResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
                         file_download_error |= !sdcard_task_response.done_operation;
                     }
 

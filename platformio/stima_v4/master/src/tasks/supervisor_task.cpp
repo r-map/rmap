@@ -26,6 +26,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/supervisor_task.h"
 
+// TODO: Move to MQTT
+#include "date_time.h"
+// Namespace RMAP
+#include <rmap/_module/TH_1_0.h>
+#include <rmap/service/_module/TH_1_0.h>
+#include <rmap/_module/RAIN_1_0.h>
+#include <rmap/service/_module/RAIN_1_0.h>
+
 using namespace cpp_freertos;
 
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
@@ -103,6 +111,7 @@ void SupervisorTask::Run()
 
   // TODO: remove
   bool test_put_firmware = true;
+  bool test_get_data = true;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -172,7 +181,7 @@ void SupervisorTask::Run()
       // Retry connection
       retry = 0;
 
-      // TODO:Remove Test Wait new start as time test 2,5 sec...
+      // TODO: Remove Test Wait new start as time test 2,5 sec...
       // TODO: Create Date/Time Event start from configuration
       // TODO: Start only modulePower Full OK (no energy rest)
       // TODO: Start only if data enable to send
@@ -219,8 +228,8 @@ void SupervisorTask::Run()
 
         // Waiting response from MMC with TimeOUT
         memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-        TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
-        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
+        TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
         file_upload_error |= !sdcard_task_response.done_operation;
         // Add Data Chunck... TODO: Get From HTTP...
         if(!file_upload_error) {
@@ -238,8 +247,8 @@ void SupervisorTask::Run()
             param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
             // Waiting response from MMC with TimeOUT
             memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-            TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
-            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
+            TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
             file_upload_error |= !sdcard_task_response.done_operation;
             // Non blocking task
             TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
@@ -257,13 +266,106 @@ void SupervisorTask::Run()
 
           // Waiting response from MMC with TimeOUT
           memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-          TaskWatchDog(FILE_PUT_DATA_QUEUE_TIMEOUT);
-          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_PUT_DATA_QUEUE_TIMEOUT);
+          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
           file_upload_error |= !sdcard_task_response.done_operation;
         }
 
         // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
         TRACE_VERBOSE_F(F("Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+      }
+      // **************************************
+      //   END TEST PUT Firmware Queue Usage
+      // **************************************
+
+      // **************************************
+      //   TEST GET RMAP Data, To Append MQTT
+      // **************************************
+      if(!test_get_data) {
+
+        test_get_data = true;
+
+        rmap_get_request_t rmap_get_request;
+        rmap_get_response_t rmap_get_response;
+        bool rmap_data_error = false;
+
+        // MMC have to GET Ready before Push DATA
+        // EXIT from function if not MMC Ready or present into system_status
+        if(!param.system_status->flags.sd_card_ready) {
+          TRACE_VERBOSE_F(F("SUPERVISOR: Reject request get rmap data, MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+          break;
+        }
+
+        // **** SET POINTER DATA REQUEST *****
+        // Example SET Timer from datTime ->
+        DateTime date_request;
+        date_request.day = 23;
+        date_request.month = 12;
+        date_request.year = 2022;
+        date_request.hours = 17;
+        date_request.minutes = 22;
+        date_request.seconds = 23;
+        uint32_t rmap_date_time_ptr = convertDateToUnixTime(&date_request);
+
+        memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
+        rmap_get_request.param = rmap_date_time_ptr;
+        rmap_get_request.command.do_synch_ptr;
+        TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
+        // Push data request to queue MMC
+        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+
+        // Non blocking task
+        TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
+        // Waiting response from MMC with TimeOUT
+        memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+        TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+        rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+        rmap_data_error |= !rmap_get_response.result.event_error;
+        // Rmap Pointer setted? Get All Data from RMAP Archive
+        bool rmap_eof = false;
+        // Exit on End of data or Error from queue
+        while((!rmap_data_error)&&(!rmap_eof)) {
+          memset(&rmap_get_request, 0, sizeof(rmap_get_request));
+          // Get Next data... Stop at EOF
+          rmap_get_request.command.do_get_data;
+          // Push data request to queue MMC
+          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+          // Waiting response from MMC with TimeOUT
+          memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmap_data_error |= !rmap_get_response.result.event_error;
+          if(!rmap_data_error) {
+            // EOF Data? (Save and Exit, after last data process)
+            rmap_eof = rmap_get_response.result.end_of_data;
+            // Process Data with casting RMAP Module Type
+            switch (rmap_get_response.rmap_data.module_type) {
+              case Module_Type::th:
+                rmap_module_TH_1_0 *rmapDataTH;
+                rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
+                // Prepare MQTT String -> rmapDataTH->ITH.humidity.val.value ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::rain:
+                rmap_module_Rain_1_0 *rmapDataRain;
+                rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
+                // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+            }
+          } else {
+            TRACE_VERBOSE_F(F("RMAP Reading Data queue error!!!\r\n"));
+          }
+          // Non blocking task
+          TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+        }
+        // Trace END Data response
+        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]\r\n"), rmap_eof ? OK_STRING : ERROR_STRING);
       }
       // **************************************
       //   END TEST PUT Firmware Queue Usage

@@ -281,7 +281,9 @@ void setup() {
   supervisorParam.systemMessageQueue = systemMessageQueue;
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
-  supervisorParam.dataLogPutQueue = dataLogPutQueue;
+  supervisorParam.dataRmapPutQueue = dataRmapPutQueue;
+  supervisorParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
+  supervisorParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   supervisorParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
   supervisorParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
   supervisorParam.eeprom = &memEprom;

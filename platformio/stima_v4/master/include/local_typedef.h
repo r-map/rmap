@@ -338,7 +338,7 @@ typedef struct
       uint8_t done_get_data : 1;  // Done get data (next data request)
       uint8_t end_of_data   : 1;  // Data is last on queue (next request give an error)
       uint8_t event_error   : 1;  // Signal error generic on read/request data
-   } command;
+   } result;
    rmap_archive_data_t rmap_data; // RMAP Archive data value on response
 
 } rmap_get_response_t;
