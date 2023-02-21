@@ -1,10 +1,11 @@
-RFC rmap versione 2.9
+RFC rmap versione 3.1
 =====================
 
 Storia del documento
 --------------------
 
-- 2022/06/10 v. 2.9 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
+- 2023/02/21 v. 3.1 : Migliorata documentazione RMAP web services, riassuntivo
+- 2022/06/10 v. 3.0 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
 - 2021/11/21 v. 2.8 : corretto topic MQTT per RPC
 - 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro "sd"
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
@@ -1547,8 +1548,8 @@ specificati così:
 I dati restituiti sono analoghi a quelli restituiti con una richiesta
 dati.
 
-Serie dei dati o sommario
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Serie dei dati o riassuntivo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Serie temporale
 '''''''''''''''
@@ -1629,7 +1630,11 @@ Riassuntivo di una misurazione in un dato mese:
 
 
 I dati restituiti sono analoghi a quelli restituiti con una richiesta
-dati.
+dati fatto salvo che:
+- i dati non sono presenti ( "v": null )
+- il campo date è un array che riporta la data inizio presenza dati e
+  la data fine presenza dati ( "date": ["2023-02-15T00:00:00",
+  "2023-02-21T07:15:00"])
 
 Formati dati
 ------------
