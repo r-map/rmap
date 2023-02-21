@@ -1490,14 +1490,14 @@ void CanTask::Run() {
                 if (clCanard.getMicros(clCanard.syncronized_time) >= next_timesyncro_msg)
                 {
                     TRACE_INFO_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
-                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
+                    next_timesyncro_msg = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
                     clCanard.master_timestamp_send_syncronization();
                 }
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
                 if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
                     TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
+                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
                     // Update publisher
                     clCanard.master_servicelist_send_message();
                 }
@@ -1510,7 +1510,10 @@ void CanTask::Run() {
                 {
                     // Update check next acquire test
                     getUpTimeSecondCurr = clCanard.getUpTimeSecond();
-                    curEpoch = rtc.getEpoch();
+                    if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+                        curEpoch = rtc.getEpoch();
+                        param.rtcLock->Give();
+                    }
                     // need do acquire istant value for display?
                     // N.B. param.system_status->datetime.ptr_time_for_sensors_get_istant automatic resetted when node entering onLine from offLine
                     // Read data only if Display or other Task need to show/get this value

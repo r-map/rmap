@@ -137,9 +137,8 @@ void SupervisorTask::Run()
         param.systemStatusLock->Take();
         param.system_status->configuration.is_loaded = true;
         // Init acquire base datetime (for get next)
-        uint32_t curEpoch = rtc.getEpoch();
         param.system_status->datetime.ptr_time_for_sensors_get_istant = 0; // Force get istant at startup display...
-        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+        param.system_status->datetime.ptr_time_for_sensors_get_value = rtc.getEpoch() / param.configuration->report_s;
         // Init default security value
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
@@ -790,7 +789,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
 
       param.configuration->module_main_version = MODULE_MAIN_VERSION;
       param.configuration->module_minor_version = MODULE_MINOR_VERSION;
-      param.configuration->module_type = MODULE_TYPE;
+      param.configuration->module_type = (Module_Type)MODULE_TYPE;
 
       param.configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
       param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;

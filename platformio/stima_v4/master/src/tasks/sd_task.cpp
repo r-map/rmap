@@ -547,6 +547,9 @@ void SdTask::Run()
       // *********************************************************
       // External request RMAP data block (Cypal DSDL Format)
       // Get Block and send with queue to REQUEST (MQTT Task) Get Data Update command
+      // Set request with 2 options standard do_get_data (get next data avaiable if exist)
+      // Option 2 do_synch_ptr, search file_name and pointer from request to now()
+      // Each operation modify current pointer stored in a file for prepare standard do_get_data
       while(!param.dataRmapGetRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
@@ -555,7 +558,68 @@ void SdTask::Run()
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
           // Request set pointer to date/time
           if(rmap_get_request.command.do_synch_ptr) {
-            // TODO: Set pointer and Seek Variables
+            bool is_found = false;
+            uint32_t dateTimeSearch = rmap_get_request.param;
+            namingFileData(dateTimeSearch, "/data", data_file_name);
+            if(SD.exists(data_file_name)) {
+              is_found = true;
+              uint32_t currReadDateTimeFile = 0;
+              // Search pointer into file...
+              rmapFile = SD.open(data_file_name, O_RDONLY);
+              while(dateTimeSearch>currReadDateTimeFile) {
+                // currReadDateTimeFile =
+                int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
+                  rmap_pointer_seek += sizeof(rmap_get_response.rmap_data);
+                  rmap_get_response.command.done_get_data = true;
+                  // Send an EOF with a block data if last block
+                  if(rmapFile.available()) {
+                    rmap_get_response.command.end_of_data = true;
+                    // No more data avaiable
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.new_data_to_send = true;
+                    param.systemStatusLock->Give();
+                  }
+                } else {
+                  // Error readed block not correctly dimensioned
+                  rmap_get_response.command.event_error = true;
+                }
+
+              }
+            } else {
+              uint32_t currEpochCheck;
+              if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+                currEpochCheck = rtc.getEpoch();
+                param.rtcLock->Give();
+              }
+              while(true) {
+                // Add time second day -> set Next Epoch Day
+                // If found, seek pointer are set to first block of data
+                // because the requested date is necessarily higher
+                dateTimeSearch+=86400ul;                
+                namingFileData(dateTimeSearch, "/data", data_file_name);
+                // Exist?
+                if(SD.exists(data_file_name)) {
+                  // FOUND FILE NEXT DATE
+                  is_found = true;
+                  rmap_pointer_datetime = dateTimeSearch;
+                  rmap_pointer_seek = 0;
+                  break;
+                } else {
+                  // Exit when date_time is > now()
+                  // No data found...
+                  // No modify date_time pointer RMAP
+                  if(dateTimeSearch >= currEpochCheck) break;
+                }
+              }
+            }
+            if(is_found) {
+              // Start with next procedure
+              rmap_get_request.command.do_get_data = true;
+            } else {
+              // Responding no data avaiable (NOT FOUND)
+              rmap_get_response.command.done_synch = true;
+            }
           }
           // Request next avaiable data?
           if(rmap_get_request.command.do_get_data) {
