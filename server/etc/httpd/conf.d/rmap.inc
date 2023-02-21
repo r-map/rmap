@@ -99,4 +99,13 @@ SecRuleEngine On
 
 </Location>
 
+
+<Location /auth>
+
+  # whitelist localhost
+  #SecRule REMOTE_ADDR "@contains 127.0.0.1" "id:1,phase:1,nolog,allow,ctl:ruleEngine=Off"
+  SecRule REMOTE_ADDR "^127.0.0.1$" nolog,allow,id:1
+
+</Location>
+
 ErrorDocument 503 "Service Unavailable"
