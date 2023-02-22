@@ -300,7 +300,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     myboard.transporttcpip.save()
     
 
-def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1
+def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=None,address=None,node=None
               ,timerange="254,0,0",level="0,1",activate=False):
     #,sensortemplate=None):
 
@@ -374,6 +374,7 @@ template_choices = [
     "default",
     "none",
     "test",    "test_indirect",    "test_rf24",    "test_master",    "test_base",
+    "stima4_report_th","stima4_report_p","stima4_report_w","stima4_report_r",
     "stima_base",    "stima_t",    "stima_h",    "stima_w",    "stima_r",    "stima_p",    "stima_s",    "stima_m",
     "stima_sm",    "stima_th",    "stima_y",    "stima_ths",    "stima_thsm",    "stima_thw",    "stima_thp",    "stima_yp",
     "stima_thwr",    "stima_thwrp",
@@ -429,6 +430,58 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="test Temperature",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
 
+    if (template == "stima4_report_th"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="CAN",
+                  type="ITH",timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="CAN",
+                  type="NTH",timerange="3,0,{P2:d}",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="CAN",
+                  type="MTH",timerange="0,0,{P2:d}",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max values",driver="CAN",
+                  type="XTH",timerange="2,0,{P2:d}",level="103,2000,-,-")
+
+    if (template == "stima4_report_p"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="CAN",
+                  type="TBR",timerange="1,0,{P2:d}",level="1,-,-,-")
+
+    if (template == "stima4_report_w"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor vectorial average 10'",driver="CAN",
+                  type="DWA",timerange="254,0,0",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind vect. average, gust direction",driver="CAN",
+                  type="DWB",timerange="200,0,{P2:d}",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor gust speeds",driver="CAN",
+                  type="DWC",timerange="2,0,{P2:d}",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor scalar average",driver="CAN",
+                  type="DWD",timerange="0,0,{P2:d}",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor frequency",driver="CAN",
+                  type="DWE",timerange="9,0,{P2:d}",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor gust directions",driver="CAN",
+                  type="DWF",timerange="205,0,{P2:d}",level="103,10000,-,-")
+
+    if (template == "stima4_report_r"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Radiation",driver="CAN",
+                  type="DSA",timerange="0,0,{P2:d}",level="1,-,-,-")
+        
     if (template == "stima_base"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
@@ -781,7 +834,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
 
 
-    if (template == "stima_report_thpb"):
+    if (template == "stima_report_thp"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
@@ -799,10 +852,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
                   type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Battery charge monitor",driver="I2C",
-                  type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
-
+        
     if (template == "stima_report_thpbl"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
@@ -1264,7 +1314,11 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
         if (version != "3"):
             print("board",rpcproxy.configure(board=board.slug ))
-
+            if (board.sn is None):
+                print("type",rpcproxy.configure(type=board.type))
+            else:
+                print("type",rpcproxy.configure(type=board.type,sn=hex(board.sn)))
+            
         print(">>>>>>> reset config")
         print("reset",rpcproxy.configure(reset=True ))
             
@@ -1298,6 +1352,8 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath))
                     print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath))
                     print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"))
+                    print("coordinate:",rpcproxy.configure(lon=nint(mystation.lon*100000),lat=nint(mystation.lat*100000)))
+                    print("coordinate:",rpcproxy.configure(network=mystation.network))
 
                 print("sampletime and mqttserver:",rpcproxy.configure(mqttsampletime=board.transportmqtt.mqttsampletime,
                                                    mqttserver=board.transportmqtt.mqttserver))
@@ -1385,9 +1441,12 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     else:
                         level[i] = int(level[i])
                             
-                print("add driver:",rpcproxy.configure(type=sensor.type.type,
+                print("add driver:",rpcproxy.configure(driver=sensor.driver,
+                                                       type=sensor.type.type,
                                                        timerange=timerange,
                                                        level=level))
+                if not sensor.node is None:    print("    driver:",rpcproxy.configure(node=sensor.node))
+                if not sensor.address is None: print("    driver:",rpcproxy.configure(address=sensor.address))
 
         #TODO  check id of status (good only > 0)
             

@@ -81,13 +81,14 @@ class Firmware(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,\
                     help_text=ugettext_lazy("Activate the firmware for upgrade"))
 
-    unique_together = (('firmware', 'version','revision'),)
-        
+    #unique_together = (('firmware', 'version','revision'),)
 
     class Meta:
         ordering = ['version','revision']
         verbose_name = 'Firmware' 
-        verbose_name_plural = 'Firmware' 
+        verbose_name_plural = 'Firmware'
+        constraints = [models.UniqueConstraint(fields=['firmware', 'version', 'revision'], name='unique_firmware')]
+
 
     def __str__(self):
         return '%s' % (self.firmware)

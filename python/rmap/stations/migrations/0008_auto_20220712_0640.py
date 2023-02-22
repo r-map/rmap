@@ -2,86 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from django.core import serializers
-
-
-import os
-fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtures'))
-
-def load_fixture(apps, schema_editor):
-    
-    def load_fixture_from_file(fixture_file):
-        fixture = open(fixture_file, 'rb')
-        objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
-        for obj in objects:
-            obj.save()
-        fixture.close()
-
-    for fixture_filename in ("site_rmap.cc.json",):
-        if fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print("load fixture from file: ",fixture_file)
-            load_fixture_from_file(fixture_file)
-
-    fixture_file=fixture_dir+"/sensor_type_01.json"
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    for fixture_filename in os.listdir(fixture_dir):
-        if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print("load fixture from file: ",fixture_file)
-            load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_02.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_03.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_04.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_05.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_06.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_07.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_08.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    
-
-def unload_fixture(apps, schema_editor):
-    "Brutally deleting all entries for this model..."
-
-    MyModel = apps.get_model("stations", "StationMetadata")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Board")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Sensor")
-    MyModel.objects.all().delete()
-
 
 class Migration(migrations.Migration):
 
@@ -122,8 +42,4 @@ class Migration(migrations.Migration):
             name='driver',
             field=models.CharField(choices=[('CAN', 'INDIRECT Cyphal over CAN-BUS'), ('I2C', 'I2C drivers'), ('RF24', 'RF24 Network jsonrpc'), ('SERI', 'SERIAL drivers over serial port'), ('JRPC', 'INDIRECT jsonrpc over some transport')], default='I2C', help_text='Driver to use', max_length=4),
         ),
-        migrations.RunPython(
-            code=load_fixture,
-            reverse_code=unload_fixture,
-        ),        
     ]

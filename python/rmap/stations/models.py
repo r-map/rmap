@@ -139,9 +139,9 @@ class Sensor(models.Model):
 
     type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"),on_delete=models.CASCADE)
 
-    i2cbus=models.PositiveIntegerField(default=1,null=False,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
-    address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C address (decimal)"))
-    node=models.PositiveIntegerField(default=1,blank=True,help_text=ugettext_lazy("RF24Network node ddress"))
+    i2cbus=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
+    address=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("I2C address (decimal)"))
+    node=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("RF24Network node ddress"))
 
     timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
     level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
@@ -673,16 +673,37 @@ class Board(models.Model):
 
     BOARD_CATEGORY_CHOICES = (
         ('base','Raspberry base'),
-        ('master', 'Mega2560 master'),
-        ('satellite','Microduino core+ satellite'),
-        ('gsm','Microduino core+ GSM/GPRS with GPS'),
-        ('bluetooth','Microduino core+ with Bluetooth module'),
+        ('master', 'Stima V3 master eth transport'),
+        ('slave', 'Stima V3 slave'),
+        ('satellite','Stima V3 slave radio transport'),
+        ('gsm','Stima V3 master GSM/GPRS transport'),
+        ('bluetooth','Stima V3 slave Bluetooth transport'),
+        ('masterv4', 'Stima V4 master eth transport'),
+        ('gsmv4', 'Stima V4 master LTS transport'),
+        ('slavev4', 'Stima V4 slave CAN transport'),        
+    )
+
+    STIMAV4_MODULE_TYPE_CHOICES = (
+        ( 0,"Module type stima not defined"),
+        (10,"Module send report over ethernet"),
+        (11,"Module send sample over gsm/gprs"),
+        (20,"Module acquire rain tips"),
+        (21,"Module acquire temperature and humidity"),
+        (22,"Module acquire temperature, humidity and rain"),
+        (23,"Module acquire air particle"),
+        (24,"Module acquire leaf wetness"),
+        (25,"Module acquire wind sensor"),
+        (26,"Module acquire radiation sensor"),
+        (27,"Module acquire gas (NO2, CO2)"),
+        (28,"Module acquire power regulator mppt")
     )
 
     name = models.CharField(max_length=255,help_text=ugettext_lazy("station name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate the board for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
-    category = models.CharField(max_length=50, blank=False,choices=BOARD_CATEGORY_CHOICES)
+    category = models.CharField(max_length=50, null= True, blank=True,choices=BOARD_CATEGORY_CHOICES,help_text=ugettext_lazy("General standard category"))
+    type = models.PositiveIntegerField(default=0,null=False, blank=False,choices=STIMAV4_MODULE_TYPE_CHOICES,help_text=ugettext_lazy("Stima V4 standard type"))
+    sn = models.PositiveIntegerField(default=None,null=True, blank=True,help_text=ugettext_lazy("Serial number"))
     stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
     
 #    def changeform_link(self):
