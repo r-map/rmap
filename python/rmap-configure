@@ -148,6 +148,18 @@ parser.add_argument('--timerange',  default="254,0,0", help="sensor timerange (s
 parser.add_argument('--level',  default="103,2000", help="sensor level (see tables)")
 
 parser.add_argument('--addboard',action="store_true", help="add board to module of station")
+                                                                                                                                                                       
+from rmap.stations.models import Board
+tmpboard=Board()
+choices=[]
+help=""
+for choice,desc in tmpboard.STIMAV4_MODULE_TYPE_CHOICES:
+    choices.append(choice)
+    help+=str(choice)+":"+desc+","
+parser.add_argument('--boardtype', default=0, type=int,choices=choices, help="board type code ("+help+")")
+def auto_int(x):
+        return int(x, 0)
+parser.add_argument('--serialnumber', default=None, type=auto_int, help="board serialnumber (can be hex); required with multiple board of same type")
 
 parser.add_argument('--canactivate',action="store_true", help="activate can/Cyphal transport")
 parser.add_argument('--cannodeid', default=100, type=int, help="Cyphal node id")
@@ -495,7 +507,8 @@ if args.addboard:
         print(" selected addboard without station_slug or board_slug or username")
         raise SystemExit(1)
 
-    rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,activate=True
+    rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug
+                            ,type=args.boardtype,sn=args.serialnumber,activate=True
                             ,serialactivate=args.serialactivate
                             ,canactivate=args.canactivate,cannodeid=args.cannodeid,cansubject=args.cansubject,cansubjectid=args.cansubjectid,cansamplerate=args.cansamplerate
                             ,mqttactivate=args.mqttactivate, mqttserver=args.server

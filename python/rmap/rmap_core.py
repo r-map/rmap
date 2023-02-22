@@ -193,7 +193,7 @@ def delsensors(station_slug=None,username=None,board_slug=None):
                                 ,board__stationmetadata__user__username=username).delete()
 
 
-def addboard(station_slug=None,username=None,board_slug=None,activate=False
+def addboard(station_slug=None,username=None,board_slug=None,type=None,sn=None,activate=False
               ,serialactivate=False
               ,canactivate=False,cannodeid=100,cansubject="",cansubjectid=100,cansamplerate=60
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
@@ -210,13 +210,19 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
         myboard = Board.objects.get(slug=board_slug
                                     ,stationmetadata__slug=station_slug
                                     ,stationmetadata__user__username=username)
+        myboard.type=type
+        myboard.sn=sn
+        myboard.active=activate
+        myboard.save()
+
     except ObjectDoesNotExist :
         mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
-        myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation,active=activate)
+        myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation,type=type,sn=sn,active=activate)
         myboard.save()
-        myboard = Board.objects.get(slug=board_slug
-                                    ,stationmetadata__slug=station_slug
-                                    ,stationmetadata__user__username=username)
+
+    myboard = Board.objects.get(slug=board_slug
+                                ,stationmetadata__slug=station_slug
+                                ,stationmetadata__user__username=username)
 
 
     try:
@@ -1315,9 +1321,9 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         if (version != "3"):
             print("board",rpcproxy.configure(board=board.slug ))
             if (board.sn is None):
-                print("type",rpcproxy.configure(type=board.type))
+                print("type",rpcproxy.configure(boardtype=board.type))
             else:
-                print("type",rpcproxy.configure(type=board.type,sn=hex(board.sn)))
+                print("type",rpcproxy.configure(boardtype=board.type,sn=hex(board.sn)))
             
         print(">>>>>>> reset config")
         print("reset",rpcproxy.configure(reset=True ))
