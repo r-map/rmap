@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _SIM7600_H
 #define _SIM7600_H
 
+#define USE_FREERTOS
+
 #include "debug_config.h"
 #include "core/net.h"
 #include "drivers/uart/uart_driver.h"
@@ -415,11 +417,11 @@ class SIM7600
 public:
    SIM7600();
    
-   #ifndef USE_FREERTOS
+#ifndef USE_FREERTOS
    SIM7600(HardwareSerial *serial, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
 #endif
-   
-   #ifdef USE_FREERTOS
+
+#ifdef USE_FREERTOS
    SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
 #endif
 

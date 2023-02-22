@@ -62,7 +62,6 @@
 #include "drivers/eeprom.h"
 
 #define SD_TASK_WAIT_DELAY_MS            (50)
-#define SD_TASK_WAIT_OPERATION_DELAY_MS  (1)
 
 #define SD_TASK_WAIT_REBOOT_MS           (2500)
 
@@ -72,6 +71,8 @@
 #define SD_FW_BLOCK_SIZE                 (256)
 
 #define FILE_NAME_MAX_LENGHT             (128)
+
+#define DATA_FILENAME_LEN                (22)
 
 #include "debug_F.h"
 

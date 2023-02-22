@@ -349,7 +349,7 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 500, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
   static MmcTask mmc_task("MmcTask", 1400, OS_TASK_PRIORITY_01, mmcParam);
@@ -359,7 +359,7 @@ void setup() {
 #endif
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 400, OS_TASK_PRIORITY_03, lcdParam);
+  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_03, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
@@ -371,18 +371,18 @@ void setup() {
 #endif
 
 #if (USE_NTP)
-  static NtpTask ntp_task("NtpTask", 450, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 500, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 400, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 500, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
   static MqttTask mqtt_task("MqttTask", 500, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
-  static WdtTask wdt_task("WdtTask", 350, OS_TASK_PRIORITY_04, wdtParam);
+  static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);
 
   // Startup Schedulher
   Thread::StartScheduler();
@@ -410,10 +410,13 @@ void init_wire()
   Wire2.setClock(I2C2_BUS_CLOCK_HZ);
 #endif
 
- // Setup SPI
+  // Setup SPI
  #if (ENABLE_SPI1)
   SPI.begin();        
  #endif
+  
+  // Start EN Pow GSM ready to SET
+  digitalWrite(PIN_GSM_EN_POW, HIGH);
 }
 
 // Setup RTC HW && LowPower Class STM32

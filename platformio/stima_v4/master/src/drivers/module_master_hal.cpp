@@ -517,6 +517,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+
   // ********** SETUP Port B *************
  
   HAL_GPIO_WritePin(GPIOB, DISPLAY_Power_Pin, GPIO_PIN_RESET);
@@ -535,6 +536,7 @@ void MX_GPIO_Init(void)
 
   // ********** SETUP Port D *************
 
+  // GSM_PowerEn_Pin Need to Set for initialization Chip
   HAL_GPIO_WritePin(GPIOD, GSM_PowerEn_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOD, GSM_PowerKey_Pin, GPIO_PIN_RESET);
 

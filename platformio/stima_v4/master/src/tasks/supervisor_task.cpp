@@ -186,10 +186,7 @@ void SupervisorTask::Run()
       // TODO: Start only modulePower Full OK (no energy rest)
       // TODO: Start only if data enable to send
       // TODO: Remove NTP Syncro (1 x day?)
-      // TODO: Get RPC Remote? When connected... + Queue Command RPC (system_message_t)
-
-      TaskWatchDog(2500);
-      Delay(Ticks::MsToTicks(2500));
+      // TODO: Get RPC Remote? When connected... + Queue Command RPC (system_message_t)      
 
       // **************************************
       //    TEST PUT Firmware Queue Usage
@@ -281,6 +278,7 @@ void SupervisorTask::Run()
       // **************************************
       //   TEST GET RMAP Data, To Append MQTT
       // **************************************
+      test_get_data = false;
       if(!test_get_data) {
 
         test_get_data = true;
@@ -296,20 +294,23 @@ void SupervisorTask::Run()
           break;
         }
 
-        // **** SET POINTER DATA REQUEST *****
-        // Example SET Timer from datTime ->
+        // // **** SET POINTER DATA REQUEST *****
+        // // Example SET Timer from datTime ->
+        uint32_t countData = 0;
         DateTime date_request;
-        date_request.day = 23;
-        date_request.month = 12;
-        date_request.year = 2022;
-        date_request.hours = 17;
+        date_request.day = 16;
+        date_request.month = 2;
+        date_request.year = 2023;
+        date_request.hours = 4;
         date_request.minutes = 22;
         date_request.seconds = 23;
         uint32_t rmap_date_time_ptr = convertDateToUnixTime(&date_request);
 
         memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
         rmap_get_request.param = rmap_date_time_ptr;
-        rmap_get_request.command.do_synch_ptr;
+        rmap_get_request.command.do_synch_ptr = true;
+        // Optional Save Pointer in File (Probabiliy always in SetPtr)
+        rmap_get_request.command.do_save_ptr = true;
         TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
         // Push data request to queue MMC
         param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
@@ -320,31 +321,46 @@ void SupervisorTask::Run()
 
         // Waiting response from MMC with TimeOUT
         memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-        TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-        rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-        rmap_data_error |= !rmap_get_response.result.event_error;
+        // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
+        // Task WDT Are suspended
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+        rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+        rmap_data_error |= rmap_get_response.result.event_error;
         // Rmap Pointer setted? Get All Data from RMAP Archive
         bool rmap_eof = false;
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)) {
           memset(&rmap_get_request, 0, sizeof(rmap_get_request));
           // Get Next data... Stop at EOF
-          rmap_get_request.command.do_get_data;
+          rmap_get_request.command.do_get_data = true;
+          // Save Pointer? Optional
+          // rmap_get_request.command.do_save_ptr = true;
           // Push data request to queue MMC
           param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
           // Waiting response from MMC with TimeOUT
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
           TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
           rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-          rmap_data_error |= !rmap_get_response.result.event_error;
+          rmap_data_error |= rmap_get_response.result.event_error;
           if(!rmap_data_error) {
             // EOF Data? (Save and Exit, after last data process)
             rmap_eof = rmap_get_response.result.end_of_data;
+            // ******************************************************************
+            // Exampe of Current Session Upload CountData and DateTime Block Print
+            countData++;
+            DateTime rmap_date_time_val;
+            convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
+            TRACE_VERBOSE_F(F("Data RMAP current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
+            // ******************************************************************
             // Process Data with casting RMAP Module Type
             switch (rmap_get_response.rmap_data.module_type) {
               case Module_Type::th:
                 rmap_module_TH_1_0 *rmapDataTH;
                 rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
                 // Prepare MQTT String -> rmapDataTH->ITH.humidity.val.value ecc...
                 // PUT String MQTT in Buffer Memory...
                 // SEND To MQTT Server
@@ -352,6 +368,9 @@ void SupervisorTask::Run()
               case Module_Type::rain:
                 rmap_module_Rain_1_0 *rmapDataRain;
                 rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
                 // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
                 // PUT String MQTT in Buffer Memory...
                 // SEND To MQTT Server
@@ -361,15 +380,17 @@ void SupervisorTask::Run()
             TRACE_VERBOSE_F(F("RMAP Reading Data queue error!!!\r\n"));
           }
           // Non blocking task
-          TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-          Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
         // Trace END Data response
-        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]\r\n"), rmap_eof ? OK_STRING : ERROR_STRING);
+        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
       }
       // **************************************
-      //   END TEST PUT Firmware Queue Usage
+      // END TEST GET RMAP Data, To Append MQTT
       // **************************************
+      TaskWatchDog(3500);
+      Delay(Ticks::MsToTicks(3500));
 
       // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
       param.systemStatusLock->Take();

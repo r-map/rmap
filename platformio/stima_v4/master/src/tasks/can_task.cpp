@@ -1728,6 +1728,10 @@ void CanTask::Run() {
                                     // Send queue to MMC/SD for direct archive data
                                     // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                     param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                    // Set system_status with NewData To SEND... For all operation need this signal
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.new_data_to_send = false;
+                                    param.systemStatusLock->Give();
                                 }
                                 break;
 
@@ -2046,7 +2050,7 @@ void CanTask::Run() {
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE
         if(clCanard.master.file.download_request() || param.system_status->flags.file_server_running) {            
-            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_REALTIME_DELAY_MS));
+            DelayUntil(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
         else
         {

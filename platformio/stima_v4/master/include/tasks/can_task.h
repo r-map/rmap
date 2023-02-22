@@ -86,7 +86,6 @@ using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define CAN_TASK_WAIT_DELAY_MS          (20)
-#define CAN_TASK_WAIT_REALTIME_DELAY_MS (1)
 #define CAN_TASK_SLEEP_DELAY_MS         (1250)
 
 // Task waiting queue command/response

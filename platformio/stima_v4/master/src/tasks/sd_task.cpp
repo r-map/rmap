@@ -31,6 +31,7 @@
 #define LOCAL_TASK_ID   SD_TASK_ID
 
 #include "tasks/sd_task.h"
+#include "date_time.h"
 
 #if (ENABLE_SD)
 
@@ -292,9 +293,9 @@ bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t 
     return fileReady;
 }
 
-#define DATA_FILENAME_LEN 20
 void SdTask::Run()
 {
+
   // Generic retry
   uint8_t retry;
   bool message_traced = false;
@@ -306,10 +307,12 @@ void SdTask::Run()
   rmap_archive_data_t rmap_put_archive_data;
   rmap_get_request_t rmap_get_request;
   rmap_get_response_t rmap_get_response;
-  // Name file for data append es. /data/2023_01_30.dat [20]
-  char data_file_name[DATA_FILENAME_LEN] = {0};
-  uint32_t rmap_pointer_seek;
-  uint32_t rmap_pointer_datetime;
+  // Name file for data append es. /data/2023_01_30.dat (RMAP File data are stored by Day)
+  char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};  // Name current Write File Data RMAP
+  char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};  // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
+  char rmap_file_name_check[DATA_FILENAME_LEN] = {0}; // Check control Name VAR (RMAP Data Day changed?)
+  uint32_t rmap_pointer_seek; // Seek Absolute Position Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_datetime; // Date Time Pointer Read in File RMAP Queue Out
   // Queue file put and get from external Task
   // Put From extern task to card ( Es. Receive firmware from http to SD )
   file_put_request_t file_put_request;
@@ -325,9 +328,10 @@ void SdTask::Run()
   Module_Type module_type;
   uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
-  File logFile, rmapFile, putFile; // Local file (PUT to SD with remote request)
-  File getFile[BOARDS_COUNT_MAX]; // File for remote boards multi file server (ONE File for each Boards MAX at time)
-  File dir, entry; // Access dir List
+  File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
+  File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
+  File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
+  File dir, entry, tmpFile;       // Only used for Temp(shared Open Close Single Operation) or Access directory List
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -335,7 +339,7 @@ void SdTask::Run()
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-  // Setup PIN CS SD
+  // SD-CARD Setup PIN CS SD UPIN27
   pinMode(PIN_SPI_SS, OUTPUT);
   digitalWrite(PIN_SPI_SS, HIGH);
 
@@ -373,11 +377,18 @@ void SdTask::Run()
       // Open/Create File data pointer... and check if SD Starting OK
       // Check data Pointer and create if not exist
       if(SD.exists("/data/pointer.dat")) {
-        rmapFile = SD.open("/data/pointer.dat", O_RDONLY);
-        if(rmapFile) {
-          rmapFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
-          rmapFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
-          rmapFile.close();
+        tmpFile = SD.open("/data/pointer.dat", O_RDONLY);
+        if(tmpFile) {
+          tmpFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+          tmpFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          tmpFile.close();
+          // At First Get Data Set Sync Pointer position with loaded param
+          namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_rd);
+          // Not opened? Open... in append (Normally close But ReOpen if Full Resync SD)
+          if(rmapRdFile) rmapRdFile.close();
+          // Set Current Pointer Position
+          rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+          rmapRdFile.seek(rmap_pointer_seek);
         } else {
           // SD Pointer Error, general Openon first File...
           // Error. Send to system_stae and retry OPEN INIT SD
@@ -385,17 +396,17 @@ void SdTask::Run()
           break;
         }
       } else {
-        rmapFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
-        if(rmapFile) {
+        tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
+        if(tmpFile) {
           rmap_pointer_seek = 0;
           rmap_pointer_datetime = rtc.getEpoch();  // Init to Current Epoch
           // System status enter in data not ready for SENT (no data present)
           param.systemStatusLock->Take();
           param.system_status->flags.new_data_to_send = false;
           param.systemStatusLock->Give();
-          rmapFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
-          rmapFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
-          rmapFile.close();
+          tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+          tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          tmpFile.close();
         } else {
           // SD Pointer Error, general Openon first File...
           // Error. Send to system_stae and retry OPEN INIT SD
@@ -488,35 +499,36 @@ void SdTask::Run()
       {
         uint32_t dateTimePtrCreate = 1671494400ul; // Set create file from 20/12/2022... To Now()
         uint32_t dateTimeEpoch = rtc.getEpoch();
-        char data_file_old[DATA_FILENAME_LEN];
         // Fake data with all 0
         memset(&rmap_put_archive_data, 0, sizeof(rmap_put_archive_data));
         rmap_put_archive_data.module_type = Module_Type::th;
         while(dateTimePtrCreate<dateTimeEpoch) {
-          namingFileData(dateTimePtrCreate, "/data", data_file_name);
-          if(strncmp(data_file_name, data_file_old, strlen(data_file_name))) {
-            if(rmapFile) rmapFile.close();
+          namingFileData(dateTimePtrCreate, "/data", rmap_file_name_wr);
+          if(strcmp(rmap_file_name_wr, rmap_file_name_check)) {
+            if(rmapWrFile) rmapWrFile.close();
             // Create NEW File
-            strcpy(data_file_old, data_file_name);
-            rmapFile = SD.open(data_file_name, O_WRONLY | O_CREAT);
+            strcpy(rmap_file_name_check, rmap_file_name_wr);
+            rmapWrFile = SD.open(rmap_file_name_wr, O_WRONLY | O_CREAT);
           }
           // Change data of block archive
           rmap_put_archive_data.date_time = dateTimePtrCreate;
-          dateTimePtrCreate+=900; // Add 15 min.
-          rmapFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
+          dateTimePtrCreate += 900; // Add 15 min.
+          rmapWrFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
           // WDT and Delay
-          TaskWatchDog(1);
-          Delay(Ticks::MsToTicks(1));
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
-        rmapFile.close();
+        rmapWrFile.close();
       }
 
       // *********************************************************
-      //             Perform LOG WRITE append message
+      //             Perform LOG WRITE append message 
       // *********************************************************
       // If element get all element from the queue and Put to SD
       // Typical Put of Logging are Time controlled from TASK (If queue are free into reasonable time LOG is pushed)
       // Log queue element is reasonable sized to avoid problems
+      // File are always opened if Append for fast Access Operation
+      // File can be opened simultaneously also readonly mode by another function es.Read/Print/Send INFO LOG
       is_getted_rtc = false;
       while(!param.dataLogPutQueue->IsEmpty()) {
         if(!is_getted_rtc) {
@@ -530,13 +542,13 @@ void SdTask::Run()
         }
         // Get message from queue
         if(param.dataLogPutQueue->Dequeue(logBuffer)) {
-          // Put to SD ( APPEND File )
-          logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
+          // Put to SD ( APPEND File Always Opened with Flush Data )
+          if(!logFile) logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
           if(logFile) {          
             logFile.print(logIntest);
             logFile.write(logBuffer, strlen(logBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
             logFile.println();
-            logFile.close();
+            logFile.flush();
           }
         }
       }
@@ -545,21 +557,32 @@ void SdTask::Run()
       // *********************************************************
 
       // *********************************************************
-      //           Perform RMAP Data append get message
+      //       Perform RMAP Write Data append get message
       // *********************************************************
       // If element get all element from the queue and Put to MMC
       // rmap_put_archive_data.date_time is epoch_style dateTime Archive record field
+      // Check if data must be added into current day_file. If Day cahnged (nameing!=)
+      // File data will be closed and reopened with the new name with control
+      // File have to be opened and flushed for fast write access operation
+      // Reading file ReadOnly can work simultaneously with opendFile.
+      // Pointer Read from other TASK (Read Archive Data) work reading file when is WR/Open
       while(!param.dataRmapPutQueue->IsEmpty()) {
         // Get message from queue
         if(param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data)) {
           // Put to MMC ( APPEND to File in Native Format. Check naming file )
-          namingFileData(rmap_put_archive_data.date_time, "/data", data_file_name);
-          // Not opened? Open...
-          rmapFile = SD.open(data_file_name, O_RDWR | O_APPEND);
+          namingFileData(rmap_put_archive_data.date_time, "/data", rmap_file_name_check);
+          // Day Name File Changed (Data is to save in New File?)
+          if(strcmp(rmap_file_name_wr, rmap_file_name_check)) {
+            // Save new file_name for next control
+            strcpy(rmap_file_name_wr, rmap_file_name_check);
+            // Not opened? Open... in append
+            if(rmapWrFile) rmapWrFile.close();
+            rmapWrFile = SD.open(rmap_file_name_wr, O_RDWR | O_APPEND);
+          }
           // All correct... Write Block of data
-          if(rmapFile) {
-            rmapFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
-            rmapFile.close();
+          if(rmapWrFile) {
+            rmapWrFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
+            rmapWrFile.flush();
             // System status enter in data ready for SENT (new data present)
             param.systemStatusLock->Take();
             param.system_status->flags.new_data_to_send = true;
@@ -568,7 +591,7 @@ void SdTask::Run()
         }
       }
       // *********************************************************
-      //            End OF perform RMAP append message
+      //         End OF perform RMAP Write append message
       // *********************************************************
 
       // *********************************************************
@@ -582,32 +605,47 @@ void SdTask::Run()
       while(!param.dataRmapGetRequestQueue->IsEmpty()) {
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
+        // Request Pointer SET Modify rmap_file_name_rd and current Opened File for Reading Data from External QUEUE Request
+        // Get Pointer, Get Data from File Opened. If Data Change File Day Archive (Data is Next Day From last request)
+        // rmap_file_name_rd automatic close and reopen with New Day Archive. Data Are Opened in ReadOnlyMode
+        // Resynch file are security made when New Data avaiable In Write File (system_status->new data avaiable)
         if(param.dataRmapGetRequestQueue->Dequeue(&rmap_get_request)) {
-          // Locking data session (Get)
+          // Locking data session (Get Request Operation)
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-          // Request is set pointer to date/time?
+          // ******************************************************************
+          //           Request is set pointer to date/time?
+          // ******************************************************************
           if(rmap_get_request.command.do_synch_ptr) {
             bool is_found = false;
+            char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
             uint32_t dateTimeSearch = rmap_get_request.param;
-            namingFileData(dateTimeSearch, "/data", data_file_name);
+            // Trace INFO Queue Request SET Pointer TO->
+            DateTime rmap_date_time_val;
+            convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
+            TRACE_INFO_F(F("Data RMAP requested search pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+            // Check name File            
+            namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
             // If Exist, search pointer (correct position) into file
             // Search block dateTime to synch pointer requested
-            if(SD.exists(data_file_name)) {
+            if(SD.exists(rmap_file_name_new)) {
               // Request Name File EXIST
               // Found OK
               is_found = true;
               // Reset current dateTime control position
               uint32_t currReadDateTimeFile = 0;
-              // Search pointer into file...
-              rmapFile = SD.open(data_file_name, O_RDONLY);
+              // Search pointer into file... (Open as a Temp File)
+              tmpFile = SD.open(rmap_file_name_new, O_RDONLY);
               // Correctly opened..
-              if(rmapFile) {
+              if(tmpFile) {
                 // Search wile dateTime block into file are >= to requested dateTime block
                 while(true) {
+                  // Operation perform non blocking TASK
+                  TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+                  Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
                   // Save position before read dateTime (set back)
-                  uint32_t peek_rmap_pointer = rmapFile.curPosition();
+                  uint32_t peek_rmap_pointer = tmpFile.curPosition();
                   // No more data avaiable?... Not Found
-                  if(!rmapFile.available()) {
+                  if(!tmpFile.available()) {
                     // EOF Not found, but searching procedure are correct 
                     // Pointer requested is over last data. Set Value to CurrentPosition (DateTime to Request)
                     rmap_pointer_seek = peek_rmap_pointer;
@@ -616,12 +654,17 @@ void SdTask::Run()
                     break;
                   }
                   // Read block RMAP (to check dateTime)
-                  int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                  int bytes_readed = tmpFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                  #if (ENABLE_STACK_USAGE)
+                  TaskMonitorStack();
+                  #endif
                   // Block read size is correct
                   if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
                     // Get dateTime of block
                     currReadDateTimeFile = rmap_get_response.rmap_data.date_time;
                     // Check if block DateTime is found
+                    convertUnixTimeToDate(currReadDateTimeFile, &rmap_date_time_val);
+                    TRACE_VERBOSE_F(F("Data RMAP current searching date/time (Readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
                     if(currReadDateTimeFile >= dateTimeSearch) {
                       // Found first dateTime block compilant with initial position read (peek...)
                       rmap_pointer_seek = peek_rmap_pointer;
@@ -634,11 +677,11 @@ void SdTask::Run()
                     break;
                   }
                 }
-                rmapFile.close();
+                tmpFile.close();
               } else {
                 // Error opening file
                 file_get_response.error_operation = true;
-              }              
+              }
             } else {
               // Request Name File NOT EXIST (Search another file in date sequence)
               // Reading Current epoch to STOP Searching (No data avaiable in the future)
@@ -648,16 +691,27 @@ void SdTask::Run()
                 currEpochLimitCheck = rtc.getEpoch();
                 param.rtcLock->Give();
               }
+              char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
+              dateTimeSearch = (dateTimeSearch / SECS_DAY) * SECS_DAY; // Around to DataeTime Hour 00:00:00
               while(true) {
+                // Operation perform non blocking TASK
+                TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+                Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
                 // Add time second day -> set Next Epoch Day
                 // If found, seek pointer are set to first block of data
                 // because the requested date is necessarily higher
-                dateTimeSearch+=86400ul;                
-                namingFileData(dateTimeSearch, "/data", data_file_name);
+                dateTimeSearch += SECS_DAY;                
+                convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
+                TRACE_VERBOSE_F(F("Data RMAP current searching date/time (Not readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+                namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
                 // Exist?
-                if(SD.exists(data_file_name)) {
+                if(SD.exists(rmap_file_name_new)) {
                   // FOUND FILE NEXT DATE
                   is_found = true;
+                  // Real DateTime Pointer will be set on First GetData. DataPtr is setted to Day_00:00:00
                   rmap_pointer_datetime = dateTimeSearch;
                   rmap_pointer_seek = 0;
                   break;
@@ -672,57 +726,117 @@ void SdTask::Run()
             // Found file and position correct?...
             if((!is_found)||(rmap_get_response.result.event_error)) {
               // Error procedure... or Not Found
+              TRACE_VERBOSE_F(F("Data RMAP current searching date/time FOUND [ %s ]\r\n"), ERROR_STRING);
               rmap_get_response.result.event_error = true;
             } else {
               // Responding data pointer Setted
+              TRACE_VERBOSE_F(F("Data RMAP current searching date/time FOUND [ %s ]\r\n"), OK_STRING);
               rmap_get_response.result.done_synch = true;
             }
+            // All OK?
+            if(rmap_get_response.result.done_synch) {
+              // System status enter in data ready for SENT (new data present)
+              param.systemStatusLock->Take();
+              param.system_status->flags.new_data_to_send = true;
+              param.systemStatusLock->Give();
+            }
+            // ***** Send response to request *****
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
           }
-          // Request next avaiable data?
+          // ******************************************************************
+          // Request next avaiable data? ( N.B. Standard Request for GET DATA )
+          // ******************************************************************
           else if(rmap_get_request.command.do_get_data) {
-            namingFileData(rmap_pointer_datetime, "/data", data_file_name);
-            rmapFile = SD.open(data_file_name, O_RDONLY);
+            namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
+            // Day Name File Changed (Data is to save in New File?)
+            if(strcmp(rmap_file_name_rd, rmap_file_name_check)) {
+              // Save new file_name for next control
+              strcpy(rmap_file_name_rd, rmap_file_name_check);
+              // Not opened? Open... in append
+              if(rmapRdFile) rmapRdFile.close();
+              rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+            }
             memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-            if(rmapFile) {
-              // Seek last position and read from this pointer
-              rmapFile.seek(rmap_pointer_seek);
+            if(rmapRdFile) {
               // Not avaiable, EOF...
-              if(rmapFile.available()) {
+              if(rmapRdFile.available()) {
                 // Not read size correct block?... Error
-                int bytes_readed = rmapFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
+                int bytes_readed = rmapRdFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
                 if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
-                  rmap_pointer_seek += sizeof(rmap_get_response.rmap_data);
+                  // CurPosition Check assert(bytes_readed+=sizeof(rmap_get_response.rmap_data))
+                  rmap_pointer_seek = rmapRdFile.curPosition();
                   rmap_get_response.result.done_get_data = true;
+                  // Set DateTime Local Pointer correct
+                  rmap_pointer_datetime = rmap_get_response.rmap_data.date_time;
                   // Send an EOF with a block data if last block
-                  if(rmapFile.available()) {
-                    rmap_get_response.result.end_of_data = true;
-                    // No more data avaiable
-                    param.systemStatusLock->Take();
-                    param.system_status->flags.new_data_to_send = true;
-                    param.systemStatusLock->Give();
+                  if(!rmapRdFile.available()) {
+                    // Check if another Day (Next) is present before sending End Of Data
+                    // If Exist The Seek Pointer Have to be resetted to Init Value (First Data of New File)
+                    namingFileData(rmap_pointer_datetime + SECS_DAY, "/data", rmap_file_name_check);
+                    // Not Exist? End Of Data, Otherwise next request in New Day Direct open Day File without other operation
+                    if(SD.exists(rmap_file_name_check)) {
+                      // Reopen Operation can be Start Immediatly.
+                      // Set SEEK Position to Start File and DateTime to hh:nn:ss at 0.0.0 Begin of Day
+                      rmap_pointer_seek = 0;
+                      rmap_pointer_datetime = ((rmap_pointer_datetime + SECS_DAY) / SECS_DAY) * SECS_DAY;
+                      // Save new file_name for next control
+                      strcpy(rmap_file_name_rd, rmap_file_name_check);
+                      // Not opened? Open... in append
+                      if(rmapRdFile) rmapRdFile.close();
+                      rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                    } else {
+                      rmap_get_response.result.end_of_data = true;
+                      // No more data avaiable
+                      param.systemStatusLock->Take();
+                      param.system_status->flags.new_data_to_send = false;
+                      param.systemStatusLock->Give();
+                    }
                   }
                 } else {
                   // Error readed block not correctly dimensioned
                   rmap_get_response.result.event_error = true;
                 }
               } else {
-                // EOF
-                rmap_get_response.result.end_of_data = true;
-                // No more data avaiable
-                param.systemStatusLock->Take();
-                param.system_status->flags.new_data_to_send = true;
-                param.systemStatusLock->Give();
+                  // Check if another Day (Next) is present before sending End Of Data
+                  // If Exist The Seek Pointer Have to be resetted to Init Value (First Data of New File)
+                  namingFileData(rmap_pointer_datetime + SECS_DAY, "/data", rmap_file_name_check);
+                  // Not Exist? End Of Data, Otherwise next request in New Day Direct open Day File without other operation
+                  if(SD.exists(rmap_file_name_check)) {
+                    // Reopen Operation can be Start Immediatly.
+                    rmap_pointer_seek = 0;
+                    // Save new file_name for next control
+                    strcpy(rmap_file_name_rd, rmap_file_name_check);
+                    // Not opened? Open... in append
+                    if(rmapRdFile) rmapRdFile.close();
+                    rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                  } else {
+                    rmap_get_response.result.end_of_data = true;
+                    // No more data avaiable
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.new_data_to_send = false;
+                    param.systemStatusLock->Give();
+                  }
               }
-              rmapFile.close();
-              // System status enter in data ready for SENT (new data present)
-              param.systemStatusLock->Take();
-              param.system_status->flags.new_data_to_send = true;
-              param.systemStatusLock->Give();
-              // ***** Send response to request *****
-              param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
             } else {
               // Error on open file
               rmap_get_response.result.event_error = true;
+            }
+            // ***** Send response to request *****
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+          }
+          // ******************************************************************
+          //        Request is save current Seek and DateTime pointer
+          // ******************************************************************
+          // Non esclusive command (Not else_if) Save PTR Can Be executed all request
+          // But for Fast Speed we can Call this function on End of Data Transmit
+          // Or if call down and data cannot end process upload (From extern)
+          if(rmap_get_request.command.do_save_ptr) {
+            // Rewrite Pointer Data File (Open only at startup for Set Position)
+            tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
+            if(tmpFile) {
+              tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+              tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+              tmpFile.close();
             }
           }
         }
@@ -943,8 +1057,8 @@ void SdTask::Run()
                     break;
                   }
                   // WDT non blocking task (Delay basic operation)
-                  TaskWatchDog(SD_TASK_WAIT_OPERATION_DELAY_MS);
-                  Delay(Ticks::MsToTicks(SD_TASK_WAIT_OPERATION_DELAY_MS));
+                  TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+                  Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
                 }
                 entry.close();
                 // Nothing error, starting firmware upgrade

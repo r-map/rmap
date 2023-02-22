@@ -352,6 +352,7 @@ typedef struct
    {
       uint8_t do_synch_ptr  : 1;  // Request synch pointer data rmap with param (set pointer)
       uint8_t do_get_data   : 1;  // Get first data avaiable and set pointer to next data
+      uint8_t do_save_ptr   : 1;  // Request to Save Pointer Data (Optional with All other Request)
    } command;
    uint32_t param;  // 32 Bit for generic data or casting to pointer
 
