@@ -1,9 +1,9 @@
 /**@file mqtt_task.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -61,7 +61,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //List of preferred ciphersuites
 //https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
-const uint16_t cipherSuites[] =
+const uint16_t MqttCipherSuites[] =
 {
   // rmap server psk ciphers
   TLS_PSK_WITH_AES_256_CCM                      // WEAK BUT WORK
@@ -97,7 +97,6 @@ const uint16_t cipherSuites[] =
   // TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384,
   // TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256
 };
-
 
 using namespace cpp_freertos;
 

@@ -1,9 +1,9 @@
 /**@file http_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -39,189 +39,6 @@ HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, H
   state = HTTP_STATE_INIT;
   Start();
 };
-
-// #define APP_HTTP_SERVER_PORT 80
-
-// #define APP_HTTP_SERVER_NAME "test.rmap.cc"
-// #define APP_HTTP_URI "/stations/userv4/stimav4/stima4/json/"
-
-// #define APP_HTTP_SERVER_NAME "www.baldinetti.com"
-// #define APP_HTTP_URI "/portfolio"
-
-// error_t httpClientTest()
-// {
-//   HttpClientContext httpClientContext;
-//   error_t error;
-//   size_t length;
-//   uint_t status;
-//   const char_t *value;
-//   IpAddr ipAddr;
-//   char_t buffer[128];
-
-//   // Initialize HTTP client context
-//   httpClientInit(&httpClientContext);
-
-//   // Start of exception handling block
-//   do
-//   {
-//     // Debug message
-//     TRACE_INFO("\r\n\r\nResolving server name...\r\n");
-
-//     // Resolve HTTP server name
-//     error = getHostByName(NULL, APP_HTTP_SERVER_NAME, &ipAddr, 0);
-//     // Any error to report?
-//     if (error)
-//     {
-//       // Debug message
-//       TRACE_INFO("Failed to resolve server name!\r\n");
-//       break;
-//     }
-
-//     // Select HTTP protocol version
-//     error = httpClientSetVersion(&httpClientContext, HTTP_VERSION_1_1);
-//     // Any error to report?
-//     if (error)
-//       break;
-
-//     // Set timeout value for blocking operations
-//     error = httpClientSetTimeout(&httpClientContext, 20000);
-//     // Any error to report?
-//     if (error)
-//       break;
-
-//     // Debug message
-//     TRACE_INFO("Connecting to HTTP server %s...\r\n",
-//                ipAddrToString(&ipAddr, NULL));
-
-//     // Connect to the HTTP server
-//     error = httpClientConnect(&httpClientContext, &ipAddr,
-//                               APP_HTTP_SERVER_PORT);
-//     // Any error to report?
-//     if (error)
-//     {
-//       // Debug message
-//       TRACE_INFO("Failed to connect to HTTP server!\r\n");
-//       break;
-//     }
-
-//     // Create an HTTP request
-//     httpClientCreateRequest(&httpClientContext);
-//     httpClientSetMethod(&httpClientContext, "GET");
-//     httpClientSetUri(&httpClientContext, APP_HTTP_URI);
-
-//     // Set query string
-//     // httpClientAddQueryParam(&httpClientContext, "", "");
-//     // httpClientAddQueryParam(&httpClientContext, "param2", "value2");
-
-//     // Add HTTP header fields
-//     httpClientAddHeaderField(&httpClientContext, "Host", APP_HTTP_SERVER_NAME);
-//     // httpClientAddHeaderField(&httpClientContext, "Connection", "keep-alive");
-//     // httpClientAddHeaderField(&httpClientContext, "Content-Type", "text/plain");
-//     // httpClientAddHeaderField(&httpClientContext, "Cache-Control", "max-age=0");
-//     // httpClientAddHeaderField(&httpClientContext, "Accept", "*/*");
-//     // httpClientAddHeaderField(&httpClientContext, "Accept-Encoding", "text/plain");
-//     httpClientAddHeaderField(&httpClientContext, "User-Agent", "master/1.0");
-//     // httpClientAddHeaderField(&httpClientContext, "Transfer-Encoding", "chunked");
-
-//     // Send HTTP request header
-//     error = httpClientWriteHeader(&httpClientContext);
-//     // Any error to report?
-//     if (error)
-//     {
-//       // Debug message
-//       TRACE_INFO("Failed to write HTTP request header!\r\n");
-//       break;
-//     }
-
-//     // Send HTTP request body
-//     // error = httpClientWriteBody(&httpClientContext, "", 0, NULL, 0);
-//     // // // Any error to report?
-//     // if (error)
-//     // {
-//     //   // Debug message
-//     //   TRACE_INFO("Failed to write HTTP request body!\r\n");
-//     //   break;
-//     // }
-
-//     // Receive HTTP response header
-//     error = httpClientReadHeader(&httpClientContext);
-//     // Any error to report?
-//     if (error)
-//     {
-//       // Debug message
-//       TRACE_INFO("Failed to read HTTP response header!\r\n");
-//       break;
-//     }
-
-//     // Retrieve HTTP status code
-//     status = httpClientGetStatus(&httpClientContext);
-//     // Debug message
-//     TRACE_INFO("HTTP status code: %u\r\n", status);
-
-//     // Retrieve the value of the Content-Type header field
-//     value = httpClientGetHeaderField(&httpClientContext, "Content-Type");
-
-//     // Header field found?
-//     if (value != NULL)
-//     {
-//       // Debug message
-//       TRACE_INFO("Content-Type header field value: %s\r\n", value);
-//     }
-//     else
-//     {
-//       // Debug message
-//       TRACE_INFO("Content-Type header field not found!\r\n");
-//     }
-
-//     // Receive HTTP response body
-//     while (!error)
-//     {
-//       // Read data
-//       error = httpClientReadBody(&httpClientContext, buffer,
-//                                  sizeof(buffer) - 1, &length, 0);
-
-//       // Check status code
-//       if (!error)
-//       {
-//         // Properly terminate the string with a NULL character
-//         buffer[length] = '\0';
-//         // Dump HTTP response body
-//         TRACE_INFO("%s", buffer);
-//       }
-//     }
-
-//     // Terminate the HTTP response body with a CRLF
-//     TRACE_INFO("\r\n");
-
-//     // Any error to report?
-//     if (error != ERROR_END_OF_STREAM)
-//       break;
-
-//     // Close HTTP response body
-//     error = httpClientCloseBody(&httpClientContext);
-//     // Any error to report?
-//     if (error)
-//     {
-//       // Debug message
-//       TRACE_INFO("Failed to read HTTP response trailer!\r\n");
-//       break;
-//     }
-
-//     // Gracefully disconnect from the HTTP server
-//     httpClientDisconnect(&httpClientContext);
-
-//     // Debug message
-//     TRACE_INFO("Connection closed\r\n");
-
-//     // End of exception handling block
-//   } while (0);
-
-//   // Release HTTP client context
-//   httpClientDeinit(&httpClientContext);
-
-//   // Return status code
-//   return error;
-// }
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
@@ -287,6 +104,7 @@ void HttpTask::Run() {
   IpAddr ipAddr;
   uint_t status;
   const char_t *value;
+  std::string serial_number_str;
 
   char uri[HTTP_URI_LENGTH];
   char header[HTTP_HEADER_SIZE];
@@ -324,7 +142,9 @@ void HttpTask::Run() {
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
       if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
       {
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+        HttpServer = param.configuration->mqtt_server;
+
         // do http get configuration
         if (connection_request.do_http_get_configuration)
         {
@@ -352,11 +172,11 @@ void HttpTask::Run() {
       param.system_status->connection.is_http_firmware_upgrading = is_get_firmware;
       param.systemStatusLock->Give();
 
-      TRACE_INFO_F(F("%s Resolving http server name of %s \r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
+      TRACE_INFO_F(F("%s Resolving http server name of %s \r\n"), Thread::GetName().c_str(), HttpServer);
 
       // Resolve HTTP server name
       TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-      error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
+      error = getHostByName(NULL, HttpServer, &ipAddr, 0);
       TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
@@ -365,7 +185,27 @@ void HttpTask::Run() {
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
 
-        TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
+        break;
+      }
+
+      // Shared Pointer
+      HttpYarrowContext = param.yarrowContext;
+      HttpClientPSKKey = param.configuration->client_psk_key;
+
+      // Set PSK identity
+      snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+
+      // Register TLS initialization callback
+      error = httpClientRegisterTlsInitCallback(&httpClientContext, httpClientTlsInitCallback);
+      // Any error to report?
+      if (error)
+      {
+        is_error = true;
+        state = HTTP_STATE_END;
+        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+        TRACE_ERROR_F(F("%s Failed to init https callback [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         break;
       }
 
@@ -397,7 +237,7 @@ void HttpTask::Run() {
 
       TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       // Connect to the HTTP server
-      error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_PORT);
+      error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_CLIENT_PORT);
       TaskState(state, 1, task_flag::normal); // Resume
       // Any error to report?
       if (error)
@@ -406,7 +246,7 @@ void HttpTask::Run() {
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
 
-        TRACE_ERROR_F(F("%s Failed to connect to http server %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
+        TRACE_ERROR_F(F("%s Failed to connect to http server %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
         break;
       }
 
@@ -416,14 +256,14 @@ void HttpTask::Run() {
 
       if (is_get_configuration)
       {
-        snprintf(uri, sizeof(uri), "/stations/%s/%s/%s/json/", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+        snprintf(uri, sizeof(uri), "/stationconfig/%s/%s/json/", param.configuration->mqtt_username, param.configuration->stationslug);
       }
       else if (is_get_firmware)
       {
         snprintf(uri, sizeof(uri), "/stations/%s/%s/%s/?", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
       }
 
-      TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, uri);
+      TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
 
       httpClientSetUri(&httpClientContext, uri);
 
@@ -432,17 +272,20 @@ void HttpTask::Run() {
       // httpClientAddQueryParam(&httpClientContext, "param2", "value2");
 
       // Add HTTP header fields
-      httpClientAddHeaderField(&httpClientContext, "Host", param.configuration->mqtt_server);
+      httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
+
+      // from uint64_t to string
+      serial_number_str = std::to_string(param.configuration->board_master.serial_number);
 
       if (is_get_firmware)
       {
         snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
         httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
-        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", "123456"); // Patruno: 123456 esempio di BOARD-MAC che dovrebbe essere il seriale univoco necessario per il P&P
+        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str.c_str());
       }
 
       getStimaNameByType(user_agents, param.configuration->module_type);
-      snprintf(user_agents, sizeof(user_agents), "%s/%d", user_agents, 123456); // Patruno: 123456 esempio di BOARD-MAC che dovrebbe essere il seriale univoco necessario per il P&P
+      snprintf(user_agents, sizeof(user_agents), "%s/%s", user_agents, serial_number_str.c_str());
       httpClientAddHeaderField(&httpClientContext, "User-Agent", user_agents);
 
       // Send HTTP request header
@@ -652,6 +495,53 @@ void HttpTask::Run() {
 
     }
   }
+}
+
+/**
+ * @brief TLS initialization callback
+ * @param[in] context Pointer to the HTTP client context
+ * @param[in] tlsContext Pointer to the TLS context
+ * @return Error code
+ **/
+error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext)
+{
+  error_t error;
+
+  // Debug message
+  TRACE_INFO_F(F("HTTP Client TLS initialization callback\r\n"));
+
+  // Set the PRNG algorithm to be used
+  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, &HttpYarrowContext);
+  // Any error to report?
+  if (error)
+    return error;
+
+  // Preferred cipher suite list
+  error = tlsSetCipherSuites(tlsContext, HttpCipherSuites, arraysize(HttpCipherSuites));
+  // Any error to report?
+  if (error)
+    return error;
+
+  // Set the fully qualified domain name of the server
+  error = tlsSetServerName(tlsContext, HttpServer);
+  // Any error to report?
+  if (error)
+    return error;
+
+  // Set the PSK identity to be used by the client
+  error = tlsSetPskIdentity(tlsContext, HttpClientPSKIdentity);
+  // Any error to report?
+  if (error)
+    return error;
+
+  // Set the pre-shared key to be used
+  error = tlsSetPsk(tlsContext, HttpClientPSKKey, CLIENT_PSK_KEY_LENGTH);
+  // Any error to report?
+  if (error)
+    return error;
+
+  // Successful processing
+  return NO_ERROR;
 }
 
 #endif

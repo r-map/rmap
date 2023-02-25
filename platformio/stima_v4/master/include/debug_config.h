@@ -1,9 +1,9 @@
 /**@file debug_config.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
 #define HTTP_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
 #define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_VERBOSE
-#define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+#define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
 #define MMC_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
 #define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
 #define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE

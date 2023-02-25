@@ -1,9 +1,9 @@
 /**@file supervisor_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -963,12 +963,15 @@ bool SupervisorTask::saveConfiguration(bool is_default)
 
       // TODO: da rimuovere
       #if (USE_MQTT)
-      uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
+      // uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
+      uint8_t temp_psk_key[] = {0x30, 0xA4, 0x45, 0xD2, 0xE6, 0x1A, 0x88, 0xD7, 0xDB, 0x7D, 0xC4, 0xF7, 0xC9, 0x6B, 0xC5, 0x27};
       osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
 
       strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
-      strSafeCopy(param.configuration->stationslug, "stimav4", STATIONSLUG_LENGTH);
+      strSafeCopy(param.configuration->stationslug, "stimacan", STATIONSLUG_LENGTH);
       strSafeCopy(param.configuration->boardslug, "stima4", BOARDSLUG_LENGTH);
+
+      param.configuration->board_master.serial_number = 0xABCDEF1;
       #endif
     }
 

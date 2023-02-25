@@ -1,9 +1,9 @@
 /**@file http_config.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _HTTP_CONFIG_H
 #define _HTTP_CONFIG_H
 
-#define HTTP_PORT                (80)
+#define HTTP_CLIENT_PORT         (873)
 
 #define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 

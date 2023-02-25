@@ -1,9 +1,9 @@
 /**@file sensors_config.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 Paolo patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or

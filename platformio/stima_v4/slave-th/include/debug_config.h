@@ -1,9 +1,9 @@
 /**@file debug_config.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _DEBUG_CONFIG_H
 #define _DEBUG_CONFIG_H
 
-#define STIMA_TRACE_LEVEL                 TRACE_LEVEL_INFO
-#define SUPERVISOR_TASK_TRACE_LEVEL       TRACE_LEVEL_VERBOSE
-#define CAN_TASK_TRACE_LEVEL              TRACE_LEVEL_VERBOSE
-#define ACCELEROMETER_TASK_TRACE_LEVEL    TRACE_LEVEL_VERBOSE
-#define WDT_TASK_TRACE_LEVEL              TRACE_LEVEL_VERBOSE
+#define STIMA_TRACE_LEVEL                 TRACE_LEVEL_OFF
+#define SUPERVISOR_TASK_TRACE_LEVEL       TRACE_LEVEL_OFF
+#define CAN_TASK_TRACE_LEVEL              TRACE_LEVEL_OFF
+#define ACCELEROMETER_TASK_TRACE_LEVEL    TRACE_LEVEL_OFF
+#define WDT_TASK_TRACE_LEVEL              TRACE_LEVEL_OFF
 #define TH_SENSOR_TASK_TRACE_LEVEL        TRACE_LEVEL_VERBOSE
 #define ELABORATE_DATA_TASK_TRACE_LEVEL   TRACE_LEVEL_VERBOSE
 #define SENSOR_DRIVER_TRACE_LEVEL         TRACE_LEVEL_VERBOSE

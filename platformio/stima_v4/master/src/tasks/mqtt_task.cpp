@@ -1,9 +1,9 @@
 /**@file mqtt_task.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -450,7 +450,7 @@ error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tl
     return error;
 
   //Preferred cipher suite list
-  error = tlsSetCipherSuites(tlsContext, cipherSuites, sizeof(cipherSuites));
+  error = tlsSetCipherSuites(tlsContext, MqttCipherSuites, sizeof(MqttCipherSuites));
   // Any error to report?
   if(error)
     return error;
