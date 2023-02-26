@@ -111,7 +111,7 @@ void HttpTask::Run() {
 
   char uri[HTTP_URI_LENGTH];
   char header[HTTP_HEADER_SIZE];
-  char user_agents[HTTP_USER_AGENTS_LENGTH];
+  char module_type[STIMA_MODULE_NAME_LENGTH];
 
   bool is_get_configuration;
   bool is_get_firmware;
@@ -258,15 +258,15 @@ void HttpTask::Run() {
       httpClientCreateRequest(&httpClientContext);
       httpClientSetMethod(&httpClientContext, "GET");
 
-      getStimaNameByType(user_agents, param.configuration->module_type, 7);
+      getStimaNameByType(module_type, param.configuration->module_type, 7);
 
       if (is_get_configuration)
       {
         snprintf(uri, sizeof(uri), "/stationconfig/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug);
       }
       else if (is_get_firmware)
-      {//http://test.rmap.cc/firmware/stima/v4/update/module_th/
-        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", user_agents);
+      {
+        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", module_type);
       }
 
       TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
@@ -281,7 +281,6 @@ void HttpTask::Run() {
       httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
 
       // from uint64_t to string
-      // serial_number_str = std::to_string(param.configuration->board_master.serial_number);
       serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
       serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
 
@@ -294,7 +293,6 @@ void HttpTask::Run() {
         httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str);
       }
 
-      // snprintf(user_agents, sizeof(user_agents), "%s/%s", user_agents, serial_number_str);
       httpClientAddHeaderField(&httpClientContext, "User-Agent", "STIMA4-http-Update");
 
       // Send HTTP request header
