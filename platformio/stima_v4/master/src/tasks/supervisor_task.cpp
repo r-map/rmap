@@ -110,8 +110,8 @@ void SupervisorTask::Run()
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
 
   // TODO: remove
-  bool test_put_firmware = true;
-  bool test_get_data = true;
+  bool test_put_firmware = false;
+  bool test_get_data = false;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -278,7 +278,6 @@ void SupervisorTask::Run()
       // **************************************
       //   TEST GET RMAP Data, To Append MQTT
       // **************************************
-      test_get_data = false;
       if(!test_get_data) {
 
         test_get_data = true;
@@ -396,6 +395,7 @@ void SupervisorTask::Run()
       param.systemStatusLock->Take();
       param.system_status->connection.is_ntp_synchronized = false;
       param.system_status->connection.is_http_configuration_updated = false;
+      param.system_status->connection.is_http_firmware_upgraded = false;
       param.system_status->connection.is_mqtt_connected = false;
       param.systemStatusLock->Give();
 
@@ -419,8 +419,9 @@ void SupervisorTask::Run()
       // Sequence connection (on start set request param list operation)
       // es. ->
       // param.system_status->connection.is_ntp_synchronized = true; (require new NTP synch)
-      // param.system_status->connection.is_http_configuration_updated = true; (no operation)
-      // param.system_status->connection.is_mqtt_connected = false; ...
+      param.system_status->connection.is_http_configuration_updated = true; // (no operation)
+      // param.system_status->connection.is_http_firmware_upgraded = true;
+      // param.system_status->connection.is_mqtt_connected = true;
 
       // SUB Case of sequence of check (connection / operation) state
       switch(state_check_connection) {
@@ -468,6 +469,18 @@ void SupervisorTask::Run()
             // Request configuration update by http request
             memset(&connection_request, 0, sizeof(connection_request_t));
             connection_request.do_http_get_configuration = true;
+            param.connectionRequestQueue->Enqueue(&connection_request, 0);
+
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
+            state = SUPERVISOR_STATE_DO_HTTP;
+          }
+          else if (!param.system_status->connection.is_http_firmware_upgraded)
+          {
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
+
+            // Request firmware download by http request
+            memset(&connection_request, 0, sizeof(connection_request_t));
+            connection_request.do_http_get_firmware = true;
             param.connectionRequestQueue->Enqueue(&connection_request, 0);
 
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
@@ -969,7 +982,13 @@ bool SupervisorTask::saveConfiguration(bool is_default)
 
       strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
       strSafeCopy(param.configuration->stationslug, "stimacan", STATIONSLUG_LENGTH);
-      strSafeCopy(param.configuration->boardslug, "stima4", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->boardslug, "stimav4", BOARDSLUG_LENGTH);
+
+      param.configuration->latitude = 4512345;
+      param.configuration->longitude = 1212345;
+
+      strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
+      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);
 
       param.configuration->board_master.serial_number = 0xABCDEF1;
       #endif

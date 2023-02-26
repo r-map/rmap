@@ -48,6 +48,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
 #include "rng/trng.h"
 #include "rng/yarrow.h"
+#include <string>
 #include "debug_F.h"
 
 //List of preferred ciphersuites

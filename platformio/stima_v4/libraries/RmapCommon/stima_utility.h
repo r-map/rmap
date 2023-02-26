@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \param[in] *type module type stored in configuration.
 \return void.
 */
-void getStimaNameByType(char *name, uint8_t type);
+void getStimaNameByType(char *name, uint8_t type, uint8_t offset = 0);
 
 /*!
 \fn void getStimaDescriptionByType(char *name, uint8_t type)

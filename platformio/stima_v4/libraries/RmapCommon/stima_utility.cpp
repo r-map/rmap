@@ -27,54 +27,54 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "stdlib.h"
 #include "stdio.h"
 
-void getStimaNameByType(char *name, uint8_t type) {
+void getStimaNameByType(char *name, uint8_t type, uint8_t offset) {
   switch (type) {
     case STIMA_MODULE_TYPE_MASTER_ETH:
-      strncpy(name, STIMA_MODULE_NAME_MASTER_ETH, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_MASTER_ETH + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_MASTER_GSM:
-      strncpy(name, STIMA_MODULE_NAME_MASTER_GSM, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_MASTER_GSM + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_RAIN:
-      strncpy(name, STIMA_MODULE_NAME_RAIN, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_RAIN + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_TH:
-      strncpy(name, STIMA_MODULE_NAME_TH, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_TH + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_THR:
-      strncpy(name, STIMA_MODULE_NAME_THR, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_THR + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_OPC:
-      strncpy(name, STIMA_MODULE_NAME_OPC, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_OPC + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_LEAF:
-      strncpy(name, STIMA_MODULE_NAME_LEAF, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_LEAF + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_WIND:
-      strncpy(name, STIMA_MODULE_NAME_WIND, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_WIND + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_SOLAR_RADIATION:
-      strncpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_GAS:
-      strncpy(name, STIMA_MODULE_NAME_GAS, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_GAS + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      strncpy(name, STIMA_MODULE_NAME_POWER_MPPT, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_POWER_MPPT + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_VVC:
-      strncpy(name, STIMA_MODULE_NAME_VVC, STIMA_MODULE_NAME_LENGTH);
+      strncpy(name, STIMA_MODULE_NAME_VVC + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     default:

@@ -104,7 +104,10 @@ void HttpTask::Run() {
   IpAddr ipAddr;
   uint_t status;
   const char_t *value;
-  std::string serial_number_str;
+  // std::string serial_number_str;
+  char_t serial_number_str[12];
+  uint32_t serial_number_l;
+  uint32_t serial_number_h;
 
   char uri[HTTP_URI_LENGTH];
   char header[HTTP_HEADER_SIZE];
@@ -195,6 +198,7 @@ void HttpTask::Run() {
 
       // Set PSK identity
       snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      TRACE_VERBOSE_F(F("HTTP PSK Identity: %s\r\n"), HttpClientPSKIdentity);
 
       // Register TLS initialization callback
       error = httpClientRegisterTlsInitCallback(&httpClientContext, httpClientTlsInitCallback);
@@ -254,13 +258,15 @@ void HttpTask::Run() {
       httpClientCreateRequest(&httpClientContext);
       httpClientSetMethod(&httpClientContext, "GET");
 
+      getStimaNameByType(user_agents, param.configuration->module_type, 7);
+
       if (is_get_configuration)
       {
-        snprintf(uri, sizeof(uri), "/stationconfig/%s/%s/json/", param.configuration->mqtt_username, param.configuration->stationslug);
+        snprintf(uri, sizeof(uri), "/stationconfig/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug);
       }
       else if (is_get_firmware)
-      {
-        snprintf(uri, sizeof(uri), "/stations/%s/%s/%s/?", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      {//http://test.rmap.cc/firmware/stima/v4/update/module_th/
+        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", user_agents);
       }
 
       TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
@@ -275,18 +281,21 @@ void HttpTask::Run() {
       httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
 
       // from uint64_t to string
-      serial_number_str = std::to_string(param.configuration->board_master.serial_number);
+      // serial_number_str = std::to_string(param.configuration->board_master.serial_number);
+      serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
+      serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
+
+      snprintf(serial_number_str, sizeof(serial_number_str), "%lu%lu", serial_number_l, serial_number_h);
 
       if (is_get_firmware)
       {
         snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
         httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
-        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str.c_str());
+        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str);
       }
 
-      getStimaNameByType(user_agents, param.configuration->module_type);
-      snprintf(user_agents, sizeof(user_agents), "%s/%s", user_agents, serial_number_str.c_str());
-      httpClientAddHeaderField(&httpClientContext, "User-Agent", user_agents);
+      // snprintf(user_agents, sizeof(user_agents), "%s/%s", user_agents, serial_number_str);
+      httpClientAddHeaderField(&httpClientContext, "User-Agent", "STIMA4-http-Update");
 
       // Send HTTP request header
       error = httpClientWriteHeader(&httpClientContext);
@@ -511,7 +520,7 @@ error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsConte
   TRACE_INFO_F(F("HTTP Client TLS initialization callback\r\n"));
 
   // Set the PRNG algorithm to be used
-  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, &HttpYarrowContext);
+  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, HttpYarrowContext);
   // Any error to report?
   if (error)
     return error;
