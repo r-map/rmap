@@ -1115,13 +1115,15 @@ class TransportHTTPREPONSE(Transport):
     Useful for jsrpc notification only
     """
 
-    def __init__(self,response,logfunc=log_dummy):
+    def __init__(self,response,logfunc=log_dummy,endrpc=None):
         self.response=response
+        self.endrpc=endrpc
         
     def send(self, string):
         """write data to STREAM with '***SEND:' prefix """
         print("***SEND:")
         self.response.write(string)
+        if (not self.endrpc is None): self.response.write(self.endrpc)
 
     def sendrecv( self, string ):
         """send + receive data"""

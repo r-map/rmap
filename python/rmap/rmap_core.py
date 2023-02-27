@@ -199,7 +199,7 @@ def addboard(station_slug=None,username=None,board_slug=None,type=None,sn=None,a
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
-              ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org", tcpipgsmapn="ibox.tim.it"
+              ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org", tcpipgsmapn="ibox.tim.it",tcpippppnumber="*99#"
           ):
 
     print("---------------------------")
@@ -301,6 +301,7 @@ def addboard(station_slug=None,username=None,board_slug=None,type=None,sn=None,a
     transporttcpip.name=tcpipname
     transporttcpip.ntpserver=tcpipntpserver
     transporttcpip.gsmapn=tcpipgsmapn
+    transporttcpip.pppnumber=tcpippppnumber    
     myboard.transporttcpip=transporttcpip
     print("TCPIP Transport", myboard.transporttcpip)                
     myboard.transporttcpip.save()
@@ -1312,7 +1313,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         
         # with MQTT we send a configure command without params 
         # to say to the station to do not disconnect and wait for RPC
-        if transport_name == "mqtt":
+        if transport_name == "mqtt" and version == "3":
             print("MQTT prepare to RPC",rpcproxy.configure())
             time.sleep(30)
 
@@ -1390,6 +1391,8 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 #print("ntpserver:",rpcproxy.configure(gsmapn="ibox.tim.it",ntpserver=board.transporttcpip.ntpserver))
                 print("ntpserver:",rpcproxy.configure(ntpserver=board.transporttcpip.ntpserver))
                 print("gsmapn:",rpcproxy.configure(gsmapn=board.transporttcpip.gsmapn))
+                if (version != "3"):
+                    print("pppnumber:",rpcproxy.configure(pppnumber=board.transporttcpip.pppnumber))
 
         except ObjectDoesNotExist:
             print("transport tcpip not present")

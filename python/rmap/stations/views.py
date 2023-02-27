@@ -137,8 +137,8 @@ def mystationmetadata_upload_json(request):
 
 def mystationmetadata_config(request,user,station_slug):
     
-    response = HttpResponse()
-    transport=TransportHTTPREPONSE(response=response)
+    response = HttpResponse( content_type="text/plain")
+    transport=TransportHTTPREPONSE(response=response,endrpc="\n")
 
     rmap_core.configstation(transport=transport,station_slug=station_slug,
                             username=user,
