@@ -161,10 +161,24 @@ class Sensor(models.Model):
     def dynamic_timerange(self):
 
         try:
-            return self.timerange.format(P2=self.board.transportmqtt.mqttsampletime)
+            if self.board.transportmqtt.active:
+                #board have mqtttransport active; use it
+                return self.timerange.format(P2=self.board.transportmqtt.mqttsampletime)
         except:
-            return self.timerange
-        
+            pass
+
+        #board do not have mqtttransport active; search for other board in station with mqtttransport
+        mystation=self.board.stationmetadata
+        for board in mystation.board_set.all():
+            # try to get sampletime: from mqtt transport of one board of the station
+            # we use the first found
+            if (hasattr(board, 'transportmqtt')):
+                if (board.transportmqtt.active) :
+                    return self.timerange.format(P2=board.transportmqtt.mqttsampletime)
+
+        print ("dynamic_timerange warning: return timerange with default 900 sec. if not static defined")
+        return self.timerange.format(P2=900)
+                
     def underscored_timerange(self):
         return self.dynamic_timerange().replace(',','_')
 
