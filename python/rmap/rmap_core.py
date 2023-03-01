@@ -1140,7 +1140,7 @@ def modifystation(station_slug=None,username=None,lon=None,lat=None):
 
 # example rpcsMQTT(station_slug="test", username="myusername",recovery={"dts":[2022,2,16,12,0,0]})
 def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
-                   username=None,**kwargs):
+                   username=None,version=3,**kwargs):
 
     if (station_slug is None): return
     if (username is None): return
@@ -1165,10 +1165,14 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
                 #####################################
                 
                 ident = mystation.ident
-                myhost =board.transportmqtt.mqttserver
-                myuser =board.transportmqtt.mqttuser
-                mypassword =board.transportmqtt.mqttpassword
-
+                myhost = board.transportmqtt.mqttserver
+                myuser = board.transportmqtt.mqttuser
+                mypassword = board.transportmqtt.mqttpassword
+                if (version == "3"):
+                    mymqttpskkey=None
+                else:
+                    mymqttpskkey = board.transportmqtt.mqttpskkey
+                
                 #print (myuser,ident,mystation.lon,mystation.lat,mystation.network)
                 #print(myuser,mystation.slug,board.slug)
                 
@@ -1177,7 +1181,9 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
                     "/"+mystation.network+"/"
                 mqttuser=myuser+"/"+mystation.slug+"/"+board.slug
                 
-                transport=jsonrpc.TransportMQTT( host=myhost, user=mqttuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
+                transport=jsonrpc.TransportMQTT( host=myhost, user=mqttuser,password=mypassword,
+                                                 rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2,
+                                                 pskkey=mymqttpskkey)
 
         except ObjectDoesNotExist:
             print("transport MQTT not present for this board")

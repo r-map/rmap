@@ -832,20 +832,98 @@ class TransportSERIAL(Transport):
         self.ser.close()
         self.log( "serial port closed" )
 
+
+# PSK SSL ------------------------------------------------------------
+# https://github.com/maovidal/paho_sslpsk2_demo
+
+import ssl
+from sslpsk.sslpsk import _ssl_set_psk_server_callback, _ssl_set_psk_client_callback
+
+# Modify SSLContext to use sslpsk
+# https://github.com/drbild/sslpsk/issues/19#issue-547462099
+
+def _ssl_setup_psk_callbacks(sslobj):
+    psk = sslobj.context.psk
+    hint = sslobj.context.hint
+    identity = sslobj.context.identity
+    if psk:
+        if sslobj.server_side:
+            cb = psk if callable(psk) else lambda _identity: psk
+            _ssl_set_psk_server_callback(sslobj, cb, hint)
+        else:
+            cb = psk if callable(psk) else lambda _hint: psk if isinstance(psk, tuple) else (psk, identity)
+            _ssl_set_psk_client_callback(sslobj, cb)
+
+
+class SSLPSKContext(ssl.SSLContext):
+    @property
+    def psk(self):
+        return getattr(self, "_psk", None)
+
+    @psk.setter
+    def psk(self, psk):
+        self._psk = psk
+
+    @property
+    def hint(self):
+        return getattr(self, "_hint", None)
+
+    @hint.setter
+    def hint(self, hint):
+        self._hint = hint
+
+    @property
+    def identity(self):
+        return getattr(self, "_identity", None)
+
+    @identity.setter
+    def identity(self, identity):
+        self._identity = identity
+
+
+class SSLPSKObject(ssl.SSLObject):
+    def do_handshake(self, *args, **kwargs):
+        _ssl_setup_psk_callbacks(self)
+        super().do_handshake(*args, **kwargs)
+
+
+class SSLPSKSocket(ssl.SSLSocket):
+    def do_handshake(self, *args, **kwargs):
+        _ssl_setup_psk_callbacks(self)
+        super().do_handshake(*args, **kwargs)
+
+
+SSLPSKContext.sslobject_class = SSLPSKObject
+SSLPSKContext.sslsocket_class = SSLPSKSocket
+
+# PSK SSL ------------------------------------------------------------
+        
 class TransportMQTT(Transport):
     """receive and send to mqtt broker.
 
     tested with mosquitto
     """
 
-    def __init__(self,host="rmap.cc",user=None,password=None,rpctopic="rpc",client_id=None,timeout=10,logfunc=log_dummy):
+    def __init__(self,host="rmap.cc",user=None,password=None,rpctopic="rpc",client_id=None,timeout=10,logfunc=log_dummy,pskkey=None):
 
         import paho.mqtt.client as mqtt
         import signal
-
+        
         self.mqtt_host = host
         self.mqttc = mqtt.Client(client_id, clean_session=True)
-        if user is not None:
+
+        if (not pskkey is None):
+            
+            # Preparations to use the new SSLPSKContext object with Paho
+            # https://github.com/eclipse/paho.mqtt.python/issues/451#issuecomment-705623084
+            context = SSLPSKContext(ssl.PROTOCOL_TLSv1_2)
+            context.set_ciphers('PSK')
+            context.psk = bytes.fromhex(pskkey)
+            context.identity = str.encode(user)
+            #context.hint = b'rmap'        
+            self.mqttc.tls_set_context(context)
+        
+        if password is not None:
             self.mqttc.username_pw_set(user,password)
 
         self.mqttc.on_message = self.on_message
@@ -869,7 +947,8 @@ class TransportMQTT(Transport):
         rc=mqtt.MQTT_ERR_CONN_REFUSED
         while ( not  (rc == mqtt.MQTT_ERR_SUCCESS)):
             try:
-                rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
+                rc=self.mqttc.connect(self.mqtt_host, 8885, 60)
+                #rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
             except:
                 rc=mqtt.MQTT_ERR_CONN_REFUSED
 

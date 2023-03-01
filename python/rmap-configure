@@ -681,7 +681,7 @@ if args.rpc_mqtt_reboot:
 
     rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 username=args.username,
+                                 username=args.username,version=args.stima_version,
                                  reboot={})
 
     print("END of rpc_mqtt_reboot")
