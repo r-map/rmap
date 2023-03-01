@@ -947,8 +947,10 @@ class TransportMQTT(Transport):
         rc=mqtt.MQTT_ERR_CONN_REFUSED
         while ( not  (rc == mqtt.MQTT_ERR_SUCCESS)):
             try:
-                rc=self.mqttc.connect(self.mqtt_host, 8885, 60)
-                #rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
+                if (pskkey is None):
+                    rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
+                else:
+                    rc=self.mqttc.connect(self.mqtt_host, 8885, 60)
             except:
                 rc=mqtt.MQTT_ERR_CONN_REFUSED
 
