@@ -299,14 +299,15 @@ def sha(request):
                         if mystation.active:
                             myboard = mystation.board_set.get(slug=board_slug)
                             if myboard is not None:
-                                if ( myboard.active and myboard.transportmqtt.active):
-                                    myuser = myboard.transportmqtt.mqttuser
-                                    mypassword = myboard.transportmqtt.mqttpassword
+                                if (hasattr(myboard, 'transportmqtt')):
+                                    if ( myboard.active and myboard.transportmqtt.active):
+                                        myuser = myboard.transportmqtt.mqttuser
+                                        mypassword = myboard.transportmqtt.mqttpassword
                                     
-                                    if (mypassword):
-                                        response=HttpResponse(make_password(mypassword))
-                                        response.status_code=200
-                                        return response
+                                        if (mypassword):
+                                            response=HttpResponse(make_password(mypassword))
+                                            response.status_code=200
+                                            return response
                         
                 except ObjectDoesNotExist:
                     payload="MQTT PSKKEY not present for this user/station/board"
@@ -359,14 +360,15 @@ def pskkey(request):
                         if mystation.active:
                             myboard = mystation.board_set.get(slug=board_slug)
                             if myboard is not None:
-                                if ( myboard.active and myboard.transportmqtt.active):
-                                    myuser = myboard.transportmqtt.mqttuser
-                                    mypskkey = myboard.transportmqtt.mqttpskkey
+                                if (hasattr(myboard, 'transportmqtt')):
+                                    if ( myboard.active and myboard.transportmqtt.active):
+                                        myuser = myboard.transportmqtt.mqttuser
+                                        mypskkey = myboard.transportmqtt.mqttpskkey
                                     
-                                    if (mypskkey):
-                                        response=HttpResponse(mypskkey)
-                                        response.status_code=200
-                                        return response
+                                        if (mypskkey):
+                                            response=HttpResponse(mypskkey)
+                                            response.status_code=200
+                                            return response
                         
                 except ObjectDoesNotExist:
                     payload="MQTT PSKKEY not present for this user/station/board"
@@ -475,29 +477,30 @@ def acl(request):
                             lon=mystation.lon
                             myboard = mystation.board_set.get(slug=board_slug)
                             if myboard is not None:
-                                if ( myboard.active and myboard.transportmqtt.active):
-                                    username = myboard.transportmqtt.mqttuser
-                                    mynetwork=mystation.network
-                                    if lat is None:
-                                        mytopic="/"
-                                    else:
-                                        mytopic="/%d,%d/" % (nint(mystation.lon*100000),nint(mystation.lat*100000))
-
-                                    #read and write and subscribe to all in 1/report/username/ident/# 1/sample/username/ident/# 1/maint/username/ident/# 1/rpc/username/ident/#
-                                    if topic.startswith(
-                                            (
-                                                "1/sample/"+username+"/"+mytopic,
-                                                "1/report/"+username+"/"+mytopic,
-                                                "1/maint/"+username+"/"+mytopic,
-                                                "1/rpc/"+username+"/"+mytopic
-                                            )
-                                    ):
-                                        if acc == "2" or acc == "3":
-                                            if (topic.split("/")[5] == mynetwork):
-                                                response=HttpResponse("allow")
-                                                response.status_code=200
-                                                return response
+                                if (hasattr(myboard, 'transportmqtt')):
+                                    if ( myboard.active and myboard.transportmqtt.active):
+                                        username = myboard.transportmqtt.mqttuser
+                                        mynetwork=mystation.network
+                                        if lat is None:
+                                            mytopic="/"
                                         else:
+                                            mytopic="/%d,%d/" % (nint(mystation.lon*100000),nint(mystation.lat*100000))
+
+                                        #read and write and subscribe to all in 1/report/username/ident/# 1/sample/username/ident/# 1/maint/username/ident/# 1/rpc/username/ident/#
+                                        if topic.startswith(
+                                                (
+                                                    "1/sample/"+username+"/"+mytopic,
+                                                    "1/report/"+username+"/"+mytopic,
+                                                    "1/maint/"+username+"/"+mytopic,
+                                                    "1/rpc/"+username+"/"+mytopic
+                                                )
+                                        ):
+                                            if acc == "2" or acc == "3":
+                                                if (topic.split("/")[5] == mynetwork):
+                                                    response=HttpResponse("allow")
+                                                    response.status_code=200
+                                                    return response
+                                            else:
                                                 response=HttpResponse("allow")
                                                 response.status_code=200
                                                 return response
@@ -529,6 +532,43 @@ def acl(request):
                         response=HttpResponse("allow")
                         response.status_code=200
                         return response
+
+
+
+            # write to all user's stations and network
+            if acc == "2" or acc == "3":
+                
+                username=p.match(request.POST['username'])
+                if username:
+                    username = username.string
+
+                    for mystation in StationMetadata.objects.filter(user__username=username).prefetch_related('board_set'):
+                        if mystation.active:
+                            lat=mystation.lat
+                            lon=mystation.lon
+                            for myboard in mystation.board_set.all():
+                                if (hasattr(myboard, 'transportmqtt')):
+                                    if ( myboard.active and myboard.transportmqtt.active):
+                                        username = myboard.transportmqtt.mqttuser
+                                        mynetwork=mystation.network
+                                        if lat is None:
+                                            mytopic="/"
+                                        else:
+                                            mytopic="/%d,%d/" % (nint(lon*100000),nint(lat*100000))
+
+                                        #read and write and subscribe to all in 1/report/username/ident/# 1/sample/username/ident/# 1/maint/username/ident/# 1/rpc/username/ident/#
+                                        if topic.startswith(
+                                                (
+                                                    "1/sample/"+username+"/"+mytopic,
+                                                    "1/report/"+username+"/"+mytopic,
+                                                    "1/maint/"+username+"/"+mytopic,
+                                                    "1/rpc/"+username+"/"+mytopic
+                                                )
+                                        ):
+                                            if (topic.split("/")[5] == mynetwork):
+                                                response=HttpResponse("allow")
+                                                response.status_code=200
+                                                return response
 
 
             # legacy acl for user auth
