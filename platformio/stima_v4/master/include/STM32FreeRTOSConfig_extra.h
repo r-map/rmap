@@ -1,6 +1,9 @@
 #define configUSE_CMSIS_RTOS_V2         1
 #define configCHECK_FOR_STACK_OVERFLOW  1
 
+// USB Serial Freertos Need Malloc Free transparent mode
+#define configMEMMANG_HEAP_NB 3
+
 // Enable for use LowPower
 #define _USE_FREERTOS_LOW_POWER
 

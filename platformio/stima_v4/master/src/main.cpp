@@ -234,6 +234,20 @@ void setup() {
   sdParam.systemStatusLock = systemStatusLock;
 #endif
 
+#if (ENABLE_USBSERIAL)
+ // TASK SUPERVISOR PARAM CONFIG
+  static UsbSerialParam_t usbSerialParam = {0};
+  usbSerialParam.configuration = &configuration;
+  usbSerialParam.system_status = &system_status;
+  usbSerialParam.systemMessageQueue = systemMessageQueue;
+  usbSerialParam.flash = &memFlash;
+  usbSerialParam.eeprom = &memEprom;
+  usbSerialParam.qspiLock = qspiLock;  
+  usbSerialParam.rtcLock = rtcLock;
+  usbSerialParam.configurationLock = configurationLock;
+  usbSerialParam.systemStatusLock = systemStatusLock;
+#endif
+
 #if (ENABLE_LCD)
   // TASK LCD DISPLAY PARAM CONFIG
   static LCDParam_t lcdParam = {0};
@@ -357,6 +371,10 @@ void setup() {
 #endif
 #if (ENABLE_SD)
   static SdTask sd_task("SdTask", 1400, OS_TASK_PRIORITY_01, sdParam);
+#endif
+
+#if (ENABLE_USBSERIAL)
+  static UsbSerialTask usbSerial_task("UsbSerialTask", 200, OS_TASK_PRIORITY_01, usbSerialParam);
 #endif
 
 #if (ENABLE_LCD)

@@ -116,7 +116,6 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;  
-  cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *canLock;
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;

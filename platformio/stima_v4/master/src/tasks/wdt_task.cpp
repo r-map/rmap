@@ -99,8 +99,11 @@ void WdtTask::Run() {
       param.systemStatusLock->Take();
       param.system_status->tasks[WDT_TASK_ID].stack = stackUsage;
       param.systemStatusLock->Give();
-    }
+    }    
+    #if (configMEMMANG_HEAP_NB!=3)
+    // Not avaiable in Transparent heap access malloc/free Mode
     TRACE_INFO_F(F("WDT: Stack Free monitor, Heap free: %lu\r\n"), (uint32_t)xPortGetFreeHeapSize());
+    #endif
     for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
       if(param.system_status->tasks[id].stack != 0xFFFFu) {
         switch(id) {
@@ -120,6 +123,8 @@ void WdtTask::Run() {
             strcpy (strTask, "Net-HTTP(S) "); break;
           case MQTT_TASK_ID:
             strcpy (strTask, "NET MQTT(S) "); break;
+          case USBSERIAL_TASK_ID:
+            strcpy (strTask, "USB SERIAL  "); break;
           case WDT_TASK_ID:
             strcpy (strTask, "WDT Info    "); break;
         }

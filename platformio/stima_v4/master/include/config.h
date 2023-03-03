@@ -66,6 +66,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_LCD            (true)
 #define ENABLE_MMC            (false)
 #define ENABLE_SD             (true)
+#define ENABLE_USBSERIAL      (true)
 
 #if (ENABLE_MMC) && (ENABLE_SD)
     #error Configuration error, you need to define only one method for TASK SD CARD: MMC or SD
@@ -105,6 +106,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Monitor Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
+#define SERIAL_USB_BAUD_RATE           (115200)
 
 #define PPP0_INTERFACE_NAME      ("ppp0")
 #define ETH0_INTERFACE_NAME      ("eth0")
@@ -175,7 +177,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_ID                (6)
 #define MMC_TASK_ID                 (7)
 #define SD_TASK_ID                  (7)
-#define WDT_TASK_ID                 (8)
+#define USBSERIAL_TASK_ID           (8)
+#define WDT_TASK_ID                 (9)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 /*!

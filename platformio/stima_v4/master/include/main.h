@@ -54,6 +54,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (ENABLE_SD)
 #include "tasks/sd_task.h"
 #endif
+#if (ENABLE_USBSERIAL)
+#include "tasks/usbserial_task.h"
+#endif
 #if (ENABLE_LCD)
 #include "tasks/lcd_task.h"
 #endif

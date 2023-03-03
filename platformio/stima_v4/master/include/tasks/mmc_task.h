@@ -82,7 +82,6 @@ typedef enum
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *configurationLock;
