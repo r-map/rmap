@@ -891,6 +891,23 @@ int reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
 
+  for (JsonPair it : params)
+  {
+    // loop in params
+    if (strcmp(it.key().c_str(), "update") == 0)
+    {
+      if (it.value().as<bool>() == true)
+      {
+        TRACE_INFO_F(F("UPDATE FIRMWARE\r\n"));
+        // set_default_configuration();
+        // lcd_error |= lcd.clear();
+        // lcd_error |= lcd.print(F("Reset configuration")) == 0;
+      }
+    }
+  }
+
+  TRACE_INFO_F(F("DO RESET CONFIGURATION\r\n"));
+
   TRACE_INFO_F(F("Reboot\r\n"));
   result[F("state")] = "done";
   NVIC_SystemReset(); // Do reboot!
