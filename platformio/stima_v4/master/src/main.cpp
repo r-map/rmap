@@ -79,7 +79,8 @@ void setup() {
   \var streamRpc()
   \brief Remote Procedure Call object.
   */
-  JsonRPC streamRpc();
+  static JsonRPC streamRpc;
+  streamRpc.init();
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();

@@ -12,6 +12,11 @@ JsonRPC::JsonRPC()
   jrpc_state = JRPC_INIT;
 }
 
+void JsonRPC::init()
+{
+  jrpc_state = JRPC_INIT;
+}
+
 void JsonRPC::registerMethod(const char *methodName, int (*callback)(JsonObject, JsonObject))
 {
   // only write keyvalue pair if we allocated enough memory for it
