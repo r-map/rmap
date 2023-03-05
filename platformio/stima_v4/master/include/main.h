@@ -46,6 +46,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/trng.h"
 #include "rng/yarrow.h"
 
+#include <arduinoJsonRPC.h>
+
 #include "tasks/supervisor_task.h"
 #include "tasks/wdt_task.h"
 #if (ENABLE_MMC)
@@ -84,5 +86,18 @@ void init_wire(void);
 void init_sdcard(void);
 void init_rtc(bool init);
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
+void init_rpc(JsonRPC *streamRpc);
+
+#if (USE_RPC_METHOD_CONFIGURE)
+int configure(JsonObject params, JsonObject result);
+#endif
+
+#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+int recovery(JsonObject params, JsonObject result);
+#endif
+
+#if (USE_RPC_METHOD_REBOOT)
+int reboot(JsonObject params, JsonObject result);
+#endif
 
 #endif

@@ -74,12 +74,20 @@ void setup() {
   static YarrowContext yarrowContext;
   static uint8_t seed[SEED_LENGTH];
 
+  // RPC
+  /*!
+  \var streamRpc()
+  \brief Remote Procedure Call object.
+  */
+  JsonRPC streamRpc();
+
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
   init_rtc(INIT_PARAMETER);
   init_net(&yarrowContext, seed, sizeof(seed));
+  init_rpc(&streamRpc);
 
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
@@ -246,6 +254,7 @@ void setup() {
   usbSerialParam.rtcLock = rtcLock;
   usbSerialParam.configurationLock = configurationLock;
   usbSerialParam.systemStatusLock = systemStatusLock;
+  usbSerialParam.streamRpc = &streamRpc;
 #endif
 
 #if (ENABLE_LCD)
@@ -510,3 +519,326 @@ bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
 
   return error;
 }
+
+void init_rpc(JsonRPC *streamRpc)
+{
+#if (USE_RPC_METHOD_CONFIGURE)
+  streamRpc->registerMethod("configure", &configure);
+#endif
+
+#if (USE_RPC_METHOD_PREPARE)
+  streamRpc->registerMethod("prepare", &prepare);
+#endif
+
+#if (USE_RPC_METHOD_GETJSON)
+  streamRpc->registerMethod("getjson", &getjson);
+#endif
+
+#if (USE_RPC_METHOD_PREPANDGET)
+  streamRpc->registerMethod("prepandget", &prepandget);
+#endif
+
+#if (USE_RPC_METHOD_REBOOT)
+  streamRpc->registerMethod("reboot", &reboot);
+#endif
+
+#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+  streamRpc->registerMethod("recovery", &recovery);
+#endif
+}
+
+#if (USE_RPC_METHOD_CONFIGURE)
+int configure(JsonObject params, JsonObject result)
+{
+  bool is_error = false;
+  bool is_sensor_config = false;
+
+  if (params.isNull())
+    is_mqtt_rpc_delay = true; // configure without params is used
+                              // to set a long delay before disconnect
+                              // after the data are sended
+  for (JsonPair it : params)
+  {
+    if (strcmp(it.key().c_str(), "reset") == 0)
+    {
+      if (it.value().as<bool>() == true)
+      {
+        set_default_configuration();
+#if (USE_LCD)
+        lcd_error |= lcd.clear();
+        lcd_error |= lcd.print(F("Reset configuration")) == 0;
+#endif
+      }
+    }
+    else if (strcmp(it.key().c_str(), "save") == 0)
+    {
+      if (it.value().as<bool>() == true)
+      {
+        save_configuration(CONFIGURATION_CURRENT);
+#if (USE_LCD)
+        lcd_error |= lcd.clear();
+        lcd_error |= lcd.print(F("Save configuration")) == 0;
+#endif
+      }
+    }
+#if (USE_MQTT)
+    else if (strcmp(it.key().c_str(), "mqttserver") == 0)
+    {
+      strncpy(writable_configuration.mqtt_server, it.value().as<const char *>(), MQTT_SERVER_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttrootpath") == 0)
+    {
+      strncpy(writable_configuration.mqtt_root_topic, it.value().as<const char *>(), MQTT_ROOT_TOPIC_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttrpcpath") == 0)
+    {
+      strncpy(writable_configuration.mqtt_rpc_topic, it.value().as<const char *>(), MQTT_RPC_TOPIC_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0)
+    {
+      strncpy(writable_configuration.mqtt_maint_topic, it.value().as<const char *>(), MQTT_MAINT_TOPIC_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttsampletime") == 0)
+    {
+      writable_configuration.report_seconds = it.value().as<unsigned int>();
+    }
+    else if (strcmp(it.key().c_str(), "mqttuser") == 0)
+    {
+      strncpy(writable_configuration.mqtt_username, it.value().as<const char *>(), MQTT_USERNAME_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttpassword") == 0)
+    {
+      strncpy(writable_configuration.mqtt_password, it.value().as<const char *>(), MQTT_PASSWORD_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "stationslug") == 0)
+    {
+      strncpy(writable_configuration.stationslug, it.value().as<const char *>(), STATIONSLUG_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "boardslug") == 0)
+    {
+      strncpy(writable_configuration.boardslug, it.value().as<const char *>(), BOARDSLUG_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "mqttpskkey") == 0)
+    {
+      // skip it
+    }
+    else if (strcmp(it.key().c_str(), "sd") == 0)
+    {
+      for (JsonPair sd : it.value().as<JsonObject>())
+      {
+        strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd.key().c_str(), CONSTANTDATA_BTABLE_LENGTH);
+        strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd.value().as<const char *>(), CONSTANTDATA_VALUE_LENGTH);
+
+        if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT)
+          writable_configuration.constantdata_count++;
+        else
+        {
+          is_error = true;
+        }
+      }
+    }
+#endif
+#if (USE_NTP)
+    else if (strcmp(it.key().c_str(), "ntpserver") == 0)
+    {
+      strncpy(writable_configuration.ntp_server, it.value().as<const char *>(), NTP_SERVER_LENGTH);
+    }
+#endif
+    else if (strcmp(it.key().c_str(), "date") == 0)
+    {
+#if (USE_RTC)
+
+      tmElements_t tm;
+      tm.Year = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>() - 2000);
+      tm.Month = it.value().as<JsonArray>()[1].as<int>();
+      tm.Day = it.value().as<JsonArray>()[2].as<int>();
+      tm.Hour = it.value().as<JsonArray>()[3].as<int>();
+      tm.Minute = it.value().as<JsonArray>()[4].as<int>();
+      tm.Second = it.value().as<JsonArray>()[5].as<int>();
+
+      system_time = makeTime(tm);
+      setTime(system_time);
+      /*
+            Pcf8563::disable();
+            Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
+            Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
+            Pcf8563::enable();
+      */
+      setSyncInterval(NTP_TIME_FOR_RESYNC_S);
+      setSyncProvider(getSystemTime);
+#elif (USE_TIMER_1)
+      setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>(), it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000);
+#endif
+    }
+    else if (strcmp(it.key().c_str(), "mac") == 0)
+    {
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
+      for (uint8_t i = 0; i < ETHERNET_MAC_LENGTH; i++)
+      {
+        writable_configuration.ethernet_mac[i] = it.value().as<JsonArray>()[i];
+      }
+#else
+      LOGV(F("Configuration mac parameter ignored"));
+#endif
+    }
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
+    else if (strcmp(it.key().c_str(), "gsmapn") == 0)
+    {
+      strncpy(writable_configuration.gsm_apn, it.value().as<const char *>(), GSM_APN_LENGTH);
+    }
+#endif
+    else if (strcmp(it.key().c_str(), "driver") == 0)
+    {
+      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].driver, it.value().as<const char *>(), DRIVER_LENGTH);
+      is_sensor_config = true;
+    }
+    else if (strcmp(it.key().c_str(), "type") == 0)
+    {
+      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].type, it.value().as<const char *>(), TYPE_LENGTH);
+      is_sensor_config = true;
+    }
+    else if (strcmp(it.key().c_str(), "address") == 0)
+    {
+      writable_configuration.sensors[writable_configuration.sensors_count].address = it.value().as<unsigned char>();
+      is_sensor_config = true;
+    }
+    else if (strcmp(it.key().c_str(), "node") == 0)
+    {
+      writable_configuration.sensors[writable_configuration.sensors_count].node = it.value().as<unsigned char>();
+      is_sensor_config = true;
+    }
+    else if (strcmp(it.key().c_str(), "mqttpath") == 0)
+    {
+      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].mqtt_topic, it.value().as<const char *>(), MQTT_SENSOR_TOPIC_LENGTH);
+      is_sensor_config = true;
+    }
+    else
+    {
+      is_error = true;
+    }
+  }
+
+  if (is_sensor_config)
+  {
+    if (writable_configuration.sensors_count < SENSORS_MAX)
+      writable_configuration.sensors_count++;
+    else
+    {
+      is_error = true;
+    }
+  }
+
+  if (is_error)
+  {
+    result[F("state")] = F("error");
+    return E_INVALID_PARAMS;
+  }
+  else
+  {
+    result[F("state")] = F("done");
+    return E_SUCCESS;
+  }
+}
+#endif
+
+#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+int recovery(JsonObject params, JsonObject result)
+{
+  static int state;
+  static int tmpstate;
+  static time_t ptr_time;
+  static File mqtt_ptr_rpc_file;
+
+  switch (rpc_state)
+  {
+  case RPC_INIT:
+
+    state = E_BUSY;
+    {
+      bool found = false;
+
+      for (JsonPair it : params)
+      {
+        if (strcmp(it.key().c_str(), "dts") == 0)
+        {
+          found = true;
+          if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
+          {
+            tmpstate = E_INTERNAL_ERROR;
+            is_sdcard_error = true;
+            result[F("state")] = F("error");
+            LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+            rpc_state = RPC_END;
+            break;
+          }
+
+          tmElements_t datetime;
+          datetime.Year = CalendarYrToTm(it.value().as<JsonArray>()[0].as<int>());
+          datetime.Month = it.value().as<JsonArray>()[1].as<int>();
+          datetime.Day = it.value().as<JsonArray>()[2].as<int>();
+          datetime.Hour = it.value().as<JsonArray>()[3].as<int>();
+          datetime.Minute = it.value().as<JsonArray>()[4].as<int>();
+          datetime.Second = it.value().as<JsonArray>()[5].as<int>();
+          ptr_time = makeTime(datetime);
+          LOGN(F("RPC Data pointer... [ %d/%d/%d %d:%d:%d ]"), datetime.Day, datetime.Month, tmYearToCalendar(datetime.Year), datetime.Hour, datetime.Minute, datetime.Second);
+
+          rpc_state = RPC_EXECUTE;
+
+          break;
+        }
+      }
+
+      if (!found)
+      {
+        tmpstate = E_INVALID_PARAMS;
+        result[F("state")] = F("error");
+        LOGE(F("Invalid params [ %s ]"), FAIL_STRING);
+
+        rpc_state = RPC_END;
+      }
+    }
+    break;
+
+  case RPC_EXECUTE:
+
+    if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
+    {
+      mqtt_ptr_rpc_file.flush();
+      mqtt_ptr_rpc_file.close();
+
+      LOGN(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
+      tmpstate = E_SUCCESS;
+      result[F("state")] = F("done");
+    }
+    else
+    {
+      tmpstate = E_INTERNAL_ERROR;
+      result[F("state")] = F("error");
+      LOGE(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+    }
+
+    rpc_state = RPC_END;
+
+  case RPC_END:
+
+    rpc_state = RPC_INIT;
+    state = tmpstate;
+    break;
+  }
+
+  return state;
+}
+#endif
+
+#if (USE_RPC_METHOD_REBOOT)
+int reboot(JsonObject params, JsonObject result)
+{
+#if (USE_LCD)
+  // print lcd message before reboot
+#endif
+  TRACE_INFO_F(F("Reboot\r\n"));
+  result[F("state")] = "done";
+  NVIC_SystemReset(); // Do reboot!
+  return E_SUCCESS;
+}
+#endif

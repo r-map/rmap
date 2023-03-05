@@ -45,6 +45,7 @@
 #include "drivers/module_master_hal.hpp"
 
 #include <STM32RTC.h>
+#include <arduinoJsonRPC.h>
 
 // Memory device Access
 #include "drivers/flash.h"
@@ -77,6 +78,7 @@ typedef struct {
   cpp_freertos::Queue *systemMessageQueue;
   Flash *flash;
   EEprom *eeprom;
+  JsonRPC *streamRpc;
 } UsbSerialParam_t;
 
 class UsbSerialTask : public cpp_freertos::Thread {
@@ -100,6 +102,7 @@ private:
 
   STM32RTC &rtc = STM32RTC::getInstance();
 
+  bool is_event_rpc;
 };
 
 #endif

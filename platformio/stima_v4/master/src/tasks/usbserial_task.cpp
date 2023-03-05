@@ -136,15 +136,21 @@ void UsbSerialTask::Run()
       break;
 
     case USBSERIAL_STATE_WAITING_EVENT:
+      param.streamRpc->parseStream(&is_event_rpc, &SerialUSB, JRPC_DEFAULT_TIMEOUT_MS, RPC_TYPE_SERIAL);
+      if (!is_event_rpc)
+      {
+        TaskWatchDog(USBSERIAL_TASK_WAIT_DELAY_MS);
+        Delay(Ticks::MsToTicks(USBSERIAL_TASK_WAIT_DELAY_MS));
+      }
 
       // If System SLEEP...  Long WAIT
       // Else check all command input
       // Go to response/action
 
-      if(SerialUSB.available()) {
-        SerialUSB.println(SerialUSB.read());
-        TRACE_VERBOSE_F(F("USB Serial -> Recived a char!!!\r\n"));
-      }
+      // if(SerialUSB.available()) {
+      //   SerialUSB.println(SerialUSB.read());
+      //   TRACE_VERBOSE_F(F("USB Serial -> Recived a char!!!\r\n"));
+      // }
 
       break;
 
