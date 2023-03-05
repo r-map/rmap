@@ -96,6 +96,18 @@ int configure(JsonObject params, JsonObject result);
 int recovery(JsonObject params, JsonObject result);
 #endif
 
+#if (USE_RPC_METHOD_PREPARE)
+int prepare(JsonObject params, JsonObject result);
+#endif
+
+#if (USE_RPC_METHOD_GETJSON)
+int getjson(JsonObject params, JsonObject result);
+#endif
+
+#if (USE_RPC_METHOD_PREPANDGET)
+int prepandget(JsonObject params, JsonObject result);
+#endif
+
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject params, JsonObject result);
 #endif

@@ -797,6 +797,250 @@ int configure(JsonObject params, JsonObject result)
   }
 #endif
 
+#if (USE_RPC_METHOD_PREPARE || USE_RPC_METHOD_PREPANDGET || USE_RPC_METHOD_GETJSON)
+  bool extractSensorsParams(JsonObject &params, char *driver, char *type, uint8_t *address, uint8_t *node)
+  {
+  bool is_error = false;
+
+  for (JsonObject::iterator it = params.begin(); it != params.end(); ++it)
+  {
+    if (strcmp(it.key().c_str(), "driver") == 0)
+    {
+      strncpy(driver, it.value().as<const char *>(), DRIVER_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "type") == 0)
+    {
+      strncpy(type, it.value().as<const char *>(), TYPE_LENGTH);
+    }
+    else if (strcmp(it.key().c_str(), "address") == 0)
+    {
+      *address = it.value().as<unsigned char>();
+    }
+    else if (strcmp(it.key().c_str(), "node") == 0)
+    {
+      *node = it.value().as<unsigned char>();
+    }
+    else
+    {
+      is_error = true;
+    }
+  }
+
+  return is_error;
+  }
+#endif
+
+#if (USE_RPC_METHOD_PREPARE)
+  int prepare(JsonObject params, JsonObject result)
+  {
+  static int state;
+  static bool is_error = false;
+  static char driver[DRIVER_LENGTH];
+  static char type[TYPE_LENGTH];
+  static uint8_t address = 0;
+  static uint8_t node = 0;
+  static uint8_t i;
+  static uint32_t wait_time;
+
+  switch (rpc_state)
+  {
+  case RPC_INIT:
+    state = E_BUSY;
+    is_error = extractSensorsParams(params, driver, type, &address, &node);
+
+    if (!is_error && !is_event_sensors_reading)
+    {
+      is_event_sensors_reading_rpc = true;
+      rpc_state = RPC_EXECUTE;
+    }
+    else
+    {
+      rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_EXECUTE:
+    if (is_event_sensors_reading_rpc)
+    {
+      sensors_reading_task(true, false, driver, type, address, node, &i, &wait_time);
+    }
+    else
+    {
+      rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_END:
+    if (is_error)
+    {
+      result[F("state")] = F("error");
+      state = E_INVALID_PARAMS;
+    }
+    else
+    {
+      result[F("state")] = F("done");
+      result[F("waittime")] = wait_time;
+      state = E_SUCCESS;
+    }
+    rpc_state = RPC_INIT;
+    break;
+  }
+
+  return state;
+  }
+#endif
+
+#if (USE_RPC_METHOD_GETJSON)
+  int getjson(JsonObject params, JsonObject result)
+  {
+  static int state;
+  static bool is_error = false;
+  static char driver[DRIVER_LENGTH];
+  static char type[TYPE_LENGTH];
+  static uint8_t address = 0;
+  static uint8_t node = 0;
+  static uint8_t i;
+  static uint32_t wait_time;
+  static char sensor_reading_time_buffer[DATE_TIME_STRING_LENGTH];
+
+  switch (rpc_state)
+  {
+  case RPC_INIT:
+    state = E_BUSY;
+    is_error = extractSensorsParams(params, driver, type, &address, &node);
+
+    if (!is_error && !is_event_sensors_reading)
+    {
+      is_event_sensors_reading_rpc = true;
+      rpc_state = RPC_EXECUTE;
+    }
+    else
+    {
+      rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_EXECUTE:
+    if (is_event_sensors_reading_rpc)
+    {
+      sensors_reading_task(false, true, driver, type, address, node, &i, &wait_time);
+    }
+    else
+    {
+      rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_END:
+    if (is_error)
+    {
+      result[F("state")] = F("error");
+      state = E_INVALID_PARAMS;
+    }
+    else
+    {
+      StaticJsonBuffer<JSON_BUFFER_LENGTH * 2> jsonBuffer;
+      JsonObject &v = jsonBuffer.parseObject((const char *)&json_sensors_data[i][0]);
+            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second())unsigned int>() == 0)
+            {
+        result[F("v")][(char *)it.key().c_str()] = (char *)NULL;
+            }
+            else
+            {
+        result[F("v")][(char *)it.key().c_str()] = it.value().as<unsigned int>();
+            }
+    }
+
+    result[F("t")] = sensor_reading_time_buffer;
+    state = E_SUCCESS;
+  }
+  rpc_state = RPC_INIT;
+  break;
+  }
+
+  return state;
+  }
+#endif
+
+#if (USE_RPC_METHOD_PREPANDGET)
+  int prepandget(JsonObject params, JsonObject result)
+  {
+  static int state;
+  static bool is_error = false;
+  static char driver[DRIVER_LENGTH];
+  static char type[TYPE_LENGTH];
+  static uint8_t address = 0;
+  static uint8_t node = 0;
+  static uint8_t i;
+  static uint32_t wait_time;
+  static char sensor_reading_time_buffer[DATE_TIME_STRING_LENGTH];
+
+  switch (rpc_state)
+  {
+  case RPC_INIT:
+    state = E_BUSY;
+    is_error = extractSensorsParams(params, driver, type, &address, &node);
+
+    if (!is_error && !is_event_sensors_reading)
+    {
+            is_event_sensors_reading_rpc = true;
+            rpc_state = RPC_EXECUTE;
+    }
+    else
+    {
+            rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_EXECUTE:
+    if (is_event_sensors_reading_rpc)
+    {
+            sensors_reading_task(true, true, driver, type, address, node, &i, &wait_time);
+    }
+    else
+    {
+            rpc_state = RPC_END;
+    }
+    break;
+
+  case RPC_END:
+    if (is_error)
+    {
+            result[F("state")] = F("error");
+            state = E_INVALID_PARAMS;
+    }
+    else
+    {
+            StaticJsonBuffer<JSON_BUFFER_LENGTH * 2> jsonBuffer;
+            JsonObject &v = jsonBuffer.parseObject((const char *)&json_sensors_data[i][0]);
+            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+
+            result[F("state")] = F("done");
+            result.createNestedObject(F("v"));
+
+            for (JsonObject::iterator it = v.begin(); it != v.end(); ++it)
+            {
+        if (it.value().as<unsigned int>() == 0)
+        {
+          result[F("v")][(char *)it.key().c_str()] = (char *)NULL;
+        }
+        else
+        {
+          result[F("v")][(char *)it.key().c_str()] = it.value().as<unsigned int>();
+        }
+            }
+
+            result[F("t")] = sensor_reading_time_buffer;
+            state = E_SUCCESS;
+    }
+    rpc_state = RPC_INIT;
+    break;
+  }
+
+  return state;
+  }
+#endif
+
 #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
 int recovery(JsonObject params, JsonObject result)
 {
