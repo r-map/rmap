@@ -82,7 +82,7 @@ typedef struct
    uint16_t observation_s;                               //!< observations time in seconds
    uint16_t report_s;                                    //!< report time in seconds
 
-   char data_level[DATA_LEVEL_LENGTH];
+   // char data_level[DATA_LEVEL_LENGTH];
    char ident[IDENT_LENGTH];
    int32_t longitude;
    int32_t latitude;
@@ -91,7 +91,7 @@ typedef struct
 #if (USE_MQTT)
    uint16_t mqtt_port;                    //!< mqtt server port
    char mqtt_server[MQTT_SERVER_LENGTH];  //!< mqtt server
-   // char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];   //!< mqtt root path
+   char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];   //!< mqtt root path
    char mqtt_maint_topic[MQTT_MAINT_TOPIC_LENGTH];  //!< mqtt maint path
    char mqtt_rpc_topic[MQTT_RPC_TOPIC_LENGTH];      //!< mqtt subscribe topic
    char mqtt_username[MQTT_USERNAME_LENGTH];        //!< username to compose mqtt username (username/stationslug/boardslug)

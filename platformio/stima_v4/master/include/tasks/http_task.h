@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HTTP_TASK_GENERIC_RETRY (3)
 
 #include <STM32FreeRTOS.h>
+#include <arduinoJsonRPC.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
@@ -111,7 +112,9 @@ typedef struct {
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
+  cpp_freertos::BinarySemaphore *rpcLock;
   YarrowContext *yarrowContext;
+  JsonRPC *streamRpc;
 } HttpParam_t;
 
 class HttpTask : public cpp_freertos::Thread {
@@ -147,6 +150,8 @@ private:
   inline static char_t HttpClientPSKIdentity[CLIENT_PSK_IDENTITY_LENGTH];
 
   inline static char_t *HttpServer;
+
+  bool is_event_rpc;
 };
 
 #endif

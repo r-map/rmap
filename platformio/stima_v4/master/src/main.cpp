@@ -46,6 +46,8 @@ void setup() {
 
   static BinarySemaphore *rtcLock;        // RTC (Access lock)
 
+  static BinarySemaphore *rpcLock;        // RPC (Access lock)
+
   // System semaphore
   static BinarySemaphore *configurationLock;  // Access Configuration
   static BinarySemaphore *systemStatusLock;   // Access System status
@@ -130,7 +132,9 @@ void setup() {
   qspiLock = new BinarySemaphore(true);
 #endif
   rtcLock = new BinarySemaphore(true);
-  
+
+  rpcLock = new BinarySemaphore(true);
+
   // Software Semaphore
   configurationLock = new BinarySemaphore(true);
   systemStatusLock = new BinarySemaphore(true);
@@ -256,6 +260,7 @@ void setup() {
   usbSerialParam.configurationLock = configurationLock;
   usbSerialParam.systemStatusLock = systemStatusLock;
   usbSerialParam.streamRpc = &streamRpc;
+  usbSerialParam.rpcLock = rpcLock;
 #endif
 
 #if (ENABLE_LCD)
@@ -352,6 +357,7 @@ void setup() {
   httpParam.connectionRequestQueue = connectionRequestQueue;
   httpParam.connectionResponseQueue = connectionResponseQueue;
   httpParam.yarrowContext = &yarrowContext;
+  httpParam.rpcLock = rpcLock;
 #endif
 
 #if (USE_MQTT)
@@ -368,6 +374,7 @@ void setup() {
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;
   mqttParam.yarrowContext = &yarrowContext;
+  mqttParam.rpcLock = rpcLock;
 #endif
 
   // *****************************************************************************
@@ -554,179 +561,227 @@ int configure(JsonObject params, JsonObject result)
   bool is_error = false;
   bool is_sensor_config = false;
 
-  if (params.isNull())
-    is_mqtt_rpc_delay = true; // configure without params is used
-                              // to set a long delay before disconnect
-                              // after the data are sended
   for (JsonPair it : params)
   {
+    // loop in params
     if (strcmp(it.key().c_str(), "reset") == 0)
     {
       if (it.value().as<bool>() == true)
       {
-        set_default_configuration();
-#if (USE_LCD)
-        lcd_error |= lcd.clear();
-        lcd_error |= lcd.print(F("Reset configuration")) == 0;
-#endif
+        TRACE_INFO_F(F("DO RESET CONFIGURATION\r\n"));
+        // set_default_configuration();
+        // lcd_error |= lcd.clear();
+        // lcd_error |= lcd.print(F("Reset configuration")) == 0;
+      }
+      else if (strcmp(it.key().c_str(), "save") == 0)
+      {
+        if (it.value().as<bool>() == true)
+        {
+          TRACE_INFO_F(F("DO SAVE CONFIGURATION\r\n"));
+          // save_configuration(CONFIGURATION_CURRENT);
+          // lcd_error |= lcd.clear();
+          // lcd_error |= lcd.print(F("Save configuration")) == 0;
+        }
+      }
+      else if (strcmp(it.key().c_str(), "board") == 0)
+      {
+        // it.value().as<const char *>()
+      }
+      else if (strcmp(it.key().c_str(), "boardtype") == 0)
+      {
+        // it.value().as<unsigned int>()
+      }
+      else if (strcmp(it.key().c_str(), "sn") == 0)
+      {
+        // it.value().as<const char *>()
+      }
+      else if (strcmp(it.key().c_str(), "cansampletime") == 0)
+      {
+        // it.value().as<unsigned int>()
+      }
+      else if (strcmp(it.key().c_str(), "node_id") == 0)
+      {
+        // it.value().as<unsigned int>()
+      }
+      else if (strcmp(it.key().c_str(), "subject") == 0)
+      {
+        // it.value().as<const char *>()
+      }
+      else if (strcmp(it.key().c_str(), "subject_id") == 0)
+      {
+        // it.value().as<unsigned int>()
+      }
+      else if (strcmp(it.key().c_str(), "driver") == 0)
+      {
+        // it.value().as<const char *>()
+        is_sensor_config = true;
+      }
+      else if (strcmp(it.key().c_str(), "type") == 0)
+      {
+        // it.value().as<const char *>()
+        is_sensor_config = true;
+      }
+      else if (strcmp(it.key().c_str(), "timerange") == 0)
+      {
+        // Pindicator
+        // it.value().as<JsonArray>()[0].as<unsigned int>()
+
+        // P1
+        // it.value().as<JsonArray>()[1].as<unsigned int>()
+
+        // P2
+        // it.value().as<JsonArray>()[2].as<unsigned int>()
+
+        is_sensor_config = true;
+      }
+      else if (strcmp(it.key().c_str(), "level") == 0)
+      {
+        // LevelType1
+        // it.value().as<JsonArray>()[0].as<unsigned int>()
+
+        // L1
+        // it.value().as<JsonArray>()[1].as<unsigned int>()
+
+        // LevelType2
+        // it.value().as<JsonArray>()[2].as<unsigned int>()
+
+        // L2
+        // it.value().as<JsonArray>()[3].as<unsigned int>()
+
+        is_sensor_config = true;
+      }
+      else if (strcmp(it.key().c_str(), "sd") == 0)
+      {
+        for (JsonPair sd : it.value().as<JsonObject>())
+        {
+          // constantdata btable
+          // sd.key().c_str()
+
+          // constantdata value
+          // sd.value().as<const char *>()
+
+          // constantdata index must be incremented in order to configure the next value
+          // if (constantdata_count < USE_CONSTANTDATA_COUNT)
+          // {
+          //   constantdata_count++;
+          // }
+          // else
+          // {
+          //   is_error = true;
+          // }
+        }
+      }
+      else if (strcmp(it.key().c_str(), "stationslug") == 0)
+      {
+        // it.value().as<const char *>()
+      }
+      else if (strcmp(it.key().c_str(), "boardslug") == 0)
+      {
+        // it.value().as<const char *>()
+      }
+      else if (strcmp(it.key().c_str(), "lon") == 0)
+      {
+        // it.value().as<long int>()
+      }
+      else if (strcmp(it.key().c_str(), "lat") == 0)
+      {
+        // it.value().as<long int>()
+      }
+      else if (strcmp(it.key().c_str(), "network") == 0)
+      {
+        // it.value().as<const char *>()
       }
     }
-    else if (strcmp(it.key().c_str(), "save") == 0)
+    else if (strcmp(it.key().c_str(), "date") == 0)
     {
-      if (it.value().as<bool>() == true)
-      {
-        save_configuration(CONFIGURATION_CURRENT);
-#if (USE_LCD)
-        lcd_error |= lcd.clear();
-        lcd_error |= lcd.print(F("Save configuration")) == 0;
-#endif
-      }
+      // tmElements_t tm;
+      // tm.Year = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>() - 2000);
+      // tm.Month = it.value().as<JsonArray>()[1].as<int>();
+      // tm.Day = it.value().as<JsonArray>()[2].as<int>();
+      // tm.Hour = it.value().as<JsonArray>()[3].as<int>();
+      // tm.Minute = it.value().as<JsonArray>()[4].as<int>();
+      // tm.Second = it.value().as<JsonArray>()[5].as<int>();
+      // system_time = makeTime(tm);
     }
 #if (USE_MQTT)
-    else if (strcmp(it.key().c_str(), "mqttserver") == 0)
-    {
-      strncpy(writable_configuration.mqtt_server, it.value().as<const char *>(), MQTT_SERVER_LENGTH);
-    }
     else if (strcmp(it.key().c_str(), "mqttrootpath") == 0)
     {
-      strncpy(writable_configuration.mqtt_root_topic, it.value().as<const char *>(), MQTT_ROOT_TOPIC_LENGTH);
+      // mqtt_root_topic
+      // it.value().as<const char *>()
     }
     else if (strcmp(it.key().c_str(), "mqttrpcpath") == 0)
     {
-      strncpy(writable_configuration.mqtt_rpc_topic, it.value().as<const char *>(), MQTT_RPC_TOPIC_LENGTH);
+      // mqtt_rpc_topic
+      // it.value().as<const char *>()
     }
     else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0)
     {
-      strncpy(writable_configuration.mqtt_maint_topic, it.value().as<const char *>(), MQTT_MAINT_TOPIC_LENGTH);
+      // mqtt_maint_topic
+      // it.value().as<const char *>()
+    }
+    else if (strcmp(it.key().c_str(), "mqttserver") == 0)
+    {
+      // mqtt_server
+      // it.value().as<const char *>()
     }
     else if (strcmp(it.key().c_str(), "mqttsampletime") == 0)
     {
-      writable_configuration.report_seconds = it.value().as<unsigned int>();
+      // report_s
+      // it.value().as<unsigned int>()
     }
     else if (strcmp(it.key().c_str(), "mqttuser") == 0)
     {
-      strncpy(writable_configuration.mqtt_username, it.value().as<const char *>(), MQTT_USERNAME_LENGTH);
+      // mqtt_username
+      // it.value().as<const char *>()
     }
     else if (strcmp(it.key().c_str(), "mqttpassword") == 0)
     {
-      strncpy(writable_configuration.mqtt_password, it.value().as<const char *>(), MQTT_PASSWORD_LENGTH);
-    }
-    else if (strcmp(it.key().c_str(), "stationslug") == 0)
-    {
-      strncpy(writable_configuration.stationslug, it.value().as<const char *>(), STATIONSLUG_LENGTH);
-    }
-    else if (strcmp(it.key().c_str(), "boardslug") == 0)
-    {
-      strncpy(writable_configuration.boardslug, it.value().as<const char *>(), BOARDSLUG_LENGTH);
+      // mqtt_password
+      // it.value().as<const char *>()
     }
     else if (strcmp(it.key().c_str(), "mqttpskkey") == 0)
     {
-      // skip it
-    }
-    else if (strcmp(it.key().c_str(), "sd") == 0)
-    {
-      for (JsonPair sd : it.value().as<JsonObject>())
-      {
-        strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd.key().c_str(), CONSTANTDATA_BTABLE_LENGTH);
-        strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd.value().as<const char *>(), CONSTANTDATA_VALUE_LENGTH);
-
-        if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT)
-          writable_configuration.constantdata_count++;
-        else
-        {
-          is_error = true;
-        }
-      }
+      // client_psk_key
+      // trasformare da stringa come it.value().as<const char *>() array di uint8_t per salvataggio in client_psk_key
     }
 #endif
 #if (USE_NTP)
     else if (strcmp(it.key().c_str(), "ntpserver") == 0)
     {
-      strncpy(writable_configuration.ntp_server, it.value().as<const char *>(), NTP_SERVER_LENGTH);
+      // ntp_server
+      // it.value().as<const char *>()
     }
 #endif
-    else if (strcmp(it.key().c_str(), "date") == 0)
-    {
-#if (USE_RTC)
-
-      tmElements_t tm;
-      tm.Year = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>() - 2000);
-      tm.Month = it.value().as<JsonArray>()[1].as<int>();
-      tm.Day = it.value().as<JsonArray>()[2].as<int>();
-      tm.Hour = it.value().as<JsonArray>()[3].as<int>();
-      tm.Minute = it.value().as<JsonArray>()[4].as<int>();
-      tm.Second = it.value().as<JsonArray>()[5].as<int>();
-
-      system_time = makeTime(tm);
-      setTime(system_time);
-      /*
-            Pcf8563::disable();
-            Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
-            Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
-            Pcf8563::enable();
-      */
-      setSyncInterval(NTP_TIME_FOR_RESYNC_S);
-      setSyncProvider(getSystemTime);
-#elif (USE_TIMER_1)
-      setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>(), it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000);
-#endif
-    }
-    else if (strcmp(it.key().c_str(), "mac") == 0)
-    {
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
-      for (uint8_t i = 0; i < ETHERNET_MAC_LENGTH; i++)
-      {
-        writable_configuration.ethernet_mac[i] = it.value().as<JsonArray>()[i];
-      }
-#else
-      LOGV(F("Configuration mac parameter ignored"));
-#endif
-    }
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
     else if (strcmp(it.key().c_str(), "gsmapn") == 0)
     {
-      strncpy(writable_configuration.gsm_apn, it.value().as<const char *>(), GSM_APN_LENGTH);
+      // gsm_apn
+      // it.value().as<const char *>()
+    }
+    else if (strcmp(it.key().c_str(), "pppnumber") == 0)
+    {
+      // gsm_number
+      // it.value().as<const char *>()
     }
 #endif
-    else if (strcmp(it.key().c_str(), "driver") == 0)
-    {
-      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].driver, it.value().as<const char *>(), DRIVER_LENGTH);
-      is_sensor_config = true;
-    }
-    else if (strcmp(it.key().c_str(), "type") == 0)
-    {
-      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].type, it.value().as<const char *>(), TYPE_LENGTH);
-      is_sensor_config = true;
-    }
-    else if (strcmp(it.key().c_str(), "address") == 0)
-    {
-      writable_configuration.sensors[writable_configuration.sensors_count].address = it.value().as<unsigned char>();
-      is_sensor_config = true;
-    }
-    else if (strcmp(it.key().c_str(), "node") == 0)
-    {
-      writable_configuration.sensors[writable_configuration.sensors_count].node = it.value().as<unsigned char>();
-      is_sensor_config = true;
-    }
-    else if (strcmp(it.key().c_str(), "mqttpath") == 0)
-    {
-      strncpy(writable_configuration.sensors[writable_configuration.sensors_count].mqtt_topic, it.value().as<const char *>(), MQTT_SENSOR_TOPIC_LENGTH);
-      is_sensor_config = true;
-    }
     else
     {
       is_error = true;
     }
   }
 
+  // when is_sensor_config = true a sensor was configured, then the index sensors_count must be incremented
+  // in order to configure the next sensor
   if (is_sensor_config)
   {
-    if (writable_configuration.sensors_count < SENSORS_MAX)
-      writable_configuration.sensors_count++;
-    else
-    {
-      is_error = true;
-    }
+    // if (writable_configuration.sensors_count < SENSORS_MAX)
+    // {
+    //   // writable_configuration.sensors_count++;
+    // }
+    // else
+    // {
+    //   is_error = true;
+    // }
   }
 
   if (is_error)
@@ -739,7 +794,7 @@ int configure(JsonObject params, JsonObject result)
     result[F("state")] = F("done");
     return E_SUCCESS;
   }
-}
+  }
 #endif
 
 #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
@@ -834,9 +889,8 @@ int recovery(JsonObject params, JsonObject result)
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject params, JsonObject result)
 {
-#if (USE_LCD)
   // print lcd message before reboot
-#endif
+
   TRACE_INFO_F(F("Reboot\r\n"));
   result[F("state")] = "done";
   NVIC_SystemReset(); // Do reboot!

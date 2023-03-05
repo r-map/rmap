@@ -864,7 +864,7 @@ void SupervisorTask::printConfiguration()
 
     TRACE_INFO_F(F("-> data report every %d seconds\r\n"), param.configuration->report_s);
     TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), param.configuration->observation_s);
-    TRACE_INFO_F(F("-> data level: %s\r\n"), param.configuration->data_level);
+    // TRACE_INFO_F(F("-> data level: %s\r\n"), param.configuration->data_level);
     TRACE_INFO_F(F("-> ident: %s\r\n"), param.configuration->ident);
     TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), param.configuration->longitude, param.configuration->latitude);
     TRACE_INFO_F(F("-> network: %s\r\n"), param.configuration->network);
@@ -894,13 +894,13 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->boardslug);
     TRACE_INFO_F(F("-> client psk key "));
     TRACE_INFO_ARRAY("", param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
-    TRACE_INFO_F(F("-> mqtt root topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION, 
-      param.configuration->data_level, param.configuration->mqtt_username, param.configuration->ident,
+    TRACE_INFO_F(F("-> mqtt root topic: %s/%s/%s/%07d,%07d/%s/\r\n"), 
+      param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-    TRACE_INFO_F(F("-> mqtt maint topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION,
+    TRACE_INFO_F(F("-> mqtt maint topic: %s/%s/%s/%07d,%07d/%s/\r\n"),
       param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-    TRACE_INFO_F(F("-> mqtt rpc topic: %d/%s/%s/%s/%07d,%07d/%s/\r\n"), RMAP_PROCOTOL_VERSION,
+    TRACE_INFO_F(F("-> mqtt rpc topic: %s/%s/%s/%07d,%07d/%s/\r\n"),
       param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
 #endif
@@ -931,7 +931,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
 
       strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
-      strSafeCopy(param.configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
+      // strSafeCopy(param.configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
       strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
 
       param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
@@ -968,6 +968,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
       strSafeCopy(param.configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
       strSafeCopy(param.configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
+      strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
       strSafeCopy(param.configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
       strSafeCopy(param.configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
       strSafeCopy(param.configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);

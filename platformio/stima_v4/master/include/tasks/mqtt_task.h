@@ -38,6 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")
 
 #include <STM32FreeRTOS.h>
+#include <arduinoJsonRPC.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
@@ -124,6 +125,7 @@ typedef struct
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
   YarrowContext *yarrowContext;
+  cpp_freertos::BinarySemaphore *rpcLock;
 } MqttParam_t;
 
 class MqttTask : public cpp_freertos::Thread {
@@ -169,6 +171,7 @@ private:
 
   inline static char_t *MqttServer;
 
+  bool is_event_rpc;
 };
 
 #endif

@@ -373,25 +373,41 @@ void HttpTask::Run() {
       // Receive HTTP response body
       while (!error)
       {
+        TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
+
         if (is_get_configuration)
         {
-          // change http_buffer with configuration buffer
+          is_event_rpc = true;
+          
+          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 10);
+
+          if (!error)
+          {
+            http_buffer[http_buffer_length] = '\0';
+            TRACE_INFO_F(F("%s"), http_buffer);
+          }
+
+          if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
+          {
+            while (is_event_rpc)
+            {
+              param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
+            }
+            param.rpcLock->Give();
+          }
         }
         else if (is_get_firmware)
         {
-          // change http_buffer with firmware buffer
+          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
+
+          if (!error)
+          {
+            http_buffer[http_buffer_length] = '\0';
+            TRACE_INFO_F(F("%s"), http_buffer);
+          }
         }
 
-        TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-        // Receive HTTP body
-        error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
         TaskState(state, 1, task_flag::normal); // Resume
-        if (!error)
-        {
-          // Properly terminate the string with a NULL character
-          http_buffer[http_buffer_length] = '\0';
-          TRACE_INFO_F(F("%s"), http_buffer);
-        }
       }
 
       // Terminate the HTTP response body with a CRLF

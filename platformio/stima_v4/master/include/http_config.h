@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _HTTP_CONFIG_H
 #define _HTTP_CONFIG_H
 
-#define HTTP_CLIENT_PORT         (873)
+#define HTTP_CLIENT_PORT         (442)
 
 #define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 

@@ -105,7 +105,10 @@ void JsonRPC::parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_
       status = processMessage(rpc_type);
       if (status != E_BUSY && status != E_SUCCESS)
       {
-        serializeJson(doc, rpcout, rpcout_len);
+        if (rpcout != NULL)
+        {
+          serializeJson(doc, rpcout, rpcout_len);
+        }
         jrpc_state = JRPC_END;
       }
       else
@@ -120,8 +123,11 @@ void JsonRPC::parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_
 
     if (status != E_BUSY)
     {
+      if (rpcout != NULL)
+      {
+        serializeJson(doc, rpcout, rpcout_len);
+      }
       jrpc_state = JRPC_END;
-      serializeJson(doc, rpcout, rpcout_len);
     }
     break;
 
@@ -135,6 +141,7 @@ void JsonRPC::parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_
 void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeout, uint8_t rpc_type)
 {
   int status;
+  DeserializationError error;
 
   switch (jrpc_state)
   {
@@ -152,13 +159,16 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeou
     break;
 
   case JRPC_AVAILABLE:
-  {
     stream->setTimeout(timeout);
-    DeserializationError error = deserializeJson(doc, *stream);
+    error = deserializeJson(doc, *stream);
+
     if (error)
     {
       while (stream->available())
-         stream->read(); // clean stream
+      {
+        stream->read(); // clean stream
+      }
+
       jrpc_state = JRPC_END;
     }
     else
@@ -174,7 +184,6 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeou
         jrpc_state = JRPC_PROCESS;
       }
     }
-  }
   break;
 
   case JRPC_PROCESS:
@@ -203,7 +212,7 @@ int JsonRPC::callback(uint8_t rpc_type)
 
   doc.remove((rpc_type == RPC_TYPE_RADIO) ? F("p") : F("params"));
 
-  if (ret_status != E_BUSY && ret_status != E_SUCCESS)
+  if ((ret_status != E_BUSY) && (ret_status != E_SUCCESS))
   {
     doc.remove((rpc_type == RPC_TYPE_RADIO) ? F("r") : F("result"));
     JsonObject error = doc.createNestedObject((rpc_type == RPC_TYPE_RADIO) ? "e" : "error");
@@ -236,12 +245,15 @@ const __FlashStringHelper *jsstrerror(int errnum)
       // -32000 to -32099 	Server error 	Reserved for implementation-defined server-errors.
   };
 
-   #define N_ELEMENTS(array) (sizeof(array)/sizeof((array)[0]))
+#define N_ELEMENTS(array) (sizeof(array) / sizeof((array)[0]))
 
-   for (uint8_t i=0; i<=N_ELEMENTS(errordesc); i++) {
-      if ( errordesc[i].code == errnum ) {
-         return errordesc[i].message;
-      }
-   }
-   return F("");
+  for (uint8_t i = 0; i <= N_ELEMENTS(errordesc); i++)
+  {
+    if (errordesc[i].code == errnum)
+    {
+      return errordesc[i].message;
+    }
+  }
+
+  return F("");
 }
