@@ -1137,7 +1137,6 @@ def modifystation(station_slug=None,username=None,lon=None,lat=None):
         mystation.save()
 
 
-
 # example rpcsMQTT(station_slug="test", username="myusername",recovery={"dts":[2022,2,16,12,0,0]})
 def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                    username=None,version=3,**kwargs):
@@ -1193,8 +1192,11 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
         if (rpcproxy is None): return
 
         for myrpc in kwargs.keys():
-            print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
-        
+            if (isinstance(kwargs[myrpc],dict)):
+                print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
+            else:
+                print(myrpc,getattr(rpcproxy, myrpc)(*kwargs[myrpc] ))
+                
 
 def find_report_time(station):
 
@@ -1376,10 +1378,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 else:
                     print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
                                                     mqttpassword=board.transportmqtt.mqttpassword))
-                try:
-                    print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
-                except:
-                    pass           # to be removed; here fo legacy boards
+                    try:
+                        print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
+                    except:
+                        pass           # to be removed; here fo legacy boards
                 
                 try:
                     print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))

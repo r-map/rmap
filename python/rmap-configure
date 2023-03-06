@@ -106,15 +106,23 @@ parser.add_argument('--upload_to_server',action="store_true", help="upload confi
 parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
 parser.add_argument('--stima_version',  default="3", choices=("3","4"), help="stima version")
 parser.add_argument('--notification',action="store_true", help="use notification (no response expected) for JSRPC")
+parser.add_argument('--rpc_mqtt_admin',action="store_true", help="execute admin RPC over MQTT")
+parser.add_argument('--rpc_mqtt_admin_fdownload',action="store_true", help="execute admin RPC over MQTT with firmware download request")
 parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
+parser.add_argument('--rpc_mqtt_reboot_fupdate',action="store_true", help="execute reboot RPC over MQTT with firmware update request")
+parser.add_argument('--rpc_mqtt_pinout',action="store_true", help="execute pinout RPC over MQTT")
+parser.add_argument('--rpc_mqtt_pinout_P1',action="store_true", help="set status of Pin 1")
+parser.add_argument('--rpc_mqtt_pinout_P2',action="store_true", help="set status of Pin 2")
 parser.add_argument('--rpc_mqtt_recovery',action="store_true", help="execute recovery data RPC over MQTT")
 try:
     parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+    parser.add_argument('--datetimeend', default=None, type=datetime.datetime.fromisoformat, help="recovery data ending to this date and time in iso format (2011-11-05T18:06:23)" )
 except:
     # python < 3.7
     def fromisoformat(isoformat):
         return datetime.datetime.strptime(isoformat, '%Y-%m-%dT%H:%M:%S')
     parser.add_argument('--datetimestart', default=None, type=fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
+    parser.add_argument('--datetimeend', default=None, type=fromisoformat, help="recovery data ending to this date and time in iso format (2011-11-05T18:06:23)" )
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -671,7 +679,7 @@ if args.modify_station:
 
     print("END of station modification")
 
-
+    
 if args.rpc_mqtt_reboot:
 
     if (args.username is None or
@@ -679,15 +687,50 @@ if args.rpc_mqtt_reboot:
         print(" selected rpc_mqtt_reboot without username or station_slug")
         raise SystemExit(1)
 
+    params={}
+    if (args.rpc_mqtt_reboot_fupdate):
+        params["fupdate"]=args.rpc_mqtt_reboot_fupdate
+    
     rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
                                  board_slug=args.board_slug,
                                  username=args.username,version=args.stima_version,
-                                 reboot={})
+                                 reboot=params)
 
     print("END of rpc_mqtt_reboot")
     
 
+if args.rpc_mqtt_admin:
 
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected rpc_mqtt_admin without username or station_slug")
+        raise SystemExit(1)
+
+    params={}
+    if (args.rpc_mqtt_admin_fdownload):
+        params["fdownload"]=args.rpc_mqtt_admin_fdownload
+    
+    rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                                 board_slug=args.board_slug,
+                                 username=args.username,version=args.stima_version,
+                                 admin=params)
+
+    print("END of rpc_mqtt_admin")
+
+
+if args.rpc_mqtt_pinout:
+
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected rpc_mqtt_pinout without username or station_slug")
+        raise SystemExit(1)
+
+    rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                                 board_slug=args.board_slug,
+                                 username=args.username,version=args.stima_version,
+                                 pinout=[{"n":1,"s":args.rpc_mqtt_pinout_P1},{"n":2,"s":args.rpc_mqtt_pinout_P2}])
+
+    print("END of rpc_mqtt_pinout")
 
 
 if args.rpc_mqtt_recovery:
@@ -699,11 +742,21 @@ if args.rpc_mqtt_recovery:
         raise SystemExit(1)
     dts=[args.datetimestart.year,args.datetimestart.month,args.datetimestart.day,
          args.datetimestart.hour,args.datetimestart.minute,args.datetimestart.second]
+
+
+    if (args.datetimeend is None ):
+        rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                               board_slug=args.board_slug,
+                               username=args.username,version=args.stima_version,
+                               recovery={"dts":dts})
+    else:
+        dte=[args.datetimeend.year,args.datetimeend.month,args.datetimeend.day,
+             args.datetimeend.hour,args.datetimeend.minute,args.datetimeend.second]
     
-    rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
-                                 board_slug=args.board_slug,
-                                 username=args.username,version=args.stima_version,
-                                 recovery={"dts":dts})
+        rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                               board_slug=args.board_slug,
+                               username=args.username,version=args.stima_version,
+                               recovery={"dts":dts,"dte":dte})
 
     print("END of rpc_mqtt_recovery")
 
