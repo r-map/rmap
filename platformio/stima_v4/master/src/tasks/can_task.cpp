@@ -327,6 +327,17 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             break;
         }
         // **************** Comandi personalizzati VENDOR_SPECIFIC_COMMAND ****************
+        // Local CAN Transport to RPC Call
+        case canardClass::Command_Private::execute_rpc:
+        {
+            // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
+            bool is_event_rpc = true;
+            localRpcLock->Take();
+            localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_CAN);
+            localRpcLock->Give();
+            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            break;
+        }
         // Comando di download File generico compatibile con specifice UAVCAN, (LOG/CFG altro...)
         case canardClass::Command_Private::download_file:
         {
@@ -907,6 +918,8 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
     localRegisterAccessLock = param.registerAccessLock;
     localSystemStatusLock = param.systemStatusLock;
     localSystemStatus = param.system_status;
+    localRpcLock = param.rpcLock;
+    localStreamRpc = param.streamRpc;
 
     // FullChip Power Mode after Startup
     // Resume from LowPower or reset the controller TJA1443ATK

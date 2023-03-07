@@ -88,6 +88,7 @@ class canardClass {
 
         // Gestione comandi privati di Canard / Rmap
         enum Command_Private : uint8_t {
+            execute_rpc               =  4,
             download_file             =  5,
             calibrate_accelerometer   =  6,
             module_maintenance        =  7,

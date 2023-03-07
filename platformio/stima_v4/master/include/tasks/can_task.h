@@ -38,6 +38,7 @@
 #if (ENABLE_CAN)
 
 #include <STM32FreeRTOS.h>
+#include <arduinoJsonRPC.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "semaphore.hpp"
@@ -119,6 +120,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *canLock;
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;
+  cpp_freertos::BinarySemaphore *rpcLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *dataRmapPutQueue;
@@ -127,6 +129,7 @@ typedef struct {
   Flash *flash;
   EEprom *eeprom;
   EERegister *clRegister;
+  JsonRPC *streamRpc;
 } CanParam_t;
 
 class CanTask : public cpp_freertos::Thread {
@@ -182,7 +185,9 @@ private:
   inline static cpp_freertos::BinarySemaphore *localQspiLock;
   inline static cpp_freertos::BinarySemaphore *localRegisterAccessLock;
   inline static cpp_freertos::BinarySemaphore *localSystemStatusLock;
+  inline static cpp_freertos::BinarySemaphore *localRpcLock;
   inline static system_status_t *localSystemStatus;
+  inline static JsonRPC *localStreamRpc;
   inline static Flash *localFlash;
   inline static uint64_t canFlashPtr = 0;
   inline static uint16_t canFlashBlock = 0;  
