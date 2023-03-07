@@ -305,6 +305,8 @@ void setup() {
   canParam.canLock = canLock;
   canParam.qspiLock = qspiLock;  
   canParam.rtcLock = rtcLock;
+  canParam.streamRpc = &streamRpc;
+  canParam.rpcLock = rpcLock;
 #endif
 
   // TASK SUPERVISOR PARAM CONFIG
