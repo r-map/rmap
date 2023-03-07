@@ -126,6 +126,7 @@ typedef struct
   cpp_freertos::Queue *connectionResponseQueue;
   YarrowContext *yarrowContext;
   cpp_freertos::BinarySemaphore *rpcLock;
+  JsonRPC *streamRpc;
 } MqttParam_t;
 
 class MqttTask : public cpp_freertos::Thread {
@@ -161,6 +162,10 @@ private:
   char message[MQTT_MESSAGE_LENGTH];
   char clientIdentifier[MQTT_CLIENT_ID_LENGTH];
   
+  // Static RPC Procedure access and Semaphore
+  inline static cpp_freertos::BinarySemaphore *localRpcLock;
+  inline static JsonRPC *localStreamRpc;
+
   inline static YarrowContext *MqttYarrowContext;
 
   // Client's PSK key

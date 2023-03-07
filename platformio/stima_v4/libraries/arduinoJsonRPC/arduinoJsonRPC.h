@@ -47,7 +47,6 @@ public:
 class JsonRPC {
 public:
    JsonRPC();
-   void init(void);
    void parseStream(bool *is_active, Stream *stream, const uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS, uint8_t rpc_type = RPC_TYPE_SERIAL);
    void parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_len, char *rpcout, const size_t rpcout_len, uint8_t rpc_type = RPC_TYPE_SERIAL);
    int callback(uint8_t rpc_type);

@@ -122,7 +122,7 @@ void UsbSerialTask::Run()
       // Check USB SERIAL Device or Resynch after Error
       SerialUSB.begin(SERIAL_USB_BAUD_RATE);
       if (!SerialUSB) {
-        TRACE_VERBOSE_F(F("USB Serial device ready -> USBSERIAL_STATE_CHECK_SD\r\n"));
+        TRACE_VERBOSE_F(F("USB Serial device ready -> USBSERIAL_STATE_WAITING_EVENT\r\n"));
         state = USBSERIAL_STATE_WAITING_EVENT;
         message_traced = false;
       } else {
@@ -136,12 +136,13 @@ void UsbSerialTask::Run()
       break;
 
     case USBSERIAL_STATE_WAITING_EVENT:
-      if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
+      //if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
       {
+        //param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
         param.streamRpc->parseStream(&is_event_rpc, &SerialUSB, JRPC_DEFAULT_TIMEOUT_MS, RPC_TYPE_SERIAL);
         if (!is_event_rpc)
         {
-          param.rpcLock->Give();
+          //param.rpcLock->Give();
           TaskWatchDog(USBSERIAL_TASK_WAIT_DELAY_MS);
           Delay(Ticks::MsToTicks(USBSERIAL_TASK_WAIT_DELAY_MS));
         }

@@ -50,6 +50,10 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(MQTT_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // local to static member private access
+  localRpcLock = param.rpcLock;
+  localStreamRpc = param.streamRpc;
+
   state = MQTT_STATE_INIT;
   version = MQTT_VERSION_3_1_1;
   transportProtocol = MQTT_TRANSPORT_PROTOCOL_TLS;
@@ -429,15 +433,16 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_ARRAY("    ", message, length);
 
-  // bool is_event_rpc = true;
-  // if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
-  // {
-  //   while (is_event_rpc)
-  //   {
-  //     param.streamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_HTTPS);
-  //   }
-  //   param.rpcLock->Give();
-  // }
+  bool is_event_rpc = true;
+
+  if (localRpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
+  {
+    while (is_event_rpc)
+    {
+      localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_HTTPS);
+    }
+    localRpcLock->Give();
+  }
 }
 
 /**

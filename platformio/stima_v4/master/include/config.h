@@ -184,6 +184,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define USE_RPC_METHOD_CONFIGURE    (true)
 #define USE_RPC_METHOD_REBOOT       (true)
+#define USE_RPC_METHOD_TEST         (true)
 #define USE_RPC_METHOD_RECOVERY     (false)
 #define USE_RPC_METHOD_PREPARE      (false)
 #define USE_RPC_METHOD_GETJSON      (false)
