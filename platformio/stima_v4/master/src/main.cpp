@@ -76,16 +76,12 @@ void setup() {
   static YarrowContext yarrowContext;
   static uint8_t seed[SEED_LENGTH];
 
-  // RPC Remote Procedure Call object.
-  static JsonRPC streamRpc;
-
   // Initializing basic hardware's configuration, variables and function
   SetupSystemPeripheral();
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
   init_rtc(INIT_PARAMETER);
   init_net(&yarrowContext, seed, sizeof(seed));
-  init_rpc(&streamRpc);
 
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
@@ -164,7 +160,7 @@ void setup() {
   Serial.println("\r\n");
 
   // ***************************************************************
-  //                  Setup parameter for Task
+  //           Setup parameter for Task and local Class
   // ***************************************************************
 
 #if (ENABLE_I2C2)
@@ -186,6 +182,23 @@ void setup() {
   #endif
   // Init access Flash istance object
   static Flash memFlash(&hqspi);
+
+  // ***************** SET PARAMETER TO CLASS ********************
+
+  // RPC Remote Procedure Call object and Stream Object.
+  static RpcParam_t rpcParam = {0};
+  rpcParam.configuration = &configuration;
+  rpcParam.system_status = &system_status;
+  rpcParam.systemMessageQueue = systemMessageQueue;
+  rpcParam.eeprom = &memEprom;
+  rpcParam.rtcLock = rtcLock;
+  rpcParam.configurationLock = configurationLock;
+  rpcParam.systemStatusLock = systemStatusLock;
+  rpcParam.rpcLock = rpcLock;
+  // Init class procedure and linked callBack with parameter
+  static JsonRPC streamRpc;
+  static RegisterRPC localRpc(rpcParam);
+  localRpc.init(&streamRpc);
 
   // ***************** SET PARAMETER TO TASK *********************
 

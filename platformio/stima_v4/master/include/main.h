@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "rng/yarrow.h"
 
 #include <arduinoJsonRPC.h>
-#include "rpc.h"
+#include "rpc_class.hpp"
 
 #include "tasks/supervisor_task.h"
 #include "tasks/wdt_task.h"

@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    rpc.cpp
+  * @file    rpc_class.cpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   RPC Init and callback function
+  * @brief   RPC Object Class for register RPC function, CallBack and manage data
   ******************************************************************************
   * @attention
   *
@@ -30,9 +30,18 @@
 
 #define TRACE_LEVEL STIMA_TRACE_LEVEL
 
-#include "rpc.h"
+#include "rpc_class.hpp"
 
-void init_rpc(JsonRPC *streamRpc)
+// Contsructor
+RegisterRPC::RegisterRPC()
+{
+}
+RegisterRPC::RegisterRPC(RpcParam_t rpcParam)
+{
+  param = rpcParam;
+}
+
+void RegisterRPC::init(JsonRPC *streamRpc)
 {
 #if (USE_RPC_METHOD_CONFIGURE)
   streamRpc->registerMethod("configure", &configure);
@@ -64,7 +73,7 @@ void init_rpc(JsonRPC *streamRpc)
 }
 
 #if (USE_RPC_METHOD_CONFIGURE)
-int configure(JsonObject params, JsonObject result)
+int RegisterRPC::configure(JsonObject params, JsonObject result)
 {
   bool is_error = false;
   bool is_sensor_config = false;
@@ -639,7 +648,7 @@ int recovery(JsonObject params, JsonObject result)
 #endif
 
 #if (USE_RPC_METHOD_REBOOT)
-int reboot(JsonObject params, JsonObject result)
+int RegisterRPC::reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
 
@@ -668,7 +677,7 @@ int reboot(JsonObject params, JsonObject result)
 #endif
 
 #if (USE_RPC_METHOD_TEST)
-int rpctest(JsonObject params, JsonObject result)
+int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
 

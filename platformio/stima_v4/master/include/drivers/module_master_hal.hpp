@@ -114,9 +114,9 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_I2C2_SCL    PB10
 
 // UPIN27
-#define PIN_UP27_PC1    PC1
-#define PIN_UP27_PC3    PC3
-#define PIN_UP27_PC4    PC4
+#define PIN_UP27_PA0    PC4
+#define PIN_UP27_PA1    PC1
+#define PIN_UP27_PA2    PC3
 #define PIN_UP27_PD10   PA15
 #define PIN_UP27_PD0    PIN_UART2_RX
 #define PIN_UP27_PD1    PIN_UART2_TX
