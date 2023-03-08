@@ -883,13 +883,17 @@ class SSLPSKContext(ssl.SSLContext):
 
 class SSLPSKObject(ssl.SSLObject):
     def do_handshake(self, *args, **kwargs):
+        if not hasattr(self,'_did_psk_setup'):
         _ssl_setup_psk_callbacks(self)
+            self._did_psk_setup = True
         super().do_handshake(*args, **kwargs)
 
 
 class SSLPSKSocket(ssl.SSLSocket):
     def do_handshake(self, *args, **kwargs):
+        if not hasattr(self,'_did_psk_setup'):
         _ssl_setup_psk_callbacks(self)
+            self._did_psk_setup = True
         super().do_handshake(*args, **kwargs)
 
 
@@ -912,11 +916,18 @@ class TransportMQTT(Transport):
         self.mqtt_host = host
         self.mqttc = mqtt.Client(client_id, clean_session=True)
 
+        ###########################################################
+        # DISABLE PSK !!!!!!!
+        # PSK cannot work on python 3.6
+        # so on Rocky linux 8 we use mqtt with user authentication
+        pskkey=None
+        ###########################################################
+        
         if (not pskkey is None):
             
             # Preparations to use the new SSLPSKContext object with Paho
             # https://github.com/eclipse/paho.mqtt.python/issues/451#issuecomment-705623084
-            context = SSLPSKContext(ssl.PROTOCOL_TLSv1_2)
+            context = SSLPSKContext(ssl.PROTOCOL_TLS_CLIENT)
             context.set_ciphers('PSK')
             context.psk = bytes.fromhex(pskkey)
             context.identity = str.encode(user)
