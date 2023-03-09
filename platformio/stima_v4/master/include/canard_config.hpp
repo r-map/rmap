@@ -92,4 +92,33 @@
 #define NODE_GETFILE_MAX_RETRY   3
 
 // CODICI E STATUS AGGIORNAMENTO FIRMWARE REMOTI
-#define CAN_FILE_NAME_SIZE_MAX         50
+#define CAN_FILE_NAME_SIZE_MAX          50
+
+// Elaboration Sensor to index Register Class Uavcan (for sensor)
+// Rain
+#define SENSOR_METADATA_TBR             0
+#define SENSOR_METADATA_RAIN_COUNT      1
+// Th
+#define SENSOR_METADATA_STH             0
+#define SENSOR_METADATA_ITH             1
+#define SENSOR_METADATA_MTH             2
+#define SENSOR_METADATA_NTH             3
+#define SENSOR_METADATA_XTH             4
+#define SENSOR_METADATA_TH_COUNT        5
+// Wind
+#define SENSOR_METADATA_DWA             0
+#define SENSOR_METADATA_DWB             1
+#define SENSOR_METADATA_DWC             2
+#define SENSOR_METADATA_DWD             3
+#define SENSOR_METADATA_DWE             4
+#define SENSOR_METADATA_DWF             5
+#define SENSOR_METADATA_WIND_COUNT      6
+// Power
+#define SENSOR_METADATA_DEP             0
+#define SENSOR_METADATA_POWER_COUNT     1
+// Radiation
+#define SENSOR_METADATA_DSA             0
+#define SENSOR_METADATA_RADIATION_COUNT 1
+// VWC
+#define SENSOR_METADATA_VWC             0
+#define SENSOR_METADATA_VWC_COUNT       1

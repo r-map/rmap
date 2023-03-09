@@ -1483,7 +1483,7 @@ void CanTask::Run() {
                 clCanard.module_th.MTH.metadata.timerange.P2 = 0;
                 clCanard.module_th.NTH.metadata.timerange.P2 = 0;
                 clCanard.module_th.XTH.metadata.timerange.P2 = 0;
-                // *********************************** P2 *********************************************
+                // ******************************* PIndicator *****************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor

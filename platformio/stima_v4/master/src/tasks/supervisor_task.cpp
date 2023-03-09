@@ -992,7 +992,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
       strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);
 
-      param.configuration->board_master.serial_number = 0xABCDEF1;
+      param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
       #endif
     }
 

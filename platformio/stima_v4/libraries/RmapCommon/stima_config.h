@@ -213,6 +213,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_NAME_VVC                       ("stima4.module_vvc")
 #define STIMA_MODULE_DESCRIPTION_VVC                ("Slave module vvc, CAN Cyphal V1.0")
 
+/*!
+\brief INTEST RPC Sensor identification type list
+*/
+#define STIMA_RPC_SENSOR_NAME_TBR                   ("TBR")
+#define STIMA_RPC_SENSOR_NAME_STH                   ("STH")
+#define STIMA_RPC_SENSOR_NAME_ITH                   ("ITH")
+#define STIMA_RPC_SENSOR_NAME_MTH                   ("MTH")
+#define STIMA_RPC_SENSOR_NAME_NTH                   ("NTH")
+#define STIMA_RPC_SENSOR_NAME_XTH                   ("XTH")
+#define STIMA_RPC_SENSOR_NAME_DWA                   ("DWA")
+#define STIMA_RPC_SENSOR_NAME_DWB                   ("DWB")
+#define STIMA_RPC_SENSOR_NAME_DWC                   ("DWC")
+#define STIMA_RPC_SENSOR_NAME_DWD                   ("DWD")
+#define STIMA_RPC_SENSOR_NAME_DWE                   ("DWE")
+#define STIMA_RPC_SENSOR_NAME_DWF                   ("DWF")
+#define STIMA_RPC_SENSOR_NAME_DEP                   ("DEP")
+#define STIMA_RPC_SENSOR_NAME_DSA                   ("DSA")
+#define STIMA_RPC_SENSOR_NAME_VWC                   ("VWC")
+
 
 /*!
 \brief LCD descriptions list

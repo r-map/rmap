@@ -62,13 +62,30 @@ typedef struct
    char value[CONSTANTDATA_VALUE_LENGTH];    //!< value of constant station data
 } constantdata_t;
 
+/*!
+\struct board_metadata_t
+\brief metadata archive parameters for pnp or configure assign to remote slave module
+*/
 typedef struct
 {
-   uint8_t can_address;     //!< can sensor's address [0-127]; 100 master, 127 reserved
-   uint8_t can_port_id;     //!< port for uavcan services
-   uint8_t can_publish_id;  //!< port for uavcan data publication
-   uint64_t serial_number;  //!< Serial number of board (Used from slave for PnP Assign...)
-   // uint8_t module_type;     //!< module type (optional also present in unique_id...)
+   uint16_t level1;
+   uint16_t level2;
+   uint16_t levelType1;
+   uint16_t levelType2;
+   uint16_t timerangeP1;
+   uint16_t timerangeP2;
+   uint8_t  timerangePindicator;
+} board_metadata_t;
+
+typedef struct
+{
+   uint8_t can_address;       //!< can sensor's address [0-127]; 100 master, 127 reserved
+   uint8_t can_port_id;       //!< port for uavcan services
+   uint8_t can_publish_id;    //!< port for uavcan data publication
+   uint8_t can_sampletime;    //!< Can_Sampletime if module are in publish mode, time to automatic update and send data
+   uint64_t serial_number;    //!< Serial number of board (Used from slave for PnP Assign...)
+   Module_Type module_type;   //!< module type (optional also present in unique_id...)
+   board_metadata_t metadata[CAN_SENSOR_COUNT_MAX];   //!< module metadata (only used for slave board)
 } board_configuration_t;
 
 typedef struct
@@ -79,8 +96,8 @@ typedef struct
    Module_Type module_type;                              //!< module type
    board_configuration_t board_master;                   //!< board configurations local (Master)
    board_configuration_t board_slave[BOARDS_COUNT_MAX];  //!< board configurations remote (Slave)
-   uint16_t observation_s;                               //!< observations time in seconds
-   uint16_t report_s;                                    //!< report time in seconds
+   uint16_t observation_s;                               //!< observations time in seconds (Can_Sampletime to put into request to remote sensor get value)
+   uint16_t report_s;                                    //!< report time in seconds (Request data to slave module, same as Connection MQTT Time)
 
    // char data_level[DATA_LEVEL_LENGTH];
    char ident[IDENT_LENGTH];

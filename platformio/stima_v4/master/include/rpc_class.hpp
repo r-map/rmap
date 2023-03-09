@@ -48,6 +48,8 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 
+#include "canard_config.hpp"
+
 #include <arduinoJsonRPC.h>
 
 #include "drivers/eeprom.h"
@@ -55,6 +57,9 @@
 #include "debug_F.h"
 
 using namespace cpp_freertos;
+
+#define SUBJECT_ID_LEN_MAX  (30)
+#define UNKNOWN_ID          (0xFFu)
 
 typedef struct
 {
@@ -111,7 +116,17 @@ class RegisterRPC {
     // ***************** PRIVATE ACCESS *****************
     private:
 
-      RpcParam_t param;
+      static bool saveConfiguration(bool is_default);
+      inline static RpcParam_t param;
+
+      inline static bool is_configuration_changed = false;
+      inline static Module_Type currentModule = Module_Type::undefined;
+      inline static uint8_t slaveId = UNKNOWN_ID;
+      inline static uint8_t sensorId = UNKNOWN_ID;
+      inline static bool isSlaveConfigure = false;
+      inline static bool isMasterConfigure = false;
+      inline static char subject[SUBJECT_ID_LEN_MAX];
+
 };
 
 #endif
