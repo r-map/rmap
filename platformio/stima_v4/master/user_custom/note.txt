@@ -13,3 +13,9 @@ __weak void USART2_IRQHandler(void)
 {
 
 __weak void Consente una redifinizione esterna o mantiene quella esistente se non necessaria la redifinizione
+
+2) Raddoppio del Buffer RX UsbSerial x trasmissione a pacchetti 64Byte in polling per modalità CDC STM32
+
+Modulo cdc_queue.h in libraries\srcWrapper\src\stm32\usb\cdc\cdc_queue.h Line 57
+
+#define CDC_RECEIVE_QUEUE_BUFFER_SIZE ((uint16_t)(CDC_QUEUE_MAX_PACKET_SIZE * 6)) // (Originale = *3)

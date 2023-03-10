@@ -104,7 +104,6 @@ void UsbSerialTask::TaskState(uint8_t state_position, uint8_t state_subposition,
 
 void UsbSerialTask::Run()
 {
-
   bool message_traced=false;
 
   // Start Running Monitor and First WDT normal state
@@ -136,15 +135,17 @@ void UsbSerialTask::Run()
       break;
 
     case USBSERIAL_STATE_WAITING_EVENT:
-      //if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
-      {
-        //param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
-        param.streamRpc->parseStream(&is_event_rpc, &SerialUSB, JRPC_DEFAULT_TIMEOUT_MS, RPC_TYPE_SERIAL);
-        if (!is_event_rpc)
-        {
-          //param.rpcLock->Give();
-          TaskWatchDog(USBSERIAL_TASK_WAIT_DELAY_MS);
-          Delay(Ticks::MsToTicks(USBSERIAL_TASK_WAIT_DELAY_MS));
+      // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
+      if(SerialUSB.available()) {
+        if(param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS))) {
+          is_event_rpc = false;
+          while(!is_event_rpc) {
+            param.streamRpc->parseStream(&is_event_rpc, &SerialUSB, JRPC_DEFAULT_TIMEOUT_MS, RPC_TYPE_SERIAL);
+            // Non blocking task
+            TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+            Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+          }
+          param.rpcLock->Give();
         }
       }
       break;

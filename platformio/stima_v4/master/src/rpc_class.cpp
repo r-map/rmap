@@ -135,51 +135,99 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
 
 #if (USE_RPC_METHOD_CONFIGURE)
 /// @brief RPC CallBack of configure method
+///        isMasterConfigure Was set to true when configure a master_board. isSlaveConfigure alternately for slave_board
+///        during the configuration the sequence of the parameters must be guaranteed and the detection of a non-compliance issues
+///        an error and blocks the procedure by resetting the local configuration indexes
 /// @param params JsonObject request
 /// @param result JsonObject response
 /// @return execute level error or ok
 int RegisterRPC::configure(JsonObject params, JsonObject result)
 {
   bool is_error = false;
-  bool is_sensor_config = false;
-  char *str_pos;
   bool error_command = false;
-
-  char prova[300];
   
   for (JsonPair it : params)
   {
-
-    strcpy(prova, it.key().c_str());
-    Serial.print(prova);
-
+    // ************** SHARED COMMAND CONFIGURATION LIST **************
+    if (strcmp(it.key().c_str(), "reset") == 0)
+    {
+      if (it.value().as<bool>() == true)
+      {
+        // Reset pointed relative area configuration from RAM structure
+        TRACE_INFO_F(F("RPC: DO RESET CONFIGURATION\r\n"));
+        if(isSlaveConfigure) {
+          // Parameter from slave also getted (serial number, to be copied before reset all node param)
+          uint64_t remote_sn = param.configuration->board_slave[slaveId].serial_number;
+          param.configurationLock->Take();
+          memset(&param.configuration->board_slave[slaveId], 0, sizeof(param.configuration->board_slave[slaveId]));
+          param.configuration->board_slave[slaveId].serial_number = remote_sn;
+          param.configuration->board_slave[slaveId].module_type = currentModule;
+          param.configurationLock->Give();
+        }
+        else if(isMasterConfigure)
+        {
+          // Reset board parameter only (parameter was enetered and modified from new config line)
+          // Default base parameter will be add at end of configuration sequence
+          param.configurationLock->Take();
+          memset(&param.configuration->board_master, 0, sizeof(param.configuration->board_master));
+          param.configurationLock->Give();
+        }
+        else error_command = true;
+      }
+      else error_command = true;
+    }
+    else if (strcmp(it.key().c_str(), "save") == 0)
+    {
+      if (it.value().as<bool>() == true)
+      {
+        TRACE_INFO_F(F("RPC: DO SAVE CONFIGURATION\r\n"));
+        // Save only with last command (Master Config final) Preserve 8 x 1,5K Bytes Resave continue with EEProm
+        // On method reboot if is called before Saving is possible saving by check cfg_modified flag;
+        is_configuration_changed = true;
+        // No more action here if save configuration.
+        // TODO:Action to start configuration module before rebot or deinit remote node and restart PnP to Reset
+        // Pnp Reset is need only if is changed node_id remote otherwise no more action required here
+        if(isMasterConfigure) {
+          initFixedConfigurationParam();
+          saveConfiguration();
+          is_configuration_changed = false;
+        }
+        // Reset and deinit info current module and parameter pointer configure sequence
+        currentModule = Module_Type::undefined;
+        slaveId = UNKNOWN_ID;
+        sensorId = UNKNOWN_ID;
+        isSlaveConfigure = false;
+        isMasterConfigure = false;
+        id_constant_data = 0;
+        subject[0] = 0;
+      }
+    }
+    // ************** SHARED PARAMETER CONFIGURATION LIST **************
     // loop in params order by sequence in examples stimacan config github notification
-    if (strcmp(it.key().c_str(), "board") == 0)
+    else if (strcmp(it.key().c_str(), "board") == 0)
     {
       // Respect the configure sequence only if configure module was terminated
       // Can start new parameter sequence command. Modify relative param only
       // when relative flag are UP (isMasterConfigure = true) accept master_command
       // otherwise refuse command. Also for module slave. Module slave have slaveId (Array Index)
       // is board stimacan (slave)
-      if (strstr(it.value().as<const char *>(), "stimacan")) {
-        str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
-        uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
-        if(!isMasterConfigure && !isSlaveConfigure) {
-          if(slaveId < BOARDS_COUNT_MAX) {
+      if(!isMasterConfigure && !isSlaveConfigure) {
+        if (strstr(it.value().as<const char *>(), "stimacan")) {
+          char *str_pos;
+          str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
+          uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
+          if(requestIndex < BOARDS_COUNT_MAX) {
             // Start configure slave module ID: slaveId            
             isSlaveConfigure = true;
             slaveId = requestIndex;
           }
           else error_command = true;
         }
-        else error_command = true;
-      }
-      else if (strstr(it.value().as<const char *>(), "stimav4")) {
-        if(!isMasterConfigure && !isSlaveConfigure) {
+        else if (strcmp(it.value().as<const char *>(), "stimav4") == 0) {
           // Start configure master module
           isMasterConfigure = true;
         }
-        else error_command = true;
+        else is_error = true;
       }
       else error_command = true;
     }
@@ -201,53 +249,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       }
       else error_command = true;
     }
-    // ************** PRINCIPAL SLAVE PARAMETER LIST **************
-    else if (strcmp(it.key().c_str(), "sn") == 0)
-    {
-      // Set Serial Number (from Hex ASCII) only for Slave module
-      // Validate with sequence command
-      if(isSlaveConfigure) {
-        const char *ptr_read = it.value().as<const char *>() + 2; // Point to SN String 0x->
-        uint64_t sn_read = 0;
-        bool end_conversion = false;
-        uint8_t byte_pos = 7;
-        uint8_t data_read;
-        // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
-        // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
-        // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
-        // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
-        while(byte_pos && !end_conversion) {
-          end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
-          sn_read |= ((uint64_t)data_read)<<(8*byte_pos--);
-        }
-        param.configurationLock->Take();
-        param.configuration->board_slave[slaveId].serial_number = sn_read;
-        param.configurationLock->Give();
-      }
-      else error_command = true;
-    }
-    else if (strcmp(it.key().c_str(), "reset") == 0)
-    {
-      if (it.value().as<bool>() == true)
-      {
-        // Reset pointed relative area configuration from RAM structure
-        TRACE_INFO_F(F("RPC: DO RESET CONFIGURATION\r\n"));
-        if(isSlaveConfigure) {
-          // Parameter from slave also getted (serial number, to be copied before reset all node param)
-          uint64_t remote_sn = param.configuration->board_slave[slaveId].serial_number;
-          memset(&param.configuration->board_slave[slaveId], 0, sizeof(param.configuration->board_slave[slaveId]));
-          param.configuration->board_slave[slaveId].serial_number = remote_sn;
-        }
-        else if(isMasterConfigure)
-        {
-          // Reset board parameter only (parameter was enetered and modified from new config line)
-          memset(&param.configuration->board_master, 0, sizeof(param.configuration->board_master));
-          param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
-        }
-        else error_command = true;
-      }
-      else error_command = true;
-    }
     else if (strcmp(it.key().c_str(), "cansampletime") == 0)
     {
       // TODO:CAN_SAMPLE_TIME
@@ -258,10 +259,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
-        // can_sampletime are porting to observation_s require
+        // can_sampletime unused for Master at the moment
         param.configurationLock->Take();
         param.configuration->board_master.can_sampletime = it.value().as<unsigned int>();
-        param.configuration->observation_s = it.value().as<unsigned int>();
         param.configurationLock->Give();
       }
       else error_command = true;
@@ -300,7 +300,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::th:
           if(strcmp(subject, "node.th") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -309,7 +309,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::rain:
           if(strcmp(subject, "node.p") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -318,7 +318,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::wind:
           if(strcmp(subject, "node.wind") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -327,7 +327,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::radiation:
           if(strcmp(subject, "node.rad") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -336,7 +336,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::power:
           if(strcmp(subject, "node.pwr") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -345,7 +345,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::vwc:
           if(strcmp(subject, "node.vwc") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -355,7 +355,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::server_eth:
           if(strcmp(subject, "node.master") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100 + slaveId;
+            param.configuration->board_slave[slaveId].can_port_id = 100;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -365,75 +365,99 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           error_command = true;
       }
     }
+    // ************** PRINCIPAL SLAVE PARAMETER LIST **************
+    else if (strcmp(it.key().c_str(), "sn") == 0)
+    {
+      // Set Serial Number (from Hex ASCII) only for Slave module
+      // Validate with sequence command
+      if(isSlaveConfigure) {
+        const char *ptr_read = it.value().as<const char *>() + 2; // Point to SN String 0x->
+        uint64_t sn_read = 0;
+        bool end_conversion = false;
+        uint8_t byte_pos = 7;
+        uint8_t data_read;
+        // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
+        // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
+        // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
+        // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
+        while(byte_pos && !end_conversion) {
+          end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
+          sn_read |= ((uint64_t)data_read)<<(8*byte_pos--);
+        }
+        param.configurationLock->Take();
+        param.configuration->board_slave[slaveId].serial_number = sn_read;
+        param.configurationLock->Give();
+      }
+      else error_command = true;
+    }
     else if (strcmp(it.key().c_str(), "driver") == 0)
     {
       // Start Configure a local CAN sensor, close opened sesnorIndex Array ( Only for Slave Module )
-      // Next Start "type"... verified with starting sensorId = UNKNOWN_ID for correct sequence command
+      // Next Start "type"... verified with starting sensorId = SETUP_ID for correct sequence command
       if(isSlaveConfigure) {
-        if ((it.value().as<const char *>(), "CAN") == 0) {
-          sensorId = UNKNOWN_ID;
+        if (strcmp(it.value().as<const char *>(), "CAN") == 0) {
+          sensorId = SETUP_ID;
         }
         else error_command = true;
-        is_sensor_config = true;
       }
       else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "type") == 0)
     {
       // Start Configure a local CAN sensor, Open First/Next sesnorIndex Array ( Only for Slave Module )
-      // starting "type"... verified with starting sensorId = UNKNOWN_ID for correct sequence command
-      if(sensorId==UNKNOWN_ID) {
+      // starting "type"... verified with starting sensorId = SETUP_ID for correct sequence command
+      if(sensorId==SETUP_ID) {
         switch (currentModule) {
           case Module_Type::th:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_STH) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_STH) == 0) {
               sensorId = SENSOR_METADATA_STH;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_ITH) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_ITH) == 0) {
               sensorId = SENSOR_METADATA_ITH;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_MTH) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_MTH) == 0) {
               sensorId = SENSOR_METADATA_MTH;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_NTH) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_NTH) == 0) {
               sensorId = SENSOR_METADATA_NTH;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_XTH) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_XTH) == 0) {
               sensorId = SENSOR_METADATA_XTH;
             }
             else error_command = true;
             break;
           case Module_Type::rain:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_TBR) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_TBR) == 0) {
               sensorId = SENSOR_METADATA_TBR;
             }
             else error_command = true;
             break;
           case Module_Type::wind:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWA) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWA) == 0) {
               sensorId = SENSOR_METADATA_DWA;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWB) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWB) == 0) {
               sensorId = SENSOR_METADATA_DWB;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWC) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWC) == 0) {
               sensorId = SENSOR_METADATA_DWC;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWD) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWD) == 0) {
               sensorId = SENSOR_METADATA_DWD;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWE) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWE) == 0) {
               sensorId = SENSOR_METADATA_DWE;
-            } else if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWF) == 0) {
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DWF) == 0) {
               sensorId = SENSOR_METADATA_DWF;
             }
             else error_command = true;
             break;
           case Module_Type::radiation:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DSA) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DSA) == 0) {
               sensorId = SENSOR_METADATA_DSA;
             }
             else error_command = true;
             break;
           case Module_Type::power:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DEP) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DEP) == 0) {
               sensorId = SENSOR_METADATA_DEP;
             }
             else error_command = true;
             break;
           case Module_Type::vwc:
-            if ((it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_VWC) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_VWC) == 0) {
               sensorId = SENSOR_METADATA_VWC;
             }
             else error_command = true;
@@ -441,7 +465,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           default:
             error_command = true;
         }
-        is_sensor_config = true;
       }
       else error_command = true;
     }
@@ -449,7 +472,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     {
       // Pindicator - P1 - P2 it.value().as<JsonArray>()[0,1,2].as<unsigned int>()
       // it.value().as<JsonArray>()[0].as<unsigned int>()
-      if((sensorId!=UNKNOWN_ID)&&(isSlaveConfigure)) {
+      // Coorect sequence only is here sensorID have real value index
+      if((sensorId<SETUP_ID)&&(isSlaveConfigure)) {
+        param.configurationLock->Take();
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangePindicator =
           it.value().as<JsonArray>()[0].as<unsigned int>();
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangeP1 =
@@ -465,15 +490,17 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangeP2 =
             it.value().as<JsonArray>()[2].as<unsigned int>();
         }
+        param.configurationLock->Give();
       }
       else error_command = true;
-      is_sensor_config = true;
     }
     else if (strcmp(it.key().c_str(), "level") == 0)
     {
       // LevelType1, L1, LevelType2, L2
       // it.value().as<JsonArray>()[0,1,2,3].as<unsigned int>()
-      if((sensorId!=UNKNOWN_ID)&&(isSlaveConfigure)) {
+      // Coorect sequence only is here sensorID have real value index
+      if((sensorId<SETUP_ID)&&(isSlaveConfigure)) {
+        param.configurationLock->Take();
         param.configuration->board_slave[slaveId].metadata[sensorId].levelType1 =
           it.value().as<JsonArray>()[0].as<unsigned int>();
         param.configuration->board_slave[slaveId].metadata[sensorId].level1 =
@@ -493,74 +520,77 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].level2 =
             it.value().as<JsonArray>()[3].as<unsigned int>();
         }
+        param.configurationLock->Give();
       }
       else error_command = true;
-      is_sensor_config = true;
-    }
-    else if (strcmp(it.key().c_str(), "save") == 0)
-    {
-      if (it.value().as<bool>() == true)
-      {
-        TRACE_INFO_F(F("RPC: DO SAVE CONFIGURATION\r\n"));
-        // Save only with last command (Master Config final) Preserve 8 x 1,5K Bytes Resave continue with EEProm
-        // On method reboot if is called before Saving is possible saving by check cfg_modified flag;
-        is_configuration_changed = true;
-        // No more action here if save configuration.
-        // TODO:Action to start configuration module before rebot or deinit remote node and restart PnP to Reset
-        if(isMasterConfigure) {
-          saveConfiguration(CONFIGURATION_CURRENT);
-          is_configuration_changed = false;
-        }
-        // Reset and deinit info current module and parameter pointer configure sequence
-        currentModule = Module_Type::undefined;
-        slaveId = UNKNOWN_ID;
-        sensorId = UNKNOWN_ID;
-        isSlaveConfigure = false;
-        isMasterConfigure = false;
-        subject[0] = 0;
-      }
     }
     // ************** PRINCIPAL MASTER PARAMETER LIST **************
     else if (strcmp(it.key().c_str(), "sd") == 0)
     {
-      for (JsonPair sd : it.value().as<JsonObject>())
-      {
-        // constantdata btable
-        // sd.key().c_str()
-
-        // constantdata value
-        // sd.value().as<const char *>()
-
-        // constantdata index must be incremented in order to configure the next value
-        // if (constantdata_count < USE_CONSTANTDATA_COUNT)
-        // {
-        //   constantdata_count++;
-        // }
-        // else
-        // {
-        //   is_error = true;
-        // }
+      if(isMasterConfigure) {        
+        for (JsonPair sd : it.value().as<JsonObject>())
+        {
+          param.configurationLock->Take();
+          strcpy(param.configuration->constantdata[id_constant_data].btable, sd.key().c_str());
+          strcpy(param.configuration->constantdata[id_constant_data].value, sd.value().as<const char *>());
+          param.configurationLock->Give();
+          if(++id_constant_data >= USE_CONSTANTDATA_COUNT) {
+            is_error = true;
+            break;
+          }
+        }
+        if(!is_error) {
+          param.configurationLock->Take();
+          param.configuration->constantdata_count = id_constant_data;
+          param.configurationLock->Give();
+        }
       }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "stationslug") == 0)
     {
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->stationslug, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "boardslug") == 0)
     {
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->boardslug, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "lon") == 0)
     {
-      // it.value().as<long int>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        param.configuration->longitude = it.value().as<long int>(); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "lat") == 0)
     {
-      // it.value().as<long int>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        param.configuration->latitude = it.value().as<long int>(); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "network") == 0)
     {
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->network, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "date") == 0)
     {
@@ -577,61 +607,123 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     else if (strcmp(it.key().c_str(), "mqttrootpath") == 0)
     {
       // mqtt_root_topic
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_root_topic, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttrpcpath") == 0)
     {
       // mqtt_rpc_topic
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_rpc_topic, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0)
     {
       // mqtt_maint_topic
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_maint_topic, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttserver") == 0)
     {
       // mqtt_server
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_server, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttsampletime") == 0)
     {
       // report_s
-      // it.value().as<unsigned int>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        param.configuration->report_s = it.value().as<unsigned int>();
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttuser") == 0)
     {
       // mqtt_username
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_username, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttpassword") == 0)
     {
       // mqtt_password
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        strcpy(param.configuration->mqtt_password, it.value().as<const char *>()); 
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "mqttpskkey") == 0)
     {
       // client_psk_key
-      // trasformare da stringa come it.value().as<const char *>() array di uint8_t per salvataggio in client_psk_key
+      if(isMasterConfigure) {
+        uint8_t byte_pos = 0;
+        const char *ptr_read = it.value().as<const char *>() + 2; // Point to PSK_KEY String 0x->
+        bool end_conversion = false;
+        uint8_t data_read;
+        // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
+        // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
+        // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
+        // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
+        param.configurationLock->Take();
+        // Reset PSK_KEY
+        memcpy(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
+        while((byte_pos!=CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
+          end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
+          param.configuration->client_psk_key[byte_pos++] = data_read;
+        }
+        param.configurationLock->Give();
+      }
+      else error_command = true;
     }
 #endif
 #if (USE_NTP)
     else if (strcmp(it.key().c_str(), "ntpserver") == 0)
     {
       // ntp_server
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        strcpy(param.configuration->ntp_server, it.value().as<const char *>());
+      }
+      else error_command = true;
     }
 #endif
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
     else if (strcmp(it.key().c_str(), "gsmapn") == 0)
     {
       // gsm_apn
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        strcpy(param.configuration->gsm_apn, it.value().as<const char *>());
+      }
+      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "pppnumber") == 0)
     {
       // gsm_number
-      // it.value().as<const char *>()
+      if(isMasterConfigure) {
+        strcpy(param.configuration->gsm_number, it.value().as<const char *>());
+      }
+      else error_command = true;
     }
 #endif
     else
@@ -642,8 +734,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
 
   // when is_sensor_config = true a sensor was configured, then the index sensors_count must be incremented
   // in order to configure the next sensor
-  if (is_sensor_config)
-  {
+  // if (is_sensor_config)
+  // {
     // if (writable_configuration.sensors_count < SENSORS_MAX)
     // {
     //   // writable_configuration.sensors_count++;
@@ -652,10 +744,11 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     // {
     //   is_error = true;
     // }
-  }
+  // }
 
-  // Out of command context but command request valid
-  if (error_command)
+  // error_command = Out of command context but command request valid
+  // is_error = error command or out of limit parameter
+  if ((error_command)||(is_error))
   {
     // Deinit index configuration varaibles
     currentModule = Module_Type::undefined;
@@ -663,15 +756,12 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     sensorId = UNKNOWN_ID;
     isSlaveConfigure = false;
     isMasterConfigure = false;
+    id_constant_data = 0;
     subject[0] = 0;
     // Result an error
     result[F("state")] = F("error");
-    return E_INVALID_REQUEST;
-  }
-  if (is_error)
-  {
-    result[F("state")] = F("error");
-    return E_INVALID_PARAMS;
+    if(error_command) return E_INVALID_REQUEST;
+    if(is_error) return E_INVALID_PARAMS;
   }
   else
   {
@@ -1072,105 +1162,59 @@ int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 }
 #endif
 
+/// @brief Init configuration fixed param unused on RPC Connfiguration
+/// @param  None
+void RegisterRPC::initFixedConfigurationParam(void)
+{
+  // Private param and Semaphore: param.configuration, param.configurationLock
+  param.configurationLock->Take();
+
+  param.configuration->module_main_version = MODULE_MAIN_VERSION;
+  param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+  param.configuration->module_type = (Module_Type)MODULE_TYPE;
+
+  param.configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
+
+  strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
+
+  #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
+  char temp_string[20];
+  param.configuration->is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
+  strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_MAC);
+  macStringToArray(param.configuration->ethernet_mac, temp_string);
+  strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_IP);
+  ipStringToArray(param.configuration->ip, temp_string);
+  strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_NETMASK);
+  ipStringToArray(param.configuration->netmask, temp_string);
+  strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_GATEWAY);
+  ipStringToArray(param.configuration->gateway, temp_string);
+  strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_PRIMARY_DNS);
+  ipStringToArray(param.configuration->primary_dns, temp_string);
+  #endif
+
+  #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+  strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
+  strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
+  #endif
+
+  param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
+
+  param.configurationLock->Give();
+}
+
 /// @brief Save configuration to E2
-/// @param is_default require to write the Default configuration
+/// @param None
 /// @return true is saving is done
-bool RegisterRPC::saveConfiguration(bool is_default)
+bool RegisterRPC::saveConfiguration(void)
 {
   // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
 
   if (param.configurationLock->Take())
   {
-    if (is_default)
-    {
-      osMemset(param.configuration, 0, sizeof(configuration_t));
-
-      param.configuration->module_main_version = MODULE_MAIN_VERSION;
-      param.configuration->module_minor_version = MODULE_MINOR_VERSION;
-      param.configuration->module_type = (Module_Type)MODULE_TYPE;
-
-      param.configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;
-      param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
-
-      strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
-      // strSafeCopy(param.configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
-      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
-
-      param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
-      param.configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;
-
-      #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
-      char temp_string[20];
-      param.configuration->is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
-      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_MAC);
-      macStringToArray(param.configuration->ethernet_mac, temp_string);
-      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_IP);
-      ipStringToArray(param.configuration->ip, temp_string);
-      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_NETMASK);
-      ipStringToArray(param.configuration->netmask, temp_string);
-      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_GATEWAY);
-      ipStringToArray(param.configuration->gateway, temp_string);
-      strcpy(temp_string, CONFIGURATION_DEFAULT_ETHERNET_PRIMARY_DNS);
-      ipStringToArray(param.configuration->primary_dns, temp_string);
-      #endif
-
-      #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-      strSafeCopy(param.configuration->gsm_apn, CONFIGURATION_DEFAULT_GSM_APN, GSM_APN_LENGTH);
-      strSafeCopy(param.configuration->gsm_number, CONFIGURATION_DEFAULT_GSM_NUMBER, GSM_NUMBER_LENGTH);
-      strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
-      strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
-      #endif
-
-      #if (USE_NTP)
-      strSafeCopy(param.configuration->ntp_server, CONFIGURATION_DEFAULT_NTP_SERVER, NTP_SERVER_LENGTH);
-      #endif
-
-      #if (USE_MQTT)
-      param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
-      strSafeCopy(param.configuration->mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER, MQTT_SERVER_LENGTH);
-      strSafeCopy(param.configuration->mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LENGTH);
-      strSafeCopy(param.configuration->mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LENGTH);
-      strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
-      strSafeCopy(param.configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
-      strSafeCopy(param.configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
-      strSafeCopy(param.configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
-      strSafeCopy(param.configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
-      #endif
-
-      // TODO: da rimuovere
-      #if (USE_MQTT)
-      // uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
-      // uint8_t temp_psk_key[] = {0x30, 0xA4, 0x45, 0xD2, 0xE6, 0x1A, 0x88, 0xD7, 0xDB, 0x7D, 0xC4, 0xF7, 0xC9, 0x6B, 0xC5, 0x27};
-      uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
-      osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
-
-      strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
-      strSafeCopy(param.configuration->stationslug, "stimacan", STATIONSLUG_LENGTH);
-      strSafeCopy(param.configuration->boardslug, "stimav4", BOARDSLUG_LENGTH);
-
-      param.configuration->latitude = 4512345;
-      param.configuration->longitude = 1212345;
-
-      strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
-      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);
-
-      param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
-      #endif
-    }
-
     //! write configuration to eeprom
     status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
-
-    if (is_default)
-    {
-      TRACE_INFO_F(F("Save default configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
-    }
-    else
-    {
-      TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
-    }
-
+    TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
     param.configurationLock->Give();
   }
 

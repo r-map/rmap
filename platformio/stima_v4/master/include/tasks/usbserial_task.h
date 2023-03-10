@@ -52,6 +52,7 @@
 #include "drivers/eeprom.h"
 
 #define USBSERIAL_TASK_WAIT_DELAY_MS            (50)
+#define USBSERIAL_TASK_WAIT_DELAY_MS            (50)
 
 #define USBSERIAL_TASK_WAIT_REBOOT_MS           (2500)
 

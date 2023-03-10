@@ -162,6 +162,7 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeou
   case JRPC_AVAILABLE:
     stream->setTimeout(timeout);
     error = deserializeJson(doc, *stream);
+    // error = deserializeJson(doc, *stream, DeserializationOption::NestingLimit(40));
 
     if (error)
     {

@@ -15,7 +15,7 @@
 #define JRPC_MAXRPCNAMELEN          (15)
 #endif
 
-#define JRPC_DOCUMENT_SIZE          (300)
+#define JRPC_DOCUMENT_SIZE          (400)
 #define JRPC_DEFAULT_TIMEOUT_MS     (5)
 
 #define RPC_TYPE_SERIAL             (0)

@@ -60,6 +60,7 @@ using namespace cpp_freertos;
 
 #define SUBJECT_ID_LEN_MAX  (30)
 #define UNKNOWN_ID          (0xFFu)
+#define SETUP_ID            (0xF0u)
 
 typedef struct
 {
@@ -120,16 +121,19 @@ class RegisterRPC {
     // ***************** PRIVATE ACCESS *****************
     private:
 
-      static bool saveConfiguration(bool is_default);
+      static bool saveConfiguration(void);
+      static void initFixedConfigurationParam(void);
+
       inline static RpcParam_t param;
 
-      inline static bool is_configuration_changed = false;
-      inline static Module_Type currentModule = Module_Type::undefined;
-      inline static uint8_t slaveId = UNKNOWN_ID;
-      inline static uint8_t sensorId = UNKNOWN_ID;
-      inline static bool isSlaveConfigure = false;
-      inline static bool isMasterConfigure = false;
-      inline static char subject[SUBJECT_ID_LEN_MAX];
+      inline static bool isSlaveConfigure = false;                        // is module actual in reconfiguration
+      inline static bool isMasterConfigure = false;                       // is master actual in reconfiguration
+      inline static bool is_configuration_changed = false;                // configuration was changed (Need reset PNP Slave?)
+      inline static Module_Type currentModule = Module_Type::undefined;   // Current type module of Master or Slave actual in reconfiguration
+      inline static uint8_t slaveId = UNKNOWN_ID;                         // Index of slave in reconfiguration stimacan"X"
+      inline static uint8_t sensorId = UNKNOWN_ID;                        // Sensor index in actual reconfiguration (ITH/MTH...)
+      inline static uint8_t id_constant_data = 0;                         // Constant data pointer in reconfiguration of master
+      inline static char subject[SUBJECT_ID_LEN_MAX];                     // subject string for module check in reconfiguration
 
 };
 

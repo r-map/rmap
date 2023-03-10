@@ -392,7 +392,7 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 500, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_MMC)
   static MmcTask mmc_task("MmcTask", 1400, OS_TASK_PRIORITY_01, mmcParam);
@@ -402,7 +402,7 @@ void setup() {
 #endif
 
 #if (ENABLE_USBSERIAL)
-  static UsbSerialTask usbSerial_task("UsbSerialTask", 500, OS_TASK_PRIORITY_01, usbSerialParam);
+  static UsbSerialTask usbSerial_task("UsbSerialTask", 1100, OS_TASK_PRIORITY_01, usbSerialParam);
 #endif
 
 #if (ENABLE_LCD)
@@ -414,7 +414,7 @@ void setup() {
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 650, OS_TASK_PRIORITY_02, modemParam);
+  static ModemTask modem_task("ModemTask", 700, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
@@ -422,11 +422,11 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 800, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 500, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 800, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 500, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);
