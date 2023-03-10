@@ -332,6 +332,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             bool is_event_rpc = true;
+            localStreamRpc->init();
             localRpcLock->Take();
             localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_CAN);
             localRpcLock->Give();

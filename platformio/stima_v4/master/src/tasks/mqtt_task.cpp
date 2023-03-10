@@ -331,7 +331,7 @@ void MqttTask::Run()
       Delay(Ticks::MsToTicks(5000));
       //TODO:REMOVE End connecction on END Data... >=3 Remove...
       //TODO: is_data_publish_end = true when data END !!!
-      if(param.system_status->connection.mqtt_data_published >= 3) {
+      if(param.system_status->connection.mqtt_data_published >= 50) {
         param.systemStatusLock->Take();
         is_data_publish_end = true;
         param.systemStatusLock->Give();
@@ -429,17 +429,17 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("QoS: %u\r\n"), qos);
   TRACE_INFO_F(F("Retain: %u\r\n"), retain);
   TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
-  TRACE_INFO_F(F("Topic: %s\r\n"), topic);
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
-  TRACE_INFO_ARRAY("    ", message, length);
+  TRACE_INFO_F(F("%s %s\r\n"), topic, message);
 
   bool is_event_rpc = true;
+  localStreamRpc->init();
 
   if (localRpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
   {
     while (is_event_rpc)
     {
-      localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_HTTPS);
+      localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
     }
     localRpcLock->Give();
   }

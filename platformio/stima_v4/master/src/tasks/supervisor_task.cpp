@@ -419,7 +419,7 @@ void SupervisorTask::Run()
       // Sequence connection (on start set request param list operation)
       // es. ->
       // param.system_status->connection.is_ntp_synchronized = true; (require new NTP synch)
-      param.system_status->connection.is_http_configuration_updated = true; // (no operation)
+      // param.system_status->connection.is_http_configuration_updated = true; // (no operation)
       // param.system_status->connection.is_http_firmware_upgraded = true;
       // param.system_status->connection.is_mqtt_connected = true;
 

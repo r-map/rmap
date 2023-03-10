@@ -9,6 +9,11 @@ FuncMap::FuncMap() : used(0) {}
 
 JsonRPC::JsonRPC()
 {
+  init();
+}
+
+void JsonRPC::init()
+{
   jrpc_state = JRPC_INIT;
 }
 
@@ -30,8 +35,9 @@ int JsonRPC::processMessage(uint8_t rpc_type)
   bool is_serial_error = ((rpc_type == RPC_TYPE_SERIAL) && (!doc.containsKey(F("id")) || !doc.containsKey(F("method"))));
   bool is_radio_error = ((rpc_type == RPC_TYPE_RADIO) && (!doc.containsKey(F("i")) || !doc.containsKey(F("m"))));
   bool is_https_error = ((rpc_type == RPC_TYPE_HTTPS) && (!doc.containsKey(F("method"))));
+  bool is_can_error = ((rpc_type == RPC_TYPE_CAN) && (!doc.containsKey(F("method"))));
 
-  if (is_serial_error || is_radio_error || is_https_error)
+  if (is_serial_error || is_radio_error || is_https_error || is_can_error)
   {
     // id or method are missed
     doc.to<JsonObject>(); // clean the doc
@@ -149,7 +155,7 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeou
     }
     else
     {
-      *is_active = false;
+      jrpc_state = JRPC_END;
     }
     break;
 

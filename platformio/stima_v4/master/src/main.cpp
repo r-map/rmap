@@ -366,6 +366,7 @@ void setup() {
   httpParam.connectionRequestQueue = connectionRequestQueue;
   httpParam.connectionResponseQueue = connectionResponseQueue;
   httpParam.yarrowContext = &yarrowContext;
+  httpParam.streamRpc = &streamRpc;
   httpParam.rpcLock = rpcLock;
 #endif
 
@@ -421,11 +422,11 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 500, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 800, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 500, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 800, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);

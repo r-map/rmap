@@ -85,6 +85,10 @@ class RegisterRPC {
 
         void init(JsonRPC *streamRpc);
 
+        #if (USE_RPC_METHOD_ADMIN)
+        static int admin(JsonObject params, JsonObject result);
+        #endif
+
         #if (USE_RPC_METHOD_CONFIGURE)
         static int configure(JsonObject params, JsonObject result);
         #endif

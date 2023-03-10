@@ -124,7 +124,9 @@ public:
 
 protected:
   char_t http_buffer[HTTP_BUFFER_SIZE];
+  char_t rpc_buffer[HTTP_BUFFER_SIZE];
   size_t http_buffer_length;
+  size_t rpc_buffer_length;
   virtual void Run();
 
 private:

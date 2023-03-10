@@ -82,6 +82,12 @@ RegisterRPC::RegisterRPC(RpcParam_t rpcParam)
 /// @param streamRpc pointer to Object JsonRPC
 void RegisterRPC::init(JsonRPC *streamRpc)
 {
+  streamRpc->init();
+
+#if (USE_RPC_METHOD_ADMIN)
+  streamRpc->registerMethod("admin", &admin);
+#endif
+
 #if (USE_RPC_METHOD_CONFIGURE)
   streamRpc->registerMethod("configure", &configure);
 #endif
@@ -110,6 +116,22 @@ void RegisterRPC::init(JsonRPC *streamRpc)
   streamRpc->registerMethod("recovery", &recovery);
 #endif
 }
+
+#if (USE_RPC_METHOD_ADMIN)
+/// @brief RPC CallBack of admin method
+/// @param params JsonObject request
+/// @param result JsonObject response
+/// @return execute level error or ok
+int RegisterRPC::admin(JsonObject params, JsonObject result)
+{
+  for (JsonPair it : params)
+  {
+    if (strcmp(it.key().c_str(), "fdownload") == 0)
+    {
+    }
+  }
+}
+#endif
 
 #if (USE_RPC_METHOD_CONFIGURE)
 /// @brief RPC CallBack of configure method

@@ -182,6 +182,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WDT_TASK_ID                 (9)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
+#define USE_RPC_METHOD_ADMIN        (true)
 #define USE_RPC_METHOD_CONFIGURE    (true)
 #define USE_RPC_METHOD_REBOOT       (true)
 #define USE_RPC_METHOD_TEST         (true)
