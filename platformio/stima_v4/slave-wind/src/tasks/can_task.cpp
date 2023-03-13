@@ -351,19 +351,116 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @brief Prepara il blocco messaggio dati per il modulo corrente istantaneo
 ///    NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
 /// @param sensore tipo di sensore richiesto rmap class_canard di modulo
-/// @param report report data
-/// @return rmap_sensor value data
-rmap_sensors_Rain_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
-    rmap_sensors_Rain_1_0 local_data = {0};
+/// @param rmap_data report data module output value per modulo sensore specifico publish
+///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
+/// @return None
+/// TODO:_TH_RAIN (Sistemare report/connfidence/values...)
+/// Controllo DWx .... Corretto sensore...
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Wind_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
-        case canardClass::Sensor_Type::tbr:
+        case canardClass::Sensor_Type::dwa:
+            // Prepara i dati DWA (Sample)
+            rmap_data->DWA.speed.val.value = report->wind.sample;
+            rmap_data->DWA.speed.confidence.value = report->wind.quality;
+            rmap_data->DWA.direction.val.value = report->direction.sample;
+            rmap_data->DWA.direction.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwb:
+            // Prepara i dati DWB (Sample)
+            rmap_data->DWB.speed.val.value = report->wind.sample;
+            rmap_data->DWB.speed.confidence.value = report->wind.quality;
+            rmap_data->DWB.direction.val.value = report->direction.sample;
+            rmap_data->DWB.direction.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwc:
+            // Prepara i dati DWC (Sample)
+            rmap_data->DWC.peak.val.value = report->wind.sample;
+            rmap_data->DWC.peak.confidence.value = report->wind.quality;
+            rmap_data->DWC._long.val.value = report->direction.sample;
+            rmap_data->DWC._long.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwd:
             // Prepara i dati SMP (Sample)
-            local_data.rain.val.value = report->rain.sample;
-            local_data.rain.confidence.value = report->rain.quality;
+            rmap_data->DWD.speed.val.value = report->wind.sample;
+            rmap_data->DWD.speed.confidence.value = report->wind.quality;
+            break;
+        case canardClass::Sensor_Type::dwe:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DWE.class1.val.value = report->wind.sample;
+            rmap_data->DWE.class1.confidence.value = report->wind.quality;
+            rmap_data->DWE.class2.val.value = report->wind.sample;
+            rmap_data->DWE.class2.confidence.value = report->wind.quality;
+            rmap_data->DWE.class3.val.value = report->wind.sample;
+            rmap_data->DWE.class3.confidence.value = report->wind.quality;
+            rmap_data->DWE.class4.val.value = report->wind.sample;
+            rmap_data->DWE.class4.confidence.value = report->wind.quality;
+            rmap_data->DWE.class5.val.value = report->wind.sample;
+            rmap_data->DWE.class5.confidence.value = report->wind.quality;
+            rmap_data->DWE.class6.val.value = report->wind.sample;
+            rmap_data->DWE.class6.confidence.value = report->wind.quality;
+            break;
+        case canardClass::Sensor_Type::dwf:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DWF.peak.val.value = report->wind.sample;
+            rmap_data->DWF.peak.confidence.value = report->wind.sample;
+            rmap_data->DWF._long.val.value = report->wind.sample;
+            rmap_data->DWF._long.confidence.value = report->wind.sample;
             break;
     }
-    return local_data;
+}
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_Wind_Response_1_0 *rmap_data) {
+    // Inserisco i dati reali
+    switch (sensore) {
+        case canardClass::Sensor_Type::dwa:
+            // Prepara i dati DWA (Sample)
+            rmap_data->DWA.speed.val.value = report->wind.sample;
+            rmap_data->DWA.speed.confidence.value = report->wind.quality;
+            rmap_data->DWA.direction.val.value = report->direction.sample;
+            rmap_data->DWA.direction.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwb:
+            // Prepara i dati DWB (Sample)
+            rmap_data->DWB.speed.val.value = report->wind.sample;
+            rmap_data->DWB.speed.confidence.value = report->wind.quality;
+            rmap_data->DWB.direction.val.value = report->direction.sample;
+            rmap_data->DWB.direction.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwc:
+            // Prepara i dati DWC (Sample)
+            rmap_data->DWC.peak.val.value = report->wind.sample;
+            rmap_data->DWC.peak.confidence.value = report->wind.quality;
+            rmap_data->DWC._long.val.value = report->direction.sample;
+            rmap_data->DWC._long.confidence.value = report->direction.quality;
+            break;
+        case canardClass::Sensor_Type::dwd:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DWD.speed.val.value = report->wind.sample;
+            rmap_data->DWD.speed.confidence.value = report->wind.quality;
+            break;
+        case canardClass::Sensor_Type::dwe:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DWE.class1.val.value = report->wind.sample;
+            rmap_data->DWE.class1.confidence.value = report->wind.quality;
+            rmap_data->DWE.class2.val.value = report->wind.sample;
+            rmap_data->DWE.class2.confidence.value = report->wind.quality;
+            rmap_data->DWE.class3.val.value = report->wind.sample;
+            rmap_data->DWE.class3.confidence.value = report->wind.quality;
+            rmap_data->DWE.class4.val.value = report->wind.sample;
+            rmap_data->DWE.class4.confidence.value = report->wind.quality;
+            rmap_data->DWE.class5.val.value = report->wind.sample;
+            rmap_data->DWE.class5.confidence.value = report->wind.quality;
+            rmap_data->DWE.class6.val.value = report->wind.sample;
+            rmap_data->DWE.class6.confidence.value = report->wind.quality;
+            break;
+        case canardClass::Sensor_Type::dwf:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DWF.peak.val.value = report->wind.sample;
+            rmap_data->DWF.peak.confidence.value = report->wind.sample;
+            rmap_data->DWF._long.val.value = report->wind.sample;
+            rmap_data->DWF._long.confidence.value = report->wind.sample;
+            break;
+    }
 }
 
 /// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
@@ -373,9 +470,9 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
     if ((!clCanard.is_canard_node_anonymous()) &&
-        (clCanard.publisher_enabled.module_rain) &&
-        (clCanard.port_id.publisher_module_rain <= CANARD_SUBJECT_ID_MAX)) {
-        rmap_module_Rain_1_0 module_rain_msg = {0};
+        (clCanard.publisher_enabled.module_wind) &&
+        (clCanard.port_id.publisher_module_wind <= CANARD_SUBJECT_ID_MAX)) {
+        rmap_module_Wind_1_0 module_wind_msg = {0};
 
         request_data_t request_data = {0};
         report_t report = {0};
@@ -388,33 +485,48 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
         // SET Dynamic metadata (Request data from master Only Data != Sample)
-        clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWA.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWB.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWC.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWD.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWE.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWF.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati (senza attesa)
         param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
         // coda di attesa dati (attesa rmap_calc_data)
         if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\r\n"), (int32_t) report.rain.sample, (int32_t) report.rain.ist, (int32_t) report.rain.quality);
+          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
         }
 
         // Preparo i dati
-        module_rain_msg.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report, &module_wind_msg);
         // Metadata
-        module_rain_msg.TBR.metadata = clCanard.module_rain.TBR.metadata;
+        module_wind_msg.DWA.metadata = clCanard.module_wind.DWA.metadata;
+        module_wind_msg.DWB.metadata = clCanard.module_wind.DWB.metadata;
+        module_wind_msg.DWC.metadata = clCanard.module_wind.DWC.metadata;
+        module_wind_msg.DWD.metadata = clCanard.module_wind.DWD.metadata;
+        module_wind_msg.DWE.metadata = clCanard.module_wind.DWE.metadata;
+        module_wind_msg.DWF.metadata = clCanard.module_wind.DWF.metadata;
 
         // Serialize and publish the message:
-        uint8_t serialized[rmap_module_Rain_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+        uint8_t serialized[rmap_module_Wind_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
-        const int8_t err = rmap_module_Rain_1_0_serialize_(&module_rain_msg, &serialized[0], &serialized_size);
+        const int8_t err = rmap_module_Wind_1_0_serialize_(&module_wind_msg, &serialized[0], &serialized_size);
         LOCAL_ASSERT(err >= 0);
         if (err >= 0) {
             const CanardTransferMetadata meta = {
                 .priority = CanardPrioritySlow,
                 .transfer_kind = CanardTransferKindMessage,
-                .port_id = clCanard.port_id.publisher_module_rain,
+                .port_id = clCanard.port_id.publisher_module_wind,
                 .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id = (CanardTransferID)(clCanard.next_transfer_id.module_rain()),  // Increment!
+                .transfer_id = (CanardTransferID)(clCanard.next_transfer_id.module_wind()),  // Increment!
             };
             // Messaggio rapido 1/4 di secondo dal timeStamp Sincronizzato
             clCanard.send(MEGA / 4, &meta, serialized_size, &serialized[0]);
@@ -559,7 +671,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case canardClass::Command_Private::enable_publish_rmap:
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clCanard.publisher_enabled.module_rain = true;
+            clCanard.publisher_enabled.module_wind = true;
             TRACE_INFO_F(F("ATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -567,7 +679,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case canardClass::Command_Private::disable_publish_rmap:
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clCanard.publisher_enabled.module_rain = false;
+            clCanard.publisher_enabled.module_wind = false;
             TRACE_INFO_F(F("DISATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -606,8 +718,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
 /// @param req richiesta
 /// @param param parametri CAN
 /// @return dati rmap_servizio di modulo
-rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_Rain_Request_1_0* req, CanParam_t *param) {
-    rmap_service_module_Rain_Response_1_0 resp = {0};
+rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_Wind_Request_1_0* req, CanParam_t *param) {
+    rmap_service_module_Wind_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
     // req->parameter.command (Comando esterno ricevuto 3 BIT)
@@ -644,7 +756,12 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
             last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
-            clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWA.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWB.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWC.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWD.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWE.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWF.metadata.timerange.P2 = request_data.report_time_s;
           }
 
           // coda di richiesta dati
@@ -652,7 +769,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
 
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\r\n"), (int32_t) report.rain.sample, (int32_t) report.rain.ist, (int32_t) report.rain.quality);
+            TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
           }
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
@@ -663,9 +780,14 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            resp.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &resp);
           } else {
-            resp.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report, &resp);
           }
           break;
 
@@ -689,7 +811,12 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
     }
 
     // Copio i metadati fissi e mobili
-    resp.TBR.metadata = clCanard.module_rain.TBR.metadata;
+    resp.DWA.metadata = clCanard.module_wind.DWA.metadata;
+    resp.DWB.metadata = clCanard.module_wind.DWB.metadata;
+    resp.DWC.metadata = clCanard.module_wind.DWC.metadata;
+    resp.DWD.metadata = clCanard.module_wind.DWD.metadata;
+    resp.DWE.metadata = clCanard.module_wind.DWE.metadata;
+    resp.DWF.metadata = clCanard.module_wind.DWF.metadata;
 
     return resp;
 }
@@ -921,19 +1048,19 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
     {
         // Gestione delle richieste esterne
-        if (transfer->metadata.port_id == clCanard.port_id.service_module_rain) {
+        if (transfer->metadata.port_id == clCanard.port_id.service_module_wind) {
             // Richiesta ai dati e metodi di sensor drive
-            rmap_service_module_Rain_Request_1_0 req = {0};
+            rmap_service_module_Wind_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
             TRACE_INFO_F(F("<<-- Ricevuto richiesta dati da master\r\n"));
             // The request object is empty so we don't bother deserializing it. Just send the response.
-            if (rmap_service_module_Rain_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
+            if (rmap_service_module_Wind_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
-                rmap_service_module_Rain_Response_1_0 module_rain_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
+                rmap_service_module_Wind_Response_1_0 module_wind_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
                 // Serialize and publish the message:
-                uint8_t serialized[rmap_service_module_Rain_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+                uint8_t serialized[rmap_service_module_Wind_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
-                const int8_t res = rmap_service_module_Rain_Response_1_0_serialize_(&module_rain_resp, &serialized[0], &serialized_size);
+                const int8_t res = rmap_service_module_Wind_Response_1_0_serialize_(&module_wind_resp, &serialized[0], &serialized_size);
                 if (res >= 0) {
                     // Risposta standard ad un secondo dal timeStamp Sincronizzato
                     clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
@@ -1329,23 +1456,28 @@ void CanTask::Run() {
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
                 #ifdef USE_PORT_PUBLISH_RMAP_FIXED
-                clCanard.port_id.publisher_module_rain = (CanardPortID)SUBJECTID_PUBLISH_RMAP;
+                clCanard.port_id.publisher_module_wind = (CanardPortID)SUBJECTID_PUBLISH_RMAP;
                 #else
-                clCanard.port_id.publisher_module_rain =
+                clCanard.port_id.publisher_module_wind =
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
-                        "RAIN.data_and_metadata", rmap_module_Rain_1_0_FULL_NAME_AND_VERSION_);
+                        "WIND.data_and_metadata", rmap_module_Wind_1_0_FULL_NAME_AND_VERSION_);
                 #endif
                 #ifdef USE_PORT_SERVICE_RMAP_FIXED
-                clCanard.port_id.service_module_rain = (CanardPortID)PORT_SERVICE_RMAP;
+                clCanard.port_id.service_module_wind = (CanardPortID)PORT_SERVICE_RMAP;
                 #else
-                clCanard.port_id.service_module_rain =
+                clCanard.port_id.service_module_wind =
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
-                        "RAIN.service_data_and_metadata", rmap_service_module_Rain_1_0_FULL_NAME_AND_VERSION_);
+                        "WIND.service_data_and_metadata", rmap_service_module_Wind_1_0_FULL_NAME_AND_VERSION_);
                 #endif
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
-                // SENSOR_METADATA_TBR                   (0)
+                // SENSOR_METADATA_DWA                   (0)
+                // SENSOR_METADATA_DWB                   (1)
+                // SENSOR_METADATA_DWC                   (2)
+                // SENSOR_METADATA_DWD                   (3)
+                // SENSOR_METADATA_DWE                   (4)
+                // SENSOR_METADATA_DWF                   (5)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1353,10 +1485,15 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Level.L1", &val);
+                localRegister->read("rmap.module.WIND.metadata.Level.L1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1364,10 +1501,15 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Level.L2", &val);
+                localRegister->read("rmap.module.WIND.metadata.Level.L2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1375,10 +1517,15 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Level.LevelType1", &val);
+                localRegister->read("rmap.module.WIND.metadata.Level.LevelType1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1386,10 +1533,15 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Level.LevelType2", &val);
+                localRegister->read("rmap.module.WIND.metadata.Level.LevelType2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1397,23 +1549,43 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_P1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Timerange.P1", &val);
+                localRegister->read("rmap.module.WIND.metadata.Timerange.P1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                clCanard.module_rain.TBR.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWA.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWB.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWC.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWD.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWE.metadata.timerange.P2 = 0;
+                clCanard.module_wind.DWF.metadata.timerange.P2 = 0;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
-                val.natural16.value.elements[SENSOR_METADATA_TBR] = SENSOR_METADATA_LEVEL_P_IND_TBR;
+                val.natural16.value.elements[SENSOR_METADATA_DWA] = SENSOR_METADATA_LEVEL_P_IND_DWA;
+                val.natural16.value.elements[SENSOR_METADATA_DWB] = SENSOR_METADATA_LEVEL_P_IND_DWB;
+                val.natural16.value.elements[SENSOR_METADATA_DWC] = SENSOR_METADATA_LEVEL_P_IND_DWC;
+                val.natural16.value.elements[SENSOR_METADATA_DWD] = SENSOR_METADATA_LEVEL_P_IND_DWD;
+                val.natural16.value.elements[SENSOR_METADATA_DWE] = SENSOR_METADATA_LEVEL_P_IND_DWE;
+                val.natural16.value.elements[SENSOR_METADATA_DWF] = SENSOR_METADATA_LEVEL_P_IND_DWF;
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.RAIN.metadata.Timerange.Pindicator", &val);
+                localRegister->read("rmap.module.WIND.metadata.Timerange.Pindicator", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_rain.TBR.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_wind.DWA.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;
@@ -1487,8 +1659,8 @@ void CanTask::Run() {
 
                 // Service servers: -> Risposta per dati e metadati sensore modulo corrente da master (Yakut, Altri)
                 if (!clCanard.rxSubscribe(CanardTransferKindRequest,
-                                        clCanard.port_id.service_module_rain,
-                                        rmap_service_module_Rain_Request_1_0_EXTENT_BYTES_,
+                                        clCanard.port_id.service_module_wind,
+                                        rmap_service_module_Wind_Request_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
@@ -1656,8 +1828,8 @@ void CanTask::Run() {
                 // Pubblica i dati del nodo corrente se configurata e abilitata la funzione
                 // Ovviamente il nodo non può essere anonimo per la pubblicazione...
                 if ((!clCanard.is_canard_node_anonymous()) &&
-                    (clCanard.publisher_enabled.module_rain) &&
-                    (clCanard.port_id.publisher_module_rain <= CANARD_SUBJECT_ID_MAX)) {
+                    (clCanard.publisher_enabled.module_wind) &&
+                    (clCanard.port_id.publisher_module_wind <= CANARD_SUBJECT_ID_MAX)) {
                     if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_rmap_data)
                     {
                         // Update publisher

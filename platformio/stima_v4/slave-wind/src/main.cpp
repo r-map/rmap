@@ -183,14 +183,14 @@ void setup() {
   accelerometerParam.systemMessageQueue = systemMessageQueue;
 #endif
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
-  static SolarRadiationSensorParam_t solarRadiationSensorParam = {0};
-  solarRadiationSensorParam.configuration = &configuration;
-  solarRadiationSensorParam.system_status = &system_status;
-  solarRadiationSensorParam.configurationLock = configurationLock;
-  solarRadiationSensorParam.systemStatusLock = systemStatusLock;
-  solarRadiationSensorParam.systemMessageQueue = systemMessageQueue;
-  solarRadiationSensorParam.elaborataDataQueue = elaborataDataQueue;
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_WIND)
+  static WindSensorParam_t windSensorParam = {0};
+  windSensorParam.configuration = &configuration;
+  windSensorParam.system_status = &system_status;
+  windSensorParam.configurationLock = configurationLock;
+  windSensorParam.systemStatusLock = systemStatusLock;
+  windSensorParam.systemMessageQueue = systemMessageQueue;
+  windSensorParam.elaborataDataQueue = elaborataDataQueue;
 #endif
 
   // TASK ELABORATE DATA PARAM CONFIG
@@ -219,8 +219,8 @@ void setup() {
   // *****************************************************************************
   static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
 
-#if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
-  static SolarRadiationSensorTask solar_radiation_sensor_task("RadiationTask", 350, OS_TASK_PRIORITY_03, solarRadiationSensorParam);
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_WIND)
+  static WindSensorTask wind_sensor_task("WindTask", 350, OS_TASK_PRIORITY_03, windSensorParam);
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 350, OS_TASK_PRIORITY_02, elaborateDataParam);
 

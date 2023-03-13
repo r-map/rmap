@@ -219,8 +219,8 @@ void setup() {
   // *****************************************************************************
   static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
 
-#if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static RainSensorTask th_sensor_task("THTask", 350, OS_TASK_PRIORITY_03, thSensorParam);
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_RAIN)
+  static RainSensorTask rain_sensor_task("RainTask", 350, OS_TASK_PRIORITY_03, rainSensorParam);
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 350, OS_TASK_PRIORITY_02, elaborateDataParam);
 

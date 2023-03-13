@@ -378,7 +378,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = PORT_SERVICE_RMAP;
-    write("uavcan.srv.TH.service_data_and_metadata.id", &val);
+    write("uavcan.srv.RAIN.service_data_and_metadata.id", &val);
     #endif
 
     // Publish RMAP
@@ -386,7 +386,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = SUBJECTID_PUBLISH_RMAP;
-    write("uavcan.pub.TH.data_and_metadata.id", &val);
+    write("uavcan.pub.RAIN.data_and_metadata.id", &val);
     #endif
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
