@@ -379,18 +379,8 @@ void HttpTask::Run() {
         {
           is_event_rpc = true;
           param.streamRpc->init();
-          
-          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, '\r\n');
 
-          // for (size_t i = 0; i < http_buffer_length; i++)
-          // {
-          //   if (http_buffer[i] == '\n')
-          //   {
-          //     rpc_buffer_length = i;
-          //     memcpy(rpc_buffer, http_buffer, rpc_buffer_length + 1);
-          //     rpc_buffer[rpc_buffer_length] = '\0';
-          //   }
-          // }
+          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, SOCKET_FLAG_BREAK_CRLF);
 
           if (!error)
           {
@@ -403,7 +393,6 @@ void HttpTask::Run() {
             while (is_event_rpc)
             {
               param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
-              // param.streamRpc->parseCharpointer(&is_event_rpc, (char *)rpc_buffer, rpc_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
             }
             param.rpcLock->Give();
           }
