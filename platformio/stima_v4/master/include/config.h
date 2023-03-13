@@ -96,12 +96,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Address EEProm for reserved bootloader flag param (and future used 1Kb)
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (1024)
+#define SIZE_EEPROM_RESERVED           (1728)                           // Must be > CONFIGURATION_EEPROM_END
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
 #define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
 // Private configuration board direct
 #define CONFIGURATION_EEPROM_ADDRESS   (20)
+#define CONFIGURATION_EEPROM_LENGHT    (sizeof(configuration_t))
+#define CONFIGURATION_EEPROM_END       (CONFIGURATION_EEPROM_ADDRESS + CONFIGURATION_EEPROM_LENGHT)
 // Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
 
