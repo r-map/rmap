@@ -351,19 +351,30 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @brief Prepara il blocco messaggio dati per il modulo corrente istantaneo
 ///    NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
 /// @param sensore tipo di sensore richiesto rmap class_canard di modulo
-/// @param report report data
-/// @return rmap_sensor value data
-rmap_sensors_Radiation_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
-    rmap_sensors_Radiation_1_0 local_data = {0};
+/// @param rmap_data report data module output value per modulo sensore specifico publish
+///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
+/// @return None
+/// TODO:_TH_RAIN (Sistemare report/connfidence/values...)
+/// Controllo ElaborateData report!!! .... Corretto sensore...
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Radiation_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::dsa:
             // Prepara i dati SMP (Sample)
-            local_data.radiation.val.value = report->solar_radiation.sample;
-            local_data.radiation.confidence.value = report->solar_radiation.quality;
+            rmap_data->DSA.radiation.val.value = report->solar_radiation.sample;
+            rmap_data->DSA.radiation.confidence.value = report->solar_radiation.quality;
             break;
     }
-    return local_data;
+}
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_Radiation_Response_1_0 *rmap_data) {
+    // Inserisco i dati reali
+    switch (sensore) {
+        case canardClass::Sensor_Type::dsa:
+            // Prepara i dati SMP (Sample)
+            rmap_data->DSA.radiation.val.value = report->solar_radiation.sample;
+            rmap_data->DSA.radiation.confidence.value = report->solar_radiation.quality;
+            break;
+    }
 }
 
 /// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
@@ -399,7 +410,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         }
 
         // Preparo i dati
-        module_solar_radiation_msg.DSA = prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &module_solar_radiation_msg);
         // Metadata
         module_solar_radiation_msg.DSA.metadata = clCanard.module_solar_radiation.DSA.metadata;
 
@@ -663,9 +674,9 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            resp.DSA = prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
           } else {
-            resp.DSA = prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
           }
           break;
 

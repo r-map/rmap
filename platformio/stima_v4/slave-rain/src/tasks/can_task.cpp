@@ -353,17 +353,25 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @param sensore tipo di sensore richiesto rmap class_canard di modulo
 /// @param report report data
 /// @return rmap_sensor value data
-rmap_sensors_Rain_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
-    rmap_sensors_Rain_1_0 local_data = {0};
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Rain_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::tbr:
             // Prepara i dati SMP (Sample)
-            local_data.rain.val.value = report->rain.sample;
-            local_data.rain.confidence.value = report->rain.quality;
+            rmap_data->TBR.rain.val.value = report->rain.sample;
+            rmap_data->TBR.rain.confidence.value = report->rain.quality;
             break;
     }
-    return local_data;
+}
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_Rain_Response_1_0 *rmap_data) {
+    // Inserisco i dati reali
+    switch (sensore) {
+        case canardClass::Sensor_Type::tbr:
+            // Prepara i dati SMP (Sample)
+            rmap_data->TBR.rain.val.value = report->rain.sample;
+            rmap_data->TBR.rain.confidence.value = report->rain.quality;
+            break;
+    }
 }
 
 /// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
@@ -399,7 +407,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         }
 
         // Preparo i dati
-        module_rain_msg.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+        prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &module_rain_msg);
         // Metadata
         module_rain_msg.TBR.metadata = clCanard.module_rain.TBR.metadata;
 
@@ -663,9 +671,9 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            resp.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &resp);
           } else {
-            resp.TBR = prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &resp);
           }
           break;
 

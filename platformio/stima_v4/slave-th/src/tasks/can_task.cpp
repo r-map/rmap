@@ -351,49 +351,88 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @brief Prepara il blocco messaggio dati per il modulo corrente istantaneo
 ///    NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
 /// @param sensore tipo di sensore richiesto rmap class_canard di modulo
-/// @param report report data
-/// @return rmap_sensor value data
-rmap_sensors_TH_1_0 CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report) {
-    rmap_sensors_TH_1_0 local_data = {0};
+/// @param rmap_data report data module output value per modulo sensore specifico publish
+///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
+/// @return None
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_TH_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::sth:
             // Prepara i dati SMP (Sample)
-            local_data.temperature.val.value = report->temperature.sample;
-            local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.sample;
-            local_data.humidity.confidence.value = report->humidity.quality;
+            rmap_data->STH.temperature.val.value = report->temperature.sample;
+            rmap_data->STH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->STH.humidity.val.value = report->humidity.sample;
+            rmap_data->STH.humidity.confidence.value = report->humidity.quality;
             break;
         case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
-            local_data.temperature.val.value = report->temperature.ist;
-            local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.ist;
-            local_data.humidity.confidence.value = report->humidity.quality;
+            rmap_data->ITH.temperature.val.value = report->temperature.ist;
+            rmap_data->ITH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->ITH.humidity.val.value = report->humidity.ist;
+            rmap_data->ITH.humidity.confidence.value = report->humidity.quality;
             break;
         case canardClass::Sensor_Type::mth:
             // Prepara i dati MTH
-            local_data.temperature.val.value = report->temperature.avg;
-            local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.avg;
-            local_data.humidity.confidence.value = report->humidity.quality;
+            rmap_data->MTH.temperature.val.value = report->temperature.avg;
+            rmap_data->MTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->MTH.humidity.val.value = report->humidity.avg;
+            rmap_data->MTH.humidity.confidence.value = report->humidity.quality;
             break;
         case canardClass::Sensor_Type::nth:
             // Prepara i dati NTH
-            local_data.temperature.val.value = report->temperature.min;
-            local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.min;
-            local_data.humidity.confidence.value = report->humidity.quality;
+            rmap_data->NTH.temperature.val.value = report->temperature.min;
+            rmap_data->NTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->NTH.humidity.val.value = report->humidity.min;
+            rmap_data->NTH.humidity.confidence.value = report->humidity.quality;
             break;
         case canardClass::Sensor_Type::xth:
             // Prepara i dati XTH
-            local_data.temperature.val.value = report->temperature.max;
-            local_data.temperature.confidence.value = report->temperature.quality;
-            local_data.humidity.val.value = report->humidity.max;
-            local_data.humidity.confidence.value = report->humidity.quality;
+            rmap_data->XTH.temperature.val.value = report->temperature.max;
+            rmap_data->XTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->XTH.humidity.val.value = report->humidity.max;
+            rmap_data->XTH.humidity.confidence.value = report->humidity.quality;
             break;
     }
-    return local_data;
+}
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_TH_Response_1_0 *rmap_data) {
+    // Inserisco i dati reali
+    switch (sensore) {
+        case canardClass::Sensor_Type::sth:
+            // Prepara i dati SMP (Sample)
+            rmap_data->STH.temperature.val.value = report->temperature.sample;
+            rmap_data->STH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->STH.humidity.val.value = report->humidity.sample;
+            rmap_data->STH.humidity.confidence.value = report->humidity.quality;
+            break;
+        case canardClass::Sensor_Type::ith:
+            // Prepara i dati ITH
+            rmap_data->ITH.temperature.val.value = report->temperature.ist;
+            rmap_data->ITH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->ITH.humidity.val.value = report->humidity.ist;
+            rmap_data->ITH.humidity.confidence.value = report->humidity.quality;
+            break;
+        case canardClass::Sensor_Type::mth:
+            // Prepara i dati MTH
+            rmap_data->MTH.temperature.val.value = report->temperature.avg;
+            rmap_data->MTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->MTH.humidity.val.value = report->humidity.avg;
+            rmap_data->MTH.humidity.confidence.value = report->humidity.quality;
+            break;
+        case canardClass::Sensor_Type::nth:
+            // Prepara i dati NTH
+            rmap_data->NTH.temperature.val.value = report->temperature.min;
+            rmap_data->NTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->NTH.humidity.val.value = report->humidity.min;
+            rmap_data->NTH.humidity.confidence.value = report->humidity.quality;
+            break;
+        case canardClass::Sensor_Type::xth:
+            // Prepara i dati XTH
+            rmap_data->XTH.temperature.val.value = report->temperature.max;
+            rmap_data->XTH.temperature.confidence.value = report->temperature.quality;
+            rmap_data->XTH.humidity.val.value = report->humidity.max;
+            rmap_data->XTH.humidity.confidence.value = report->humidity.quality;
+            break;
+    }
 }
 
 /// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
@@ -432,11 +471,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         }
 
         // Preparo i dati
-        module_th_msg.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
-        module_th_msg.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
-        module_th_msg.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
-        module_th_msg.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
-        module_th_msg.XTH = prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report);
+        prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &module_th_msg);
         // Metadata
         module_th_msg.STH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
@@ -706,13 +745,13 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            resp.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &resp);
           } else {
-            resp.STH = prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report);
-            resp.ITH = prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report);
-            resp.MTH = prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report);
-            resp.NTH = prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report);
-            resp.XTH = prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report);
+            prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &resp);
           }
           break;
 
