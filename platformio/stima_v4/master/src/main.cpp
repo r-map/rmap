@@ -279,6 +279,7 @@ void setup() {
   lcdParam.systemStatusLock = systemStatusLock;
   lcdParam.systemMessageQueue = systemMessageQueue;
   lcdParam.dataLogPutQueue = dataLogPutQueue;
+  lcdParam.eeprom = &memEprom;
   lcdParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)
   lcdParam.wire = &Wire2;

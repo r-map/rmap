@@ -43,6 +43,7 @@
 #include "STM32FreeRTOS.h"
 #include "display_config.hpp"
 #include "drivers/module_master_hal.hpp"
+#include "drivers/eeprom.h"
 #include "queue.hpp"
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -55,10 +56,10 @@
 #include "debug_F.h"
 
 // Limit range for module sensor (LCD)
-#define MAX_VALID_TEMPERATURE       (100.0)
-#define MIN_VALID_TEMPERATURE       (-50.0)
-#define MAX_VALID_HUMIDITY          (100.0)
-#define MIN_VALID_HUMIDITY          (0.0)
+#define MAX_VALID_TEMPERATURE (100.0)
+#define MIN_VALID_TEMPERATURE (-50.0)
+#define MAX_VALID_HUMIDITY    (100.0)
+#define MIN_VALID_HUMIDITY    (0.0)
 
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
@@ -72,6 +73,7 @@ typedef enum LCDState {
 
 typedef enum LCDMasterCommands {
   MASTER_COMMAND_SDCARD,
+  MASTER_COMMAND_UPDATE_NAME_STATION,
   MASTER_COMMAND_FIRMWARE_UPGRADE,
   MASTER_COMMAND_EXIT  // Always the latest element
 } stima4_master_commands_t;
@@ -86,7 +88,8 @@ typedef enum LCDSlaveCommands {
 typedef enum LCDMenu {
   MAIN,
   CHANNEL,
-  CONFIGURATION
+  CONFIGURATION,
+  UPDATE_NAME_STATION
 } stima4_menu_ui_t;
 
 typedef union Encoder {
@@ -107,6 +110,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataLogPutQueue;
+  EEprom *eeprom;
   TwoWire *wire;
 } LCDParam_t;
 
@@ -124,6 +128,7 @@ class LCDTask : public cpp_freertos::Thread {
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
+  bool saveConfiguration(void);
   const char *get_master_command_name_from_enum(stima4_master_commands_t command);
   const char *get_slave_command_name_from_enum(stima4_slave_commands_t command);
   static void encoder_process(uint8_t new_value, uint8_t old_value);
@@ -135,11 +140,18 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
   void display_print_main_interface(void);
+  void display_print_update_name_station_interface(void);
   void display_setup(void);
   void elaborate_master_command(stima4_master_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
 
+  // Chars list for user input
+  char alphabet[ALPHABET_LENGTH] = {
+      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<', '>', '#'};
+  // It contains the new name of station inserted from user
+  char new_station_name[STATIONSLUG_LENGTH] = {0};
   // Indicates whether the display has printed the updates or not
   bool data_printed;
   // Indicates whether the display is off or not
@@ -182,8 +194,12 @@ class LCDTask : public cpp_freertos::Thread {
   uint8_t commands_master_number;
   // Contains the number of commands available for each slave board
   uint8_t commands_slave_number;
+  // Used to calculate the y-axis position of cursor to enter the new char of new station name
+  uint8_t cursor_pos;
   // Contains the priority assigned to LCD task
   uint8_t priority;
+  // Index used to determine the char selected from user in update name station interface
+  uint8_t selected_char_index;
 
   char pin_bottom_left_encoder;
   char pin_bottom_right_encoder;

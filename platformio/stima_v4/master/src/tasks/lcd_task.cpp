@@ -206,8 +206,10 @@ void LCDTask::Run() {
         board_count = 0;
         channel = -1;
         command_selector_pos = 0;
+        cursor_pos = 0;
         data_printed = false;
         encoder_state = DIR_NONE;
+        selected_char_index = 0;
         stima4_master_command = MASTER_COMMAND_SDCARD;
         stima4_menu_ui = MAIN;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
@@ -250,6 +252,7 @@ void LCDTask::Run() {
 
               break;
             }
+
             case CHANNEL: {
               TRACE_INFO_F(F("LCD: CHANNEL %d\r\n"), channel);
 
@@ -258,12 +261,13 @@ void LCDTask::Run() {
 
               break;
             }
+
             case CONFIGURATION: {
               TRACE_INFO_F(F("LCD: CONFIGURATION\r\n"));
 
               // Calculate number of commands for master/each slave board
               if (stima4_menu_ui_last == MAIN) {
-                commands_master_number = param.system_status->data_master.fw_upgradable == true ? 3 : 2;
+                commands_master_number = param.system_status->data_master.fw_upgradable == true ? 4 : 3;
               } else {
                 if (param.system_status->data_slave[channel].module_type == Module_Type::rain) {
                   commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 4 : 3;
@@ -272,8 +276,17 @@ void LCDTask::Run() {
                 }
               }
 
-              // Display CONFIGURATION MENU interface
+              // Display CONFIGURATION MENU GENERAL interface
               display_print_config_menu_interface();
+
+              break;
+            }
+
+            case UPDATE_NAME_STATION: {
+              TRACE_INFO_F(F("LCD: UPDATE NAME STATION\r\n"));
+
+              // Display CONFIGURATION MENU interface for UPDATE NAME STATION
+              display_print_update_name_station_interface();
 
               break;
             }
@@ -295,6 +308,25 @@ void LCDTask::Run() {
 }
 
 /**
+ * @brief 
+ * 
+ */
+bool LCDTask::saveConfiguration(void) {
+  // Private param and Semaphore: param.configuration, param.configurationLock
+  bool status = true;
+
+  if (param.configurationLock->Take())
+  {
+    // Write configuration to eeprom
+    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    TRACE_INFO_F(F("LCD: Save configuration [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
+    param.configurationLock->Give();
+  }
+
+  return status;
+}
+
+/**
  * @brief Get the master command name from enumeration
  *
  * @param command master command enumeration
@@ -305,6 +337,10 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
   switch (command) {
     case MASTER_COMMAND_SDCARD: {
       command_name = "Replacement SD card";
+      break;
+    }
+    case MASTER_COMMAND_UPDATE_NAME_STATION: {
+      command_name = "Update station name";
       break;
     }
     case MASTER_COMMAND_FIRMWARE_UPGRADE: {
@@ -400,12 +436,12 @@ void LCDTask::ISR_input_pression_pin_encoder() {
   // ************************* DEBOUNCE BUTTON HANDLER ************************
   // **************************************************************************
 
+  // Processing
   if (millis() - debounce_millis >= DEBOUNCE_TIMEOUT) {
-    // Processing
     pression_event = digitalRead(PIN_ENCODER_INT) == LOW ? true : false;
   }
 
-  // Updating
+  // Updating flags and states
   last_display_timeout = millis();
   debounce_millis = millis();
 }
@@ -416,8 +452,10 @@ void LCDTask::ISR_input_pression_pin_encoder() {
  */
 void LCDTask::ISR_input_rotation_pin_encoder() {
   // Processing
-  last_display_timeout = millis();
   rotation_event = true;
+
+  // Updating flags and states
+  last_display_timeout = millis();
 }
 
 /**
@@ -430,16 +468,25 @@ void LCDTask::display_off() {
   // Processing light of display
   display.noDisplay();
 
+  // When the display turns on, it shows always the main interface
+  display_print_default_interface();
+  display_print_main_interface();
+
   // Turn low phisicals pins
   digitalWrite(PIN_ENCODER_EN5, LOW);
   digitalWrite(PIN_DSP_POWER, LOW);
 
-  // Set flags and states
+  // Updating flags and states
+  for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
+    new_station_name[i] = ' ';
+  }
+  cursor_pos = 0;
   display_is_off = true;
-  state = LCD_STATE_STANDBY;
   param.systemStatusLock->Take();
   param.system_status->flags.display_on = false;
   param.systemStatusLock->Give();
+  selected_char_index = 0;
+  state = LCD_STATE_STANDBY;
 }
 
 /**
@@ -456,7 +503,7 @@ void LCDTask::display_on() {
   // Processing light of display
   display.display();
 
-  // Set flags and states
+  // Updating flags and states
   display_is_off = false;
   last_display_timeout = millis();
   pression_event = false;
@@ -472,8 +519,7 @@ void LCDTask::display_on() {
  *
  */
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
-  bool bMeasValid_A = true;
-  bool bMeasValid_B = true;
+  bool bMeasValid_A = true, bMeasValid_B = true;
   char description_A[STIMA_LCD_DESCRIPTION_LENGTH], description_B[STIMA_LCD_DESCRIPTION_LENGTH];
   char measure_A[STIMA_LCD_MEASURE_LENGTH], measure_B[STIMA_LCD_MEASURE_LENGTH];
   char unit_type_A[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_B[STIMA_LCD_UNIT_TYPE_LENGTH];
@@ -513,20 +559,20 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
 
   // Print description of measure
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
   display.setFont(u8g2_font_helvR08_tf);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
   display.print(description_A);
 
   // Print measurement information
-  display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
   display.setFont(u8g2_font_helvR10_tf);
+  display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
   display.print(measure_A);
 
   // Print the second measure for special cases
   if (param.system_status->data_slave[channel].module_type == Module_Type::th) {
     // Print description of measure
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
     display.setFont(u8g2_font_helvR08_tf);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
     display.print(description_B);
 
     // Print measurement information
@@ -599,8 +645,8 @@ void LCDTask::display_print_config_menu_interface() {
 void LCDTask::display_print_default_interface() {
   display.drawFrame(X_RECT, Y_RECT, display.getWidth() - X_RECT_HEADER_MARGIN, display.getHeight() - Y_RECT_HEADER_MARGIN);
   display.drawHLine(X_RECT, Y_RECT_HEADER, display.getWidth() - X_RECT_HEADER_MARGIN);
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FROM_RECT);
   display.setFont(u8g2_font_helvR08_tf);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FROM_RECT);
   display.print(F("Stima: Digiteco-Arpae"));
 }
 
@@ -613,16 +659,18 @@ void LCDTask::display_print_main_interface() {
   char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
   char station[STATION_LCD_LENGTH];
 
-  // Get Station slug
-  (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
-  // Get firmware version
-  (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
   // Get Date and Time
   if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
     sprintf(dtIntest, "%02d/%02d/%02d %02d:%02d:00",
             rtc.getDay(), rtc.getMonth(), rtc.getYear(), rtc.getHours(), rtc.getMinutes());
     param.rtcLock->Give();
   }
+  // Get Station name
+  (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
+  // Get firmware version
+  (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
+  // Get Serial Number
+  param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
 
   // Print Date and Time
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
@@ -639,6 +687,72 @@ void LCDTask::display_print_main_interface() {
   // Print SD card status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
   param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
+
+  // Print serial number
+  display.drawFrame(X_RECT_SERIAL_NUMBER, Y_RECT_SERIAL_NUMBER, display.getWidth() - X_RECT_SERIAL_NUMBER_MARGIN, HEIGHT_RECT_SERIAL_NUMBER);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
+  display.print(F("SN: "));
+  for (uint8_t uid = 0; uid < 8; uid++) {
+    if (uid) display.print(F("-"));
+    if ((uint8_t)((param.configuration->board_master.serial_number >> (8 * uid)) & 0xFF) < 16) display.print(F("0"));
+    display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * uid)) & 0xFF), 16);
+  }
+
+  // Apply the updates to display
+  display.sendBuffer();
+  display.clearBuffer();
+}
+
+/**
+ * @brief Display the interface for update the name of station
+ *
+ */
+void LCDTask::display_print_update_name_station_interface(void) {
+  char buffer[STATIONSLUG_LENGTH];
+  char status_message[20];
+
+  // Get station name
+  (void)snprintf(buffer, sizeof(buffer), "%s", new_station_name);
+
+  // Print char selected
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
+  display.print(F("Enter a name for the station "));
+  // Print the buffer of station name
+  display.setFont(u8g2_font_helvR10_tf);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
+  display.print(buffer);
+
+  switch (alphabet[selected_char_index]) {
+    case '<': {
+      strcpy(status_message, "Undo changes");
+      display.setFont(u8g2_font_open_iconic_gui_2x_t);
+      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_UNDO);
+      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+      break;
+    }
+    case '>': {
+      strcpy(status_message, "Apply changes");
+      display.setFont(u8g2_font_open_iconic_gui_2x_t);
+      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_APPLY);
+      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+      break;
+    }
+    case '#': {
+      strcpy(status_message, "Return to main");
+      display.setFont(u8g2_font_open_iconic_arrow_2x_t);
+      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_EXIT);
+      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+      break;
+    }
+    default: {
+      status_message[0] = alphabet[selected_char_index];
+      display.drawFrame(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8 * LINE_BREAK, 16, 16);
+      display.setCursor(11, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+      break;
+    }
+  }
+  display.setFont(u8g2_font_helvR08_tf);
+  display.print(status_message);
 
   // Apply the updates to display
   display.sendBuffer();
@@ -665,6 +779,15 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
 
   switch (command) {
     case MASTER_COMMAND_SDCARD: {
+      break;
+    }
+    case MASTER_COMMAND_UPDATE_NAME_STATION: {
+      // Update the name of the station
+      param.configurationLock->Take();
+      strcpy(param.configuration->stationslug, new_station_name);
+      param.configurationLock->Give();
+      // Apply the updates to eeprom
+      saveConfiguration();
       break;
     }
     case MASTER_COMMAND_FIRMWARE_UPGRADE: {
@@ -743,46 +866,54 @@ void LCDTask::switch_interface() {
     // **************************************************************************
 
     if (encoder_state == DIR_CLOCK_WISE) {
-      // **************************************************************************
-      // ************************* CONFIG MENU MANAGEMENT *************************
-      // **************************************************************************
+      switch (stima4_menu_ui) {
+          // ************************************************************************
+          // ************************* CONFIG MENU MANAGEMENT ***********************
+          // ************************************************************************
 
-      if (stima4_menu_ui == CONFIGURATION) {
-        // **************************************************************************
-        // ************************* MASTER CONFIG MENU *****************************
-        // **************************************************************************
+        case CONFIGURATION: {
+          // **************************************************************************
+          // ************************* MASTER CONFIG MENU *****************************
+          // **************************************************************************
 
-        if (stima4_menu_ui_last == MAIN) {
-          command_selector_pos = stima4_master_command == MASTER_COMMAND_EXIT ? commands_master_number - 1 : command_selector_pos + 1;
-          stima4_master_command = stima4_master_command == MASTER_COMMAND_EXIT ? MASTER_COMMAND_EXIT : (stima4_master_commands_t)(stima4_master_command + 1);
-          if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
-            stima4_master_command = (stima4_master_commands_t)(stima4_master_command + 1);
+          if (stima4_menu_ui_last == MAIN) {
+            command_selector_pos = stima4_master_command == MASTER_COMMAND_EXIT ? commands_master_number - 1 : command_selector_pos + 1;
+            stima4_master_command = stima4_master_command == MASTER_COMMAND_EXIT ? MASTER_COMMAND_EXIT : (stima4_master_commands_t)(stima4_master_command + 1);
+            if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
+              stima4_master_command = (stima4_master_commands_t)(stima4_master_command + 1);
+            }
           }
+          // **************************************************************************
+          // ************************* SLAVE CONFIG MENU ******************************
+          // **************************************************************************
+
+          else {
+            command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? commands_slave_number - 1 : command_selector_pos + 1;
+            stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command + 1);
+            if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+              stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
+            }
+            if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
+              stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
+            }
+          }
+          break;
         }
-        // **************************************************************************
-        // ************************* SLAVE CONFIG MENU ******************************
-        // **************************************************************************
 
-        else {
-          command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? commands_slave_number - 1 : command_selector_pos + 1;
-          stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command + 1);
-          if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
-            stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
-          }
-          if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
-            stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
-          }
+        case UPDATE_NAME_STATION: {
+          selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
+          break;
         }
+          // **************************************************************************
+          // ************************* CHANNELS MANAGEMENT ****************************
+          // **************************************************************************
 
-      }
-      // **************************************************************************
-      // ************************* CHANNELS MANAGEMENT ****************************
-      // **************************************************************************
-
-      else {
-        channel = channel == -1 ? 0 : channel + 1;
-        stima4_menu_ui = channel == board_count ? MAIN : CHANNEL;
-        channel = channel == board_count ? -1 : channel;
+        default: {
+          channel = channel == -1 ? 0 : channel + 1;
+          stima4_menu_ui = channel == board_count ? MAIN : CHANNEL;
+          channel = channel == board_count ? -1 : channel;
+          break;
+        }
       }
     }
     // **************************************************************************
@@ -790,46 +921,57 @@ void LCDTask::switch_interface() {
     // **************************************************************************
 
     else {
-      // **************************************************************************
-      // ************************* CONFIG MENU MANAGEMENT *************************
-      // **************************************************************************
+      switch (stima4_menu_ui) {
+          // ************************************************************************
+          // ************************* CONFIG MENU MANAGEMENT ***********************
+          // ************************************************************************
 
-      if (stima4_menu_ui == CONFIGURATION) {
-        // **************************************************************************
-        // ************************* MASTER CONFIG MENU *****************************
-        // **************************************************************************
+        case CONFIGURATION: {
+          // **************************************************************************
+          // ************************* MASTER CONFIG MENU *****************************
+          // **************************************************************************
 
-        if (stima4_menu_ui_last == MAIN) {
-          command_selector_pos = stima4_master_command == MASTER_COMMAND_SDCARD ? 0 : command_selector_pos - 1;
-          stima4_master_command = stima4_master_command == MASTER_COMMAND_SDCARD ? MASTER_COMMAND_SDCARD : (stima4_master_commands_t)(stima4_master_command - 1);
-          if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
-            stima4_master_command = (stima4_master_commands_t)(stima4_master_command - 1);
+          if (stima4_menu_ui_last == MAIN) {
+            command_selector_pos = stima4_master_command == MASTER_COMMAND_SDCARD ? 0 : command_selector_pos - 1;
+            stima4_master_command = stima4_master_command == MASTER_COMMAND_SDCARD ? MASTER_COMMAND_SDCARD : (stima4_master_commands_t)(stima4_master_command - 1);
+            if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
+              stima4_master_command = (stima4_master_commands_t)(stima4_master_command - 1);
+            }
           }
+          // **************************************************************************
+          // ************************* SLAVE CONFIG MENU ******************************
+          // **************************************************************************
+
+          else {
+            command_selector_pos = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE || command_selector_pos == 0 ? 0 : command_selector_pos - 1;
+            stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command - 1);
+            if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+              stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
+            }
+            if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
+              stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
+            }
+          }
+          break;
         }
-        // **************************************************************************
-        // ************************* SLAVE CONFIG MENU ******************************
-        // **************************************************************************
 
-        else {
-          command_selector_pos = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE || command_selector_pos == 0 ? 0 : command_selector_pos - 1;
-          stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command - 1);
-          if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
-            stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
-          }
-          if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
-            stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
-          }
+        case UPDATE_NAME_STATION: {
+          selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
+          break;
         }
-      }
-      // **************************************************************************
-      // ************************* CHANNELS MANAGEMENT ****************************
-      // **************************************************************************
+          // **************************************************************************
+          // ************************* CHANNELS MANAGEMENT ****************************
+          // **************************************************************************
 
-      else {
-        channel = channel == -1 ? board_count - 1 : channel - 1;
-        stima4_menu_ui = channel == -1 ? MAIN : CHANNEL;
+        default: {
+          channel = channel == -1 ? board_count - 1 : channel - 1;
+          stima4_menu_ui = channel == -1 ? MAIN : CHANNEL;
+          break;
+        }
       }
     }
+
+    // Updating flags and states
     data_printed = false;
   }
 
@@ -838,25 +980,99 @@ void LCDTask::switch_interface() {
   // ************************************************************************
 
   if (pression_event) {
-    if (stima4_menu_ui != CONFIGURATION) {
-      stima4_menu_ui_last = stima4_menu_ui;
-      stima4_menu_ui = CONFIGURATION;
-    } else {
-      // ************************************************************************
-      // ************************* ELABORATE COMMAND ****************************
-      // ************************************************************************
+    switch (stima4_menu_ui) {
+        // ************************************************************************
+        // ************************* CONFIG MENU MANAGEMENT ***********************
+        // ************************************************************************
 
-      stima4_menu_ui == MAIN ? elaborate_master_command(stima4_master_command) : elaborate_slave_command(stima4_slave_command);
+      case CONFIGURATION: {
+        // ************************************************************************
+        // ************************* ELABORATE COMMAND ****************************
+        // ************************************************************************
 
-      command_selector_pos = 0;
-      stima4_master_command = MASTER_COMMAND_SDCARD;
-      stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
-      stima4_menu_ui = stima4_menu_ui_last;
+        if (stima4_menu_ui_last == MAIN) {
+          if (stima4_master_command == MASTER_COMMAND_UPDATE_NAME_STATION) stima4_menu_ui = UPDATE_NAME_STATION;
+          else {
+            elaborate_master_command(stima4_master_command);
+            stima4_menu_ui = stima4_menu_ui_last;
+          }
+        } else {
+          elaborate_slave_command(stima4_slave_command);
+          stima4_menu_ui = stima4_menu_ui_last;
+        }
+
+        // Updating flags and states
+        command_selector_pos = 0;
+        stima4_master_command = MASTER_COMMAND_SDCARD;
+        stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
+        break;
+      }
+
+      case UPDATE_NAME_STATION: {
+        switch (alphabet[selected_char_index]) {
+          case '<': {
+            cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
+            new_station_name[cursor_pos] = ' ';
+            break;
+          }
+          case '>': {
+            elaborate_master_command(MASTER_COMMAND_UPDATE_NAME_STATION);
+
+            // Updating flags and states
+            for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
+              new_station_name[i] = ' ';
+            }
+            cursor_pos = 0;
+            selected_char_index = 0;
+            stima4_menu_ui = stima4_menu_ui_last;
+            break;
+          }
+          case '#': {
+            // Updating flags and states
+            for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
+              new_station_name[i] = ' ';
+            }
+            cursor_pos = 0;
+            selected_char_index = 0;
+            stima4_menu_ui = stima4_menu_ui_last;
+            break;
+          }
+          default: {
+            new_station_name[cursor_pos++] = alphabet[selected_char_index];
+            if (cursor_pos == STATIONSLUG_LENGTH) {
+              elaborate_master_command(MASTER_COMMAND_UPDATE_NAME_STATION);
+
+              // Updating flags and states
+              for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
+                new_station_name[i] = ' ';
+              }
+              cursor_pos = 0;
+              selected_char_index = 0;
+              stima4_menu_ui = stima4_menu_ui_last;
+            }
+            break;
+          }
+        }
+        break;
+      }
+
+        // **************************************************************************
+        // ************************* CHANNELS MANAGEMENT ****************************
+        // **************************************************************************
+
+      default: {
+        stima4_menu_ui_last = stima4_menu_ui;
+        stima4_menu_ui = CONFIGURATION;
+        break;
+      }
     }
+
+    // Updating flags and states
     pression_event = false;
     data_printed = false;
   }
 
+  // Updating flags and states
   encoder_state = DIR_NONE;
 }
 
