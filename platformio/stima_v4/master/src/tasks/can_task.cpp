@@ -1759,93 +1759,177 @@ void CanTask::Run() {
                 }
                 // ********************* END RMAP GETDATA TX-> RX<- **********************
 
-                #ifdef TEST_REGISTER
-                // ********************** TEST REGISTER TX-> RX<- *************************
-                // LOOP HANDLER >> 0..15 SECONDI x TEST REGISTER ACCESS <<
-                if ((clCanard.getMicros(clCanard.syncronized_time) >= test_cmd_rg_iter_at)) {
-                    // TimeOUT variabile in 15 secondi
-                    test_cmd_rg_iter_at += MEGA * ((float)(rand() % 60)/4.0);
-                    // Invio un comando di set registro in prova al nodo 125
-                    // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
-                    uint8_t queueId = clCanard.getSlaveIstanceFromId(125);
-                    // Il comando viene inviato solamente se il nodo è ONLine
-                    if(clCanard.slave[queueId].is_online())
-                    {
-                        // Il comando viene inviato solamente senza altri Pending di Comandi
-                        // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                        if(!clCanard.slave[queueId].register_access.is_pending()) {
-                            // Preparo il registro da inviare (configurazione generale => sequenza di request/response)
-                            // Semplice TEST di esempio trasmissione di un registro fisso con nome fisso
-                            // Uso in Test uavcan_register_Value_1_0 val utilizzato in ReadRegister iniziale
-                            // Init Var per confronto memCmp di verifica elementi == x TEST Veloce
-                            memset(&val, 0, sizeof(uavcan_register_Value_1_0));
-                            // x SPECIFICHE UAVCAN ->
-                            // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto
-                            // Altrimenti la funzione deve fallire e ritornare NULL
-                            // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
-                            // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
-                            // Preparo il registro (Inifluente se l'operazione è di sola lettura parametro -> write)
-                            uavcan_register_Value_1_0_select_natural16_(&val);
-                            val.natural32.value.count       = 1;
-                            val.natural32.value.elements[0] = 12345;
-                            // Avvia comando e setta il pending relativo di istanza
-                            clCanard.send_register_access_pending(queueId, NODE_REGISTER_TIMEOUT_US,
-                                        "rmap.module.TH.metadata.Level.L2", val, bIsWriteRegister);
-                            if(bIsWriteRegister) {
-                                Serial.print(F("Inviato registro WRITE al nodo remoto: "));
+
+                // ***********************************************************************
+                // ****** REMOTE REGISTER GET/SET SERVER AND REMOTE CONFIGURATION  *******
+                // ***********************************************************************
+                // TODO: Move INIT and Remove
+                uint8_t remote_configure[MAX_NODE_CONNECT];
+                bool bIsWriteRegister;
+
+                // Get coda config register da system_message... se richiesto comando da LCD, RPC Remota, PNP
+                // Avvia la configurazione remota con la sequenza dei registri da programmare
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        // ENTER MAINTENANCE
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
+                            // Remove message from the queue
+                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            TRACE_INFO_F(F("Register server: Send remote configuration at Node: [ %d ]\n\r"), clCanard.slave[system_message.param].get_node_id());
+                            if(clCanard.slave[system_message.param].is_online()) {
+                                // START Remote configuration of Node -> system_message.param
+                                remote_configure[system_message.param] = 1;
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.cfg_remote_running = true;
+                                param.systemStatusLock->Give();
                             } else {
-                                Serial.print(F("Richiesto registro READ al nodo remoto: "));
+                                // Do something with error node off_line (Save not configured...)
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\n\r"), clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
                             }
-                            Serial.println(clCanard.slave[0].get_node_id());
                         }
                     }
-                    // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
-                    // popolata nel'apposito registro di state service_module del il servizio relativo
-                    // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
-                    // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
-                    // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
                 }
 
-                // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
-                // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-                if (clCanard.slave[0].register_access.event_timeout()) {
-                    // Reset del pending comando
-                    clCanard.slave[0].register_access.reset_pending();
-                    // TimeOUT di un comando in attesa... gestisco il da farsi
-                    Serial.print(F("Timeout risposta su invio registro al nodo remoto: "));
-                    Serial.print(clCanard.slave[0].get_node_id());
-                    Serial.println(F(", Warning [restore pending register]"));
-                }
-                if (clCanard.slave[0].register_access.is_executed()) {
-                    // Reset del pending comando
-                    clCanard.slave[0].register_access.reset_pending();
-                    Serial.print(F("Ricevuto messaggio register R/W registro dal nodo remoto: "));
-                    Serial.println(clCanard.slave[0].get_node_id());
-                    Serial.print(F("Totale elementi (Natural16): "));
-                    uavcan_register_Value_1_0 registerResp = clCanard.slave[0].register_access.get_response();
-                    Serial.println(registerResp.unstructured.value.count);
-                    for(byte bElement=0; bElement<registerResp.unstructured.value.count; bElement++) {
-                        Serial.print(registerResp.natural16.value.elements[bElement]);
-                        Serial.print(" ");                        
-                    }
-                    Serial.println();
-                    // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
-                    // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
-                    // Tecnicamente se != da empty in request ed in request il registro è impostato
-                    // I valori != 0 in elementi extra register.value.count non sono considerati 
-                    if(bIsWriteRegister) {
-                        // TEST BYTE A BYTE...
-                        if(memcmp(&registerResp, &val, sizeof(uavcan_register_Value_1_0)) == 0) {
-                            Serial.println("Registro impostato correttamente");
-                        } else {
-                            Serial.println("Registro NON impostato correttamente. ALERT!!!");
+                // Are configuration remote node in execution?
+                if(param.system_status->flags.cfg_remote_running) {
+                    uint8_t sensorCount = 0;
+                    // loop for all Node and switching from list command sequence.
+                    // Create and send register command and wait progression in server command procedure
+                    for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
+                        // Are configuration in progress for the node. Check type and sensor count for all parameter
+                        // Node request to be online
+                        if(remote_configure[cfg_remote_queueId]) {
+                            if(clCanard.slave[cfg_remote_queueId].is_online()) {
+                                // Start comand only start without old pending comand                            
+                                if(clCanard.slave[cfg_remote_queueId].register_access.is_pending()) {
+                                    // Pending command is active, Waiting Server Register elaborate Response or TimeOUT
+                                    break;
+                                } else {
+                                    // Starting or continue procedure configuration STEP by STEP
+                                    switch(param.configuration->board_slave[cfg_remote_queueId].module_type) {
+                                    // starting "type"... verified with starting sensorId = SETUP_ID for correct sequence command
+                                    case Module_Type::th:
+                                        sensorCount = SENSOR_METADATA_TH_COUNT;
+                                        break;
+                                    case Module_Type::rain:
+                                        sensorCount = SENSOR_METADATA_RAIN_COUNT;
+                                        break;
+                                    case Module_Type::wind:
+                                        sensorCount = SENSOR_METADATA_WIND_COUNT;
+                                        break;
+                                    case Module_Type::radiation:
+                                        sensorCount = SENSOR_METADATA_RADIATION_COUNT;
+                                        break;
+                                    case Module_Type::power:
+                                        sensorCount = SENSOR_METADATA_POWER_COUNT;
+                                        break;
+                                    case Module_Type::vwc:
+                                        sensorCount = SENSOR_METADATA_VWC_COUNT;
+                                        break;
+                                    }
+
+                                    // **** STEP -> CONFIGURATION PROGRESSION ****
+                                    // RETURN NEXT STEP OR END FROM INTERPRET COMMAND EXECUTING
+                                    // x SPECIFICHE UAVCAN ->
+                                    // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto !!!
+                                    // Altrimenti la funzione deve fallire e ritornare NULL
+                                    // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
+                                    // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
+                                    // Preparo il registro (Inifluente se l'operazione è di sola lettura parametro -> write)
+                                    // RESPONSE -> AFTER REQUEST AND VERIFY:
+                                    // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
+                                    // popolata nel'apposito registro di state service_module del il servizio relativo
+                                    // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
+                                    // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
+                                    // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
+                                    switch (remote_configure[cfg_remote_queueId])
+                                    {
+                                    case 1:
+                                        // Reset register do void (security check TX/RX Value )
+                                        memset(&val, 0, sizeof(uavcan_register_Value_1_0));
+                                        // Phase 1 ( Configure Metadata register LEVEL.L1 )
+                                        // Prepare register metadata... Ready to send a remote node
+                                        // sensorCount are also selected up, before this call
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural16.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].level1;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_LEVEL_L1, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send register metadata.L1 at Node: [ %d ]\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case 3:
+                                        // NEXT COMMAND LINE HERE....
+                                        // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
+                                        // END PROGRAMMING REGISTER REMOTE LIST OK !!!!
+                                        remote_configure[cfg_remote_queueId] = 0;
+                                        TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // ********************************************************
+                                        // Sending Reboot command to slave node remote CFG COMPLETE
+                                        // ********************************************************
+                                        clCanard.send_command(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
+                                            uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
+                                    default:
+                                        break;
+                                    }
+                                }
+                            } else {
+                                // Node is OFF_LINE Procedure ERROR
+                                remote_configure[cfg_remote_queueId] = 0;
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id(), ABORT_STRING);
+                            }
                         }
                     }
-                    // Inverto da Lettura a scrittura e viceversa per il TEST
-                    bIsWriteRegister = !bIsWriteRegister;
+                }
+
+                // Register SERVER Gestion Pending, Response and TimeOut
+                // NB. To Set parameter Register with value remote create a register and call send method
+                // To read a register create register and set to unstructured and call send method. (Rx is performed)
+                if(param.system_status->flags.cfg_remote_running) {
+                    // loop for all Node and switching from list command sequence.
+                    // Create and send register command and wait progression in server command procedure
+                    for(uint8_t register_server_queueId=0; register_server_queueId<MAX_NODE_CONNECT; register_server_queueId++) {
+                        // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
+                        // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
+                        if (clCanard.slave[register_server_queueId].register_access.event_timeout()) {
+                            // Reset del pending comando
+                            clCanard.slave[register_server_queueId].register_access.reset_pending();
+                            // TimeOUT di un comando in attesa... gestisco il da farsi
+                            if(remote_configure[register_server_queueId]) {
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Remote configuration [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                            } else {
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                            }
+                        }
+                        if (clCanard.slave[register_server_queueId].register_access.is_executed()) {
+                            // Reset del pending comando
+                            clCanard.slave[register_server_queueId].register_access.reset_pending();
+                            if(remote_configure[register_server_queueId]) {
+                                remote_configure[register_server_queueId]++;
+                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node in configure sequence: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                            } else {
+                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                            }
+                            uavcan_register_Value_1_0 registerResp = clCanard.slave[register_server_queueId].register_access.get_response();
+                            // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
+                            // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
+                            // Tecnicamente se != da empty in request ed in request il registro è impostato
+                            // I valori != 0 in elementi extra register.value.count non sono considerati 
+                            // TEST BYTE A BYTE... Not necessary
+                            if(memcmp(&registerResp, &val, sizeof(uavcan_register_Value_1_0)) == 0) {
+                                TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                            } else {
+                                TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
+                            }
+                        }
+                    }
                 }
                 // ***************** FINE TEST COMANDO TX-> RX<- *************************
-                #endif
+
 
                 // ***********************************************************************
                 // ********************** FILE SERVER (CAN UPLOADER) *********************

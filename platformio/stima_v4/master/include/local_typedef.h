@@ -274,6 +274,7 @@ typedef struct
       bool file_server_running;  // True if file server are running
       bool cmd_server_running;   // True if command server are running
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
+      bool cfg_remote_running;   // True if remote configure procedure over CAN are running
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;
 
@@ -331,6 +332,7 @@ typedef struct
       uint8_t do_maint     : 1;  // Request maintenance
       uint8_t undo_maint   : 1;  // Remove maintenance
       uint8_t do_calib_acc : 1;  // Request set calibration accellerometer
+      uint8_t do_remotecfg : 1;  // Request remote node configuration
       uint8_t do_sleep     : 1;  // Optional param for difference level Sleep
       uint8_t do_cmd       : 1;  // Using param to determine type of message command
       uint8_t done_cmd     : 1;  // Using param to determine type of message response

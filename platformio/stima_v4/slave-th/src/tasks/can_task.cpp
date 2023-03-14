@@ -1447,7 +1447,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Level.L1", &val);
+                localRegister->read("rmap.metadata.Level.L1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1462,7 +1462,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Level.L2", &val);
+                localRegister->read("rmap.metadata.Level.L2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1477,7 +1477,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Level.LevelType1", &val);
+                localRegister->read("rmap.metadata.Level.LevelType1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1492,7 +1492,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Level.LevelType2", &val);
+                localRegister->read("rmap.metadata.Level.LevelType2", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1507,7 +1507,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_P1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Timerange.P1", &val);
+                localRegister->read("rmap.metadata.Timerange.P1", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1532,7 +1532,7 @@ void CanTask::Run() {
                 val.natural16.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
                 val.natural16.value.elements[SENSOR_METADATA_XTH] = SENSOR_METADATA_LEVEL_P_IND_XTH;
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.module.TH.metadata.Timerange.Pindicator", &val);
+                localRegister->read("rmap.metadata.Timerange.Pindicator", &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_STH];

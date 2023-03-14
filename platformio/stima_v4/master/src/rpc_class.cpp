@@ -32,41 +32,6 @@
 
 #include "rpc_class.hpp"
 
-bool ASCIIHexToDecimal(char** str, uint8_t *value_out) {
-  bool is_error = false;
-
-  if(isxdigit(**str)) {
-    if(isdigit(**str)) {
-      *value_out = **str - 48;
-    } else {
-      if(isupper(**str)) {
-        *value_out = **str - 55;
-      } else {
-        *value_out = **str - 87;
-      }
-    }
-    // Valid OK, Increment Char pointer
-    *value_out<<=4;
-    (*str)++;
-  } else is_error=true;
-
-  if(!is_error && isxdigit(**str)) {
-    if(isdigit(**str)) {
-      *value_out += **str - 48;
-    } else {
-      if(isupper(**str)) {
-        *value_out += **str - 55;
-      } else {
-        *value_out += **str - 87;
-      }
-    }
-    // Valid OK, Increment Char pointer
-    (*str)++;
-  } else is_error = true;
-
-	return is_error;
-}
-
 /// @brief Constructor Class
 RegisterRPC::RegisterRPC()
 {
@@ -1219,4 +1184,43 @@ bool RegisterRPC::saveConfiguration(void)
   }
 
   return status;
+}
+
+/// @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
+/// @param str pointer to string (will be incremented if hex char are found and converted)
+/// @param value_out pointer to data return value converted
+/// @return true if error occurs, false if conversion is ready
+bool RegisterRPC::ASCIIHexToDecimal(char** str, uint8_t *value_out) {
+  bool is_error = false;
+
+  if(isxdigit(**str)) {
+    if(isdigit(**str)) {
+      *value_out = **str - 48;
+    } else {
+      if(isupper(**str)) {
+        *value_out = **str - 55;
+      } else {
+        *value_out = **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    *value_out<<=4;
+    (*str)++;
+  } else is_error=true;
+
+  if(!is_error && isxdigit(**str)) {
+    if(isdigit(**str)) {
+      *value_out += **str - 48;
+    } else {
+      if(isupper(**str)) {
+        *value_out += **str - 55;
+      } else {
+        *value_out += **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    (*str)++;
+  } else is_error = true;
+
+	return is_error;
 }

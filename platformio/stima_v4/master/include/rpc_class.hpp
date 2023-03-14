@@ -124,6 +124,8 @@ class RegisterRPC {
       static bool saveConfiguration(void);
       static void initFixedConfigurationParam(void);
 
+      static bool ASCIIHexToDecimal(char** str, uint8_t *value_out);
+
       inline static RpcParam_t param;
 
       inline static bool isSlaveConfigure = false;                        // is module actual in reconfiguration

@@ -71,6 +71,14 @@
     #error Uavcan Register limit is more than MAX SIZE (MEM_UAVCAN_LEN). Please check Register configuration
 #endif
 
+// Register base name for metadata
+#define REGISTER_METADATA_LEVEL_L1      "rmap.metadata.Level.L1"
+#define REGISTER_METADATA_LEVEL_L2      "rmap.metadata.Level.L2"
+#define REGISTER_METADATA_LEVEL_TYPE1   "rmap.metadata.Level.LevelType1"
+#define REGISTER_METADATA_LEVEL_TYPE2   "rmap.metadata.Level.LevelType2"
+#define REGISTER_METADATA_TIME_P1       "rmap.metadata.Timerange.P1"
+#define REGISTER_METADATA_TIME_PIND     "rmap.metadata.Timerange.Pindicator"
+
 // Class EEProm - Register Uavcan
 class EERegister {
 
