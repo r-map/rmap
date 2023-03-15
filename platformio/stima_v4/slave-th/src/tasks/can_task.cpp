@@ -103,7 +103,7 @@ void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id
         val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
     localRegisterAccessLock->Take();
-    localRegister->read("uavcan.node.unique_id", &val);
+    localRegister->read(REGISTER_UAVCAN_UNIQUE_ID, &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&val) &&
            val.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
@@ -525,7 +525,7 @@ void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
         reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
         reg.natural16.value.count = 1;
         localRegisterAccessLock->Take();
-        localRegister->write("uavcan.node.id", &reg);
+        localRegister->write(REGISTER_UAVCAN_NODE_ID, &reg);
         localRegisterAccessLock->Give();
         // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
         clCanard.rxUnSubscribe(CanardTransferKindMessage,
@@ -1171,7 +1171,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   val.natural16.value.count       = 1;
   val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
   localRegisterAccessLock->Take();
-  localRegister->read("uavcan.can.mtu", &val);
+  localRegister->read(REGISTER_UAVCAN_MTU, &val);
   localRegisterAccessLock->Give();
   LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
 
@@ -1182,7 +1182,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   val.natural32.value.elements[0] = CAN_BIT_RATE;
   val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
   localRegisterAccessLock->Take();
-  localRegister->read("uavcan.can.bitrate", &val);
+  localRegister->read(REGISTER_UAVCAN_BITRATE, &val);
   localRegisterAccessLock->Give();
   LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
@@ -1195,7 +1195,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
       val.natural32.value.elements[0] = CAN_BIT_RATE;
       val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
       localRegisterAccessLock->Take();
-      localRegister->write("uavcan.can.bitrate", &val);
+      localRegister->write(REGISTER_UAVCAN_BITRATE, &val);
       localRegisterAccessLock->Give();
       result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
       if (!result) {
@@ -1383,7 +1383,7 @@ void CanTask::Run() {
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.master.id", &val);      // The names of the standard registers are regulated by the Specification.
+                localRegister->read(REGISTER_RMAP_MASTER_ID, &val);      // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
@@ -1401,7 +1401,7 @@ void CanTask::Run() {
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
                 localRegisterAccessLock->Take();
-                localRegister->read("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+                localRegister->read(REGISTER_UAVCAN_NODE_ID, &val);         // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
@@ -1414,7 +1414,7 @@ void CanTask::Run() {
                 uavcan_register_Value_1_0_select_string_(&val);
                 val._string.value.count = 0;
                 localRegisterAccessLock->Take();
-                localRegister->read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+                localRegister->read(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
                 localRegisterAccessLock->Give();
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
@@ -1423,14 +1423,14 @@ void CanTask::Run() {
                 #else
                 clCanard.port_id.publisher_module_th =
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
-                        "TH.data_and_metadata", rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+                        REGISTER_DATA_PUBLISH, rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
                 #endif
                 #ifdef USE_PORT_SERVICE_RMAP_FIXED
                 clCanard.port_id.service_module_th = (CanardPortID)PORT_SERVICE_RMAP;
                 #else
                 clCanard.port_id.service_module_th =
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
-                        "TH.service_data_and_metadata", rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
+                        REGISTER_DATA_SERVICE, rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
                 #endif
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
@@ -1447,7 +1447,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Level.L1", &val);
+                localRegister->read(REGISTER_METADATA_LEVEL_L1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1462,7 +1462,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Level.L2", &val);
+                localRegister->read(REGISTER_METADATA_LEVEL_L2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1477,7 +1477,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Level.LevelType1", &val);
+                localRegister->read(REGISTER_METADATA_LEVEL_TYPE1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1492,7 +1492,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVELTYPE_2;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Level.LevelType2", &val);
+                localRegister->read(REGISTER_METADATA_LEVEL_TYPE2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1507,7 +1507,7 @@ void CanTask::Run() {
                     val.natural16.value.elements[id] = SENSOR_METADATA_LEVEL_P1;
                 }
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Timerange.P1", &val);
+                localRegister->read(REGISTER_METADATA_TIME_P1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
@@ -1524,15 +1524,15 @@ void CanTask::Run() {
                 clCanard.module_th.XTH.metadata.timerange.P2 = 0;
                 // ******************************* PIndicator *****************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
-                val.natural16.value.count = SENSOR_METADATA_COUNT;
+                val.natural8.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
-                val.natural16.value.elements[SENSOR_METADATA_STH] = SENSOR_METADATA_LEVEL_P_IND_STH;
-                val.natural16.value.elements[SENSOR_METADATA_ITH] = SENSOR_METADATA_LEVEL_P_IND_ITH;
-                val.natural16.value.elements[SENSOR_METADATA_MTH] = SENSOR_METADATA_LEVEL_P_IND_MTH;
-                val.natural16.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
-                val.natural16.value.elements[SENSOR_METADATA_XTH] = SENSOR_METADATA_LEVEL_P_IND_XTH;
+                val.natural8.value.elements[SENSOR_METADATA_STH] = SENSOR_METADATA_LEVEL_P_IND_STH;
+                val.natural8.value.elements[SENSOR_METADATA_ITH] = SENSOR_METADATA_LEVEL_P_IND_ITH;
+                val.natural8.value.elements[SENSOR_METADATA_MTH] = SENSOR_METADATA_LEVEL_P_IND_MTH;
+                val.natural8.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
+                val.natural8.value.elements[SENSOR_METADATA_XTH] = SENSOR_METADATA_LEVEL_P_IND_XTH;
                 localRegisterAccessLock->Take();
-                localRegister->read("rmap.metadata.Timerange.Pindicator", &val);
+                localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_STH];

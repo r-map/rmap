@@ -219,7 +219,7 @@ void SupervisorTask::loadConfiguration()
 
   TRACE_INFO_F(F("SUPERVISOR: Load configuration...\r\n"));
 
-  // Reading RMAP Module identify Param -> (READ)
+// Reading RMAP Module identify Param -> (READ) + Check(REWRITE) -> [Readonly]
   // uint8_t module_main_version;    module main version
   // uint8_t module_minor_version;   module minor version
   // uint8_t module_type;            module type
@@ -242,6 +242,19 @@ void SupervisorTask::loadConfiguration()
       param.configuration->module_minor_version = val.natural8.value.elements[1];
       param.configuration->module_type = val.natural8.value.elements[2];
       param.configurationLock->Give();
+      // Parameter change for update firmare or local modify register?
+      // Reinit value: Register are readonly purpose utility remote application
+      if((param.configuration->module_main_version != MODULE_MAIN_VERSION)||
+         (param.configuration->module_minor_version != MODULE_MINOR_VERSION)||
+         (param.configuration->module_type != MODULE_TYPE)) {
+          // Rewrite Register...
+        val.natural8.value.elements[0] = MODULE_MAIN_VERSION;
+        val.natural8.value.elements[1] = MODULE_MINOR_VERSION;
+        val.natural8.value.elements[2] = MODULE_TYPE;
+        param.registerAccessLock->Take();
+        param.clRegister->write("rmap.module.identify", &val);
+        param.registerAccessLock->Give();
+      }
     }
   }
 
@@ -341,7 +354,7 @@ void SupervisorTask::loadConfiguration()
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.config", &val);
     param.registerAccessLock->Give();
-    if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural32.value.count != elements)) {
+    if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != elements)) {
       register_config_valid = false;
     } else {
       // Copy Register value to local_type config

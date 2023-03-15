@@ -313,7 +313,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
-    write("uavcan.can.mtu", &val);
+    write(REGISTER_UAVCAN_MTU, &val);
 
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
@@ -322,32 +322,30 @@ void EERegister::setup(void)
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
-    write("uavcan.can.bitrate", &val);
-
-    // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
+    write(REGISTER_UAVCAN_BITRATE, &val);
 
     // Node ID
-    #ifdef NODE_SLAVE_ID
+    #ifdef NODE_MASTER_ID
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
-    val.natural16.value.elements[0] = NODE_SLAVE_ID; // This means undefined (anonymous), per Specification/libcanard.
-    write("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+    val.natural16.value.elements[0] = NODE_MASTER_ID;   // This means undefined (anonymous), per Specification/libcanard.
+    write(REGISTER_UAVCAN_NODE_ID, &val);               // The names of the standard registers are regulated by the Specification.
     #endif
 
     // Service RMAP
-    #ifdef PORT_SERVICE_RMAP
+    #ifdef PORT_SERVICE_MASTER
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = PORT_SERVICE_RMAP;
-    write("uavcan.srv.TH.service_data_and_metadata.id", &val);
+    val.natural16.value.elements[0] = PORT_SERVICE_MASTER;
+    write(REGISTER_UAVCAN_DATA_SERVICE, &val);
     #endif
 
     // Publish RMAP
-    #ifdef SUBJECTID_PUBLISH_RMAP
+    #ifdef SUBJECTID_PUBLISH_MASTER
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = SUBJECTID_PUBLISH_RMAP;
-    write("uavcan.pub.TH.data_and_metadata.id", &val);
+    val.natural16.value.elements[0] = SUBJECTID_PUBLISH_MASTER;
+    write(REGISTER_UAVCAN_DATA_PUBLISH, &val);
     #endif
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
@@ -357,7 +355,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_string_(&val);
     val._string.value.count = strlen(stima_description);
     memcpy(val._string.value.elements, stima_description, val._string.value.count);
-    write("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+    write(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
 }
 
 /// @brief Legge un registro Cypal/Uavcan wrapper UAVCAN 

@@ -72,12 +72,22 @@
 #endif
 
 // Register base name for metadata
+#define REGISTER_UAVCAN_MTU             "uavcan.can.mtu"
+#define REGISTER_UAVCAN_BITRATE         "uavcan.can.bitrate"
+#define REGISTER_UAVCAN_NODE_ID         "uavcan.node.id"
+#define REGISTER_UAVCAN_UNIQUE_ID       "uavcan.node.unique_id"
+#define REGISTER_UAVCAN_NODE_DESCR      "uavcan.node.description"
+#define REGISTER_UAVCAN_DATA_PUBLISH    "uavcan.pub.rmap.publish.id"
+#define REGISTER_UAVCAN_DATA_SERVICE    "uavcan.srv.rmap.service.id"
 #define REGISTER_METADATA_LEVEL_L1      "rmap.metadata.Level.L1"
 #define REGISTER_METADATA_LEVEL_L2      "rmap.metadata.Level.L2"
 #define REGISTER_METADATA_LEVEL_TYPE1   "rmap.metadata.Level.LevelType1"
 #define REGISTER_METADATA_LEVEL_TYPE2   "rmap.metadata.Level.LevelType2"
 #define REGISTER_METADATA_TIME_P1       "rmap.metadata.Timerange.P1"
 #define REGISTER_METADATA_TIME_PIND     "rmap.metadata.Timerange.Pindicator"
+#define REGISTER_DATA_PUBLISH           "rmap.publish"
+#define REGISTER_DATA_SERVICE           "rmap.service"
+#define REGISTER_RMAP_MASTER_ID         "rmap.master.id"
 
 // Class EEProm - Register Uavcan
 class EERegister {

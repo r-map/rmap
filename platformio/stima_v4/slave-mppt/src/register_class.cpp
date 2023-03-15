@@ -44,37 +44,6 @@
 //                 E2PROM STIMAV4 STM32 ARDUINO REGISTER CLASS ACCESS
 // ***************************************************************************************
 
-// Start Address BASE UAVCAN/CYPAL Register
-#define MEM_UAVCAN_LEN                      EEPROMSIZE
-#define MEM_UAVCAN_ADDR_START               1000u
-#define MEM_UAVCAN_MAX_REG                  50u
-#define MEM_UAVCAN_LEN_SIZE_T_REG           1u
-#define MEM_UAVCAN_LEN_INTEST_REG           60u
-#define MEM_UAVCAN_LEN_VALUE_REG            66u
-#define MEM_UAVCAN_POS_LEN_NAME             0u
-#define MEM_UAVCAN_POS_STR_NAME             MEM_UAVCAN_POS_LEN_NAME + MEM_UAVCAN_LEN_SIZE_T_REG
-#define MEM_UAVCAN_POS_LEN_DATA             MEM_UAVCAN_POS_STR_NAME + MEM_UAVCAN_LEN_INTEST_REG
-#define MEM_UAVCAN_POS_VALUE_DATA           MEM_UAVCAN_POS_LEN_DATA + MEM_UAVCAN_LEN_SIZE_T_REG
-#define MEM_UAVCAN_LEN_NAME_REG             (MEM_UAVCAN_LEN_SIZE_T_REG + MEM_UAVCAN_LEN_INTEST_REG)
-#define MEM_UAVCAN_LEN_DATA_REG             (MEM_UAVCAN_LEN_SIZE_T_REG + MEM_UAVCAN_LEN_VALUE_REG)
-#define MEM_UAVCAN_LEN_REG                  (MEM_UAVCAN_LEN_NAME_REG + MEM_UAVCAN_LEN_DATA_REG)
-#define MEM_UAVCAN_START_AREA_REG           (MEM_UAVCAN_ADDR_START + MEM_UAVCAN_MAX_REG)
-#define MEM_UAVCAN_REG_UNDEF                0xFF
-#define MEM_UAVCAN_GET_ADDR_FLAG()          (MEM_UAVCAN_ADDR_START)
-#define MEM_UAVCAN_GET_ADDR_FLAG_REG(X)     (MEM_UAVCAN_ADDR_START + X)
-#define MEM_UAVCAN_GET_ADDR_NAME_LEN(X)     (MEM_UAVCAN_START_AREA_REG + (MEM_UAVCAN_LEN_REG * X))
-#define MEM_UAVCAN_GET_ADDR_NAME(X)         (MEM_UAVCAN_START_AREA_REG + (MEM_UAVCAN_LEN_REG * X) + MEM_UAVCAN_LEN_SIZE_T_REG)
-#define MEM_UAVCAN_GET_ADDR_VALUE_LEN(X)    (MEM_UAVCAN_START_AREA_REG + (MEM_UAVCAN_LEN_REG * X) + MEM_UAVCAN_LEN_NAME_REG)
-#define MEM_UAVCAN_GET_ADDR_VALUE(X)        (MEM_UAVCAN_START_AREA_REG + (MEM_UAVCAN_LEN_REG * X) + MEM_UAVCAN_LEN_NAME_REG + MEM_UAVCAN_LEN_SIZE_T_REG)
-#define MEM_UAVCAN_GET_ADDR_BASE_REG(X)     MEM_UAVCAN_GET_ADDR_NAME_LEN(X)
-// Start Address Eeprom Application Free usage
-#define MEM_UAVCAN_ADDR_END                 (MEM_UAVCAN_START_AREA_REG + (MEM_UAVCAN_LEN_REG * MEM_UAVCAN_MAX_REG))
-#define MEM_UAVCAN_USED                     (MEM_UAVCAN_ADDR_END - MEM_UAVCAN_ADDR_START)
-
-#if (MEM_UAVCAN_ADDR_END > MEM_UAVCAN_LEN)
-#error Memory UAVCAN overflow. Please check memory wrapper limit size
-#endif
-
 // Contructor
 EERegister::EERegister()
 {
@@ -344,7 +313,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
-    write("uavcan.can.mtu", &val);
+    write(REGISTER_UAVCAN_MTU, &val);
 
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
@@ -353,7 +322,7 @@ void EERegister::setup(void)
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
-    write("uavcan.can.bitrate", &val);
+    write(REGISTER_UAVCAN_BITRATE, &val);
 
     // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
 
@@ -362,7 +331,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
     val.natural16.value.elements[0] = NODE_SLAVE_ID; // This means undefined (anonymous), per Specification/libcanard.
-    write("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+    write(REGISTER_UAVCAN_NODE_ID, &val);         // The names of the standard registers are regulated by the Specification.
     #endif
 
     // Master ID
@@ -370,7 +339,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
     val.natural16.value.elements[0] = NODE_MASTER_ID; // This means undefined (anonymous), per Specification/libcanard.
-    write("rmap.master.id", &val);         // The names of the standard registers are regulated by the Specification.
+    write(REGISTER_RMAP_MASTER_ID, &val);         // The names of the standard registers are regulated by the Specification.
     #endif
 
     // Service RMAP
@@ -378,7 +347,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = PORT_SERVICE_RMAP;
-    write("uavcan.srv.POW.service_data_and_metadata.id", &val);
+    write(REGISTER_UAVCAN_DATA_SERVICE, &val);
     #endif
 
     // Publish RMAP
@@ -386,7 +355,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = SUBJECTID_PUBLISH_RMAP;
-    write("uavcan.pub.POW.data_and_metadata.id", &val);
+    write(REGISTER_UAVCAN_DATA_PUBLISH, &val);
     #endif
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
@@ -396,7 +365,7 @@ void EERegister::setup(void)
     uavcan_register_Value_1_0_select_string_(&val);
     val._string.value.count = strlen(stima_description);
     memcpy(val._string.value.elements, stima_description, val._string.value.count);
-    write("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+    write(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
 }
 
 /// @brief Legge un registro Cypal/Uavcan wrapper UAVCAN 

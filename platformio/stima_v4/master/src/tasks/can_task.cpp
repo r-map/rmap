@@ -105,7 +105,7 @@ void CanTask::getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id
         val.unstructured.value.elements[val.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
     localRegisterAccessLock->Take();
-    localRegister->read("uavcan.node.unique_id", &val);
+    localRegister->read(REGISTER_UAVCAN_UNIQUE_ID, &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&val) &&
            val.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
@@ -937,7 +937,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
     localRegisterAccessLock->Take();
-    localRegister->read("uavcan.can.mtu", &val);
+    localRegister->read(REGISTER_UAVCAN_MTU, &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
 
@@ -948,7 +948,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
     localRegisterAccessLock->Take();
-    localRegister->read("uavcan.can.bitrate", &val);
+    localRegister->read(REGISTER_UAVCAN_BITRATE, &val);
     localRegisterAccessLock->Give();
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
@@ -961,7 +961,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
         val.natural32.value.elements[0] = CAN_BIT_RATE;
         val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
         localRegisterAccessLock->Take();
-        localRegister->write("uavcan.can.bitrate", &val);
+        localRegister->write(REGISTER_UAVCAN_BITRATE, &val);
         localRegisterAccessLock->Give();
         result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
         if (!result) {
@@ -1158,7 +1158,7 @@ void CanTask::Run() {
                 val.natural16.value.count = 1;
                 val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
                 localRegisterAccessLock->Take();
-                localRegister->read("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
+                localRegister->read(REGISTER_UAVCAN_NODE_ID, &val);         // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
@@ -1174,7 +1174,7 @@ void CanTask::Run() {
                 uavcan_register_Value_1_0_select_string_(&val);
                 val._string.value.count = 0;
                 localRegisterAccessLock->Take();
-                localRegister->read("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+                localRegister->read(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
                 localRegisterAccessLock->Give();
 
                 // TODO:
@@ -1196,7 +1196,7 @@ void CanTask::Run() {
                     // Lettura registro di allocazione PNP MASTER Locale avvenuta, da eseguire
                     // Possibilità di salvare tutte le informazioni di NODO qui al suo interno
                     // Per rendere disponibili le configurazioni in esterno (Yakut, altri)
-                    // Utilizzando la struttupra allocateID.XX (count = n° registri utili)
+                    // Utilizzando la struttura allocateID.XX (count = n° registri utili)
                     char registerName[24] = "rmap.pnp.allocateID.";
                     uavcan_register_Value_1_0_select_natural8_(&val);
                     val.natural8.value.count       = 1;
@@ -1766,6 +1766,14 @@ void CanTask::Run() {
                 // TODO: Move INIT and Remove
                 uint8_t remote_configure[MAX_NODE_CONNECT];
                 bool bIsWriteRegister;
+                #define REGISTER_01_SEND    1u
+                #define REGISTER_02_SEND    3u
+                #define REGISTER_03_SEND    5u
+                #define REGISTER_04_SEND    7u
+                #define REGISTER_05_SEND    9u
+                #define REGISTER_06_SEND    11u
+                #define REGISTER_07_SEND    13u
+                #define REGISTER_COMPLETE   15u
 
                 // Get coda config register da system_message... se richiesto comando da LCD, RPC Remota, PNP
                 // Avvia la configurazione remota con la sequenza dei registri da programmare
@@ -1808,6 +1816,7 @@ void CanTask::Run() {
                                 } else {
                                     // Starting or continue procedure configuration STEP by STEP
                                     switch(param.configuration->board_slave[cfg_remote_queueId].module_type) {
+                                        // Prepare sensor count to send limit metadata to remote register for remote module type
                                     // starting "type"... verified with starting sensorId = SETUP_ID for correct sequence command
                                     case Module_Type::th:
                                         sensorCount = SENSOR_METADATA_TH_COUNT;
@@ -1828,8 +1837,9 @@ void CanTask::Run() {
                                         sensorCount = SENSOR_METADATA_VWC_COUNT;
                                         break;
                                     }
-
+                                    // *******************************************
                                     // **** STEP -> CONFIGURATION PROGRESSION ****
+                                    // *******************************************
                                     // RETURN NEXT STEP OR END FROM INTERPRET COMMAND EXECUTING
                                     // x SPECIFICHE UAVCAN ->
                                     // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto !!!
@@ -1843,14 +1853,12 @@ void CanTask::Run() {
                                     // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
                                     // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
                                     // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
+                                    // Reset register do void (security check TX/RX Value )
+                                    memset(&val, 0, sizeof(uavcan_register_Value_1_0));
                                     switch (remote_configure[cfg_remote_queueId])
                                     {
-                                    case 1:
-                                        // Reset register do void (security check TX/RX Value )
-                                        memset(&val, 0, sizeof(uavcan_register_Value_1_0));
-                                        // Phase 1 ( Configure Metadata register LEVEL.L1 )
-                                        // Prepare register metadata... Ready to send a remote node
-                                        // sensorCount are also selected up, before this call
+                                    case REGISTER_01_SEND:
+                                        // Register-01 ( Configure Metadata register LEVEL.L1 )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
                                         val.natural16.value.count = sensorCount;
                                         for(uint8_t id=0; id<sensorCount; id++) {
@@ -1859,10 +1867,75 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_LEVEL_L1, val, NODE_REGISTER_WRITING);
-                                        TRACE_VERBOSE_F(F("Register server: Send register metadata.L1 at Node: [ %d ]\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
-                                    case 3:
+                                    case REGISTER_02_SEND:
+                                        // Register-02 ( Configure Metadata register LEVEL.L2 )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural16.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].level2;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_LEVEL_L2, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L2, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case REGISTER_03_SEND:
+                                        // Register-03 ( Configure Metadata register LEVEL_TYPE1 )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural16.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].levelType1;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_LEVEL_TYPE1, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE1, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case REGISTER_04_SEND:
+                                        // Register-04 ( Configure Metadata register LEVEL_TYPE2 )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural16.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].levelType2;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_LEVEL_TYPE2, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE2, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case REGISTER_05_SEND:
+                                        // Register-05 ( Configure Metadata register TIME P1 )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural16.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].timerangeP1;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_TIME_P1, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_P1, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case REGISTER_06_SEND:
+                                        // Register-06 ( Configure Metadata TIME PIndicator )
+                                        uavcan_register_Value_1_0_select_natural8_(&val);
+                                        val.natural8.value.count = sensorCount;
+                                        for(uint8_t id=0; id<sensorCount; id++) {
+                                            val.natural8.value.elements[id] = param.configuration->board_slave[cfg_remote_queueId].metadata[id].timerangePindicator;
+                                        }
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_METADATA_TIME_PIND, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_PIND, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                    case REGISTER_COMPLETE:
                                         // NEXT COMMAND LINE HERE....
                                         // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
                                         // END PROGRAMMING REGISTER REMOTE LIST OK !!!!
@@ -1909,6 +1982,7 @@ void CanTask::Run() {
                             // Reset del pending comando
                             clCanard.slave[register_server_queueId].register_access.reset_pending();
                             if(remote_configure[register_server_queueId]) {
+                                // Pass to NEXT REGISTER increment swotch position end to REGISTER_COMPLETE value
                                 remote_configure[register_server_queueId]++;
                                 TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node in configure sequence: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {

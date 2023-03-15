@@ -55,8 +55,8 @@
 // Nodi Fissi per Moduli Master e Yakut
 #define NODE_YAKUT_ID   127
 #define NODE_MASTER_ID  100
-#define PORT_SERVICE_MASTER 100
-#define SUBJECTID_PUBLISH_MASTER 2100
+// #define PORT_SERVICE_MASTER 100
+// #define SUBJECTID_PUBLISH_MASTER 2100
 
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
 #define USE_NODE_MASTER_ID_FIXED
