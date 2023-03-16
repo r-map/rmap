@@ -302,27 +302,55 @@ void MqttTask::Run()
 
     case MQTT_STATE_PUBLISH:
       // TODO: da recuperare da SD Card
-      strSafeCopy(sensors_topic, "254,0,0/265,0,-,-/B01213", MQTT_SENSOR_TOPIC_LENGTH);
-      snprintf(message, sizeof(message), "msg from ppp");
-
-      // Set topic
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
-
-      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
-      TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
-      if (error)
+      if (param.system_status->connection.mqtt_data_published == 0)
       {
-        // Connection to MQTT server lost?
-        state = MQTT_STATE_DISCONNECT;
-        TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+        strSafeCopy(sensors_topic, "254,0,0/103,2000,-,-/B12101", MQTT_SENSOR_TOPIC_LENGTH);
+        snprintf(message, sizeof(message), "{\"v\" : 28135, \"t\" : \"2023-03-16T07:45:00\"}");
+
+        // Set topic
+        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
+
+        error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+        if (error)
+        {
+          // Connection to MQTT server lost?
+          state = MQTT_STATE_DISCONNECT;
+          TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+        }
+        else
+        {
+          // Starting publishing
+          param.systemStatusLock->Take();
+          param.system_status->connection.is_mqtt_publishing = true;
+          param.system_status->connection.mqtt_data_published++;
+          param.systemStatusLock->Give();
+        }
       }
-      else
+      else if (param.system_status->connection.mqtt_data_published == 1)
       {
-        // Starting publishing
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_mqtt_publishing = true;
-        param.system_status->connection.mqtt_data_published++;
-        param.systemStatusLock->Give();
+        strSafeCopy(sensors_topic, "254,0,0/265,1,-,-/B33199", MQTT_SENSOR_TOPIC_LENGTH);
+        snprintf(message, sizeof(message), "{\"v\" : 100, \"t\" : \"2023-03-16T07:45:00\"}");
+
+        // Set topic
+        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
+
+        error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+        if (error)
+        {
+          // Connection to MQTT server lost?
+          state = MQTT_STATE_DISCONNECT;
+          TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+        }
+        else
+        {
+          // Starting publishing
+          param.systemStatusLock->Take();
+          param.system_status->connection.is_mqtt_publishing = true;
+          param.system_status->connection.mqtt_data_published++;
+          param.systemStatusLock->Give();
+        }
       }
 
       // TODO. Set Time corretto
@@ -331,7 +359,7 @@ void MqttTask::Run()
       Delay(Ticks::MsToTicks(5000));
       //TODO:REMOVE End connecction on END Data... >=3 Remove...
       //TODO: is_data_publish_end = true when data END !!!
-      if(param.system_status->connection.mqtt_data_published >= 50) {
+      if(param.system_status->connection.mqtt_data_published >= 1) {
         param.systemStatusLock->Take();
         is_data_publish_end = true;
         param.systemStatusLock->Give();
