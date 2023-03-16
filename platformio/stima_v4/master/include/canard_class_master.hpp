@@ -88,6 +88,8 @@ class canardClass {
 
         // Gestione comandi privati di Canard / Rmap
         enum Command_Private : uint8_t {
+            set_full_power            =  2,
+            set_nominal_power         =  3,
             execute_rpc               =  4,
             download_file             =  5,
             calibrate_accelerometer   =  6,
@@ -293,7 +295,11 @@ class canardClass {
             bool is_online(void);
             bool is_entered_online(void);
             bool is_entered_offline(void);
+            void set_node_id(CanardNodeID node_id);
+            void set_rmap_port_id(CanardNodeID node_id);
+            void set_module_type(Module_Type module_type);
             #ifdef USE_SUB_PUBLISH_SLAVE_DATA
+            void set_rmap_publish_id(CanardPortID rmap_subject_id);
             void configure(CanardNodeID node_id, Module_Type module_type,
                         CanardPortID rmap_port_id, CanardPortID rmap_subject_id);
             #else

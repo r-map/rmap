@@ -153,10 +153,19 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         // TODO:Action to start configuration module before rebot or deinit remote node and restart PnP to Reset
         // Pnp Reset is need only if is changed node_id remote otherwise no more action required here
         if(isMasterConfigure) {
+          //TODO: if node_id master <> node_old master... Reconfigure Node Id Slave !!!
           initFixedConfigurationParam();
           saveConfiguration();
           is_configuration_changed = false;
+        } else if(isSlaveConfigure) {
+          // With command on system_message queue Start configuration of remote module programmed
+          system_message_t system_message = {0};
+          system_message.task_dest = CAN_TASK_ID;
+          system_message.command.do_remotecfg = true;
+          system_message.param = slaveId;
+          param.systemMessageQueue->Enqueue(&system_message, 0);
         }
+        else error_command = true;
         // Reset and deinit info current module and parameter pointer configure sequence
         currentModule = Module_Type::undefined;
         slaveId = UNKNOWN_ID;
@@ -166,6 +175,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         id_constant_data = 0;
         subject[0] = 0;
       }
+      else error_command = true;
     }
     // ************** SHARED PARAMETER CONFIGURATION LIST **************
     // loop in params order by sequence in examples stimacan config github notification
@@ -1089,11 +1099,15 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     }
   }
 
-  TRACE_INFO_F(F("DO RESET CONFIGURATION\r\n"));
-
-  TRACE_INFO_F(F("Reboot\r\n"));
+  TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
   result[F("state")] = "done";
-  NVIC_SystemReset(); // Do reboot!
+
+  // Start REBOOT with queue command
+  system_message_t system_message = {0};
+  system_message.task_dest = CAN_TASK_ID;
+  system_message.command.do_reboot = true;
+  param.systemMessageQueue->Enqueue(&system_message, 0);
+
   return E_SUCCESS;
 }
 #endif

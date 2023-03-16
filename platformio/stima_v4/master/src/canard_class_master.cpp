@@ -1048,10 +1048,36 @@ bool canardClass::send_rmap_data(CanardNodeID node_id, uint8_t transfer_id, Cana
 
 // ************************** SETUP CFG BASE SLAVE *******************************
 
+/// @brief Imposta il nodo id dell'istanza slave relativa
+/// @param node_id nodo_id remoto dell'istanza
+void canardClass::slave::set_node_id(CanardNodeID node_id) {
+    _node_id = node_id;
+}
+
+/// @brief Imposta il port id rmap dell'istanza slave relativa
+/// @param rmap_port_id port_id remoto dell'istanza
+void canardClass::slave::set_rmap_port_id(CanardNodeID rmap_port_id) {
+    rmap_service.set_port_id(rmap_port_id);
+}
+
+/// @brief Imposta il module_type dell'istanza slave relativa
+/// @param module_type tipo di modulo remoto dell'istanza
+void canardClass::slave::set_module_type(Module_Type module_type) {
+    rmap_service.set_module_type(module_type);
+}
+
 #ifdef USE_SUB_PUBLISH_SLAVE_DATA
+/// @brief Imposta il subject_id rmap dell'istanza slave relativa
+/// @param rmap_subject_id publish subject id rmap remoto dell'istanza
+void canardClass::slave::set_rmap_publish_id(CanardPortID rmap_subject_id) {
+    publisher.set_subject_id(rmap_subject_id);
+}
+
 /// @brief Imposta il nodo e il tipo di modulo dell'istanza slave relativa
 /// @param node_id nodo_id remoto dell'istanza
 /// @param node_type tipo di modulo dell'istanza
+/// @param rmap_port_id port_id remoto dell'istanza
+/// @param rmap_subject_id publish subject id rmap remoto dell'istanza
 void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type,
                                 CanardPortID rmap_port_id, CanardPortID rmap_subject_id) {
     _node_id = node_id;
@@ -1063,6 +1089,7 @@ void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type
 /// @brief Imposta il nodo e il tipo di modulo dell'istanza slave relativa
 /// @param node_id nodo_id remoto dell'istanza
 /// @param node_type tipo di modulo dell'istanza
+/// @param rmap_port_id port_id remoto dell'istanza
 void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id) {
     _node_id = node_id;
     rmap_service.set_module_type(module_type);
@@ -1682,7 +1709,11 @@ void canardClass::flag::enable_sleep(void) {
 ///         La proprietà è impostata normalmente dal master remoto e viene settata per il locale
 /// @param powerMode Modalità power (CanardClass::Power_Mode)
 void canardClass::flag::set_local_power_mode(Power_Mode powerMode) {
+    #ifdef FORCE_FULL_POWER
+    _heartLocalVSC.powerMode = Power_Mode::pwr_on;
+    #else
     _heartLocalVSC.powerMode = powerMode;
+    #endif
 }
 
 /// @brief Proprietà SET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali

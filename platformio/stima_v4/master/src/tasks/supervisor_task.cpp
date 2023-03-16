@@ -138,7 +138,7 @@ void SupervisorTask::Run()
 
     case SUPERVISOR_STATE_LOAD_CONFIGURATION:
       is_loaded = loadConfiguration();
-      
+
       if (is_loaded)
       {
         retry = 0;
@@ -390,6 +390,10 @@ void SupervisorTask::Run()
       // **************************************
       TaskWatchDog(3500);
       Delay(Ticks::MsToTicks(3500));
+
+      // TODO: REMOVE
+      strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
+      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
 
       // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
       param.systemStatusLock->Take();
@@ -825,10 +829,14 @@ bool SupervisorTask::loadConfiguration()
     param.configurationLock->Give();
   }
 
+  #if(INIT_PARAMETER)
+  status = saveConfiguration(CONFIGURATION_DEFAULT);
+  #else
   if (param.configuration->module_type != MODULE_TYPE || param.configuration->module_main_version != MODULE_MAIN_VERSION)
   {
     status = saveConfiguration(CONFIGURATION_DEFAULT);
   }
+  #endif
 
   TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
   printConfiguration();

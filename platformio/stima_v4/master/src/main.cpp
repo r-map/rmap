@@ -423,7 +423,7 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 800, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 1300, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)

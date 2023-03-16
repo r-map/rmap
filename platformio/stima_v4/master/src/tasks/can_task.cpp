@@ -328,6 +328,24 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         }
         // **************** Comandi personalizzati VENDOR_SPECIFIC_COMMAND ****************
         // Local CAN Transport to RPC Call
+        case canardClass::Command_Private::set_full_power:
+        {
+            // Abilita modalità full power (per manutenzione e/o test)
+            localSystemStatusLock->Take();
+            localSystemStatus->flags.full_wakeup_forced = true;
+            localSystemStatusLock->Give();
+            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            break;
+        }
+        case canardClass::Command_Private::set_nominal_power:
+        {
+            // Disabilita modalità full power (per manutenzione e/o test)
+            localSystemStatusLock->Take();
+            localSystemStatus->flags.full_wakeup_forced = false;
+            localSystemStatusLock->Give();
+            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            break;
+        }
         case canardClass::Command_Private::execute_rpc:
         {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
@@ -560,7 +578,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         localRegisterAccessLock->Take();
                         localRegister->write(registerName, &val);
                         localRegisterAccessLock->Give();
-                        TRACE_VERBOSE_F(F("Node is now configured with PNP allocation with ID: %d\n\r"), transfer->metadata.remote_node_id);
+                        TRACE_INFO_F(F("Node is now configured with PNP allocation with ID: %d\n\r"), transfer->metadata.remote_node_id);
                     }                    
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
@@ -568,7 +586,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Rientro in OnLINE da OFFLine o Init Gestino può (dovrebbe) essere esterna alla Call
                     // Inizializzo le variabili e gli stati necessari per Reset e corretta gestione
                     if(clCanard.slave[queueId].is_entered_online()) {
-                        TRACE_VERBOSE_F(F("Node is now entered ONLINE !!!\n\r"));
+                        TRACE_INFO_F(F("Node is now entered ONLINE !!!\n\r"));
                         // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                         clCanard.slave[queueId].command.reset_pending();
                         clCanard.slave[queueId].register_access.reset_pending();
@@ -1116,8 +1134,9 @@ void CanTask::Run() {
     // Starting acquire IST and value control var
     uint32_t getUpTimeSecondCurr;
     uint32_t curEpoch;
-    bool bStartGetIstant = false;
-    bool bStartGetData = false;
+    bool bStartGetIstant = false;       // Get Istant value from node
+    bool bStartGetData = false;         // Get archive value from node
+    bool bStartSetFullPower = false;    // Set remote node full power for get data
 
     // Start Running Monitor and First WDT normal state
     #if (ENABLE_STACK_USAGE)
@@ -1404,10 +1423,10 @@ void CanTask::Run() {
                     }
                 }
 
+
                 // **************************************************************************
                 // *********************** FILE UPLOAD PROCESS HANDLER **********************
                 // **************************************************************************
-
                 // Verifica file download in corso (entro se in download)
                 // Attivato da ricezione comando appropriato rxFile o rxFirmware
                 if(clCanard.master.file.download_request()) {
@@ -1487,37 +1506,10 @@ void CanTask::Run() {
                         }
                     }
                 }
-                // **************************************************************************
 
-                // -> Scheduler temporizzato dei messaggi standard da inviare alla rete UAVCAN
-
-                // ************************* HEARTBEAT DATA PUBLISHER ***********************
-                if((start_firmware_upgrade)||
-                    (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
-                    TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
-                    clCanard.master_heartbeat_send_message();
-                    // Update next publisher
-                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
-                }
-
-                // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
-                if (clCanard.getMicros(clCanard.syncronized_time) >= next_timesyncro_msg)
-                {
-                    TRACE_INFO_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
-                    next_timesyncro_msg = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
-                    clCanard.master_timestamp_send_syncronization();
-                }
-
-                // ********************** SERVICE PORT LIST PUBLISHER ***********************
-                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
-                    TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
-                    // Update publisher
-                    clCanard.master_servicelist_send_message();
-                }
 
                 // ***********************************************************************
-                // **************** GET SYNCRO ACTIVITY FOR CYPAL FUNCTION ***************
+                // **********  GET SYNCRO ACTIVITY FOR CYPAL RMAP DATA FUNCTION  *********
                 // ***********************************************************************
                 // Test if data are to acquire (one time for second)
                 if(clCanard.getUpTimeSecond()!=getUpTimeSecondCurr)
@@ -1541,7 +1533,26 @@ void CanTask::Run() {
                         }
                     }
                     // need do acquire data value for RMAP Archive?
+                    // Perform an Full Power request Method 5 second before Starting aquire data
+                    // In this time we can regulate syncro_time method and perform Full Wake UP of remote Module
+                    if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                        // WakeUP Network for reading sensor and Synncronize date_time
+                        TRACE_VERBOSE_F(F("Rmap data server: Start full power for sending request and syncronize time\r\n"));
+                        // Only for RMAP Get Data is need to Forced power ON on Starting time before procedure GET DATA
+                        // RMAP Get data dont' start with command request automatic but some second before (also syncro_time)
+                        // This is need to fix problem of request ON/OFF continuative for module and simulate waiting command...
+                        bStartSetFullPower = true;
+                        // Starting server get data (dont stop when bStartSetFullPower is setted. Only for Set Full POWER)
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.rmap_server_running = true;
+                        param.systemStatusLock->Give();
+                    } else {
+                        // Normal mode (Not WakeUP)
+                        bStartSetFullPower = false;
+                    }
                     if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                        // WakeUP Network for reading sensor and Synncronize date_time
+                        TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
                         param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
                         param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
@@ -1552,9 +1563,161 @@ void CanTask::Run() {
                 // ************* END GET SYNCRO ACTIVITY FOR CYPAL FUNCTION **************
 
                 // ***********************************************************************
-                // ********************* REMOTE RPC COMMAND SERVER ***********************
+                // ********************** RMAP GETDATA TX-> RX<- *************************
                 // ***********************************************************************
 
+                // IS START COMMAND DATA RMAP AUTOMATIC REQUEST (From Local Syncro Activity UP...)?
+                // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
+                if ((bStartGetIstant)||(bStartGetData)) {
+                    // For all node
+                    for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                        // For all node onLine
+                        if(clCanard.slave[queueId].is_online()) {
+                            // Command are sending without other Pending Command
+                            // Service request structure is same for all RMAP object to simplify function
+                            if(!clCanard.slave[queueId].rmap_service.is_pending()) {
+                                TRACE_INFO_F(F("Inviato richiesta dati al nodo remoto: %d\r\n"), clCanard.slave[queueId].get_node_id());
+                                // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
+                                // parametri.run_for_second = 900; ( not used for get_istant )
+                                rmap_service_setmode_1_0 paramRequest;
+                                paramRequest.chanel = 0; // Request only for chanel analog/digital adressed 1..X
+                                if(bStartGetData) {
+                                    paramRequest.command = rmap_service_setmode_1_0_get_last;
+                                    paramRequest.obs_sectime = param.configuration->observation_s;
+                                    paramRequest.run_sectime = param.configuration->report_s;
+                                } else {
+                                    paramRequest.command = rmap_service_setmode_1_0_get_istant;
+                                    paramRequest.obs_sectime = 0;
+                                    paramRequest.run_sectime = 0;
+                                }
+                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                                // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
+                                clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
+                                // Avvio il server RMAP Request
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.rmap_server_running = true;
+                                param.systemStatusLock->Give();
+                            }
+                        }
+                    }
+                    // Remove start command request when command are sent
+                    bStartGetIstant = false;
+                    bStartGetData = false;
+                }
+
+                // EVENT GESTION OF TIMEOUT AT REQUEST
+                if(param.system_status->flags.rmap_server_running) {
+
+                    // Check if file server are current in running state
+                    bool rmapServerEnd = true;
+                    // Waiting WARM_UP (GetSyncroTime UP Procedure before end server)
+                    if(bStartSetFullPower) rmapServerEnd = false;
+
+                    for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                        // Check if is request pending... (NONE... flag remaining true END Server)
+                        if (clCanard.slave[queueId].rmap_service.is_pending()) {
+                            rmapServerEnd = false;
+                        }
+                        if (clCanard.slave[queueId].rmap_service.event_timeout()) {
+                            clCanard.slave[queueId].rmap_service.reset_pending();
+                            // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
+                            TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
+                                clCanard.slave[queueId].get_node_id());
+                        }
+                    }
+                    // EVENT GESTION OF RECIVED DATA AT REQUEST
+                    for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+                        if(clCanard.slave[queueId].rmap_service.is_executed()) {
+                            clCanard.slave[queueId].rmap_service.reset_pending();
+                            // Interprete del messaggio in casting dal puntatore dinamico
+                            // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
+                            // in funzione di clCanard.slave[x].node_type
+                            switch (clCanard.slave[queueId].get_module_type()) {
+                                case Module_Type::th:
+                                    // Cast to th module
+                                    rmap_service_module_TH_Response_1_0* retData;
+                                    retData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // Get parameter data
+                                    #if TRACE_LEVEL >= TRACE_INFO
+                                    char stimaName[STIMA_MODULE_NAME_LENGTH];
+                                    getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
+                                    #endif
+                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
+                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].module_version = retData->version;
+                                        param.system_status->data_slave[queueId].module_revision = retData->revision;
+                                        // Module type also setted on load config module CAN
+                                        // param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                        // Check if module can be updated
+                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
+                                                if((param.system_status->boards_update_avaiable[checkId].version > retData->version) ||
+                                                    ((param.system_status->boards_update_avaiable[checkId].version == retData->version) && 
+                                                    (param.system_status->boards_update_avaiable[checkId].revision > retData->revision))) {
+                                                    // Found an upgradable boards
+                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        param.systemStatusLock->Give();
+                                    }
+                                    // TRACE Info data
+                                    TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
+                                        stimaName, clCanard.slave[queueId].get_node_id(), retData->state);
+                                    TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
+                                    // Put data in system_status
+                                    param.systemStatusLock->Take();
+                                    // Set data istant value
+                                    param.system_status->data_slave[queueId].data_value_A = retData->STH.temperature.val.value;
+                                    param.system_status->data_slave[queueId].data_value_B = retData->STH.humidity.val.value;
+                                    // Add info RMAP to system
+                                    if(bStartGetIstant)
+                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
+                                    else
+                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
+                                    param.systemStatusLock->Give();
+                                    // Set data into queue if data value (not for istant observation acquire)
+                                    if(bStartGetData) {
+                                        memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
+                                        // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
+                                        rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
+                                        rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
+                                        memcpy(rmap_archive_data.block, retData, sizeof(retData));
+                                        // Send queue to MMC/SD for direct archive data
+                                        // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        // Set system_status with NewData To SEND... For all operation need this signal
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = false;
+                                        param.systemStatusLock->Give();
+                                    }
+                                    break;
+
+                                default:
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d\r\n"),
+                                        clCanard.slave[queueId].get_node_id(), retData->state);
+                                    break;
+                            }
+                        }
+                    }
+
+                    // STOP Server request data RMAP
+                    if (rmapServerEnd) {
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.rmap_server_running = false;
+                        param.systemStatusLock->Give();
+                    }
+                }
+                // ********************* END RMAP GETDATA TX-> RX<- **********************
+
+
+                // ***********************************************************************
+                // ********************* REMOTE RPC COMMAND SERVER ***********************
+                // ***********************************************************************
                 // Get coda comandi da system_message... se richiesto comando da LCD o RPC Remota
                 // Da inoltrare al nodo selezionato in coda, parametro
                 if(!param.systemMessageQueue->IsEmpty()) {
@@ -1565,32 +1728,76 @@ void CanTask::Run() {
                         if(!clCanard.slave[system_message.param].command.is_pending()) {
                             // ENTER MAINTENANCE
                             if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_maint)) {
-                                // Remove message from the queue
-                                param.systemMessageQueue->Dequeue(&system_message, 0);
-                                TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                // Request start module maintenance from LCD or Remote RPC with Param 0/1
-                                char do_maint = 1;
-                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                    canardClass::Command_Private::module_maintenance, &do_maint, sizeof(do_maint));                            
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                    char do_maint = 1;
+                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                        canardClass::Command_Private::module_maintenance, &do_maint, sizeof(do_maint));                            
+                                    // Starting message server
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.cmd_server_running = true;
+                                    param.systemStatusLock->Give();
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command
+                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.systemStatusLock->Give();
+                                }
                             }
                             // UNDO MAINTENANCE
                             if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.undo_maint)) {
-                                // Remove message from the queue
-                                param.systemMessageQueue->Dequeue(&system_message, 0);
-                                TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                // Request start module maintenance from LCD or Remote RPC with Param 0/1
-                                char undo_maint = 0;
-                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                    canardClass::Command_Private::module_maintenance, &undo_maint, sizeof(undo_maint));                            
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                    // Remove message from the queue
+                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                    char undo_maint = 0;
+                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                        canardClass::Command_Private::module_maintenance, &undo_maint, sizeof(undo_maint));                            
+                                    // Starting message server
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.cmd_server_running = true;
+                                    param.systemStatusLock->Give();
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command
+                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.systemStatusLock->Give();
+                                }
                             }
                             // STARTING CALIBRATION (Accellerometer)
                             if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_calib_acc)) {
-                                // Remove message from the queue
-                                param.systemMessageQueue->Dequeue(&system_message, 0);
-                                TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                // Requestcalibration accellerometer from LCD or Remote RPC without param
-                                clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                    canardClass::Command_Private::calibrate_accelerometer, NULL, 0);                            
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                    // Remove message from the queue
+                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                        canardClass::Command_Private::calibrate_accelerometer, NULL, 0);
+                                    // Starting message server
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.cmd_server_running = true;
+                                    param.systemStatusLock->Give();
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command
+                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.systemStatusLock->Give();
+                                }
                             }
                         }
                     }
@@ -1628,136 +1835,15 @@ void CanTask::Run() {
                                 clCanard.slave[system_message.param].get_node_id(), clCanard.slave[cmd_server_queueId].command.get_response());
                         }
                     }
+
+                    // End server distribution command
+                    if(cmdServerEnd) {
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.cmd_server_running = false;
+                        param.systemStatusLock->Give();
+                    }
                 }
                 // ************************* END COMMAND SERVER **************************
-
-                // ***********************************************************************
-                // ********************** RMAP GETDATA TX-> RX<- *************************
-                // ***********************************************************************
-
-                // IS START COMMAND REQUEST?
-                // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
-                if ((bStartGetIstant)||(bStartGetData)) {
-                    // For all node
-                    for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
-                        // For all node onLine
-                        if(clCanard.slave[queueId].is_online()) {
-                            // Comman are sending without other Pending Command
-                            // Service request structure is same for all RMAP object to simplify function
-                            if(!clCanard.slave[queueId].rmap_service.is_pending()) {
-                                TRACE_INFO_F(F("Inviato richiesta dati al nodo remoto: %d\r\n"), clCanard.slave[queueId].get_node_id());
-                                // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
-                                // parametri.run_for_second = 900; ( not used for get_istant )
-                                rmap_service_setmode_1_0 paramRequest;
-                                paramRequest.chanel = 0; // Request only for chanel analog/digital adressed 1..X
-                                if(bStartGetData) {
-                                    paramRequest.command = rmap_service_setmode_1_0_get_last;
-                                    paramRequest.obs_sectime = param.configuration->observation_s;
-                                    paramRequest.run_sectime = param.configuration->report_s;
-                                } else {
-                                    paramRequest.command = rmap_service_setmode_1_0_get_istant;
-                                    paramRequest.obs_sectime = 0;
-                                    paramRequest.run_sectime = 0;
-                                }
-                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                                // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-                                clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
-                            }
-                        }
-                    }
-                    // Remove start command request when command are sent
-                    bStartGetIstant = false;
-                    bStartGetData = false;
-                }
-                // EVENT GESTION OF TIMEOUT AT REQUEST
-                for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
-                    if (clCanard.slave[queueId].rmap_service.event_timeout()) {
-                        clCanard.slave[queueId].rmap_service.reset_pending();
-                        // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
-                        TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
-                            clCanard.slave[queueId].get_node_id());
-                    }
-                }
-                // EVENT GESTION OF RECIVED DATA AT REQUEST
-                for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
-                    if(clCanard.slave[queueId].rmap_service.is_executed()) {
-                        clCanard.slave[queueId].rmap_service.reset_pending();
-                        // Interprete del messaggio in casting dal puntatore dinamico
-                        // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
-                        // in funzione di clCanard.slave[x].node_type
-                        switch (clCanard.slave[queueId].get_module_type()) {
-                            case Module_Type::th:
-                                // Cast to th module
-                                rmap_service_module_TH_Response_1_0* retData;
-                                retData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
-                                // Get parameter data
-                                #if TRACE_LEVEL >= TRACE_INFO
-                                char stimaName[STIMA_MODULE_NAME_LENGTH];
-                                getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
-                                #endif
-                                // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                if(!param.system_status->data_slave[queueId].module_version) {
-                                    param.systemStatusLock->Take();
-                                    param.system_status->data_slave[queueId].module_version = retData->version;
-                                    param.system_status->data_slave[queueId].module_revision = retData->revision;
-                                    // Module type also setted on load config module CAN
-                                    // param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                    // Check if module can be updated
-                                    for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                        if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                            if((param.system_status->boards_update_avaiable[checkId].version > retData->version) ||
-                                                ((param.system_status->boards_update_avaiable[checkId].version == retData->version) && 
-                                                 (param.system_status->boards_update_avaiable[checkId].revision > retData->revision))) {
-                                                // Found an upgradable boards
-                                                param.system_status->data_slave[queueId].fw_upgradable = true;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    param.systemStatusLock->Give();
-                                }
-                                // TRACE Info data
-                                TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
-                                    stimaName, clCanard.slave[queueId].get_node_id(), retData->state);
-                                TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
-                                // Put data in system_status
-                                param.systemStatusLock->Take();
-                                // Set data istant value
-                                param.system_status->data_slave[queueId].data_value_A = retData->STH.temperature.val.value;
-                                param.system_status->data_slave[queueId].data_value_B = retData->STH.humidity.val.value;
-                                // Add info RMAP to system
-                                if(bStartGetIstant)
-                                    param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                else
-                                    param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                param.systemStatusLock->Give();
-                                // Set data into queue if data value (not for istant observation acquire)
-                                if(bStartGetData) {
-                                    memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
-                                    // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
-                                    rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
-                                    rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
-                                    memcpy(rmap_archive_data.block, retData, sizeof(retData));
-                                    // Send queue to MMC/SD for direct archive data
-                                    // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                    param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                    // Set system_status with NewData To SEND... For all operation need this signal
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.new_data_to_send = false;
-                                    param.systemStatusLock->Give();
-                                }
-                                break;
-
-                            default:
-                                // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
-                                TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d\r\n"),
-                                    clCanard.slave[queueId].get_node_id(), retData->state);
-                                break;
-                        }
-                    }
-                }
-                // ********************* END RMAP GETDATA TX-> RX<- **********************
 
 
                 // ***********************************************************************
@@ -1772,35 +1858,50 @@ void CanTask::Run() {
                 #define REGISTER_04_SEND    7u
                 #define REGISTER_05_SEND    9u
                 #define REGISTER_06_SEND    11u
-                #define REGISTER_07_SEND    13u
-                #define REGISTER_COMPLETE   15u
+                #define REGISTER_COMPLETE   13u
 
                 // Get coda config register da system_message... se richiesto comando da LCD, RPC Remota, PNP
                 // Avvia la configurazione remota con la sequenza dei registri da programmare
+                // LA configurazione può essere avviato solo con nodo già configurato almeno con port_id Valido
+                // Evidentemente un nodo non ancora assegnato può essere configurato solo dopo assegnamento PNP del port_id
+                // Al termine del PnP port_id, deve essere avviata sempre la procedura di configurazione del nodo remoto
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
-                        // ENTER MAINTENANCE
+                        // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
-                            // Remove message from the queue
-                            param.systemMessageQueue->Dequeue(&system_message, 0);
-                            TRACE_INFO_F(F("Register server: Send remote configuration at Node: [ %d ]\n\r"), clCanard.slave[system_message.param].get_node_id());
-                            if(clCanard.slave[system_message.param].is_online()) {
-                                // START Remote configuration of Node -> system_message.param
-                                remote_configure[system_message.param] = 1;
-                                param.systemStatusLock->Take();
-                                param.system_status->flags.cfg_remote_running = true;
-                                param.systemStatusLock->Give();
+                            // Start Flag Event Start when request configuration is request
+                            // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                            // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                            if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
+                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                TRACE_INFO_F(F("Register server: Send remote configuration at Node: [ %d ]\n\r"), clCanard.slave[system_message.param].get_node_id());
+                                if(clCanard.slave[system_message.param].is_online()) {
+                                    // START Remote configuration of Node -> system_message.param
+                                    remote_configure[system_message.param] = 1;
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.reg_serever_running = true;
+                                    param.systemStatusLock->Give();
+                                } else {
+                                    // Off line or Not configure (waitinq request PNP) ?
+                                    TRACE_INFO_F(F("Register server: ALERT Node: [ %d ] is OFF LINE on waiting ton PNP configured\n\r"), clCanard.slave[system_message.param].get_node_id());
+                                }
                             } else {
-                                // Do something with error node off_line (Save not configured...)
-                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\n\r"), clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
+                                // IS NEED to Request FullPower Mode for type of command
+                                TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave"));
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.full_wakeup_request = true;
+                                param.systemStatusLock->Give();
                             }
                         }
                     }
                 }
 
                 // Are configuration remote node in execution?
-                if(param.system_status->flags.cfg_remote_running) {
+                if(param.system_status->flags.reg_serever_running) {
+                    // Check end of configure remote module
+                    bool cfgConfigureEnd = true;
                     uint8_t sensorCount = 0;
                     // loop for all Node and switching from list command sequence.
                     // Create and send register command and wait progression in server command procedure
@@ -1808,6 +1909,8 @@ void CanTask::Run() {
                         // Are configuration in progress for the node. Check type and sensor count for all parameter
                         // Node request to be online
                         if(remote_configure[cfg_remote_queueId]) {
+                            // Configure module is in running mode
+                            cfgConfigureEnd = false;
                             if(clCanard.slave[cfg_remote_queueId].is_online()) {
                                 // Start comand only start without old pending comand                            
                                 if(clCanard.slave[cfg_remote_queueId].register_access.is_pending()) {
@@ -1870,6 +1973,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_02_SEND:
                                         // Register-02 ( Configure Metadata register LEVEL.L2 )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
@@ -1883,6 +1987,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_03_SEND:
                                         // Register-03 ( Configure Metadata register LEVEL_TYPE1 )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
@@ -1896,6 +2001,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_04_SEND:
                                         // Register-04 ( Configure Metadata register LEVEL_TYPE2 )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
@@ -1909,6 +2015,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_05_SEND:
                                         // Register-05 ( Configure Metadata register TIME P1 )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
@@ -1922,6 +2029,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_P1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_06_SEND:
                                         // Register-06 ( Configure Metadata TIME PIndicator )
                                         uavcan_register_Value_1_0_select_natural8_(&val);
@@ -1935,6 +2043,7 @@ void CanTask::Run() {
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_PIND, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
+                                        break;
                                     case REGISTER_COMPLETE:
                                         // NEXT COMMAND LINE HERE....
                                         // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
@@ -1944,8 +2053,12 @@ void CanTask::Run() {
                                         // ********************************************************
                                         // Sending Reboot command to slave node remote CFG COMPLETE
                                         // ********************************************************
-                                        clCanard.send_command(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
+                                        clCanard.send_command_pending(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
                                             uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
+                                        // Starting message server
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.cmd_server_running = true;
+                                        param.systemStatusLock->Give();
                                     default:
                                         break;
                                     }
@@ -1957,12 +2070,18 @@ void CanTask::Run() {
                             }
                         }
                     }
+                    // End of configure procedure complete request
+                    if(cfgConfigureEnd) {
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.reg_serever_running = false;
+                        param.systemStatusLock->Give();
+                    }
                 }
 
                 // Register SERVER Gestion Pending, Response and TimeOut
                 // NB. To Set parameter Register with value remote create a register and call send method
                 // To read a register create register and set to unstructured and call send method. (Rx is performed)
-                if(param.system_status->flags.cfg_remote_running) {
+                if(param.system_status->flags.reg_serever_running) {
                     // loop for all Node and switching from list command sequence.
                     // Create and send register command and wait progression in server command procedure
                     for(uint8_t register_server_queueId=0; register_server_queueId<MAX_NODE_CONNECT; register_server_queueId++) {
@@ -1977,6 +2096,8 @@ void CanTask::Run() {
                             } else {
                                 TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
                             }
+                            // Abort configuration
+                            remote_configure[register_server_queueId] = 0;
                         }
                         if (clCanard.slave[register_server_queueId].register_access.is_executed()) {
                             // Reset del pending comando
@@ -1988,16 +2109,15 @@ void CanTask::Run() {
                             } else {
                                 TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             }
-                            uavcan_register_Value_1_0 registerResp = clCanard.slave[register_server_queueId].register_access.get_response();
-                            // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
-                            // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
-                            // Tecnicamente se != da empty in request ed in request il registro è impostato
-                            // I valori != 0 in elementi extra register.value.count non sono considerati 
-                            // TEST BYTE A BYTE... Not necessary
-                            if(memcmp(&registerResp, &val, sizeof(uavcan_register_Value_1_0)) == 0) {
+                            val = clCanard.slave[register_server_queueId].register_access.get_response();
+                            // se risposta registr != da empty in request il registro è impostato o letto (se empty = non esiste)
+                            if(val._tag_) // !=0 (!= empty)
+                            {
                                 TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {
-                                TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
+                                TRACE_ERROR_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
+                                // Abort configuration
+                                remote_configure[register_server_queueId] = 0;
                             }
                         }
                     }
@@ -2023,15 +2143,26 @@ void CanTask::Run() {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
-                            // Remove message from the queue
-                            param.systemMessageQueue->Dequeue(&system_message, 0);
-                            // Request start update firmware from LCD or Remote RPC
-                            // Start flags and state for file_server start
-                            param.systemStatusLock->Take();
-                            param.system_status->flags.file_server_running = true;
-                            param.systemStatusLock->Give();
-                            // Set STATE for boards request in firmware upgrade
-                            clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                            // Start Flag Event Start when request configuration is request
+                            // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                            // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                            if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                // Remove message from the queue
+                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                // Request start update firmware from LCD or Remote RPC
+                                // Start flags and state for file_server start
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.file_server_running = true;
+                                param.systemStatusLock->Give();
+                                // Set STATE for boards request in firmware upgrade
+                                clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                            } else {
+                                TRACE_VERBOSE_F(F("File server: Start full power for sending firmware to slave"));
+                                // IS NEED to Request FullPower Mode for type of command
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.full_wakeup_request = true;
+                                param.systemStatusLock->Give();
+                            }
                         }
                     }
                 }
@@ -2050,16 +2181,13 @@ void CanTask::Run() {
 
                         // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
                         switch(clCanard.slave[file_server_queueId].file_server.get_state()) {
-
                             default: // -->> FILE_STATE_ERROR STATE:
                                 clCanard.slave[file_server_queueId].file_server.end_transmission();
                                 break;
-
                             case canardClass::FileServer_State::standby:
                                 // Nothing to do. Start Case is external from this state
                                 // The current boards are in normal state. Check next boards...
                                 break;
-
                             case canardClass::FileServer_State::start_request:
                                 // Starting request remote from any system
                                 char file_name[CAN_FILE_NAME_SIZE_MAX];
@@ -2071,7 +2199,6 @@ void CanTask::Run() {
                                 // Start upload file with module_type last version found on SD Card
                                 clCanard.slave[file_server_queueId].file_server.set_file_name(file_name, true);
                                 break;
-
                             case canardClass::FileServer_State::begin_update:
                                 // Avvio comando di aggiornamento, controllo coerenza ed esistenza file già effettuato
                                 // Se non ci sono altre problematiche (aggiornamenti vari, download blocchi ecc.. avvio...)
@@ -2081,7 +2208,6 @@ void CanTask::Run() {
                                 // O smetto di rispondere al servizio per quella richiesta (TimeOut)
                                 // clCanard.slave[queueId].file_server.end_transmission(); -> ANNULLA!!!
                                 break;
-
                             case canardClass::FileServer_State::command_send:
                                 // Invio comando di aggiornamento File (in attesa in coda con switch...)
                                 // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
@@ -2093,7 +2219,6 @@ void CanTask::Run() {
                                     clCanard.slave[file_server_queueId].file_server.next_state();
                                 }
                                 break;
-
                             case canardClass::FileServer_State::command_wait:
                                 // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
                                 if(clCanard.slave[file_server_queueId].command.event_timeout()) {
@@ -2135,7 +2260,6 @@ void CanTask::Run() {
                                     }
                                 }
                                 break;
-
                             case canardClass::FileServer_State::state_uploading:
                                 // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
                                 if(clCanard.slave[file_server_queueId].file_server.event_timeout()) {
@@ -2151,7 +2275,6 @@ void CanTask::Run() {
                                     clCanard.slave[file_server_queueId].file_server.next_state();
                                 }
                                 break;
-
                             case canardClass::FileServer_State::upload_complete:
                                 // Counico al server file upload Complete ed esco (nuova procedura ready)
                                 // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
@@ -2174,6 +2297,101 @@ void CanTask::Run() {
                     }
                 }
                 // ********************* END FILE SERVER CAN UPLOADER ********************
+
+                // *********************************************************************
+                // Inibith Reboot Module and GET Full Power for all Module in this case
+                // *********************************************************************
+                // *** INIBITH REBOOT LOCAL AND REMOTE RPC ***
+                if(((param.system_status->flags.reg_serever_running)||
+                    (param.system_status->flags.cmd_server_running)||
+                    (param.system_status->flags.file_server_running)||
+                    (param.system_status->flags.full_wakeup_request)) &&
+                    (!param.system_status->flags.inibith_reboot)) {
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.inibith_reboot = true;
+                    param.systemStatusLock->Give();
+                }
+                // *** RESTORE REBOOT LOCAL AND REMOTE RPC ***
+                if(((!param.system_status->flags.reg_serever_running)&&
+                    (!param.system_status->flags.cmd_server_running)&&
+                    (!param.system_status->flags.file_server_running) &&
+                    (!param.system_status->flags.full_wakeup_request)) &&
+                    (param.system_status->flags.inibith_reboot)) {
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.inibith_reboot = false;
+                    param.systemStatusLock->Give();
+                }
+                // *** FULL POWER Operation Request (RPC, Remote config, command, display) ***
+                if(((param.system_status->flags.full_wakeup_forced)||
+                    (param.system_status->flags.full_wakeup_request)||
+                    (param.system_status->flags.reg_serever_running)||
+                    (param.system_status->flags.cmd_server_running)||
+                    (param.system_status->flags.file_server_running)||
+                    (param.system_status->flags.rmap_server_running)||
+                    (param.system_status->flags.display_on)) && 
+                    (param.system_status->flags.power_state != Power_Mode::pwr_on)) {
+                    // Disable module sleep if need operation into Class
+                    // Comunicate to the network CAN FullPower request. All Node exit DeepSleep and enter FullPower
+                    clCanard.flag.disable_sleep();
+                    param.systemStatusLock->Take();
+                    // Report Full POWER request for operation specific Task
+                    param.system_status->flags.power_state = Power_Mode::pwr_on;
+                    param.systemStatusLock->Give();
+                    // Applicate command for All Network UAVCAN
+                    clCanard.flag.set_local_power_mode(param.system_status->flags.power_state);
+                }
+                // *** NORMAL POWER Operation Request (End of RPC, Remote config, command, display) ***
+                if(((!param.system_status->flags.full_wakeup_forced)&&
+                    (!param.system_status->flags.full_wakeup_request)&&
+                    (!param.system_status->flags.reg_serever_running)&&
+                    (!param.system_status->flags.cmd_server_running)&&
+                    (!param.system_status->flags.file_server_running)&&
+                    (!param.system_status->flags.rmap_server_running)&&
+                    (!param.system_status->flags.display_on)) && 
+                    (param.system_status->flags.power_state == Power_Mode::pwr_on)) {
+                    // Enable module sleep if need operation into Class
+                    // Comunicate to the network CAN nominal power request. All Node enable DeepSleep and exit FullPower
+                    clCanard.flag.enable_sleep();
+                    param.systemStatusLock->Take();
+                    // Normal POWER request for operation specific
+                    param.system_status->flags.power_state = Power_Mode::pwr_nominal;
+                    // Depending from MPPT Level status Critical for Other Method
+                    // TODO: Search MPPT Module Type... Verify Level TBatt, Select a Method of Power
+                    param.systemStatusLock->Give();
+                    // Applicate command for All Network UAVCAN
+                    clCanard.flag.set_local_power_mode(param.system_status->flags.power_state);
+                }
+                // ***********************************************************************
+
+
+                // **************************************************************************
+                // -> Scheduler temporizzato dei messaggi standard da inviare alla rete UAVCAN
+                // **************************************************************************
+                // ************************* HEARTBEAT DATA PUBLISHER ***********************
+                if((start_firmware_upgrade)||
+                    (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
+                    TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
+                    clCanard.master_heartbeat_send_message();
+                    // Update next publisher
+                    last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
+                }
+                // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
+                if (clCanard.getMicros(clCanard.syncronized_time) >= next_timesyncro_msg)
+                {
+                    next_timesyncro_msg = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
+                    // Time syncro are sended only when full power is enabled
+                    if(param.system_status->flags.power_state == Power_Mode::pwr_on) {
+                        TRACE_INFO_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
+                        clCanard.master_timestamp_send_syncronization();
+                    }
+                }
+                // ********************** SERVICE PORT LIST PUBLISHER ***********************
+                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
+                    TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
+                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
+                    // Update publisher
+                    clCanard.master_servicelist_send_message();
+                }
 
                 // ***************************************************************************
                 //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)
@@ -2203,11 +2421,25 @@ void CanTask::Run() {
                     #endif
                 }
 
-                // Request Reboot (Firmware upgrade... Or Reset)
-                if (clCanard.flag.is_requested_system_restart() || (start_firmware_upgrade)) {
-                    TRACE_INFO_F(F("Send signal to system Reset...\r\n"));
-                    delay(250); // Waiting security queue empty send HB (Updating start...)
-                    NVIC_SystemReset();                    
+                // Request Reboot from RPC in security mode
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_reboot)) {
+                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            // Start Reboot check state
+                            clCanard.flag.request_system_restart();
+                        }
+                    }
+                }
+                // Request Reboot (Firmware upgrade direct... Or Request Reset with inibit control)
+                if ((!param.system_status->flags.inibith_reboot) && (!start_firmware_upgrade)) {
+                    if (clCanard.flag.is_requested_system_restart() || (start_firmware_upgrade)) {
+                        TRACE_INFO_F(F("Send signal to system Reset...\r\n"));
+                        delay(250); // Waiting security queue empty send HB (Updating start...)
+                        NVIC_SystemReset();                    
+                    }
                 }
                 break;
         }

@@ -270,11 +270,15 @@ typedef struct
    struct
    {
       bool sd_card_ready;        // Flag SD CARD Ready and full functional
+      bool inibith_reboot;       // Flag inibition at reboot command (Rebot operation must wait flag is donw) 
       bool display_on;           // Display powered ON (Require Istant and other data)
+      bool full_wakeup_forced;   // Flag indicate request wakeup forced from RPC remote (PREPANDGET...) or local GET Data
+      bool full_wakeup_request;  // Flag indicate request wakeup for starting operation with slave in full power mode
       bool file_server_running;  // True if file server are running
       bool cmd_server_running;   // True if command server are running
+      bool reg_serever_running;  // True if remote configure or register server procedure over CAN are running
+      bool rmap_server_running;  // True if get rmap data from slave module procedure over CAN are running
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
-      bool cfg_remote_running;   // True if remote configure procedure over CAN are running
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;
 
@@ -326,6 +330,7 @@ typedef struct
    uint8_t task_dest;
    struct
    {
+      uint8_t do_reboot    : 1;  // Request reboot from RPC7Other in security mode (waiting operation)
       uint8_t do_update_fw : 1;  // Request update firmware (node or master) from SD file
       uint8_t do_inibith   : 1;  // Request inibith sleep
       uint8_t undo_inibith : 1;  // Remove inibith sleep

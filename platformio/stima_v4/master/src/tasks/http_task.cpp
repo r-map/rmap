@@ -196,6 +196,10 @@ void HttpTask::Run() {
       HttpYarrowContext = param.yarrowContext;
       HttpClientPSKKey = param.configuration->client_psk_key;
 
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
       // Set PSK identity
       snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
       TRACE_VERBOSE_F(F("HTTP PSK Identity: %s\r\n"), HttpClientPSKIdentity);
@@ -239,6 +243,10 @@ void HttpTask::Run() {
         break;
       }
 
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
       TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       // Connect to the HTTP server
       error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_CLIENT_PORT);
@@ -257,6 +265,10 @@ void HttpTask::Run() {
       // Create an HTTP request
       httpClientCreateRequest(&httpClientContext);
       httpClientSetMethod(&httpClientContext, "GET");
+
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
 
       getStimaNameByType(module_type, param.configuration->module_type, 7);
 
@@ -279,6 +291,10 @@ void HttpTask::Run() {
 
       // Add HTTP header fields
       httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
+
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
 
       // from uint64_t to string
       serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
@@ -321,6 +337,9 @@ void HttpTask::Run() {
       //   TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
       //   break;
       // }
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
 
       state = HTTP_STATE_GET_RESPONSE;
       retry_get_response = 0;
@@ -355,6 +374,10 @@ void HttpTask::Run() {
       // Retrieve the value of the Content-Type header field
       value = httpClientGetHeaderField(&httpClientContext, "Content-Type");
 
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
       // Header field found?
       if (value == NULL)
       {
@@ -382,6 +405,10 @@ void HttpTask::Run() {
 
           error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, SOCKET_FLAG_BREAK_CRLF);
 
+          #if (ENABLE_STACK_USAGE)
+          TaskMonitorStack();
+          #endif
+
           if (!error)
           {
             http_buffer[http_buffer_length] = '\0';
@@ -392,6 +419,9 @@ void HttpTask::Run() {
           {
             while (is_event_rpc)
             {
+              #if (ENABLE_STACK_USAGE)
+              TaskMonitorStack();
+              #endif
               param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
             }
             param.rpcLock->Give();
@@ -403,6 +433,11 @@ void HttpTask::Run() {
 
           if (!error)
           {
+
+            #if (ENABLE_STACK_USAGE)
+            TaskMonitorStack();
+            #endif
+
             http_buffer[http_buffer_length] = '\0';
             TRACE_INFO_F(F("%s"), http_buffer);
           }

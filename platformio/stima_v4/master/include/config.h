@@ -26,6 +26,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "sensors_config.h"
 #include "stima_config.h"
+#include "constantdata_config.h"
+#include "gsm_config.h"
+#include "ntp_config.h"
+#include "http_config.h"
+#include "mqtt_config.h"
 
 /*********************************************************************
 * MODULE
@@ -152,7 +157,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 // Queue Lenght
-#define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
+#define SYSTEM_MESSAGE_QUEUE_LENGTH (BOARDS_COUNT_MAX + 2) // Max usage on rapid configuration command MAX_BOARD message
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
 #define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
