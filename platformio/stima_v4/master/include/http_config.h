@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 
-#define HTTP_BUFFER_SIZE         (128)
+#define HTTP_BUFFER_SIZE         (256)
 
 // #define HTTP_USER_AGENTS_LENGTH  (STIMA_MODULE_NAME_LENGTH + 10)
 

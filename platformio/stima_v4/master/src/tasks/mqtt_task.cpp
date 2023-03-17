@@ -359,7 +359,7 @@ void MqttTask::Run()
       Delay(Ticks::MsToTicks(5000));
       //TODO:REMOVE End connecction on END Data... >=3 Remove...
       //TODO: is_data_publish_end = true when data END !!!
-      if(param.system_status->connection.mqtt_data_published >= 1) {
+      if(param.system_status->connection.mqtt_data_published >= 2) {
         param.systemStatusLock->Take();
         is_data_publish_end = true;
         param.systemStatusLock->Give();

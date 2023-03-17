@@ -99,6 +99,8 @@ using namespace cpp_freertos;
 
 #define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (2000)
 
+#define GENERIC_UAVCAN_MAX_RETRY          (3)
+
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 

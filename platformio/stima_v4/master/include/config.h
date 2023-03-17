@@ -198,6 +198,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_RPC_METHOD_GETJSON      (false)
 #define USE_RPC_METHOD_PREPANDGET   (false)
 
+// Disable for DEBUG
+#define ENABLE_RPC_LOCAL_REBOOT     (false)
+
 /*!
 \def USE_CONSTANTDATA_COUNT
 \brief Constantdata count.

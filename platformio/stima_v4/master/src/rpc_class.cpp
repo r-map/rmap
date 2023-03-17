@@ -1102,11 +1102,13 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
   TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
   result[F("state")] = "done";
 
+  #if (ENABLE_RPC_LOCAL_REBOOT)
   // Start REBOOT with queue command
   system_message_t system_message = {0};
   system_message.task_dest = CAN_TASK_ID;
   system_message.command.do_reboot = true;
   param.systemMessageQueue->Enqueue(&system_message, 0);
+  #endif
 
   return E_SUCCESS;
 }

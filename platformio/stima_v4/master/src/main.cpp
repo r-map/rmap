@@ -411,7 +411,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 11800, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
@@ -423,7 +423,7 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 1300, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 1400, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)

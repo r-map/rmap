@@ -354,7 +354,10 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             localRpcLock->Take();
             localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_CAN);
             localRpcLock->Give();
-            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            if(!is_event_rpc)
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            else
+                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
             break;
         }
         // Comando di download File generico compatibile con specifice UAVCAN, (LOG/CFG altro...)
@@ -582,7 +585,9 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     }                    
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
-                        msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);  
+                        msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);
+                    TRACE_VERBOSE_F(F("Power mode status node %u [ %s ]\r\n"), transfer->metadata.remote_node_id,
+                        clCanard.slave[queueId].heartbeat.get_power_mode() == Power_Mode::pwr_on ? "full power" : "deep sleep");
                     // Rientro in OnLINE da OFFLine o Init Gestino può (dovrebbe) essere esterna alla Call
                     // Inizializzo le variabili e gli stati necessari per Reset e corretta gestione
                     if(clCanard.slave[queueId].is_entered_online()) {
@@ -1137,6 +1142,9 @@ void CanTask::Run() {
     bool bStartGetIstant = false;       // Get Istant value from node
     bool bStartGetData = false;         // Get archive value from node
     bool bStartSetFullPower = false;    // Set remote node full power for get data
+    // Register access register rfemote configuration array
+    uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
+    uint8_t remote_configure_retry[MAX_NODE_CONNECT] = {0};
 
     // Start Running Monitor and First WDT normal state
     #if (ENABLE_STACK_USAGE)
@@ -1715,6 +1723,16 @@ void CanTask::Run() {
                 // ********************* END RMAP GETDATA TX-> RX<- **********************
 
 
+// TEST CONFIGURE NODE
+if (curEpoch % 20==0) {
+          system_message_t system_message = {0};
+          system_message.task_dest = CAN_TASK_ID;
+          system_message.command.do_remotecfg = true;
+          system_message.param = 0;
+          param.systemMessageQueue->Enqueue(&system_message, 0);
+}
+
+
                 // ***********************************************************************
                 // ********************* REMOTE RPC COMMAND SERVER ***********************
                 // ***********************************************************************
@@ -1824,14 +1842,14 @@ void CanTask::Run() {
                             // Rimupvo gli stati
                             clCanard.slave[cmd_server_queueId].command.reset_pending();
                             // TimeOUT di un comando in attesa... gestisco il da farsi Retry? Abort? Signal?
-                            TRACE_ERROR_F(F("Command server: time out command at Node: [ %d ], Warning [restore pending command]"),
+                            TRACE_ERROR_F(F("Command server: time out command at Node: [ %d ], Warning [restore pending command]\n\r"),
                                 clCanard.slave[system_message.param].get_node_id());
                         }
                         if (clCanard.slave[cmd_server_queueId].command.is_executed()) {
                             // Rimuovo gli stati
                             clCanard.slave[cmd_server_queueId].command.reset_pending();
                             // Command OK. Signal?
-                            TRACE_INFO_F(F("Command server: confirmed command at Node: [ %d ], response code value: [ %d ]"),
+                            TRACE_INFO_F(F("Command server: confirmed command at Node: [ %d ], response code value: [ %d ]\n\r"),
                                 clCanard.slave[system_message.param].get_node_id(), clCanard.slave[cmd_server_queueId].command.get_response());
                         }
                     }
@@ -1850,8 +1868,6 @@ void CanTask::Run() {
                 // ****** REMOTE REGISTER GET/SET SERVER AND REMOTE CONFIGURATION  *******
                 // ***********************************************************************
                 // TODO: Move INIT and Remove
-                uint8_t remote_configure[MAX_NODE_CONNECT];
-                bool bIsWriteRegister;
                 #define REGISTER_01_SEND    1u
                 #define REGISTER_02_SEND    3u
                 #define REGISTER_03_SEND    5u
@@ -1876,23 +1892,35 @@ void CanTask::Run() {
                             if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
                                 // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
                                 param.systemMessageQueue->Dequeue(&system_message, 0);
-                                TRACE_INFO_F(F("Register server: Send remote configuration at Node: [ %d ]\n\r"), clCanard.slave[system_message.param].get_node_id());
+                                if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                    TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
+                                } else {
+                                    TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\n\r"), system_message.param + 1);
+                                }
                                 if(clCanard.slave[system_message.param].is_online()) {
                                     // START Remote configuration of Node -> system_message.param
                                     remote_configure[system_message.param] = 1;
+                                    remote_configure_retry[system_message.param] = GENERIC_UAVCAN_MAX_RETRY;
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.reg_serever_running = true;
                                     param.systemStatusLock->Give();
                                 } else {
-                                    // Off line or Not configure (waitinq request PNP) ?
-                                    TRACE_INFO_F(F("Register server: ALERT Node: [ %d ] is OFF LINE on waiting ton PNP configured\n\r"), clCanard.slave[system_message.param].get_node_id());
+                                    if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                        // Off line ... Not configure?
+                                        TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
+                                    } else {
+                                        // not configured yet (waitinq request PNP) ?
+                                        TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\n\r"),system_message.param + 1);
+                                    }
                                 }
                             } else {
-                                // IS NEED to Request FullPower Mode for type of command
-                                TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave"));
-                                param.systemStatusLock->Take();
-                                param.system_status->flags.full_wakeup_request = true;
-                                param.systemStatusLock->Give();
+                                // IS NEED to Request FullPower Mode for type of command (if not yet request full power)
+                                if(!param.system_status->flags.full_wakeup_request) {
+                                    TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave, old power state: [ %d ]\r\n"), clCanard.slave[system_message.param].heartbeat.get_power_mode());
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.systemStatusLock->Give();
+                                }
                             }
                         }
                     }
@@ -2050,15 +2078,11 @@ void CanTask::Run() {
                                         // END PROGRAMMING REGISTER REMOTE LIST OK !!!!
                                         remote_configure[cfg_remote_queueId] = 0;
                                         TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
-                                        // ********************************************************
-                                        // Sending Reboot command to slave node remote CFG COMPLETE
-                                        // ********************************************************
-                                        clCanard.send_command_pending(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
+                                        // *******************************************************************************
+                                        // Sending Reboot command to slave node remote CFG COMPLETE WITHOUT PENDING METHOD
+                                        // *******************************************************************************
+                                        clCanard.send_command(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
                                             uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
-                                        // Starting message server
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.cmd_server_running = true;
-                                        param.systemStatusLock->Give();
                                     default:
                                         break;
                                     }
@@ -2096,8 +2120,12 @@ void CanTask::Run() {
                             } else {
                                 TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
                             }
-                            // Abort configuration
-                            remote_configure[register_server_queueId] = 0;
+                            // Abort configuration (after retry...)
+                            if(!remote_configure_retry[system_message.param]) {
+                                remote_configure_retry[system_message.param]--;
+                            } else {
+                                remote_configure[register_server_queueId] = 0;
+                            }
                         }
                         if (clCanard.slave[register_server_queueId].register_access.is_executed()) {
                             // Reset del pending comando
@@ -2116,7 +2144,7 @@ void CanTask::Run() {
                                 TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {
                                 TRACE_ERROR_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
-                                // Abort configuration
+                                // Abort configuration without Retry (Command refused)
                                 remote_configure[register_server_queueId] = 0;
                             }
                         }
@@ -2157,7 +2185,7 @@ void CanTask::Run() {
                                 // Set STATE for boards request in firmware upgrade
                                 clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
                             } else {
-                                TRACE_VERBOSE_F(F("File server: Start full power for sending firmware to slave"));
+                                TRACE_VERBOSE_F(F("File server: Start full power for sending firmware to slave\n\r"));
                                 // IS NEED to Request FullPower Mode for type of command
                                 param.systemStatusLock->Take();
                                 param.system_status->flags.full_wakeup_request = true;
@@ -2301,6 +2329,17 @@ void CanTask::Run() {
                 // *********************************************************************
                 // Inibith Reboot Module and GET Full Power for all Module in this case
                 // *********************************************************************
+                if((param.system_status->flags.full_wakeup_request)&&
+                    ((param.system_status->flags.reg_serever_running)||
+                    (param.system_status->flags.cmd_server_running)||
+                    (param.system_status->flags.file_server_running))) {
+                    // Reset request full_wakeup_request is needed and valid while any server mode is started
+                    // Flag is setted at start of server if mode power is not full_power and must be reset
+                    // when activity_server programmed is terminated. When a server start, flag must to be resetted
+                    param.systemStatusLock->Take();
+                    param.system_status->flags.full_wakeup_request = false;
+                    param.systemStatusLock->Give();
+                }
                 // *** INIBITH REBOOT LOCAL AND REMOTE RPC ***
                 if(((param.system_status->flags.reg_serever_running)||
                     (param.system_status->flags.cmd_server_running)||
