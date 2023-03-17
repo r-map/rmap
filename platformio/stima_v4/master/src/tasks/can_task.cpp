@@ -1136,6 +1136,9 @@ void CanTask::Run() {
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
 
+    // Starting message trace
+    bool message_traced = false;
+
     // Starting acquire IST and value control var
     uint32_t getUpTimeSecondCurr;
     uint32_t curEpoch;
@@ -1159,9 +1162,22 @@ void CanTask::Run() {
         //                   SETUP CONFIG CYPAL, CLASS, REGISTER, DATA
         // ********************************************************************************
         switch (state) {
+
             // Setup Class CB and NodeId
             case CAN_STATE_INIT:
 
+                // Waiting loading configuration complete before start application
+                if (param.system_status->configuration.is_loaded) {
+                    state = CAN_STATE_INIT;
+                } else {
+                    if(!message_traced) {
+                        TRACE_INFO_F(F("Can task: Waiting configuration before START\r\n"));
+                        message_traced = true;
+                    }
+                    break;
+                }
+
+                TRACE_INFO_F(F("Can task: STARTING Configuration\r\n"));
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
                 // Segnale al Master necessità di impostazioni ev. parametri, Data/Ora ecc..
                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
@@ -1204,16 +1220,28 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
                 localRegisterAccessLock->Give();
 
-                // TODO:
-                // Read Config Slave Node x Lettura porte e servizi.
-                // Possibilità di utilizzo come sotto (registri) - Fixed Value adesso !!!
-                #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-                clCanard.slave[0].configure(125, Module_Type::th, 100, 0);
-                param.system_status->data_slave[0].module_type = Module_Type::th;
-                // clCanard.slave[0].configure(125, Module_Type::th, 100, 5678);    
-                #else
-                clCanard.slave[0].configure(125, Module_Type::th, 100);    
-                #endif
+                // **********************************************************************************
+                //Setup configuration module node and start canard class slave istance with loaded ID
+                // **********************************************************************************
+                for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
+                    #ifdef USE_SUB_PUBLISH_SLAVE_DATA
+                    // If valid address, configure node
+                    if(param.configuration->board_slave[iCnt].can_address <= CANARD_NODE_ID_MAX) {
+                        // Configure istance in a class
+                        clCanard.slave[iCnt].configure(
+                            param.configuration->board_slave[iCnt].can_address,
+                            param.configuration->board_slave[iCnt].module_type,
+                            param.configuration->board_slave[iCnt].can_port_id,
+                            param.configuration->board_slave[iCnt].can_publish_id);
+                    }
+                    #else
+                        // Configure istance in a class
+                        clCanard.slave[iCnt].configure(
+                            param.configuration->board_slave[iCnt].can_address,
+                            param.configuration->board_slave[iCnt].module_type,
+                            param.configuration->board_slave[iCnt].can_port_id);
+                    #endif
+                }
 
                 // TODO: Register Config ID Node in Array... non N registri
                 // **********************************************************************************
@@ -1252,6 +1280,8 @@ void CanTask::Run() {
             //               AVVIA SOTTOSCRIZIONI ai messaggi per servizi RPC ecc...
             // ********************************************************************************
             case CAN_STATE_SETUP:
+
+                TRACE_INFO_F(F("Can task: STARTING UAVCAV Subscrition and Service\r\n"));
 
                 // Service servers: -> Risposta per GetNodeInfo richiesta esterna (Yakut, Altri)
                 if (!clCanard.rxSubscribe(CanardTransferKindRequest,
@@ -1416,7 +1446,7 @@ void CanTask::Run() {
                         // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
                         if (clCanard.slave[queueId].is_entered_offline()) {
                             // Entro in OffLine
-                            TRACE_INFO_F(F("Nodo OFFLINE !!! Alert -> : %d"), clCanard.slave[queueId].get_node_id());
+                            TRACE_INFO_F(F("Nodo OFFLINE !!! Alert -> : %d\r\n"), clCanard.slave[queueId].get_node_id());
                             // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                             // Eventuali altre operazioni quà su Reset Comandi
                             clCanard.slave[queueId].command.reset_pending();
@@ -1723,16 +1753,6 @@ void CanTask::Run() {
                 // ********************* END RMAP GETDATA TX-> RX<- **********************
 
 
-// TEST CONFIGURE NODE
-if (curEpoch % 20==0) {
-          system_message_t system_message = {0};
-          system_message.task_dest = CAN_TASK_ID;
-          system_message.command.do_remotecfg = true;
-          system_message.param = 0;
-          param.systemMessageQueue->Enqueue(&system_message, 0);
-}
-
-
                 // ***********************************************************************
                 // ********************* REMOTE RPC COMMAND SERVER ***********************
                 // ***********************************************************************
@@ -1867,14 +1887,15 @@ if (curEpoch % 20==0) {
                 // ***********************************************************************
                 // ****** REMOTE REGISTER GET/SET SERVER AND REMOTE CONFIGURATION  *******
                 // ***********************************************************************
-                // TODO: Move INIT and Remove
-                #define REGISTER_01_SEND    1u
-                #define REGISTER_02_SEND    3u
-                #define REGISTER_03_SEND    5u
-                #define REGISTER_04_SEND    7u
-                #define REGISTER_05_SEND    9u
-                #define REGISTER_06_SEND    11u
-                #define REGISTER_COMPLETE   13u
+
+                // TEST CONFIGURE NODE WITH QUEUE COMMAND!
+                if (0) {
+                    system_message_t system_message = {0};
+                    system_message.task_dest = CAN_TASK_ID;
+                    system_message.command.do_remotecfg = true;
+                    system_message.param = 0;
+                    param.systemMessageQueue->Enqueue(&system_message, 0);
+                }
 
                 // Get coda config register da system_message... se richiesto comando da LCD, RPC Remota, PNP
                 // Avvia la configurazione remota con la sequenza dei registri da programmare
@@ -1899,7 +1920,7 @@ if (curEpoch % 20==0) {
                                 }
                                 if(clCanard.slave[system_message.param].is_online()) {
                                     // START Remote configuration of Node -> system_message.param
-                                    remote_configure[system_message.param] = 1;
+                                    remote_configure[system_message.param] = REGISTER_STARTING;
                                     remote_configure_retry[system_message.param] = GENERIC_UAVCAN_MAX_RETRY;
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.reg_serever_running = true;
@@ -2072,6 +2093,47 @@ if (curEpoch % 20==0) {
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
+                                    case REGISTER_07_SEND:
+                                        // Register-07 ( Configure Can PORT ID Rmap Service )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = 1;
+                                        val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_port_id;
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_UAVCAN_DATA_SERVICE, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_SERVICE, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                        break;
+                                    case REGISTER_08_SEND:
+                                        // Register-08 ( Configure Can SUBJECT ID Rmap Publish )
+                                        uavcan_register_Value_1_0_select_natural16_(&val);
+                                        val.natural16.value.count = 1;
+                                        val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_publish_id;
+                                        // Send register value to Slave Remote with parameter to store
+                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                            REGISTER_UAVCAN_DATA_PUBLISH, val, NODE_REGISTER_WRITING);
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_PUBLISH, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        // Prepare verify RESPONSE Method OK.
+                                        remote_configure[cfg_remote_queueId]++;
+                                        break;
+                                    case REGISTER_09_SEND:
+                                        // Register-09 ( Configure Can Address if rquired != old value )
+                                        if(clCanard.slave[cfg_remote_queueId].get_node_id() != param.configuration->board_slave[cfg_remote_queueId].can_address) {
+                                            uavcan_register_Value_1_0_select_natural16_(&val);
+                                            val.natural16.value.count = 1;
+                                            val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_address;
+                                            // Send register value to Slave Remote with parameter to store
+                                            clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
+                                                REGISTER_UAVCAN_NODE_ID, val, NODE_REGISTER_WRITING);
+                                            TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_NODE_ID, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                            // Prepare verify RESPONSE Method OK.
+                                            remote_configure[cfg_remote_queueId]++;
+                                        } else {
+                                            // End of programming
+                                            remote_configure[cfg_remote_queueId] = REGISTER_COMPLETE;
+                                        }
+                                        break;
                                     case REGISTER_COMPLETE:
                                         // NEXT COMMAND LINE HERE....
                                         // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
@@ -2081,7 +2143,8 @@ if (curEpoch % 20==0) {
                                         // *******************************************************************************
                                         // Sending Reboot command to slave node remote CFG COMPLETE WITHOUT PENDING METHOD
                                         // *******************************************************************************
-                                        clCanard.send_command(cfg_remote_queueId, NODE_COMMAND_TIMEOUT_US,                            
+                                        // Direct command (without pending) must send with NodeId not with istance !!!
+                                        clCanard.send_command(clCanard.slave[cfg_remote_queueId].get_node_id(), NODE_COMMAND_TIMEOUT_US,                            
                                             uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
                                     default:
                                         break;

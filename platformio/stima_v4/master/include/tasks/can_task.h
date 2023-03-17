@@ -104,6 +104,19 @@ using namespace cpp_freertos;
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 
+// Register sequence programming (Remote register phase [State Receive = SEND + 1])
+#define REGISTER_STARTING   1u
+#define REGISTER_01_SEND    1u
+#define REGISTER_02_SEND    3u
+#define REGISTER_03_SEND    5u
+#define REGISTER_04_SEND    7u
+#define REGISTER_05_SEND    9u
+#define REGISTER_06_SEND    11u
+#define REGISTER_07_SEND    13u
+#define REGISTER_08_SEND    15u
+#define REGISTER_09_SEND    17u
+#define REGISTER_COMPLETE   19u
+
 // Mode Power HW CanBus Controller
 enum CAN_ModePower
 {

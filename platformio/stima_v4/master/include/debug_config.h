@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
 #define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
 #define USBSERIAL_TASK_TRACE_LEVEL     TRACE_LEVEL_OFF
-#define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
+#define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
 #define SIM7600_TRACE_LEVEL            TRACE_LEVEL_OFF
 
 #endif
