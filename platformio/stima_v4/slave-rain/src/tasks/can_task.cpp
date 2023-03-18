@@ -1679,9 +1679,9 @@ void CanTask::Run() {
                 if((start_firmware_upgrade)||
                     (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
                     if(clCanard.is_canard_node_anonymous()) {
-                        TRACE_INFO_F(F("Publish SLAVE PNP Request Message -->> [ %u sec + Rnd * 1 sec...]\r\n"), TIME_PUBLISH_PNP_REQUEST);
-                        clCanard.slave_pnp_send_request(1);
-                        last_pub_heartbeat += MEGA * (TIME_PUBLISH_PNP_REQUEST + random(100) / 100);
+                        TRACE_INFO_F(F("Publish SLAVE PNP Request Message -->> [ Random over %u sec ]\r\n"), TIME_PUBLISH_PNP_REQUEST);
+                        clCanard.slave_pnp_send_request(param.configuration->serial_number);
+                        last_pub_heartbeat += MEGA * (random(TIME_PUBLISH_PNP_REQUEST * 100) / 100);
                     } else {
                         TRACE_INFO_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                         clCanard.slave_heartbeat_send_message();
