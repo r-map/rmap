@@ -30,6 +30,8 @@ void setup() {
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
+  static Queue *rainQueue; // Rain tips events
+
   // System semaphore
   static BinarySemaphore *configurationLock;  // Access Configuration
   static BinarySemaphore *systemStatusLock;   // Access System status
@@ -97,6 +99,8 @@ void setup() {
   elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
+
+  rainQueue = new Queue(RAIN_QUEUE_LENGTH, sizeof(bool));
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 
@@ -191,6 +195,7 @@ void setup() {
   rainSensorParam.systemStatusLock = systemStatusLock;
   rainSensorParam.systemMessageQueue = systemMessageQueue;
   rainSensorParam.elaborataDataQueue = elaborataDataQueue;
+  rainSensorParam.rainQueue = rainQueue;
 #endif
 
   // TASK ELABORATE DATA PARAM CONFIG
@@ -249,7 +254,10 @@ void loop() {
 
 /// @brief Init Pin (Diag and configuration)
 void init_pins() {
-  #if (ENABLE_DIAG_PIN)
+  pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
+
+#if (ENABLE_DIAG_PIN)
   // *****************************************************
   //     STARTUP LED E PIN DIAGNOSTICI (SE UTILIZZATI)
   // *****************************************************

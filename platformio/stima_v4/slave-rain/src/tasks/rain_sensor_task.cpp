@@ -99,14 +99,11 @@ void RainSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 void RainSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
-  uint32_t delay_ms;
-  static bool is_test;
-  //TODO:_TH_RAIN_
-  bool is_rain_redundant;
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
   uint8_t error_count;
+  bool flag;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -125,6 +122,8 @@ void RainSensorTask::Run() {
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
+        rain.tips_count = 0;
+        rain.rain = 0;
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -132,199 +131,88 @@ void RainSensorTask::Run() {
       else
       {
         // Local WatchDog update;
-        TaskWatchDog(TH_TASK_WAIT_DELAY_MS);
-        Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
+        TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
+        Delay(Ticks::MsToTicks(RAIN_TASK_WAIT_DELAY_MS));
       }
       // do something else with non-blocking wait ....
       break;
 
     case SENSOR_STATE_INIT:
+      // attesa interrupt
+      param.rainQueue->Dequeue(&flag, portMAX_DELAY);
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
-      {
-        if (strlen(param.configuration->sensors[i].type) == 3)
-        {
-          //TODO:_TH_RAIN_
-          //SensorDriver::createSensor(SENSOR_DRIVER_I2C, param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, 1, sensors, param.wire);
-        }
-      }
-      state = SENSOR_STATE_SETUP;
-      break;
-
-    case SENSOR_STATE_SETUP:
-      error_count = 0;
-
-      powerOn();
-
-      is_test = false;
-      memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
-
-      // TODO:_TH_RAIN_
-      // for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
-      // {
-      //   if (!sensors[i]->isSetted())
-      //   {
-      //     param.wireLock->Take();
-      //     sensors[i]->setup();
-      //     param.wireLock->Give();
-      //     TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-      //   }
-      // }
-      state = SENSOR_STATE_PREPARE;
-      break;
-
-    case SENSOR_STATE_PREPARE:
-      delay_ms = 0;
-      // TODO:_TH_RAIN_
-      // for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
-      // {
-      //   sensors[i]->resetPrepared();
-      //   param.wireLock->Take();
-      //   sensors[i]->prepare(is_test);
-      //   param.wireLock->Give();
-
-      //   // wait the most slowest
-      //   if (sensors[i]->getDelay() > delay_ms)
-      //   {
-      //     delay_ms = sensors[i]->getDelay();
-      //   }
-
-      //   // end with error
-      //   if (!sensors[i]->isSuccess())
-      //   {
-      //     error_count++;
-      //   }
-      // }
-
-      // Local WatchDog update;
-      TaskWatchDog(delay_ms);
-      Delay(Ticks::MsToTicks(delay_ms));
-
+      TaskWatchDog(configuration.tipping_bucket_time_ms / 2);
+      Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms / 2));
       state = SENSOR_STATE_READ;
-
       break;
 
-      case SENSOR_STATE_READ:
-        is_rain_redundant = false;
-
-        // TODO:_TH_RAIN_        
-        // for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-        //   do {
-        //     param.wireLock->Take();
-        //     sensors[i]->get(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, is_test);
-        //     param.wireLock->Give();
-        //     // Secure WDT
-        //     TaskWatchDog(sensors[i]->getDelay());
-        //     Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
-        //   } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
-
-        //   // end with error
-        //   if (!sensors[i]->isSuccess())
-        //   {
-        //     error_count++;
-        //   }
-
-        //   if (false) {}
-
-        //   #if (USE_SENSOR_ADT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_HIH)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_HYT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
-        //     edata.value = values_readed_from_sensor[1];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_SHT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_SHT) == 0) {
-        //     edata.value = values_readed_from_sensor[1];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
-        //   for (uint8_t k=0; k<VALUES_TO_READ_FROM_SENSOR_COUNT; k++) {
-        //     TRACE_VERBOSE_F(F("%d\t"), values_readed_from_sensor[k]);
-        //   }
-        //   TRACE_VERBOSE_F(F("\r\n"));
-        //   #endif
-        // }
-
-        // // If module fail fill void error data
-        // if (!is_temperature_redundant) {
-        //   edata.value = RMAPDATA_MAX;
-        //   edata.index = TEMPERATURE_REDUNDANT_INDEX;
-        //   param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        // }
-
-        // // If module fail fill void error data
-        // if (!is_humidity_redundant) {
-        //   edata.value = RMAPDATA_MAX;
-        //   edata.index = HUMIDITY_REDUNDANT_INDEX;
-        //   param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        // }
-
-        // FAKEEEEEEEEE VALUEEEEEEEEEE
-        // TODO:_TH_RAIN_
-        edata.value = 0;
-        edata.index = RAIN_MAIN_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-
-        state = SENSOR_STATE_END;
+    case SENSOR_STATE_READ:
+      // reset??
+      param.elaborataDataQueue->Dequeue(&edata, 0);
+      switch (edata.index)
+      {
+      case RAIN_RESET_INDEX:
+        rain.tips_count = 0;
+        rain.rain = 0;
         break;
+      }
 
-      case SENSOR_STATE_END:
-        #ifdef TH_TASK_LOW_POWER_ENABLED
+      // increment rain tips if oneshot mode is on and oneshot start command It has been received
+      // re-read pin status to filter spikes
+      if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
+      {
+        rain.tips_count++;
+        rain.rain = tips_count * configuration->sensors[0].rain_for_tip;
+        TRACE_INFO_F(F("Rain tips count: %d"), tips_count);
+      }
+      else
+      {
+        TRACE_INFO_F(F("Skip spike"));
+        tipping_bucket_state = TIPPING_BUCKET_END;
+        break;
+      }
+
+      TaskWatchDog(configuration.tipping_bucket_time_ms * 2);
+      Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms * 2));
+
+      edata.value = rain.tips_count;
+      edata.index = RAIN_TIPS_INDEX;
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+
+      edata.value = rain.rain;
+      edata.index = RAIN_RAIN_INDEX;
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+
+      state = SENSOR_STATE_END;
+      break;
+
+    case SENSOR_STATE_END:
+      if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
+      {
+        TRACE_INFO_F(F("wrong timing or stalled tipping bucket"));
+        TaskWatchDog(configuration.tipping_bucket_time_ms);
+        Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms));
+      }
+
+#ifdef RAIN_TASK_LOW_POWER_ENABLED
+      powerOff();
+#else
+      if (error_count > RAIN_TASK_ERROR_FOR_POWER_OFF)
+      {
         powerOff();
-        #else
-        if (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
-        {
-          powerOff();
-        }
-        #endif
+      }
+#endif
 
-        #if (ENABLE_STACK_USAGE)
-        TaskMonitorStack();
-        #endif
+#if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+#endif
 
-        // Local TaskWatchDog update and Sleep Activate before Next Read
-        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-        DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
-        state = SENSOR_STATE_SETUP;
-        break;
+      // Local TaskWatchDog update and Sleep Activate before Next Read
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+      attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
+      state = SENSOR_STATE_INIT;
+      break;
     }
   }
 }
@@ -337,8 +225,8 @@ void RainSensorTask::powerOn()
     digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
     digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
     // WDT
-    TaskWatchDog(TH_TASK_POWER_ON_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(TH_TASK_POWER_ON_WAIT_DELAY_MS));
+    TaskWatchDog(RAIN_TASK_POWER_ON_WAIT_DELAY_MS);
+    Delay(Ticks::MsToTicks(RAIN_TASK_POWER_ON_WAIT_DELAY_MS));
     is_power_on = true;
   }
 }
@@ -349,6 +237,18 @@ void RainSensorTask::powerOff()
   digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
   digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
   is_power_on = false;
+}
+
+void tipping_bucket_interrupt_handler()
+{
+  // reading TIPPING_BUCKET_PIN value to be sure the interrupt has occurred
+  if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
+  {
+    detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
+    bool flag = true;
+    //  enable Tipping bucket task
+    rainQueue->EnqueueFromISR(&flag, true);
+  }
 }
 
 #endif

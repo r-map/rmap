@@ -99,10 +99,10 @@ private:
   State_t state;
   ElaboradeDataParam_t param;
 
-  //TODO:_TH_RAIN_
-  sample_t rain_main_samples;
-  sample_t rain_redundant_samples;
-  maintenance_t maintenance_samples;
+  rain_t rain;
+  // sample_t rain_tips_samples;
+  // sample_t rain_samples;
+  // maintenance_t maintenance_samples;
   report_t report;
 };
 

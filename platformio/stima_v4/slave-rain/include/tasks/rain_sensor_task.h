@@ -31,12 +31,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_RAIN)
 
-#define TH_TASK_POWER_ON_WAIT_DELAY_MS  (100)
-#define TH_TASK_WAIT_DELAY_MS           (50)
-#define TH_TASK_GENERIC_RETRY_DELAY_MS  (5000)
-#define TH_TASK_GENERIC_RETRY           (3)
-#define TH_TASK_LOW_POWER_ENABLED       (true)
-#define TH_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
+#define RAIN_TASK_POWER_ON_WAIT_DELAY_MS  (100)
+#define RAIN_TASK_WAIT_DELAY_MS           (50)
+#define RAIN_TASK_GENERIC_RETRY_DELAY_MS  (5000)
+#define RAIN_TASK_GENERIC_RETRY           (3)
+#define RAIN_TASK_LOW_POWER_ENABLED       (true)
+#define RAIN_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 
@@ -64,6 +64,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *rainQueue;
 } RainSensorParam_t;
 
 class RainSensorTask : public cpp_freertos::Thread {
@@ -72,8 +73,6 @@ class RainSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
-    SENSOR_STATE_SETUP,
-    SENSOR_STATE_PREPARE,
     SENSOR_STATE_READ,
     SENSOR_STATE_END
   } State_t;
@@ -98,8 +97,8 @@ private:
 
   State_t state;
   RainSensorParam_t param;
-  //TODO:_TH_RAIN_
-  //SensorDriver *sensors[SENSORS_COUNT_MAX];
+  uint16_t tips_count;
+  uint16_t rain;
 };
 
 #endif

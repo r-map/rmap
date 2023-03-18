@@ -118,6 +118,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ELABORATE_DATA_QUEUE_LENGTH (4)
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define REPORT_DATA_QUEUE_LENGTH    (1)
+#define RAIN_QUEUE_LENGTH           (1)
 
 // Task system_status and queue ID message
 #define ALL_TASK_ID                 (99)      // Send message to ALL Task
@@ -136,10 +137,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REPORTS_TIME_S                    (900)
 
 // Index Sensor
-// TODO:_TH_RAIN_
-#define RAIN_MAIN_INDEX                   (0)
-#define RAIN_REDUNDANT_INDEX              (1)
-#define RAIN_INDEX                        (2)
+#define RAIN_TIPS_INDEX                   (0)
+#define RAIN_RAIN_INDEX                   (1)
+#define RAIN_RESET_INDEX                  (2)
 
 // TODO:_TH_RAIN_
 // Limit range for module sensor
