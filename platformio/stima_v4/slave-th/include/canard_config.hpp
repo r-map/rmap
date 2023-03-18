@@ -61,6 +61,10 @@
 #define PORT_SERVICE_RMAP 100
 #define SUBJECTID_PUBLISH_RMAP 2100
 
+// Maschera Check S.N. messaggio Hash Canard per PnP
+#define HASH_SERNUMB_MASK   0x0000FFFFFFFFFF00u
+#define HASH_EXCLUDING_BIT  16u
+
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
 // #define USE_NODE_MASTER_ID_FIXED
 // #define USE_NODE_SLAVE_ID_FIXED
@@ -96,7 +100,7 @@
 
 // Time Publisher Servizi (secondi)
 #define TIME_PUBLISH_MODULE_DATA    0.333
-#define TIME_PUBLISH_PNP_REQUEST    2
+#define TIME_PUBLISH_PNP_REQUEST    4
 #define TIME_PUBLISH_HEARTBEAT      1
 #define TIME_PUBLISH_PORT_LIST      20
 
