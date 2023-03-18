@@ -72,8 +72,8 @@ class SolarRadiationSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
-    SENSOR_STATE_SETUP,
-    SENSOR_STATE_PREPARE,
+    SENSOR_STATE_SET,
+    SENSOR_STATE_EVALUATE,
     SENSOR_STATE_READ,
     SENSOR_STATE_END
   } State_t;
@@ -93,6 +93,9 @@ private:
 
   void powerOn();
   void powerOff();
+  float getAdcCalibratedValue(float adc_value, float offset, float gain);
+  float getAdcAnalogValue(float adc_value, float min, float max);
+  float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
 
   bool is_power_on;
 

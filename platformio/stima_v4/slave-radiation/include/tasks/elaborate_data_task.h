@@ -98,8 +98,7 @@ private:
   State_t state;
   ElaborateDataParam_t param;
 
-  //TODO:_TH_RAIN_
-  sample_t solar_radiation_main_samples;
+  sample_t solar_radiation_samples;
   maintenance_t maintenance_samples;
   report_t report;
 };

@@ -138,16 +138,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REPORTS_TIME_S                    (900)
 
 // Index Sensor
-// TODO:_TH_RAIN_
-#define SOLAR_RADIATION_MAIN_INDEX        (0)
-#define SOLAR_RADIATION_INDEX             (1)
+#define SOLAR_RADIATION_INDEX             (0)
 
-// TODO:_TH_RAIN_
-// Limit range for module sensor
-#define MAX_VALID_SOLAR_RADIATION         (2000.0)
-#define MIN_VALID_SOLAR_RADIATION         (0.0)
+#define ADC_VOLTAGE_MAX                               (6144.0)
+#define ADC_VOLTAGE_MIN                               (-6144.0)
+#define ADC_VOLTAGE_OFFSET                            (0.0)
+
+#define ADC_MAX                                       (32767)
+#define ADC_MIN                                       (-32767)
+
+#define SOLAR_RADIATION_VOLTAGE_MAX                   (5000.0)
+#define SOLAR_RADIATION_VOLTAGE_MIN                   (0.0)
+
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 50.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             (SOLAR_RADIATION_VOLTAGE_MIN - 10.0)
+
+#define SOLAR_RADIATION_MAX                           (2000.0)
+#define SOLAR_RADIATION_MIN                           (0.0)
+
+#define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
+#define SOLAR_RADIATION_ERROR_MIN                     (1.0)
 
 #define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+
+#define ACQUISITION_COUNT_FOR_POWER_RESET (100)
 
 #endif

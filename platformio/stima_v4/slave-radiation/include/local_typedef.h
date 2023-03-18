@@ -126,7 +126,8 @@ typedef struct
 // Report module
 typedef struct
 {
-   value_t solar_radiation;
+   rmapdata_t avg;
+   rmapdata_t quality;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

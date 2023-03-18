@@ -102,7 +102,7 @@ void ElaborateDataTask::Run() {
   system_message_t system_message;
 
   //TODO:_TH_RAIN_
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
@@ -144,7 +144,7 @@ void ElaborateDataTask::Run() {
         {
         case SOLAR_RADIATION_MAIN_INDEX:
           TRACE_VERBOSE_F(F("Rain A [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-          addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           break;
 
@@ -174,14 +174,14 @@ void ElaborateDataTask::Run() {
   }
 }
 
-uint8_t ElaborateDataTask::checkSolarRadiation(rmapdata_t main_solar_radiation) {
+uint8_t ElaborateDataTask::checkSolarRadiation(rmapdata_t solar_radiation) {
   // Optional check quality data function
   uint8_t quality = 100;
   return quality;
 }
 
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  rmapdata_t main_solar_radiation = 0;
+  rmapdata_t solar_radiation = 0;
 
   bool measures_maintenance = false;
 
@@ -190,7 +190,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   float error_solar_radiation_per = 0;
 
   static uint16_t valid_count_solar_radiation_o;
-  static uint16_t error_count_solar_radiation_o;
+  static uint16_t error_count_solar_radiation_o;report
   float error_solar_radiation_per_o = 0;
 
   rmapdata_t avg_solar_radiation = 0;
@@ -215,10 +215,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   }
 
-  // TODO:_TH_RAIN_
-  report.solar_radiation.ist = RMAPDATA_MAX;
-  report.solar_radiation.sample = RMAPDATA_MAX;
-  report.solar_radiation.quality = RMAPDATA_MAX;
+  report.avg = RMAPDATA_MAX;
+  report.quality = RMAPDATA_MAX;
 
   if (report_time_s && observation_time_s)
   {
@@ -226,46 +224,37 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
     TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d available solar_radiation main samples count\r\n"), solar_radiation_main_samples.count);
+    TRACE_DEBUG_F(F("-> %d available solar radiation samples count\r\n"), solar_radiation_samples.count);
   }
 
-  bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX);
+  bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // align all sensor's data to last common acquired sample
-  uint16_t samples_count = solar_radiation_main_samples.count;
-
-  // flush all data that is not aligned
-  for (uint16_t i = samples_count; i < solar_radiation_main_samples.count; i++)
-  {
-    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX);
-    bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-  }
+  uint16_t samples_count = solar_radiation_samples.count;
 
   // it's a report request
   if (report_time_s && observation_time_s)
   {
-    for (uint16_t i = 0; i < solar_radiation_main_samples.count; i++)
+    for (uint16_t i = 0; i < samples_count; i++)
     {
-      main_solar_radiation = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX);
-
+      solar_radiation = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
       measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
       // last sample
-      if (i == 0)
-      {
-        report.solar_radiation.sample = main_solar_radiation;
-      }
+      // if (i == 0)
+      // {
+      // }
 
       // module in maintenance: ist, min, avg, max data it were not calculated
       if (!measures_maintenance)
       {
-        avg_solar_radiation_quality += (rmapdata_t)((checkSolarRadiation(main_solar_radiation) - avg_solar_radiation_quality) / (i + 1));
+        avg_solar_radiation_quality += (rmapdata_t)((checkSolarRadiation(solar_radiation) - avg_solar_radiation_quality) / (i + 1));
 
-        if (ISVALID_RMAPDATA(main_solar_radiation))
+        if (ISVALID_RMAPDATA(solar_radiation))
         {
           valid_count_solar_radiation++;
-          avg_solar_radiation += (rmapdata_t)((main_solar_radiation - avg_solar_radiation) / valid_count_solar_radiation);
+          avg_solar_radiation += (rmapdata_t)((solar_radiation - avg_solar_radiation) / valid_count_solar_radiation);
         }
         else
         {
@@ -274,66 +263,13 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       }
     }
 
-    error_solar_radiation_per = (float)(error_count_solar_radiation) / (float)(solar_radiation_main_samples.count) * 100.0;
+    error_solar_radiation_per = (float)(error_count_solar_radiation) / (float)(solar_radiation_samples.count) * 100.0;
     TRACE_DEBUG_F(F("-> %d solar radiation error (%d%%)\r\n"), error_count_solar_radiation, (int32_t)error_solar_radiation_per);
-
-    // x MARCO
-    // TODO: Verify Reset buffer maintenance se corretto qua ......
-    // TODO: Verify soot e sopra ... for i..humidity samples.count o sensor_count allineato???
-    // TODO: all'inizio c'e sempre un valore MIN a 0 di TP e UR se rihiesta è senza init
-    // Non mi è chiaro a capire cosa è giusto chiedere dal master (init o no?)
-    // Non capisco la differenza per avere il dato corrente o il dato complessivo da registrare
-    // Io ho previsto 3 comandi 1 chè è solo il sample (x visualizzazione display == OK)
-    // Gli altri due 1 per avere il dato corrente attuale e l'altro per il dato calcolato
-    // alla fine con richiesta valore e reinizializzazione per nuovo calcolo...
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    // temperature
-    if (solar_radiation_main_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_solar_radiation && (error_solar_radiation_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_solar_radiation_o++;
-
-        avg_solar_radiation_o += (rmapdata_t)((avg_solar_radiation - avg_solar_radiation_o) / valid_count_solar_radiation_o);
-
-        avg_solar_radiation_quality_o += (rmapdata_t)((avg_solar_radiation_quality - avg_solar_radiation_quality_o) / (valid_count_solar_radiation_o + error_count_solar_radiation_o));
-
-        if (avg_solar_radiation <= min_solar_radiation_o)
-        {
-          min_solar_radiation_o = avg_solar_radiation;
-        }
-
-        if (avg_solar_radiation >= max_solar_radiation_o)
-        {
-          max_solar_radiation_o = avg_solar_radiation;
-        }
-      }
-      else
-      {
-        error_count_solar_radiation_o++;
-      }
-
-      error_solar_radiation_per_o = (float)(error_count_solar_radiation_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d solar radiation observation error (%d%%)\r\n"), error_count_solar_radiation_o, (int32_t)error_solar_radiation_per_o);
-
-      if (valid_count_solar_radiation_o && (error_solar_radiation_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.solar_radiation.ist = avg_solar_radiation;
-        report.solar_radiation.min = min_solar_radiation_o;
-        report.solar_radiation.avg = avg_solar_radiation_o;
-        report.solar_radiation.max = max_solar_radiation_o;
-        report.solar_radiation.quality = avg_solar_radiation_quality_o;
-      }
-    }
-
-    TRACE_INFO_F(F("--> solar_radiation report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.solar_radiation.sample, (int32_t)report.solar_radiation.ist, (int32_t)report.solar_radiation.min, (int32_t)report.solar_radiation.avg, (int32_t)report.solar_radiation.max, (int32_t)report.solar_radiation.quality);
+    TRACE_INFO_F(F("--> solar_radiation report\t%d\t%d\r\n"), (int32_t)report.solar_radiation.avg, (int32_t)report.solar_radiation.quality);
   }
   // it's a sample request
   else
   {
-    report.solar_radiation.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_main_samples, SAMPLES_COUNT_MAX);
   }
 }
 
