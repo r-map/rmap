@@ -58,6 +58,10 @@
 // #define PORT_SERVICE_MASTER 100
 // #define SUBJECTID_PUBLISH_MASTER 2100
 
+// Mashera Check S.N. messaggio Hash Canard per PnP
+#define HASH_SERNUMB_MASK   0x0000FFFFFFFFFF00u
+#define HASH_EXCLUDING_BIT  16u
+
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
 #define USE_NODE_MASTER_ID_FIXED
 

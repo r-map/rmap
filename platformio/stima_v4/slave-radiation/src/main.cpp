@@ -103,16 +103,16 @@ void setup() {
   // Get Serial Number
   configuration.serial_number = StimaV4GetSerialNumber();
 
-  // Serial Print Fixed for Serial Number
+// Serial Print Fixed for Serial Number
   Serial.println();
   Serial.println(F("*****************************"));
   Serial.println(F("* Stima V4 SLAVE - SER.NUM. *"));
   Serial.println(F("*****************************"));
   Serial.print(F("COD: "));
-  for(uint8_t uid=0; uid<8; uid++) {
-    if(uid) Serial.print("-");
-    if((uint8_t)((configuration.serial_number >> (8*uid)) & 0xFF) < 16) Serial.print("0");
-    Serial.print((uint8_t)((configuration.serial_number >> (8*uid)) & 0xFF), 16);
+  for(int8_t id=7; id>=0; id--) {
+    if((uint8_t)((configuration.serial_number >> (8*id)) & 0xFF) < 16) Serial.print(F("0"));
+    Serial.print((uint8_t)((configuration.serial_number >> (8*id)) & 0xFF), 16);
+    if(id) Serial.print(F("-"));
   }
   Serial.println("\r\n");
 

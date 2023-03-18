@@ -779,7 +779,7 @@ bool canardClass::slave_pnp_send_request(uint64_t serial_number) {
     uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
     // truncated uint48 unique_id_hash
     // msg.allocated_node_id.(count/element) => Solo in response non in request;
-    msg.unique_id_hash = serial_number >> 16u;
+    msg.unique_id_hash = serial_number >> HASH_EXCLUDING_BIT;
     msg.unique_id_hash &= HASH_SERNUMB_MASK;
     msg.unique_id_hash |= MODULE_TYPE;
     uint8_t serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};

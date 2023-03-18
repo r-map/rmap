@@ -1854,11 +1854,16 @@ uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type, uint64_t
             // Il nodo non deve essere già configurato cioè già allocato...
             // Altrimenti è un secondo nodo ma non configurato e non può essere gestito
             if((slave[queueId].get_module_type() == module_type)&&
-                (!slave[queueId].pnp.is_configured()))
-            {
+                (!slave[queueId].pnp.is_configured())) {
                 // Con serial Number Valido... controllo
                 if(slave[queueId].get_serial_number()) {
-                    if((slave[queueId].get_serial_number()>>24u) == hash_request) {
+                    uint64_t check_serial_number = slave[queueId].get_serial_number();
+                    // Controllo i primi 6 codici HEX del Serial Number da messaggio Hash
+                    check_serial_number >> HASH_EXCLUDING_BIT;
+                    check_serial_number &= HASH_SERNUMB_MASK;
+                    hash_request &= HASH_SERNUMB_MASK;
+                    // è il serial associato alla configurazione?
+                    if(hash_request == check_serial_number) {
                         // Ritorno il NodeID configurato da remoto come default da associare
                         return slave[queueId].get_node_id();
                     }
@@ -1871,7 +1876,8 @@ uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type, uint64_t
     }
     else
     {
-        // Nodo non configurato ma richiesta PNP Valida
+        // Nodo non configurato ma richiesta PNP Valida, non coerente con la configurazione
+        return GENERIC_BVAL_UNCOERENT;
     }
     return GENERIC_BVAL_UNDEFINED;
 }

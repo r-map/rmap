@@ -110,9 +110,9 @@ void setup() {
   Serial.println(F("*****************************"));
   Serial.print(F("COD: "));
   for(int8_t id=7; id>=0; id--) {
-    if((uint8_t)((configuration.serial_number >> (8*id)) & 0xFF) < 16) Serial.print("0");
+    if((uint8_t)((configuration.serial_number >> (8*id)) & 0xFF) < 16) Serial.print(F("0"));
     Serial.print((uint8_t)((configuration.serial_number >> (8*id)) & 0xFF), 16);
-    if(id) Serial.print("-");
+    if(id) Serial.print(F("-"));
   }
   Serial.println("\r\n");
 

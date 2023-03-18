@@ -1528,11 +1528,14 @@ void CanTask::Run() {
                 // Eventuale SET Flag dopo acquisizione di configurazioni e/o parametri da Remoto
                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_OPERATIONAL);
 
+                // Set PNP pseudo Random Generator
+                randomSeed(analogRead(A0));
+
                 // Set START Timetable LOOP RX/TX. Set Canard microsecond start, per le sincronizzazioni
                 clCanard.getMicros(clCanard.start_syncronization);
-                last_pub_rmap_data = clCanard.getMicros(clCanard.syncronized_time) + MEGA * (TIME_PUBLISH_MODULE_DATA + random(50) / 100);
-                last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * (TIME_PUBLISH_HEARTBEAT + random(100) / 100);
-                last_pub_port_list = last_pub_heartbeat + MEGA * (0.5);
+                last_pub_rmap_data = clCanard.getMicros(clCanard.syncronized_time);                
+                last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time);
+                last_pub_port_list = last_pub_heartbeat + MEGA * (0.1);
 
                 // Passo alla gestione Main
                 state = CAN_STATE_CHECK;
@@ -1696,7 +1699,7 @@ void CanTask::Run() {
                     if(clCanard.is_canard_node_anonymous()) {
                         TRACE_INFO_F(F("Publish SLAVE PNP Request Message -->> [ Random over %u sec ]\r\n"), TIME_PUBLISH_PNP_REQUEST);
                         clCanard.slave_pnp_send_request(param.configuration->serial_number);
-                        last_pub_heartbeat += MEGA * (random(TIME_PUBLISH_PNP_REQUEST * 100) / 100);
+                        last_pub_heartbeat += random(MEGA * TIME_PUBLISH_PNP_REQUEST);
                     } else {
                         TRACE_INFO_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                         clCanard.slave_heartbeat_send_message();

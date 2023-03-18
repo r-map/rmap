@@ -669,8 +669,6 @@ void LCDTask::display_print_main_interface() {
   (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
   // Get firmware version
   (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
-  // Get Serial Number
-  param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
 
   // Print Date and Time
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
@@ -692,10 +690,11 @@ void LCDTask::display_print_main_interface() {
   display.drawFrame(X_RECT_SERIAL_NUMBER, Y_RECT_SERIAL_NUMBER, display.getWidth() - X_RECT_SERIAL_NUMBER_MARGIN, HEIGHT_RECT_SERIAL_NUMBER);
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
   display.print(F("SN: "));
-  for (uint8_t uid = 0; uid < 8; uid++) {
-    if (uid) display.print(F("-"));
-    if ((uint8_t)((param.configuration->board_master.serial_number >> (8 * uid)) & 0xFF) < 16) display.print(F("0"));
-    display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * uid)) & 0xFF), 16);
+
+  for(int8_t id=7; id>=0; id--) {
+    if((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF) < 16) display.print(F("0"));
+    display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF), 16);
+    if(id) display.print(F("-"));
   }
 
   // Apply the updates to display
