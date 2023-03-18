@@ -177,17 +177,6 @@ void SupervisorTask::Run()
               }
             }
           }
-        } else {
-
-          #if (ENABLE_STACK_USAGE)
-          TaskMonitorStack();
-          #endif
-
-          // Local TaskWatchDog update;
-          TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-
-          // Standard delay task
-          DelayUntil(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
         }
       }
       else
@@ -202,6 +191,18 @@ void SupervisorTask::Run()
       state = SUPERVISOR_STATE_CHECK_OPERATION;
       break;
     }
+
+    // one step switch non blocking
+    #if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+    #endif
+
+    // Local TaskWatchDog update;
+    TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+
+    // Standard delay task
+    DelayUntil(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
   }
 }
 

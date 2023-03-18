@@ -26,6 +26,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/solar_radiation_sensor_task.h"
 
+#include "stm32yyxx_ll_adc.h"
+
+/* Values available in datasheet */
+#define CALX_TEMP   25
+#define VTEMP       760
+#define AVG_SLOPE   2500
+#define VREFINT     1210
+
+/* Analog read resolution */
+#define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
+#define ADC_RANGE 4096
+
+static int32_t readTempSensor(int32_t VRef)
+{
+  return (__LL_ADC_CALC_TEMPERATURE(VRef, analogRead(ATEMP), LL_ADC_RESOLUTION));
+}
+
+static int32_t readVref()
+{
+  return (__LL_ADC_CALC_VREFANALOG_VOLTAGE(analogRead(AVREF), LL_ADC_RESOLUTION));
+}
+
+static int32_t readVoltage(int32_t VRef, uint32_t pin)
+{
+  return (__LL_ADC_CALC_DATA_TO_VOLTAGE(VRef, analogRead(pin), LL_ADC_RESOLUTION));
+}
+
+// The loop routine runs over and over again forever:
+void loop2() {
+  // Print out the value read
+  int32_t VRef = readVref();
+  Serial.printf("VRef(mv)= %i", VRef);
+#ifdef ATEMP
+  Serial.printf("\tTemp(°C)= %i", readTempSensor(VRef));
+#endif
+#ifdef AVBAT
+  Serial.printf("\tVbat(mv)= %i", readVoltage(VRef, AVBAT));
+#endif
+  Serial.printf("\tA0(mv)= %i\n", readVoltage(VRef, A0));
+  delay(200);
+}
+
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
 
 using namespace cpp_freertos;
