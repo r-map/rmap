@@ -361,51 +361,51 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dwa:
             // Prepara i dati DWA (Sample)
-            rmap_data->DWA.speed.val.value = report->wind.sample;
-            rmap_data->DWA.speed.confidence.value = report->wind.quality;
-            rmap_data->DWA.direction.val.value = report->direction.sample;
-            rmap_data->DWA.direction.confidence.value = report->direction.quality;
+            rmap_data->DWA.speed.val.value = report->vavg10_speed;
+            rmap_data->DWA.speed.confidence.value = report->quality;
+            rmap_data->DWA.direction.val.value = report->vavg10_direction;
+            rmap_data->DWA.direction.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwb:
             // Prepara i dati DWB (Sample)
-            rmap_data->DWB.speed.val.value = report->wind.sample;
-            rmap_data->DWB.speed.confidence.value = report->wind.quality;
-            rmap_data->DWB.direction.val.value = report->direction.sample;
-            rmap_data->DWB.direction.confidence.value = report->direction.quality;
+            rmap_data->DWB.speed.val.value = report->vavg_speed;
+            rmap_data->DWB.speed.confidence.value = report->quality;
+            rmap_data->DWB.direction.val.value = report->vavg_direction;
+            rmap_data->DWB.direction.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwc:
             // Prepara i dati DWC (Sample)
-            rmap_data->DWC.peak.val.value = report->wind.sample;
-            rmap_data->DWC.peak.confidence.value = report->wind.quality;
-            rmap_data->DWC._long.val.value = report->direction.sample;
-            rmap_data->DWC._long.confidence.value = report->direction.quality;
+            rmap_data->DWC.peak.val.value = report->peak_gust_speed;
+            rmap_data->DWC.peak.confidence.value = report->quality;
+            rmap_data->DWC._long.val.value = report->long_gust_speed;
+            rmap_data->DWC._long.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwd:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWD.speed.val.value = report->wind.sample;
-            rmap_data->DWD.speed.confidence.value = report->wind.quality;
+            rmap_data->DWD.speed.val.value = report->avg_speed;
+            rmap_data->DWD.speed.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwe:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWE.class1.val.value = report->wind.sample;
-            rmap_data->DWE.class1.confidence.value = report->wind.quality;
-            rmap_data->DWE.class2.val.value = report->wind.sample;
-            rmap_data->DWE.class2.confidence.value = report->wind.quality;
-            rmap_data->DWE.class3.val.value = report->wind.sample;
-            rmap_data->DWE.class3.confidence.value = report->wind.quality;
-            rmap_data->DWE.class4.val.value = report->wind.sample;
-            rmap_data->DWE.class4.confidence.value = report->wind.quality;
-            rmap_data->DWE.class5.val.value = report->wind.sample;
-            rmap_data->DWE.class5.confidence.value = report->wind.quality;
-            rmap_data->DWE.class6.val.value = report->wind.sample;
-            rmap_data->DWE.class6.confidence.value = report->wind.quality;
+            rmap_data->DWE.class1.val.value = report->class_1;
+            rmap_data->DWE.class1.confidence.value = report->quality;
+            rmap_data->DWE.class2.val.value = report->class_2;
+            rmap_data->DWE.class2.confidence.value = report->quality;
+            rmap_data->DWE.class3.val.value = report->class_3;
+            rmap_data->DWE.class3.confidence.value = report->quality;
+            rmap_data->DWE.class4.val.value = report->class_4;
+            rmap_data->DWE.class4.confidence.value = report->quality;
+            rmap_data->DWE.class5.val.value = report->class_5;
+            rmap_data->DWE.class5.confidence.value = report->quality;
+            rmap_data->DWE.class6.val.value = report->class_6;
+            rmap_data->DWE.class6.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwf:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWF.peak.val.value = report->wind.sample;
-            rmap_data->DWF.peak.confidence.value = report->wind.sample;
-            rmap_data->DWF._long.val.value = report->wind.sample;
-            rmap_data->DWF._long.confidence.value = report->wind.sample;
+            rmap_data->DWF.peak.val.value = report->peak_gust_direction;
+            rmap_data->DWF.peak.confidence.value = report->quality;
+            rmap_data->DWF._long.val.value = report->long_gust_direction;
+            rmap_data->DWF._long.confidence.value = report->quality;
             break;
     }
 }
@@ -414,51 +414,51 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dwa:
             // Prepara i dati DWA (Sample)
-            rmap_data->DWA.speed.val.value = report->wind.sample;
-            rmap_data->DWA.speed.confidence.value = report->wind.quality;
-            rmap_data->DWA.direction.val.value = report->direction.sample;
-            rmap_data->DWA.direction.confidence.value = report->direction.quality;
+            rmap_data->DWA.speed.val.value = report->vavg10_speed;
+            rmap_data->DWA.speed.confidence.value = report->quality;
+            rmap_data->DWA.direction.val.value = report->vavg10_direction;
+            rmap_data->DWA.direction.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwb:
             // Prepara i dati DWB (Sample)
-            rmap_data->DWB.speed.val.value = report->wind.sample;
-            rmap_data->DWB.speed.confidence.value = report->wind.quality;
-            rmap_data->DWB.direction.val.value = report->direction.sample;
-            rmap_data->DWB.direction.confidence.value = report->direction.quality;
+            rmap_data->DWB.speed.val.value = report->vavg_speed;
+            rmap_data->DWB.speed.confidence.value = report->quality;
+            rmap_data->DWB.direction.val.value = report->vavg_direction;
+            rmap_data->DWB.direction.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwc:
             // Prepara i dati DWC (Sample)
-            rmap_data->DWC.peak.val.value = report->wind.sample;
-            rmap_data->DWC.peak.confidence.value = report->wind.quality;
-            rmap_data->DWC._long.val.value = report->direction.sample;
-            rmap_data->DWC._long.confidence.value = report->direction.quality;
+            rmap_data->DWC.peak.val.value = report->peak_gust_speed;
+            rmap_data->DWC.peak.confidence.value = report->quality;
+            rmap_data->DWC._long.val.value = report->long_gust_speed;
+            rmap_data->DWC._long.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwd:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWD.speed.val.value = report->wind.sample;
-            rmap_data->DWD.speed.confidence.value = report->wind.quality;
+            rmap_data->DWD.speed.val.value = report->avg_speed;
+            rmap_data->DWD.speed.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwe:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWE.class1.val.value = report->wind.sample;
-            rmap_data->DWE.class1.confidence.value = report->wind.quality;
-            rmap_data->DWE.class2.val.value = report->wind.sample;
-            rmap_data->DWE.class2.confidence.value = report->wind.quality;
-            rmap_data->DWE.class3.val.value = report->wind.sample;
-            rmap_data->DWE.class3.confidence.value = report->wind.quality;
-            rmap_data->DWE.class4.val.value = report->wind.sample;
-            rmap_data->DWE.class4.confidence.value = report->wind.quality;
-            rmap_data->DWE.class5.val.value = report->wind.sample;
-            rmap_data->DWE.class5.confidence.value = report->wind.quality;
-            rmap_data->DWE.class6.val.value = report->wind.sample;
-            rmap_data->DWE.class6.confidence.value = report->wind.quality;
+            rmap_data->DWE.class1.val.value = report->class_1;
+            rmap_data->DWE.class1.confidence.value = report->quality;
+            rmap_data->DWE.class2.val.value = report->class_2;
+            rmap_data->DWE.class2.confidence.value = report->quality;
+            rmap_data->DWE.class3.val.value = report->class_3;
+            rmap_data->DWE.class3.confidence.value = report->quality;
+            rmap_data->DWE.class4.val.value = report->class_4;
+            rmap_data->DWE.class4.confidence.value = report->quality;
+            rmap_data->DWE.class5.val.value = report->class_5;
+            rmap_data->DWE.class5.confidence.value = report->quality;
+            rmap_data->DWE.class6.val.value = report->class_6;
+            rmap_data->DWE.class6.confidence.value = report->quality;
             break;
         case canardClass::Sensor_Type::dwf:
             // Prepara i dati SMP (Sample)
-            rmap_data->DWF.peak.val.value = report->wind.sample;
-            rmap_data->DWF.peak.confidence.value = report->wind.sample;
-            rmap_data->DWF._long.val.value = report->wind.sample;
-            rmap_data->DWF._long.confidence.value = report->wind.sample;
+            rmap_data->DWF.peak.val.value = report->peak_gust_direction;
+            rmap_data->DWF.peak.confidence.value = report->quality;
+            rmap_data->DWF._long.val.value = report->long_gust_direction;
+            rmap_data->DWF._long.confidence.value = report->quality;
             break;
     }
 }
@@ -485,7 +485,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
         // SET Dynamic metadata (Request data from master Only Data != Sample)
-        clCanard.module_wind.DWA.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_wind.DWA.metadata.timerange.P2 = 0;
         clCanard.module_wind.DWB.metadata.timerange.P2 = request_data.report_time_s;
         clCanard.module_wind.DWC.metadata.timerange.P2 = request_data.report_time_s;
         clCanard.module_wind.DWD.metadata.timerange.P2 = request_data.report_time_s;
@@ -497,7 +497,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
+        //   TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
         }
 
         // Preparo i dati
@@ -756,7 +756,7 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
             last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
-            clCanard.module_wind.DWA.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_wind.DWA.metadata.timerange.P2 = 0;
             clCanard.module_wind.DWB.metadata.timerange.P2 = request_data.report_time_s;
             clCanard.module_wind.DWC.metadata.timerange.P2 = request_data.report_time_s;
             clCanard.module_wind.DWD.metadata.timerange.P2 = request_data.report_time_s;
@@ -769,7 +769,7 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
 
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
+            // TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (int32_t) report.wind.sample, (int32_t) report.wind.ist, (int32_t) report.wind.quality);
           }
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)

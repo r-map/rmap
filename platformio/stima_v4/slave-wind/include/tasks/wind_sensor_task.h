@@ -38,7 +38,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_TASK_LOW_POWER_ENABLED       (true)
 #define WIND_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
 
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS    (50)
+
+#define UART_RX_BUFFER_LENGTH             (40)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -72,9 +74,8 @@ class WindSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
-    SENSOR_STATE_SETUP,
-    SENSOR_STATE_PREPARE,
-    SENSOR_STATE_READ,
+    SENSOR_STATE_READING,
+    SENSOR_STATE_ELABORATE,
     SENSOR_STATE_END
   } State_t;
 
@@ -93,13 +94,25 @@ private:
 
   void powerOn();
   void powerOff();
+  bool isWindOn();
+  bool isWindOff();
+  void windPowerOff(void);
+  void windPowerOn(void);
+  void serialReset();
+  bool windsonicInterpreter(float *speed, float *direction);
 
   bool is_power_on;
+  bool is_error;
+  uint16_t retry;
+  float speed;
+  float direction;
 
   State_t state;
   WindSensorParam_t param;
-  //TODO:_TH_RAIN_
-  //SensorDriver *sensors[SENSORS_COUNT_MAX];
+  uint16_t uart_rx_buffer_length;
+  uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
+  bool is_wind_on;
+  uint8_t wind_acquisition_count;
 };
 
 #endif

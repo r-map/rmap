@@ -38,10 +38,10 @@ enum Power_Mode : uint8_t {
 // Sensor configuration
 typedef struct
 {
-   uint8_t i2c_address;             //!< i2c sensor's address
    char driver[DRIVER_LENGTH];      //!< sensor's string driver
    char type[TYPE_LENGTH];          //!< sensor type
-   bool is_redundant;
+   uint16_t tipping_bucket_time_ms;
+   uint8_t rain_for_tip;
 } sensor_configuration_t;
 
 // System module configuration
@@ -123,10 +123,16 @@ typedef struct
 
 } system_message_t;
 
+typedef struct
+{
+   uint16_t tips_count;
+   uint16_t rain;
+} rain_t;
+
 // Report module
 typedef struct
 {
-   value_t rain;
+   uint16_t tips_count;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

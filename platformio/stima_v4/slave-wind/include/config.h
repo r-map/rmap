@@ -104,7 +104,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Monitor Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
 
-// HW I2C Speed BUS and specific config
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #define I2C_MAX_DATA_LENGTH (32)
 #define I2C_MAX_ERROR_COUNT (3)
@@ -140,11 +139,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REPORTS_TIME_S                    (900)
 
 // Index Sensor
-// TODO:_TH_RAIN_
-#define WIND_MAIN_INDEX                   (0)
-#define WIND_RADIATION_INDEX              (1)
+#define WIND_SPEED_INDEX                  (0)
+#define WIND_DIRECTION_INDEX              (1)
 
-// TODO:_TH_RAIN_
 // Limit range for module sensor
 #define MAX_VALID_WIND_SPEED              (70.0)
 #define MIN_VALID_WIND_SPEED              (0.0)
@@ -153,5 +150,58 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+
+#define WIND_POWER_ON_DELAY_MS            (5000)
+
+#define WIND_CASTING_SPEED_MULT           (100)
+#define WIND_CASTING_DIRECTION_MULT       (10)
+
+#define WIND_CLASS_1_MAX                                (1.0)
+#define WIND_CLASS_2_MAX                                (2.0)
+#define WIND_CLASS_3_MAX                                (4.0)
+#define WIND_CLASS_4_MAX                                (7.0)
+#define WIND_CLASS_5_MAX                                (10.0)
+
+/*!
+\def WIND_READ_DELAY_MS
+\brief Reading delay.
+*/
+#define WIND_RETRY_DELAY_MS               (2)
+
+/*!
+\def WIND_READ_COUNT
+\brief number of read.
+*/
+#define WIND_RETRY_MAX                    (600)
+
+#define WIND_POWER_PIN                                  (4)
+
+#define WIND_DIRECTION_MAX                              (360.0)
+#define WIND_DIRECTION_MIN                              (0.0)
+
+#define WIND_SPEED_MAX                                  (60.0)
+#define WIND_SPEED_MIN                                  (0.0)
+
+#define CALM_WIND_MAX_MS                                (0.1)
+
+#define GWS_SERIAL_BAUD                                 (9600)
+#define GWS_SERIAL_TIMEOUT_MS                           (8)
+#define GWS_ACQUISITION_COUNT_FOR_POWER_RESET           (100)
+
+#define GWS_STX_INDEX                                   (0)
+#define GWS_ETX_INDEX                                   (19)
+
+#define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
+
+#define GWS_DIRECTION_INDEX                             (3)
+#define GWS_DIRECTION_LENGTH                            (3)
+#define GWS_SPEED_INDEX                                 (7)
+#define GWS_SPEED_LENGTH                                (6)
+#define GWS_CRC_INDEX                                   (20)
+#define GWS_CRC_LENGTH                                  (2)
+#define STX_VALUE                                       (2)
+#define ETX_VALUE                                       (3)
+#define CR_VALUE                                        (13)
+#define LF_VALUE                                        (10)
 
 #endif

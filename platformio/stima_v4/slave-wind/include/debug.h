@@ -35,8 +35,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define YES_STRING            "YES"
 #define FAIL_STRING           "FAIL"
 #define ERROR_STRING          "ERROR"
-#define REDUNDANT_STRING      "REDUNDANT"
-#define MAIN_STRING           "MAIN"
 #define ON_STRING             "ON"
 #define OFF_STRING            "OFF"
 #define SUSPEND_STRING        "x"
