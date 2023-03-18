@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Natural64.1.0.dsdl
-// Generated at:  2023-02-13 19:08:39.549455 UTC
+// Generated at:  2023-03-18 13:51:14.693410 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.primitive.scalar.Natural64

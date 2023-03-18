@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/metatransport/can/Frame.0.2.dsdl
-// Generated at:  2023-02-13 19:08:40.143748 UTC
+// Generated at:  2023-03-18 13:51:14.177510 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.metatransport.can.Frame

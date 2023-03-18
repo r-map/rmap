@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/Power.1.0.dsdl
-// Generated at:  2023-02-13 19:08:41.532408 UTC
+// Generated at:  2023-03-18 13:51:16.465941 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Power
@@ -248,8 +248,8 @@ static inline void rmap_service_module_Power_Request_1_0_initialize_(rmap_servic
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_Power_Response_1_0_EXTENT_BYTES_                    28UL
-#define rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 28UL
+#define rmap_service_module_Power_Response_1_0_EXTENT_BYTES_                    32UL
+#define rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 32UL
 static_assert(rmap_service_module_Power_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -294,7 +294,7 @@ static inline int8_t rmap_service_module_Power_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 224UL)
+    if ((8U * (size_t) capacity_bytes) < 256UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -355,7 +355,7 @@ static inline int8_t rmap_service_module_Power_Response_1_0_serialize_(
     }
 
     {   // rmap.sensors.Power.1.0 DEP
-        size_t _size_bytes2_ = 25UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes2_ = 29UL;  // Nested object (max) size, in bytes.
         int8_t _err6_ = rmap_sensors_Power_1_0_serialize_(
             &obj->DEP, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err6_ < 0)

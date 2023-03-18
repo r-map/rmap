@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/file/Path.2.0.dsdl
-// Generated at:  2023-02-13 19:08:40.046428 UTC
+// Generated at:  2023-03-18 13:51:14.048101 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.file.Path

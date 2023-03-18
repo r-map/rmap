@@ -493,27 +493,27 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 switch(msg.unique_id_hash & 0xFF) {
                     case Module_Type::th:
                         TRACE_VERBOSE_F(F("Anonimous module TH"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::th);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::th, msg.unique_id_hash);
                         break;
                     case Module_Type::rain:
                         TRACE_VERBOSE_F(F("Anonimous module RAIN"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::rain);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::rain, msg.unique_id_hash);
                         break;
                     case Module_Type::wind:
                         TRACE_VERBOSE_F(F("Anonimous module WIND"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::wind);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::wind, msg.unique_id_hash);
                         break;
                     case Module_Type::radiation:
                         TRACE_VERBOSE_F(F("Anonimous module RADIATION"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::radiation);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::radiation, msg.unique_id_hash);
                         break;
                     case Module_Type::vwc:
                         TRACE_VERBOSE_F(F("Anonimous module VWC"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::vwc);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::vwc, msg.unique_id_hash);
                         break;
                     case Module_Type::power:
                         TRACE_VERBOSE_F(F("Anonimous module POWER"));
-                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::power);
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::power, msg.unique_id_hash);
                         break;
                     default:
                         // PNP Non gestibile
@@ -1232,7 +1232,8 @@ void CanTask::Run() {
                             param.configuration->board_slave[iCnt].can_address,
                             param.configuration->board_slave[iCnt].module_type,
                             param.configuration->board_slave[iCnt].can_port_id,
-                            param.configuration->board_slave[iCnt].can_publish_id);
+                            param.configuration->board_slave[iCnt].can_publish_id,
+                            param.configuration->board_slave[iCnt].serial_number);
                     }
                     #else
                         // Configure istance in a class
@@ -1240,6 +1241,7 @@ void CanTask::Run() {
                             param.configuration->board_slave[iCnt].can_address,
                             param.configuration->board_slave[iCnt].module_type,
                             param.configuration->board_slave[iCnt].can_port_id);
+                            param.configuration->board_slave[iCnt].serial_number);
                     #endif
                 }
 
