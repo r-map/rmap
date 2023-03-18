@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/VWC.1.0.dsdl
-// Generated at:  2023-02-13 19:08:41.418721 UTC
+// Generated at:  2023-03-18 13:51:16.147721 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.module.VWC

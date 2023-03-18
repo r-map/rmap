@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/sample/acceleration/Vector3.1.0.dsdl
-// Generated at:  2023-02-13 19:08:39.794625 UTC
+// Generated at:  2023-03-18 13:51:14.537386 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.sample.acceleration.Vector3

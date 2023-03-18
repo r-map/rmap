@@ -300,12 +300,14 @@ class canardClass {
             void set_module_type(Module_Type module_type);
             #ifdef USE_SUB_PUBLISH_SLAVE_DATA
             void set_rmap_publish_id(CanardPortID rmap_subject_id);
-            void configure(CanardNodeID node_id, Module_Type module_type,
-                        CanardPortID rmap_port_id, CanardPortID rmap_subject_id);
+            void configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id,
+                CanardPortID rmap_subject_id, uint64_t serial_number);
             #else
-            void configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id);
+            void configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id,
+                uint64_t serial_number);
             #endif
             CanardNodeID get_node_id(void);
+            uint64_t get_serial_number(void);
             Module_Type get_module_type(void);
 
             class heartbeat {
@@ -478,7 +480,8 @@ class canardClass {
 
             private:
 
-            CanardNodeID _node_id;
+            CanardNodeID _node_id;            
+            uint64_t _serial_number;
 
         } slave[MAX_NODE_CONNECT];
 
@@ -551,7 +554,7 @@ class canardClass {
         } flag;
 
         uint8_t getSlaveIstanceFromId(CanardNodeID nodeId);
-        uint8_t getPNPValidIdFromNodeType(Module_Type node_type);
+        uint8_t getPNPValidIdFromNodeType(Module_Type node_type, uint64_t hash_request);
 
         void set_canard_node_id(CanardNodeID local_id);
 

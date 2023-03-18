@@ -75,6 +75,7 @@
 // SET Default value per risposte
 #define GENERIC_STATE_UNDEFINED 0x0Fu
 #define GENERIC_BVAL_UNDEFINED  0xFFu
+#define GENERIC_BVAL_UNCOERENT  0xFEu
 
 // Servizi di default
 #define DEFAULT_PUBLISH_PORT_LIST true

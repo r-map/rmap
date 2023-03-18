@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/unit/magnetic_field_strength/Vector3.1.0.dsdl
-// Generated at:  2023-02-13 19:08:39.807783 UTC
+// Generated at:  2023-03-18 13:51:14.410697 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.unit.magnetic_field_strength.Vector3

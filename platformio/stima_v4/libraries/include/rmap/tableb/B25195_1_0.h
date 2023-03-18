@@ -8,11 +8,11 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl
-// Generated at:  2023-03-18 13:51:14.707089 UTC
+// Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl
+// Generated at:  2023-03-18 13:51:16.433417 UTC
 // Is deprecated: no
 // Fixed port-ID: None
-// Full name:     uavcan.primitive.scalar.Real32
+// Full name:     rmap.tableb.B25195
 // Version:       1.0
 //
 // Platform
@@ -32,26 +32,27 @@
 //     enable_override_variable_array_capacity:  False
 //     cast_format:  (({type}) {value})
 
-#ifndef UAVCAN_PRIMITIVE_SCALAR_REAL32_1_0_INCLUDED_
-#define UAVCAN_PRIMITIVE_SCALAR_REAL32_1_0_INCLUDED_
+#ifndef RMAP_TABLEB_B25195_1_0_INCLUDED_
+#define RMAP_TABLEB_B25195_1_0_INCLUDED_
 
 #include <nunavut/support/serialization.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B25195.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -59,10 +60,10 @@ extern "C" {
 #endif
 
 /// This type does not have a fixed port-ID. See https://forum.opencyphal.org/t/choosing-message-and-service-ids/889
-#define uavcan_primitive_scalar_Real32_1_0_HAS_FIXED_PORT_ID_ false
+#define rmap_tableb_B25195_1_0_HAS_FIXED_PORT_ID_ false
 
-#define uavcan_primitive_scalar_Real32_1_0_FULL_NAME_             "uavcan.primitive.scalar.Real32"
-#define uavcan_primitive_scalar_Real32_1_0_FULL_NAME_AND_VERSION_ "uavcan.primitive.scalar.Real32.1.0"
+#define rmap_tableb_B25195_1_0_FULL_NAME_             "rmap.tableb.B25195"
+#define rmap_tableb_B25195_1_0_FULL_NAME_AND_VERSION_ "rmap.tableb.B25195.1.0"
 
 /// Extent is the minimum amount of memory required to hold any serialized representation of any compatible
 /// version of the data type; or, on other words, it is the the maximum possible size of received objects of this type.
@@ -71,16 +72,19 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define uavcan_primitive_scalar_Real32_1_0_EXTENT_BYTES_                    4UL
-#define uavcan_primitive_scalar_Real32_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 4UL
-static_assert(uavcan_primitive_scalar_Real32_1_0_EXTENT_BYTES_ >= uavcan_primitive_scalar_Real32_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
+#define rmap_tableb_B25195_1_0_EXTENT_BYTES_                    3UL
+#define rmap_tableb_B25195_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 3UL
+static_assert(rmap_tableb_B25195_1_0_EXTENT_BYTES_ >= rmap_tableb_B25195_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
+
+/// saturated uint18 MAX = 250000
+#define rmap_tableb_B25195_1_0_MAX (250000UL)
 
 typedef struct
 {
-    /// saturated float32 value
-    float value;
-} uavcan_primitive_scalar_Real32_1_0;
+    /// saturated uint18 value
+    uint32_t value;
+} rmap_tableb_B25195_1_0;
 
 /// Serialize an instance into the provided buffer.
 /// The lifetime of the resulting serialized representation is independent of the original instance.
@@ -90,7 +94,7 @@ typedef struct
 /// @param obj      The object to serialize.
 ///
 /// @param buffer   The destination buffer. There are no alignment requirements.
-///                 @see uavcan_primitive_scalar_Real32_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_
+///                 @see rmap_tableb_B25195_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_
 ///
 /// @param inout_buffer_size_bytes  When calling, this is a pointer to the size of the buffer in bytes.
 ///                                 Upon return this value will be updated with the size of the constructed serialized
@@ -98,8 +102,8 @@ typedef struct
 ///                                 layer. In case of error this value is undefined.
 ///
 /// @returns Negative on error, zero on success.
-static inline int8_t uavcan_primitive_scalar_Real32_1_0_serialize_(
-    const uavcan_primitive_scalar_Real32_1_0* const obj, uint8_t* const buffer,  size_t* const inout_buffer_size_bytes)
+static inline int8_t rmap_tableb_B25195_1_0_serialize_(
+    const rmap_tableb_B25195_1_0* const obj, uint8_t* const buffer,  size_t* const inout_buffer_size_bytes)
 {
     if ((obj == NULL) || (buffer == NULL) || (inout_buffer_size_bytes == NULL))
     {
@@ -108,7 +112,7 @@ static inline int8_t uavcan_primitive_scalar_Real32_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 32UL)
+    if ((8U * (size_t) capacity_bytes) < 24UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -120,12 +124,14 @@ static inline int8_t uavcan_primitive_scalar_Real32_1_0_serialize_(
 
 
 
-    {   // saturated float32 value
-        // Saturation code not emitted -- assume the native representation of float32 is conformant.
-        static_assert(NUNAVUT_PLATFORM_IEEE754_FLOAT, "Native IEEE754 binary32 required. TODO: relax constraint");
-        static_assert(NUNAVUT_PLATFORM_IEEE754_FLOAT, "Native IEEE754 binary32 required. TODO: relax constraint");
-        (void) memmove(&buffer[offset_bits / 8U], &obj->value, 4U);
-        offset_bits += 32U;
+    {   // saturated uint18 value
+        uint32_t _sat0_ = obj->value;
+        if (_sat0_ > 262143UL)
+        {
+            _sat0_ = 262143UL;
+        }
+        (void) memmove(&buffer[offset_bits / 8U], &_sat0_, 3U);
+        offset_bits += 18U;
     }
 
 
@@ -168,8 +174,8 @@ static inline int8_t uavcan_primitive_scalar_Real32_1_0_serialize_(
 ///                                 was activated. In case of error this value is undefined.
 ///
 /// @returns Negative on error, zero on success.
-static inline int8_t uavcan_primitive_scalar_Real32_1_0_deserialize_(
-    uavcan_primitive_scalar_Real32_1_0* const out_obj, const uint8_t* buffer, size_t* const inout_buffer_size_bytes)
+static inline int8_t rmap_tableb_B25195_1_0_deserialize_(
+    rmap_tableb_B25195_1_0* const out_obj, const uint8_t* buffer, size_t* const inout_buffer_size_bytes)
 {
     if ((out_obj == NULL) || (inout_buffer_size_bytes == NULL) || ((buffer == NULL) && (0 != *inout_buffer_size_bytes)))
     {
@@ -189,9 +195,9 @@ static inline int8_t uavcan_primitive_scalar_Real32_1_0_deserialize_(
 
 
 
-    // saturated float32 value
-    out_obj->value = nunavutGetF32(&buffer[0], capacity_bytes, offset_bits);
-    offset_bits += 32U;
+    // saturated uint18 value
+    out_obj->value = nunavutGetU32(&buffer[0], capacity_bytes, offset_bits, 18);
+    offset_bits += 18U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
@@ -206,13 +212,13 @@ static inline int8_t uavcan_primitive_scalar_Real32_1_0_deserialize_(
 /// This function intentionally leaves inactive elements uninitialized; for example, members of a variable-length
 /// array beyond its length are left uninitialized; aliased union memory that is not used by the first union field
 /// is left uninitialized, etc. If full zero-initialization is desired, just use memset(&obj, 0, sizeof(obj)).
-static inline void uavcan_primitive_scalar_Real32_1_0_initialize_(uavcan_primitive_scalar_Real32_1_0* const out_obj)
+static inline void rmap_tableb_B25195_1_0_initialize_(rmap_tableb_B25195_1_0* const out_obj)
 {
     if (out_obj != NULL)
     {
         size_t size_bytes = 0;
         const uint8_t buf = 0;
-        const int8_t err = uavcan_primitive_scalar_Real32_1_0_deserialize_(out_obj, &buf, &size_bytes);
+        const int8_t err = rmap_tableb_B25195_1_0_deserialize_(out_obj, &buf, &size_bytes);
 
         (void) err;
     }
@@ -223,4 +229,4 @@ static inline void uavcan_primitive_scalar_Real32_1_0_initialize_(uavcan_primiti
 #ifdef __cplusplus
 }
 #endif
-#endif // UAVCAN_PRIMITIVE_SCALAR_REAL32_1_0_INCLUDED_
+#endif // RMAP_TABLEB_B25195_1_0_INCLUDED_

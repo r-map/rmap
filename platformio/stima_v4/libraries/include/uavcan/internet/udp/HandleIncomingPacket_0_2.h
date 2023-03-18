@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/internet/udp/500.HandleIncomingPacket.0.2.dsdl
-// Generated at:  2023-02-13 19:08:39.966571 UTC
+// Generated at:  2023-03-18 13:51:13.768264 UTC
 // Is deprecated: no
 // Fixed port-ID: 500
 // Full name:     uavcan.internet.udp.HandleIncomingPacket

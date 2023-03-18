@@ -119,9 +119,9 @@ canardClass::canardClass() {
     // Default RESET Note Type *RAM e ID
     for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
         #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-        slave[iCnt].configure(CANARD_NODE_ID_UNSET, Module_Type::undefined, UINT16_MAX, UINT16_MAX);
+        slave[iCnt].configure(CANARD_NODE_ID_UNSET, Module_Type::undefined, UINT16_MAX, UINT16_MAX, 0);
         #else
-        clsCanard.slave[iCnt].configure(CANARD_NODE_ID_UNSET, clsCanard.module_type_undefined, UINT16_MAX);
+        clsCanard.slave[iCnt].configure(CANARD_NODE_ID_UNSET, clsCanard.module_type_undefined, UINT16_MAX, 0);
         #endif
     }
 }
@@ -1078,9 +1078,10 @@ void canardClass::slave::set_rmap_publish_id(CanardPortID rmap_subject_id) {
 /// @param node_type tipo di modulo dell'istanza
 /// @param rmap_port_id port_id remoto dell'istanza
 /// @param rmap_subject_id publish subject id rmap remoto dell'istanza
-void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type,
-                                CanardPortID rmap_port_id, CanardPortID rmap_subject_id) {
+void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id,
+                                    CanardPortID rmap_subject_id, uint64_t serial_number) {
     _node_id = node_id;
+    _serial_number = serial_number;
     rmap_service.set_module_type(module_type);
     rmap_service.set_port_id(rmap_port_id);
     publisher.set_subject_id(rmap_subject_id);
@@ -1090,8 +1091,10 @@ void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type
 /// @param node_id nodo_id remoto dell'istanza
 /// @param node_type tipo di modulo dell'istanza
 /// @param rmap_port_id port_id remoto dell'istanza
-void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id) {
+void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id,
+                                    uint64_t serial_number) {
     _node_id = node_id;
+    _serial_number = serial_number;
     rmap_service.set_module_type(module_type);
     rmap_service.set_port_id(rmap_port_id);
 }
@@ -1102,6 +1105,13 @@ void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type
 /// @return remote id
 CanardNodeID canardClass::slave::get_node_id(void) {
     return _node_id;
+}
+
+/// @brief Serial Number id dell'istanza slave
+/// @param  None
+/// @return serial number (Utilizzato generalmente per associazione Nodo con PnP)
+uint64_t canardClass::slave::get_serial_number(void) {
+    return _serial_number;
 }
 
 /// @brief Tipo di modulo dell'istanza slave
@@ -1816,16 +1826,52 @@ uint8_t canardClass::getSlaveIstanceFromId(CanardNodeID nodeId) {
 /// @brief Ritorna l'indice della coda master allocata in state in funzione del nodeId fisico
 /// @param node_type Tipo del modulo che effettua la richiesta
 /// @return Indice dell'istanza valido configurato e allocato negli Slave del modulo
-uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type) {
-    // Cerco la corrispondenza node_id nella coda allocata master per ritorno queueID Index
+uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type, uint64_t hash_request) {
+    uint8_t configured_for_module_type = 0;
+    // Cerco se il nodo è unico nell'elenco dei configurati (PNP Diretto senza controllo SerNumb)
+    // Serial Number è utilizzabile solo con più moduli dello stesso tipo es. Sensore TP 2 mt e 50 cm.
     for(uint8_t queueId = 0; queueId < MAX_NODE_CONNECT; queueId++) {
         // Se trovo il nodo che sta pubblicando come node_type
         // nella coda dei nodi configurati ma non ancora allocati...
-        if((slave[queueId].get_module_type() == module_type)&&
-            (!slave[queueId].pnp.is_configured())) {
-            // Ritorno il NodeID configurato da remoto come default da associare
-            return slave[queueId].get_node_id();
-        } 
+        if(slave[queueId].get_module_type() == module_type) configured_for_module_type++;
+    }
+    if (configured_for_module_type == 1) {
+        for(uint8_t queueId = 0; queueId < MAX_NODE_CONNECT; queueId++) {
+            // Il nodo non deve essere già configurato cioè già allocato...
+            // Altrimenti è un secondo nodo ma non configurato e non può essere gestito
+            if((slave[queueId].get_module_type() == module_type)&&
+                (!slave[queueId].pnp.is_configured())) {
+                    // Ritorno il NodeID configurato da remoto come default da associare
+                    return slave[queueId].get_node_id();
+            } 
+        }
+        // Se arrivo quà si tratta di un secondo nodo della stessa tipologia ma non coerente
+        // con la configurazione della stazione. Segnalo ed esco
+        return GENERIC_BVAL_UNCOERENT;
+    }
+    else if (configured_for_module_type > 1) {
+        for(uint8_t queueId = 0; queueId < MAX_NODE_CONNECT; queueId++) {
+            // Il nodo non deve essere già configurato cioè già allocato...
+            // Altrimenti è un secondo nodo ma non configurato e non può essere gestito
+            if((slave[queueId].get_module_type() == module_type)&&
+                (!slave[queueId].pnp.is_configured()))
+            {
+                // Con serial Number Valido... controllo
+                if(slave[queueId].get_serial_number()) {
+                    if((slave[queueId].get_serial_number()>>24u) == hash_request) {
+                        // Ritorno il NodeID configurato da remoto come default da associare
+                        return slave[queueId].get_node_id();
+                    }
+                }
+            }
+        }
+        // Se arrivo quà si tratta di un secondo nodo della stessa tipologia ma non coerente
+        // con la configurazione della stazione. Segnalo ed esco
+        return GENERIC_BVAL_UNCOERENT;
+    }
+    else
+    {
+        // Nodo non configurato ma richiesta PNP Valida
     }
     return GENERIC_BVAL_UNDEFINED;
 }
