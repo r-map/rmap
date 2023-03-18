@@ -126,8 +126,21 @@ typedef struct
 // Report module
 typedef struct
 {
-   value_t mppt;
-} report_t;
+   rmapdata_t avg_battery_charge = 0;
+   rmapdata_t avg_battery_charge_quality;
+
+   rmapdata_t avg_battery_voltage = 0;
+   rmapdata_t avg_battery_voltage_quality;
+
+   rmapdata_t avg_battery_current = 0;
+   rmapdata_t avg_battery_current_quality;
+
+   rmapdata_t avg_input_voltage = 0;
+   rmapdata_t avg_input_voltage_quality;
+
+   rmapdata_t avg_input_current = 0;
+} rrmapdata_t avg_input_current_quality;
+eport_t;
 
 // Backup && Upload Firmware TypeDef
 typedef struct

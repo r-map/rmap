@@ -98,8 +98,12 @@ private:
   State_t state;
   ElaborateDataParam_t param;
 
-  //TODO:_TH_RAIN_
-  sample_t mppt_main_samples;
+  sample_t battery_charge_samples;
+  sample_t battery_voltage_samples;
+  sample_t battery_current_samples;
+  sample_t input_voltage_samples;
+  sample_t input_current_samples;
+
   maintenance_t maintenance_samples;
   report_t report;
 };
