@@ -661,11 +661,11 @@ void SupervisorTask::printConfiguration()
   TRACE_INFO_F(F("-> acquisition delay: %u [ms]\r\n"), param.configuration->sensor_acquisition_delay_ms);
 
   TRACE_INFO_F(F("-> %u configured sensors:\r\n"), param.configuration->sensors_count);
-  for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
-  {
-    //TODO:_TH_RAIN_ SENSOR_DRIVER_I2C PRINT -> "RAD."
-    TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i + 1, "RAD.", param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
-  }
+  // for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
+  // {
+  //   //TODO:_TH_RAIN_ SENSOR_DRIVER_I2C PRINT -> "RAD."
+  //   TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i + 1, "RAD.", param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
+  // }
 
   param.configurationLock->Give();
 }

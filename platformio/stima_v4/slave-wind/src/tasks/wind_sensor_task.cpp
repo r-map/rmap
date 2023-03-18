@@ -99,8 +99,6 @@ void WindSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 void WindSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
-  uint32_t delay_ms;
-  static bool is_test;
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
@@ -116,7 +114,6 @@ void WindSensorTask::Run() {
 
   while (true)
   {
-
     switch (state)
     {
     case SENSOR_STATE_WAIT_CFG:
@@ -138,166 +135,69 @@ void WindSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
+      retry = 0;
+      is_error = false;
+      serialReset();
+      wind_acquisition_count++;
+
+      if (isWindOff())
       {
-        if (strlen(param.configuration->sensors[i].type) == 3)
-        {
-          //TODO:_TH_RAIN_
-          //SensorDriver::createSensor(SENSOR_DRIVER_I2C, param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, 1, sensors, param.wire);
-        }
+        windPowerOn();
+        TaskWatchDog(WIND_POWER_ON_DELAY_MS);
+        Delay(Ticks::MsToTicks(WIND_POWER_ON_DELAY_MS));
+        TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_READING\r\n"));
+        state = SENSOR_STATE_READING;
       }
-      state = SENSOR_STATE_SETUP;
+      else
+      {
+        TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_READING\r\n"));
+        state = SENSOR_STATE_READING;
+      }
       break;
 
-    case SENSOR_STATE_SETUP:
-      error_count = 0;
-
-      powerOn();
-
-      is_test = false;
-      memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
-
-      // TODO:_TH_RAIN_
-      // for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
-      // {
-      //   if (!sensors[i]->isSetted())
-      //   {
-      //     param.wireLock->Take();
-      //     sensors[i]->setup();
-      //     param.wireLock->Give();
-      //     TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-      //   }
-      // }
-      state = SENSOR_STATE_PREPARE;
+    case SENSOR_STATE_READING:
+      if (Serial2.available())
+      {
+        uart_rx_buffer_length = Serial2.readBytes(uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+        state = SENSOR_STATE_ELABORATE;
+        TRACE_VERBOSE_F(F("SENSOR_STATE_READING --> SENSOR_STATE_ELABORATE\r\n"));
+      }
+      else if (++retry <= WIND_RETRY_MAX)
+      {
+        TaskWatchDog(WIND_RETRY_DELAY_MS);
+        Delay(Ticks::MsToTicks(WIND_RETRY_DELAY_MS));
+      }
+      else
+      {
+        is_error = true;
+        error_count++;
+        state = SENSOR_STATE_ELABORATE;
+        TRACE_VERBOSE_F(F("SENSOR_STATE_READING --> SENSOR_STATE_ELABORATE\r\n"));
+      }
       break;
 
-    case SENSOR_STATE_PREPARE:
-      delay_ms = 0;
-      // TODO:_TH_RAIN_
-      // for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
-      // {
-      //   sensors[i]->resetPrepared();
-      //   param.wireLock->Take();
-      //   sensors[i]->prepare(is_test);
-      //   param.wireLock->Give();
+    case SENSOR_STATE_ELABORATE:
+      if (is_error)
+      {
+        speed = FLT_MAX;
+        direction = FLT_MAX;
+      }
+      else
+      {
+        windsonicInterpreter(&speed, &direction);
+      }
 
-      //   // wait the most slowest
-      //   if (sensors[i]->getDelay() > delay_ms)
-      //   {
-      //     delay_ms = sensors[i]->getDelay();
-      //   }
+      edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
+      edata.index = WIND_SPEED_INDEX;
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-      //   // end with error
-      //   if (!sensors[i]->isSuccess())
-      //   {
-      //     error_count++;
-      //   }
-      // }
+      edata.value = (rmapdata_t)(direction * WIND_CASTING_DIRECTION_MULT);
+      edata.index = WIND_DIRECTION_INDEX;
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-      // Local WatchDog update;
-      TaskWatchDog(delay_ms);
-      Delay(Ticks::MsToTicks(delay_ms));
-
-      state = SENSOR_STATE_READ;
-
+      TRACE_VERBOSE_F(F("SENSOR_STATE_ELABORATE --> SENSOR_STATE_END\r\n"));
+      state = SENSOR_STATE_END;
       break;
-
-      case SENSOR_STATE_READ:
-        // TODO:_TH_RAIN_        
-        // for (uint8_t i=0; i<SensorDriver::getSensorsCount(); i++) {
-        //   do {
-        //     param.wireLock->Take();
-        //     sensors[i]->get(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, is_test);
-        //     param.wireLock->Give();
-        //     // Secure WDT
-        //     TaskWatchDog(sensors[i]->getDelay());
-        //     Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
-        //   } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
-
-        //   // end with error
-        //   if (!sensors[i]->isSuccess())
-        //   {
-        //     error_count++;
-        //   }
-
-        //   if (false) {}
-
-        //   #if (USE_SENSOR_ADT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_HIH)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(TH_TASK_WAIT_QUEUE_READY_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_HYT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
-        //     edata.value = values_readed_from_sensor[1];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (USE_SENSOR_SHT)
-        //   else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_SHT) == 0) {
-        //     edata.value = values_readed_from_sensor[1];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_temperature_redundant = param.configuration->sensors[i].is_redundant;
-
-        //     edata.value = values_readed_from_sensor[0];
-        //     edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-        //     param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        //     is_humidity_redundant = param.configuration->sensors[i].is_redundant;
-        //   }
-        //   #endif
-
-        //   #if (TRACE_LEVEL >= TRACE_LEVEL_VERBOSE)
-        //   for (uint8_t k=0; k<VALUES_TO_READ_FROM_SENSOR_COUNT; k++) {
-        //     TRACE_VERBOSE_F(F("%d\t"), values_readed_from_sensor[k]);
-        //   }
-        //   TRACE_VERBOSE_F(F("\r\n"));
-        //   #endif
-        // }
-
-        // // If module fail fill void error data
-        // if (!is_temperature_redundant) {
-        //   edata.value = RMAPDATA_MAX;
-        //   edata.index = TEMPERATURE_REDUNDANT_INDEX;
-        //   param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        // }
-
-        // // If module fail fill void error data
-        // if (!is_humidity_redundant) {
-        //   edata.value = RMAPDATA_MAX;
-        //   edata.index = HUMIDITY_REDUNDANT_INDEX;
-        //   param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-        // }
-
-        // FAKEEEEEEEEE VALUEEEEEEEEEE
-        // TODO:_TH_RAIN_
-        edata.value = 3.2;
-        edata.index = WIND_MAIN_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-
-        state = SENSOR_STATE_END;
-        break;
 
       case SENSOR_STATE_END:
         #ifdef TH_TASK_LOW_POWER_ENABLED
@@ -319,10 +219,30 @@ void WindSensorTask::Run() {
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-        state = SENSOR_STATE_SETUP;
+        state = SENSOR_STATE_READING;
         break;
     }
   }
+}
+
+void WindSensorTask::serialReset()
+{
+  while (Serial2.available())
+  {
+    Serial2.read();
+  }
+  memset(uart_rx_buffer, 0, uart_rx_buffer_length);
+  uart_rx_buffer_length = 0;
+}
+
+bool WindSensorTask::isWindOn()
+{
+  return is_power_on;
+}
+
+bool WindSensorTask::isWindOff()
+{
+  return (!is_power_on);
 }
 
 void WindSensorTask::powerOn()
@@ -345,6 +265,99 @@ void WindSensorTask::powerOff()
   digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
   digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
   is_power_on = false;
+}
+
+// <0x02>Q,000,000.04,M,00,<0x03>1A␍␊
+bool WindSensorTask::windsonicInterpreter(float *speed, float *direction)
+{
+  char tempstr[GWS_SPEED_LENGTH + 1];
+  char *tempstrptr;
+  uint8_t myCrc = 0;
+  int crc = 0;
+  bool is_crc_ok = false;
+  *speed = UINT16_MAX;
+  *direction = UINT16_MAX;
+  memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+  if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 2] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 1] == LF_VALUE))
+  {
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
+    *direction = (float)atof(tempstr);
+    memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_SPEED_INDEX), GWS_SPEED_LENGTH);
+    *speed = (float)atof(tempstr);
+    memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+    if (*speed < CALM_WIND_MAX_MS)
+    {
+        *speed = WIND_SPEED_MIN;
+    }
+    else if (*speed > WIND_SPEED_MAX)
+    {
+        *speed = UINT16_MAX;
+    }
+
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_CRC_INDEX), GWS_CRC_LENGTH);
+    crc = (uint8_t)strtol(tempstr, &tempstrptr, 16);
+    memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+    for (uint8_t i = GWS_STX_INDEX + 1; i < GWS_ETX_INDEX; i++)
+    {
+        myCrc ^= uart_rx_buffer[i];
+    }
+
+    if (*direction < WIND_DIRECTION_MIN)
+    {
+        *direction = WIND_DIRECTION_MIN;
+    }
+    else if (*direction > WIND_DIRECTION_MAX)
+    {
+        *direction = UINT16_MAX;
+    }
+
+    is_crc_ok = (crc == myCrc);
+
+    if (!ISVALID_FLOAT(*speed) || !ISVALID_FLOAT(*direction))
+    {
+        is_crc_ok = false;
+    }
+  }
+  else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 2] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 1] == LF_VALUE))
+  {
+    *direction = WIND_DIRECTION_MIN;
+
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_SPEED_INDEX - GWS_WITHOUT_DIRECTION_OFFSET), GWS_SPEED_LENGTH);
+    *speed = (float)atof(tempstr);
+    memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+    if (*speed < CALM_WIND_MAX_MS)
+    {
+        *speed = WIND_SPEED_MIN;
+    }
+    else if (*speed > WIND_SPEED_MAX)
+    {
+        *speed = UINT16_MAX;
+    }
+
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_CRC_INDEX - GWS_WITHOUT_DIRECTION_OFFSET), GWS_CRC_LENGTH);
+    crc = (uint8_t)strtol(tempstr, &tempstrptr, 16);
+    memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
+
+    for (uint8_t i = GWS_STX_INDEX + 1; i < (GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET); i++)
+    {
+        myCrc ^= uart_rx_buffer[i];
+    }
+
+    is_crc_ok = (crc == myCrc);
+
+    if (!ISVALID_FLOAT(*speed))
+    {
+        is_crc_ok = false;
+    }
+  }
+
+  return is_crc_ok;
 }
 
 #endif

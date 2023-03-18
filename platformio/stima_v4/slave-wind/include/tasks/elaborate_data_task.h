@@ -44,6 +44,8 @@ using namespace cpp_freertos;
 #define ELABORATE_TASK_WAIT_DELAY_MS      (20)
 #define ELABORATE_TASK_SLEEP_DELAY_MS     (1250)
 
+#define calcFrequencyPercent(classx, count) (classx / count * 100.0)
+
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
   uint16_t count;                         //!< samples counter
@@ -93,14 +95,15 @@ private:
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
-  uint8_t checkWindSpeed(rmapdata_t main_wind);
-  uint8_t checkWindDirection(rmapdata_t main_direction);
+  uint8_t checkWindSpeed(rmapdata_t speed);
+  uint8_t checkWindDirection(rmapdata_t direction);
+  void getSDFromUV(float u, float v, float *speed, float *direction);
 
   State_t state;
   ElaborateDataParam_t param;
 
-  //TODO:_TH_RAIN_
-  sample_t wind_main_samples;
+  sample_t wind_speed_samples;
+  sample_t wind_direction_samples;
   maintenance_t maintenance_samples;
   report_t report;
 };
