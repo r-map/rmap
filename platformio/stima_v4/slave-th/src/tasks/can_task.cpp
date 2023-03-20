@@ -515,21 +515,30 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 /// @param msg messaggio di pubblicazione
 void CanTask::processMessagePlugAndPlayNodeIDAllocation(canardClass &clCanard,
                                                       const uavcan_pnp_NodeIDAllocationData_1_0* const msg) {
-    // msg->unique_id_hash RX non gestito, è valido GetUniqueID Unificato per entrambe versioni V1 e V2
-    if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX) {
-        printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
-        clCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
-        // Store the value into the non-volatile storage.
-        static uavcan_register_Value_1_0 reg = {0};
-        uavcan_register_Value_1_0_select_natural16_(&reg);
-        reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
-        reg.natural16.value.count = 1;
-        localRegisterAccessLock->Take();
-        localRegister->write(REGISTER_UAVCAN_NODE_ID, &reg);
-        localRegisterAccessLock->Give();
-        // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
-        clCanard.rxUnSubscribe(CanardTransferKindMessage,
-                                uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
+    // msg->unique_id_hash RX viene verificato per l'assegnazione in sicurezza del port_id corretto
+    uint64_t local_hash = StimaV4GetSerialNumber();
+    local_hash >>= HASH_EXCLUDING_BIT;
+    local_hash &= HASH_SERNUMB_MASK;
+    local_hash |= MODULE_TYPE;
+    // Verifico hash messaggio ed assegno l'ID al registro locale se corretto
+    if (msg->unique_id_hash == local_hash) {
+        if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX) {
+            printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
+            clCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
+            // Richiedo immediata configurazione del modulo al master...
+            clCanard.flag.set_local_module_ready(false);
+            // Store the value into the non-volatile storage.
+            static uavcan_register_Value_1_0 reg = {0};
+            uavcan_register_Value_1_0_select_natural16_(&reg);
+            reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
+            reg.natural16.value.count = 1;
+            localRegisterAccessLock->Take();
+            localRegister->write(REGISTER_UAVCAN_NODE_ID, &reg);
+            localRegisterAccessLock->Give();
+            // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
+            clCanard.rxUnSubscribe(CanardTransferKindMessage,
+                                    uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
+        }
     }
     // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
 }
@@ -572,6 +581,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             localRegisterAccessLock->Take();
             localRegister->doFactoryReset();
             localRegisterAccessLock->Give();
+            // Istant Reboot for next Register base Setup
+            NVIC_SystemReset();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -1381,7 +1392,7 @@ void CanTask::Run() {
                 #else
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
+                val.natural16.value.elements[0] = NODE_MASTER_ID;        // Setting default Master ID Value
                 localRegisterAccessLock->Take();
                 localRegister->read(REGISTER_RMAP_MASTER_ID, &val);      // The names of the standard registers are regulated by the Specification.
                 localRegisterAccessLock->Give();
@@ -1405,7 +1416,7 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
                 if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
-  //////////////                  clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
+                    clCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
                 }
                 #endif
 
@@ -1432,6 +1443,11 @@ void CanTask::Run() {
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
                         REGISTER_DATA_SERVICE, rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
                 #endif
+
+                // Set configured Module Ready (IF service_id is valid)
+                // If Not Master receive flag module not ready and start configuration aumatically
+                if(clCanard.port_id.service_module_th != UINT16_MAX)
+                    clCanard.flag.set_local_module_ready(true);
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
