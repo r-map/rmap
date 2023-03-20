@@ -1243,27 +1243,6 @@ bool canardClass::slave::heartbeat::get_module_error(void) {
     return _heartLocalVSC.moduleError;
 }
 
-// **************************** PLUG AND PLAY UAVCAN *****************************
-
-/// @brief Verifica se un nodo slave è configurato nella rete UAVCAN
-/// @param  None
-/// @return true se il nodo è configurato. In caso di mancanza di configurazione è avviabile il servizio PNP
-bool canardClass::slave::pnp::is_configured(void) {
-    return _is_configured;
-}
-
-/// @brief Abilita il servizio plug and play per il nodo slave
-/// @param  None
-void canardClass::slave::pnp::enable(void) {
-    _is_configured = false;
-}
-
-/// @brief Disabilita il servizio plug and play per il nodo slave
-/// @param  None
-void canardClass::slave::pnp::disable(void) {
-    _is_configured = true;
-}
-
 // ******************************* COMANDI UAVCAN ********************************
 
 /// @brief Lettura risposta dal metodo remoto
@@ -1837,12 +1816,9 @@ uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type, uint64_t
     }
     if (configured_for_module_type == 1) {
         for(uint8_t queueId = 0; queueId < MAX_NODE_CONNECT; queueId++) {
-            // Il nodo non deve essere già configurato cioè già allocato...
-            // Altrimenti è un secondo nodo ma non configurato e non può essere gestito
-            if((slave[queueId].get_module_type() == module_type)&&
-                (!slave[queueId].pnp.is_configured())) {
-                    // Ritorno il NodeID configurato da remoto come default da associare
-                    return slave[queueId].get_node_id();
+            if(slave[queueId].get_module_type() == module_type){
+                // Ritorno il NodeID configurato da remoto come default da associare
+                return slave[queueId].get_node_id();
             } 
         }
         // Se arrivo quà si tratta di un secondo nodo della stessa tipologia ma non coerente
@@ -1853,13 +1829,11 @@ uint8_t canardClass::getPNPValidIdFromNodeType(Module_Type module_type, uint64_t
         for(uint8_t queueId = 0; queueId < MAX_NODE_CONNECT; queueId++) {
             // Il nodo non deve essere già configurato cioè già allocato...
             // Altrimenti è un secondo nodo ma non configurato e non può essere gestito
-            if((slave[queueId].get_module_type() == module_type)&&
-                (!slave[queueId].pnp.is_configured())) {
-                // Con serial Number Valido... controllo
+            if(slave[queueId].get_module_type() == module_type) {
                 if(slave[queueId].get_serial_number()) {
                     uint64_t check_serial_number = slave[queueId].get_serial_number();
                     // Controllo i primi 6 codici HEX del Serial Number da messaggio Hash
-                    check_serial_number >> HASH_EXCLUDING_BIT;
+                    check_serial_number >>= HASH_EXCLUDING_BIT;
                     check_serial_number &= HASH_SERNUMB_MASK;
                     hash_request &= HASH_SERNUMB_MASK;
                     // è il serial associato alla configurazione?

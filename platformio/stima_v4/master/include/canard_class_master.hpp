@@ -339,20 +339,6 @@ class canardClass {
 
             } heartbeat;
 
-            class pnp {
-
-                public:
-
-                bool is_configured(void);
-                void disable(void);
-                void enable(void);
-
-                private:
-
-                bool _is_configured;          // flag di PNP in funzione
-
-            } pnp;
-
             // Comandi inviati da locale Tx->(Comando + Param) Rx<-(Risposta)
             class command {
 

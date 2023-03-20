@@ -521,14 +521,16 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         defaultNodeId = GENERIC_BVAL_UNDEFINED;
                         break;
                 }
-                TRACE_VERBOSE_F(F(" [Serial Number UID: %lu]"), (uint32_t) msg.unique_id_hash);
-
+                TRACE_VERBOSE_F(F(" [Serial Number HASH ID: %lu]\r\n"), (uint32_t) msg.unique_id_hash);
                 // Risposta immediata diretta (Se nodo ovviamente è riconosciuto...)
                 // Non utilizziamo una Response in quanto l'allocation è sempre un messaggio anonimo
                 // I metadati del trasporto sono come quelli riceuti del transferID quindi è un messaggio
                 // che si comporta parzialmente come una risposta (per rilevamento remoto hash/transfer_id)
-                if(defaultNodeId <= CANARD_NODE_ID_MAX) {
-                    TRACE_VERBOSE_F(F("Try PNP Allocation with Node_ID -> %d"), defaultNodeId);
+                if(defaultNodeId == GENERIC_BVAL_UNCOERENT) {
+                    TRACE_VERBOSE_F(F("PNP Allocation incoerent with Master configuration for reques [ %s ]\r\n"), ABORT_STRING);
+                }
+                else if(defaultNodeId <= CANARD_NODE_ID_MAX) {
+                    TRACE_VERBOSE_F(F("Try PNP Allocation with Node_ID -> %d\r\n"), defaultNodeId);
                     // Se il nodo proposto viene confermato inizieremo a ricevere heartbeat
                     // da quel nodeId. A questo punto in Heartbeat settiamo il flag pnp.configure()
                     // che conclude la procedura con esito positivo.
@@ -563,29 +565,16 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 uint8_t queueId = clCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
                 // Se nodo correttamente allocato e gestito (potrebbe essere Yakut non registrato)
                 if (queueId != GENERIC_BVAL_UNDEFINED) {
-                    // Primo assegnamento da PNP, gestisco eventuale configurazione remota
-                    // e salvataggio del flag di assegnamento in ROM / o Register
-                    if(!clCanard.slave[queueId].pnp.is_configured()) {
-                        // Configura i metadati...
-                        // Configura altri parametri...
-                        // Modifico il flag PNP Executed e termino la procedura PNP
-                        clCanard.slave[queueId].pnp.disable();
-                        // Salvo su registro lo stato
-                        uavcan_register_Value_1_0 val = {0};
-                        char registerName[24] = "rmap.pnp.allocateID.";
-                        uavcan_register_Value_1_0_select_natural8_(&val);
-                        val.natural32.value.count       = 1;
-                        val.natural32.value.elements[0] = transfer->metadata.remote_node_id;
-                        // queueId -> index Val = NodeId
-                        itoa(queueId, registerName + strlen(registerName), 10);
-                        localRegisterAccessLock->Take();
-                        localRegister->write(registerName, &val);
-                        localRegisterAccessLock->Give();
-                        TRACE_INFO_F(F("Node is now configured with PNP allocation with ID: %d\n\r"), transfer->metadata.remote_node_id);
-                    }                    
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
                         msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);
+                    // Controlla se il modulo è ready (configurato) Altrimenti avvio la configurazione...
+                    if(!clCanard.slave[queueId].heartbeat.get_module_ready()) {
+                        TRACE_VERBOSE_F(F("Module slave [ %u ] is not (ready) configured\r\n"), transfer->metadata.remote_node_id);
+                        localSystemStatusLock->Take();
+                        localSystemStatus->flags.run_module_configure = true;
+                        localSystemStatusLock->Give();
+                    }
                     TRACE_VERBOSE_F(F("Power mode status node %u [ %s ]\r\n"), transfer->metadata.remote_node_id,
                         clCanard.slave[queueId].heartbeat.get_power_mode() == Power_Mode::pwr_on ? "full power" : "deep sleep");
                     // Rientro in OnLINE da OFFLine o Init Gestino può (dovrebbe) essere esterna alla Call
@@ -1245,35 +1234,6 @@ void CanTask::Run() {
                     #endif
                 }
 
-                // TODO: Register Config ID Node in Array... non N registri
-                // **********************************************************************************
-                // Lettura registri, parametri per PNP Allocation Verifica locale di assegnamento CFG
-                // **********************************************************************************
-                for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
-                    // Lettura registro di allocazione PNP MASTER Locale avvenuta, da eseguire
-                    // Possibilità di salvare tutte le informazioni di NODO qui al suo interno
-                    // Per rendere disponibili le configurazioni in esterno (Yakut, altri)
-                    // Utilizzando la struttura allocateID.XX (count = n° registri utili)
-                    char registerName[24] = "rmap.pnp.allocateID.";
-                    uavcan_register_Value_1_0_select_natural8_(&val);
-                    val.natural8.value.count       = 1;
-                    val.natural8.value.elements[0] = CANARD_NODE_ID_UNSET;
-                    // queueId -> index Val = NodeId
-                    itoa(iCnt, registerName + strlen(registerName), 10);
-                    localRegisterAccessLock->Take();
-                    localRegister->read(registerName, &val);
-                    localRegisterAccessLock->Give();
-                    LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == 1));
-                    // Il Node_id deve essere valido e uguale a quello programmato in configurazione
-                    if((val.natural8.value.elements[0] != CANARD_NODE_ID_UNSET) &&
-                        (val.natural8.value.elements[0] == clCanard.slave[iCnt].get_node_id()))
-                    {
-                        // Assegnamento PNP per nodeQueueID con clCanard.slave[iCnt].node_id
-                        // già avvenuto. Non rispondo a eventuali messaggi PNP del tipo per quel nodo
-                        clCanard.slave[iCnt].pnp.disable();
-                    }
-                }
-
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;
                 break;
@@ -1899,6 +1859,32 @@ void CanTask::Run() {
                     param.systemMessageQueue->Enqueue(&system_message, 0);
                 }
 
+                // Avvio configurazione remota automatica su richiesta slave (Appena CONFIGURATO da PNP)
+                // La procedura parte solo senza register_server in funzione (un solo avvio ammesso)
+                // Si avvia generalmente dopo il PnP o su un modulo parzialmente configurato con solo il node_id
+                if((param.system_status->flags.run_module_configure)&&
+                    (!param.system_status->flags.reg_serever_running)) {
+                    for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
+                        // Check Configurazione non attiva su un nodo configurato e online
+                        // FALSE se il nodo non è configurato nei reglistri Metadati e Porte RMAP
+                        // Determino se avviare la configfurazione di un nodo apprena programmato con PnP...
+                        // O comunque di un nodo preventivamente programmato con node_id ma senza metadati
+                        if(clCanard.slave[cfg_remote_queueId].is_online()) {
+                            if(!clCanard.slave[cfg_remote_queueId].heartbeat.get_module_ready()) {
+                                // Module not configured.
+                                // Starting configuration procedure with push command to queue
+                                // QWueue gestion power UP, starting command ecc... is performed
+                                // After terminate procedure and reboot remote Node. Configuration is ready
+                                system_message_t system_message = {0};
+                                system_message.task_dest = CAN_TASK_ID;
+                                system_message.command.do_remotecfg = true;
+                                system_message.param = cfg_remote_queueId;
+                                param.systemMessageQueue->Enqueue(&system_message, 0);
+                            }
+                        }
+                    }
+                }
+
                 // Get coda config register da system_message... se richiesto comando da LCD, RPC Remota, PNP
                 // Avvia la configurazione remota con la sequenza dei registri da programmare
                 // LA configurazione può essere avviato solo con nodo già configurato almeno con port_id Valido
@@ -1909,40 +1895,47 @@ void CanTask::Run() {
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
-                            // Start Flag Event Start when request configuration is request
-                            // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                            // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                            if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
-                                // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
+                            // If node is not online, remove command from the queue... Configuration is impossible
+                            // Queue must to be free !!!
+                            if(!clCanard.slave[system_message.param].is_online()) {
+                                // Remove message from the queue (No more action possible here NOT Online)
                                 param.systemMessageQueue->Dequeue(&system_message, 0);
-                                if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
-                                    TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
-                                } else {
-                                    TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\n\r"), system_message.param + 1);
-                                }
-                                if(clCanard.slave[system_message.param].is_online()) {
-                                    // START Remote configuration of Node -> system_message.param
-                                    remote_configure[system_message.param] = REGISTER_STARTING;
-                                    remote_configure_retry[system_message.param] = GENERIC_UAVCAN_MAX_RETRY;
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.reg_serever_running = true;
-                                    param.systemStatusLock->Give();
-                                } else {
-                                    if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
-                                        // Off line ... Not configure?
-                                        TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
-                                    } else {
-                                        // not configured yet (waitinq request PNP) ?
-                                        TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\n\r"),system_message.param + 1);
-                                    }
-                                }
                             } else {
-                                // IS NEED to Request FullPower Mode for type of command (if not yet request full power)
-                                if(!param.system_status->flags.full_wakeup_request) {
-                                    TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave, old power state: [ %d ]\r\n"), clCanard.slave[system_message.param].heartbeat.get_power_mode());
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.full_wakeup_request = true;
-                                    param.systemStatusLock->Give();
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                    // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
+                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                        TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
+                                    } else {
+                                        TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\n\r"), system_message.param + 1);
+                                    }
+                                    if(clCanard.slave[system_message.param].is_online()) {
+                                        // START Remote configuration of Node -> system_message.param
+                                        remote_configure[system_message.param] = REGISTER_STARTING;
+                                        remote_configure_retry[system_message.param] = GENERIC_UAVCAN_MAX_RETRY;
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.reg_serever_running = true;
+                                        param.systemStatusLock->Give();
+                                    } else {
+                                        if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                            // Off line ... Not configure?
+                                            TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
+                                        } else {
+                                            // not configured yet (waitinq request PNP) ?
+                                            TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\n\r"),system_message.param + 1);
+                                        }
+                                    }
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command (if not yet request full power)
+                                    if(!param.system_status->flags.full_wakeup_request) {
+                                        TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave, old power state: [ %d ]\r\n"), clCanard.slave[system_message.param].heartbeat.get_power_mode());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
                                 }
                             }
                         }
