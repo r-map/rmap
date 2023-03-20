@@ -391,28 +391,33 @@ void SupervisorTask::Run()
       TaskWatchDog(3500);
       Delay(Ticks::MsToTicks(3500));
 
-      // TODO: REMOVE
-      strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
-      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
+      // TEST CONNECTION
+      if(0) {
 
-      // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
-      param.systemStatusLock->Take();
-      param.system_status->connection.is_ntp_synchronized = false;
-      param.system_status->connection.is_http_configuration_updated = false;
-      param.system_status->connection.is_http_firmware_upgraded = false;
-      param.system_status->connection.is_mqtt_connected = false;
-      param.systemStatusLock->Give();
+        // TODO: REMOVE
+        strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
+        strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
 
-      // Start state check connection
-      state_check_connection = CONNECTION_INIT;
-      state = SUPERVISOR_STATE_CONNECTION_OPERATION;
-      // Save next attempt of connection
-      param.systemStatusLock->Take();
-      param.system_status->modem.connection_attempted++;
-      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
-      TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
-        param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
-      param.systemStatusLock->Give();
+        // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_ntp_synchronized = false;
+        param.system_status->connection.is_http_configuration_updated = false;
+        param.system_status->connection.is_http_firmware_upgraded = false;
+        param.system_status->connection.is_mqtt_connected = false;
+        param.systemStatusLock->Give();
+
+        // Start state check connection
+        state_check_connection = CONNECTION_INIT;
+        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+        // Save next attempt of connection
+        param.systemStatusLock->Take();
+        param.system_status->modem.connection_attempted++;
+        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+        TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
+          param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
+        param.systemStatusLock->Give();
+
+      }
 
       break;
 

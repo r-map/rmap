@@ -1024,7 +1024,7 @@ bool canardClass::send_rmap_data(CanardNodeID node_id, uint8_t transfer_id, Cana
     // La richiesta è generica per tutti i moduli (univoca DSDL), comunque parte integrante di ogni
     // DSDL singola di modulo. Il PORT_ID fisso o dinamico indica il nodo remoto.
     // L'interpretazione è invece tipicizzata dalla risposta (DSDL specifica)
-    uint8_t      serialized[rmap_service_module_TH_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    uint8_t      serialized[rmap_service_setmode_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
     size_t       serialized_size = sizeof(serialized);
 
     // Serializzo e verifico la conformità del messaggio

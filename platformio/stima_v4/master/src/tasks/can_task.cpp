@@ -872,32 +872,61 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 // Verifico se risposta del servizio corrisponde al chiamante (eventuali + servizi sotto...)
                 // Gestione di tutti i servizi possibili allocabili, valido per tutti i nodi
                 if (transfer->metadata.port_id == clCanard.slave[queueId].rmap_service.get_port_id())
-                {                
-                    // *************            Service Modulo TH Response            *************
+                {
+                    // Utilizzo un buffer di allocazione per RX Messaggio in Casting da postare sul meteodo Slave Canard
+                    uint8_t castLocalBuffer[RMAP_DATA_MAX_ELEMENT_SIZE];
+                    memset(castLocalBuffer, 0, sizeof(castLocalBuffer));
+                    // Resetta il pending del comando del nodo verificato (size_mem preparato in avvio)
+                    // Copia la risposta nella variabile di chiamata in state
+                    // N.B. possibile gestire qua tutte le occorrenze per stima V4
                     if(clCanard.slave[queueId].get_module_type() == Module_Type::th) {
-                        // Modulo TH, leggo e deserializzo il messaggio in ingresso
-                        rmap_service_module_TH_Response_1_0 resp = {0};
-                        size_t                              size = transfer->payload_size;
-                        if (rmap_service_module_TH_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        rmap_service_module_TH_Response_1_0 *respCastTH = (rmap_service_module_TH_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_TH_Response_1_0_deserialize_(respCastTH, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
-                            // TODO: READ Struct DATA && SEND TO SD CARD OR TASK ELABORATE_SAVING_DATA!!!
-                            // PREFEEIBILE UNA CODA DA XX DATI x XXMAX SIZE E PASSARE IL DATO COPIATO INTERO
-                            // CON IL PRIMO BYTE CHE E' IL RIFERIMENTO AL TIPO DI MODULO
-                            // COSI' IL DATA SAVE VA CON I SUOI TEMPI ANCHE SE STRUTTURA E GRANDE E PIU' SICURO
-                            // IL PASSAGGIO DI UN INDIRIZZO PREVEDE CHE IL DATO RIMANGA DISPONIBILE NELLA
-                            // STRUCT CAN GENERICA MA UN SECONDO DATO LA CANCELLEREBBE...
-                            typedef struct
-                            {
-                                uint32_t data_ora;
-                                uint8_t buffer[300];
-                            } dato_t;
-                            // Resetta il pending del comando del nodo verificato (size_mem preparato in avvio)
-                            // Copia la risposta nella variabile di chiamata in state
-                            // Oppure possibile gestire qua tutte le occorrenze per stima V4
-                            clCanard.slave[queueId].rmap_service.reset_pending(&resp, sizeof(resp));
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastTH, sizeof(*respCastTH));
                         }
                     }
-                    // ALTRI MODULI DA INSERIRE QUA... PG, VV, RS, GAS ECC...
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::rain) {
+                        rmap_service_module_Rain_Response_1_0 *respCastRain = (rmap_service_module_Rain_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_Rain_Response_1_0_deserialize_(respCastRain, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastRain, sizeof(*respCastRain));
+                        }
+                    }
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::wind) {
+                        rmap_service_module_Wind_Response_1_0 *respCastWind = (rmap_service_module_Wind_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_Wind_Response_1_0_deserialize_(respCastWind, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastWind, sizeof(*respCastWind));
+                        }
+                    }
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::radiation) {
+                        rmap_service_module_Radiation_Response_1_0 *respCastRadiation = (rmap_service_module_Radiation_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_Radiation_Response_1_0_deserialize_(respCastRadiation, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastRadiation, sizeof(*respCastRadiation));
+                        }
+                    }
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::vwc) {
+                        rmap_service_module_VWC_Response_1_0 *respCastVWC = (rmap_service_module_VWC_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_VWC_Response_1_0_deserialize_(respCastVWC, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastVWC, sizeof(*respCastVWC));
+                        }
+                    }
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::power) {
+                        rmap_service_module_Power_Response_1_0 *respCastPower = (rmap_service_module_Power_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_Power_Response_1_0_deserialize_(respCastPower, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastPower, sizeof(*respCastPower));
+                        }
+                    }
                 }
             }
         }
@@ -1140,6 +1169,18 @@ void CanTask::Run() {
     uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
     uint8_t remote_configure_retry[MAX_NODE_CONNECT] = {0};
 
+    // Response data PTR for type module direct data access
+    rmap_service_module_TH_Response_1_0* retTHData;
+    rmap_service_module_Rain_Response_1_0* retRainData;
+    rmap_service_module_Wind_Response_1_0* retWindData;
+    rmap_service_module_Radiation_Response_1_0* retRadiationData;
+    rmap_service_module_VWC_Response_1_0* retVwcData;
+    rmap_service_module_Power_Response_1_0* retPwrData;
+    // Trace of Module_type on Direct data Access
+    #if TRACE_LEVEL >= TRACE_INFO
+    char stimaName[STIMA_MODULE_NAME_LENGTH];
+    #endif
+
     // Start Running Monitor and First WDT normal state
     #if (ENABLE_STACK_USAGE)
     TaskMonitorStack();
@@ -1350,6 +1391,61 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_TH_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::rain) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_Rain_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::wind) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_Wind_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::radiation) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_Radiation_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::vwc) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_VWC_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::power) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_Power_Response_1_0_EXTENT_BYTES_,
                                                     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
@@ -1637,27 +1733,25 @@ void CanTask::Run() {
                             switch (clCanard.slave[queueId].get_module_type()) {
                                 case Module_Type::th:
                                     // Cast to th module
-                                    rmap_service_module_TH_Response_1_0* retData;
-                                    retData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                    retTHData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
                                     // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
-                                    char stimaName[STIMA_MODULE_NAME_LENGTH];
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
                                     // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
                                     if(!param.system_status->data_slave[queueId].module_version) {
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retData->revision;
+                                        param.system_status->data_slave[queueId].module_version = retTHData->version;
+                                        param.system_status->data_slave[queueId].module_revision = retTHData->revision;
                                         // Module type also setted on load config module CAN
                                         param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         // Check if module can be updated
                                         for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
                                             if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retData->revision))) {
+                                                if((param.system_status->boards_update_avaiable[checkId].version > retTHData->version) ||
+                                                    ((param.system_status->boards_update_avaiable[checkId].version == retTHData->version) && 
+                                                    (param.system_status->boards_update_avaiable[checkId].revision > retTHData->revision))) {
                                                     // Found an upgradable boards
                                                     param.system_status->data_slave[queueId].fw_upgradable = true;
                                                 }
@@ -1668,13 +1762,13 @@ void CanTask::Run() {
                                     }
                                     // TRACE Info data
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
-                                        stimaName, clCanard.slave[queueId].get_node_id(), retData->state);
-                                    TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retData->STH.temperature.val.value, retData->STH.humidity.val.value);
+                                        stimaName, clCanard.slave[queueId].get_node_id(), retTHData->state);
+                                    TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retTHData->STH.temperature.val.value, retTHData->STH.humidity.val.value);
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value
-                                    param.system_status->data_slave[queueId].data_value_A = retData->STH.temperature.val.value;
-                                    param.system_status->data_slave[queueId].data_value_B = retData->STH.humidity.val.value;
+                                    param.system_status->data_slave[queueId].data_value_A = retTHData->STH.temperature.val.value;
+                                    param.system_status->data_slave[queueId].data_value_B = retTHData->STH.humidity.val.value;
                                     // Add info RMAP to system
                                     if(bStartGetIstant)
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
@@ -1687,7 +1781,67 @@ void CanTask::Run() {
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
-                                        memcpy(rmap_archive_data.block, retData, sizeof(retData));
+                                        memcpy(rmap_archive_data.block, retTHData, sizeof(*retTHData));
+                                        // Send queue to MMC/SD for direct archive data
+                                        // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        // Set system_status with NewData To SEND... For all operation need this signal
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = false;
+                                        param.systemStatusLock->Give();
+                                    }
+                                    break;
+
+                                case Module_Type::rain:
+                                    // Cast to th module
+                                    retRainData = (rmap_service_module_Rain_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // Get parameter data
+                                    #if TRACE_LEVEL >= TRACE_INFO
+                                    getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
+                                    #endif
+                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
+                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].module_version = retRainData->version;
+                                        param.system_status->data_slave[queueId].module_revision = retRainData->revision;
+                                        // Module type also setted on load config module CAN
+                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                        // Check if module can be updated
+                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
+                                                if((param.system_status->boards_update_avaiable[checkId].version > retRainData->version) ||
+                                                    ((param.system_status->boards_update_avaiable[checkId].version == retRainData->version) && 
+                                                    (param.system_status->boards_update_avaiable[checkId].revision > retRainData->revision))) {
+                                                    // Found an upgradable boards
+                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        param.systemStatusLock->Give();
+                                    }
+                                    // TRACE Info data
+                                    TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
+                                        stimaName, clCanard.slave[queueId].get_node_id(), retRainData->state);
+                                    TRACE_VERBOSE_F(F("Value (TBR) Rain %d\r\n"), retRainData->TBR.rain.val.value);
+                                    // Put data in system_status
+                                    param.systemStatusLock->Take();
+                                    // Set data istant value
+                                    param.system_status->data_slave[queueId].data_value_A = retRainData->TBR.rain.val.value;
+                                    // Add info RMAP to system
+                                    if(bStartGetIstant)
+                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
+                                    else
+                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
+                                    param.systemStatusLock->Give();
+                                    // Set data into queue if data value (not for istant observation acquire)
+                                    if(bStartGetData) {
+                                        memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
+                                        // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
+                                        rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
+                                        rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
+                                        memcpy(rmap_archive_data.block, retRainData, sizeof(retRainData));
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
@@ -1700,8 +1854,8 @@ void CanTask::Run() {
 
                                 default:
                                     // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
-                                    TRACE_INFO_F(F("RMAP recived response data module from unknown module node id: %d. Response code: %d\r\n"),
-                                        clCanard.slave[queueId].get_node_id(), retData->state);
+                                    TRACE_INFO_F(F("RMAP recived response service data module from unknown module node id: [ %d ]\r\n"),
+                                        clCanard.slave[queueId].get_node_id());
                                     break;
                             }
                         }
