@@ -327,11 +327,11 @@ void EERegister::setup(void)
     // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
 
     // Node ID
-    #ifdef NODE_SLAVE_ID
+    #ifndef USE_NODE_SLAVE_ID_FIXED
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
-    val.natural16.value.elements[0] = NODE_SLAVE_ID; // This means undefined (anonymous), per Specification/libcanard.
-    write(REGISTER_UAVCAN_NODE_ID, &val);         // The names of the standard registers are regulated by the Specification.
+    val.natural16.value.elements[0] = NODE_VALUE_UNSET; // This means undefined (anonymous), per Specification/libcanard.
+    write(REGISTER_UAVCAN_NODE_ID, &val);       // The names of the standard registers are regulated by the Specification.
     #endif
 
     // Master ID

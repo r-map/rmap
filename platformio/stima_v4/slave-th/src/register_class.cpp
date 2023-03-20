@@ -330,7 +330,7 @@ void EERegister::setup(void)
     #ifndef USE_NODE_SLAVE_ID_FIXED
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
-    val.natural16.value.elements[0] = 0xFFu;    // This means undefined (anonymous), per Specification/libcanard.
+    val.natural16.value.elements[0] = NODE_VALUE_UNSET; // This means undefined (anonymous), per Specification/libcanard.
     write(REGISTER_UAVCAN_NODE_ID, &val);       // The names of the standard registers are regulated by the Specification.
     #endif
 

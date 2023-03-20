@@ -328,8 +328,8 @@ void EERegister::setup(void)
     #ifdef NODE_MASTER_ID
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
-    val.natural16.value.elements[0] = NODE_MASTER_ID;   // This means undefined (anonymous), per Specification/libcanard.
-    write(REGISTER_UAVCAN_NODE_ID, &val);               // The names of the standard registers are regulated by the Specification.
+    val.natural16.value.elements[0] = NODE_MASTER_ID; // This means undefined (anonymous), per Specification/libcanard.
+    write(REGISTER_UAVCAN_NODE_ID, &val);       // The names of the standard registers are regulated by the Specification.
     #endif
 
     // Service RMAP

@@ -309,6 +309,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             localRegisterAccessLock->Take();
             localRegister->doFactoryReset();
             localRegisterAccessLock->Give();
+            // Istant Reboot for next Register base Setup
+            NVIC_SystemReset();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }

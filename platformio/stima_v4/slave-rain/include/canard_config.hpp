@@ -57,7 +57,8 @@
 #define NODE_MASTER_ID  100
 
 // Parametri default per Modulo Slave (INIT_PARAMETER)
-#define NODE_SLAVE_ID 125
+#define NODE_VALUE_UNSET  255
+#define NODE_SLAVE_ID     125
 #define PORT_SERVICE_RMAP 100
 #define SUBJECTID_PUBLISH_RMAP 2100
 

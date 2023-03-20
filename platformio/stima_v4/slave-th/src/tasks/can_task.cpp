@@ -1385,24 +1385,6 @@ void CanTask::Run() {
                 clCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
 
                 // ********************    Lettura Registri standard UAVCAN    ********************
-                // Restore the master-ID from the corresponding standard register -> Default to anonymous.
-                #ifdef USE_NODE_MASTER_ID_FIXED
-                // Canard Slave NODE ID Fixed dal defined value in module_config
-                clCanard.set_canard_master_id((CanardNodeID)NODE_MASTER_ID);
-                #else
-                uavcan_register_Value_1_0_select_natural16_(&val);
-                val.natural16.value.count = 1;
-                val.natural16.value.elements[0] = NODE_MASTER_ID;        // Setting default Master ID Value
-                localRegisterAccessLock->Take();
-                localRegister->read(REGISTER_RMAP_MASTER_ID, &val);      // The names of the standard registers are regulated by the Specification.
-                localRegisterAccessLock->Give();
-                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-                if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
-                    clCanard.set_canard_master_id((CanardNodeID)val.natural16.value.elements[0]);
-                }
-                #endif
-
-                // ********************    Lettura Registri standard UAVCAN    ********************
                 // Restore the node-ID from the corresponding standard regioster. Default to anonymous.
                 #ifdef USE_NODE_SLAVE_ID_FIXED
                 // Canard Slave NODE ID Fixed dal defined value in module_config
@@ -1427,6 +1409,24 @@ void CanTask::Run() {
                 localRegisterAccessLock->Take();
                 localRegister->read(REGISTER_UAVCAN_NODE_DESCR, &val);  // We don't need the value, we just need to ensure it exists.
                 localRegisterAccessLock->Give();
+
+                // ********************    Lettura Registri personalizzati RMAP    ********************
+                // Restore the master-ID from the corresponding standard register -> Default to anonymous.
+                #ifdef USE_NODE_MASTER_ID_FIXED
+                // Canard Slave NODE ID Fixed dal defined value in module_config
+                clCanard.set_canard_master_id((CanardNodeID)NODE_MASTER_ID);
+                #else
+                uavcan_register_Value_1_0_select_natural16_(&val);
+                val.natural16.value.count = 1;
+                val.natural16.value.elements[0] = NODE_MASTER_ID;        // Setting default Master ID Value
+                localRegisterAccessLock->Take();
+                localRegister->read(REGISTER_RMAP_MASTER_ID, &val);      // The names of the standard registers are regulated by the Specification.
+                localRegisterAccessLock->Give();
+                LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+                if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
+                    clCanard.set_canard_master_id((CanardNodeID)val.natural16.value.elements[0]);
+                }
+                #endif
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
                 #ifdef USE_PORT_PUBLISH_RMAP_FIXED

@@ -55,10 +55,13 @@
 // Nodi Fissi per Moduli Master e Yakut
 #define NODE_YAKUT_ID   127
 #define NODE_MASTER_ID  100
-// #define PORT_SERVICE_MASTER 100
-// #define SUBJECTID_PUBLISH_MASTER 2100
 
-// Mashera Check S.N. messaggio Hash Canard per PnP
+// Parametri default per Modulo Master (INIT_PARAMETER)
+#define NODE_VALUE_UNSET  255
+// #define PORT_SERVICE_RMAP 100
+// #define SUBJECTID_PUBLISH_RMAP 2100
+
+// Maschera Check S.N. messaggio Hash Canard per PnP
 #define HASH_SERNUMB_MASK   0x0000FFFFFFFFFF00u
 #define HASH_EXCLUDING_BIT  16u
 
