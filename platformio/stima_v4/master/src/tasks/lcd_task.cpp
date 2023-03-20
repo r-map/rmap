@@ -216,7 +216,7 @@ void LCDTask::Run() {
 
         // Count the number of board configurated
         for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
-          if (param.system_status->data_slave[i].module_type != Module_Type::undefined) {
+          if (param.configuration->board_slave[i].module_type != Module_Type::undefined) {
             board_count++;
           }
         }
@@ -257,7 +257,7 @@ void LCDTask::Run() {
               TRACE_INFO_F(F("LCD: CHANNEL %d\r\n"), channel);
 
               // Display CHANNEL interface
-              display_print_channel_interface(param.system_status->data_slave[channel].module_type);
+              display_print_channel_interface(param.configuration->board_slave[channel].module_type);
 
               break;
             }
@@ -269,7 +269,7 @@ void LCDTask::Run() {
               if (stima4_menu_ui_last == MAIN) {
                 commands_master_number = param.system_status->data_master.fw_upgradable == true ? 4 : 3;
               } else {
-                if (param.system_status->data_slave[channel].module_type == Module_Type::rain) {
+                if (param.configuration->board_slave[channel].module_type == Module_Type::rain) {
                   commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 4 : 3;
                 } else {
                   commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 3 : 2;
@@ -569,7 +569,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   display.print(measure_A);
 
   // Print the second measure for special cases
-  if (param.system_status->data_slave[channel].module_type == Module_Type::th) {
+  if (param.configuration->board_slave[channel].module_type == Module_Type::th) {
     // Print description of measure
     display.setFont(u8g2_font_helvR08_tf);
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
@@ -626,7 +626,7 @@ void LCDTask::display_print_config_menu_interface() {
   } else {
     for (uint8_t i = 0; i < (stima4_slave_commands_t)SLAVE_COMMAND_EXIT + 1; i++) {
       if ((!param.system_status->data_slave[channel].fw_upgradable && (stima4_slave_commands_t)i == SLAVE_COMMAND_FIRMWARE_UPGRADE) ||
-          (param.system_status->data_slave[channel].module_type != Module_Type::rain && (stima4_slave_commands_t)i == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER)) continue;
+          (param.configuration->board_slave[channel].module_type != Module_Type::rain && (stima4_slave_commands_t)i == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER)) continue;
       display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + row_printed * LINE_BREAK);
       display.print(get_slave_command_name_from_enum((stima4_slave_commands_t)i));
       row_printed++;
@@ -889,7 +889,7 @@ void LCDTask::switch_interface() {
           else {
             command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? commands_slave_number - 1 : command_selector_pos + 1;
             stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command + 1);
-            if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+            if (!param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
               stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
             }
             if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
@@ -944,7 +944,7 @@ void LCDTask::switch_interface() {
           else {
             command_selector_pos = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE || command_selector_pos == 0 ? 0 : command_selector_pos - 1;
             stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command - 1);
-            if (!param.system_status->data_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+            if (!param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
               stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
             }
             if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
