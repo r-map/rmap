@@ -1651,7 +1651,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].module_version = retData->version;
                                         param.system_status->data_slave[queueId].module_revision = retData->revision;
                                         // Module type also setted on load config module CAN
-                                        // param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         // Check if module can be updated
                                         for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
                                             if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
