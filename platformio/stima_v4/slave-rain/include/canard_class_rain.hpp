@@ -60,8 +60,10 @@ class canardClass {
         // ********************   Tipi di Dati    *****************
 
         // Tipologie elaborazioni/sensori modulo(i)
+        // tbr (Standard rain), tbm (Rain with full maintenance data value)
         enum Sensor_Type : u_int8_t {
-            tbr
+            tbr,
+            tbm
         };
 
         // Modalità di accesso a getMicros()

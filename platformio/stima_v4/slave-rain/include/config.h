@@ -130,16 +130,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WDT_TASK_ID                 (5)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
+// Global queue wait timeout
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS    (50)
+#define WAIT_QUEUE_RESPONSE_ELABDATA_MS   (50)
+#define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
+
+// Default value for sensor acquire task 
+#define SENSORS_TIPPING_DELAY_MS          (200)
+#define SENSORS_TIPS_FOR_EVENT            (1)
+
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
-#define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 
 // Index Sensor
 #define RAIN_TIPS_INDEX                   (0)
 #define RAIN_RAIN_INDEX                   (1)
-#define RAIN_RESET_INDEX                  (2)
+#define RAIN_FULL_INDEX                   (2)
+#define RAIN_RESET_INDEX                  (3)
 
 // TODO:_TH_RAIN_
 // Limit range for module sensor

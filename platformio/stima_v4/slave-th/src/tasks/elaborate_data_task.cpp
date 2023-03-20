@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
+ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
 {
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
@@ -138,10 +138,10 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueud from th sensors task (populate data)
-    if (!param.elaborataDataQueue->IsEmpty()) {
-      if (param.elaborataDataQueue->Peek(&edata, 0))
+    if (!param.elaborateDataQueue->IsEmpty()) {
+      if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata, 0);
+        param.elaborateDataQueue->Dequeue(&edata, 0);
         switch (edata.index)
         {
         case TEMPERATURE_MAIN_INDEX:
@@ -169,7 +169,7 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueued from can task (get data, start command...)
-    if (!param.elaborataDataQueue->IsEmpty()) {
+    if (!param.elaborateDataQueue->IsEmpty()) {
       if (param.requestDataQueue->Peek(&request_data, 0))
       {
         // send request to elaborate task (all data is present verified on elaborate_task)

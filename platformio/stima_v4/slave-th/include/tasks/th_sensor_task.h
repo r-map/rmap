@@ -38,8 +38,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TH_TASK_LOW_POWER_ENABLED       (true)
 #define TH_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
 
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
-
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -64,7 +62,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *elaborateDataQueue;
 } TemperatureHumidtySensorParam_t;
 
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {

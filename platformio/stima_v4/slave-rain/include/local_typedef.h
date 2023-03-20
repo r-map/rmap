@@ -38,8 +38,6 @@ enum Power_Mode : uint8_t {
 // Sensor configuration
 typedef struct
 {
-   char driver[DRIVER_LENGTH];      //!< sensor's string driver
-   char type[TYPE_LENGTH];          //!< sensor type
    uint16_t tipping_bucket_time_ms;
    uint8_t rain_for_tip;
 } sensor_configuration_t;
@@ -52,9 +50,7 @@ typedef struct
    uint8_t configuration_version;                        //!< module configuration version
    uint64_t serial_number;                               //!< module serial number
    uint8_t module_type;                                  //!< module type
-   uint8_t sensors_count;                                //!< number of configured sensors
-   sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
-   uint32_t sensor_acquisition_delay_ms;
+   sensor_configuration_t sensors;                       //!< sensors configurations
 } configuration_t;
 
 // WatchDog Flag type
@@ -123,16 +119,21 @@ typedef struct
 
 } system_message_t;
 
+// Rain measure
 typedef struct
 {
-   uint16_t tips_count;
-   uint16_t rain;
+   uint16_t tips_count;    // Number of tips readed
+   uint16_t rain_full;     // Rain unofficial (With Maintenance value, for Display LCD)
+   uint16_t rain;          // Rain official (without Maintenance value)
 } rain_t;
 
 // Report module
 typedef struct
 {
    uint16_t tips_count;
+   uint16_t rain;
+   uint16_t rain_full;
+   uint16_t quality;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

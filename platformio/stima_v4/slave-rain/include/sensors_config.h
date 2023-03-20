@@ -385,7 +385,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MODULE_POWER_MPPT                 (true)
 #endif
 
+#if USE_TH_SENSORS
 #define SENSORS_COUNT_MAX                     (USE_SENSOR_HYT + USE_SENSOR_SHT + USE_REDUNDANT_SENSOR)
+#else
+#define SENSORS_COUNT_MAX                     1
+#endif
 
 /*!
 \def SENSOR_MAX

@@ -358,8 +358,13 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::tbr:
             // Prepara i dati SMP (Sample)
-            rmap_data->TBR.rain.val.value = report->rain.sample;
-            rmap_data->TBR.rain.confidence.value = report->rain.quality;
+            rmap_data->TBR.rain.val.value = report->rain;
+            rmap_data->TBR.rain.confidence.value = report->quality;
+            break;
+        case canardClass::Sensor_Type::tbm:
+            // Prepara i dati SMP (Sample)
+            rmap_data->TBR.rain.val.value = report->rain_full;
+            rmap_data->TBR.rain.confidence.value = report->quality;
             break;
     }
 }
@@ -368,8 +373,13 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::tbr:
             // Prepara i dati SMP (Sample)
-            rmap_data->TBR.rain.val.value = report->rain.sample;
-            rmap_data->TBR.rain.confidence.value = report->rain.quality;
+            rmap_data->TBR.rain.val.value = report->rain;
+            rmap_data->TBR.rain.confidence.value = report->quality;
+            break;
+        case canardClass::Sensor_Type::tbm:
+            // Prepara i dati SMP (Sample)
+            rmap_data->TBR.rain.val.value = report->rain_full;
+            rmap_data->TBR.rain.confidence.value = report->quality;
             break;
     }
 }
@@ -403,7 +413,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\r\n"), (int32_t) report.rain.sample, (int32_t) report.rain.ist, (int32_t) report.rain.quality);
+          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.tips_count, (int32_t) report.rain, (int32_t) report.rain_full, (int32_t) report.quality);
         }
 
         // Preparo i dati
@@ -671,7 +681,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
 
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\r\n"), (int32_t) report.rain.sample, (int32_t) report.rain.ist, (int32_t) report.rain.quality);
+            TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.tips_count, (int32_t) report.rain, (int32_t) report.rain_full, (int32_t) report.quality);
           }
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
@@ -682,7 +692,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tbm, &report, &resp);
           } else {
             prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &resp);
           }

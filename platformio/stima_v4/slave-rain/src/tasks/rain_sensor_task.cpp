@@ -1,25 +1,33 @@
-/**@file th_sensor_task.cpp */
+/**
+  ******************************************************************************
+  * @file    rain_sensor_task.cpp
+  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Rain sensor source file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
 
 #define TRACE_LEVEL     RAIN_SENSOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SENSOR_TASK_ID
@@ -35,6 +43,12 @@ RainSensorTask::RainSensorTask(const char *taskName, uint16_t stackSize, uint8_t
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SENSOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
+
+  localRainQueue = param.rainQueue;
+
+  TRACE_INFO_F(F("Initializing rain event sensor handler...\r\n"));
+  pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
+  attachInterrupt(TIPPING_BUCKET_PIN, ISR_tipping_bucket, LOW);
 
   state = SENSOR_STATE_WAIT_CFG;
   Start();
@@ -99,19 +113,18 @@ void RainSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 void RainSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
+
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
   uint8_t error_count;
-  bool flag;
+  bool flag_event;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
-  powerOff();
 
   while (true)
   {
@@ -124,7 +137,7 @@ void RainSensorTask::Run() {
       {
         rain.tips_count = 0;
         rain.rain = 0;
-        TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
+        TRACE_VERBOSE_F(F("Sensror: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
       // other
@@ -138,51 +151,62 @@ void RainSensorTask::Run() {
       break;
 
     case SENSOR_STATE_INIT:
-      // attesa interrupt
-      param.rainQueue->Dequeue(&flag, portMAX_DELAY);
+      // Enter in suspended mode (wait queue from ISR Event...)
+      TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+      // Waiting interrupt (Suspend task)
+      param.rainQueue->Dequeue(&flag_event, portMAX_DELAY);
+      // Is Event RAIN? (false, is request Reset Counter value)
+      if(!flag_event) {
+        // Reset counter and exit
+        memset(&rain, 0, sizeof(rain));        
+        break;
+      }
+      // ********************************************
+      // Starting Event Rain Counter check operartion
+      // ********************************************
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-      TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      TaskWatchDog(configuration.tipping_bucket_time_ms / 2);
-      Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms / 2));
+      TRACE_INFO_F(F("Sensor: checking event...\r\n"));
+      TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms / 2);
+      Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms / 2));
       state = SENSOR_STATE_READ;
       break;
 
     case SENSOR_STATE_READ:
-      // reset??
-      param.elaborataDataQueue->Dequeue(&edata, 0);
-      switch (edata.index)
-      {
-      case RAIN_RESET_INDEX:
-        rain.tips_count = 0;
-        rain.rain = 0;
-        break;
-      }
-
       // increment rain tips if oneshot mode is on and oneshot start command It has been received
       // re-read pin status to filter spikes
       if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
       {
         rain.tips_count++;
-        rain.rain = tips_count * configuration->sensors[0].rain_for_tip;
-        TRACE_INFO_F(F("Rain tips count: %d"), tips_count);
+        // Add Value if system is not in maintenance mode
+        if(!param.system_status->flags.is_maintenance) {
+          rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
+        }
+        // Full rain excluding maintenance_mode
+        rain.rain_full = rain.tips_count * param.configuration->sensors.rain_for_tip;
+        TRACE_INFO_F(F("Sensor: Rain tips count: %d\r\n"), rain.tips_count);
       }
       else
       {
-        TRACE_INFO_F(F("Skip spike"));
-        tipping_bucket_state = TIPPING_BUCKET_END;
+        TRACE_INFO_F(F("Sensor: Skip spike\r\n"));
+        state = SENSOR_STATE_END;
         break;
       }
 
-      TaskWatchDog(configuration.tipping_bucket_time_ms * 2);
-      Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms * 2));
+      TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms * 2);
+      Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms * 2));
 
       edata.value = rain.tips_count;
       edata.index = RAIN_TIPS_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
       edata.value = rain.rain;
       edata.index = RAIN_RAIN_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+
+      edata.value = rain.rain_full;
+      edata.index = RAIN_FULL_INDEX;
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
       state = SENSOR_STATE_END;
       break;
@@ -190,19 +214,10 @@ void RainSensorTask::Run() {
     case SENSOR_STATE_END:
       if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
       {
-        TRACE_INFO_F(F("wrong timing or stalled tipping bucket"));
-        TaskWatchDog(configuration.tipping_bucket_time_ms);
-        Delay(Ticks::MsToTicks(configuration.tipping_bucket_time_ms));
+        TRACE_INFO_F(F("Sensor: Wrong timing or stalled tipping bucket\r\n"));
+        TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms);
+        Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms));
       }
-
-#ifdef RAIN_TASK_LOW_POWER_ENABLED
-      powerOff();
-#else
-      if (error_count > RAIN_TASK_ERROR_FOR_POWER_OFF)
-      {
-        powerOff();
-      }
-#endif
 
 #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
@@ -210,44 +225,22 @@ void RainSensorTask::Run() {
 
       // Local TaskWatchDog update and Sleep Activate before Next Read
       TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-      attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
+      attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), ISR_tipping_bucket, LOW);
       state = SENSOR_STATE_INIT;
       break;
     }
   }
 }
 
-void RainSensorTask::powerOn()
-{
-  if (!is_power_on)
-  {
-    digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
-    digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
-    digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
-    // WDT
-    TaskWatchDog(RAIN_TASK_POWER_ON_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(RAIN_TASK_POWER_ON_WAIT_DELAY_MS));
-    is_power_on = true;
-  }
-}
-
-void RainSensorTask::powerOff()
-{
-  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
-  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
-  digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
-  is_power_on = false;
-}
-
-void tipping_bucket_interrupt_handler()
-{
+void RainSensorTask::ISR_tipping_bucket() {
   // reading TIPPING_BUCKET_PIN value to be sure the interrupt has occurred
   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
   {
     detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
-    bool flag = true;
+    bool flags = true;
+    BaseType_t pxHigherPTW = true;
     //  enable Tipping bucket task
-    rainQueue->EnqueueFromISR(&flag, true);
+    localRainQueue->EnqueueFromISR(&flags, &pxHigherPTW);
   }
 }
 

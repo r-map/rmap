@@ -66,7 +66,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 // #define ENABLE_ACCELEROMETER  ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == USE_MODULE_RAIN))
-#define ENABLE_ACCELEROMETER  (true)
+#define ENABLE_ACCELEROMETER  (false)
 
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (false)
@@ -128,6 +128,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ACCELEROMETER_TASK_ID       (4)
 #define WDT_TASK_ID                 (5)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
+
+// Global queue wait timeout
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
+#define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)
+#define WAIT_QUEUE_REQUEST_COMMAND_MS   (500)
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

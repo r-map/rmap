@@ -64,10 +64,10 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *elaborateDataQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;
-} ElaboradeDataParam_t;
+} ElaborateDataParam_t;
 
 class ElaborateDataTask : public cpp_freertos::Thread {
   typedef enum {
@@ -78,7 +78,7 @@ class ElaborateDataTask : public cpp_freertos::Thread {
   } State_t;
 
 public:
-  ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam);
+  ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam);
 
 protected:
   virtual void Run();
@@ -97,7 +97,7 @@ private:
   uint8_t checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
 
   State_t state;
-  ElaboradeDataParam_t param;
+  ElaborateDataParam_t param;
 
   sample_t temperature_main_samples;
   sample_t temperature_redundant_samples;

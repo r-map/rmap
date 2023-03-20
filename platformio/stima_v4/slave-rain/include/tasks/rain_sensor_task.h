@@ -1,25 +1,33 @@
-/**@file rain_sensor_task.h */
+/**
+  ******************************************************************************
+  * @file    rain_sensor_task.cpp
+  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Rain sensor header file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
 
 #ifndef _RAIN_SENSOR_TASK_H
 #define _RAIN_SENSOR_TASK_H
@@ -31,14 +39,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_RAIN)
 
+#define TIPPING_BUCKET_PIN        PIN_IN0   // Input PIN tipping
+#define TIPPING_BUCKET_PIN_CTRL   PIN_IN1   // Redundant PIN tipping (verify and alert)
+#define CLOGGED_UP_PIN            PIN_IN2   // Clogged Up Alert PIN
+
 #define RAIN_TASK_POWER_ON_WAIT_DELAY_MS  (100)
 #define RAIN_TASK_WAIT_DELAY_MS           (50)
-#define RAIN_TASK_GENERIC_RETRY_DELAY_MS  (5000)
-#define RAIN_TASK_GENERIC_RETRY           (3)
-#define RAIN_TASK_LOW_POWER_ENABLED       (true)
-#define RAIN_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
-
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -63,7 +69,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *elaborateDataQueue;
   cpp_freertos::Queue *rainQueue;
 } RainSensorParam_t;
 
@@ -90,15 +96,14 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void powerOn();
-  void powerOff();
-
-  bool is_power_on;
+  static void ISR_tipping_bucket(void);
 
   State_t state;
   RainSensorParam_t param;
-  uint16_t tips_count;
-  uint16_t rain;
+  rain_t rain;
+
+  // Acces static memeber parameter of class
+  inline static cpp_freertos::Queue *localRainQueue;
 };
 
 #endif

@@ -1,25 +1,32 @@
-/**@file elaborate_data_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    elaborate_data_task.cpp
+  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Elaborate data sensor to CAN source file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     ELABORATE_DATA_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   ELABORATE_TASK_ID
@@ -28,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
-ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaboradeDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
+ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
 {
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
@@ -101,10 +108,6 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
-  //TODO:_TH_RAIN_
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&rain_main_samples, SAMPLES_COUNT_MAX);
-  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -136,10 +139,10 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueud from th sensors task (populate data)
-    if (!param.elaborataDataQueue->IsEmpty()) {
-      if (param.elaborataDataQueue->Peek(&edata, 0))
+    if (!param.elaborateDataQueue->IsEmpty()) {
+      if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata, 0);
+        param.elaborateDataQueue->Dequeue(&edata, 0);
         switch (edata.index)
         {
         case RAIN_TIPS_INDEX:
@@ -151,12 +154,17 @@ void ElaborateDataTask::Run() {
           TRACE_VERBOSE_F(F("Rain: %d\r\n"), edata.value);
           rain.rain = (uint16_t)edata.value;
           break;
+
+        case RAIN_FULL_INDEX:
+          TRACE_VERBOSE_F(F("Rain full: %d\r\n"), edata.value);
+          rain.rain_full = (uint16_t)edata.value;
+          break;
         }
       }
     }
 
     // enqueued from can task (get data, start command...)
-    if (!param.elaborataDataQueue->IsEmpty()) {
+    if (!param.elaborateDataQueue->IsEmpty()) {
       if (param.requestDataQueue->Peek(&request_data, 0))
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
@@ -177,203 +185,25 @@ void ElaborateDataTask::Run() {
   }
 }
 
-uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_rain, rmapdata_t redundant_rain) {
+uint8_t ElaborateDataTask::checkRain(void) {
+  // TODO: Set Check (redundamt, Inclinometer pole)
   uint8_t quality = 0;
-
-  #if (USE_REDUNDANT_SENSOR)
-
-  float main = ((main_rain - 27315.0) / 100.0);
-  float redundant = ((redundant_rain - 27315.0) / 100.0);
-
-  if ((main > MAX_VALID_TEMPERATURE) || (main < MIN_VALID_TEMPERATURE)) {
-    quality = 0;
-  }
-  else if (redundant != RMAPDATA_MAX) {
-    if ((abs(main - redundant) <= 0.1)) {
-      quality = 100;
-    }
-    else if ((abs(main - redundant) <= 0.2)) {
-      quality = 95;
-    }
-    else if ((abs(main - redundant) <= 0.5)) {
-      quality = 90;
-    }
-    else if ((abs(main - redundant) <= 0.6)) {
-      quality = 80;
-    }
-    else if ((abs(main - redundant) <= 0.7)) {
-      quality = 70;
-    }
-    else if ((abs(main - redundant) <= 0.8)) {
-      quality = 60;
-    }
-    else if ((abs(main - redundant) <= 0.9)) {
-      quality = 50;
-    }
-    else if ((abs(main - redundant) <= 1.0)) {
-      quality = 40;
-    }
-    else if ((abs(main - redundant) <= 1.1)) {
-      quality = 30;
-    }
-    else if ((abs(main - redundant) <= 1.5)) {
-      quality = 20;
-    }
-    else if ((abs(main - redundant) <= 2.0)) {
-      quality = 10;
-    }
-  }
-  else {
-    quality = 100;
-  }
-
-  #else
+ 
   quality = 100;
-  #endif
-
-  return quality;
-}
-
-uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
-  uint8_t quality = 0;
-
-  #if (USE_REDUNDANT_SENSOR)
-
-  if ((main_humidity > MAX_VALID_HUMIDITY) || (main_humidity < MIN_VALID_HUMIDITY)) {
-    quality = 0;
-  }
-  else if (redundant_humidity != RMAPDATA_MAX) {
-    if ((abs(main_humidity - redundant_humidity) <= 1)) {
-      quality = 100;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 2)) {
-      quality = 95;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 3)) {
-      quality = 90;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 4)) {
-      quality = 80;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 5)) {
-      quality = 70;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 6)) {
-      quality = 60;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 7)) {
-      quality = 50;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 8)) {
-      quality = 40;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 9)) {
-      quality = 30;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 10)) {
-      quality = 20;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 11)) {
-      quality = 10;
-    }
-  }
-  else {
-    quality = 100;
-  }
-
-  #else
-  quality = 100;
-  #endif
 
   return quality;
 }
 
 void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_t observation_time_s)
 {
-  report.rain.tips_count = rain.tips_count;
+  report.tips_count = rain.tips_count;
+  report.rain = rain.rain;
+  report.rain_full = rain.rain_full;
+  report.quality = checkRain();
   if (is_init)
   {
-    // necessario reset nel task rain
-    elaborate_data_t edata;
-    edata.value = 0;
-    edata.index = RAIN_RESET_INDEX;
-    param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+    // Effettuo il reset nel task rain (event = false) No Event of Rain. (Other Request)
+    bool edata = false;
+    param.rainDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
   }
-}
-
-template <typename buffer_g, typename length_v, typename value_v>
-value_v bufferRead(buffer_g *buffer, length_v length)
-{
-  value_v value = *buffer->read_ptr;
-
-  if (buffer->read_ptr == buffer->values+length-1) {
-    buffer->read_ptr = buffer->values;
-  }
-  else buffer->read_ptr++;
-
-  return value;
-}
-
-template <typename buffer_g, typename length_v, typename value_v>
-value_v bufferReadBack(buffer_g *buffer, length_v length)
-{
-  value_v value = *buffer->read_ptr;
-
-  if (buffer->read_ptr == buffer->values) {
-    buffer->read_ptr = buffer->values+length-1;
-  }
-  else buffer->read_ptr--;
-
-  return value;
-}
-
-template <typename buffer_g, typename value_v>
-void bufferWrite(buffer_g *buffer, value_v value)
-{
-  *buffer->write_ptr = value;
-}
-
-template <typename buffer_g>
-void bufferPtrReset(buffer_g *buffer)
-{
-  buffer->read_ptr = buffer->values;
-}
-
-template <typename buffer_g, typename length_v>
-void bufferPtrResetBack(buffer_g *buffer, length_v length)
-{
-  if (buffer->write_ptr == buffer->values)
-  {
-    buffer->read_ptr = buffer->values+length-1;
-  }
-  else buffer->read_ptr = buffer->write_ptr-1;
-}
-
-template <typename buffer_g, typename length_v>
-void incrementBuffer(buffer_g *buffer, length_v length)
-{
-  if (buffer->count < length)
-  {
-    buffer->count++;
-  }
-
-  if (buffer->write_ptr+1 < buffer->values + length) {
-    buffer->write_ptr++;
-  } else buffer->write_ptr = buffer->values;
-}
-
-template <typename buffer_g, typename length_v, typename value_v>
-void bufferReset(buffer_g *buffer, length_v length)
-{
-  memset(buffer->values, 0xFF, length * sizeof(value_v));
-  buffer->count = 0;
-  buffer->read_ptr = buffer->values;
-  buffer->write_ptr = buffer->values;
-}
-
-template <typename buffer_g, typename length_v, typename value_v>
-void addValue(buffer_g *buffer, length_v length, value_v value)
-{
-  *buffer->write_ptr = (value_v)value;
-  incrementBuffer<buffer_g, length_v>(buffer, length);
 }

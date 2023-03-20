@@ -26,7 +26,7 @@ void setup() {
   // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
   // Data queue (Request / exchange data from Can to Sensor and Elaborate Task)
-  static Queue *elaborataDataQueue;
+  static Queue *elaborateDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
@@ -96,7 +96,7 @@ void setup() {
 
   // Creating queue
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
-  elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
+  elaborateDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
@@ -194,18 +194,19 @@ void setup() {
   rainSensorParam.configurationLock = configurationLock;
   rainSensorParam.systemStatusLock = systemStatusLock;
   rainSensorParam.systemMessageQueue = systemMessageQueue;
-  rainSensorParam.elaborataDataQueue = elaborataDataQueue;
+  rainSensorParam.elaborateDataQueue = elaborateDataQueue;
   rainSensorParam.rainQueue = rainQueue;
 #endif
 
   // TASK ELABORATE DATA PARAM CONFIG
-  static ElaboradeDataParam_t elaborateDataParam = {0};
+  static ElaborateDataParam_t elaborateDataParam = {0};
   elaborateDataParam.configuration = &configuration;
   elaborateDataParam.system_status = &system_status;
   elaborateDataParam.configurationLock = configurationLock;
   elaborateDataParam.systemStatusLock = systemStatusLock;
   elaborateDataParam.systemMessageQueue = systemMessageQueue;
-  elaborateDataParam.elaborataDataQueue = elaborataDataQueue;
+  elaborateDataParam.elaborateDataQueue = elaborateDataQueue;
+  elaborateDataParam.rainDataQueue = rainQueue;
   elaborateDataParam.requestDataQueue = requestDataQueue;
   elaborateDataParam.reportDataQueue = reportDataQueue;
 
@@ -254,9 +255,6 @@ void loop() {
 
 /// @brief Init Pin (Diag and configuration)
 void init_pins() {
-  pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
-
 #if (ENABLE_DIAG_PIN)
   // *****************************************************
   //     STARTUP LED E PIN DIAGNOSTICI (SE UTILIZZATI)
