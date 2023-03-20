@@ -267,12 +267,12 @@ void LCDTask::Run() {
 
               // Calculate number of commands for master/each slave board
               if (stima4_menu_ui_last == MAIN) {
-                commands_master_number = param.system_status->data_master.fw_upgradable == true ? 4 : 3;
+                commands_master_number = param.system_status->data_master.fw_upgradable == true ? (stima4_master_commands_t)MASTER_COMMAND_EXIT + 1 : (stima4_master_commands_t)MASTER_COMMAND_EXIT;
               } else {
                 if (param.configuration->board_slave[channel].module_type == Module_Type::rain) {
-                  commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 4 : 3;
+                  commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? (stima4_slave_commands_t)SLAVE_COMMAND_EXIT + 1 : (stima4_slave_commands_t)SLAVE_COMMAND_EXIT;
                 } else {
-                  commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? 3 : 2;
+                  commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? (stima4_slave_commands_t)SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)SLAVE_COMMAND_EXIT - 1;
                 }
               }
 
@@ -305,157 +305,6 @@ void LCDTask::Run() {
       }
     }
   }
-}
-
-/**
- * @brief 
- * 
- */
-bool LCDTask::saveConfiguration(void) {
-  // Private param and Semaphore: param.configuration, param.configurationLock
-  bool status = true;
-
-  if (param.configurationLock->Take())
-  {
-    // Write configuration to eeprom
-    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
-    TRACE_INFO_F(F("LCD: Save configuration [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
-    param.configurationLock->Give();
-  }
-
-  return status;
-}
-
-/**
- * @brief Get the master command name from enumeration
- *
- * @param command master command enumeration
- * @return Command name in string format (const char*)
- */
-const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
-  const char* command_name;
-  switch (command) {
-    case MASTER_COMMAND_SDCARD: {
-      command_name = "Replacement SD card";
-      break;
-    }
-    case MASTER_COMMAND_UPDATE_NAME_STATION: {
-      command_name = "Update station name";
-      break;
-    }
-    case MASTER_COMMAND_FIRMWARE_UPGRADE: {
-      command_name = "Upgrade firmware";
-      break;
-    }
-    case MASTER_COMMAND_EXIT: {
-      command_name = "Exit";
-      break;
-    }
-  }
-  return command_name;
-}
-
-/**
- * @brief Get the slave command name from enumeration
- *
- * @param command slave command enumeration
- * @return Command name in string format (const char*)
- */
-const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t command) {
-  const char* command_name;
-  switch (command) {
-    case SLAVE_COMMAND_MAINTENANCE: {
-      command_name = "Maintenance";
-      break;
-    }
-    case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {
-      command_name = "Calibration";
-      break;
-    }
-    case SLAVE_COMMAND_FIRMWARE_UPGRADE: {
-      command_name = "Upgrade firmware";
-      break;
-    }
-    case SLAVE_COMMAND_EXIT: {
-      command_name = "Exit";
-      break;
-    }
-  }
-  return command_name;
-}
-
-/**
- * @brief Process the result of encoder rotation
- *
- * @param new_value new binary value of inputs encoder
- * @param old_value old binary value of inputs encoder
- */
-void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
-  switch (old_value) {
-    case 0: {
-      if (new_value == 1) {
-        encoder_state = DIR_CLOCK_WISE;
-      } else if (new_value == 2) {
-        encoder_state = DIR_COUNTER_CLOCK_WISE;
-      }
-      break;
-    }
-    case 1: {
-      if (new_value == 3) {
-        encoder_state = DIR_CLOCK_WISE;
-      } else if (new_value == 0) {
-        encoder_state = DIR_COUNTER_CLOCK_WISE;
-      }
-      break;
-    }
-    case 2: {
-      if (new_value == 0) {
-        encoder_state = DIR_CLOCK_WISE;
-      } else if (new_value == 3) {
-        encoder_state = DIR_COUNTER_CLOCK_WISE;
-      }
-      break;
-    }
-    case 3: {
-      if (new_value == 2) {
-        encoder_state = DIR_CLOCK_WISE;
-      } else if (new_value == 1) {
-        encoder_state = DIR_COUNTER_CLOCK_WISE;
-      }
-      break;
-    }
-  }
-}
-
-/**
- * @brief ISR handler for encoder input that manage the button pression
- *
- */
-void LCDTask::ISR_input_pression_pin_encoder() {
-  // **************************************************************************
-  // ************************* DEBOUNCE BUTTON HANDLER ************************
-  // **************************************************************************
-
-  // Processing
-  if (millis() - debounce_millis >= DEBOUNCE_TIMEOUT) {
-    pression_event = digitalRead(PIN_ENCODER_INT) == LOW ? true : false;
-  }
-
-  // Updating flags and states
-  last_display_timeout = millis();
-  debounce_millis = millis();
-}
-
-/**
- * @brief ISR handler for encoder inputs that manage the rotation
- *
- */
-void LCDTask::ISR_input_rotation_pin_encoder() {
-  // Processing
-  rotation_event = true;
-
-  // Updating flags and states
-  last_display_timeout = millis();
 }
 
 /**
@@ -708,7 +557,7 @@ void LCDTask::display_print_main_interface() {
  */
 void LCDTask::display_print_update_name_station_interface(void) {
   char buffer[STATIONSLUG_LENGTH];
-  char status_message[20];
+  char status_message[20] = {0};
 
   // Get station name
   (void)snprintf(buffer, sizeof(buffer), "%s", new_station_name);
@@ -848,6 +697,157 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
     default:
       break;
   }
+}
+
+/**
+ * @brief Process the result of encoder rotation
+ *
+ * @param new_value new binary value of inputs encoder
+ * @param old_value old binary value of inputs encoder
+ */
+void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
+  switch (old_value) {
+    case 0: {
+      if (new_value == 1) {
+        encoder_state = DIR_CLOCK_WISE;
+      } else if (new_value == 2) {
+        encoder_state = DIR_COUNTER_CLOCK_WISE;
+      }
+      break;
+    }
+    case 1: {
+      if (new_value == 3) {
+        encoder_state = DIR_CLOCK_WISE;
+      } else if (new_value == 0) {
+        encoder_state = DIR_COUNTER_CLOCK_WISE;
+      }
+      break;
+    }
+    case 2: {
+      if (new_value == 0) {
+        encoder_state = DIR_CLOCK_WISE;
+      } else if (new_value == 3) {
+        encoder_state = DIR_COUNTER_CLOCK_WISE;
+      }
+      break;
+    }
+    case 3: {
+      if (new_value == 2) {
+        encoder_state = DIR_CLOCK_WISE;
+      } else if (new_value == 1) {
+        encoder_state = DIR_COUNTER_CLOCK_WISE;
+      }
+      break;
+    }
+  }
+}
+
+/**
+ * @brief Get the master command name from enumeration
+ *
+ * @param command master command enumeration
+ * @return Command name in string format (const char*)
+ */
+const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
+  const char* command_name;
+  switch (command) {
+    case MASTER_COMMAND_SDCARD: {
+      command_name = "Replacement SD card";
+      break;
+    }
+    case MASTER_COMMAND_UPDATE_NAME_STATION: {
+      command_name = "Update station name";
+      break;
+    }
+    case MASTER_COMMAND_FIRMWARE_UPGRADE: {
+      command_name = "Upgrade firmware";
+      break;
+    }
+    case MASTER_COMMAND_EXIT: {
+      command_name = "Exit";
+      break;
+    }
+  }
+  return command_name;
+}
+
+/**
+ * @brief Get the slave command name from enumeration
+ *
+ * @param command slave command enumeration
+ * @return Command name in string format (const char*)
+ */
+const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t command) {
+  const char* command_name;
+  switch (command) {
+    case SLAVE_COMMAND_MAINTENANCE: {
+      command_name = "Maintenance";
+      break;
+    }
+    case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {
+      command_name = "Calibration";
+      break;
+    }
+    case SLAVE_COMMAND_FIRMWARE_UPGRADE: {
+      command_name = "Upgrade firmware";
+      break;
+    }
+    case SLAVE_COMMAND_EXIT: {
+      command_name = "Exit";
+      break;
+    }
+  }
+  return command_name;
+}
+
+/**
+ * @brief ISR handler for encoder input that manage the button pression
+ *
+ */
+void LCDTask::ISR_input_pression_pin_encoder() {
+  // **************************************************************************
+  // ************************* DEBOUNCE BUTTON HANDLER ************************
+  // **************************************************************************
+
+  // Processing
+  if (millis() - debounce_millis >= DEBOUNCE_TIMEOUT) {
+    pression_event = digitalRead(PIN_ENCODER_INT) == LOW ? true : false;
+  }
+
+  // Updating flags and states
+  last_display_timeout = millis();
+  debounce_millis = millis();
+}
+
+/**
+ * @brief ISR handler for encoder inputs that manage the rotation
+ *
+ */
+void LCDTask::ISR_input_rotation_pin_encoder() {
+  // Processing
+  rotation_event = true;
+
+  // Updating flags and states
+  last_display_timeout = millis();
+}
+
+/**
+ * @brief Save new configuration to eeprom
+ * 
+ */
+bool LCDTask::saveConfiguration(void) {
+  // Private param and Semaphore: param.configuration, param.configurationLock
+  bool status = true;
+
+  if (param.configurationLock->Take())
+  {
+    // Write configuration to eeprom
+    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    TRACE_INFO_F(F("LCD: Save configuration [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
+    param.configurationLock->Give();
+  }
+
+  return status;
 }
 
 /**
@@ -1008,6 +1008,10 @@ void LCDTask::switch_interface() {
       }
 
       case UPDATE_NAME_STATION: {
+        // ************************************************************************
+        // ************************* ELABORATE COMMAND ****************************
+        // ************************************************************************
+
         switch (alphabet[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
