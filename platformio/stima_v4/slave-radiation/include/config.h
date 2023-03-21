@@ -132,6 +132,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 // Sample and default value for elaborate task 
+#define SAMPLES_REPETED_ADC               (8)
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)
@@ -140,14 +141,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Index Sensor
 #define SOLAR_RADIATION_INDEX             (0)
 
-#define ADC_VOLTAGE_MAX                               (6144.0)
-#define ADC_VOLTAGE_MIN                               (-6144.0)
+#define ADC_VOLTAGE_MAX                               (3300.0)
+#define ADC_VOLTAGE_MIN                               (0.0)
 #define ADC_VOLTAGE_OFFSET                            (0.0)
 
-#define ADC_MAX                                       (32767)
-#define ADC_MIN                                       (-32767)
+#define ADC_MAX                                       (4096)
+#define ADC_MIN                                       (0)
 
-#define SOLAR_RADIATION_VOLTAGE_MAX                   (5000.0)
+#define SOLAR_RADIATION_VOLTAGE_MAX                   (3000.0)
 #define SOLAR_RADIATION_VOLTAGE_MIN                   (0.0)
 
 #define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 50.0)

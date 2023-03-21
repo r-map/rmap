@@ -1,72 +1,37 @@
-/**@file solar_radiation_sensor_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    solar_radiation_task.cpp
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Module sensor source file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     SOLAR_RADIATION_SENSOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SENSOR_TASK_ID
 
 #include "tasks/solar_radiation_sensor_task.h"
-
-#include "stm32yyxx_ll_adc.h"
-
-/* Values available in datasheet */
-#define CALX_TEMP   25
-#define VTEMP       760
-#define AVG_SLOPE   2500
-#define VREFINT     1210
-
-/* Analog read resolution */
-#define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
-#define ADC_RANGE 4096
-
-static int32_t readTempSensor(int32_t VRef)
-{
-  return (__LL_ADC_CALC_TEMPERATURE(VRef, analogRead(ATEMP), LL_ADC_RESOLUTION));
-}
-
-static int32_t readVref()
-{
-  return (__LL_ADC_CALC_VREFANALOG_VOLTAGE(analogRead(AVREF), LL_ADC_RESOLUTION));
-}
-
-static int32_t readVoltage(int32_t VRef, uint32_t pin)
-{
-  return (__LL_ADC_CALC_DATA_TO_VOLTAGE(VRef, analogRead(pin), LL_ADC_RESOLUTION));
-}
-
-// The loop routine runs over and over again forever:
-void loop2() {
-  // Print out the value read
-  int32_t VRef = readVref();
-  Serial.printf("VRef(mv)= %i", VRef);
-#ifdef ATEMP
-  Serial.printf("\tTemp(°C)= %i", readTempSensor(VRef));
-#endif
-#ifdef AVBAT
-  Serial.printf("\tVbat(mv)= %i", readVoltage(VRef, AVBAT));
-#endif
-  Serial.printf("\tA0(mv)= %i\n", readVoltage(VRef, A0));
-  delay(200);
-}
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
 
@@ -77,6 +42,9 @@ SolarRadiationSensorTask::SolarRadiationSensorTask(const char *taskName, uint16_
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SENSOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
+
+  // Set analog resolution
+  analogReadResolution(ADC_RESOLUTION);
 
   state = SENSOR_STATE_WAIT_CFG;
   Start();
@@ -146,7 +114,6 @@ void SolarRadiationSensorTask::Run() {
   
   uint8_t error_count;
   uint8_t retry;
-  uint8_t adc_index;
   uint8_t adc_channel;
   int16_t adc_value;
   uint8_t solar_radiation_acquisition_count;
@@ -169,100 +136,75 @@ void SolarRadiationSensorTask::Run() {
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
+        // Select read chanel first from config
+        for(uint8_t idx=0; idx<MAX_ADC_CHANELS; idx++) {
+          if(param.configuration->sensors[idx].is_active) {
+            // Select first active chanel selected (only one is used on this module)
+            adc_channel = idx;
+            break;
+          }
+        }
         solar_radiation_acquisition_count = 0;
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
-      // other
-      else
-      {
-        // Local WatchDog update;
-        TaskWatchDog(SOLAR_RADIATION_TASK_WAIT_DELAY_MS);
-        Delay(Ticks::MsToTicks(SOLAR_RADIATION_TASK_WAIT_DELAY_MS));
-      }
       // do something else with non-blocking wait ....
+      TaskWatchDog(SOLAR_RADIATION_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(SOLAR_RADIATION_TASK_WAIT_DELAY_MS));
       break;
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      powerOn();
-      adc_index = 0;
-      adc_channel = 0;
-      retry = 0;
-      is_error = false;
-      solar_radiation_acquisition_count++;
-      value = FLT_MAX;
+      powerOn(adc_channel);
+      value = 0;
+      solar_radiation_acquisition_count = SAMPLES_REPETED_ADC;
       state = SENSOR_STATE_SET;
-      SERIAL_TRACE(F("SENSOR_STATE_INIT --> SENSOR_STATE_SET\r\n"));
+      TRACE_INFO_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_SET\r\n"));
+      // TODO: NB. STABILIZED TIME FOR SENSOR HERE IF > OF TIME_SLEEP SENSOR POWER FULL ON FOR EVER
+      // ON OFF ONLY CIRCUIT COMPARATOR ADC IN
+
       break;
 
     case SENSOR_STATE_SET:
-      adc_result = adc1.readSingleChannel(adc_channel, &adc_value);
 
-      if (adc_result == ADC_OK)
+      solar_radiation_acquisition_count++;
+      value+=(float)analogRead(PIN_ANALOG_01);
+
+      if(solar_radiation_acquisition_count>=SAMPLES_REPETED_ADC)
       {
-        value = (float)(adc_value);
         state = SENSOR_STATE_EVALUATE;
-        SERIAL_TRACE(F("SENSOR_STATE_SET --> SENSOR_STATE_EVALUATE\r\n"));
+        break;
       }
-      else if (adc_result == ADC_ERROR)
-      {
-        i2c_error++;
-        value = FLT_MAX;
-        is_error = true;
-        state = SENSOR_STATE_EVALUATE;
-        SERIAL_TRACE(F("SENSOR_STATE_SET --> SENSOR_STATE_EVALUATE\r\n"));
-      }
+
+      DelayUntil(Ticks::MsToTicks(SENSORS_ACQUISITION_DELAY_MS));
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
+      TRACE_INFO_F(F("SENSOR_STATE_SET --> SENSOR_STATE_EVALUATE\r\n"));
       break;
 
     case SENSOR_STATE_EVALUATE:
-#if (IS_CALIBRATION)
-      SERIAL_INFO(F("ADC %u\tAIN%u ==> (%.6f + %.6f) * %.6f = "), adc_index, adc_channel, value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
-#endif
 
-      if (!is_error)
-      {
-        value = getAdcCalibratedValue(value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
-        value = getAdcAnalogValue(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
-      }
+      // Report to a single acquisition
+      value /= SAMPLES_REPETED_ADC;
 
-#if (IS_CALIBRATION)
-      TRACE_INFO_F(F("%.6f [ %s ]\r\n"), value, is_error ? ERROR_STRING : OK_STRING);
-#endif
-
-      if (!is_error)
-      {
-        value = getSolarRadiation(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
-      }
+      value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
+      value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
+      value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max);
 
       state = SENSOR_STATE_READ;
-      SERIAL_TRACE(F("SENSOR_STATE_EVALUATE --> SENSOR_STATE_READ\r\n"));
+      TRACE_INFO_F(F("SENSOR_STATE_EVALUATE --> SENSOR_STATE_READ\r\n"));
       break;
 
     case SENSOR_STATE_READ:
       edata.value = value;
       edata.index = SOLAR_RADIATION_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
-      SERIAL_TRACE(F("SENSOR_STATE_READ --> SENSOR_STATE_END\r\n"));
+      TRACE_INFO_F(F("SENSOR_STATE_READ --> SENSOR_STATE_END\r\n"));
       state = SENSOR_STATE_END;
       break;
 
     case SENSOR_STATE_END:
-      // spegnimento programmato ongi ACQUISITION_COUNT_FOR_POWER_RESET letture
-      if ((solar_radiation_acquisition_count >= ACQUISITION_COUNT_FOR_POWER_RESET) || is_error)
-      {
-        solar_radiation_acquisition_count = 0;
-        powerOff();
-      }
-
-#ifdef TH_TASK_LOW_POWER_ENABLED
       powerOff();
-#else
-      if (error_count > SOLAR_RADIATION_TASK_ERROR_FOR_POWER_OFF)
-      {
-        powerOff();
-      }
-#endif
 
 #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
@@ -274,19 +216,23 @@ void SolarRadiationSensorTask::Run() {
       DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-      state = SENSOR_STATE_SETUP;
+      state = SENSOR_STATE_INIT;
       break;
-    }
+    } // End Of Switch
+
   }
+
 }
 
-void SolarRadiationSensorTask::powerOn()
+void SolarRadiationSensorTask::powerOn(uint8_t chanel_out)
 {
   if (!is_power_on)
   {
-    digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
-    digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
-    digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
+    digitalWrite(PIN_EN_5VA, HIGH);  // Enable Analog Comparator (xIAN)
+    if(chanel_out == 0) digitalWrite(PIN_OUT0, HIGH);  // Enable relative Output Chanel alim
+    if(chanel_out == 1) digitalWrite(PIN_OUT1, HIGH);  // Enable relative Output Chanel alim
+    if(chanel_out == 2) digitalWrite(PIN_OUT2, HIGH);  // Enable relative Output Chanel alim
+    if(chanel_out == 3) digitalWrite(PIN_OUT3, HIGH);  // Enable relative Output Chanel alim
     // WDT
     TaskWatchDog(SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS);
     Delay(Ticks::MsToTicks(SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS));
@@ -296,10 +242,18 @@ void SolarRadiationSensorTask::powerOn()
 
 void SolarRadiationSensorTask::powerOff()
 {
-  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
-  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
-  digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
+  digitalWrite(PIN_EN_5VA, LOW);  // Disable Analog Comparator (xIAN)
+  digitalWrite(PIN_OUT0, HIGH);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT1, HIGH);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT2, HIGH);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT3, HIGH);   // Disable Output Chanel alim
   is_power_on = false;
+}
+
+int32_t SolarRadiationSensorTask::getVrefTemp(void)
+{
+  int32_t vRefVoltage = (__LL_ADC_CALC_VREFANALOG_VOLTAGE(analogRead(AVREF), LL_ADC_RESOLUTION));
+  return (__LL_ADC_CALC_TEMPERATURE(vRefVoltage, analogRead(ATEMP), LL_ADC_RESOLUTION));
 }
 
 float SolarRadiationSensorTask::getAdcCalibratedValue(float adc_value, float offset, float gain)
@@ -316,9 +270,34 @@ float SolarRadiationSensorTask::getAdcCalibratedValue(float adc_value, float off
   return value;
 }
 
-float SolarRadiationSensorTask::getAdcAnalogValue(float adc_value, float min, float max)
+float SolarRadiationSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
 {
+  float min, max;
   float value = (float)UINT16_MAX;
+
+  switch (adc_type)
+  {
+  case Adc_Mode::mVolt:
+    min = 0.0;
+    max = 3.3;
+    /* code */
+    break;
+
+  case Adc_Mode::Volt:
+    min = 0.0;
+    max = 15.0;
+    /* code */
+    break;
+
+  case Adc_Mode::mA:
+    min = 4.0;
+    max = 20.0;
+    /* code */
+    break;
+
+  default:
+    break;
+  }
 
   if (!isnan(adc_value))
   {

@@ -1,25 +1,32 @@
-/**@file solar_radiation_sensor_task.h */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    solar_radiation_task.cpp
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Module sensor header file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #ifndef _SOLAR_RADIATION_SENSOR_TASK_H
 #define _SOLAR_RADIATION_SENSOR_TASK_H
@@ -32,6 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
 
 #define SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS  (100)
+#define SOLAR_RADIATION_TASK_MEASURE_WAIT_DELAY_MS   (100)
 #define SOLAR_RADIATION_TASK_WAIT_DELAY_MS           (50)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY           (3)
@@ -39,6 +47,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SOLAR_RADIATION_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
+
+/* Analog read resolution */
+// CAL VREF 940 30 <--> 914 21
+#define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
+#define ADC_RANGE ADC_MAX
+
+#include "stm32yyxx_ll_adc.h"
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -91,10 +106,13 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void powerOn();
+  void powerOn(uint8_t chanel_out);
   void powerOff();
+
+  int32_t getVrefTemp(void);
+  
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
-  float getAdcAnalogValue(float adc_value, float min, float max);
+  float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
   float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
 
   bool is_power_on;

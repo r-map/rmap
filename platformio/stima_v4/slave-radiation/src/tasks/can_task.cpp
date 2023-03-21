@@ -361,8 +361,8 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dsa:
             // Prepara i dati SMP (Sample)
-            rmap_data->DSA.radiation.val.value = report->solar_radiation.sample;
-            rmap_data->DSA.radiation.confidence.value = report->solar_radiation.quality;
+            rmap_data->DSA.radiation.val.value = report->avg;
+            rmap_data->DSA.radiation.confidence.value = report->quality;
             break;
     }
 }
@@ -371,8 +371,8 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dsa:
             // Prepara i dati SMP (Sample)
-            rmap_data->DSA.radiation.val.value = report->solar_radiation.sample;
-            rmap_data->DSA.radiation.confidence.value = report->solar_radiation.quality;
+            rmap_data->DSA.radiation.val.value = report->avg;
+            rmap_data->DSA.radiation.confidence.value = report->quality;
             break;
     }
 }
@@ -406,9 +406,8 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\t%d\r\n"), (int32_t) report.solar_radiation.sample, (int32_t) report.solar_radiation.ist, (int32_t) report.solar_radiation.quality);
+          TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (int32_t) report.avg, (int32_t) report.quality);
         }
-
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &module_solar_radiation_msg);
         // Metadata
@@ -674,7 +673,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
 
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\t%d\r\n"), (int32_t) report.solar_radiation.sample, (int32_t) report.solar_radiation.ist, (int32_t) report.solar_radiation.quality);
+            TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (int32_t) report.avg, (int32_t) report.quality);
           }
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
@@ -682,13 +681,8 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
-          // TODO:_TH_RAIN
-          if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
-            // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
-          } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
-          }
+          // Esiste il solo caso ::dsa sia per get istant che archivio
+          prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
           break;
 
         /// NOT USED

@@ -142,8 +142,8 @@ void ElaborateDataTask::Run() {
         param.elaborataDataQueue->Dequeue(&edata, 0);
         switch (edata.index)
         {
-        case SOLAR_RADIATION_MAIN_INDEX:
-          TRACE_VERBOSE_F(F("Rain A [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
+        case SOLAR_RADIATION_INDEX:
+          TRACE_VERBOSE_F(F("Solar radiation: %d\r\n"), edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           break;
@@ -190,7 +190,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   float error_solar_radiation_per = 0;
 
   static uint16_t valid_count_solar_radiation_o;
-  static uint16_t error_count_solar_radiation_o;report
+  static uint16_t error_count_solar_radiation_o;
   float error_solar_radiation_per_o = 0;
 
   rmapdata_t avg_solar_radiation = 0;
@@ -265,7 +265,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
     error_solar_radiation_per = (float)(error_count_solar_radiation) / (float)(solar_radiation_samples.count) * 100.0;
     TRACE_DEBUG_F(F("-> %d solar radiation error (%d%%)\r\n"), error_count_solar_radiation, (int32_t)error_solar_radiation_per);
-    TRACE_INFO_F(F("--> solar_radiation report\t%d\t%d\r\n"), (int32_t)report.solar_radiation.avg, (int32_t)report.solar_radiation.quality);
+    TRACE_INFO_F(F("--> solar_radiation report\t%d\t%d\r\n"), (int32_t)report.avg, (int32_t)report.quality);
   }
   // it's a sample request
   else

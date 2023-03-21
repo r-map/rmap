@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
+#define MAX_ADC_CHANELS (4)
+
 // Gestione modalità Power ( x Canard e Nodo in generale)
 enum Power_Mode : uint8_t {
    pwr_on,         // Never (All ON, test o gestione locale)
@@ -35,13 +37,22 @@ enum Power_Mode : uint8_t {
    pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
 };
 
+// Gestione modalità Power ( x Canard e Nodo in generale)
+enum Adc_Mode : uint8_t {
+   mVolt,   // Low Volt (0-3.3V) Input
+   Volt,    // High Volt (0-14) Input
+   mA       // mA (4-20) Input
+};
+
 // Sensor configuration
 typedef struct
 {
-   uint8_t i2c_address;             //!< i2c sensor's address
-   char driver[DRIVER_LENGTH];      //!< sensor's string driver
-   char type[TYPE_LENGTH];          //!< sensor type
-   bool is_redundant;
+   float adc_offset;       //!< adc offset
+   float adc_gain;         //!< adc gain
+   float analog_min;       //!< min sensor analog value for selected range
+   float analog_max;       //!< max sensor analog value for selòected range
+   uint8_t is_active;      //!< Chanel active, for Radiation is selected first active (One chanel)
+   Adc_Mode adc_type;      //!< adc input type selection
 } sensor_configuration_t;
 
 // System module configuration
@@ -53,7 +64,7 @@ typedef struct
    uint64_t serial_number;                               //!< module serial number
    uint8_t module_type;                                  //!< module type
    uint8_t sensors_count;                                //!< number of configured sensors
-   sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
+   sensor_configuration_t sensors[MAX_ADC_CHANELS];      //!< max input ADC
    uint32_t sensor_acquisition_delay_ms;
 } configuration_t;
 
