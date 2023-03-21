@@ -47,6 +47,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "core/net.h"
 #include "mqtt/mqtt_client.h"
 
+// Canard Type data
+#include <rmap/_module/TH_1_0.h>
+#include <rmap/service/_module/TH_1_0.h>
+#include <rmap/_module/RAIN_1_0.h>
+#include <rmap/service/_module/RAIN_1_0.h>
+#include <rmap/_module/POWER_1_0.h>
+#include <rmap/service/_module/POWER_1_0.h>
+#include <rmap/_module/RADIATION_1_0.h>
+#include <rmap/service/_module/RADIATION_1_0.h>
+#include <rmap/_module/VWC_1_0.h>
+#include <rmap/service/_module/VWC_1_0.h>
+#include <rmap/_module/WIND_1_0.h>
+#include <rmap/service/_module/WIND_1_0.h>
+
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
 // #include "drivers/spi/arduino_spi_driver.h"
 // #include "drivers/eth/enc28j60_driver.h"

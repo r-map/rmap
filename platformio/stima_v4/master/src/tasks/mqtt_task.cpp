@@ -128,6 +128,20 @@ void MqttTask::Run()
   connection_response_t connection_response;
   IpAddr ipAddr;
   bool is_data_publish_end = false;
+  // RMAP Data queue and status local VAR
+  bool start_get_data = true;
+  rmap_get_request_t rmap_get_request;
+  rmap_get_response_t rmap_get_response;
+  bool rmap_eof;
+  bool rmap_data_error;
+  uint32_t countData;
+  // RMAP Casting value to Uavcan Structure
+  rmap_module_TH_1_0 *rmapDataTH;
+  rmap_module_Rain_1_0 *rmapDataRain;
+  rmap_module_Radiation_1_0 *rmapDataRadiation;
+  rmap_module_Wind_1_0 *rmapDataWind;
+  rmap_module_VWC_1_0 *rmapDataVWC;
+  rmap_module_Power_1_0 *rmapDataPower;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -301,6 +315,166 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_PUBLISH:
+
+      // **************************************
+      //   GET RMAP Data, And Append to MQTT
+      // **************************************
+      start_get_data = true;
+      // MMC have to GET Ready before Push DATA
+      // EXIT from function if not MMC Ready or present into system_status
+      if(!param.system_status->flags.sd_card_ready) {
+        TRACE_VERBOSE_F(F("MQTT: RMAP Reject request get rmap data, MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+      }
+
+      // *****************************************
+      //  RUN GET RMAP Data Queue and Append MQTT
+      // *****************************************
+      start_get_data = false;
+      if(start_get_data) {
+
+        // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
+        // // -> SETTING FROM RPC
+        // // // **** SET POINTER DATA REQUEST *****
+        // // // Example SET Timer from datTime ->
+        // uint32_t countData = 0;
+        // DateTime date_request;
+        // date_request.day = 16;
+        // date_request.month = 2;
+        // date_request.year = 2023;
+        // date_request.hours = 4;
+        // date_request.minutes = 22;
+        // date_request.seconds = 23;
+        // uint32_t rmap_date_time_ptr = convertDateToUnixTime(&date_request);
+
+        // memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
+        // rmap_get_request.param = rmap_date_time_ptr;
+        // rmap_get_request.command.do_synch_ptr = true;
+        // // Optional Save Pointer in File (Probabiliy always in SetPtr)
+        // rmap_get_request.command.do_save_ptr = true;
+        // TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
+        // // Push data request to queue MMC
+        // param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+
+        // // Non blocking task
+        // TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
+        // Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+
+        // // Waiting response from MMC with TimeOUT
+        // memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+        // // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
+        // // Task WDT Are suspended
+        // TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+        // rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
+        // TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+        // rmap_data_error |= rmap_get_response.result.event_error;
+        // // Rmap Pointer setted? Get All Data from RMAP Archive
+        // bool rmap_eof = false;
+        // *********** END OPTIONAL SET PONTER REQUEST RESPONSE **********
+
+        rmap_eof = false;
+        rmap_data_error = false;
+        countData = 0;
+
+        // Exit on End of data or Error from queue
+        while((!rmap_data_error)&&(!rmap_eof)) {
+          memset(&rmap_get_request, 0, sizeof(rmap_get_request));
+          // Get Next data... Stop at EOF
+          rmap_get_request.command.do_get_data = true;
+          // Save Pointer? Optional
+          // rmap_get_request.command.do_save_ptr = true;
+          // Push data request to queue MMC
+          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+          // Waiting response from MMC with TimeOUT
+          memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmap_data_error |= rmap_get_response.result.event_error;
+          if(!rmap_data_error) {
+            // EOF Data? (Save and Exit, after last data process)
+            rmap_eof = rmap_get_response.result.end_of_data;
+            // ******************************************************************
+            // Example of Current Session Upload CountData and DateTime Block Print
+            countData++;
+            DateTime rmap_date_time_val;
+            convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
+            TRACE_VERBOSE_F(F("MQTT: RMAP data current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
+            // ******************************************************************
+            // Process Data with casting RMAP Module Type
+            switch (rmap_get_response.rmap_data.module_type) {
+              case Module_Type::th:
+                rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataTH->ITH.humidity.val.value ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::rain:
+                rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::radiation:
+                rmapDataRadiation = (rmap_module_Radiation_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataRadiation->DSA.metadata ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::wind:
+                rmapDataWind = (rmap_module_Wind_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataWind->DWA ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::vwc:
+                rmapDataVWC = (rmap_module_VWC_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataVWC->VWC ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+              case Module_Type::power:
+                rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+                // Prepare MQTT String -> rmapDataPower->DEP ecc...
+                // PUT String MQTT in Buffer Memory...
+                // SEND To MQTT Server
+                break;
+            }
+            // *****************************************
+            // *****************************************
+            // TODO: PUSH REAL DATA MQTT, EXIT ON ERROR
+            // *****************************************
+            // *****************************************            
+          } else {
+            TRACE_VERBOSE_F(F("MQTT: RMAP Reading Data queue error!!!\r\n"));
+          }
+          // Non blocking task
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+        }
+        // Trace END Data response
+        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+      }
+      // *****************************************
+      //  END GET RMAP Data Queue and Append MQTT
+      // *****************************************
+
       // TODO: da recuperare da SD Card
       if (param.system_status->connection.mqtt_data_published == 0)
       {
