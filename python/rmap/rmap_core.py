@@ -193,7 +193,7 @@ def delsensors(station_slug=None,username=None,board_slug=None):
                                 ,board__stationmetadata__user__username=username).delete()
 
 
-def addboard(station_slug=None,username=None,board_slug=None,type=None,sn=None,activate=False
+def addboard(station_slug=None,username=None,board_slug=None,type=0,sn=None,activate=False
               ,serialactivate=False
               ,canactivate=False,cannodeid=100,cansubject="",cansubjectid=100,cansamplerate=60
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
