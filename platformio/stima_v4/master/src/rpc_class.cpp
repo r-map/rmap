@@ -473,27 +473,61 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     {
       // LevelType1, L1, LevelType2, L2
       // it.value().as<JsonArray>()[0,1,2,3].as<unsigned int>()
+      // need to be checked if it is null value. if null a UINT16_MAX must be assigned
       // Coorect sequence only is here sensorID have real value index
       if((sensorId<SETUP_ID)&&(isSlaveConfigure)) {
         param.configurationLock->Take();
-        param.configuration->board_slave[slaveId].metadata[sensorId].levelType1 =
-          it.value().as<JsonArray>()[0].as<unsigned int>();
-        param.configuration->board_slave[slaveId].metadata[sensorId].level1 =
-          it.value().as<JsonArray>()[1].as<unsigned int>();
-        param.configuration->board_slave[slaveId].metadata[sensorId].levelType2 =
-          it.value().as<JsonArray>()[2].as<unsigned int>();
-        param.configuration->board_slave[slaveId].metadata[sensorId].level2 =
-          it.value().as<JsonArray>()[3].as<unsigned int>();
+
+        if (it.value().as<JsonArray>()[0].isNull())
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].levelType1 = UINT16_MAX;
+        }
+        else
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].levelType1 =
+              it.value().as<JsonArray>()[0].as<unsigned int>();
+        }
+
+        if (it.value().as<JsonArray>()[1].isNull())
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].level1 = UINT16_MAX;
+        }
+        else
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].level1 =
+              it.value().as<JsonArray>()[1].as<unsigned int>();
+        }
+
+        if (it.value().as<JsonArray>()[2].isNull())
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].levelType2 = UINT16_MAX;
+        }
+        else
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].levelType2 =
+              it.value().as<JsonArray>()[2].as<unsigned int>();
+        }
+
+        if (it.value().as<JsonArray>()[3].isNull())
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].level2 = UINT16_MAX;
+        }
+        else
+        {
+          param.configuration->board_slave[slaveId].metadata[sensorId].level2 =
+              it.value().as<JsonArray>()[3].as<unsigned int>();
+        }
+
         // Duplicate ITH into STH Only for TH Module (Param not send in config)
         if((currentModule == Module_Type::th) && (sensorId ==SENSOR_METADATA_ITH)) {
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].levelType1 =
-            it.value().as<JsonArray>()[0].as<unsigned int>();
+              param.configuration->board_slave[slaveId].metadata[sensorId].levelType1;
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].level1 =
-            it.value().as<JsonArray>()[1].as<unsigned int>();
+              param.configuration->board_slave[slaveId].metadata[sensorId].level1;
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].levelType2 =
-            it.value().as<JsonArray>()[2].as<unsigned int>();
+              param.configuration->board_slave[slaveId].metadata[sensorId].levelType2;
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].level2 =
-            it.value().as<JsonArray>()[3].as<unsigned int>();
+              param.configuration->board_slave[slaveId].metadata[sensorId].level2;
         }
         param.configurationLock->Give();
       }

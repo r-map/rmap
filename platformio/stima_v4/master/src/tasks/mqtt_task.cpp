@@ -406,13 +406,114 @@ void MqttTask::Run()
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataTH->ITH.humidity.val.value ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // the mqtt topic data like: mqtt_root_topic, mqtt_username, ident, longitude, latitude, network
+                // was picked from the configuration.
+                // if the station were moved from one place to another, the data like: ident, longitude, latitude, network
+                // need to be stored on the sdcard
+
+                // prepare data and send they on the mqtt
+                // need to check if the sensor (STH, ITH, NTH, MTH, XTH) was really saved or it is null
+
+                // ----------------------------------------------------------------------------
+                // STH
+                // ----------------------------------------------------------------------------
+                error = publishSensorTH(rmapDataTH->STH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                if (error)
+                {
+                  // Connection to MQTT server lost?
+                  state = MQTT_STATE_DISCONNECT;
+                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                }
+                else
+                {
+                  // Starting publishing
+                  param.systemStatusLock->Take();
+                  param.system_status->connection.is_mqtt_publishing = true;
+                  param.system_status->connection.mqtt_data_published++;
+                  param.systemStatusLock->Give();
+                }
+
+                // ----------------------------------------------------------------------------
+                // ITH
+                // ----------------------------------------------------------------------------
+                error = publishSensorTH(rmapDataTH->ITH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                if (error)
+                {
+                  // Connection to MQTT server lost?
+                  state = MQTT_STATE_DISCONNECT;
+                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                }
+                else
+                {
+                  // Starting publishing
+                  param.systemStatusLock->Take();
+                  param.system_status->connection.is_mqtt_publishing = true;
+                  param.system_status->connection.mqtt_data_published++;
+                  param.systemStatusLock->Give();
+                }
+
+                // ----------------------------------------------------------------------------
+                // NTH
+                // ----------------------------------------------------------------------------
+                error = publishSensorTH(rmapDataTH->NTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                if (error)
+                {
+                  // Connection to MQTT server lost?
+                  state = MQTT_STATE_DISCONNECT;
+                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                }
+                else
+                {
+                  // Starting publishing
+                  param.systemStatusLock->Take();
+                  param.system_status->connection.is_mqtt_publishing = true;
+                  param.system_status->connection.mqtt_data_published++;
+                  param.systemStatusLock->Give();
+                }
+
+                // ----------------------------------------------------------------------------
+                // MTH
+                // ----------------------------------------------------------------------------
+                error = publishSensorTH(rmapDataTH->MTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                if (error)
+                {
+                  // Connection to MQTT server lost?
+                  state = MQTT_STATE_DISCONNECT;
+                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                }
+                else
+                {
+                  // Starting publishing
+                  param.systemStatusLock->Take();
+                  param.system_status->connection.is_mqtt_publishing = true;
+                  param.system_status->connection.mqtt_data_published++;
+                  param.systemStatusLock->Give();
+                }
+
+                // ----------------------------------------------------------------------------
+                // XTH
+                // ----------------------------------------------------------------------------
+                error = publishSensorTH(rmapDataTH->XTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                if (error)
+                {
+                  // Connection to MQTT server lost?
+                  state = MQTT_STATE_DISCONNECT;
+                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                }
+                else
+                {
+                  // Starting publishing
+                  param.systemStatusLock->Take();
+                  param.system_status->connection.is_mqtt_publishing = true;
+                  param.system_status->connection.mqtt_data_published++;
+                  param.systemStatusLock->Give();
+                }
+
                 break;
               case Module_Type::rain:
                 rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
-                #if (ENABLE_STACK_USAGE)
+#if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
                 // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
@@ -620,6 +721,182 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
     }
     localRpcLock->Give();
   }
+}
+
+bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
+{
+  int ret = 0;
+  bool status = true;
+  osMemset(sensors_topic, 0, sensors_topic_length);
+
+  snprintf(sensors_topic, sensors_topic_length, "%d,%d,%d/", metadata.timerange.Pindicator, metadata.timerange.P1, metadata.timerange.P2);
+
+  if (metadata.level.LevelType1 != UINT16_MAX)
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType1);
+  }
+  else
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
+  }
+
+  status &= (ret > 0);
+
+  if (metadata.level.L1 != UINT16_MAX)
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.L1);
+  }
+  else
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
+  }
+
+  status &= (ret > 0);
+
+  if (metadata.level.LevelType2 != UINT16_MAX)
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType2);
+  }
+  else
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
+  }
+
+  status &= (ret > 0);
+
+  if (metadata.level.L2 != UINT16_MAX)
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u/", metadata.level.L2);
+  }
+  else
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-/");
+  }
+
+  if (bvalue != NULL)
+  {
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%s", bvalue);
+  }
+
+  status &= (ret > 0);
+
+  return status;
+}
+
+error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Temperature
+  // ----------------------------------------------------------------------------
+  // make temperature topic
+  status &= makeSensorTopic(sensor.metadata, "B12101", sensors_topic, sensors_topic_length);
+  // make temperature message
+  status &= makeSensorMessageTemperature(sensor.temperature, dateTime, message, message_length);
+  // make common topic
+  osMemset(topic, 0, topic_length);
+  error = (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0);
+
+  // publish temperature value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Humidity
+  // ----------------------------------------------------------------------------
+  // make humidity topic
+  status &= makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
+  // make humidity message
+  status &= makeSensorMessageTemperature(sensor.humidity, dateTime, message, message_length);
+  // make common topic
+  osMemset(topic, 0, topic_length);
+  error = (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0);
+
+  // publish humidity value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+// 1,0,900/103,2000,-,-/B14198 {"v":903,"t":"2019-07-30T11:45:00"}
+// 9,0,900/103,6000,-,-/ {"d":51,"p":[100,0,0,0,0,0],"t":"2019-07-30T11:45:00"}
+bool MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length)
+{
+  int ret = 0;
+  bool status = true;
+  osMemset(message, 0, message_length);
+
+  if (IS_VALID(temperature.val))
+  {
+    snprintf(message, message_length, "{\"v\":%ld,");
+  }
+  else
+  {
+    snprintf(message, message_length, "{\"v\":null,");
+  }
+
+  snprintf(&(message[strlen(message)]), message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds);
+
+  if (IS_VALID(temperature.confidence))
+  {
+    snprintf(message, message_length, "\"a\":{\"B33199\":%u}", temperature.confidence);
+  }
+  else
+  {
+    snprintf(message, message_length, "\"a\":{\"B33199\":null}");
+  }
+
+  snprintf(message, message_length, "}");
+
+  status &= (ret > 0);
+
+  return status;
+}
+
+bool MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length)
+{
+  int ret = 0;
+  bool status = true;
+  osMemset(message, 0, message_length);
+
+  if (IS_VALID(humidity.val))
+  {
+    snprintf(message, message_length, "{\"v\":%ld,");
+  }
+  else
+  {
+    snprintf(message, message_length, "{\"v\":null,");
+  }
+
+  snprintf(&(message[strlen(message)]), message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds);
+
+  if (IS_VALID(humidity.confidence))
+  {
+    snprintf(message, message_length, "\"a\":{\"B33199\":%u}", humidity.confidence);
+  }
+  else
+  {
+    snprintf(message, message_length, "\"a\":{\"B33199\":null}");
+  }
+
+  snprintf(message, message_length, "}");
+
+  status &= (ret > 0);
+
+  return status;
 }
 
 /**

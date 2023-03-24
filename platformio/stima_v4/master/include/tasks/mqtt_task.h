@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_WAIT_DELAY_MS           (100)
 #define MQTT_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define MQTT_TASK_GENERIC_RETRY           (3)
+#define MQTT_TASK_PUBLISH_DELAY_MS        (5)
 
 #define MQTT_PUB_CMD_DEBUG_PREFIX         (">")
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")
@@ -161,6 +162,12 @@ private:
 
   static error_t mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext);
   static void mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId);
+
+  bool makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length);
+
+  error_t publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length);
+  bool makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length);
+  bool makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length);
 
   MqttState_t state;
   MqttParam_t param;

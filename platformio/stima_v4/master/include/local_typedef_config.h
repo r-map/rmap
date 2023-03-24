@@ -35,4 +35,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define CLIENT_PSK_KEY_LENGTH (16)
 #define CLIENT_PSK_IDENTITY_LENGTH (MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH)
 
+#define BVALUE_STR_LENGTH     (10)
+
 #endif
