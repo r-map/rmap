@@ -40,8 +40,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2023-01-21T00:00"    // date and time
-#define MAJOR_VERSION    "20230121"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2023-03-24T00:00"    // date and time
+#define MAJOR_VERSION    "20230324"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
@@ -66,6 +66,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
 #define I2C_CLOCK 10000
 // #define I2CPULLUP define this if you want software pullup on I2C
+
+const int EPOCH_1_1_2019 = 1546300800; //1546300800 =  01/01/2019 @ 12:00am (UTC)
 
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
@@ -192,6 +194,7 @@ char rmap_longitude[11] = "";
 char rmap_latitude[11] = "";
 char rmap_network[31] = "";
 char rmap_server[41] = "rmap.cc";
+char ntp_server[41] = "0.europe.pool.ntp.org";
 char rmap_mqtt_server[41] = "rmap.cc";
 int  rmap_sampletime = DEFAULT_SAMPLETIME;
 char rmap_user[10] = "";
@@ -684,7 +687,8 @@ void writeconfig_rmap(String payload) {;
 int  rmap_config(String payload){
 
   bool status_station = false;
-  bool status_board = false;
+  bool status_board_mqtt = false;
+  bool status_board_tcpip = false;
   bool status_sensors = false;
   int status = 0;
   int ii = 0;
@@ -739,13 +743,13 @@ int  rmap_config(String payload){
 	if  (element["model"] == "stations.transportmqtt"){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
-	      LOGN(F("board metadata found!" CR));
+	      LOGN(F("board transportmqtt found!" CR));
 	      rmap_sampletime=element["fields"]["mqttsampletime"];
 	      LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
 
 	      if (!element["fields"]["mqttserver"].isNull()){
 		strncpy (rmap_mqtt_server, element["fields"]["mqttserver"].as< const char*>(),40);
-		rmap_user[40]='\0';
+		rmap_mqtt_server[40]='\0';
 		LOGN(F("rmap_mqtt_server: %s" CR),rmap_mqtt_server);
 	      }
 	      
@@ -767,7 +771,22 @@ int  rmap_config(String payload){
 	      }
 	      ///////////////////////////////////////////////////////////////////////////////
 
-	      status_board = true;
+	      status_board_mqtt = true;
+	    }
+	  }
+	}
+
+	if  (element["model"] == "stations.transporttcpip"){
+	  if (element["fields"]["board"][0] == "default"){
+	    if (element["fields"]["active"]){
+	      LOGN(F("board transporttcpip found!" CR));
+
+	      if (!element["fields"]["ntpserver"].isNull()){
+		strncpy (ntp_server, element["fields"]["ntpserver"].as< const char*>(),40);
+		ntp_server[40]='\0';
+		LOGN(F("ntp_server: %s" CR),ntp_server);
+	      }
+	      status_board_tcpip = true;	      
 	    }
 	  }
 	}
@@ -806,7 +825,7 @@ int  rmap_config(String payload){
 	  }
 	}
       }
-      status = (int)!(status_station && status_board && status_sensors);
+      status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors);
     } else {
       LOGE(F("error parsing array: %s" CR),error.c_str());
       analogWrite(LED_PIN,973);
@@ -842,6 +861,7 @@ void readconfig_SPIFFS() {
 	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
 	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
           if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("ntp_server")) strcpy(ntp_server, doc["ntp_server"]);
           if (doc.containsKey("rmap_mqtt_server")) strcpy(rmap_mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
@@ -853,6 +873,7 @@ void readconfig_SPIFFS() {
 	  LOGN(F("longitude: %s" CR),rmap_longitude);
 	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
+	  LOGN(F("ntp server: %s" CR),ntp_server);	  
 	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
@@ -922,6 +943,7 @@ void readconfig() {
 	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
 	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
           if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("ntp_server")) strcpy(ntp_server, doc["ntp_server"]);
           if (doc.containsKey("rmap_mqtt_server")) strcpy(rmap_mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
@@ -933,6 +955,7 @@ void readconfig() {
 	  LOGN(F("longitude: %s" CR),rmap_longitude);
 	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
+	  LOGN(F("ntp server: %s" CR),ntp_server);
 	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
@@ -962,6 +985,7 @@ void writeconfig() {;
   json["rmap_longitude"] = rmap_longitude;
   json["rmap_latitude"] = rmap_latitude;
   json["rmap_server"] = rmap_server;
+  json["ntp_server"] = ntp_server;
   json["rmap_mqtt_server"] = rmap_mqtt_server;
   json["rmap_user"] = rmap_user;
   json["rmap_password"] = rmap_password;
@@ -1453,7 +1477,7 @@ void setup() {
   // id/name placeholder/prompt default length
   WiFiManagerParameter custom_rmap_server("server", "rmap server", rmap_server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", rmap_user, 10);
-  WiFiManagerParameter custom_rmap_password("password", "rmap password", rmap_password, 31, "type = \"password\"");
+  WiFiManagerParameter custom_rmap_password("password", "station password", rmap_password, 31, "type = \"password\"");
   WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 31);
 
   //set config save notify callback
@@ -1475,7 +1499,7 @@ void setup() {
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds
-  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConfigPortalTimeout(300);
 
   // USE THIS OPTIONS WITH WIFIMANAGER VERSION 2
   //if false, timeout captive portal even if a STA client connected to softAP (false), suggest disabling if captiveportal is open
@@ -1519,6 +1543,8 @@ void setup() {
     LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
     digitalWrite(LED_PIN,HIGH);
 
+    yield();
+    
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
@@ -1531,6 +1557,8 @@ void setup() {
       u8g2.setFont(u8g2_font_5x7_tf);
       u8g2.sendBuffer();
     }
+    yield();
+    
   }
 
   if (shouldSaveConfig){
@@ -1548,6 +1576,7 @@ void setup() {
       u8g2.setCursor(0, 20); 
       u8g2.print(F("saved"));
       u8g2.sendBuffer();
+      yield();
     }
     
   }
@@ -1609,6 +1638,13 @@ void setup() {
   LOGN(F("HTTP server started" CR));
 
   time_t tnow = time(nullptr);
+  while (tnow < EPOCH_1_1_2019)
+  {
+    tnow = time(nullptr);
+    delay(500);
+    LOGN(F("Wait for NTP" CR));
+  }
+  
   LOGN(F("Time: %s" CR),ctime(&tnow));
   
   LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
