@@ -407,154 +407,244 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                // the mqtt topic data like: mqtt_root_topic, mqtt_username, ident, longitude, latitude, network
-                // was picked from the configuration.
-                // if the station were moved from one place to another, the data like: ident, longitude, latitude, network
-                // need to be stored on the sdcard
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::th)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_STH])
+                    {
+                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->STH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
+                    {
+                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->ITH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_NTH])
+                    {
+                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->NTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MTH])
+                    {
+                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->MTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_XTH])
+                    {
+                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->XTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
 
-                // prepare data and send they on the mqtt
-                // need to check if the sensor (STH, ITH, NTH, MTH, XTH) was really saved or it is null
-
-                // ----------------------------------------------------------------------------
-                // STH
-                // ----------------------------------------------------------------------------
-                error = publishSensorTH(rmapDataTH->STH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                if (error)
-                {
-                  // Connection to MQTT server lost?
-                  state = MQTT_STATE_DISCONNECT;
-                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
                 }
-                else
-                {
-                  // Starting publishing
-                  param.systemStatusLock->Take();
-                  param.system_status->connection.is_mqtt_publishing = true;
-                  param.system_status->connection.mqtt_data_published++;
-                  param.systemStatusLock->Give();
-                }
-
-                // ----------------------------------------------------------------------------
-                // ITH
-                // ----------------------------------------------------------------------------
-                error = publishSensorTH(rmapDataTH->ITH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                if (error)
-                {
-                  // Connection to MQTT server lost?
-                  state = MQTT_STATE_DISCONNECT;
-                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
-                }
-                else
-                {
-                  // Starting publishing
-                  param.systemStatusLock->Take();
-                  param.system_status->connection.is_mqtt_publishing = true;
-                  param.system_status->connection.mqtt_data_published++;
-                  param.systemStatusLock->Give();
-                }
-
-                // ----------------------------------------------------------------------------
-                // NTH
-                // ----------------------------------------------------------------------------
-                error = publishSensorTH(rmapDataTH->NTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                if (error)
-                {
-                  // Connection to MQTT server lost?
-                  state = MQTT_STATE_DISCONNECT;
-                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
-                }
-                else
-                {
-                  // Starting publishing
-                  param.systemStatusLock->Take();
-                  param.system_status->connection.is_mqtt_publishing = true;
-                  param.system_status->connection.mqtt_data_published++;
-                  param.systemStatusLock->Give();
-                }
-
-                // ----------------------------------------------------------------------------
-                // MTH
-                // ----------------------------------------------------------------------------
-                error = publishSensorTH(rmapDataTH->MTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                if (error)
-                {
-                  // Connection to MQTT server lost?
-                  state = MQTT_STATE_DISCONNECT;
-                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
-                }
-                else
-                {
-                  // Starting publishing
-                  param.systemStatusLock->Take();
-                  param.system_status->connection.is_mqtt_publishing = true;
-                  param.system_status->connection.mqtt_data_published++;
-                  param.systemStatusLock->Give();
-                }
-
-                // ----------------------------------------------------------------------------
-                // XTH
-                // ----------------------------------------------------------------------------
-                error = publishSensorTH(rmapDataTH->XTH, qos, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                if (error)
-                {
-                  // Connection to MQTT server lost?
-                  state = MQTT_STATE_DISCONNECT;
-                  TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
-                }
-                else
-                {
-                  // Starting publishing
-                  param.systemStatusLock->Take();
-                  param.system_status->connection.is_mqtt_publishing = true;
-                  param.system_status->connection.mqtt_data_published++;
-                  param.systemStatusLock->Give();
-                }
-
                 break;
               case Module_Type::rain:
                 rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
-#if (ENABLE_STACK_USAGE)
+                #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::rain)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_TBR])
+                    {
+                      error = publishSensorRain(&mqttClientContext, qos, rmapDataRain->TBR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
+                }
+
                 break;
               case Module_Type::radiation:
                 rmapDataRadiation = (rmap_module_Radiation_1_0 *)&rmap_get_response.rmap_data;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataRadiation->DSA.metadata ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::radiation)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DSA])
+                    {
+                      error = publishSensorRadiation(&mqttClientContext, qos, rmapDataRadiation->DSA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
+                }
+
                 break;
               case Module_Type::wind:
                 rmapDataWind = (rmap_module_Wind_1_0 *)&rmap_get_response.rmap_data;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataWind->DWA ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::wind)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWA])
+                    {
+                      error = publishSensorWindAvgVect10(&mqttClientContext, qos, rmapDataWind->DWA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWB])
+                    {
+                      error = publishSensorWindAvgVect(&mqttClientContext, qos, rmapDataWind->DWB, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWC])
+                    {
+                      error = publishSensorWindGustSpeed(&mqttClientContext, qos, rmapDataWind->DWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWD])
+                    {
+                      error = publishSensorWindAvgSpeed(&mqttClientContext, qos, rmapDataWind->DWD, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWE])
+                    {
+                      error = publishSensorWindClassSpeed(&mqttClientContext, qos, rmapDataWind->DWE, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWF])
+                    {
+                      error = publishSensorWindGustDirection(&mqttClientContext, qos, rmapDataWind->DWF, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
+                }
+
                 break;
               case Module_Type::vwc:
                 rmapDataVWC = (rmap_module_VWC_1_0 *)&rmap_get_response.rmap_data;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataVWC->VWC ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::vwc)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC])
+                    {
+                      error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
+                }
+
                 break;
               case Module_Type::power:
                 rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-                // Prepare MQTT String -> rmapDataPower->DEP ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::power)
+                  {
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DEP])
+                    {
+                      error = publishSensorPower(&mqttClientContext, qos, rmapDataPower->DEP, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost?
+                      state = MQTT_STATE_DISCONNECT;
+                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Starting publishing
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                  }
+                }
+
                 break;
             }
             // *****************************************
@@ -576,40 +666,8 @@ void MqttTask::Run()
       //  END GET RMAP Data Queue and Append MQTT
       // *****************************************
 
-      // TODO: da recuperare da SD Card
-      if (param.system_status->connection.mqtt_data_published == 0)
+      if (rmap_eof || rmap_data_error)
       {
-        strSafeCopy(sensors_topic, "254,0,0/103,2000,-,-/B12101", MQTT_SENSOR_TOPIC_LENGTH);
-        snprintf(message, sizeof(message), "{\"v\" : 100, \"t\" : \"2023-03-16T07:45:00\", \"a\" : { \"B33199\" : 100 }");
-
-        // Set topic
-        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, sensors_topic);
-
-        error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
-        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
-        if (error)
-        {
-          // Connection to MQTT server lost?
-          state = MQTT_STATE_DISCONNECT;
-          TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
-        }
-        else
-        {
-          // Starting publishing
-          param.systemStatusLock->Take();
-          param.system_status->connection.is_mqtt_publishing = true;
-          param.system_status->connection.mqtt_data_published++;
-          param.systemStatusLock->Give();
-        }
-      }
-
-      // TODO. Set Time corretto
-      // pubblica ogni 5 secondi
-      TaskWatchDog(5000);
-      Delay(Ticks::MsToTicks(5000));
-      //TODO:REMOVE End connecction on END Data... >=3 Remove...
-      //TODO: is_data_publish_end = true when data END !!!
-      if(param.system_status->connection.mqtt_data_published >=1) {
         param.systemStatusLock->Take();
         is_data_publish_end = true;
         param.systemStatusLock->Give();
@@ -723,7 +781,7 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   }
 }
 
-bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
+error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
 {
   int ret = 0;
   bool status = true;
@@ -731,9 +789,9 @@ bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue
 
   snprintf(sensors_topic, sensors_topic_length, "%d,%d,%d/", metadata.timerange.Pindicator, metadata.timerange.P1, metadata.timerange.P2);
 
-  if (metadata.level.LevelType1 != UINT16_MAX)
+  if (metadata.level.LevelType1.value != UINT16_MAX)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType1);
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType1.value);
   }
   else
   {
@@ -742,9 +800,9 @@ bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue
 
   status &= (ret > 0);
 
-  if (metadata.level.L1 != UINT16_MAX)
+  if (metadata.level.L1.value != UINT16_MAX)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.L1);
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.L1.value);
   }
   else
   {
@@ -753,9 +811,9 @@ bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue
 
   status &= (ret > 0);
 
-  if (metadata.level.LevelType2 != UINT16_MAX)
+  if (metadata.level.LevelType2.value != UINT16_MAX)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType2);
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType2.value);
   }
   else
   {
@@ -764,9 +822,9 @@ bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue
 
   status &= (ret > 0);
 
-  if (metadata.level.L2 != UINT16_MAX)
+  if (metadata.level.L2.value != UINT16_MAX)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u/", metadata.level.L2);
+    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u/", metadata.level.L2.value);
   }
   else
   {
@@ -780,7 +838,38 @@ bool MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue
 
   status &= (ret > 0);
 
-  return status;
+  if (status) {
+    return NO_ERROR;
+  }
+  else
+  {
+    return ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, size_t topic_length)
+{
+  error_t error = NO_ERROR;
+
+  osMemset(topic, 0, topic_length);
+  if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+
+  return error;
+}
+
+error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  
+  if (snprintf(message, message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds) < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+
+  return error;
 }
 
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
@@ -792,12 +881,17 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // Temperature
   // ----------------------------------------------------------------------------
   // make temperature topic
-  status &= makeSensorTopic(sensor.metadata, "B12101", sensors_topic, sensors_topic_length);
+  error = makeSensorTopic(sensor.metadata, "B12101", sensors_topic, sensors_topic_length);
   // make temperature message
-  status &= makeSensorMessageTemperature(sensor.temperature, dateTime, message, message_length);
+  if (!error)
+  {
+    error = makeSensorMessageTemperature(sensor.temperature, dateTime, message, message_length);
+  }
   // make common topic
-  osMemset(topic, 0, topic_length);
-  error = (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0);
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
 
   // publish temperature value
   if (!error)
@@ -812,12 +906,20 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // Humidity
   // ----------------------------------------------------------------------------
   // make humidity topic
-  status &= makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
+  }
   // make humidity message
-  status &= makeSensorMessageHumidity(sensor.humidity, dateTime, message, message_length);
+  if (!error)
+  {
+    error = makeSensorMessageHumidity(sensor.humidity, dateTime, message, message_length);
+  }
   // make common topic
-  osMemset(topic, 0, topic_length);
-  error = (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0);
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
 
   // publish humidity value
   if (!error)
@@ -833,70 +935,1371 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
 
 // 1,0,900/103,2000,-,-/B14198 {"v":903,"t":"2019-07-30T11:45:00"}
 // 9,0,900/103,6000,-,-/ {"d":51,"p":[100,0,0,0,0,0],"t":"2019-07-30T11:45:00"}
-bool MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length)
+error_t MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length)
 {
-  int ret = 0;
-  bool status = true;
+  error_t error = NO_ERROR;
   osMemset(message, 0, message_length);
 
-  if (IS_VALID(temperature.val))
+  if (ISVALID_UINT32(temperature.val.value))
   {
-    snprintf(message, message_length, "{\"v\":%ld,");
+    if (snprintf(message, message_length, "{\"v\":%ld,", temperature.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
   else
   {
-    snprintf(message, message_length, "{\"v\":null,");
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
 
-  snprintf(&(message[strlen(message)]), message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds);
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
 
-  if (IS_VALID(temperature.confidence))
+  if (ISVALID_UINT8(temperature.confidence.value))
   {
-    snprintf(message, message_length, "\"a\":{\"B33199\":%u}", temperature.confidence);
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", temperature.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
   else
   {
-    snprintf(message, message_length, "\"a\":{\"B33199\":null}");
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
 
-  snprintf(message, message_length, "}");
-
-  status &= (ret > 0);
-
-  return status;
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
 }
 
-bool MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length)
+error_t MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length)
 {
-  int ret = 0;
-  bool status = true;
+  error_t error = NO_ERROR;
   osMemset(message, 0, message_length);
 
-  if (IS_VALID(humidity.val))
+  if (ISVALID_UINT8(humidity.val.value))
   {
-    snprintf(message, message_length, "{\"v\":%ld,");
+    if (snprintf(message, message_length, "{\"v\":%ld,", humidity.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
   else
   {
-    snprintf(message, message_length, "{\"v\":null,");
+    if (snprintf(&(message[strlen(message)]), message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
 
-  snprintf(&(message[strlen(message)]), message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds);
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
 
-  if (IS_VALID(humidity.confidence))
+  if (ISVALID_UINT8(humidity.confidence.value))
   {
-    snprintf(message, message_length, "\"a\":{\"B33199\":%u}", humidity.confidence);
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", humidity.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
   else
   {
-    snprintf(message, message_length, "\"a\":{\"B33199\":null}");
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
 
-  snprintf(message, message_length, "}");
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
 
-  status &= (ret > 0);
+error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
 
-  return status;
+  if (ISVALID_UINT16(rain.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", rain.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(rain.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", rain.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Rain
+  // ----------------------------------------------------------------------------
+  // make rain topic
+  error = makeSensorTopic(sensor.metadata, "B13011", sensors_topic, sensors_topic_length);
+  // make rain message
+  if (!error)
+  {
+    error = makeSensorMessageRain(sensor.rain, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish rain value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiation, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(radiation.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", radiation.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(radiation.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", radiation.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Radiation
+  // ----------------------------------------------------------------------------
+  // make radiation topic
+  error = makeSensorTopic(sensor.metadata, "B14198", sensors_topic, sensors_topic_length);
+  // make radiation message
+  if (!error)
+  {
+    error = makeSensorMessageRadiation(sensor.radiation, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish radiation value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect10_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Speed
+  // ----------------------------------------------------------------------------
+  // make speed topic
+  error = makeSensorTopic(sensor.metadata, "B11002", sensors_topic, sensors_topic_length);
+  // make speed message
+  if (!error)
+  {
+    error = makeSensorMessageSpeed(sensor.speed, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish speed value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Direction
+  // ----------------------------------------------------------------------------
+  // make direction topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
+  }
+  // make direction message
+  if (!error)
+  {
+    error = makeSensorMessageDirection(sensor.direction, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish direction value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Speed
+  // ----------------------------------------------------------------------------
+  // make speed topic
+  error = makeSensorTopic(sensor.metadata, "B11002", sensors_topic, sensors_topic_length);
+  // make speed message
+  if (!error)
+  {
+    error = makeSensorMessageSpeed(sensor.speed, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish speed value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Direction
+  // ----------------------------------------------------------------------------
+  // make direction topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
+  }
+  // make direction message
+  if (!error)
+  {
+    error = makeSensorMessageDirection(sensor.direction, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish direction value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Speed Peak
+  // ----------------------------------------------------------------------------
+  // make speed peak topic
+  error = makeSensorTopic(sensor.metadata, "B11041", sensors_topic, sensors_topic_length);
+  // make speed peak message
+  if (!error)
+  {
+    error = makeSensorMessageSpeedPeak(sensor.peak, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish speed peak value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Speed Long
+  // ----------------------------------------------------------------------------
+  // make speed long topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B11209", sensors_topic, sensors_topic_length);
+  }
+  // make speed long message
+  if (!error)
+  {
+    error = makeSensorMessageSpeedLong(sensor._long, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish speed long value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Avg Speed
+  // ----------------------------------------------------------------------------
+  // make speed peak topic
+  error = makeSensorTopic(sensor.metadata, "B11002", sensors_topic, sensors_topic_length);
+  // make speed peak message
+  if (!error)
+  {
+    error = makeSensorMessageSpeed(sensor.speed, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish speed peak value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Class Speed
+  // ----------------------------------------------------------------------------
+  // make class speed topic
+  error = makeSensorTopic(sensor.metadata, NULL, sensors_topic, sensors_topic_length);
+  // make class speed message
+  if (!error)
+  {
+    error = makeSensorMessageClassSpeed(sensor, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish class speed value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustDirection_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Direction Peak
+  // ----------------------------------------------------------------------------
+  // make peak topic
+  error = makeSensorTopic(sensor.metadata, "B11043", sensors_topic, sensors_topic_length);
+  // make speed message
+  if (!error)
+  {
+    error = makeSensorMessageDirectionPeak(sensor.peak, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish peak value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Direction Long
+  // ----------------------------------------------------------------------------
+  // make direction long topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B11210", sensors_topic, sensors_topic_length);
+  }
+  // make direction long message
+  if (!error)
+  {
+    error = makeSensorMessageDirectionLong(sensor._long, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish direction long value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+// 1,0,900/103,2000,-,-/B14198 {"v":903,"t":"2019-07-30T11:45:00"}
+// 9,0,900/103,6000,-,-/ {"d":51,"p":[100,0,0,0,0,0],"t":"2019-07-30T11:45:00"}
+error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (snprintf(message, message_length, "{\"d\":51,\"p\":[") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+
+  if (ISVALID_UINT32(sensor.class1.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class1.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (ISVALID_UINT32(sensor.class2.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class2.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (ISVALID_UINT32(sensor.class3.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class3.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (ISVALID_UINT32(sensor.class4.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class4.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (ISVALID_UINT32(sensor.class5.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class5.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (ISVALID_UINT32(sensor.class6.val.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "%ld]", sensor.class6.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "null],") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(sensor.class1.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", sensor.class1.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageSpeed(rmap_measures_WindSpeed_1_0 speed, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(speed.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", speed.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(speed.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", speed.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageDirection(rmap_measures_WindDirection_1_0 direction, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(direction.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", direction.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(direction.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", direction.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageSpeedPeak(rmap_measures_WindPeakGustSpeed_1_0 peak, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(peak.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(peak.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageSpeedLong(rmap_measures_WindLongGustSpeed_1_0 _long, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(_long.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(_long.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageDirectionPeak(rmap_measures_WindPeakGustDirection_1_0 peak, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(peak.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(peak.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirection_1_0 _long, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT32(_long.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(_long.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0 soil, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(soil.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", soil.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(soil.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", soil.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Power_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // InputVoltage
+  // ----------------------------------------------------------------------------
+  // make input voltage topic
+  error = makeSensorTopic(sensor.metadata, "B25194", sensors_topic, sensors_topic_length);
+  // make input voltage message
+  if (!error)
+  {
+    error = makeSensorMessageInputVoltage(sensor.input_voltage, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish input voltage value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // InputCurrent
+  // ----------------------------------------------------------------------------
+  // make input current topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B25195", sensors_topic, sensors_topic_length);
+  }
+  // make input current message
+  if (!error)
+  {
+    error = makeSensorMessageInputCurrent(sensor.input_current, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish input current value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // BatteryVoltage
+  // ----------------------------------------------------------------------------
+  // make battery voltage topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B25025", sensors_topic, sensors_topic_length);
+  }
+  // make battery voltage message
+  if (!error)
+  {
+    error = makeSensorMessageBatteryVoltage(sensor.battery_voltage, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish battery voltage value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // BatteryCurrent
+  // ----------------------------------------------------------------------------
+  // make battery current topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B25193", sensors_topic, sensors_topic_length);
+  }
+  // make battery current message
+  if (!error)
+  {
+    error = makeSensorMessageBatteryCurrent(sensor.battery_current, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish battery current value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // BatteryCharge
+  // ----------------------------------------------------------------------------
+  // make battery charge topic
+  if (!error)
+  {
+    error = makeSensorTopic(sensor.metadata, "B25192", sensors_topic, sensors_topic_length);
+  }
+  // make battery charge message
+  if (!error)
+  {
+    error = makeSensorMessageBatteryCharge(sensor.battery_charge, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish battery charge value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 inputVoltage, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(inputVoltage.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(inputVoltage.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputVoltage.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageInputCurrent(rmap_measures_InputCurrent_1_0 inputCurrent, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(inputCurrent.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", inputCurrent.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(inputCurrent.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputCurrent.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageBatteryVoltage(rmap_measures_BatteryVoltage_1_0 batteryVoltage, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(batteryVoltage.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryVoltage.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(batteryVoltage.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryVoltage.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageBatteryCurrent(rmap_measures_BatteryCurrent_1_0 batteryCurrent, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(batteryCurrent.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCurrent.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(batteryCurrent.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCurrent.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0 batteryCharge, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (ISVALID_UINT16(batteryCharge.val.value))
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCharge.val.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+
+  if (ISVALID_UINT8(batteryCharge.confidence.value))
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCharge.confidence.value) < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
+  {
+    error = ERROR_FAILURE;
+  }
+}
+
+error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_VWC_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  int ret = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Soil
+  // ----------------------------------------------------------------------------
+  // make soil topic
+  error = makeSensorTopic(sensor.metadata, "B13227", sensors_topic, sensors_topic_length);
+  // make soil message
+  if (!error)
+  {
+    error = makeSensorMessageSoil(sensor.vwc, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length);
+  }
+
+  // publish soil value
+  if (!error)
+  {
+    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  }
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
 }
 
 /**

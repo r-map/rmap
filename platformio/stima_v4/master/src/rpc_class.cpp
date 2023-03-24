@@ -450,6 +450,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       // Coorect sequence only is here sensorID have real value index
       if((sensorId<SETUP_ID)&&(isSlaveConfigure)) {
         param.configurationLock->Take();
+        param.configuration->board_slave[slaveId].is_configured[sensorId] = true;
+
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangePindicator =
           it.value().as<JsonArray>()[0].as<unsigned int>();
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangeP1 =
@@ -458,6 +460,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           it.value().as<JsonArray>()[2].as<unsigned int>();
         // Duplicate ITH into STH Only for TH Module (Param not send in config)
         if((currentModule == Module_Type::th) && (sensorId ==SENSOR_METADATA_ITH)) {
+          param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_STH] = true;
+
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangePindicator =
             it.value().as<JsonArray>()[0].as<unsigned int>();
           param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangeP1 =

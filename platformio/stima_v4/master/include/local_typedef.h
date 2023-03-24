@@ -86,6 +86,7 @@ typedef struct
    uint64_t serial_number;    //!< Serial number of board (Used from slave for PnP Assign...)
    Module_Type module_type;   //!< module type (optional also present in unique_id...)
    board_metadata_t metadata[CAN_SENSOR_COUNT_MAX];   //!< module metadata (only used for slave board)
+   bool is_configured[CAN_SENSOR_COUNT_MAX];          //!< module is configured ? (only used for slave board)
 } board_configuration_t;
 
 typedef struct
