@@ -155,5 +155,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
 
 #define POWER_BATTERY_VOLTAGE_MULT        (10)
+#define POWER_INPUT_VOLTAGE_MULT          (10)
+#define POWER_BATTERY_CURRENT_MULT        (100)
+#define POWER_INPUT_CURRENT_MULT          (1000)
 
 #endif
