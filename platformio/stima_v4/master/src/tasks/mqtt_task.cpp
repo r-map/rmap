@@ -814,7 +814,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // make humidity topic
   status &= makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
   // make humidity message
-  status &= makeSensorMessageTemperature(sensor.humidity, dateTime, message, message_length);
+  status &= makeSensorMessageHumidity(sensor.humidity, dateTime, message, message_length);
   // make common topic
   osMemset(topic, 0, topic_length);
   error = (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0);
