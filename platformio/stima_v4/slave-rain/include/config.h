@@ -63,9 +63,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // HW device enabled
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
+#define ENABLE_SERIAL2        (false)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
-// #define ENABLE_ACCELEROMETER  ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == USE_MODULE_RAIN))
 #define ENABLE_ACCELEROMETER  (true)
 
 // HW Diag PIN redefine

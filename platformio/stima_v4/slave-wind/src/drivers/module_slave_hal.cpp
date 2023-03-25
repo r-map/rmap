@@ -35,6 +35,10 @@
 TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 #endif
 
+#if (ENABLE_SERIAL2)
+HardwareSerial Serial2(PIN_USART2_RX, PIN_USART2_TX);
+#endif
+
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 #if (ENABLE_CAN)
 CAN_HandleTypeDef hcan1;

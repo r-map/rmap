@@ -36,6 +36,8 @@ WindSensorTask::WindSensorTask(const char *taskName, uint16_t stackSize, uint8_t
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(SENSOR_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
+  is_power_on = false;
+
   state = SENSOR_STATE_WAIT_CFG;
   Start();
 };
@@ -142,7 +144,7 @@ void WindSensorTask::Run() {
 
       if (isWindOff())
       {
-        windPowerOn();
+        powerOn();
         TaskWatchDog(WIND_POWER_ON_DELAY_MS);
         Delay(Ticks::MsToTicks(WIND_POWER_ON_DELAY_MS));
         TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_READING\r\n"));
@@ -249,9 +251,7 @@ void WindSensorTask::powerOn()
 {
   if (!is_power_on)
   {
-    digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
-    digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
-    digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
+    digitalWrite(PIN_OUT0, HIGH);    // Enable Sensor alim on P.OUT - 0
     // WDT
     TaskWatchDog(WIND_TASK_POWER_ON_WAIT_DELAY_MS);
     Delay(Ticks::MsToTicks(WIND_TASK_POWER_ON_WAIT_DELAY_MS));
@@ -261,9 +261,7 @@ void WindSensorTask::powerOn()
 
 void WindSensorTask::powerOff()
 {
-  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
-  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
-  digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
+  digitalWrite(PIN_OUT0, LOW);    // Disable Sensor alim on P.OUT - 0
   is_power_on = false;
 }
 

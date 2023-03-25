@@ -127,8 +127,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define CAN_TASK_ID                 (1)
 #define ELABORATE_TASK_ID           (2)
 #define SENSOR_TASK_ID              (3)
-#define ACCELEROMETER_TASK_ID       (4)
-#define WDT_TASK_ID                 (5)
+#define WDT_TASK_ID                 (4)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 // Sample and default value for elaborate task 

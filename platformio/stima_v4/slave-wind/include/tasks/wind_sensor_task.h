@@ -96,8 +96,6 @@ private:
   void powerOff();
   bool isWindOn();
   bool isWindOff();
-  void windPowerOff(void);
-  void windPowerOn(void);
   void serialReset();
   bool windsonicInterpreter(float *speed, float *direction);
 

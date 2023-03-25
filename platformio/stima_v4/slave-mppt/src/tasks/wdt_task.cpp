@@ -106,8 +106,6 @@ void WdtTask::Run() {
     for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
       if(param.system_status->tasks[id].stack != 0xFFFFu) {
         switch(id) {
-          case ACCELEROMETER_TASK_ID:
-            strcpy (strTask, "Accelerom.  "); break;
           case CAN_TASK_ID:
             strcpy (strTask, "Can Bus     "); break;
           case ELABORATE_TASK_ID:

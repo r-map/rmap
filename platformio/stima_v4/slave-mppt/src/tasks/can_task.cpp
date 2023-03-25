@@ -557,20 +557,6 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case canardClass::Command_Private::calibrate_accelerometer:
-        {
-            // Avvia calibrazione accelerometro (reset bolla elettroniuca)
-            TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
-            // Send queue command to TASK
-            system_message.task_dest = ACCELEROMETER_TASK_ID;
-            system_message.command.do_init = true;
-            if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
-                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
-            } else {                
-                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_FAILURE;
-            }
-            break;
-        }
         case canardClass::Command_Private::module_maintenance:
         {
             // Avvia/Arresta modalità di manutenzione come comando sul system status

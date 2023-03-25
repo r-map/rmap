@@ -160,8 +160,7 @@ void SupervisorTask::Run()
               // ************ SLEEP ALL MODULE OK -> SLEEP SUPERVISOR ************
               // Sleeping or Suspend Module are same. Only normal_mode suspend Sleep Mode
               // SLEEP SUPERVISOR -> ALL MODULE IS SLEEPING. Tickless_mode CAN Start
-              if((param.system_status->tasks[ACCELEROMETER_TASK_ID].state != task_flag::normal) &&
-                 (param.system_status->tasks[CAN_TASK_ID].state != task_flag::normal) &&
+              if((param.system_status->tasks[CAN_TASK_ID].state != task_flag::normal) &&
                  (param.system_status->tasks[ELABORATE_TASK_ID].state != task_flag::normal)) {
                 // Enter to Sleep Complete (Remove before queue Message TaskSleep)
                 // Ready for Next Security Startup without Reenter Sleep
