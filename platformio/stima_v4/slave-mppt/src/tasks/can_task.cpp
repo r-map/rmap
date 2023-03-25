@@ -360,15 +360,17 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::dep:
-            // Prepara i dati SMP (Sample)
-            rmap_data->DEP.battery_charge.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_charge.confidence.value = report->mppt.avg;
-            rmap_data->DEP.battery_current.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_current.confidence.value = report->mppt.avg;
-            rmap_data->DEP.battery_voltage.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_voltage.confidence.value = report->mppt.avg;
-            rmap_data->DEP.input_voltage.val.value = report->mppt.avg;
-            rmap_data->DEP.input_voltage.confidence.value = report->mppt.avg;
+            // Prepara i dati DEP (Valu MPPT)
+            rmap_data->DEP.battery_charge.val.value = report->avg_battery_charge;
+            rmap_data->DEP.battery_charge.confidence.value = report->avg_battery_charge_quality;
+            rmap_data->DEP.battery_current.val.value = report->avg_battery_current;
+            rmap_data->DEP.battery_current.confidence.value = report->avg_battery_current_quality;
+            rmap_data->DEP.battery_voltage.val.value = report->avg_battery_voltage;
+            rmap_data->DEP.battery_voltage.confidence.value = report->avg_battery_voltage_quality;
+            rmap_data->DEP.input_voltage.val.value = report->avg_input_voltage;
+            rmap_data->DEP.input_voltage.confidence.value = report->avg_input_voltage_quality;
+            rmap_data->DEP.input_current.val.value = report->avg_input_current;
+            rmap_data->DEP.input_current.confidence.value = report->avg_input_current_quality;
             break;
     }
 }
@@ -376,15 +378,17 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::dep:
-            // Prepara i dati SMP (Sample)
-            rmap_data->DEP.battery_charge.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_charge.confidence.value = report->mppt.avg;
-            rmap_data->DEP.battery_current.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_current.confidence.value = report->mppt.avg;
-            rmap_data->DEP.battery_voltage.val.value = report->mppt.avg;
-            rmap_data->DEP.battery_voltage.confidence.value = report->mppt.avg;
-            rmap_data->DEP.input_voltage.val.value = report->mppt.avg;
-            rmap_data->DEP.input_voltage.confidence.value = report->mppt.avg;
+            // Prepara i dati DEP (Valu MPPT)
+            rmap_data->DEP.battery_charge.val.value = report->avg_battery_charge;
+            rmap_data->DEP.battery_charge.confidence.value = report->avg_battery_charge_quality;
+            rmap_data->DEP.battery_current.val.value = report->avg_battery_current;
+            rmap_data->DEP.battery_current.confidence.value = report->avg_battery_current_quality;
+            rmap_data->DEP.battery_voltage.val.value = report->avg_battery_voltage;
+            rmap_data->DEP.battery_voltage.confidence.value = report->avg_battery_voltage_quality;
+            rmap_data->DEP.input_voltage.val.value = report->avg_input_voltage;
+            rmap_data->DEP.input_voltage.confidence.value = report->avg_input_voltage_quality;
+            rmap_data->DEP.input_current.val.value = report->avg_input_current;
+            rmap_data->DEP.input_current.confidence.value = report->avg_input_current_quality;
             break;
     }
 }
@@ -418,7 +422,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.mppt.sample, (int32_t) report.mppt.ist, (int32_t) report.mppt.quality);
+          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
         }
 
         // Preparo i dati
@@ -672,7 +676,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
 
           // coda di attesa dati (attesa rmap_calc_data)
           if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.mppt.sample, (int32_t) report.mppt.ist, (int32_t) report.mppt.quality);
+            TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
           }
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
