@@ -27,7 +27,7 @@
   ******************************************************************************
 */
 
-#include "drivers/module_master_hal.hpp"
+#include "drivers/module_master_hal.h"
 #include "drivers/flash.h"
 
 /** @addtogroup BSP
@@ -232,7 +232,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_DeInit(void)
   _evtFlag->flag = 0;
 
 	_FlashInfo.State = QSPI_RESET;
-
   return QSPI_OK;
 }
 
@@ -813,8 +812,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_WaitingForEvent(uint32_t Timeout) {
   Timeout += millis();
   if( Timeout < millis()) bSetOFlag = true;
   while((!bTimeOut)&&(!bMatchField)) {
-    // Switch Task
-    taskYIELD();
     // Test Flag
     if(_evtFlag->flagBit.match_SM && _evtFlag->flagBit.flag_SM) bMatchField = true;
     if(_evtFlag->flagBit.match_TC && _evtFlag->flagBit.flag_TC) bMatchField = true;

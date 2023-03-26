@@ -1,0 +1,9 @@
+Modifica sdella scheda INSERIMENTO VARIANTE SCHEDA STIMA_v4_MASTER ARDUINO
+
+XXXX\.platformio\platforms\ststm32\boards -> stimav4_master.json
+
+XXXX\.platformio\packages\framework-arduinoststm32\variants\STM32L4xx\L496ZG  --->
+	+ 2 files variant
+
+bootloader.ld (This directory) LdScript for Flashing position
+	FLASH    (rx)    : ORIGIN = 0x8000000 , LENGTH = 0x10FFF (!Set boot area value here)
