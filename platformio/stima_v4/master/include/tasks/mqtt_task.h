@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define MQTT_TASK_GENERIC_RETRY           (3)
 #define MQTT_TASK_PUBLISH_DELAY_MS        (5)
+#define MQTT_TASK_PUBLISH_RETRY           (5)
 
 #define MQTT_PUB_CMD_DEBUG_PREFIX         (">")
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")

@@ -1224,7 +1224,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   }
   else
   {
-    error_count = 5;
+    error_count = MQTT_TASK_PUBLISH_RETRY;
   }
   
   do
@@ -1236,7 +1236,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  } while (error && (error_count < 5));
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -1265,7 +1265,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   }
   else
   {
-    error_count = 5;
+    error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
   do
@@ -1277,7 +1277,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  } while (error && (error_count < 5));
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1449,7 +1449,7 @@ error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime da
 
 error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1468,13 +1468,26 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish rain value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish rain value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1536,7 +1549,7 @@ error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiati
 
 error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1555,13 +1568,26 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish radiation value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish radiation value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1569,7 +1595,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
 
 error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect10_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1588,13 +1614,26 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish speed value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish speed value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -1616,13 +1655,26 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish direction value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish direction value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1630,7 +1682,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
 
 error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1649,13 +1701,26 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish speed value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish speed value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -1678,12 +1743,16 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   }
 
   // publish direction value
-  if (!error)
+  do
   {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1691,7 +1760,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
 
 error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1710,13 +1779,26 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish speed peak value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish speed peak value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -1738,13 +1820,26 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish speed long value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish speed long value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1752,7 +1847,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
 
 error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1771,13 +1866,26 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish speed peak value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish speed peak value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1785,7 +1893,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
 
 error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1804,13 +1912,26 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish class speed value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish class speed value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -1818,7 +1939,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
 
 error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustDirection_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1837,13 +1958,26 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish peak value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish peak value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -1865,13 +1999,26 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish direction long value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish direction long value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -2411,7 +2558,7 @@ error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0
 
 error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Power_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2430,13 +2577,26 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish input voltage value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish input voltage value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -2458,13 +2618,26 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish input current value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish input current value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -2486,13 +2659,26 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish battery voltage value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish battery voltage value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -2514,13 +2700,26 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish battery current value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish battery current value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -2542,13 +2741,26 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish battery charge value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish battery charge value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -2826,7 +3038,7 @@ error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0
 
 error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_VWC_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2845,13 +3057,26 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // publish soil value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // publish soil value
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
