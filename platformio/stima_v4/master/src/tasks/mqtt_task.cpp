@@ -319,7 +319,6 @@ void MqttTask::Run()
       // **************************************
       //   GET RMAP Data, And Append to MQTT
       // **************************************
-      start_get_data = true;
       // MMC have to GET Ready before Push DATA
       // EXIT from function if not MMC Ready or present into system_status
       if(!param.system_status->flags.sd_card_ready) {
@@ -329,7 +328,6 @@ void MqttTask::Run()
       // *****************************************
       //  RUN GET RMAP Data Queue and Append MQTT
       // *****************************************
-      start_get_data = false;
       if(start_get_data) {
 
         // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
@@ -388,6 +386,281 @@ void MqttTask::Run()
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
           TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
           rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+
+          // INIZIO PROVA
+          rmap_get_response.result.event_error = 0;
+
+          if (countData == 0)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataTH->ITH.humidity.val.value = 50;
+            rmapDataTH->ITH.humidity.confidence.value = 100;
+
+            rmapDataTH->ITH.temperature.val.value = 27315;
+            rmapDataTH->ITH.temperature.confidence.value = 99;
+
+            rmapDataTH->ITH.metadata.level.LevelType1.value = 103;
+            rmapDataTH->ITH.metadata.level.L1.value = 2000;
+            rmapDataTH->ITH.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataTH->ITH.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataTH->ITH.metadata.timerange.Pindicator.value = 254;
+            rmapDataTH->ITH.metadata.timerange.P1.value = 0;
+            rmapDataTH->ITH.metadata.timerange.P2 = 0;
+
+            rmapDataTH->NTH.humidity.val.value = 40;
+            rmapDataTH->NTH.humidity.confidence.value = 90;
+
+            rmapDataTH->NTH.temperature.val.value = 28315;
+            rmapDataTH->NTH.temperature.confidence.value = 89;
+
+            rmapDataTH->NTH.metadata.level.LevelType1.value = 103;
+            rmapDataTH->NTH.metadata.level.L1.value = 2000;
+            rmapDataTH->NTH.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataTH->NTH.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataTH->NTH.metadata.timerange.Pindicator.value = 3;
+            rmapDataTH->NTH.metadata.timerange.P1.value = 0;
+            rmapDataTH->NTH.metadata.timerange.P2 = 900;
+
+            rmapDataTH->MTH.humidity.val.value = 30;
+            rmapDataTH->MTH.humidity.confidence.value = 80;
+
+            rmapDataTH->MTH.temperature.val.value = 29315;
+            rmapDataTH->MTH.temperature.confidence.value = 79;
+
+            rmapDataTH->MTH.metadata.level.LevelType1.value = 103;
+            rmapDataTH->MTH.metadata.level.L1.value = 2000;
+            rmapDataTH->MTH.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataTH->MTH.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataTH->MTH.metadata.timerange.Pindicator.value = 0;
+            rmapDataTH->MTH.metadata.timerange.P1.value = 0;
+            rmapDataTH->MTH.metadata.timerange.P2 = 900;
+
+            rmapDataTH->XTH.humidity.val.value = 20;
+            rmapDataTH->XTH.humidity.confidence.value = 70;
+
+            rmapDataTH->XTH.temperature.val.value = 30315;
+            rmapDataTH->XTH.temperature.confidence.value = 69;
+
+            rmapDataTH->XTH.metadata.level.LevelType1.value = 103;
+            rmapDataTH->XTH.metadata.level.L1.value = 2000;
+            rmapDataTH->XTH.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataTH->XTH.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataTH->XTH.metadata.timerange.Pindicator.value = 2;
+            rmapDataTH->XTH.metadata.timerange.P1.value = 0;
+            rmapDataTH->XTH.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::th;
+          }
+          else if (countData == 1)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataRain->TBR.rain.val.value = 23;
+            rmapDataRain->TBR.rain.confidence.value = 56;
+
+            rmapDataRain->TBR.metadata.level.LevelType1.value = 1u;
+            rmapDataRain->TBR.metadata.level.L1.value = UINT16_MAX;
+            rmapDataRain->TBR.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataRain->TBR.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataRain->TBR.metadata.timerange.Pindicator.value = 1;
+            rmapDataRain->TBR.metadata.timerange.P1.value = 0;
+            rmapDataRain->TBR.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::rain;
+          }
+          else if (countData == 2)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataRadiation = (rmap_module_Radiation_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataRadiation->DSA.radiation.val.value = 350;
+            rmapDataRadiation->DSA.radiation.confidence.value = 49;
+
+            rmapDataRadiation->DSA.metadata.level.LevelType1.value = 1;
+            rmapDataRadiation->DSA.metadata.level.L1.value = UINT16_MAX;
+            rmapDataRadiation->DSA.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataRadiation->DSA.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataRadiation->DSA.metadata.timerange.Pindicator.value = 0;
+            rmapDataRadiation->DSA.metadata.timerange.P1.value = 0;
+            rmapDataRadiation->DSA.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::radiation;
+          }
+          else if (countData == 3)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataWind = (rmap_module_Wind_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataWind->DWA.direction.val.value = 125;
+            rmapDataWind->DWA.direction.confidence.value = 85;
+
+            rmapDataWind->DWA.speed.val.value = 15;
+            rmapDataWind->DWA.speed.confidence.value = 75;
+
+            rmapDataWind->DWA.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWA.metadata.level.L1.value = 10000;
+            rmapDataWind->DWA.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWA.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWA.metadata.timerange.Pindicator.value = 254;
+            rmapDataWind->DWA.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWA.metadata.timerange.P2 = 0;
+
+            rmapDataWind->DWB.direction.val.value = 225;
+            rmapDataWind->DWB.direction.confidence.value = 65;
+
+            rmapDataWind->DWB.speed.val.value = 22;
+            rmapDataWind->DWB.speed.confidence.value = 55;
+
+            rmapDataWind->DWB.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWB.metadata.level.L1.value = 10000;
+            rmapDataWind->DWB.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWB.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWB.metadata.timerange.Pindicator.value = 200;
+            rmapDataWind->DWB.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWB.metadata.timerange.P2 = 900;
+
+            rmapDataWind->DWC.peak.val.value = 56;
+            rmapDataWind->DWC.peak.confidence.value = 93;
+
+            rmapDataWind->DWC._long.val.value = 43;
+            rmapDataWind->DWC._long.confidence.value = 83;
+
+            rmapDataWind->DWC.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWC.metadata.level.L1.value = 10000;
+            rmapDataWind->DWC.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWC.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWC.metadata.timerange.Pindicator.value = 2;
+            rmapDataWind->DWC.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWC.metadata.timerange.P2 = 900;
+
+            rmapDataWind->DWD.speed.val.value = 34;
+            rmapDataWind->DWD.speed.confidence.value = 74;
+
+            rmapDataWind->DWD.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWD.metadata.level.L1.value = 10000;
+            rmapDataWind->DWD.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWD.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWD.metadata.timerange.Pindicator.value = 0;
+            rmapDataWind->DWD.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWD.metadata.timerange.P2 = 900;
+
+            rmapDataWind->DWE.class1.val.value = 11;
+            rmapDataWind->DWE.class1.confidence.value = 51;
+            rmapDataWind->DWE.class2.val.value = 12;
+            rmapDataWind->DWE.class2.confidence.value = 52;
+            rmapDataWind->DWE.class3.val.value = 13;
+            rmapDataWind->DWE.class3.confidence.value = 53;
+            rmapDataWind->DWE.class4.val.value = 14;
+            rmapDataWind->DWE.class4.confidence.value = 54;
+            rmapDataWind->DWE.class5.val.value = 15;
+            rmapDataWind->DWE.class5.confidence.value = 55;
+            rmapDataWind->DWE.class6.val.value = 35;
+            rmapDataWind->DWE.class6.confidence.value = 56;
+
+            rmapDataWind->DWE.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWE.metadata.level.L1.value = 10000;
+            rmapDataWind->DWE.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWE.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWE.metadata.timerange.Pindicator.value = 9;
+            rmapDataWind->DWE.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWE.metadata.timerange.P2 = 900;
+
+            rmapDataWind->DWF.peak.val.value = 342;
+            rmapDataWind->DWF.peak.confidence.value = 68;
+
+            rmapDataWind->DWF._long.val.value = 349;
+            rmapDataWind->DWF._long.confidence.value = 58;
+
+            rmapDataWind->DWF.metadata.level.LevelType1.value = 103;
+            rmapDataWind->DWF.metadata.level.L1.value = 10000;
+            rmapDataWind->DWF.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataWind->DWF.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataWind->DWF.metadata.timerange.Pindicator.value = 205;
+            rmapDataWind->DWF.metadata.timerange.P1.value = 0;
+            rmapDataWind->DWF.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::wind;
+          }
+          else if (countData == 4)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataVWC = (rmap_module_VWC_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataVWC->VWC.vwc.val.value = 153;
+            rmapDataVWC->VWC.vwc.confidence.value = 87;
+
+            rmapDataVWC->VWC.metadata.level.LevelType1.value = 103;
+            rmapDataVWC->VWC.metadata.level.L1.value = 100;
+            rmapDataVWC->VWC.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataVWC->VWC.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataVWC->VWC.metadata.timerange.Pindicator.value = 0;
+            rmapDataVWC->VWC.metadata.timerange.P1.value = 0;
+            rmapDataVWC->VWC.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::vwc;
+          }
+          else if (countData == 5)
+          {
+            rmap_get_response.result.end_of_data = 0;
+
+            rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
+
+            rmapDataPower->DEP.input_voltage.val.value = 204;
+            rmapDataPower->DEP.input_voltage.confidence.value = 95;
+
+            rmapDataPower->DEP.input_current.val.value = 74;
+            rmapDataPower->DEP.input_current.confidence.value = 85;
+
+            rmapDataPower->DEP.battery_voltage.val.value = 128;
+            rmapDataPower->DEP.battery_voltage.confidence.value = 75;
+
+            rmapDataPower->DEP.battery_voltage.val.value = 15;
+            rmapDataPower->DEP.battery_voltage.confidence.value = 65;
+
+            rmapDataPower->DEP.battery_charge.val.value = 89;
+            rmapDataPower->DEP.battery_charge.confidence.value = 55;
+
+            rmapDataPower->DEP.metadata.level.LevelType1.value = 265;
+            rmapDataPower->DEP.metadata.level.L1.value = 1;
+            rmapDataPower->DEP.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataPower->DEP.metadata.level.L2.value = UINT16_MAX;
+
+            rmapDataPower->DEP.metadata.timerange.Pindicator.value = 0;
+            rmapDataPower->DEP.metadata.timerange.P1.value = 0;
+            rmapDataPower->DEP.metadata.timerange.P2 = 900;
+
+            rmap_get_response.rmap_data.module_type = Module_Type::power;
+          }
+          else
+          {
+            rmap_get_response.result.end_of_data = 1;
+            rmap_get_response.result.event_error = 1;
+          }
+
+          rmap_get_response.rmap_data.date_time = 1679985000;
+          // FINE PROVA
+
           rmap_data_error |= rmap_get_response.result.event_error;
           if(!rmap_data_error) {
             // EOF Data? (Save and Exit, after last data process)
@@ -407,28 +680,34 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::th)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_STH])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_STH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->STH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->ITH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_NTH])
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_NTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->NTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MTH])
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->MTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_XTH])
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_XTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->XTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -448,6 +727,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
                 break;
@@ -457,12 +737,14 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::rain)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_TBR])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_TBR])
                     {
                       error = publishSensorRain(&mqttClientContext, qos, rmapDataRain->TBR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -482,6 +764,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
 
@@ -492,12 +775,14 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::radiation)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DSA])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DSA])
                     {
                       error = publishSensorRadiation(&mqttClientContext, qos, rmapDataRadiation->DSA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -517,6 +802,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
 
@@ -527,32 +813,39 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::wind)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWA])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWA])
                     {
                       error = publishSensorWindAvgVect10(&mqttClientContext, qos, rmapDataWind->DWA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWB])
+                    
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWB])
                     {
                       error = publishSensorWindAvgVect(&mqttClientContext, qos, rmapDataWind->DWB, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWC])
+                    
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWC])
                     {
                       error = publishSensorWindGustSpeed(&mqttClientContext, qos, rmapDataWind->DWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWD])
+                    
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWD])
                     {
                       error = publishSensorWindAvgSpeed(&mqttClientContext, qos, rmapDataWind->DWD, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWE])
+                    
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWE])
                     {
                       error = publishSensorWindClassSpeed(&mqttClientContext, qos, rmapDataWind->DWE, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    else if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWF])
+                    
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWF])
                     {
                       error = publishSensorWindGustDirection(&mqttClientContext, qos, rmapDataWind->DWF, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -572,6 +865,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
 
@@ -582,12 +876,14 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::vwc)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC])
                     {
                       error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -607,6 +903,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
 
@@ -617,10 +914,12 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
+                error = NO_ERROR;
+
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
-                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::power)
+                  if (!error && param.configuration->board_slave[slaveId].module_type == Module_Type::power)
                   {
                     if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DEP])
                     {
@@ -642,6 +941,7 @@ void MqttTask::Run()
                       param.system_status->connection.mqtt_data_published++;
                       param.systemStatusLock->Give();
                     }
+                    break;
                   }
                 }
 
@@ -783,76 +1083,100 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 
 error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
 {
-  int ret = 0;
-  bool status = true;
+  error_t error = NO_ERROR;
   osMemset(sensors_topic, 0, sensors_topic_length);
 
-  snprintf(sensors_topic, sensors_topic_length, "%d,%d,%d/", metadata.timerange.Pindicator, metadata.timerange.P1, metadata.timerange.P2);
+  snprintf(sensors_topic, sensors_topic_length, "%d,%d,%d/", metadata.timerange.Pindicator.value, metadata.timerange.P1.value, metadata.timerange.P2);
 
   if (metadata.level.LevelType1.value != UINT16_MAX)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType1.value);
+    if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType1.value) <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
   else
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
+    if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
   }
 
-  status &= (ret > 0);
-
-  if (metadata.level.L1.value != UINT16_MAX)
+  if (!error)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.L1.value);
-  }
-  else
-  {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
-  }
-
-  status &= (ret > 0);
-
-  if (metadata.level.LevelType2.value != UINT16_MAX)
-  {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType2.value);
-  }
-  else
-  {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,");
+    if (metadata.level.L1.value != UINT16_MAX)
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.L1.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
   }
 
-  status &= (ret > 0);
-
-  if (metadata.level.L2.value != UINT16_MAX)
+  if (!error)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u/", metadata.level.L2.value);
-  }
-  else
-  {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-/");
+    if (metadata.level.LevelType2.value != UINT16_MAX)
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u,", metadata.level.LevelType2.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
   }
 
-  if (bvalue != NULL)
+  if (!error)
   {
-    ret = snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%s", bvalue);
+    if (metadata.level.L2.value != UINT16_MAX)
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "%u", metadata.level.L2.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "-") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
   }
 
-  status &= (ret > 0);
-
-  if (status) {
-    return NO_ERROR;
-  }
-  else
+  if (!error)
   {
-    return ERROR_FAILURE;
+    if (bvalue != NULL)
+    {
+      if (snprintf(&(sensors_topic[strlen(sensors_topic)]), sensors_topic_length, "/%s", bvalue) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
   }
+
+  return error;
 }
 
-error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, size_t topic_length)
+error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length)
 {
   error_t error = NO_ERROR;
 
   osMemset(topic, 0, topic_length);
-  if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) < 0)
+  if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) <= 0)
   {
     error = ERROR_FAILURE;
   }
@@ -864,7 +1188,7 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
 {
   error_t error = NO_ERROR;
   
-  if (snprintf(message, message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds) < 0)
+  if (snprintf(message, message_length, "\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\",", dateTime.year, dateTime.month, dateTime.day, dateTime.hours, dateTime.minutes, dateTime.seconds) <= 0)
   {
     error = ERROR_FAILURE;
   }
@@ -874,7 +1198,7 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
 
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  int ret = 0;
+  uint8_t error_count = 0;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -890,16 +1214,29 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish temperature value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = 5;
+  }
+  
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < 5));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
@@ -918,16 +1255,29 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish humidity value
   if (!error)
   {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = 5;
+  }
+
+  do
+  {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    if (error)
+    {
+      error_count++;
+    }
     TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
     Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  }
+  } while (error && (error_count < 5));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   return error;
@@ -942,40 +1292,51 @@ error_t MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 tem
 
   if (ISVALID_UINT32(temperature.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", temperature.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", temperature.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(temperature.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", temperature.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(temperature.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", temperature.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length)
@@ -985,40 +1346,51 @@ error_t MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity,
 
   if (ISVALID_UINT8(humidity.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", humidity.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", humidity.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "{\"v\":null,") < 0)
+    if (snprintf(&(message[strlen(message)]), message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(humidity.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", humidity.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(humidity.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", humidity.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime dateTime, char *message, size_t message_length)
@@ -1028,40 +1400,51 @@ error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime da
 
   if (ISVALID_UINT16(rain.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", rain.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", rain.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(rain.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", rain.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(rain.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", rain.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
@@ -1082,7 +1465,7 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish rain value
@@ -1104,40 +1487,51 @@ error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiati
 
   if (ISVALID_UINT16(radiation.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", radiation.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", radiation.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(radiation.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", radiation.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(radiation.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", radiation.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
@@ -1158,7 +1552,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish radiation value
@@ -1191,7 +1585,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish speed value
@@ -1219,7 +1613,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish direction value
@@ -1252,7 +1646,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish speed value
@@ -1280,7 +1674,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish direction value
@@ -1313,7 +1707,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish speed peak value
@@ -1341,7 +1735,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish speed long value
@@ -1374,7 +1768,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish speed peak value
@@ -1407,7 +1801,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish class speed value
@@ -1440,7 +1834,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish peak value
@@ -1468,7 +1862,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish direction long value
@@ -1490,122 +1884,151 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
   error_t error = NO_ERROR;
   osMemset(message, 0, message_length);
 
-  if (snprintf(message, message_length, "{\"d\":51,\"p\":[") < 0)
+  if (snprintf(message, message_length, "{\"d\":51,\"p\":[") <= 0)
   {
     error = ERROR_FAILURE;
   }
 
-  if (ISVALID_UINT32(sensor.class1.val.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class1.val.value) < 0)
+    if (ISVALID_UINT32(sensor.class1.val.value))
     {
-      error = ERROR_FAILURE;
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class1.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
     }
   }
-  else
+
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
+    if (ISVALID_UINT32(sensor.class2.val.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class2.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT32(sensor.class3.val.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class3.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT32(sensor.class4.val.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class4.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT32(sensor.class5.val.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class5.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null,") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT32(sensor.class6.val.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld]", sensor.class6.val.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "null],") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(sensor.class1.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", sensor.class1.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  if (ISVALID_UINT32(sensor.class2.val.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class2.val.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (ISVALID_UINT32(sensor.class3.val.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class3.val.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (ISVALID_UINT32(sensor.class4.val.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class4.val.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (ISVALID_UINT32(sensor.class5.val.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld,", sensor.class5.val.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "null,") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (ISVALID_UINT32(sensor.class6.val.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "%ld]", sensor.class6.val.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "null],") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(sensor.class1.confidence.value))
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", sensor.class1.confidence.value) < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageSpeed(rmap_measures_WindSpeed_1_0 speed, DateTime dateTime, char *message, size_t message_length)
@@ -1615,40 +2038,51 @@ error_t MqttTask::makeSensorMessageSpeed(rmap_measures_WindSpeed_1_0 speed, Date
 
   if (ISVALID_UINT32(speed.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", speed.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", speed.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(speed.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", speed.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(speed.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", speed.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageDirection(rmap_measures_WindDirection_1_0 direction, DateTime dateTime, char *message, size_t message_length)
@@ -1658,40 +2092,51 @@ error_t MqttTask::makeSensorMessageDirection(rmap_measures_WindDirection_1_0 dir
 
   if (ISVALID_UINT32(direction.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", direction.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", direction.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(direction.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", direction.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(direction.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", direction.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageSpeedPeak(rmap_measures_WindPeakGustSpeed_1_0 peak, DateTime dateTime, char *message, size_t message_length)
@@ -1701,40 +2146,51 @@ error_t MqttTask::makeSensorMessageSpeedPeak(rmap_measures_WindPeakGustSpeed_1_0
 
   if (ISVALID_UINT32(peak.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(peak.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(peak.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageSpeedLong(rmap_measures_WindLongGustSpeed_1_0 _long, DateTime dateTime, char *message, size_t message_length)
@@ -1744,40 +2200,51 @@ error_t MqttTask::makeSensorMessageSpeedLong(rmap_measures_WindLongGustSpeed_1_0
 
   if (ISVALID_UINT32(_long.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(_long.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(_long.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageDirectionPeak(rmap_measures_WindPeakGustDirection_1_0 peak, DateTime dateTime, char *message, size_t message_length)
@@ -1787,40 +2254,51 @@ error_t MqttTask::makeSensorMessageDirectionPeak(rmap_measures_WindPeakGustDirec
 
   if (ISVALID_UINT32(peak.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", peak.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(peak.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(peak.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", peak.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirection_1_0 _long, DateTime dateTime, char *message, size_t message_length)
@@ -1830,40 +2308,51 @@ error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirec
 
   if (ISVALID_UINT32(_long.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", _long.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(_long.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(_long.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", _long.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0 soil, DateTime dateTime, char *message, size_t message_length)
@@ -1873,40 +2362,51 @@ error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0
 
   if (ISVALID_UINT16(soil.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", soil.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", soil.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(soil.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", soil.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(soil.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", soil.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Power_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
@@ -1927,7 +2427,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish input voltage value
@@ -1955,7 +2455,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish input current value
@@ -1983,7 +2483,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish battery voltage value
@@ -2011,7 +2511,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish battery current value
@@ -2039,7 +2539,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish battery charge value
@@ -2061,40 +2561,51 @@ error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 i
 
   if (ISVALID_UINT16(inputVoltage.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,") < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(inputVoltage.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputVoltage.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(inputVoltage.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputVoltage.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageInputCurrent(rmap_measures_InputCurrent_1_0 inputCurrent, DateTime dateTime, char *message, size_t message_length)
@@ -2104,40 +2615,51 @@ error_t MqttTask::makeSensorMessageInputCurrent(rmap_measures_InputCurrent_1_0 i
 
   if (ISVALID_UINT16(inputCurrent.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", inputCurrent.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", inputCurrent.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(inputCurrent.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputCurrent.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(inputCurrent.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputCurrent.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageBatteryVoltage(rmap_measures_BatteryVoltage_1_0 batteryVoltage, DateTime dateTime, char *message, size_t message_length)
@@ -2147,40 +2669,51 @@ error_t MqttTask::makeSensorMessageBatteryVoltage(rmap_measures_BatteryVoltage_1
 
   if (ISVALID_UINT16(batteryVoltage.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", batteryVoltage.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryVoltage.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(batteryVoltage.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryVoltage.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(batteryVoltage.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryVoltage.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageBatteryCurrent(rmap_measures_BatteryCurrent_1_0 batteryCurrent, DateTime dateTime, char *message, size_t message_length)
@@ -2190,40 +2723,51 @@ error_t MqttTask::makeSensorMessageBatteryCurrent(rmap_measures_BatteryCurrent_1
 
   if (ISVALID_UINT16(batteryCurrent.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCurrent.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCurrent.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(batteryCurrent.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCurrent.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(batteryCurrent.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCurrent.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0 batteryCharge, DateTime dateTime, char *message, size_t message_length)
@@ -2233,40 +2777,51 @@ error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0
 
   if (ISVALID_UINT16(batteryCharge.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCharge.val.value) < 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", batteryCharge.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
   else
   {
-    if (snprintf(message, message_length, "{\"v\":null,") < 0)
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
 
-  error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-
-  if (ISVALID_UINT8(batteryCharge.confidence.value))
+  if (!error)
   {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCharge.confidence.value) < 0)
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (ISVALID_UINT8(batteryCharge.confidence.value))
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryCharge.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
     {
       error = ERROR_FAILURE;
     }
   }
-  else
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") < 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
 
-  if (snprintf(&(message[strlen(message)]), message_length, "}") < 0)
-  {
-    error = ERROR_FAILURE;
-  }
+  return error;
 }
 
 error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_VWC_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
@@ -2287,7 +2842,7 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length);
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
   // publish soil value
