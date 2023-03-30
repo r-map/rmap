@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    usbserial_task.cpp
+  * @file    Eeprom.cpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   usbserial_task source file (USB CDC StimaV4)
+  * @brief   eeprom AT24C64 header file
   ******************************************************************************
   * @attention
   *
@@ -27,44 +27,40 @@
   ******************************************************************************
 */
 
-#define TRACE_LEVEL     USBSERIAL_TASK_TRACE_LEVEL
-#define LOCAL_TASK_ID   USBSERIAL_TASK_ID
 
-#include "tasks/usbserial_task.h"
+#ifndef _EEPROM_H
+#define _EEPROM_H
 
-#if (ENABLE_USBSERIAL)
+#include <STM32FreeRTOS.h>
+#include "ticks.hpp"
+#include "thread.hpp"
+#include "semaphore.hpp"
+#include "Wire.h"
 
 using namespace cpp_freertos;
 
-UsbSerialTask::UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam) : Thread(taskName, stackSize, priority), param(usbSerialParam)
-{
-  Serial2.begin(SERIAL_DEBUG_BAUD_RATE);
-  SerialUSB.begin(SERIAL_DEBUG_BAUD_RATE);
-  
-  state = USBSERIAL_STATE_INIT;
-  Start();
-};
+#define EEPROM_AT24C64_DEFAULT_ADDRESS (0x50)
+#define	EEPROMSIZE  8192
+#define EEPAGESIZE  32
+#define PAGEMASK    (EEPROMSIZE-EEPAGESIZE)
+#define WR_TIME_MS  5
+#define EEPROM_SEMAPHORE_MAX_WAITING_TIME_MS  (10000)
 
-void UsbSerialTask::Run()
-{
-  while (true)
-  {
-    // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
-    if(SerialUSB.available()) {
-      char chOut = SerialUSB.read();
-      Serial.print("USB IN: ");
-      Serial2.print(chOut);
-      Serial.println((int)chOut, 16);
-    }
-    // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
-    if(Serial2.available()) {
-      char chIn = Serial2.read();
-      Serial.print("RS232 IN: ");
-      SerialUSB.print(chIn);
-      Serial.println((int)chIn, 16);
-    }
-  }
-  Delay(5);
-}
+class EEprom {
+
+public:
+  EEprom();
+  EEprom(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address = EEPROM_AT24C64_DEFAULT_ADDRESS);
+  bool Write(uint16_t address, uint8_t *buffer, uint16_t length);
+  bool Write(uint16_t address, uint8_t value);
+  bool Read(uint16_t address, uint8_t *buffer, uint16_t length);
+  bool Read(uint16_t address, uint8_t *value);
+
+protected:
+private:
+  TwoWire *_wire;
+  BinarySemaphore *_wireLock;
+  uint8_t _i2c_address;
+};
 
 #endif

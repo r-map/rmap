@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    usbserial_task.cpp
+  * @file    wdt_task.h
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   usbserial_task source file (USB CDC StimaV4)
+  * @brief   wdt_task header file (Wdt && Logging Task for Module Slave)
   ******************************************************************************
   * @attention
   *
@@ -27,44 +27,53 @@
   ******************************************************************************
 */
 
-#define TRACE_LEVEL     USBSERIAL_TASK_TRACE_LEVEL
-#define LOCAL_TASK_ID   USBSERIAL_TASK_ID
+#ifndef _WDT_TASK_H
+#define _WDT_TASK_H
 
-#include "tasks/usbserial_task.h"
+#include "debug_config.h"
+#include "local_typedef.h"
+#include "str.h"
 
-#if (ENABLE_USBSERIAL)
+#include <STM32FreeRTOS.h>
+#include "thread.hpp"
+#include "ticks.hpp"
+#include "semaphore.hpp"
+#include "queue.hpp"
+#include "drivers/module_master_hal.hpp"
+#include "drivers/eeprom.h"
+
+#include <STM32RTC.h>
+#include <IWatchdog.h>
+
+#include "debug_F.h"
+
+// Main TASK Switch Delay
+#define WDT_TASK_WAIT_DELAY_MS      (WDT_CONTROLLER_MS)
 
 using namespace cpp_freertos;
 
-UsbSerialTask::UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam) : Thread(taskName, stackSize, priority), param(usbSerialParam)
-{
-  Serial2.begin(SERIAL_DEBUG_BAUD_RATE);
-  SerialUSB.begin(SERIAL_DEBUG_BAUD_RATE);
-  
-  state = USBSERIAL_STATE_INIT;
-  Start();
-};
+typedef struct {
+  system_status_t *system_status;
+  cpp_freertos::Queue *dataLogPutQueue;
+  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *rtcLock;
+  EEprom *eeprom;
+} WdtParam_t;
 
-void UsbSerialTask::Run()
-{
-  while (true)
-  {
-    // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
-    if(SerialUSB.available()) {
-      char chOut = SerialUSB.read();
-      Serial.print("USB IN: ");
-      Serial2.print(chOut);
-      Serial.println((int)chOut, 16);
-    }
-    // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
-    if(Serial2.available()) {
-      char chIn = Serial2.read();
-      Serial.print("RS232 IN: ");
-      SerialUSB.print(chIn);
-      Serial.println((int)chIn, 16);
-    }
-  }
-  Delay(5);
-}
+class WdtTask : public cpp_freertos::Thread {
+
+public:
+  WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, WdtParam_t wdtParam);
+
+protected:
+  virtual void Run();
+
+private:
+
+  STM32RTC &rtc = STM32RTC::getInstance();
+
+  WdtParam_t param;
+
+};
 
 #endif

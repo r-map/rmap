@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file ntp_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _NTP_CONFIG_H
+#define _NTP_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
+/*!
+\def NTP_SERVER_LENGTH
+\brief Length in bytes for ntp server data buffer.
+*/
+#define NTP_SERVER_LENGTH     (30)
 
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
-
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
-
-#include <IWatchdog.h>
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
+/*!
+\def NTP_DEFAULT_SERVER
+\brief Default NTP server.
+*/
+#define NTP_DEFAULT_SERVER    ("it.pool.ntp.org")
 
 #endif

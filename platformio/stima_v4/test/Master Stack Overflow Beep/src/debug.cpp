@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file debug.cpp */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#include "debug.h"
 
-#define __STDC_LIMIT_MACROS
+int_t fputc(int_t c, FILE *stream)
+{
+   // Standard output or error output?
+   if (stream == stdout || stream == stderr)
+   {
+      Serial.write(c);
+      return c;
+   }
+   // Unknown output?
+   else
+   {
+      // If a writing error occurs, EOF is returned
+      return EOF;
+   }
+}
 
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
+void init_debug(uint32_t baudrate) {
+  Serial.begin(baudrate);
+  while (!Serial);
+}
 
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
+void print_debug(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  vfprintf(stdout, fmt, args);
+  va_end(args);
+  Serial.flush();
+}
 
-#include <IWatchdog.h>
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
-
-#endif
+void print_debug_F(const __FlashStringHelper *fmt, ...)
+{
+  osSuspendAllTasks();
+  va_list args;
+  va_start(args, fmt);
+  vfprintf(stdout, (const char *)fmt, args);
+  va_end(args);
+  Serial.flush();
+  osResumeAllTasks();
+}

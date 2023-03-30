@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file http_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _HTTP_CONFIG_H
+#define _HTTP_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
+#define HTTP_CLIENT_PORT         (442)
 
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
+#define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
+#define HTTP_BUFFER_SIZE         (256)
 
-#include <IWatchdog.h>
+// #define HTTP_USER_AGENTS_LENGTH  (STIMA_MODULE_NAME_LENGTH + 10)
 
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
+#define HTTP_HEADER_SIZE         (128)
 
 #endif

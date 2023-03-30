@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file local_typedef_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _LOCAL_TYPEDEF_CONFIG_H
+#define _LOCAL_TYPEDEF_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
+#include "config.h"
+#include "constantdata_config.h"
+#include "mqtt_config.h"
+#include "http_config.h"
+#include "ntp_config.h"
+#include "gsm_config.h"
+#include "ethernet_config.h"
 
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
-
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
-
-#include <IWatchdog.h>
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
+#define CLIENT_PSK_KEY_LENGTH (16)
+#define CLIENT_PSK_IDENTITY_LENGTH (MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH)
 
 #endif

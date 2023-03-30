@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file constantdata_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,47 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef CONSTANTDATA_CONFIG_H
+#define CONSTANTDATA_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
+/*!
+\def CONSTANTDATA_BTABLE_LENGTH
+\brief Maximum lenght of btable code plus terminator that describe one constant data.
+*/
+#define CONSTANTDATA_BTABLE_LENGTH                    (7)
 
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
+/*!
+\def CONSTANTDATA_VALUE_LENGTH
+\brief Maximum lenght of value plus terminator for one constant data.
+*/
+#define CONSTANTDATA_VALUE_LENGTH                    (33)
 
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
+#define DATA_LEVEL_LENGTH  (20)
+#define NETWORK_LENGTH     (20)
+#define IDENT_LENGTH       (20)
 
-#include <IWatchdog.h>
+/*!
+\def STATIONSLUG_LENGTH
+\brief Length in bytes for station slug.
+*/
+#define STATIONSLUG_LENGTH (30)
 
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
+/*!
+\def BOARDSLUG_LENGTH
+\brief Length in bytes for board slug.
+*/
+#define BOARDSLUG_LENGTH (30)
 
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
+/*!
+\def DEFAULT_STATIONSLUG
+\brief Default station slug.
+*/
+#define DEFAULT_STATIONSLUG ("")
 
-#include "debug_F.h"
-
-using namespace cpp_freertos;
+/*!
+\def DEFAULT_BOARDSLUG
+\brief Default board slug.
+*/
+#define DEFAULT_BOARDSLUG ("")
 
 #endif

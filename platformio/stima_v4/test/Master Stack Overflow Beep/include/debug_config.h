@@ -1,4 +1,4 @@
-/**@file main.h */
+/**@file debug_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,32 +21,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _DEBUG_CONFIG_H
+#define _DEBUG_CONFIG_H
 
-#define __STDC_LIMIT_MACROS
-
-#include "debug_config.h"
-#include "stima_utility.h"
-#include "task_util.h"
-#include "drivers/module_master_hal.hpp"
-
-#include <STM32RTC.h>
-#include "STM32LowPower.h"
-
-#include <IWatchdog.h>
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-#if (ENABLE_USBSERIAL)
-#include "tasks/usbserial_task.h"
-#endif
-
-#include "debug_F.h"
-
-using namespace cpp_freertos;
+#define STIMA_TRACE_LEVEL              TRACE_LEVEL_INFO
+#define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
+#define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define NTP_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
+#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_INFO
+#define HTTP_TASK_TRACE_LEVEL          TRACE_LEVEL_OFF
+#define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_OFF
+#define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+#define MMC_TASK_TRACE_LEVEL           TRACE_LEVEL_NONE
+#define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
+#define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
+#define USBSERIAL_TASK_TRACE_LEVEL     TRACE_LEVEL_OFF
+#define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+#define SIM7600_TRACE_LEVEL            TRACE_LEVEL_OFF
 
 #endif
