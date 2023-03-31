@@ -40,8 +40,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2023-03-24T00:00"    // date and time
-#define MAJOR_VERSION    "20230324"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2023-03-31T00:00"    // date and time
+#define MAJOR_VERSION    "20230331"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
@@ -58,6 +58,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
+// Length of datetime string %04u-%02u-%02uT%02u:%02u:%02u
+#define DATE_TIME_STRING_LENGTH                       (25)
 
 #define STIMAHTTP_PORT 80
 #define WS_PORT 81
@@ -100,6 +102,8 @@ ESP8266WebServer webserver(STIMAHTTP_PORT);
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <LittleFS.h>
+//#include <sntp.h> // nonos-sdk
+
 #define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINI"
 #define PMS_RESET D0
 #define SCL D1
@@ -416,7 +420,7 @@ void handle_NotFound(){
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  LOGN("Should save config" CR);
+  LOGN("Should save config");
   shouldSaveConfig = true;
 }
 
@@ -435,7 +439,7 @@ String  rmap_get_remote_config(){
   url+=rmap_slug;
   url+="/default/json/";     // get one station, default boards
 
-  LOGN(F("readRmapRemoteConfig url: %s" CR),url.c_str());  
+  LOGN(F("readRmapRemoteConfig url: %s"),url.c_str());  
   //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
   http.begin(espClient,url.c_str());
 
@@ -444,8 +448,8 @@ String  rmap_get_remote_config(){
     payload = http.getString();
     LOGN(payload.c_str());
   }else{
-    LOGE(F("Error http: %s" CR),String(httpCode).c_str());
-    LOGE(F("Error http: %s" CR),http.errorToString(httpCode).c_str());
+    LOGE(F("Error http: %s"),String(httpCode).c_str());
+    LOGE(F("Error http: %s"),http.errorToString(httpCode).c_str());
     payload=String();
   }
   http.end();
@@ -460,7 +464,7 @@ bool publish_maint() {
   //String clientId = "ESP8266Client-";
   //clientId += String(random(0xffff), HEX);
     
-  LOGN(F("Connet to mqtt broker" CR));
+  LOGN(F("Connet to mqtt broker"));
 
   char mqttid[100]="";
   strcat(mqttid,rmap_user);
@@ -468,7 +472,7 @@ bool publish_maint() {
   strcat(mqttid,rmap_slug);
   strcat(mqttid,"/default");
   
-  LOGN(F("mqttid: %s" CR),mqttid);
+  LOGN(F("mqttid: %s"),mqttid);
   
   char mainttopic[100]="1/";
   strcat(mainttopic,rmap_mqttmaintpath);
@@ -481,22 +485,22 @@ bool publish_maint() {
   strcat(mainttopic,"/");
   strcat(mainttopic,rmap_network);
   strcat(mainttopic,"/254,0,0/265,0,-,-/B01213");
-  LOGN(F("MQTT maint topic: %s" CR),mainttopic);
+  LOGN(F("MQTT maint topic: %s"),mainttopic);
     
   if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
-    LOGE(F("Error connecting MQTT" CR));
-    LOGE(F("Error status %d" CR),mqttclient.state());
+    LOGE(F("Error connecting MQTT"));
+    LOGE(F("Error status %d"),mqttclient.state());
     return false;
   }
-  LOGN(F("MQTT connected" CR));
+  LOGN(F("MQTT connected"));
   yield();
   if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\",\"s\":" MAJOR_VERSION ",\"m\":" MINOR_VERSION "}   ", 34,1)){ //padded 3 blank char for time
     //if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-    LOGE(F("MQTT maint not published" CR));
+    LOGE(F("MQTT maint not published"));
     mqttclient.disconnect();
     return false;
   }
-  LOGN(F("MQTT maint published" CR));
+  LOGN(F("MQTT maint published"));
   return true;
 }
 
@@ -506,10 +510,10 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
   char topic[100];
   StaticJsonDocument<500> doc;
 
-  LOGN(F("have to publish: %s" CR),values);
+  LOGN(F("have to publish: %s"),values);
   DeserializationError error = deserializeJson(doc,values);
   if (error) {
-    LOGE(F("reading json data: %s" CR),error.c_str());
+    LOGE(F("reading json data: %s"),error.c_str());
     return false;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
@@ -549,13 +553,13 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
     strcat(topic,"/");
     strcat(topic,pair.key().c_str());
 
-    LOGN(F("mqtt publish: %s %s" CR),topic,payload);
+    LOGN(F("mqtt publish: %s %s"),topic,payload);
     if (!mqttclient.publish(topic, payload)){
-      LOGE(F("MQTT data not published" CR));
+      LOGE(F("MQTT data not published"));
       mqttclient.disconnect();
       return false;
     }
-    LOGN(F("MQTT data published" CR));
+    LOGN(F("MQTT data published"));
   }
   return true;
 }
@@ -568,8 +572,8 @@ void firmware_upgrade() {
   doc["slug"] = rmap_slug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
-  LOGN(F("url for firmware update: %s" CR),update_url);
-  LOGN(F("version for firmware update: %s" CR),buffer);
+  LOGN(F("url for firmware update: %s"),update_url);
+  LOGN(F("version for firmware update: %s"),buffer);
 
   analogWriteFreq(4);
   analogWrite(LED_PIN,512);  
@@ -585,8 +589,8 @@ void firmware_upgrade() {
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
-      LOGE(F("[update] Update failed with message:" CR));
-      LOGE(F("%s" CR),ESPhttpUpdate.getLastErrorString().c_str());
+      LOGE(F("[update] Update failed with message:"));
+      LOGE(F("%s"),ESPhttpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
 	u8g2.setCursor(0, 20); 
 	u8g2.print(F("FW Update"));
@@ -602,7 +606,7 @@ void firmware_upgrade() {
       delay(1000);
     break;
     case HTTP_UPDATE_NO_UPDATES:
-      LOGN(F("[update] No Update." CR));
+      LOGN(F("[update] No Update."));
       if (oledpresent) {
 	u8g2.setCursor(0, 20); 
 	u8g2.print(F("NO Firmware"));
@@ -614,7 +618,7 @@ void firmware_upgrade() {
       delay(1000);
       break;
     case HTTP_UPDATE_OK:
-      LOGN(F("[update] Update ok." CR)); // may not called we reboot the ESP
+      LOGN(F("[update] Update ok.")); // may not called we reboot the ESP
       /*
       if (oledpresent) {
 	u8g2.setCursor(0, 20); 
@@ -646,10 +650,10 @@ String readconfig_rmap() {
 
     if (LittleFS.exists("/rmap.json")) {
       //file exists, reading and loading
-    LOGN(F("reading rmap config file" CR));
+    LOGN(F("reading rmap config file"));
     File configFile = LittleFS.open("/rmap.json", "r");
     if (configFile) {
-      LOGN(F("opened rmap config file" CR));
+      LOGN(F("opened rmap config file"));
 
       //size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
@@ -659,10 +663,10 @@ String readconfig_rmap() {
       return configFile.readString();
       
     } else {
-      LOGN(F("erro reading rmap file" CR));	
+      LOGN(F("erro reading rmap file"));	
     }
   } else {
-    LOGN(F("rmap file do not exist" CR));
+    LOGN(F("rmap file do not exist"));
   }
   //end read
   return String();  
@@ -671,16 +675,16 @@ String readconfig_rmap() {
 void writeconfig_rmap(String payload) {;
 
   //save the custom parameters to FS
-  LOGN(F("saving rmap config" CR));
+  LOGN(F("saving rmap config"));
   
   File configFile = LittleFS.open("/rmap.json", "w");
   if (!configFile) {
-    LOGE(F("failed to open rmap config file for writing" CR));
+    LOGE(F("failed to open rmap config file for writing"));
   }
 
   configFile.print(payload);
   configFile.close();
-  LOGN(F("saved rmap config parameter" CR));
+  LOGN(F("saved rmap config parameter"));
   //end save
 }
 
@@ -700,41 +704,41 @@ int  rmap_config(String payload){
     DeserializationError error = deserializeJson(doc,payload);
     if (!error){
       JsonArrayConst array = doc.as<JsonArray>();
-      LOGN(F("array: %d" CR),array.size());
+      LOGN(F("array: %d"),array.size());
       //for (uint8_t i = 0; i < array.size(); i++) {
       for(JsonObjectConst element: array){
 	
 	if  (element["model"] == "stations.stationmetadata"){
 	  if (element["fields"]["active"]){
-	    LOGN(F("station metadata found!" CR));
+	    LOGN(F("station metadata found!"));
 	    strncpy (rmap_mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
 	    rmap_mqttrootpath[9]='\0';
-	    LOGN(F("mqttrootpath: %s" CR),rmap_mqttrootpath);
+	    LOGN(F("mqttrootpath: %s"),rmap_mqttrootpath);
 	    strncpy (rmap_mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
 	    rmap_mqttmaintpath[9]='\0';
-	    LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+	    LOGN(F("mqttmaintpath: %s"),rmap_mqttmaintpath);
 
 	    //strncpy (rmap_longitude, element["fields"]["lon"].as<const char*>(),10);
 	    //rmap_longitude[10]='\0';
 	    itoa(int(element["fields"]["lon"].as<float>()*100000),rmap_longitude,10);
-	    LOGN(F("lon: %s" CR),rmap_longitude);
+	    LOGN(F("lon: %s"),rmap_longitude);
 
 	    //strncpy (rmap_latitude , element["fields"]["lat"].as<const char*>(),10);
 	    //rmap_latitude[10]='\0';
 	    itoa(int(element["fields"]["lat"].as<float>()*100000),rmap_latitude,10);
-	    LOGN(F("lat: %s" CR),rmap_latitude);
+	    LOGN(F("lat: %s"),rmap_latitude);
 	    
 	    strncpy (rmap_network , element["fields"]["network"].as< const char*>(),30);
 	    rmap_network[30]='\0';
-	    LOGN(F("network: %s" CR),rmap_network);
+	    LOGN(F("network: %s"),rmap_network);
 
 	    strncpy (rmap_mqttrootpath , element["fields"]["mqttrootpath"].as< const char*>(),9);
 	    rmap_mqttrootpath[9]='\0';
-	    LOGN(F("rmap_mqttrootpath: %s" CR),rmap_mqttrootpath);
+	    LOGN(F("rmap_mqttrootpath: %s"),rmap_mqttrootpath);
 
 	    strncpy (rmap_mqttmaintpath , element["fields"]["mqttmaintpath"].as< const char*>(),9);
 	    rmap_mqttmaintpath[9]='\0';
-	    LOGN(F("rmap_mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+	    LOGN(F("rmap_mqttmaintpath: %s"),rmap_mqttmaintpath);
 
 	    status_station = true;
 	  }
@@ -743,20 +747,20 @@ int  rmap_config(String payload){
 	if  (element["model"] == "stations.transportmqtt"){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
-	      LOGN(F("board transportmqtt found!" CR));
+	      LOGN(F("board transportmqtt found!"));
 	      rmap_sampletime=element["fields"]["mqttsampletime"];
-	      LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
+	      LOGN(F("rmap_sampletime: %d"),rmap_sampletime);
 
 	      if (!element["fields"]["mqttserver"].isNull()){
 		strncpy (rmap_mqtt_server, element["fields"]["mqttserver"].as< const char*>(),40);
 		rmap_mqtt_server[40]='\0';
-		LOGN(F("rmap_mqtt_server: %s" CR),rmap_mqtt_server);
+		LOGN(F("rmap_mqtt_server: %s"),rmap_mqtt_server);
 	      }
 	      
 	      if (!element["fields"]["mqttuser"].isNull()){
 		strncpy (rmap_user, element["fields"]["mqttuser"].as< const char*>(),9);
 		rmap_user[9]='\0';
-		LOGN(F("rmap_user: %s" CR),rmap_user);
+		LOGN(F("rmap_user: %s"),rmap_user);
 	      }
 
 	      ///////////////////////////////////////////////////////////////////////////////
@@ -765,7 +769,7 @@ int  rmap_config(String payload){
 	      if (!element["fields"]["mqttpassword"].isNull()){
 		strncpy (rmap_password, element["fields"]["mqttpassword"].as< const char*>(),30);
 		rmap_password[30]='\0';
-		LOGN(F("rmap_password: %s" CR),rmap_password);
+		LOGN(F("rmap_password: %s"),rmap_password);
 		// save new user and password (station auth)
 		writeconfig();
 	      }
@@ -779,12 +783,12 @@ int  rmap_config(String payload){
 	if  (element["model"] == "stations.transporttcpip"){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
-	      LOGN(F("board transporttcpip found!" CR));
+	      LOGN(F("board transporttcpip found!"));
 
 	      if (!element["fields"]["ntpserver"].isNull()){
 		strncpy (ntp_server, element["fields"]["ntpserver"].as< const char*>(),40);
 		ntp_server[40]='\0';
-		LOGN(F("ntp_server: %s" CR),ntp_server);
+		LOGN(F("ntp_server: %s"),ntp_server);
 	      }
 	      status_board_tcpip = true;	      
 	    }
@@ -795,26 +799,26 @@ int  rmap_config(String payload){
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
 	    if (ii < SENSORS_LEN) {
-	      LOGN(F("station sensor found!" CR));
+	      LOGN(F("station sensor found!"));
 	      strncpy (sensors[ii].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
-	      LOGN(F("driver: %s" CR),sensors[ii].driver);
+	      LOGN(F("driver: %s"),sensors[ii].driver);
 	      strncpy (sensors[ii].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
-	      LOGN(F("type: %s" CR),sensors[ii].type);
+	      LOGN(F("type: %s"),sensors[ii].type);
 	      strncpy (sensors[ii].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      LOGN(F("timerange: %s" CR),sensors[ii].timerange);
+	      LOGN(F("timerange: %s"),sensors[ii].timerange);
 	      strncpy (sensors[ii].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      LOGN(F("level: %s" CR),sensors[ii].level);
+	      LOGN(F("level: %s"),sensors[ii].level);
 	      sensors[ii].address = element["fields"]["address"];	    
-	      LOGN(F("address: %d" CR),sensors[ii].address);
+	      LOGN(F("address: %d"),sensors[ii].address);
 
 	      if (strcmp(sensors[ii].type,"PMS")==0) pmspresent=true;
 	      
 	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
 	      if (sd[ii] == 0){
-		LOGE(F("%s:%s driver not created !" CR),sensors[ii].driver,sensors[ii].type);
+		LOGE(F("%s:%s driver not created !"),sensors[ii].driver,sensors[ii].type);
 	      }else{		
 		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
-		  LOGE(F("sensor not present or broken" CR));
+		  LOGE(F("sensor not present or broken"));
 		  analogWrite(LED_PIN,750);
 		  delay(5000);
 		}		
@@ -827,7 +831,7 @@ int  rmap_config(String payload){
       }
       status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors);
     } else {
-      LOGE(F("error parsing array: %s" CR),error.c_str());
+      LOGE(F("error parsing array: %s"),error.c_str());
       analogWrite(LED_PIN,973);
       delay(5000);
       status = 2;
@@ -845,10 +849,10 @@ void readconfig_SPIFFS() {
 
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
-    LOGN(F("reading config file" CR));
+    LOGN(F("reading config file"));
     File configFile = SPIFFS.open("/config.json", "r");
     if (configFile) {
-      LOGN(F("opened config file" CR));
+      LOGN(F("opened config file"));
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -869,26 +873,26 @@ void readconfig_SPIFFS() {
 	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, doc["rmap_mqttrootpath"]);
 	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
-	  LOGN(F("loaded config parameter:" CR));
-	  LOGN(F("longitude: %s" CR),rmap_longitude);
-	  LOGN(F("latitude: %s" CR),rmap_latitude);
-	  LOGN(F("server: %s" CR),rmap_server);
-	  LOGN(F("ntp server: %s" CR),ntp_server);	  
-	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
-	  LOGN(F("user: %s" CR),rmap_user);
-	  //LOGN(F("password: %s" CR),rmap_password);
-	  LOGN(F("slug: %s" CR),rmap_slug);
-	  LOGN(F("mqttrootpath: %s" CR),rmap_mqttrootpath);
-	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+	  LOGN(F("loaded config parameter:"));
+	  LOGN(F("longitude: %s"),rmap_longitude);
+	  LOGN(F("latitude: %s"),rmap_latitude);
+	  LOGN(F("server: %s"),rmap_server);
+	  LOGN(F("ntp server: %s"),ntp_server);	  
+	  LOGN(F("mqtt server: %s"),rmap_mqtt_server);
+	  LOGN(F("user: %s"),rmap_user);
+	  //LOGN(F("password: %s"),rmap_password);
+	  LOGN(F("slug: %s"),rmap_slug);
+	  LOGN(F("mqttrootpath: %s"),rmap_mqttrootpath);
+	  LOGN(F("mqttmaintpath: %s"),rmap_mqttmaintpath);
 	  
         } else {
-          LOGE(F("failed to deserialize json config %s" CR),error.c_str());
+          LOGE(F("failed to deserialize json config %s"),error.c_str());
         }
       } else {
-	LOGE(F("erro reading config file" CR));	
+	LOGE(F("erro reading config file"));	
       }
     } else {
-      LOGW(F("config file do not exist" CR));
+      LOGW(F("config file do not exist"));
     }
   //end read
 }
@@ -898,10 +902,10 @@ String readconfig_rmap_SPIFFS() {
 
   if (SPIFFS.exists("/rmap.json")) {
     //file exists, reading and loading
-    LOGN(F("reading rmap config file" CR));
+    LOGN(F("reading rmap config file"));
     File configFile = SPIFFS.open("/rmap.json", "r");
     if (configFile) {
-      LOGN(F("opened rmap config file" CR));
+      LOGN(F("opened rmap config file"));
 
       //size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
@@ -911,10 +915,10 @@ String readconfig_rmap_SPIFFS() {
       return configFile.readString();
       
     } else {
-      LOGN(F("erro reading rmap file" CR));	
+      LOGN(F("erro reading rmap file"));	
     }
   } else {
-    LOGN(F("rmap file do not exist" CR));
+    LOGN(F("rmap file do not exist"));
   }
   //end read
   return String();  
@@ -926,10 +930,10 @@ void readconfig() {
 
   if (LittleFS.exists("/config.json")) {
     //file exists, reading and loading
-    LOGN(F("reading config file" CR));
+    LOGN(F("reading config file"));
     File configFile = LittleFS.open("/config.json", "r");
     if (configFile) {
-      LOGN(F("opened config file" CR));
+      LOGN(F("opened config file"));
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -951,26 +955,26 @@ void readconfig() {
 	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, doc["rmap_mqttrootpath"]);
 	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
-	  LOGN(F("loaded config parameter:" CR));
-	  LOGN(F("longitude: %s" CR),rmap_longitude);
-	  LOGN(F("latitude: %s" CR),rmap_latitude);
-	  LOGN(F("server: %s" CR),rmap_server);
-	  LOGN(F("ntp server: %s" CR),ntp_server);
-	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
-	  LOGN(F("user: %s" CR),rmap_user);
-	  //LOGN(F("password: %s" CR),rmap_password);
-	  LOGN(F("slug: %s" CR),rmap_slug);
-	  LOGN(F("mqttrootpath: %s" CR),rmap_mqttrootpath);
-	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+	  LOGN(F("loaded config parameter:"));
+	  LOGN(F("longitude: %s"),rmap_longitude);
+	  LOGN(F("latitude: %s"),rmap_latitude);
+	  LOGN(F("server: %s"),rmap_server);
+	  LOGN(F("ntp server: %s"),ntp_server);
+	  LOGN(F("mqtt server: %s"),rmap_mqtt_server);
+	  LOGN(F("user: %s"),rmap_user);
+	  //LOGN(F("password: %s"),rmap_password);
+	  LOGN(F("slug: %s"),rmap_slug);
+	  LOGN(F("mqttrootpath: %s"),rmap_mqttrootpath);
+	  LOGN(F("mqttmaintpath: %s"),rmap_mqttmaintpath);
 	  
         } else {
-          LOGE(F("failed to deserialize json config %s" CR),error.c_str());
+          LOGE(F("failed to deserialize json config %s"),error.c_str());
         }
       } else {
-	LOGE(F("erro reading config file" CR));	
+	LOGE(F("erro reading config file"));	
       }
     } else {
-      LOGW(F("config file do not exist" CR));
+      LOGW(F("config file do not exist"));
     }
   //end read
 }
@@ -978,7 +982,7 @@ void readconfig() {
 void writeconfig() {;
 
   //save the custom parameters to FS
-  LOGN(F("saving config" CR));
+  LOGN(F("saving config"));
   //DynamicJsonDocument jsonBuffer;
   StaticJsonDocument<500> json;
     
@@ -995,13 +999,13 @@ void writeconfig() {;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
-    LOGE(F("failed to open config file for writing" CR));
+    LOGE(F("failed to open config file for writing"));
   }
 
   //json.printTo(Serial);
   serializeJson(json,configFile);
   configFile.close();
-  LOGN(F("saved config parameter" CR));
+  LOGN(F("saved config parameter"));
 }
 
 
@@ -1100,15 +1104,15 @@ bool publish_constantdata() {
       for(JsonObjectConst element: array){ 
 	if  (element["model"] == "stations.stationconstantdata"){
 	  if (element["fields"]["active"]){
-	    LOGN(F("station constant data found!" CR));
+	    LOGN(F("station constant data found!"));
 	    char btable[7];
 	    strncpy (btable, element["fields"]["btable"].as< const char*>(),6);
 	    btable[6]='\0';
-	    LOGN(F("btable: %s" CR),btable);
+	    LOGN(F("btable: %s"),btable);
 	    char value[31];
 	    strncpy (value, element["fields"]["value"].as< const char*>(),30);
 	    value[30]='\0';
-	    LOGN(F("value: %s" CR),value);
+	    LOGN(F("value: %s"),value);
 
 	    char payload[100]="{\"v\":\"";
 	    strcat(payload,value);
@@ -1127,18 +1131,18 @@ bool publish_constantdata() {
 	    strcat(topic,"/-,-,-/-,-,-,-/");
 	    strcat(topic,btable);
 
-	    LOGN(F("mqtt publish: %s %s" CR),topic,payload);
+	    LOGN(F("mqtt publish: %s %s"),topic,payload);
 	    if (!mqttclient.publish(topic, payload)){
-	      LOGE(F("MQTT data not published" CR));
+	      LOGE(F("MQTT data not published"));
 	      mqttclient.disconnect();
 	      return false;
 	    }
-	    LOGN(F("MQTT data published" CR));
+	    LOGN(F("MQTT data published"));
 	  }
 	}
       }
     } else {
-      LOGE(F("error parsing array: %s" CR),error.c_str());
+      LOGE(F("error parsing array: %s"),error.c_str());
       analogWrite(LED_PIN,973);
       delay(5000);
       return false;
@@ -1163,16 +1167,18 @@ void repeats() {
 
   digitalWrite(LED_PIN,LOW);
   time_t tnow = time(nullptr);
-  LOGN(F("Time: %s" CR),ctime(&tnow));
+  setTime(tnow);              // resync from sntp
+  
+  LOGN(F("Time: %s"),ctime(&tnow));
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == 0){
-      LOGN(F("prepare sd %d" CR),i);
+      LOGN(F("prepare sd %d"),i);
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=_max(maxwaittime,waittime);
       }else{
-	LOGE(F("%s: prepare failed !" CR),sensors[i].driver);
+	LOGE(F("%s: prepare failed !"),sensors[i].driver);
       }
     }
   }
@@ -1180,13 +1186,13 @@ void repeats() {
   yield();
   
   //wait sensors to go ready
-  LOGN(F("wait sensors for ms: %d" CR),maxwaittime);
+  LOGN(F("wait sensors for ms: %d"),maxwaittime);
   unsigned long int now=millis();
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.connected()){
     if (!publish_maint()) {
-      LOGE(F("Error in publish maint" CR));
+      LOGE(F("Error in publish maint"));
       if (oledpresent) {
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 20); 
@@ -1204,7 +1210,7 @@ void repeats() {
     }
 
     if (!publish_constantdata()) {
-      LOGE(F("Error in publish constant data" CR));
+      LOGE(F("Error in publish constant data"));
       if (oledpresent) {
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 20); 
@@ -1232,7 +1238,7 @@ void repeats() {
   }
 
   while ((float(maxwaittime)-float(millis()-now)) >0.) {
-    //LOGN(F("delay" CR));
+    //LOGN(F("delay"));
     mqttclient.loop();;
     webserver.handleClient();
 #if not defined(ARDUINO_D1_MINI32)
@@ -1250,7 +1256,7 @@ void repeats() {
   for (int i = 0; i < SENSORS_LEN; i++) {
     yield();
     if (!sd[i] == 0){
-      LOGN(F("getJson sd %d" CR),i);
+      LOGN(F("getJson sd %d"),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 	if(publish_data(values,sensors[i].timerange,sensors[i].level)){
 	  web_values(values);
@@ -1258,7 +1264,7 @@ void repeats() {
 	    display_values(values);
 	  }
 	}else{
-	  LOGE(F("Error in publish data" CR));
+	  LOGE(F("Error in publish data"));
 	  if (oledpresent) {
 	    u8g2.setCursor(0, (displaypos++)*CH); 
 	    u8g2.print(F("MQTT error publish"));
@@ -1268,7 +1274,7 @@ void repeats() {
 	  }
 	}
       }else{
-	LOGE(F("Error getting json from sensor" CR));
+	LOGE(F("Error getting json from sensor"));
 	if (oledpresent) {
 	  u8g2.setCursor(0, (displaypos++)*CH); 
 	  u8g2.print(F("Sensor error"));
@@ -1286,6 +1292,19 @@ void reboot() {
   //reset and try again, or maybe put it to deep sleep
   ESP.restart();
   delay(5000);
+}
+
+void logPrefix(Print* _logOutput) {
+  char dt[DATE_TIME_STRING_LENGTH];
+  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+  _logOutput->print("#");
+  _logOutput->print(dt);
+  _logOutput->print(" ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 void setup() {
@@ -1314,8 +1333,10 @@ void setup() {
 
   // set runtime log level to the same of compile time
   Log.begin(LOG_LEVEL, &Serial);
-  LOGN(F("Started" CR));
-  LOGN(F("Version: " SOFTWARE_VERSION CR));
+  Log.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
+  Log.setSuffix(logSuffix); // Uncomment to get newline as suffix
+  LOGN(F("Started"));
+  LOGN(F("Version: " SOFTWARE_VERSION));
 
 #ifdef I2CPULLUP
   //if you want to set the internal pullup
@@ -1328,7 +1349,7 @@ void setup() {
 #endif
 
   espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
- 
+  
   
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
@@ -1338,7 +1359,7 @@ void setup() {
   // a device did acknowledge to the address.
   Wire.beginTransmission(OLEDI2CADDRESS);
   if (Wire.endTransmission() == 0) {
-    LOGN(F("OLED Found" CR));
+    LOGN(F("OLED Found"));
     oledpresent=true;
     u8g2.setI2CAddress(OLEDI2CADDRESS*2);
     u8g2.begin();
@@ -1353,7 +1374,7 @@ void setup() {
     u8g2.print(F(SOFTWARE_VERSION));
     u8g2.sendBuffer();
   }else{
-        LOGN(F("OLED NOT Found" CR));
+        LOGN(F("OLED NOT Found"));
   }
   
   digitalWrite(LED_PIN,LOW);
@@ -1371,14 +1392,13 @@ void setup() {
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
-  LOGN(F("esp_chipid: %s " CR),esp_chipid );
+  LOGN(F("esp_chipid: %s "),esp_chipid );
   */
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
 
-  configTime(0, 0, "0.europe.pool.ntp.org");
 
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   bool reset=digitalRead(RESET_PIN) == LOW;
@@ -1387,13 +1407,13 @@ void setup() {
     if (button.BUTTON_A)
     {
       //String keyString[] = {"None", "Press", "Long Press", "Double Press", "Hold"};
-      //LOGN(F("BUTTON A: %s" CR),keyString[button.BUTTON_A].c_str());
+      //LOGN(F("BUTTON A: %s"),keyString[button.BUTTON_A].c_str());
       if (button.BUTTON_A == KEY_VALUE_HOLD) reset=true;
     }
   }
   
   if (reset) {
-    LOGN(F("clean FS" CR));
+    LOGN(F("clean FS"));
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
@@ -1406,12 +1426,12 @@ void setup() {
       delay(3000);
     }
     LittleFS.format();
-    LOGN(F("Reset wifi configuration" CR));
+    LOGN(F("Reset wifi configuration"));
     wifiManager.resetSettings();
   }
   
   //read configuration from FS json
-  LOGN(F("mounting FS..." CR));
+  LOGN(F("mounting FS..."));
 
 
 #if not defined(ARDUINO_D1_MINI32)
@@ -1425,30 +1445,30 @@ void setup() {
   SPIFFS.setConfig(spiffscfg);
   if (SPIFFS.begin()) {
     // migrate configuration from old SPIFFS to new LittleFS
-    LOGN(F("mounted old SPIFFS file system" CR));
+    LOGN(F("mounted old SPIFFS file system"));
     readconfig_SPIFFS();
     String remote_config=readconfig_rmap_SPIFFS();
-    LOGW(F("Old configuration read" CR));
+    LOGW(F("Old configuration read"));
     SPIFFS.end();
-    LOGW(F("Reformat LittleFS" CR));
+    LOGW(F("Reformat LittleFS"));
     LittleFS.format();
     LittleFS.begin();
-    LOGW(F("writeconfig" CR));
+    LOGW(F("writeconfig"));
     writeconfig();
-    LOGW(F("writeconfig rmap" CR));
+    LOGW(F("writeconfig rmap"));
     writeconfig_rmap(remote_config);
-    LOGW(F("filesystem conversion done" CR));
+    LOGW(F("filesystem conversion done"));
   } else
 #endif
     if (LittleFS.begin()) {
-      LOGN(F("mounted LittleFS file system" CR));
+      LOGN(F("mounted LittleFS file system"));
     readconfig();    
   } else {
-    LOGE(F("failed to mount FS" CR));
-    LOGW(F("Reformat LittleFS" CR));
+    LOGE(F("failed to mount FS"));
+    LOGW(F("Reformat LittleFS"));
     LittleFS.format();
     LittleFS.begin();    
-    LOGW(F("Reset wifi configuration" CR));
+    LOGW(F("Reset wifi configuration"));
     wifiManager.resetSettings();
 
     if (oledpresent) {
@@ -1467,8 +1487,8 @@ void setup() {
   }
 
   if (readconfig_rmap() == String()) {
-    LOGN(F("station configuration not found!" CR));
-    LOGN(F("Reset wifi configuration" CR));
+    LOGN(F("station configuration not found!"));
+    LOGN(F("Reset wifi configuration"));
     wifiManager.resetSettings();
   }
   
@@ -1521,14 +1541,14 @@ void setup() {
     }
 
   analogWrite(LED_PIN,512);
-  
+
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
   //wifiManager.setDebugOutput(false);
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-    LOGE(F("failed to connect and hit timeout" CR));
+    LOGE(F("failed to connect and hit timeout"));
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
@@ -1539,8 +1559,8 @@ void setup() {
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
-    LOGN(F("connected... good!" CR));
-    LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
+    LOGN(F("connected... good!"));
+    LOGN(F("local ip: %s"),WiFi.localIP().toString().c_str());
     digitalWrite(LED_PIN,HIGH);
 
     yield();
@@ -1584,7 +1604,7 @@ void setup() {
   String remote_config= rmap_get_remote_config();
 
   if ( remote_config == String() ) {
-    LOGE(F("remote configuration failed" CR));
+    LOGE(F("remote configuration failed"));
     analogWrite(LED_PIN,50);
     delay(5000);
     digitalWrite(LED_PIN,HIGH);    
@@ -1597,8 +1617,8 @@ void setup() {
   firmware_upgrade();
   
   if (!rmap_config(remote_config) == 0) {
-    LOGN(F("station not configurated ! restart" CR));
-    //LOGN(F("Reset wifi configuration" CR));
+    LOGN(F("station not configurated ! restart"));
+    //LOGN(F("Reset wifi configuration"));
     //wifiManager.resetSettings();
 
     if (oledpresent){
@@ -1625,7 +1645,7 @@ void setup() {
     LOGE(F("Error setting up MDNS responder!"));
     delay(1000);
   }
-  LOGN(F("mDNS responder started" CR));
+  LOGN(F("mDNS responder started"));
 
 
   // setup web server
@@ -1635,19 +1655,48 @@ void setup() {
   webserver.onNotFound(handle_NotFound);
   
   webserver.begin();
-  LOGN(F("HTTP server started" CR));
+  LOGN(F("HTTP server started"));
 
+  configTime(0,0, ntp_server); // this seems not taken in account
+  // ESP time and arduino time are different thinks !
+  //time_t tnow = now();
   time_t tnow = time(nullptr);
+
+  uint16_t counter=0;
   while (tnow < EPOCH_1_1_2019)
   {
-    tnow = time(nullptr);
-    delay(500);
-    LOGN(F("Wait for NTP" CR));
+    tnow = now();
+    LOGN(F("Time: %s"),ctime(&tnow));
+    LOGN(F("Wait for NTP"));
+
+    if (oledpresent){
+      u8g2.setCursor(0, 30);
+      u8g2.print(F("Setting time"));
+      u8g2.sendBuffer();
+    }
+    if(counter++>=300) {
+      if (oledpresent){
+	u8g2.clearBuffer();
+	u8g2.setCursor(0, 10); 
+	u8g2.print(F("Time not"));
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("configurated!"));
+	u8g2.setCursor(0, 30);
+	u8g2.print(F("RESTART"));
+	u8g2.sendBuffer();
+	delay(5000);
+      }
+      reboot(); //300 seconds timeout - reset board
+    }
+    yield();
+    delay(1000);
   }
+
+  setTime(tnow);
   
-  LOGN(F("Time: %s" CR),ctime(&tnow));
+  LOGN(F("Time: %s"),ctime(&tnow));
   
-  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
+  LOGN(F("mqtt server: %s"),rmap_mqtt_server);
 
   mqttclient.setServer(rmap_mqtt_server, 1883);
   
@@ -1662,7 +1711,7 @@ void setup() {
   }else{
     reboottime=3600*24*7;          // every week
   }
-  LOGN(F("reboot every: %d" CR),reboottime);
+  LOGN(F("reboot every: %d"),reboottime);
   Alarm.timerRepeat(reboottime,reboot);                 // reboot
 
   // upgrade firmware
@@ -1684,7 +1733,7 @@ void loop() {
   // sometimes ESP32 do not reconnect and we need a restart
   uint16_t counter=0;
   while (WiFi.status() != WL_CONNECTED) { //lost connection
-    LOGE(F("WIFI disconnected!" CR));
+    LOGE(F("WIFI disconnected!"));
     if (oledpresent){
       u8g2.clearBuffer();
       u8g2.setCursor(0, 20); 
