@@ -99,11 +99,13 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_ENCODER_EN5 PE5
 #define PIN_ENCODER_INT PE6
 
-// SPI1
+// SPI1 
 #define PIN_SPI_SCK     PA5
 #define PIN_SPI_MOSI    PB5
 #define PIN_SPI_MISO    PB4
+// SPI1 SD
 #define PIN_SPI_SS      PA15
+#define PIN_SD_LED      PD14
 
 // I2C1 Esterna (Upin 27 A4/A5)
 #define PIN_I2C1_SDA    PB7
