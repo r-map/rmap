@@ -88,18 +88,27 @@ void init_wire() {
 // Util variables
 uint8_t data[DATA_LENGTH];
 
-// Declaration test eeprom functions
+// ************************************************************************
+// ****************** TEST EEPROM FUNCTION DECLARATIONS *******************
+// ************************************************************************
+
 void test_data_written_on_eeprom_is_correct(void);
 void test_read_eeprom(void);
 void test_write_eeprom(void);
-// Declaration test flash functions
+
+// ************************************************************************
+// ****************** TEST FLASH FUNCTIONS DECLARATIONS *******************
+// ************************************************************************
+
 void test_data_written_on_flash_is_correct(void);
 void test_erase_flash(void);
 void test_init_qspi_hw(void);
 void test_read_flash(void);
 void test_write_flash(void);
 
-/*** TEST EEPROM FUNCTION IMPLEMENTATIONS ***/
+// ************************************************************************
+// ****************** TEST EEPROM FUNCTION IMPLEMENTATIONS ****************
+// ************************************************************************
 
 /**
  * @brief TEST Compare data
@@ -108,7 +117,7 @@ void test_write_flash(void);
 void test_data_written_on_eeprom_is_correct() {
     for (int iCnt = 0; iCnt < DATA_LENGTH; iCnt++) {
         if (data[iCnt] != iCnt) {
-            TEST_ASSERT_TRUE(false);
+            TEST_ASSERT_TRUE_MESSAGE(false, "Data written are incorrect");
             return;
         }
     }
@@ -124,7 +133,7 @@ void test_read_eeprom() {
     for (int iCnt = 0; iCnt < DATA_LENGTH; iCnt++) {
         data[iCnt] = 0;
     }
-    TEST_ASSERT_TRUE(memEprom.Read(0, data, DATA_LENGTH));
+    TEST_ASSERT_TRUE_MESSAGE(memEprom.Read(0, data, DATA_LENGTH), "Data reading failed");
 }
 
 /**
@@ -136,10 +145,12 @@ void test_write_eeprom() {
     for (int iCnt = 0; iCnt < DATA_LENGTH; iCnt++) {
         data[iCnt] = iCnt;
     }
-    TEST_ASSERT_TRUE(memEprom.Write(0, data, DATA_LENGTH));
+    TEST_ASSERT_TRUE_MESSAGE(memEprom.Write(0, data, DATA_LENGTH), "Data writing failed");
 }
 
-/*** TEST FLASH FUNCTION IMPLEMENTATIONS ***/
+// ************************************************************************
+// ****************** TEST FLASH FUNCTION IMPLEMENTATIONS *****************
+// ************************************************************************
 
 /**
  * @brief TEST: Compare data
@@ -148,7 +159,7 @@ void test_write_eeprom() {
 void test_data_written_on_flash_is_correct() {
     for (int iCnt = 0; iCnt < DATA_LENGTH; iCnt++) {
         if (data[iCnt] != iCnt) {
-            TEST_ASSERT_TRUE(false);
+            TEST_ASSERT_TRUE_MESSAGE(false, "Data written are incorrect");
             return;
         }
     }
@@ -160,7 +171,7 @@ void test_data_written_on_flash_is_correct() {
  *
  */
 void test_init_qspi_hw() {
-    TEST_ASSERT_EQUAL(Flash::QSPI_OK, memFlash.BSP_QSPI_Init());
+    TEST_ASSERT_EQUAL_MESSAGE(Flash::QSPI_OK, memFlash.BSP_QSPI_Init(), "QSPI initialization failed");
 }
 
 /**
@@ -168,7 +179,7 @@ void test_init_qspi_hw() {
  *
  */
 void test_erase_flash() {
-    TEST_ASSERT_EQUAL(Flash::QSPI_OK, memFlash.BSP_QSPI_Erase_Block(0));
+    TEST_ASSERT_EQUAL_MESSAGE(Flash::QSPI_OK, memFlash.BSP_QSPI_Erase_Block(0), "Flash memory erase failed");
 }
 
 /**
@@ -180,7 +191,7 @@ void test_read_flash() {
     for (int iCnt = 0; iCnt < 100; iCnt++) {
         data[iCnt] = 0;
     }
-    TEST_ASSERT_EQUAL(Flash::QSPI_OK, memFlash.BSP_QSPI_Read(data, 0, 100));
+    TEST_ASSERT_EQUAL_MEMORY(Flash::QSPI_OK, memFlash.BSP_QSPI_Read(data, 0, 100), "Data reading failed");
 }
 
 /**
@@ -192,7 +203,7 @@ void test_write_flash() {
     for (int iCnt = 0; iCnt < 100; iCnt++) {
         data[iCnt] = iCnt;
     }
-    TEST_ASSERT_EQUAL(Flash::QSPI_OK, memFlash.BSP_QSPI_Write(data, 0, 100));
+    TEST_ASSERT_EQUAL_MESSAGE(Flash::QSPI_OK, memFlash.BSP_QSPI_Write(data, 0, 100), "Data writing failed");
 }
 
 // *********************************************************************************************
@@ -208,9 +219,15 @@ void setup(void) {
     memEprom = EEprom(&Wire);
     memFlash = Flash(&hqspi);
 
+    // ************************************************************************
+    // ***************************** TEST BEGIN *******************************
+    // ************************************************************************
+
     UNITY_BEGIN();
 
     delay(1000);
+
+    // *************** EEPROM *******************
 
     RUN_TEST(test_write_eeprom);
     RUN_TEST(test_read_eeprom);
@@ -225,6 +242,10 @@ void setup(void) {
     RUN_TEST(test_data_written_on_flash_is_correct);
 
     UNITY_END();
+
+    // ************************************************************************
+    // ***************************** TEST END *********************************
+    // ************************************************************************
 }
 
 // *************************************************************************************************
