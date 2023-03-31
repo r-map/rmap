@@ -232,7 +232,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_RPC_SENSOR_NAME_DSA                   ("DSA")
 #define STIMA_RPC_SENSOR_NAME_VWC                   ("VWC")
 
-
 /*!
 \brief LCD descriptions list
 */

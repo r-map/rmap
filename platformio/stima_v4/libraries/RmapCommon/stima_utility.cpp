@@ -165,6 +165,7 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
 
     case STIMA_MODULE_TYPE_WIND:
       strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_WIND_DIRECTION, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_B, STIMA_LCD_DESCRIPTION_WIND_SPEED, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_SOLAR_RADIATION:
@@ -212,7 +213,8 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uin
       break;
 
     case STIMA_MODULE_TYPE_WIND:
-      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_METERS_PER_SECOND, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_DEGREES, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_B, STIMA_LCD_UNIT_TYPE_METERS_PER_SECOND, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_SOLAR_RADIATION:
@@ -260,7 +262,8 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_WIND:
-      *decimals_A = STIMA_LCD_DECIMALS_ONE;
+      *decimals_A = STIMA_LCD_DECIMALS_ZERO;
+      *decimals_B = STIMA_LCD_DECIMALS_ONE;
       break;
 
     case STIMA_MODULE_TYPE_SOLAR_RADIATION:
