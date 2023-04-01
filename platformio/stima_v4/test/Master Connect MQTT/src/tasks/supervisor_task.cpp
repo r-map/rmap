@@ -28,11 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // TODO: Move to MQTT
 #include "date_time.h"
-// Namespace RMAP
-#include <rmap/_module/TH_1_0.h>
-#include <rmap/service/_module/TH_1_0.h>
-#include <rmap/_module/RAIN_1_0.h>
-#include <rmap/service/_module/RAIN_1_0.h>
 
 using namespace cpp_freertos;
 
@@ -129,6 +124,9 @@ void SupervisorTask::Run()
     case SUPERVISOR_STATE_INIT:
       retry = 0;
 
+      // INIT CONFIGURATION FOR TEST CONNECTION ANT NET FUNCTION
+      saveConfiguration(true);
+
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
       #if(INIT_PARAMETER)
@@ -181,243 +179,30 @@ void SupervisorTask::Run()
       // Retry connection
       retry = 0;
 
-      // TODO: Remove Test Wait new start as time test 2,5 sec...
-      // TODO: Create Date/Time Event start from configuration
-      // TODO: Start only modulePower Full OK (no energy rest)
-      // TODO: Start only if data enable to send
-      // TODO: Remove NTP Syncro (1 x day?)
-      // TODO: Get RPC Remote? When connected... + Queue Command RPC (system_message_t)      
+      // ***** TEST CONNECTION GSM START
+      Serial.println("// ***** TEST CONNECTION GSM START");
 
-      // **************************************
-      //    TEST PUT Firmware Queue Usage
-      // **************************************
-      if(!test_put_firmware) {
+      strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
+      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
 
-        test_put_firmware = true;
+      // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
+      param.systemStatusLock->Take();
+      param.system_status->connection.is_ntp_synchronized = false;
+      param.system_status->connection.is_http_configuration_updated = false;
+      param.system_status->connection.is_http_firmware_upgraded = false;
+      param.system_status->connection.is_mqtt_connected = false;
+      param.systemStatusLock->Give();
 
-        file_put_request_t firmwareDownloadChunck;
-        file_put_response_t sdcard_task_response;
-        bool file_upload_error = false;
-
-        // MMC have to GET Ready before Push DATA
-        // EXIT from function if not MMC Ready or present into system_status
-        if(!param.system_status->flags.sd_card_ready) {
-          TRACE_VERBOSE_F(F("SUPERVISOR: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
-          break;
-        }
-
-        // First block NAME OF FILE (Prepare name and Put to queue)
-        // TODO: Get From HTTP
-        memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
-        firmwareDownloadChunck.block_type = file_block_type::file_name;
-        // Chose one method to put name file (only name file without prefix directory)
-        strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
-        // OR FILE NAME FROM TYPE... IF HTTP Responding with Module, Version and Revision...
-        // setStimaFirmwareName((char*)firmwareDownloadChunck.block, STIMA_MODULE_TYPE_TH, 4, 3);
-        firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
-        TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
-        // Push data request to queue MMC
-        param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-
-        // Non blocking task
-        TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-
-        // Waiting response from MMC with TimeOUT
-        memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-        TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-        file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-        file_upload_error |= !sdcard_task_response.done_operation;
-        // Add Data Chunck... TODO: Get From HTTP...
-        if(!file_upload_error) {
-          // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
-          firmwareDownloadChunck.block_type = file_block_type::data_chunck;
-          for(u_int16_t j=0; j<512; j++) {
-            // ASCII Char... Fill example
-            // TODO: Correct bytes read from buffer http...
-            firmwareDownloadChunck.block[j] = 48 + (j % 10);
-          }
-          firmwareDownloadChunck.block_lenght = 512;
-          // Try 100 Block Data chunk... Queue to MMC (x 512 Bytes -> 51200 Bytes to Write)
-          for(uint8_t i=0; i<100; i++) {
-            // Push data request to queue MMC
-            param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-            // Waiting response from MMC with TimeOUT
-            memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-            TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-            file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-            file_upload_error |= !sdcard_task_response.done_operation;
-            // Non blocking task
-            TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-            Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-            // Any error? Exit Uploading
-            if (file_upload_error) {
-              TRACE_VERBOSE_F(F("Uploading file error!!!\r\n"));
-              break;
-            }
-          }
-          // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
-          firmwareDownloadChunck.block_type = file_block_type::end_of_file;
-          // Push data request to queue MMC
-          param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-
-          // Waiting response from MMC with TimeOUT
-          memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-          file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-          file_upload_error |= !sdcard_task_response.done_operation;
-        }
-
-        // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
-        TRACE_VERBOSE_F(F("Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
-      }
-      // **************************************
-      //   END TEST PUT Firmware Queue Usage
-      // **************************************
-
-      // **************************************
-      //   TEST GET RMAP Data, To Append MQTT
-      // **************************************
-      if(!test_get_data) {
-
-        test_get_data = true;
-
-        rmap_get_request_t rmap_get_request;
-        rmap_get_response_t rmap_get_response;
-        bool rmap_data_error = false;
-
-        // MMC have to GET Ready before Push DATA
-        // EXIT from function if not MMC Ready or present into system_status
-        if(!param.system_status->flags.sd_card_ready) {
-          TRACE_VERBOSE_F(F("SUPERVISOR: Reject request get rmap data, MMC was not ready [ %s ]\r\n"), ERROR_STRING);
-          break;
-        }
-
-        // // **** SET POINTER DATA REQUEST *****
-        // // Example SET Timer from datTime ->
-        uint32_t countData = 0;
-        DateTime date_request;
-        date_request.day = 16;
-        date_request.month = 2;
-        date_request.year = 2023;
-        date_request.hours = 4;
-        date_request.minutes = 22;
-        date_request.seconds = 23;
-        uint32_t rmap_date_time_ptr = convertDateToUnixTime(&date_request);
-
-        memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
-        rmap_get_request.param = rmap_date_time_ptr;
-        rmap_get_request.command.do_synch_ptr = true;
-        // Optional Save Pointer in File (Probabiliy always in SetPtr)
-        rmap_get_request.command.do_save_ptr = true;
-        TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
-        // Push data request to queue MMC
-        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
-
-        // Non blocking task
-        TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-
-        // Waiting response from MMC with TimeOUT
-        memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-        // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
-        // Task WDT Are suspended
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-        rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-        rmap_data_error |= rmap_get_response.result.event_error;
-        // Rmap Pointer setted? Get All Data from RMAP Archive
-        bool rmap_eof = false;
-        // Exit on End of data or Error from queue
-        while((!rmap_data_error)&&(!rmap_eof)) {
-          memset(&rmap_get_request, 0, sizeof(rmap_get_request));
-          // Get Next data... Stop at EOF
-          rmap_get_request.command.do_get_data = true;
-          // Save Pointer? Optional
-          // rmap_get_request.command.do_save_ptr = true;
-          // Push data request to queue MMC
-          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
-          // Waiting response from MMC with TimeOUT
-          memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-          rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-          rmap_data_error |= rmap_get_response.result.event_error;
-          if(!rmap_data_error) {
-            // EOF Data? (Save and Exit, after last data process)
-            rmap_eof = rmap_get_response.result.end_of_data;
-            // ******************************************************************
-            // Exampe of Current Session Upload CountData and DateTime Block Print
-            countData++;
-            DateTime rmap_date_time_val;
-            convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
-            TRACE_VERBOSE_F(F("Data RMAP current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
-            // ******************************************************************
-            // Process Data with casting RMAP Module Type
-            switch (rmap_get_response.rmap_data.module_type) {
-              case Module_Type::th:
-                rmap_module_TH_1_0 *rmapDataTH;
-                rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
-                #if (ENABLE_STACK_USAGE)
-                TaskMonitorStack();
-                #endif
-                // Prepare MQTT String -> rmapDataTH->ITH.humidity.val.value ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
-                break;
-              case Module_Type::rain:
-                rmap_module_Rain_1_0 *rmapDataRain;
-                rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
-                #if (ENABLE_STACK_USAGE)
-                TaskMonitorStack();
-                #endif
-                // Prepare MQTT String -> rmapDataRain->TBR.metadata.level.L1.value ecc...
-                // PUT String MQTT in Buffer Memory...
-                // SEND To MQTT Server
-                break;
-            }
-          } else {
-            TRACE_VERBOSE_F(F("RMAP Reading Data queue error!!!\r\n"));
-          }
-          // Non blocking task
-          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
-          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
-        }
-        // Trace END Data response
-        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
-      }
-      // **************************************
-      // END TEST GET RMAP Data, To Append MQTT
-      // **************************************
-      TaskWatchDog(3500);
-      Delay(Ticks::MsToTicks(3500));
-
-      // TEST CONNECTION
-      if(0) {
-
-        // TODO: REMOVE
-        strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
-        strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
-
-        // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_ntp_synchronized = false;
-        param.system_status->connection.is_http_configuration_updated = false;
-        param.system_status->connection.is_http_firmware_upgraded = false;
-        param.system_status->connection.is_mqtt_connected = false;
-        param.systemStatusLock->Give();
-
-        // Start state check connection
-        state_check_connection = CONNECTION_INIT;
-        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
-        // Save next attempt of connection
-        param.systemStatusLock->Take();
-        param.system_status->modem.connection_attempted++;
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
-        TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
-          param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
-        param.systemStatusLock->Give();
-
-      }
+      // Start state check connection
+      state_check_connection = CONNECTION_INIT;
+      state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+      // Save next attempt of connection
+      param.systemStatusLock->Take();
+      param.system_status->modem.connection_attempted++;
+      TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+      TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
+        param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
+      param.systemStatusLock->Give();
 
       break;
 
@@ -444,56 +229,19 @@ void SupervisorTask::Run()
         case CONNECTION_CHECK: // CONNECTION VERIFY
           if (!param.system_status->connection.is_connected) // Ready Connected ?
           {
+            // ***** TEST CONNECTION READY FAIL
+            Serial.println("// ***** TEST CONNECTION READY FAIL");
+
             TRACE_VERBOSE_F(F("SUPERVISOR: Connection not ready\r\n"));
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_END\r\n"));
             // Exit from the switch (no more action)
             state = SUPERVISOR_STATE_END;
             break;
           }
-          // Prepare next state controller
-          state_check_connection = CONNECTION_CHECK_NTP;
-          break;
 
-        case CONNECTION_CHECK_NTP: // NTP_SYNCRO (NTP)
-          if (!param.system_status->connection.is_ntp_synchronized) // Already Syncronized?
-          {
-            // Request ntp sync
-            memset(&connection_request, 0, sizeof(connection_request_t));
-            connection_request.do_ntp_sync = true;
-            param.connectionRequestQueue->Enqueue(&connection_request, 0);
+          // ***** TEST CONNECTION START
+          Serial.println("// ***** TEST CONNECTION GSM ESTABILISHED OK");
 
-            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_NTP\r\n"));
-            state = SUPERVISOR_STATE_DO_NTP;
-          }
-          // Prepare next state controller
-          state_check_connection = CONNECTION_CHECK_HTTP;
-          break;
-
-        case CONNECTION_CHECK_HTTP: // READ_CONFIG, FIRMWARE (HTTP)
-          if (!param.system_status->connection.is_http_configuration_updated) // Already Configured?
-          {
-            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-
-            // Request configuration update by http request
-            memset(&connection_request, 0, sizeof(connection_request_t));
-            connection_request.do_http_get_configuration = true;
-            param.connectionRequestQueue->Enqueue(&connection_request, 0);
-
-            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
-            state = SUPERVISOR_STATE_DO_HTTP;
-          }
-          else if (!param.system_status->connection.is_http_firmware_upgraded)
-          {
-            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_CONNECTION\r\n"));
-
-            // Request firmware download by http request
-            memset(&connection_request, 0, sizeof(connection_request_t));
-            connection_request.do_http_get_firmware = true;
-            param.connectionRequestQueue->Enqueue(&connection_request, 0);
-
-            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP\r\n"));
-            state = SUPERVISOR_STATE_DO_HTTP;
-          }
           // Prepare next state controller
           state_check_connection = CONNECTION_CHECK_MQTT;
           break;
@@ -541,38 +289,8 @@ void SupervisorTask::Run()
       break;
 
     case SUPERVISOR_STATE_SAVE_CONFIGURATION:
-      is_saved = saveConfiguration(CONFIGURATION_CURRENT);
-
-      if (is_saved)
-      {
-        retry = 0;
-
-        param.systemStatusLock->Take();
-        param.system_status->configuration.is_saved = true;
-        param.system_status->configuration.is_loaded = true;
-        param.systemStatusLock->Give();
-
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
-        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
-      }
-      else if ((++retry <= SUPERVISOR_TASK_GENERIC_RETRY) && !is_saved)
-      {
-        TaskWatchDog(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS);
-        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
-      }
-      else
-      {
-        param.systemStatusLock->Take();
-        param.system_status->configuration.is_saved = false;
-        param.system_status->configuration.is_loaded = false;
-        param.systemStatusLock->Give();
-
-        // gestire condizione di errore di scrittura della configurazione
-        TRACE_VERBOSE_F(F("SUPERVISOR_STATE_SAVE_CONFIGURATION -> ??? Condizione non gestita!!!\r\n"));
-        // Post Suspend TaskWatchDog Module for TASK
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-        Suspend();
-      }
+      // Do Nothing
+      state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
       break;
 
     case SUPERVISOR_STATE_REQUEST_CONNECTION:    
