@@ -32,6 +32,7 @@
 
 #include "debug_config.h"
 #include "local_typedef.h"
+#include "str.h"
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"

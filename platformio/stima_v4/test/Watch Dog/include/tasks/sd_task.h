@@ -33,6 +33,7 @@
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
+#include "str.h"
 
 #if (ENABLE_SD)
 
@@ -57,6 +58,7 @@
 #include <STM32RTC.h>
 
 // Memory device Access
+#include "drivers/flash.h"
 #include "drivers/eeprom.h"
 
 #define SD_TASK_WAIT_DELAY_MS            (50)
@@ -114,6 +116,7 @@ typedef struct {
   cpp_freertos::Queue *dataFilePutResponseQueue;
   cpp_freertos::Queue *dataFileGetRequestQueue;
   cpp_freertos::Queue *dataFileGetResponseQueue;
+  Flash *flash;
   EEprom *eeprom;
 } SdParam_t;
 
@@ -132,6 +135,9 @@ private:
   #endif
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
+  bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
 
   void namingFileData(uint32_t time, char *dirPrefix, char* nameFile);
 

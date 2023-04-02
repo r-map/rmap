@@ -135,10 +135,10 @@ typedef struct
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-   char gsm_apn[20];          //!< gsm apn
-   char gsm_number[20];       //!< gsm number
-   char gsm_username[20];     //!< gsm username
-   char gsm_password[20];     //!< gsm password
+   char gsm_apn[GSM_APN_LENGTH];            //!< gsm apn
+   char gsm_number[GSM_NUMBER_LENGTH];      //!< gsm number
+   char gsm_username[GSM_USERNAME_LENGTH];  //!< gsm username
+   char gsm_password[GSM_PASSWORD_LENGTH];  //!< gsm password
 #endif
 } configuration_t;
 

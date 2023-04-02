@@ -43,6 +43,7 @@ void WdtTask::Run() {
   char strTask[12] = {0};
   bootloader_t boot_check;
   char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
+  uint32_t millis_reset[TOTAL_INFO_TASK];
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -81,12 +82,19 @@ void WdtTask::Run() {
             // Exit Time validity check WDT. Remove Flag and reset TimeUp
             param.system_status->tasks[id].watch_dog_ms = 0;
             param.system_status->tasks[id].watch_dog == wdt_flag::clear;
-          }          
+          }
         }
         // If single task not performed local signal WDT...
-        if (param.system_status->tasks[id].watch_dog == wdt_flag::clear)
+        if (param.system_status->tasks[id].watch_dog == wdt_flag::clear) {
           // Wdt is not applicable (All Working TASK Need to be operative!!!)
           resetWdt = false;
+          millis_reset[id] += WDT_TASK_WAIT_DELAY_MS;
+        } else {
+          millis_reset[id] = 0;
+        }
+      } else {
+        // Suspend is done automatic refresh
+        millis_reset[id] = 0;
       }
     }
     param.systemStatusLock->Give();
@@ -141,6 +149,9 @@ void WdtTask::Run() {
     // For check TASK debugging Info
     if(resetWdt)
     {
+      // ***** TEST WDT REFRESH OK
+      Serial.print("// ***** TEST WDT REFRESH OK");
+
       #if (ENABLE_WDT)
       TRACE_INFO_F(F("WDT: Reset WDT OK\r\n"));
       IWatchdog.reload();
@@ -187,6 +198,15 @@ void WdtTask::Run() {
         }
       }
 
+    } else {
+      for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
+        if(millis_reset[id] > WDT_TASK_LOCKED_MS) {
+          if(id == USBSERIAL_TASK_ID) {
+            // ***** TEST CHECK STALLED PROCESS OK
+            Serial.print("// ***** TEST CHECK STALLED PROCESS OK");
+          }
+        }
+      }
     }
 
     // Exit WDT

@@ -1,4 +1,4 @@
-/**@file local_typedef_config.h */
+/**@file ntp_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -21,13 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _LOCAL_TYPEDEF_CONFIG_H
-#define _LOCAL_TYPEDEF_CONFIG_H
+#ifndef _NTP_CONFIG_H
+#define _NTP_CONFIG_H
 
-#include "config.h"
-#include "constantdata_config.h"
+/*!
+\def NTP_SERVER_LENGTH
+\brief Length in bytes for ntp server data buffer.
+*/
+#define NTP_SERVER_LENGTH     (30)
 
-#define CLIENT_PSK_KEY_LENGTH (16)
-#define CLIENT_PSK_IDENTITY_LENGTH (MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH)
+/*!
+\def NTP_DEFAULT_SERVER
+\brief Default NTP server.
+*/
+#define NTP_DEFAULT_SERVER    ("it.pool.ntp.org")
 
 #endif

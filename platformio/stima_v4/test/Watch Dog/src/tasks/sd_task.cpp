@@ -100,7 +100,7 @@ void SdTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_f
   // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
   if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
      (state_operation==task_flag::normal))
-     param.system_status->tasks->watch_dog = wdt_flag::set;
+     param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
   param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
   param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
   param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
@@ -127,6 +127,170 @@ void SdTask::namingFileData(uint32_t time, char *dirPrefix, char* nameFile)
   }
 
   sprintf(nameFile, "%s/%04d_%02d_%02d.dat", dirPrefix, year, ++month, ++dayno);
+}
+
+
+/// @brief Scrive dati in append su Flash per scrittura sequenziale file data remoto
+/// @param file_name nome del file UAVCAN
+/// @param is_firmware true se il file +-è di tipo firmware
+/// @param rewrite true se necessaria la riscrittura del file
+/// @param buf blocco dati da scrivere in formato UAVCAN [256 Bytes]
+/// @param count numero del blocco da scrivere in formato UAVCAN [Blocco x Buffer]
+/// @return true if block saved OK, false on any error
+bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
+{
+    #ifdef CHECK_FLASH_WRITE
+    // check data (W->R) Verify Flash integrity OK    
+    uint8_t check_data[FLASH_BUFFER_SIZE];
+    #endif
+    // Request New File Init Upload
+    if(rewrite) {
+        // Qspi Security Semaphore
+        if(param.qspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+            // Init if required (DeInit after if required PowerDown Module)
+            if(param.flash->BSP_QSPI_Init() != Flash::QSPI_OK) {
+                param.qspiLock->Give();
+                return false;
+            }
+            // Check Status Flash OK
+            Flash::QSPI_StatusTypeDef sts = param.flash->BSP_QSPI_GetStatus();
+            if (sts) {
+                param.qspiLock->Give();
+                return false;
+            }
+            // Start From PtrFlash 0x100 (Reserve 256 Bytes For InfoFile)
+            if (is_firmware) {
+                // Firmware Flash
+                sdFlashPtr = FLASH_FW_POSITION;
+            } else {
+                // Standard File Data Upload
+                sdFlashPtr = FLASH_FILE_POSITION;
+            }
+            // Get Block Current into Flash
+            sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
+            // Erase First Block Block (Block OF 4KBytes)
+            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+            if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
+                param.qspiLock->Give();
+                return false;
+            }
+            // Write Name File (Size at Eof...)
+            uint8_t file_flash_name[FLASH_FILE_SIZE_LEN] = {0};
+            memcpy(file_flash_name, file_name, strlen(file_name));
+            param.flash->BSP_QSPI_Write(file_flash_name, sdFlashPtr, FLASH_FILE_SIZE_LEN);
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, sdFlashPtr);
+            #ifdef CHECK_FLASH_WRITE
+            param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, FLASH_FILE_SIZE_LEN);
+            if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                param.qspiLock->Give();
+                return false;
+            }
+            #endif
+            // Start Page...
+            sdFlashPtr += FLASH_INFO_SIZE_LEN;
+            param.qspiLock->Give();
+        }
+    }
+    // Write Data Block
+    // Qspi Security Semaphore
+    if(param.qspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+        // 0 = Is UavCan Signal EOF for Last Block Exact Len 256 Bytes...
+        // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
+        if(count!=0) {
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, sdFlashPtr);
+            // Starting Write at OFFSET Required... Erase here is Done
+            param.flash->BSP_QSPI_Write((uint8_t*)buf, sdFlashPtr, count);
+            #ifdef CHECK_FLASH_WRITE
+            param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, count);
+            if(memcmp(buf, check_data, count)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                param.qspiLock->Give();
+                return false;
+            }
+            #endif
+            sdFlashPtr += count;
+            // Check if Next Page Addressed (For Erase Next Block)
+            if((sdFlashPtr / AT25SF641_BLOCK_SIZE) != sdFlashBlock) {
+                sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
+                // Erase First Block Block (Block OF 4KBytes)
+                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+                if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
+                    param.qspiLock->Give();
+                    return false;
+                }
+            }
+        }
+        // Eof if != 256 Bytes Write
+        if(count!=0x100) {
+            // Write Info File for Closing...
+            // Size at 
+            uint64_t lenghtFile = sdFlashPtr - FLASH_INFO_SIZE_LEN;
+            if (is_firmware) {
+                // Firmware Flash
+                sdFlashPtr = FLASH_FW_POSITION;
+            } else {
+                // Standard File Data Upload
+                sdFlashPtr = FLASH_FILE_POSITION;
+            }
+            param.flash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
+            // Write into Flash
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, sdFlashPtr);
+            #ifdef CHECK_FLASH_WRITE
+            param.flash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
+            if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
+                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+            } else {
+                TRACE_INFO_F(F("FLASH: Reading check ERROR\n\r"));
+            }
+            #endif
+        }
+        param.qspiLock->Give();
+    }
+    return true;
+}
+
+/// @brief GetInfo for Firmware File on Flash
+/// @param module_type type module of firmware
+/// @param version version firmware
+/// @param revision revision firmware
+/// @param len length of file in bytes
+/// @return true if exixst
+bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len)
+{
+    uint8_t block[FLASH_FILE_SIZE_LEN];
+    bool fileReady = false;
+
+    // Qspi Security Semaphore
+    if(param.qspiLock->Take(Ticks::MsToTicks(FLASH_SEMAPHORE_MAX_WAITING_TIME_MS))) {
+        // Init if required (DeInit after if required PowerDown Module)
+        if(param.flash->BSP_QSPI_Init() != Flash::QSPI_OK) {
+            param.qspiLock->Give();
+            return false;
+        }
+        // Check Status Flash OK
+        if (param.flash->BSP_QSPI_GetStatus()) {
+            param.qspiLock->Give();
+            return false;
+        }
+
+        // Read Name file, Version and Info
+        param.flash->BSP_QSPI_Read(block, 0, FLASH_FILE_SIZE_LEN);
+        char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
+        getStimaNameByType(stima_name, MODULE_TYPE);
+        if(checkStimaFirmwareType((char*)block, module_type, version, revision)) {
+            param.flash->BSP_QSPI_Read((uint8_t*)len, FLASH_SIZE_ADDR(0), FLASH_INFO_SIZE_U64);
+            fileReady = true;
+        }
+        param.qspiLock->Give();
+    }
+    return fileReady;
 }
 
 void SdTask::Run()
@@ -819,7 +983,136 @@ void SdTask::Run()
       break;
 
     case SD_UPLOAD_FIRMWARE_TO_FLASH:
-      state = SD_STATE_WAITING_EVENT;
+
+      // *********************************************************
+      //           Perform Local Firmware FLASH Update
+      // *********************************************************
+
+      // N.B TODO: Need to Inform Other TASK Priority MAX to Upload Firmware To Flash
+      // All operation are to suspend, SD Task End to Responding at Standard Queue request
+
+      // Check firmware file present Type, model and version
+      fw_found = false;
+      // Name of module
+      getStimaNameByType(stima_name, param.configuration->module_type);
+      // Check list Firmware File
+      dir = SD.open("/firmware");
+      while(true) {
+        entry = dir.openNextFile();
+        if(!entry) break;
+        // Found firmware file?
+        entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+        if(!checkStimaFirmwareType(local_file_name, &module_type_cast, &fw_version, &fw_revision)) {
+          entry.close();
+        } else {
+          module_type = static_cast<Module_Type>(module_type_cast);
+          // Is this module ?
+          if(module_type != param.configuration->module_type) {
+            entry.close();
+          } else {
+            // if current version (last version into SD CARD?)
+            bool is_last_firmware_on_sd = false;
+            for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+              if(param.system_status->boards_update_avaiable[brd].module_type == module_type) {
+                if((fw_version == param.system_status->boards_update_avaiable[brd].version) &&
+                   (fw_revision == param.system_status->boards_update_avaiable[brd].revision))
+                is_last_firmware_on_sd = true;
+                break;
+              }
+            }
+            // Is Last Firmware and Is Version i Major of Current Version?            
+            if((is_last_firmware_on_sd) &&
+                ((fw_version > param.configuration->module_main_version) ||
+                ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))))
+            {
+              fw_found = true;
+              // Get full name for local operation
+              entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+              TRACE_INFO_F(F("SD: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+              TRACE_INFO_F(F("SD: starting firmware upgrade...\n\r"));
+              // Flag
+              bool bFirstBlock = true;
+              bool is_error = false;
+              // Is file opened?
+              if(entry) {
+                int len_block;
+                // Put firmware in correct Flash Location
+                while(1) {
+                  // *************  PREPARE FLASHING *************
+                  // Read block data from file
+                  len_block = entry.read(data_block, SD_FW_BLOCK_SIZE);
+                  if(len_block < 0) {
+                    is_error = true;
+                    break;
+                  }
+                  // Append block firmware file to flash (same of CAN FW Upgrade)
+                  // EOF when block != SD_FW_BLOCK_SIZE (UAVCAN TYPE_LEN 256 BYTES)
+                  if(!putFlashFile(local_file_name, true, bFirstBlock, data_block, len_block)) {
+                    is_error = true;
+                    break;
+                  }
+                  bFirstBlock = false;
+                  if(len_block != SD_FW_BLOCK_SIZE) {
+                    // EOF
+                    break;
+                  }
+                  // WDT non blocking task (Delay basic operation)
+                  TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+                  Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+                }
+                entry.close();
+                // Nothing error, starting firmware upgrade
+                if(!is_error) {
+                  // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
+                  SD.remove(local_file_name);
+                  // Optional send SIGTerm to all task
+                  // WDT non blocking task (Delay basic operation)
+                  TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\n\r"));
+                  TaskWatchDog(SD_TASK_WAIT_REBOOT_MS);
+                  Delay(Ticks::MsToTicks(SD_TASK_WAIT_REBOOT_MS));
+                  NVIC_SystemReset();
+                }
+              }
+              // Error opening file or procedure upload
+              // is_error (open_file OK, procedure error)
+              // !is_error (open_file error)
+              if(++retry>SD_TASK_GENERIC_RETRY) {
+                // Abort MAX Retry
+                TRACE_INFO_F(F("SD: firmware upgrading error, Max retry reached up. Abort flashing!!!\n\r"));
+                if(!is_error) {
+                  // ReSynch SD Card... Error when opening file
+                  TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_ERROR\r\n"));
+                  state = SD_STATE_ERROR;
+                } else {
+                  // Error procedure Flashing... Can Retry from extern
+                  TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
+                  state = SD_STATE_WAITING_EVENT;
+                }
+              } else {
+                // Error, next Retry
+                TRACE_INFO_F(F("SD: firmware upgrading error waiting retry\n\r"));
+                TaskWatchDog(SD_TASK_GENERIC_RETRY_DELAY_MS);
+                Delay(Ticks::MsToTicks(SD_TASK_GENERIC_RETRY_DELAY_MS));
+              }
+            }
+            else
+            {
+              entry.close();
+              // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
+              SD.remove(local_file_name);
+              TRACE_INFO_F(F("SD: found and delete firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
+            }
+            break;
+          }
+        }
+      }
+      dir.close();
+      // Firmware not Found
+      if(!fw_found) {
+        TRACE_INFO_F(F("SD: module firmware for module %s not found\r\n"), stima_name);
+        TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_WAITING_EVENT\r\n"));
+        state = SD_STATE_WAITING_EVENT;
+      }
       break;
 
     case SD_STATE_ERROR:

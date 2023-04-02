@@ -41,9 +41,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "semaphore.hpp"
 #include "queue.hpp"
 
-#include "tasks/wdt_task.h"
+#include "core/net.h"
+#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+#include "rng/trng.h"
+#include "rng/yarrow.h"
 
+#include <arduinoJsonRPC.h>
+#include "rpc_class.hpp"
+
+#include "tasks/supervisor_task.h"
+#include "tasks/wdt_task.h"
+#if (ENABLE_MMC)
+#include "tasks/mmc_task.h"
+#endif
+#if (ENABLE_SD)
 #include "tasks/sd_task.h"
+#endif
+#if (ENABLE_USBSERIAL)
+#include "tasks/usbserial_task.h"
+#endif
+#if (ENABLE_LCD)
+#include "tasks/lcd_task.h"
+#endif
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+#include "tasks/modem_task.h"
+#endif
+#if (USE_NTP)
+#include "tasks/ntp_task.h"
+#endif
+#if (USE_HTTP)
+#include "tasks/http_task.h"
+#endif
+#if (USE_MQTT)
+#include "tasks/mqtt_task.h"
+#endif
+#if (ENABLE_CAN)
+#include "tasks/can_task.h"
+#endif
 
 #include "debug_F.h"
 
@@ -52,5 +86,6 @@ using namespace cpp_freertos;
 void init_wire(void);
 void init_sdcard(void);
 void init_rtc(bool init);
+bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
 
 #endif
