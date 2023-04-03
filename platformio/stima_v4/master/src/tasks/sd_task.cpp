@@ -391,9 +391,9 @@ void SdTask::Run()
       digitalWrite(PIN_SD_LED, bLedLevel);
       // Optional Trace Type of CARD... and Size
       // Check or create directory Structure...
-      if(!SD.exists("firmware")) SD.mkdir("firmware");
-      if(!SD.exists("log")) SD.mkdir("log");
-      if(!SD.exists("data")) SD.mkdir("data");
+      if(!SD.exists("/firmware")) SD.mkdir("/firmware");
+      if(!SD.exists("/log")) SD.mkdir("/log");
+      if(!SD.exists("/data")) SD.mkdir("/data");
 
       // Open/Create File data pointer... and check if SD Starting OK
       // Check data Pointer and create if not exist
@@ -580,7 +580,7 @@ void SdTask::Run()
         // Get message from queue
         if(param.dataLogPutQueue->Dequeue(logBuffer)) {
           // Put to SD ( APPEND File Always Opened with Flush Data )
-          if(!logFile) logFile = SD.open("log/log.txt", O_RDWR | O_APPEND);
+          if(!logFile) logFile = SD.open("/log/log.txt", O_RDWR | O_CREAT | O_AT_END);
           if(logFile) {          
             // Open File High LED
             digitalWrite(PIN_SD_LED, HIGH);
@@ -618,7 +618,7 @@ void SdTask::Run()
             strcpy(rmap_file_name_wr, rmap_file_name_check);
             // Not opened? Open... in append
             if(rmapWrFile) rmapWrFile.close();
-            rmapWrFile = SD.open(rmap_file_name_wr, O_RDWR | O_APPEND);
+            rmapWrFile = SD.open(rmap_file_name_wr, O_RDWR | O_CREAT | O_AT_END);
             // Open File High LED
             digitalWrite(PIN_SD_LED, HIGH);
           }
@@ -928,7 +928,7 @@ void SdTask::Run()
             // Locking file session (uploading...)
             memset(&file_put_response, 0, sizeof(file_put_response));
             // Open Put File
-            putFile = SD.open(remote_file_name, O_RDWR | O_CREAT | O_TRUNC);
+            putFile = SD.open(remote_file_name, O_RDWR | O_CREAT);
             // Open File High LED
             digitalWrite(PIN_SD_LED, HIGH);
             if(!putFile)
