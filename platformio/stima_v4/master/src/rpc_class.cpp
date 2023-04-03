@@ -754,20 +754,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     }
   }
 
-  // when is_sensor_config = true a sensor was configured, then the index sensors_count must be incremented
-  // in order to configure the next sensor
-  // if (is_sensor_config)
-  // {
-    // if (writable_configuration.sensors_count < SENSORS_MAX)
-    // {
-    //   // writable_configuration.sensors_count++;
-    // }
-    // else
-    // {
-    //   is_error = true;
-    // }
-  // }
-
   // error_command = Out of command context but command request valid
   // is_error = error command or out of limit parameter
   if ((error_command)||(is_error))
@@ -1043,104 +1029,104 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
   static int state;
   static int tmpstate;
   static time_t ptr_time;
-  static File mqtt_ptr_rpc_file;
+  // static File mqtt_ptr_rpc_file;
 
-  switch (rpc_state)
-  {
-  case RPC_INIT:
-    state = E_BUSY;
-    {
-      bool is_start_found = false;
-      bool is_end_found = false;
+  // switch (rpc_state)
+  // {
+  // case RPC_INIT:
+  //   state = E_BUSY;
+  //   {
+  //     bool is_start_found = false;
+  //     bool is_end_found = false;
 
-      for (JsonPair it : params)
-      {
-        // start date
-        if (strcmp(it.key().c_str(), "dts") == 0)
-        {
-          is_start_found = true;
+  //     for (JsonPair it : params)
+  //     {
+  //       // start date
+  //       if (strcmp(it.key().c_str(), "dts") == 0)
+  //       {
+  //         is_start_found = true;
 
-          // read current data pointer
-          // if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
-          // {
-          //   tmpstate = E_INTERNAL_ERROR;
-          //   is_sdcard_error = true;
-          //   result[F("state")] = F("error");
-          //   LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-          //   rpc_state = RPC_END;
-          //   break;
-          // }
+  //         // read current data pointer
+  //         // if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
+  //         // {
+  //         //   tmpstate = E_INTERNAL_ERROR;
+  //         //   is_sdcard_error = true;
+  //         //   result[F("state")] = F("error");
+  //         //   LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+  //         //   rpc_state = RPC_END;
+  //         //   break;
+  //         // }
 
-          DateTime startDate;
-          startDate.year = it.value().as<JsonArray>()[0].as<int>();
-          startDate.month = it.value().as<JsonArray>()[1].as<int>();
-          startDate.day = it.value().as<JsonArray>()[2].as<int>();
-          startDate.hour = it.value().as<JsonArray>()[3].as<int>();
-          startDate.minute = it.value().as<JsonArray>()[4].as<int>();
-          startDate.second = it.value().as<JsonArray>()[5].as<int>();
-          TRACE_INFO_F(F("RPC start data pointer... [ %d/%d/%d %d:%d:%d ]"), startDate.day, startDate.month, startDate.year, startDate.hour, startDate.minute, startDate.second);
+  //         DateTime startDate;
+  //         startDate.year = it.value().as<JsonArray>()[0].as<int>();
+  //         startDate.month = it.value().as<JsonArray>()[1].as<int>();
+  //         startDate.day = it.value().as<JsonArray>()[2].as<int>();
+  //         startDate.hour = it.value().as<JsonArray>()[3].as<int>();
+  //         startDate.minute = it.value().as<JsonArray>()[4].as<int>();
+  //         startDate.second = it.value().as<JsonArray>()[5].as<int>();
+  //         TRACE_INFO_F(F("RPC start data pointer... [ %d/%d/%d %d:%d:%d ]"), startDate.day, startDate.month, startDate.year, startDate.hour, startDate.minute, startDate.second);
 
-          rpc_state = RPC_EXECUTE;
+  //         rpc_state = RPC_EXECUTE;
 
-          break;
-        }
-        // end date
-        else if (strcmp(it.key().c_str(), "dte") == 0)
-        {
-          is_end_found = true;
+  //         break;
+  //       }
+  //       // end date
+  //       else if (strcmp(it.key().c_str(), "dte") == 0)
+  //       {
+  //         is_end_found = true;
 
-          DateTime endDate;
-          endDate.year = it.value().as<JsonArray>()[0].as<int>();
-          endDate.month = it.value().as<JsonArray>()[1].as<int>();
-          endDate.day = it.value().as<JsonArray>()[2].as<int>();
-          endDate.hour = it.value().as<JsonArray>()[3].as<int>();
-          endDate.minute = it.value().as<JsonArray>()[4].as<int>();
-          endDate.second = it.value().as<JsonArray>()[5].as<int>();
-          TRACE_INFO_F(F("RPC end data pointer... [ %d/%d/%d %d:%d:%d ]"), endDate.day, endDate.month, endDate.year, endDate.hour, endDate.minute, endDate.second);
+  //         DateTime endDate;
+  //         endDate.year = it.value().as<JsonArray>()[0].as<int>();
+  //         endDate.month = it.value().as<JsonArray>()[1].as<int>();
+  //         endDate.day = it.value().as<JsonArray>()[2].as<int>();
+  //         endDate.hour = it.value().as<JsonArray>()[3].as<int>();
+  //         endDate.minute = it.value().as<JsonArray>()[4].as<int>();
+  //         endDate.second = it.value().as<JsonArray>()[5].as<int>();
+  //         TRACE_INFO_F(F("RPC end data pointer... [ %d/%d/%d %d:%d:%d ]"), endDate.day, endDate.month, endDate.year, endDate.hour, endDate.minute, endDate.second);
 
-          rpc_state = RPC_EXECUTE;
+  //         rpc_state = RPC_EXECUTE;
 
-          break;
-        }
-      }
+  //         break;
+  //       }
+  //     }
 
-      if (!is_start_found)
-      {
-        tmpstate = E_INVALID_PARAMS;
-        result[F("state")] = F("error");
-        TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
+  //     if (!is_start_found)
+  //     {
+  //       tmpstate = E_INVALID_PARAMS;
+  //       result[F("state")] = F("error");
+  //       TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
 
-        rpc_state = RPC_END;
-      }
-    }
-    break;
+  //       rpc_state = RPC_END;
+  //     }
+  //   }
+  //   break;
 
-  case RPC_EXECUTE:
-    // write new data pointer
-    // if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
-    // {
-    //   mqtt_ptr_rpc_file.flush();
-    //   mqtt_ptr_rpc_file.close();
+  // case RPC_EXECUTE:
+  //   // write new data pointer
+  //   // if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
+  //   // {
+  //   //   mqtt_ptr_rpc_file.flush();
+  //   //   mqtt_ptr_rpc_file.close();
 
-    //   TRACE_INFO_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
-    //   tmpstate = E_SUCCESS;
-    //   result[F("state")] = F("done");
-    // }
-    // else
-    // {
-    //   tmpstate = E_INTERNAL_ERROR;
-    //   result[F("state")] = F("error");
-    //   TRACE_ERROR_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-    // }
+  //   //   TRACE_INFO_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
+  //   //   tmpstate = E_SUCCESS;
+  //   //   result[F("state")] = F("done");
+  //   // }
+  //   // else
+  //   // {
+  //   //   tmpstate = E_INTERNAL_ERROR;
+  //   //   result[F("state")] = F("error");
+  //   //   TRACE_ERROR_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+  //   // }
 
-    rpc_state = RPC_END;
-    break;
+  //   rpc_state = RPC_END;
+  //   break;
 
-  case RPC_END:
-    rpc_state = RPC_INIT;
-    state = tmpstate;
-    break;
-  }
+  // case RPC_END:
+  //   rpc_state = RPC_INIT;
+  //   state = tmpstate;
+  //   break;
+  // }
 
   return state;
 }
