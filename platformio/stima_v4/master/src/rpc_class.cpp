@@ -77,7 +77,7 @@ void RegisterRPC::init(JsonRPC *streamRpc)
   streamRpc->registerMethod("rpctest", &rpctest);
 #endif
 
-#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+#if (USE_RPC_METHOD_RECOVERY)
   streamRpc->registerMethod("recovery", &recovery);
 #endif
 }
@@ -93,6 +93,17 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
   {
     if (strcmp(it.key().c_str(), "fdownload") == 0)
     {
+      // download new firmware
+      if (it.value().as<bool>() == true)
+      {
+      }
+    }
+    if (strcmp(it.key().c_str(), "fupload") == 0)
+    {
+      // upload new firmware
+      if (it.value().as<bool>() == true)
+      {
+      }
     }
   }
 }
@@ -1026,8 +1037,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
   }
 #endif
 
-#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
-int recovery(JsonObject params, JsonObject result)
+#if (USE_RPC_METHOD_RECOVERY)
+int RegisterRPC::recovery(JsonObject params, JsonObject result)
 {
   static int state;
   static int tmpstate;
@@ -1037,35 +1048,55 @@ int recovery(JsonObject params, JsonObject result)
   switch (rpc_state)
   {
   case RPC_INIT:
-
     state = E_BUSY;
     {
-      bool found = false;
+      bool is_start_found = false;
+      bool is_end_found = false;
 
       for (JsonPair it : params)
       {
+        // start date
         if (strcmp(it.key().c_str(), "dts") == 0)
         {
-          found = true;
-          if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
-          {
-            tmpstate = E_INTERNAL_ERROR;
-            is_sdcard_error = true;
-            result[F("state")] = F("error");
-            LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-            rpc_state = RPC_END;
-            break;
-          }
+          is_start_found = true;
 
-          tmElements_t datetime;
-          datetime.Year = CalendarYrToTm(it.value().as<JsonArray>()[0].as<int>());
-          datetime.Month = it.value().as<JsonArray>()[1].as<int>();
-          datetime.Day = it.value().as<JsonArray>()[2].as<int>();
-          datetime.Hour = it.value().as<JsonArray>()[3].as<int>();
-          datetime.Minute = it.value().as<JsonArray>()[4].as<int>();
-          datetime.Second = it.value().as<JsonArray>()[5].as<int>();
-          ptr_time = makeTime(datetime);
-          LOGN(F("RPC Data pointer... [ %d/%d/%d %d:%d:%d ]"), datetime.Day, datetime.Month, tmYearToCalendar(datetime.Year), datetime.Hour, datetime.Minute, datetime.Second);
+          // read current data pointer
+          // if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
+          // {
+          //   tmpstate = E_INTERNAL_ERROR;
+          //   is_sdcard_error = true;
+          //   result[F("state")] = F("error");
+          //   LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+          //   rpc_state = RPC_END;
+          //   break;
+          // }
+
+          DateTime startDate;
+          startDate.year = it.value().as<JsonArray>()[0].as<int>();
+          startDate.month = it.value().as<JsonArray>()[1].as<int>();
+          startDate.day = it.value().as<JsonArray>()[2].as<int>();
+          startDate.hour = it.value().as<JsonArray>()[3].as<int>();
+          startDate.minute = it.value().as<JsonArray>()[4].as<int>();
+          startDate.second = it.value().as<JsonArray>()[5].as<int>();
+          TRACE_INFO_F(F("RPC start data pointer... [ %d/%d/%d %d:%d:%d ]"), startDate.day, startDate.month, startDate.year, startDate.hour, startDate.minute, startDate.second);
+
+          rpc_state = RPC_EXECUTE;
+
+          break;
+        }
+        // end date
+        else if (strcmp(it.key().c_str(), "dte") == 0)
+        {
+          is_end_found = true;
+
+          DateTime endDate;
+          endDate.year = it.value().as<JsonArray>()[0].as<int>();
+          endDate.month = it.value().as<JsonArray>()[1].as<int>();
+          endDate.day = it.value().as<JsonArray>()[2].as<int>();
+          endDate.hour = it.value().as<JsonArray>()[3].as<int>();
+          endDate.minute = it.value().as<JsonArray>()[4].as<int>();
+          endDate.second = it.value().as<JsonArray>()[5].as<int>();
+          TRACE_INFO_F(F("RPC end data pointer... [ %d/%d/%d %d:%d:%d ]"), endDate.day, endDate.month, endDate.year, endDate.hour, endDate.minute, endDate.second);
 
           rpc_state = RPC_EXECUTE;
 
@@ -1073,11 +1104,11 @@ int recovery(JsonObject params, JsonObject result)
         }
       }
 
-      if (!found)
+      if (!is_start_found)
       {
         tmpstate = E_INVALID_PARAMS;
         result[F("state")] = F("error");
-        LOGE(F("Invalid params [ %s ]"), FAIL_STRING);
+        TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
 
         rpc_state = RPC_END;
       }
@@ -1085,27 +1116,27 @@ int recovery(JsonObject params, JsonObject result)
     break;
 
   case RPC_EXECUTE:
+    // write new data pointer
+    // if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
+    // {
+    //   mqtt_ptr_rpc_file.flush();
+    //   mqtt_ptr_rpc_file.close();
 
-    if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
-    {
-      mqtt_ptr_rpc_file.flush();
-      mqtt_ptr_rpc_file.close();
-
-      LOGN(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
-      tmpstate = E_SUCCESS;
-      result[F("state")] = F("done");
-    }
-    else
-    {
-      tmpstate = E_INTERNAL_ERROR;
-      result[F("state")] = F("error");
-      LOGE(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-    }
+    //   TRACE_INFO_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
+    //   tmpstate = E_SUCCESS;
+    //   result[F("state")] = F("done");
+    // }
+    // else
+    // {
+    //   tmpstate = E_INTERNAL_ERROR;
+    //   result[F("state")] = F("error");
+    //   TRACE_ERROR_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+    // }
 
     rpc_state = RPC_END;
+    break;
 
   case RPC_END:
-
     rpc_state = RPC_INIT;
     state = tmpstate;
     break;

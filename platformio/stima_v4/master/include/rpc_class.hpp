@@ -94,7 +94,7 @@ class RegisterRPC {
         static int configure(JsonObject params, JsonObject result);
         #endif
 
-        #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+        #if (USE_RPC_METHOD_RECOVERY)
         static int recovery(JsonObject params, JsonObject result);
         #endif
 
