@@ -38,8 +38,8 @@ using namespace cpp_freertos;
 
 UsbSerialTask::UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam) : Thread(taskName, stackSize, priority), param(usbSerialParam)
 {
-  Serial2.begin(19200);
-  SerialUSB.begin(19200);
+  Serial2.begin(SERIAL_DEBUG_BAUD_RATE);
+  SerialUSB.begin(SERIAL_DEBUG_BAUD_RATE);
   
   state = USBSERIAL_STATE_INIT;
   Start();
@@ -47,30 +47,21 @@ UsbSerialTask::UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t p
 
 void UsbSerialTask::Run()
 {
-  bool resp = false;
   while (true)
   {
     // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
     if(SerialUSB.available()) {
       char chOut = SerialUSB.read();
-      if(resp) {
-        resp = false;
-        Serial.println();
-      }
+      Serial.print("USB IN: ");
       Serial2.print(chOut);
-      Serial.print((int)chOut, 16);
-      Serial.print(" ");
+      Serial.println((int)chOut, 16);
     }
     // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
     if(Serial2.available()) {
       char chIn = Serial2.read();
-      if(!resp) {
-        resp = true;
-        Serial.println();
-      }
+      Serial.print("RS232 IN: ");
       SerialUSB.print(chIn);
-      Serial.print((int)chIn, 16);
-      Serial.print(" ");
+      Serial.println((int)chIn, 16);
     }
   }
   Delay(5);

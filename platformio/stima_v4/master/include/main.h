@@ -79,6 +79,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tasks/can_task.h"
 #endif
 
+#if (ENABLE_QSPI)
+#include "drivers/flash.h"
+#endif
+#include "drivers/eeprom.h"
+
 #include "debug_F.h"
 
 using namespace cpp_freertos;

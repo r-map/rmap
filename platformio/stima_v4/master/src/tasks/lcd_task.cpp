@@ -125,7 +125,7 @@ void LCDTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
   // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
   if ((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended) &&
       (state_operation == task_flag::normal)) {
-    param.system_status->tasks->watch_dog = wdt_flag::set;
+    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
   }
   param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
   param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
@@ -369,6 +369,7 @@ void LCDTask::display_on() {
  */
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
   bool bMeasValid_A = true, bMeasValid_B = true;
+  bool printMeasB = false;
   char description_A[STIMA_LCD_DESCRIPTION_LENGTH], description_B[STIMA_LCD_DESCRIPTION_LENGTH];
   char measure_A[STIMA_LCD_MEASURE_LENGTH], measure_B[STIMA_LCD_MEASURE_LENGTH];
   char unit_type_A[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_B[STIMA_LCD_UNIT_TYPE_LENGTH];
@@ -387,6 +388,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
       value_display_B = param.system_status->data_slave[channel].data_value_B;
       // Adjust UDM with comprensible value
       case Module_Type::th:
+        printMeasB = true;
         value_display_A = param.system_status->data_slave[channel].data_value_A - 27315;
         value_display_A /= 100;
         value_display_B = param.system_status->data_slave[channel].data_value_B;
@@ -418,7 +420,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   display.print(measure_A);
 
   // Print the second measure for special cases
-  if (param.configuration->board_slave[channel].module_type == Module_Type::th) {
+  if (printMeasB) {
     // Print description of measure
     display.setFont(u8g2_font_helvR08_tf);
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
@@ -540,10 +542,10 @@ void LCDTask::display_print_main_interface() {
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
   display.print(F("SN: "));
 
-  for(int8_t id=7; id>=0; id--) {
-    if((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF) < 16) display.print(F("0"));
+  for (int8_t id = 7; id >= 0; id--) {
+    if ((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF) < 16) display.print(F("0"));
     display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF), 16);
-    if(id) display.print(F("-"));
+    if (id) display.print(F("-"));
   }
 
   // Apply the updates to display
@@ -833,16 +835,15 @@ void LCDTask::ISR_input_rotation_pin_encoder() {
 
 /**
  * @brief Save new configuration to eeprom
- * 
+ *
  */
 bool LCDTask::saveConfiguration(void) {
   // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
 
-  if (param.configurationLock->Take())
-  {
+  if (param.configurationLock->Take()) {
     // Write configuration to eeprom
-    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
+    status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t*)(param.configuration), sizeof(configuration_t));
     TRACE_INFO_F(F("LCD: Save configuration [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
     param.configurationLock->Give();
   }
@@ -990,7 +991,8 @@ void LCDTask::switch_interface() {
         // ************************************************************************
 
         if (stima4_menu_ui_last == MAIN) {
-          if (stima4_master_command == MASTER_COMMAND_UPDATE_NAME_STATION) stima4_menu_ui = UPDATE_NAME_STATION;
+          if (stima4_master_command == MASTER_COMMAND_UPDATE_NAME_STATION)
+            stima4_menu_ui = UPDATE_NAME_STATION;
           else {
             elaborate_master_command(stima4_master_command);
             stima4_menu_ui = stima4_menu_ui_last;

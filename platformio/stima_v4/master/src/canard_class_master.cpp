@@ -37,7 +37,9 @@
 /// @param  None
 canardClass::CanardRxQueue *__CAN1_RX0_IRQHandler_PTR;
 extern "C" void CAN1_RX0_IRQHandler(void) {
+#if (ENABLE_CAN)
     HAL_CAN_IRQHandler(&hcan1);
+#endif
 }
 
 // ***************** ISR READ RX CAN_BUS, BUFFER RX SETUP ISR, CALLBACK *****************

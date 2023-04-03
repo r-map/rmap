@@ -89,7 +89,7 @@ void MpptSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
   if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
      (state_operation==task_flag::normal))
-     param.system_status->tasks->watch_dog = wdt_flag::set;
+     param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
   param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
   param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
   param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;

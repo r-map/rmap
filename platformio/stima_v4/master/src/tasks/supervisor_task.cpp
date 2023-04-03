@@ -95,7 +95,7 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
   if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
      (state_operation==task_flag::normal))
-     param.system_status->tasks->watch_dog = wdt_flag::set;
+     param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
   param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
   param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
   param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
@@ -442,14 +442,13 @@ void SupervisorTask::Run()
           break;
 
         case CONNECTION_CHECK: // CONNECTION VERIFY
-          if (param.system_status->connection.is_connected) // Ready Connected ?
+          if (!param.system_status->connection.is_connected) // Ready Connected ?
           {
-            state = SUPERVISOR_STATE_REQUEST_CONNECTION;
-          } else {
             TRACE_VERBOSE_F(F("SUPERVISOR: Connection not ready\r\n"));
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_END\r\n"));
             // Exit from the switch (no more action)
             state = SUPERVISOR_STATE_END;
+            break;
           }
           // Prepare next state controller
           state_check_connection = CONNECTION_CHECK_NTP;

@@ -123,6 +123,19 @@ typedef struct
 
 } system_message_t;
 
+/*!
+\struct value_t
+\brief Value struct for storing sample, observation and minium, average and maximum measurement.
+*/
+typedef struct {
+  rmapdata_t sample;  //!< last sample
+  rmapdata_t ist;     //!< last observation
+  rmapdata_t min;     //!< average values of observations
+  rmapdata_t avg;     //!< maximum values of observations
+  rmapdata_t max;     //!< minium values of observations
+  rmapdata_t quality; //!< quality of observations
+} value_t;
+
 // Report module
 typedef struct
 {
