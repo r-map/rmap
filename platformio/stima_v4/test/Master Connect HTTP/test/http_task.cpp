@@ -21,10 +21,122 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL     HTTP_TASK_TRACE_LEVEL
-#define LOCAL_TASK_ID   HTTP_TASK_ID
+#define TRACE_LEVEL   HTTP_TASK_TRACE_LEVEL
+#define LOCAL_TASK_ID HTTP_TASK_ID
 
 #include "tasks/http_task.h"
+
+#include "unity.h"
+
+error_t error;
+
+// ************************************************************************
+// ******************* TEST HTTP FUNCTION DECLARATIONS ********************
+// ************************************************************************
+
+void test_init_http_cyclone(void);
+void test_requested_get_operation_http_success(void);
+void test_requested_http_configuration_start(void);
+void test_requested_http_configuration(void);
+void test_requested_http_field_operation_failed(void);
+void test_requested_http_field_operation_success(void);
+void test_requested_http_get_firmare_start(void);
+void test_requested_http_header_operation(void);
+void test_requested_resolve_name_server_http(void);
+void test_rpc_configuration_received(void);
+void test_rpc_reboot_request_received(void);
+
+// ************************************************************************
+// ******************* TEST HTTP FUNCTION IMPLEMENTATIONS *****************
+// ************************************************************************
+
+/**
+ * @brief TEST: Initialization HTTP Cyclone
+ *
+ */
+void test_init_http_cyclone() {
+    TEST_ASSERT_EQUAL(false, error);
+}
+
+/**
+ * @brief TEST: Get operation HTTP success
+ *
+ */
+void test_requested_get_operation_http_success() {
+    TEST_ASSERT_TRUE(true);
+}
+
+/**
+ * @brief TEST: Request HTTP configuration starting
+ *
+ */
+void test_requested_http_configuration_start() {
+    TEST_ASSERT_TRUE(true);
+}
+
+/**
+ * @brief TEST: Request HTTP configuration success
+ *
+ */
+void test_requested_http_configuration() {
+    TEST_ASSERT_EQUAL(false, TEST_REQUEST_HTTP_CONFIGURATION_OK);
+}
+
+/**
+ * @brief TEST: Request HTTP field operation success
+ *
+ */
+void test_requested_http_field_operation_success() {
+    TEST_ASSERT_TRUE(true);
+}
+
+/**
+ * @brief TEST: Request HTTP field operation failed
+ *
+ */
+void test_requested_http_field_operation_failed() {
+    TEST_ASSERT_TRUE(false);
+}
+
+/**
+ * @brief TEST: Request HTTP get firmware starting
+ *
+ */
+void test_requested_http_get_firmare_start() {
+    TEST_ASSERT_TRUE(true);
+}
+
+/**
+ * @brief TEST: Request HTTP header operation
+ *
+ */
+void test_requested_http_header_operation() {
+    TEST_ASSERT_EQUAL(false, error);
+}
+
+/**
+ * @brief TEST: Request resolve name server HTTP
+ *
+ */
+void test_requested_resolve_name_server_http() {
+    TEST_ASSERT_EQUAL(false, error);
+}
+
+/**
+ * @brief TEST: RPC configuration reception
+ *
+ */
+void test_rpc_configuration_received() {
+    TEST_ASSERT_EQUAL(true, result_rpc & 0x01);
+}
+
+/**
+ * @brief TEST: RPC reboot request reception
+ *
+ */
+void test_rpc_reboot_request_received() {
+    TEST_ASSERT_EQUAL(true, result_rpc & 0x02);
+}
 
 #if (USE_HTTP)
 
@@ -34,26 +146,24 @@ using namespace cpp_freertos;
 extern char result_rpc;
 bool TEST_REQUEST_HTTP_CONFIGURATION_OK = false;
 
-HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam)
-{
-  // Start WDT controller and TaskState Flags
-  TaskWatchDog(WDT_STARTING_TASK_MS);
-  TaskState(HTTP_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
+HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam) {
+    // Start WDT controller and TaskState Flags
+    TaskWatchDog(WDT_STARTING_TASK_MS);
+    TaskState(HTTP_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
-  state = HTTP_STATE_INIT;
-  Start();
+    state = HTTP_STATE_INIT;
+    Start();
 };
 
 #if (ENABLE_STACK_USAGE)
 /// @brief local stack Monitor (optional)
-void HttpTask::TaskMonitorStack()
-{
-  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
-  if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
-    param.systemStatusLock->Take();
-    param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
-    param.systemStatusLock->Give();
-  }
+void HttpTask::TaskMonitorStack() {
+    u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark(NULL);
+    if ((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
+        param.systemStatusLock->Take();
+        param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
+        param.systemStatusLock->Give();
+    }
 }
 #endif
 
@@ -61,557 +171,493 @@ void HttpTask::TaskMonitorStack()
 /// @param status system_status_t Status STIMAV4
 /// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
-void HttpTask::TaskWatchDog(uint32_t millis_standby)
-{
-  // Local TaskWatchDog update
-  param.systemStatusLock->Take();
-  // Update WDT Signal (Direct or Long function Timered)
-  if(millis_standby)  
-  {
-    // Check 1/2 Freq. controller ready to WDT only SET flag
-    if((millis_standby) < WDT_CONTROLLER_MS / 2) {
-      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-    } else {
-      param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
-      // Add security milimal Freq to check
-      param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
-    }
-  }
-  else
-    param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-  param.systemStatusLock->Give();
+void HttpTask::TaskWatchDog(uint32_t millis_standby) {
+    // Local TaskWatchDog update
+    param.systemStatusLock->Take();
+    // Update WDT Signal (Direct or Long function Timered)
+    if (millis_standby) {
+        // Check 1/2 Freq. controller ready to WDT only SET flag
+        if ((millis_standby) < WDT_CONTROLLER_MS / 2) {
+            param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        } else {
+            param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::timer;
+            // Add security milimal Freq to check
+            param.system_status->tasks[LOCAL_TASK_ID].watch_dog_ms = millis_standby + WDT_CONTROLLER_MS;
+        }
+    } else
+        param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    param.systemStatusLock->Give();
 }
 
 /// @brief local suspend flag and positor running state Task (optional)
 /// @param state_position Sw_Position (Local STATE)
 /// @param state_subposition Sw_SubPosition (Optional Local SUB_STATE Position Monitor)
 /// @param state_operation operative mode flag status for this task
-void HttpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation)
-{
-  // Local TaskWatchDog update
-  param.systemStatusLock->Take();
-  // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
-  if((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended)&&
-     (state_operation==task_flag::normal))
-     param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-  param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
-  param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
-  param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
-  param.systemStatusLock->Give();
+void HttpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation) {
+    // Local TaskWatchDog update
+    param.systemStatusLock->Take();
+    // Signal Task sleep/disabled mode from request (Auto SET WDT on Resume)
+    if ((param.system_status->tasks[LOCAL_TASK_ID].state == task_flag::suspended) &&
+        (state_operation == task_flag::normal))
+        param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+    param.system_status->tasks[LOCAL_TASK_ID].state = state_operation;
+    param.system_status->tasks[LOCAL_TASK_ID].running_pos = state_position;
+    param.system_status->tasks[LOCAL_TASK_ID].running_sub = state_subposition;
+    param.systemStatusLock->Give();
 }
 
 void HttpTask::Run() {
-  uint8_t retry;
-  uint8_t retry_get_response;
-  bool is_error;
-  error_t error;
-  IpAddr ipAddr;
-  uint_t status;
-  const char_t *value;
-  // std::string serial_number_str;
-  char_t serial_number_str[12];
-  uint32_t serial_number_l;
-  uint32_t serial_number_h;
+    uint8_t retry;
+    uint8_t retry_get_response;
+    bool is_error;
+    IpAddr ipAddr;
+    uint_t status;
+    const char_t *value;
+    // std::string serial_number_str;
+    char_t serial_number_str[12];
+    uint32_t serial_number_l;
+    uint32_t serial_number_h;
 
-  char uri[HTTP_URI_LENGTH];
-  char header[HTTP_HEADER_SIZE];
-  char module_type[STIMA_MODULE_NAME_LENGTH];
+    char uri[HTTP_URI_LENGTH];
+    char header[HTTP_HEADER_SIZE];
+    char module_type[STIMA_MODULE_NAME_LENGTH];
 
-  bool is_get_configuration;
-  bool is_get_firmware;
+    bool is_get_configuration;
+    bool is_get_firmware;
 
-  connection_request_t connection_request;
-  connection_response_t connection_response;
+    connection_request_t connection_request;
+    connection_response_t connection_response;
 
-  // Start Running Monitor and First WDT normal state
-  #if (ENABLE_STACK_USAGE)
-  TaskMonitorStack();
-  #endif
-  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+// Start Running Monitor and First WDT normal state
+#if (ENABLE_STACK_USAGE)
+    TaskMonitorStack();
+#endif
+    TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-  while (true)
-  {
-    switch (state)
-    {
-    case HTTP_STATE_INIT:
-      TRACE_VERBOSE_F(F("HTTP_STATE_INIT -> HTTP_STATE_WAIT_NET_EVENT\r\n"));
-      state = HTTP_STATE_WAIT_NET_EVENT;
-      break;
+    // ************************************************************************
+    // ***************************** TEST BEGIN *******************************
+    // ************************************************************************
 
-    case HTTP_STATE_WAIT_NET_EVENT:
-      is_get_configuration = false;
-      is_get_firmware = false;
-      is_error = false;
-      retry = 0;
+    UNITY_BEGIN();
 
-      // wait connection request
-      // Suspend TASK Controller for queue waiting portMAX_DELAY
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);      
-      if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY))
-      {
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-        HttpServer = param.configuration->mqtt_server;
+    // Necessary delay for test
+    delay(3000);
 
-        // do http get configuration
-        if (connection_request.do_http_get_configuration)
-        {
-          // ***** TEST REQUEST QUEUE DO NTP INCOMING START
-          Serial.println("// ***** TEST REQUEST QUEUE DO HTTP CONFIGURATION INCOMING START");
+    while (true) {
+        switch (state) {
+            case HTTP_STATE_INIT:
+                TRACE_VERBOSE_F(F("HTTP_STATE_INIT -> HTTP_STATE_WAIT_NET_EVENT\r\n"));
+                state = HTTP_STATE_WAIT_NET_EVENT;
+                break;
 
-          is_get_configuration = true;
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
-          state = HTTP_STATE_SEND_REQUEST;
-          TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
+            case HTTP_STATE_WAIT_NET_EVENT:
+                is_get_configuration = false;
+                is_get_firmware = false;
+                is_error = false;
+                retry = 0;
+
+                // wait connection request
+                // Suspend TASK Controller for queue waiting portMAX_DELAY
+                TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+                if (param.connectionRequestQueue->Peek(&connection_request, portMAX_DELAY)) {
+                    TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+                    HttpServer = param.configuration->mqtt_server;
+
+                    // do http get configuration
+                    if (connection_request.do_http_get_configuration) {
+                        RUN_TEST(test_requested_http_configuration_start);
+
+                        is_get_configuration = true;
+                        param.connectionRequestQueue->Dequeue(&connection_request, 0);
+                        state = HTTP_STATE_SEND_REQUEST;
+                        TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
+                    }
+                    // do http get firmware
+                    else if (connection_request.do_http_get_firmware) {
+                        RUN_TEST(test_requested_http_get_firmare_start);
+
+                        is_get_firmware = true;
+                        param.connectionRequestQueue->Dequeue(&connection_request, 0);
+                        state = HTTP_STATE_SEND_REQUEST;
+                        TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
+                    }
+                }
+                break;
+
+            case HTTP_STATE_SEND_REQUEST:
+                error = httpClientInit(&httpClientContext);
+
+                RUN_TEST(test_init_http_cyclone);
+
+                param.systemStatusLock->Take();
+                param.system_status->connection.is_http_configuration_updating = is_get_configuration;
+                param.system_status->connection.is_http_firmware_upgrading = is_get_firmware;
+                param.systemStatusLock->Give();
+
+                TRACE_INFO_F(F("%s Resolving http server name of %s \r\n"), Thread::GetName().c_str(), HttpServer);
+
+                // Resolve HTTP server name
+                TaskState(state, 1, task_flag::suspended);  // Or SET Long WDT > 120 sec.
+                error = getHostByName(NULL, HttpServer, &ipAddr, 0);
+                TaskState(state, 1, task_flag::normal);  // Resume
+
+                RUN_TEST(test_requested_resolve_name_server_http);
+                // Any error to report?
+                if (error) {
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+                    TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
+                    break;
+                }
+
+                // Shared Pointer
+                HttpYarrowContext = param.yarrowContext;
+                HttpClientPSKKey = param.configuration->client_psk_key;
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                // Set PSK identity
+                snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+                TRACE_VERBOSE_F(F("HTTP PSK Identity: %s\r\n"), HttpClientPSKIdentity);
+
+                // Register TLS initialization callback
+                error = httpClientRegisterTlsInitCallback(&httpClientContext, httpClientTlsInitCallback);
+                // Any error to report?
+                if (error) {
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+                    TRACE_ERROR_F(F("%s Failed to init https callback [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    break;
+                }
+
+                // Select HTTP protocol version
+                error = httpClientSetVersion(&httpClientContext, HTTP_VERSION_1_1);
+                // Any error to report?
+                if (error) {
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+                    TRACE_ERROR_F(F("%s Failed to resolve http client version [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    break;
+                }
+
+                // Set timeout value for blocking operations
+                error = httpClientSetTimeout(&httpClientContext, HTTP_CLIENT_TIMEOUT_MS);
+                // Any error to report?
+                if (error) {
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+                    TRACE_ERROR_F(F("%s Failed to set http server timeuout [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    break;
+                }
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                TaskState(state, 1, task_flag::suspended);  // Or SET Long WDT > 120 sec.
+                // Connect to the HTTP server
+                error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_CLIENT_PORT);
+                TaskState(state, 1, task_flag::normal);  // Resume
+                // Any error to report?
+                if (error) {
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+
+                    TRACE_ERROR_F(F("%s Failed to connect to http server %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
+                    break;
+                }
+
+                // Create an HTTP request
+                httpClientCreateRequest(&httpClientContext);
+                httpClientSetMethod(&httpClientContext, "GET");
+
+                RUN_TEST(test_requested_get_operation_http_success);
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                getStimaNameByType(module_type, param.configuration->module_type, 7);
+
+                if (is_get_configuration) {
+                    snprintf(uri, sizeof(uri), "/stationconfig/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug);
+                } else if (is_get_firmware) {
+                    snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", module_type);
+                }
+
+                TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
+
+                httpClientSetUri(&httpClientContext, uri);
+
+                // Set query string
+                // httpClientAddQueryParam(&httpClientContext, "param1", "value1");
+                // httpClientAddQueryParam(&httpClientContext, "param2", "value2");
+
+                // Add HTTP header fields
+                httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                // from uint64_t to string
+                serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
+                serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
+
+                snprintf(serial_number_str, sizeof(serial_number_str), "%lu%lu", serial_number_l, serial_number_h);
+
+                if (is_get_firmware) {
+                    snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+                    httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
+                    httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str);
+                }
+
+                httpClientAddHeaderField(&httpClientContext, "User-Agent", "STIMA4-http-Update");
+
+                // Send HTTP request header
+                error = httpClientWriteHeader(&httpClientContext);
+
+                RUN_TEST(test_requested_http_header_operation);
+                // Any error to report?
+                if (error) {
+                    TRACE_ERROR_F(F("%s Failed to write http request header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+
+                    is_error = true;
+                    state = HTTP_STATE_END;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
+                    break;
+                }
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                state = HTTP_STATE_GET_RESPONSE;
+                retry_get_response = 0;
+                TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_GET_RESPONSE\r\n"));
+                break;
+
+            case HTTP_STATE_GET_RESPONSE:
+
+                TaskState(state, 1, task_flag::suspended);  // Or SET Long WDT > 120 sec.
+                // Receive HTTP response header
+                error = httpClientReadHeader(&httpClientContext);
+                TaskState(state, 1, task_flag::normal);  // Resume
+                // Any error to report?
+                if (error) {
+                    if (++retry_get_response < HTTP_TASK_GENERIC_RETRY) {
+                        is_error = true;
+                        state = HTTP_STATE_END;
+                        TRACE_ERROR_F(F("%s Failed to read http response header [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    } else {
+                        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+                        Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+                        TRACE_ERROR_F(F("%s Failed to read http response header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    }
+                    break;
+                }
+
+                // Retrieve HTTP status code
+                status = httpClientGetStatus(&httpClientContext);
+                TRACE_ERROR_F(F("%s http status code %u\r\n"), Thread::GetName().c_str(), status);
+
+                // Retrieve the value of the Content-Type header field
+                value = httpClientGetHeaderField(&httpClientContext, "Content-Type");
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                // Header field found?
+                if (value == NULL) {
+                    if (++retry_get_response < HTTP_TASK_GENERIC_RETRY) {
+                        RUN_TEST(test_requested_http_field_operation_failed);
+
+                        is_error = true;
+                        state = HTTP_STATE_END;
+                        TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    } else {
+                        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+                        Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+                        TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    }
+                    break;
+                }
+
+                RUN_TEST(test_requested_http_field_operation_success);
+
+                // Receive HTTP response body
+                while (!error) {
+                    TaskState(state, 1, task_flag::suspended);  // Or SET Long WDT > 120 sec.
+
+                    if (is_get_configuration) {
+                        is_event_rpc = true;
+                        param.streamRpc->init();
+
+                        error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, SOCKET_FLAG_BREAK_CRLF);
+
+#if (ENABLE_STACK_USAGE)
+                        TaskMonitorStack();
+#endif
+
+                        if (!error) {
+                            RUN_TEST(test_requested_http_configuration);
+                            if (TEST_REQUEST_HTTP_CONFIGURATION_OK = false) {
+                                TEST_REQUEST_HTTP_CONFIGURATION_OK = true;
+                            }
+
+                            http_buffer[http_buffer_length] = '\0';
+                            TRACE_INFO_F(F("%s"), http_buffer);
+                        }
+
+                        if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS))) {
+                            while (is_event_rpc) {
+#if (ENABLE_STACK_USAGE)
+                                TaskMonitorStack();
+#endif
+                                param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
+                            }
+                            param.rpcLock->Give();
+                        }
+                    } else if (is_get_firmware) {
+                        error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
+
+                        if (!error) {
+#if (ENABLE_STACK_USAGE)
+                            TaskMonitorStack();
+#endif
+
+                            http_buffer[http_buffer_length] = '\0';
+                            TRACE_INFO_F(F("%s"), http_buffer);
+                        }
+                    }
+
+                    TaskState(state, 1, task_flag::normal);  // Resume
+                }
+
+                // Terminate the HTTP response body with a CRLF
+                TRACE_INFO_F(F("\r\n"));
+
+                // Any error to report?
+                if (error != ERROR_END_OF_STREAM) {
+                    if (++retry_get_response < HTTP_TASK_GENERIC_RETRY) {
+                        is_error = true;
+                        state = HTTP_STATE_END;
+                        TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    } else {
+                        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+                        Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+                        TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    }
+                    break;
+                }
+
+                // Close HTTP response body
+                error = httpClientCloseBody(&httpClientContext);
+                // Any error to report?
+                if (error) {
+                    if (++retry_get_response < HTTP_TASK_GENERIC_RETRY) {
+                        is_error = true;
+                        state = HTTP_STATE_END;
+                        TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    } else {
+                        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+                        Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+                        TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+                    }
+                    break;
+                }
+
+                // Gracefully disconnect from the HTTP server
+                httpClientDisconnect(&httpClientContext);
+
+                RUN_TEST(test_requested_http_configuration);
+                RUN_TEST(test_rpc_configuration_received);
+                RUN_TEST(test_rpc_reboot_request_received);
+
+                UNITY_END();
+
+                // ************************************************************************
+                // ***************************** TEST END *********************************
+                // ************************************************************************
+
+                state = HTTP_STATE_END;
+                TRACE_VERBOSE_F(F("HTTP_STATE_GET_RESPONSE -> HTTP_STATE_END\r\n"));
+                break;
+
+            case HTTP_STATE_END:
+                // ok
+                if (!is_error) {
+                    param.systemStatusLock->Take();
+                    param.system_status->connection.is_http_configuration_updating = false;
+                    param.system_status->connection.is_http_configuration_updated = is_get_configuration;
+                    param.system_status->connection.is_http_firmware_upgrading = false;
+                    param.system_status->connection.is_http_firmware_upgraded = is_get_firmware;
+                    param.systemStatusLock->Give();
+
+                    httpClientDeinit(&httpClientContext);
+
+                    memset(&connection_response, 0, sizeof(connection_response_t));
+                    connection_response.done_http_configuration_getted = is_get_configuration;
+                    connection_response.error_http_configuration_getted = false;
+                    connection_response.done_http_firmware_getted = is_get_firmware;
+                    connection_response.error_http_firmware_getted = false;
+                    param.connectionResponseQueue->Enqueue(&connection_response, 0);
+
+                    state = HTTP_STATE_INIT;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
+                }
+                // retry
+                else if ((++retry) < HTTP_TASK_GENERIC_RETRY) {
+                    TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+                    Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+
+                    TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_SEND_REQUEST\r\n"));
+                    state = HTTP_STATE_SEND_REQUEST;
+                }
+                // error
+                else {
+                    param.systemStatusLock->Take();
+                    param.system_status->connection.is_http_configuration_updating = false;
+                    param.system_status->connection.is_http_configuration_updated = false;
+                    param.system_status->connection.is_http_firmware_upgrading = false;
+                    param.system_status->connection.is_http_firmware_upgraded = false;
+                    param.systemStatusLock->Give();
+
+                    httpClientDeinit(&httpClientContext);
+
+                    memset(&connection_response, 0, sizeof(connection_response_t));
+                    connection_response.done_http_configuration_getted = false;
+                    connection_response.error_http_configuration_getted = is_get_configuration;
+                    connection_response.done_http_firmware_getted = false;
+                    connection_response.error_http_firmware_getted = is_get_firmware;
+                    param.connectionResponseQueue->Enqueue(&connection_response, 0);
+
+                    state = HTTP_STATE_INIT;
+                    TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
+                }
+                break;
+
+#if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+#endif
+
+                // One step base non blocking switch
+                TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
+                Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
         }
-        // do http get firmware
-        else if (connection_request.do_http_get_firmware)
-        {
-          // ***** TEST REQUEST QUEUE DO NTP INCOMING START
-          Serial.println("// ***** TEST REQUEST QUEUE DO HTTP FIRMWARE INCOMING START");
-
-          is_get_firmware = true;
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
-          state = HTTP_STATE_SEND_REQUEST;
-          TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
-        }
-      }
-      break;
-
-    case HTTP_STATE_SEND_REQUEST:
-      error = httpClientInit(&httpClientContext);
-
-      // ***** TEST INIT NTP CYCLONE FAILED
-      if(error) {
-        // ***** TEST INIT HTTP CYCLONE FAILED
-        Serial.println("// ***** TEST INIT HTTP CYCLONE FAILED");
-      } else {
-        // ***** TEST INIT HTTP CYCLONE OK
-        Serial.println("// ***** TEST INIT HTTP CYCLONE OK");
-      }
-
-      param.systemStatusLock->Take();
-      param.system_status->connection.is_http_configuration_updating = is_get_configuration;
-      param.system_status->connection.is_http_firmware_upgrading = is_get_firmware;
-      param.systemStatusLock->Give();
-
-      TRACE_INFO_F(F("%s Resolving http server name of %s \r\n"), Thread::GetName().c_str(), HttpServer);
-
-      // Resolve HTTP server name
-      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-      error = getHostByName(NULL, HttpServer, &ipAddr, 0);
-      TaskState(state, 1, task_flag::normal); // Resume
-      // Any error to report?
-      if (error)
-      {
-        // ***** TEST REQUEST RESOLVE NAME SERVER HTTP FAILED
-        Serial.println("// ***** TEST REQUEST RESOLVE NAME SERVER HTTP FAILED");
-
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
-        TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
-        break;
-      } else {
-        // ***** TEST REQUEST RESOLVE NAME SERVER HTTP OK
-        Serial.println("// ***** TEST REQUEST RESOLVE NAME SERVER HTTP OK");
-      }
-
-      // Shared Pointer
-      HttpYarrowContext = param.yarrowContext;
-      HttpClientPSKKey = param.configuration->client_psk_key;
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      // Set PSK identity
-      snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
-      TRACE_VERBOSE_F(F("HTTP PSK Identity: %s\r\n"), HttpClientPSKIdentity);
-
-      // Register TLS initialization callback
-      error = httpClientRegisterTlsInitCallback(&httpClientContext, httpClientTlsInitCallback);
-      // Any error to report?
-      if (error)
-      {
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
-        TRACE_ERROR_F(F("%s Failed to init https callback [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        break;
-      }
-
-      // Select HTTP protocol version
-      error = httpClientSetVersion(&httpClientContext, HTTP_VERSION_1_1);
-      // Any error to report?
-      if (error)
-      {
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
-        TRACE_ERROR_F(F("%s Failed to resolve http client version [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        break;
-      }
-
-      // Set timeout value for blocking operations
-      error = httpClientSetTimeout(&httpClientContext, HTTP_CLIENT_TIMEOUT_MS);
-      // Any error to report?
-      if (error)
-      {
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
-        TRACE_ERROR_F(F("%s Failed to set http server timeuout [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        break;
-      }
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-      // Connect to the HTTP server
-      error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_CLIENT_PORT);
-      TaskState(state, 1, task_flag::normal); // Resume
-      // Any error to report?
-      if (error)
-      {
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
-        TRACE_ERROR_F(F("%s Failed to connect to http server %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
-        break;
-      }
-
-      // Create an HTTP request
-      httpClientCreateRequest(&httpClientContext);
-      httpClientSetMethod(&httpClientContext, "GET");
-
-      Serial.println("// ***** TEST REQUEST GET OPERATION HTTP OK");
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      getStimaNameByType(module_type, param.configuration->module_type, 7);
-
-      if (is_get_configuration)
-      {
-        snprintf(uri, sizeof(uri), "/stationconfig/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug);
-      }
-      else if (is_get_firmware)
-      {
-        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", module_type);
-      }
-
-      TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
-
-      httpClientSetUri(&httpClientContext, uri);
-
-      // Set query string
-      // httpClientAddQueryParam(&httpClientContext, "param1", "value1");
-      // httpClientAddQueryParam(&httpClientContext, "param2", "value2");
-
-      // Add HTTP header fields
-      httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      // from uint64_t to string
-      serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
-      serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
-
-      snprintf(serial_number_str, sizeof(serial_number_str), "%lu%lu", serial_number_l, serial_number_h);
-
-      if (is_get_firmware)
-      {
-        snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
-        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
-        httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str);
-      }
-
-      httpClientAddHeaderField(&httpClientContext, "User-Agent", "STIMA4-http-Update");
-
-      // Send HTTP request header
-      error = httpClientWriteHeader(&httpClientContext);
-      // Any error to report?
-      if (error)
-      {
-
-        // ***** TEST REQUEST HTTP HEADER OPERATION FAILED
-        Serial.println("// ***** TEST REQUEST HTTP HEADER OPERATION FAILED");
-
-        TRACE_ERROR_F(F("%s Failed to write http request header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-        break;
-      }
-
-      // ***** TEST REQUEST HTTP HEADER OPERATION OK
-      Serial.println("// ***** TEST REQUEST HTTP HEADER OPERATION OK");
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      state = HTTP_STATE_GET_RESPONSE;
-      retry_get_response = 0;
-      TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_GET_RESPONSE\r\n"));
-      break;
-
-    case HTTP_STATE_GET_RESPONSE:
-
-      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-      // Receive HTTP response header
-      error = httpClientReadHeader(&httpClientContext);
-      TaskState(state, 1, task_flag::normal); // Resume
-      // Any error to report?
-      if (error)
-      {
-        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
-          is_error = true;
-          state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Failed to read http response header [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        } else {
-          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-          TRACE_ERROR_F(F("%s Failed to read http response header [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        }
-        break;
-      }
-
-      // Retrieve HTTP status code
-      status = httpClientGetStatus(&httpClientContext);
-      TRACE_ERROR_F(F("%s http status code %u\r\n"), Thread::GetName().c_str(), status);
-
-      // Retrieve the value of the Content-Type header field
-      value = httpClientGetHeaderField(&httpClientContext, "Content-Type");
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      // Header field found?
-      if (value == NULL)
-      {
-        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
-
-          // ***** TEST REQUEST HTTP FIELD OPERATION FAILED
-          Serial.println("// ***** TEST REQUEST HTTP FIELD OPERATION FAILED");
-
-          is_error = true;
-          state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        } else {
-          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        }
-        break;
-      }
-
-      // ***** TEST REQUEST HTTP HEADER FIELD OPERATION OK
-      Serial.println("// ***** TEST REQUEST HTTP HEADER FIELD OPERATION OK");
-
-      // Receive HTTP response body
-      while (!error)
-      {
-        TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
-
-        if (is_get_configuration)
-        {
-          is_event_rpc = true;
-          param.streamRpc->init();
-
-          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, SOCKET_FLAG_BREAK_CRLF);
-
-          #if (ENABLE_STACK_USAGE)
-          TaskMonitorStack();
-          #endif
-
-          if (!error)
-          {
-            // ***** TEST REQUEST HTTP CONFIGURATION OK
-            if(TEST_REQUEST_HTTP_CONFIGURATION_OK = false) {
-              TEST_REQUEST_HTTP_CONFIGURATION_OK = true;
-              // ***** TEST REQUEST HTTP CONFIGURATION OK
-              Serial.println("// ***** TEST REQUEST HTTP CONFIGURATION OK");
-            }
-
-            http_buffer[http_buffer_length] = '\0';
-            TRACE_INFO_F(F("%s"), http_buffer);
-          }
-
-          if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
-          {
-            while (is_event_rpc)
-            {
-              #if (ENABLE_STACK_USAGE)
-              TaskMonitorStack();
-              #endif
-              param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
-            }
-            param.rpcLock->Give();
-          }
-        }
-        else if (is_get_firmware)
-        {
-          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
-
-          if (!error)
-          {
-
-            #if (ENABLE_STACK_USAGE)
-            TaskMonitorStack();
-            #endif
-
-            http_buffer[http_buffer_length] = '\0';
-            TRACE_INFO_F(F("%s"), http_buffer);
-          }
-        }
-
-        TaskState(state, 1, task_flag::normal); // Resume
-      }
-
-      // Terminate the HTTP response body with a CRLF
-      TRACE_INFO_F(F("\r\n"));
-
-      // Any error to report?
-      if (error != ERROR_END_OF_STREAM)
-      {
-        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
-          is_error = true;
-          state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        } else {
-          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-          TRACE_ERROR_F(F("%s Failed to parse http stream [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        }
-        break;
-      }
-
-      // Close HTTP response body
-      error = httpClientCloseBody(&httpClientContext);
-      // Any error to report?
-      if (error)
-      {
-        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
-          is_error = true;
-          state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        } else {
-          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-          TRACE_ERROR_F(F("%s Failed to read http response trailer [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        }
-        break;
-      }
-
-      // Gracefully disconnect from the HTTP server
-      httpClientDisconnect(&httpClientContext);
-
-      if(TEST_REQUEST_HTTP_CONFIGURATION_OK == false) {
-        // ***** TEST REQUEST HTTP CONFIGURATION OK
-        Serial.println("// ***** TEST REQUEST HTTP CONFIGURATION OK");
-      }
-
-      if(result_rpc & 0x01) {
-        // ***** RPC CONFIGURATION RECEIVE OK
-        Serial.println("// ***** RPC CONFIGURATION RECEIVE OK");
-      } else {
-        // ***** RPC CONFIGURATION RECEIVE FAIL
-        Serial.println("// ***** RPC CONFIGURATION RECEIVE FAIL");
-      }
-      if(result_rpc & 0x02) {
-        // ***** RPC REBOOT REQUEST RECEIVE OK
-        Serial.println("// ***** RPC REBOOT REQUEST RECEIVE OK");
-      } else {
-        // ***** RPC REBOOT REQUEST RECEIVE FAIL
-        Serial.println("// ***** RPC REBOOT REQUEST RECEIVE FAIL");
-      }
-
-      // ***** TEST OPERATION END
-      Serial.println("// ***** TEST END");
-
-      state = HTTP_STATE_END;
-      TRACE_VERBOSE_F(F("HTTP_STATE_GET_RESPONSE -> HTTP_STATE_END\r\n"));
-      break;
-
-    case HTTP_STATE_END:
-      // ok
-      if (!is_error)
-      {
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_http_configuration_updating = false;
-        param.system_status->connection.is_http_configuration_updated = is_get_configuration;
-        param.system_status->connection.is_http_firmware_upgrading = false;
-        param.system_status->connection.is_http_firmware_upgraded = is_get_firmware;
-        param.systemStatusLock->Give();
-
-        httpClientDeinit(&httpClientContext);
-
-        memset(&connection_response, 0, sizeof(connection_response_t));
-        connection_response.done_http_configuration_getted = is_get_configuration;
-        connection_response.error_http_configuration_getted = false;
-        connection_response.done_http_firmware_getted = is_get_firmware;
-        connection_response.error_http_firmware_getted = false;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
-
-        state = HTTP_STATE_INIT;
-        TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
-      }
-      // retry
-      else if ((++retry) < HTTP_TASK_GENERIC_RETRY)
-      {
-        TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-        Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-
-        TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_SEND_REQUEST\r\n"));
-        state = HTTP_STATE_SEND_REQUEST;
-      }
-      // error
-      else
-      {
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_http_configuration_updating = false;
-        param.system_status->connection.is_http_configuration_updated = false;
-        param.system_status->connection.is_http_firmware_upgrading = false;
-        param.system_status->connection.is_http_firmware_upgraded = false;
-        param.systemStatusLock->Give();
-
-        httpClientDeinit(&httpClientContext);
-
-        memset(&connection_response, 0, sizeof(connection_response_t));
-        connection_response.done_http_configuration_getted = false;
-        connection_response.error_http_configuration_getted = is_get_configuration;
-        connection_response.done_http_firmware_getted = false;
-        connection_response.error_http_firmware_getted = is_get_firmware;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
-
-        state = HTTP_STATE_INIT;
-        TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
-      }
-      break;
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
-      // One step base non blocking switch
-      TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
-      Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
-
     }
-  }
 }
 
 /**
@@ -620,45 +666,44 @@ void HttpTask::Run() {
  * @param[in] tlsContext Pointer to the TLS context
  * @return Error code
  **/
-error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext)
-{
-  error_t error;
+error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext) {
+    error_t error;
 
-  // Debug message
-  TRACE_INFO_F(F("HTTP Client TLS initialization callback\r\n"));
+    // Debug message
+    TRACE_INFO_F(F("HTTP Client TLS initialization callback\r\n"));
 
-  // Set the PRNG algorithm to be used
-  error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, HttpYarrowContext);
-  // Any error to report?
-  if (error)
-    return error;
+    // Set the PRNG algorithm to be used
+    error = tlsSetPrng(tlsContext, YARROW_PRNG_ALGO, HttpYarrowContext);
+    // Any error to report?
+    if (error)
+        return error;
 
-  // Preferred cipher suite list
-  error = tlsSetCipherSuites(tlsContext, HttpCipherSuites, arraysize(HttpCipherSuites));
-  // Any error to report?
-  if (error)
-    return error;
+    // Preferred cipher suite list
+    error = tlsSetCipherSuites(tlsContext, HttpCipherSuites, arraysize(HttpCipherSuites));
+    // Any error to report?
+    if (error)
+        return error;
 
-  // Set the fully qualified domain name of the server
-  error = tlsSetServerName(tlsContext, HttpServer);
-  // Any error to report?
-  if (error)
-    return error;
+    // Set the fully qualified domain name of the server
+    error = tlsSetServerName(tlsContext, HttpServer);
+    // Any error to report?
+    if (error)
+        return error;
 
-  // Set the PSK identity to be used by the client
-  error = tlsSetPskIdentity(tlsContext, HttpClientPSKIdentity);
-  // Any error to report?
-  if (error)
-    return error;
+    // Set the PSK identity to be used by the client
+    error = tlsSetPskIdentity(tlsContext, HttpClientPSKIdentity);
+    // Any error to report?
+    if (error)
+        return error;
 
-  // Set the pre-shared key to be used
-  error = tlsSetPsk(tlsContext, HttpClientPSKKey, CLIENT_PSK_KEY_LENGTH);
-  // Any error to report?
-  if (error)
-    return error;
+    // Set the pre-shared key to be used
+    error = tlsSetPsk(tlsContext, HttpClientPSKKey, CLIENT_PSK_KEY_LENGTH);
+    // Any error to report?
+    if (error)
+        return error;
 
-  // Successful processing
-  return NO_ERROR;
+    // Successful processing
+    return NO_ERROR;
 }
 
 #endif
