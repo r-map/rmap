@@ -112,6 +112,8 @@ typedef struct {
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
+  cpp_freertos::Queue *dataFilePutRequestQueue;
+  cpp_freertos::Queue *dataFilePutResponseQueue;
   cpp_freertos::BinarySemaphore *rpcLock;
   YarrowContext *yarrowContext;
   JsonRPC *streamRpc;
@@ -134,6 +136,8 @@ private:
   #endif
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
+
+  void do_firmware(void);
 
   static error_t httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext);
 

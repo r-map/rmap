@@ -322,12 +322,7 @@ void setup() {
   supervisorParam.systemMessageQueue = systemMessageQueue;
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
-  supervisorParam.dataRmapPutQueue = dataRmapPutQueue;
   supervisorParam.dataLogPutQueue = dataLogPutQueue;
-  supervisorParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
-  supervisorParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
-  supervisorParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
-  supervisorParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
   supervisorParam.eeprom = &memEprom;
   supervisorParam.clRegister = &clRegister;
 
@@ -369,6 +364,8 @@ void setup() {
   httpParam.dataLogPutQueue = dataLogPutQueue;
   httpParam.connectionRequestQueue = connectionRequestQueue;
   httpParam.connectionResponseQueue = connectionResponseQueue;
+  httpParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
+  httpParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
   httpParam.yarrowContext = &yarrowContext;
   httpParam.streamRpc = &streamRpc;
   httpParam.rpcLock = rpcLock;

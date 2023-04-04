@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file    lcd_task.hpp
- * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+ * @author  Cristiano Souza Paz <c.souzapaz@digiteco.it>
  * @brief   LCD Task based u8gl library
  ******************************************************************************
  * @attention

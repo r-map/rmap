@@ -603,4 +603,82 @@ error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsConte
   return NO_ERROR;
 }
 
+  // // MMC have to GET Ready before Push DATA
+  // // EXIT from function if not MMC Ready or present into system_status
+  // if(!param.system_status->flags.sd_card_ready) {
+  //   TRACE_VERBOSE_F(F("SUPERVISOR: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+  //   break;
+  // }
+
+void HttpTask::do_firmware(void) {
+  file_put_request_t firmwareDownloadChunck;
+  file_put_response_t sdcard_task_response;
+  bool file_upload_error = false;
+
+  // First block NAME OF FILE (Prepare name and Put to queue)
+  // TODO: Get From HTTP
+  memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
+  firmwareDownloadChunck.block_type = file_block_type::file_name;
+  // Chose one method to put name file (only name file without prefix directory)
+  strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
+  // OR FILE NAME FROM TYPE... IF HTTP Responding with Module, Version and Revision...
+  // setStimaFirmwareName((char*)firmwareDownloadChunck.block, STIMA_MODULE_TYPE_TH, 4, 3);
+  firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
+  TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
+  // Push data request to queue MMC
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+
+  // Non blocking task
+  TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
+  Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
+
+  // Waiting response from MMC with TimeOUT
+  memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
+  TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+  file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+  file_upload_error |= !sdcard_task_response.done_operation;
+  // Add Data Chunck... TODO: Get From HTTP...
+  if(!file_upload_error) {
+    // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
+    firmwareDownloadChunck.block_type = file_block_type::data_chunck;
+    for(u_int16_t j=0; j<512; j++) {
+      // ASCII Char... Fill example
+      // TODO: Correct bytes read from buffer http...
+      firmwareDownloadChunck.block[j] = 48 + (j % 10);
+    }
+    firmwareDownloadChunck.block_lenght = 512;
+    // Try 100 Block Data chunk... Queue to MMC (x 512 Bytes -> 51200 Bytes to Write)
+    for(uint8_t i=0; i<100; i++) {
+      // Push data request to queue MMC
+      param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+      // Waiting response from MMC with TimeOUT
+      memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
+      TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+      file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+      file_upload_error |= !sdcard_task_response.done_operation;
+      // Non blocking task
+      TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
+      // Any error? Exit Uploading
+      if (file_upload_error) {
+        TRACE_VERBOSE_F(F("Uploading file error!!!\r\n"));
+        break;
+      }
+    }
+    // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
+    firmwareDownloadChunck.block_type = file_block_type::end_of_file;
+    // Push data request to queue MMC
+    param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+
+    // Waiting response from MMC with TimeOUT
+    memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
+    TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+    file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+    file_upload_error |= !sdcard_task_response.done_operation;
+  }
+
+  // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
+  TRACE_VERBOSE_F(F("Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+}
+
 #endif

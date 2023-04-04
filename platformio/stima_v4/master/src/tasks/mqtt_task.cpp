@@ -331,6 +331,7 @@ void MqttTask::Run()
       if(start_get_data) {
 
         // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
+        // TODO: ------->>>>>>>>>>>>>>  METTERE IN FUNZIONE RECOVERY RPC
         // // -> SETTING FROM RPC
         // // // **** SET POINTER DATA REQUEST *****
         // // // Example SET Timer from datTime ->
@@ -387,7 +388,23 @@ void MqttTask::Run()
           TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
           rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
 
-          // INIZIO PROVA
+          // ------------>>>>>>>>>>>>  REAL DATA FROM QUEU READ DATA SD CARD...
+          // rmap_data_error |= rmap_get_response.result.event_error;
+          // if(!rmap_data_error) {
+          //   // EOF Data? (Save and Exit, after last data process)
+          //   rmap_eof = rmap_get_response.result.end_of_data;
+          //   // ******************************************************************
+          //   // Exampe of Current Session Upload CountData and DateTime Block Print
+          //   countData++;
+          //   DateTime rmap_date_time_val;
+          //   convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
+          //   TRACE_VERBOSE_F(F("Data RMAP current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
+          //   // ******************************************************************
+          //   // Process Data with casting RMAP Module Type
+          //   switch (rmap_get_response.rmap_data.module_type) {
+          // ------------>>>>>>>>>>>>  REAL DATA FROM QUEU READ DATA SD CARD...
+
+          // INIZIO PROVA CON DATI FISSI...
           rmap_get_response.result.event_error = 0;
 
           if (countData == 0)
