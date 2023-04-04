@@ -39,7 +39,7 @@
 using namespace cpp_freertos;
 
 bool result;
-bool is_init_subs_ok = true;
+bool is_init_subs_ok;
 
 // ************************************************************************
 // ******************* TEST CAN FUNCTION DECLARATIONS *********************
@@ -1257,6 +1257,8 @@ void CanTask::Run() {
             //               AVVIA SOTTOSCRIZIONI ai messaggi per servizi RPC ecc...
             // ********************************************************************************
             case CAN_STATE_SETUP:
+
+                is_init_subs_ok = true;
 
                 TRACE_INFO_F(F("Can task: STARTING UAVCAV Subscrition and Service\r\n"));
 

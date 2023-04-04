@@ -35,7 +35,7 @@
 #include "unity.h"
 
 // Check WDT Ready to reload (reset)
-bool resetWdt = true;
+bool resetWdt;
 
 // ************************************************************************
 // ******************* TEST WDT FUNCTION DECLARATIONS *********************
@@ -93,6 +93,8 @@ void WdtTask::Run() {
     delay(3000);
 
     while (true) {
+        resetWdt = true;
+
         TRACE_INFO_F(F("%s: "), Thread::GetName().c_str());
         // Trace DateTime with Semaphore
         if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
