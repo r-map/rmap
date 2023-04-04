@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************
-*/
+ */
 
 #ifndef _SD_TASK_H
 #define _SD_TASK_H
@@ -38,101 +38,96 @@
 
 // SD Param FS and Speed
 #define SD_FAT_TYPE 3
-#define SPI_SPEED SD_SCK_MHZ(8)
+#define SPI_SPEED   SD_SCK_MHZ(8)
 
 #include <STM32FreeRTOS.h>
+
+#include "drivers/module_master_hal.hpp"
+#include "queue.hpp"
+#include "semaphore.hpp"
 #include "thread.hpp"
 #include "ticks.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-#include "drivers/module_master_hal.hpp"
 
 #if (ENABLE_SPI1)
 #include <SPI.h>
 #endif
 
 // SD Fat
-#include "SdFat.h"
-
 #include <STM32RTC.h>
+
+#include "SdFat.h"
 
 // Memory device Access
 #include "drivers/eeprom.h"
 
-#define SD_TASK_WAIT_DELAY_MS            (50)
+#define SD_TASK_WAIT_DELAY_MS (50)
 
-#define SD_TASK_WAIT_REBOOT_MS           (2500)
+#define SD_TASK_WAIT_REBOOT_MS (2500)
 
-#define SD_TASK_GENERIC_RETRY_DELAY_MS   (5000)
-#define SD_TASK_GENERIC_RETRY            (3)
+#define SD_TASK_GENERIC_RETRY_DELAY_MS (5000)
+#define SD_TASK_GENERIC_RETRY          (3)
 
-#define SD_FW_BLOCK_SIZE                 (256)
+#define SD_FW_BLOCK_SIZE (256)
 
-#define FILE_NAME_MAX_LENGHT             (128)
+#define FILE_NAME_MAX_LENGHT (128)
 
-#define DATA_FILENAME_LEN                (22)
+#define DATA_FILENAME_LEN (22)
 
 #include "debug_F.h"
 
 // TIME CONST and Define for Epoch function
-#define	EPOCH_YR	              1970
-#define	SECS_DAY	              86400ul
-#define	LEAPYEAR(year)	        (!((year) % 4) && (((year) % 100) || !((year) % 400)))
-#define	YEARSIZE(year)	        (LEAPYEAR(year) ? 366 : 365)
-const int _ytab[2][12] = 
-{
-  {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-  {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-};
+#define EPOCH_YR       1970
+#define SECS_DAY       86400ul
+#define LEAPYEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
+#define YEARSIZE(year) (LEAPYEAR(year) ? 366 : 365)
+const int _ytab[2][12] =
+    {
+        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+        {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}};
 
 #define errorExit(msg) errorHalt(F(msg))
 #define initError(msg) initErrorHalt(F(msg))
 
-typedef enum
-{
-  SD_STATE_CREATE,
-  SD_STATE_INIT,
-  SD_STATE_CHECK_SD,    
-  SD_STATE_WAITING_EVENT,
-  SD_UPLOAD_FIRMWARE_TO_FLASH,
-  SD_STATE_ERROR
+typedef enum {
+    SD_STATE_CREATE,
+    SD_STATE_INIT,
+    SD_STATE_CHECK_SD,
+    SD_STATE_WAITING_EVENT,
+    SD_UPLOAD_FIRMWARE_TO_FLASH,
+    SD_STATE_ERROR
 } SdState_t;
 
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *qspiLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataRmapGetRequestQueue;
-  cpp_freertos::Queue *dataRmapGetResponseQueue;
-  cpp_freertos::Queue *dataRmapPutQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *dataFilePutRequestQueue;
-  cpp_freertos::Queue *dataFilePutResponseQueue;
-  cpp_freertos::Queue *dataFileGetRequestQueue;
-  cpp_freertos::Queue *dataFileGetResponseQueue;
-  EEprom *eeprom;
+    configuration_t *configuration;
+    system_status_t *system_status;
+    cpp_freertos::BinarySemaphore *qspiLock;
+    cpp_freertos::BinarySemaphore *rtcLock;
+    cpp_freertos::BinarySemaphore *configurationLock;
+    cpp_freertos::BinarySemaphore *systemStatusLock;
+    cpp_freertos::Queue *systemMessageQueue;
+    cpp_freertos::Queue *dataRmapGetRequestQueue;
+    cpp_freertos::Queue *dataRmapGetResponseQueue;
+    cpp_freertos::Queue *dataRmapPutQueue;
+    cpp_freertos::Queue *dataLogPutQueue;
+    cpp_freertos::Queue *dataFilePutRequestQueue;
+    cpp_freertos::Queue *dataFilePutResponseQueue;
+    cpp_freertos::Queue *dataFileGetRequestQueue;
+    cpp_freertos::Queue *dataFileGetResponseQueue;
+    EEprom *eeprom;
 } SdParam_t;
 
 class SdTask : public cpp_freertos::Thread {
+   public:
+    SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t SdParam);
 
-public:
-  SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t SdParam);
+   protected:
+    virtual void Run();
 
-protected:
-  virtual void Run();
+   private:
+    SdState_t state;
+    SdParam_t param;
 
-private:
-
-  SdState_t state;
-  SdParam_t param;
-
-  STM32RTC &rtc = STM32RTC::getInstance();
-
-  SdFs SD; // SD Istance
+    STM32RTC &rtc = STM32RTC::getInstance();
 };
 
 #endif
