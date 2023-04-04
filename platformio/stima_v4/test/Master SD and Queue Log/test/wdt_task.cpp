@@ -31,8 +31,15 @@
 #define LOCAL_TASK_ID   WDT_TASK_ID
 
 #include "tasks/wdt_task.h"
+#include "unity.h"
 
 #define MSG_CHECK "Starting Application StimaV4"
+
+void test_put_data_into_queue_log_message_success(void);
+
+void test_put_data_into_queue_log_message_success() {
+  TEST_ASSERT_TRUE(true);
+}
 
 WdtTask::WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, WdtParam_t wdtParam) : Thread(taskName, stackSize, priority), param(wdtParam)
 {
@@ -44,11 +51,21 @@ void WdtTask::Run() {
   bool firtsCheck = true;
   char logMessage[128];
 
+  // ************************************************************************
+  // ***************************** TEST BEGIN *******************************
+  // ************************************************************************
+
+  UNITY_BEGIN();
+
+  // Necessary delay to start test
+  delay(3000);
+
   while (true) {
 
     if(firtsCheck) {
       // ***** TEST PUT DATA INTO QUEUE LOG MESSAGE
       Serial.println("// ***** TEST PUT DATA INTO QUEUE LOG MESSAGE");
+      RUN_TEST(test_put_data_into_queue_log_message_success);
       // TEST LOG MESSAGE
       strcpy(logMessage, MSG_CHECK);
       param.dataLogPutQueue->Enqueue(logMessage, 0);

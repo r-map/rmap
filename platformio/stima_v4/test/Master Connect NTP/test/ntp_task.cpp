@@ -255,7 +255,7 @@ void NtpTask::Run() {
                         param.rtcLock->Give();
                     }
 
-                    test_epoch = rtc.getEpoch((uint32_t)unixTime);
+                    test_epoch = rtc.getEpoch();
 
                     RUN_TEST(test_rtc_set_date_time);
 

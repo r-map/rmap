@@ -200,7 +200,7 @@ void SupervisorTask::Run()
       Delay(Ticks::MsToTicks(1500));
 
       // TEST CONNECTION
-      if(0) {
+      if(1) {
 
         // TODO: REMOVE
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);

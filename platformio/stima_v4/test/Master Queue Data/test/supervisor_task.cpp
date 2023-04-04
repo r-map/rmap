@@ -92,7 +92,7 @@ void test_get_next_queue_data_success() {
  *
  */
 void test_get_response_ptr_with_real_existing_date() {
-    TEST_ASSERT_EQUAL(true, rmap_get_response.result.done_synch && rmap_get_response.rmap_data.date_time != 0);
+    TEST_ASSERT_EQUAL(true, (rmap_get_response.result.done_synch && rmap_get_response.rmap_data.date_time != 0));
 }
 
 /**

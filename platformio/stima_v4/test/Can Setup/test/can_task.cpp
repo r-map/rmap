@@ -1031,19 +1031,12 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
 
     // *******************     CANARD SETUP TIMINGS AND SPEED COMPLETE   *******************
 
-    RUN_TEST(test_init_hal_can_stm);
     // Check error starting CAN
-    if (HAL_CAN_Start(&hcan1) != HAL_OK) {
-        UNITY_END();
-        return;
-    }
+    RUN_TEST(test_init_hal_can_stm);
 
-    RUN_TEST(test_init_hal_can_interrupt);
     // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
-    if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
-        UNITY_END();
-        return;
-    }
+    RUN_TEST(test_init_hal_can_interrupt);
+     
     // Setup Priority e CB CAN_IRQ_RX Enable
     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, CAN_NVIC_INT_PREMPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);

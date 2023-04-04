@@ -28,6 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "unity.h"
 
+// TEST RPC IS EXECUTED (BIT 0 = CONFIGURE, BIT 1 = REBOOT, BIT 2 = RPCTEST)
+extern char result_rpc;
+bool TEST_REQUEST_HTTP_CONFIGURATION_OK = false;
 error_t error;
 
 // ************************************************************************
@@ -127,7 +130,7 @@ void test_requested_resolve_name_server_http() {
  *
  */
 void test_rpc_configuration_received() {
-    TEST_ASSERT_EQUAL(true, result_rpc & 0x01);
+    TEST_ASSERT_EQUAL(true, ((result_rpc & 0x01)==0x01));
 }
 
 /**
@@ -135,16 +138,12 @@ void test_rpc_configuration_received() {
  *
  */
 void test_rpc_reboot_request_received() {
-    TEST_ASSERT_EQUAL(true, result_rpc & 0x02);
+    TEST_ASSERT_EQUAL(true, ((result_rpc & 0x02)==0x02));
 }
 
 #if (USE_HTTP)
 
 using namespace cpp_freertos;
-
-// TEST RPC IS EXECUTED (BIT 0 = CONFIGURE, BIT 1 = REBOOT, BIT 2 = RPCTEST)
-extern char result_rpc;
-bool TEST_REQUEST_HTTP_CONFIGURATION_OK = false;
 
 HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam) {
     // Start WDT controller and TaskState Flags

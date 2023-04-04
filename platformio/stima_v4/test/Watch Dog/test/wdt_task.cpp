@@ -246,12 +246,11 @@ void WdtTask::Run() {
                 if (millis_reset[id] > WDT_TASK_LOCKED_MS) {
                     if (id == USBSERIAL_TASK_ID) {
                         RUN_TEST(test_check_stalled_process);
+                        UNITY_END();
                     }
                 }
             }
         }
-
-        UNITY_END();
 
         // ************************************************************************
         // ***************************** TEST END *********************************
