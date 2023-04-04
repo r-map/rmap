@@ -119,7 +119,7 @@ void SupervisorTask::Run()
 
   // TODO: remove
   bool test_put_firmware = false;
-  bool test_get_data = false;
+  bool test_get_config = false;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -200,7 +200,10 @@ void SupervisorTask::Run()
       Delay(Ticks::MsToTicks(1500));
 
       // TEST CONNECTION
-      if(1) {
+      if(0) {
+
+        // 1 TEST di configurazione
+        test_get_config = true;
 
         // TODO: REMOVE
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);

@@ -206,7 +206,7 @@
 #define USE_RPC_METHOD_PREPANDGET   (false)
 
 // Disable for DEBUG
-#define ENABLE_RPC_LOCAL_REBOOT     (false)
+#define ENABLE_RPC_LOCAL_REBOOT     (true)
 
 /*!
 \def USE_CONSTANTDATA_COUNT

@@ -258,6 +258,10 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       if(isSlaveConfigure) {
         param.configurationLock->Take();
         param.configuration->board_slave[slaveId].can_address = it.value().as<unsigned int>();
+        if(param.configuration->board_slave[slaveId].can_address >= 127) {
+          // Fix Error configure from Address invalid
+          param.configuration->board_slave[slaveId].can_address = 60 + slaveId;
+        }
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
