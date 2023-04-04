@@ -40,7 +40,7 @@
 #ifdef _EXIT_SLEEP_FOR_DEBUGGING
     #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   60000
 #else
-    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
+    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   50
 #endif
 
 // Macro Pre && Post Sleep/Wake method
