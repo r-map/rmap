@@ -517,45 +517,20 @@ void SdTask::Run()
       // Else check all queue input
       // Go to response/action
 
-      // TEST FW UPGRADE
-      // Starting from LCD or Remote RPC Request
-      if(0)
-      {
-        retry = 0;
-        state = SD_UPLOAD_FIRMWARE_TO_FLASH;
-        break;
-      }
-
-      // TEST CREATE DATA FILE TO GET/SET Pointer and GET DATA
-      // Create file with fake data over 15 min. For Test SET Pointer, GET Data, Send MQTT, Queue Get Req/Resp
-      if(0)
-      {
-        uint32_t dateTimePtrCreate = 1671494400ul; // Set create file from 20/12/2022... To Now()
-        uint32_t dateTimeEpoch = rtc.getEpoch();
-        // Fake data with all 0
-        memset(&rmap_put_archive_data, 0, sizeof(rmap_put_archive_data));
-        rmap_put_archive_data.module_type = Module_Type::th;
-        while(dateTimePtrCreate<dateTimeEpoch) {
-          namingFileData(dateTimePtrCreate, "/data", rmap_file_name_wr);
-          if(strcmp(rmap_file_name_wr, rmap_file_name_check)) {
-            if(rmapWrFile) rmapWrFile.close();
-            // Create NEW File
-            strcpy(rmap_file_name_check, rmap_file_name_wr);
-            // Open File High LED
-            digitalWrite(PIN_SD_LED, HIGH);
-            rmapWrFile = SD.open(rmap_file_name_wr, O_WRONLY | O_CREAT);
+      // *********************************************************
+      // Starting from LCD COMMAND or Remote RPC Request (->Queue)
+      // *********************************************************
+      if(!param.systemMessageQueue->IsEmpty()) {
+        system_message_t system_message;
+        param.systemMessageQueue->Peek(&system_message);
+        if(system_message.task_dest == MMC_TASK_ID) {
+          param.systemMessageQueue->Dequeue(&system_message);
+          if((system_message.command.do_update_fw)&&(system_message.param = 0xFF)) {
+            retry = 0;
+            state = SD_UPLOAD_FIRMWARE_TO_FLASH;
           }
-          // Change data of block archive
-          rmap_put_archive_data.date_time = dateTimePtrCreate;
-          dateTimePtrCreate += 900; // Add 15 min.
-          rmapWrFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
-          // WDT and Delay
-          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
-          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+          system_message.param = 0xFF;
         }
-        rmapWrFile.close();
-        // Close File Low LED
-        digitalWrite(PIN_SD_LED, LOW);
       }
 
       // *********************************************************
