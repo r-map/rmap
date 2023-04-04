@@ -241,7 +241,7 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uin
 void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t type) {
   switch (type) {
     case STIMA_MODULE_TYPE_RAIN:
-      *decimals_A = STIMA_LCD_DECIMALS_TWO;
+      *decimals_A = STIMA_LCD_DECIMALS_ONE;
       break;
 
     case STIMA_MODULE_TYPE_TH:

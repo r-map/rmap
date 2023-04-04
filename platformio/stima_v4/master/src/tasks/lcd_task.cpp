@@ -201,10 +201,10 @@ void LCDTask::Run() {
     switch (state) {
       case LCD_STATE_INIT: {
 
-      // Waiting loading configuration complete before start application
-      if (param.system_status->configuration.is_loaded) {
-          break;
-      }
+        // Waiting loading configuration complete before start application
+        if (!param.system_status->configuration.is_loaded) {
+            break;
+        }
 
         // **************************************************************************
         // ************************* VARIABLES INITIALIZATION ***********************
@@ -404,7 +404,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         break;
       // Adjust UDM with comprensible value
       case Module_Type::rain:
-        value_display_A /= 10;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
         if ((value_display_A < 0) || (value_display_A > 1000)) bMeasValid_A = false;
         break;
       default:
