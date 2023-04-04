@@ -190,6 +190,7 @@ void setup() {
   rpcParam.configuration = &configuration;
   rpcParam.system_status = &system_status;
   rpcParam.systemMessageQueue = systemMessageQueue;
+  rpcParam.dataLogPutQueue = dataLogPutQueue;
   rpcParam.eeprom = &memEprom;
   rpcParam.rtcLock = rtcLock;
   rpcParam.configurationLock = configurationLock;
@@ -260,6 +261,7 @@ void setup() {
   usbSerialParam.configuration = &configuration;
   usbSerialParam.system_status = &system_status;
   usbSerialParam.systemMessageQueue = systemMessageQueue;
+  usbSerialParam.dataLogPutQueue = dataLogPutQueue;
   usbSerialParam.flash = &memFlash;
   usbSerialParam.eeprom = &memEprom;
   usbSerialParam.qspiLock = qspiLock;  
@@ -321,6 +323,7 @@ void setup() {
   supervisorParam.connectionRequestQueue = connectionRequestQueue;
   supervisorParam.connectionResponseQueue = connectionResponseQueue;
   supervisorParam.dataRmapPutQueue = dataRmapPutQueue;
+  supervisorParam.dataLogPutQueue = dataLogPutQueue;
   supervisorParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   supervisorParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   supervisorParam.dataFilePutRequestQueue = dataFilePutRequestQueue;

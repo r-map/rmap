@@ -71,6 +71,7 @@ typedef struct
     cpp_freertos::BinarySemaphore *systemStatusLock;
     cpp_freertos::BinarySemaphore *rpcLock;
     cpp_freertos::Queue *systemMessageQueue;
+    cpp_freertos::Queue *dataLogPutQueue;
     EEprom *eeprom;
 } RpcParam_t;
 
