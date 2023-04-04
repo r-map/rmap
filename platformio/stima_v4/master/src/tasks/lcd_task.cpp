@@ -141,6 +141,7 @@ void LCDTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true) {
+
 // check if display is on and print every LCD_TASK_PRINT_DELAY_MS some variables in system status
 #if (ENABLE_STACK_USAGE)
     TaskMonitorStack();
@@ -199,6 +200,12 @@ void LCDTask::Run() {
 
     switch (state) {
       case LCD_STATE_INIT: {
+
+      // Waiting loading configuration complete before start application
+      if (param.system_status->configuration.is_loaded) {
+          break;
+      }
+
         // **************************************************************************
         // ************************* VARIABLES INITIALIZATION ***********************
         // **************************************************************************
@@ -395,6 +402,11 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         if ((value_display_A < MIN_VALID_TEMPERATURE) || (value_display_A > MAX_VALID_TEMPERATURE)) bMeasValid_A = false;
         if ((value_display_B < MIN_VALID_HUMIDITY) || (value_display_B > MAX_VALID_HUMIDITY)) bMeasValid_B = false;
         break;
+      // Adjust UDM with comprensible value
+      case Module_Type::rain:
+        value_display_A /= 10;
+        if ((value_display_A < 0) || (value_display_A > 1000)) bMeasValid_A = false;
+        break;
       default:
         value_display_A = param.system_status->data_slave[channel].data_value_A;
         value_display_B = param.system_status->data_slave[channel].data_value_B;
@@ -518,6 +530,7 @@ void LCDTask::display_print_main_interface() {
   }
   // Get Station name
   (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
+  Serial.println(station);
   // Get firmware version
   (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
 

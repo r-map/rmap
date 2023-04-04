@@ -139,7 +139,7 @@ void SupervisorTask::Run()
 
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_INIT -> SUPERVISOR_STATE_LOAD_CONFIGURATION\r\n"));
       state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
-      #if(INIT_PARAMETER)
+      #if (INIT_PARAMETER)
       saveConfiguration(CONFIGURATION_DEFAULT);
       #endif
       break;
@@ -641,7 +641,7 @@ bool SupervisorTask::loadConfiguration()
     param.configurationLock->Give();
   }
 
-  #if(INIT_PARAMETER)
+  #if (INIT_PARAMETER)
   status = saveConfiguration(CONFIGURATION_DEFAULT);
   #else
   if (param.configuration->module_type != MODULE_TYPE || param.configuration->module_main_version != MODULE_MAIN_VERSION)

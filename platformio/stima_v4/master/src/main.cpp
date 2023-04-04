@@ -167,7 +167,7 @@ void setup() {
   // Load Info from E2 boot_check flag and send to Config
   static EEprom  memEprom(&Wire2, wire2Lock);
   bootloader_t boot_check = {0};
-  #if INIT_PARAMETER
+  #if (INIT_PARAMETER)
   boot_check.app_executed_ok = true;
   memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
   #else
@@ -177,7 +177,7 @@ void setup() {
 #endif
   // Reset Factory register value
   static EERegister clRegister(&Wire2, wire2Lock);
-  #if INIT_PARAMETER
+  #if (INIT_PARAMETER)
   clRegister.doFactoryReset();
   #endif
   // Init access Flash istance object
