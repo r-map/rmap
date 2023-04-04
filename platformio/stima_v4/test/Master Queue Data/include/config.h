@@ -66,18 +66,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ENABLE_SPI1           (true)
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
-#define ENABLE_QSPI           (true)
-#define ENABLE_CAN            (true)
-#define ENABLE_LCD            (true)
+#define ENABLE_QSPI           (false)
+#define ENABLE_CAN            (false)
+#define ENABLE_LCD            (false)
 #define ENABLE_MMC            (false)
 #define ENABLE_SD             (true)
-#define ENABLE_USBSERIAL      (true)
+#define ENABLE_USBSERIAL      (false)
 
 #if (ENABLE_MMC) && (ENABLE_SD)
     #error Configuration error, you need to define only one method for TASK SD CARD: MMC or SD
 #endif
 
-#define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+#define ENABLE_SIM7600E       (false)
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
 #define ENABLE_WDT            (true)
@@ -133,9 +133,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define INTERFACE_0_INDEX        (0)
 #endif
 
-#define USE_MQTT  (true)
-#define USE_NTP   (true)
-#define USE_HTTP  (true)
+#define USE_MQTT  (false)
+#define USE_NTP   (false)
+#define USE_HTTP  (false)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #define I2C_MAX_DATA_LENGTH (32)
@@ -164,7 +164,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define RMAP_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_PUT_DATA_QUEUE_LENGTH  (1)
-#define LOG_PUT_DATA_QUEUE_LENGTH   (16)
+#define LOG_PUT_DATA_QUEUE_LENGTH   (10)
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_PUT_DATA_BLOCK_SIZE    (512U)
@@ -193,7 +193,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_RPC_METHOD_CONFIGURE    (true)
 #define USE_RPC_METHOD_REBOOT       (true)
 #define USE_RPC_METHOD_TEST         (true)
-#define USE_RPC_METHOD_RECOVERY     (true)
+#define USE_RPC_METHOD_RECOVERY     (false)
 #define USE_RPC_METHOD_PREPARE      (false)
 #define USE_RPC_METHOD_GETJSON      (false)
 #define USE_RPC_METHOD_PREPANDGET   (false)

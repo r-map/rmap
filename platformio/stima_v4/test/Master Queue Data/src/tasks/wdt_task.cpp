@@ -163,9 +163,6 @@ void WdtTask::Run() {
       // Can not perform Complete LOAD and configuration BUT Application is OK
       // If All Task Start and enter in WDT Task, The application is Ready to RUN
       if(firsCheck) {
-        // LOG MESSAGE ON SD CARD
-        LOG_INFO_F(param.dataLogPutQueue, F("Starting OK"));
-        // LOG MESSAGE ON SD CARD
         firsCheck = false;
         param.eeprom->Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         // Flag OK Start APP Eexcuted

@@ -23,15 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "debug.h"
 
-#include "config.h"
-
-#include <STM32FreeRTOS.h>
-#include "thread.hpp"
-#include "semaphore.hpp"
-#include "queue.hpp"
-
-using namespace cpp_freertos;
-
 int_t fputc(int_t c, FILE *stream)
 {
    // Standard output or error output?
@@ -71,17 +62,4 @@ void print_debug_F(const __FlashStringHelper *fmt, ...)
   va_end(args);
   Serial.flush();
   osResumeAllTasks();
-}
-
-void queue_debug_F(Queue *dataLogPutQueue, const __FlashStringHelper *fmt, ...)
-{
-  // Only if queue not Full... rapid check
-  if(!dataLogPutQueue->IsFull()) {
-    char logMessage[LOG_PUT_DATA_ELEMENT_SIZE];
-    va_list args;
-    va_start(args, fmt);
-    sprintf(logMessage, (const char *)fmt, args);
-    va_end(args);
-    dataLogPutQueue->Enqueue(logMessage, 0);
-  }
 }
