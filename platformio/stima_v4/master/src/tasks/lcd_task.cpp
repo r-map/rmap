@@ -141,8 +141,7 @@ void LCDTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   while (true) {
-
-// check if display is on and print every LCD_TASK_PRINT_DELAY_MS some variables in system status
+// Check if display is on and print every LCD_TASK_PRINT_DELAY_MS some variables in system status
 #if (ENABLE_STACK_USAGE)
     TaskMonitorStack();
 #endif
@@ -200,10 +199,9 @@ void LCDTask::Run() {
 
     switch (state) {
       case LCD_STATE_INIT: {
-
         // Waiting loading configuration complete before start application
         if (!param.system_status->configuration.is_loaded) {
-            break;
+          break;
         }
 
         // **************************************************************************
@@ -478,8 +476,6 @@ void LCDTask::display_print_config_menu_interface() {
   // Print a triangle to select the option
   display.drawTriangle(X_TEXT_FROM_RECT, Y_TOP_TRIANGLE + command_selector_pos * LINE_BREAK, X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 10 * command_selector_pos, X_PEAK_TRIANGLE, Y_PEAK_TRIANGLE + 10 * command_selector_pos);
 
-  TRACE_INFO_F(F("LCD: Command selected \"[ %s ]\"\r\n"), get_slave_command_name_from_enum(stima4_slave_command));
-
   // Print command options
   if (stima4_menu_ui_last == MAIN) {
     for (uint8_t i = 0; i < (stima4_master_commands_t)MASTER_COMMAND_EXIT + 1; i++) {
@@ -531,10 +527,10 @@ void LCDTask::display_print_main_interface() {
     param.rtcLock->Give();
   }
   // Get Station name
-  (void)snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
-  Serial.println(station);
+  snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
+
   // Get firmware version
-  (void)snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
+  snprintf(firmware_version, sizeof(firmware_version), "Firmware version: %d.%d", param.configuration->module_main_version, param.configuration->module_minor_version);
 
   // Print Date and Time
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
@@ -556,7 +552,6 @@ void LCDTask::display_print_main_interface() {
   display.drawFrame(X_RECT_SERIAL_NUMBER, Y_RECT_SERIAL_NUMBER, display.getWidth() - X_RECT_SERIAL_NUMBER_MARGIN, HEIGHT_RECT_SERIAL_NUMBER);
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
   display.print(F("SN: "));
-
   for (int8_t id = 7; id >= 0; id--) {
     if ((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF) < 16) display.print(F("0"));
     display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF), 16);
@@ -577,7 +572,7 @@ void LCDTask::display_print_update_name_station_interface(void) {
   char status_message[20] = {0};
 
   // Get station name
-  (void)snprintf(buffer, sizeof(buffer), "%s", new_station_name);
+  snprintf(buffer, sizeof(buffer), "%s", new_station_name);
 
   // Print char selected
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
@@ -642,7 +637,7 @@ void LCDTask::display_setup() {
 void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   system_message_t system_message = {0};
 
-  TRACE_INFO_F(F("LCD: Command to transfer \"[ %s ]\"\r\n"), get_master_command_name_from_enum(command));
+  TRACE_INFO_F(F("LCD: Command to elaborate \"[ %s ]\"\r\n"), get_master_command_name_from_enum(command));
 
   switch (command) {
     case MASTER_COMMAND_SDCARD: {
@@ -681,7 +676,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
 void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
   system_message_t system_message = {0};
 
-  TRACE_INFO_F(F("LCD: Command to transfer \"[ %s ]\"\r\n"), get_slave_command_name_from_enum(command));
+  TRACE_INFO_F(F("LCD: Command to elaborate \"[ %s ]\"\r\n"), get_slave_command_name_from_enum(command));
 
   switch (command) {
     case SLAVE_COMMAND_MAINTENANCE: {
