@@ -1,0 +1,53 @@
+{
+  "build": {
+    "core": "stm32",
+    "cpu": "cortex-m4",
+    "extra_flags": "-DSTM32L496xx",
+    "f_cpu": "80000000L",
+    "mcu": "stm32l496vgt6",
+    "product_line": "STM32L496xx",
+    "variant": "L496V(E-G)T_L4A6VGT"
+  },
+  "connectivity": [
+    "can"
+  ],
+  "debug": {
+    "default_tools": [
+      "stlink"
+    ],
+    "jlink_device": "STM32L496VG",
+    "onboard_tools": [
+      "stlink"
+    ],
+    "openocd_extra_args": [
+      "-c",
+      "reset_config trst_and_srst"
+    ],
+    "openocd_board": "st_nucleo_l4",
+    "openocd_target": "stm32l4x",
+    "svd_path": "STM32L496.svd"
+  },
+  "frameworks": [
+    "arduino",
+    "cmsis",
+    "mbed",
+    "stm32cube",
+    "libopencm3",
+    "zephyr"
+  ],
+  "name": "STIMA V4 MASTER L496VG",
+  "upload": {
+    "maximum_ram_size": 327680,
+    "maximum_size": 1048576,
+    "protocol": "stlink",
+    "protocols": [
+      "jlink",
+      "cmsis-dap",
+      "stlink",
+      "blackmagic",
+      "mbed"
+    ]
+  },
+  "url": "https://www.digiteco.it/",
+  "vendor": "Digiteco s.r.l."
+}
