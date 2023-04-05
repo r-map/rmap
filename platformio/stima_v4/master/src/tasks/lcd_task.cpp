@@ -478,6 +478,8 @@ void LCDTask::display_print_config_menu_interface() {
   // Print a triangle to select the option
   display.drawTriangle(X_TEXT_FROM_RECT, Y_TOP_TRIANGLE + command_selector_pos * LINE_BREAK, X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 10 * command_selector_pos, X_PEAK_TRIANGLE, Y_PEAK_TRIANGLE + 10 * command_selector_pos);
 
+  TRACE_INFO_F(F("LCD: Command selected \"[ %s ]\"\r\n"), get_slave_command_name_from_enum(stima4_slave_command));
+
   // Print command options
   if (stima4_menu_ui_last == MAIN) {
     for (uint8_t i = 0; i < (stima4_master_commands_t)MASTER_COMMAND_EXIT + 1; i++) {
@@ -640,6 +642,8 @@ void LCDTask::display_setup() {
 void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   system_message_t system_message = {0};
 
+  TRACE_INFO_F(F("LCD: Command to transfer \"[ %s ]\"\r\n"), get_master_command_name_from_enum(command));
+
   switch (command) {
     case MASTER_COMMAND_SDCARD: {
       break;
@@ -676,6 +680,8 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
  */
 void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
   system_message_t system_message = {0};
+
+  TRACE_INFO_F(F("LCD: Command to transfer \"[ %s ]\"\r\n"), get_slave_command_name_from_enum(command));
 
   switch (command) {
     case SLAVE_COMMAND_MAINTENANCE: {
@@ -903,7 +909,7 @@ void LCDTask::switch_interface() {
           else {
             command_selector_pos = stima4_slave_command == SLAVE_COMMAND_EXIT ? commands_slave_number - 1 : command_selector_pos + 1;
             stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_EXIT ? SLAVE_COMMAND_EXIT : (stima4_slave_commands_t)(stima4_slave_command + 1);
-            if (!param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+            if (param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
               stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command + 1);
             }
             if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
@@ -958,7 +964,7 @@ void LCDTask::switch_interface() {
           else {
             command_selector_pos = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE || command_selector_pos == 0 ? 0 : command_selector_pos - 1;
             stima4_slave_command = stima4_slave_command == SLAVE_COMMAND_MAINTENANCE ? SLAVE_COMMAND_MAINTENANCE : (stima4_slave_commands_t)(stima4_slave_command - 1);
-            if (!param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
+            if (param.configuration->board_slave[channel].module_type != Module_Type::rain && stima4_slave_command == SLAVE_COMMAND_CALIBRATION_ACCELEROMETER) {
               stima4_slave_command = (stima4_slave_commands_t)(stima4_slave_command - 1);
             }
             if (!param.system_status->data_slave[channel].fw_upgradable && stima4_slave_command == SLAVE_COMMAND_FIRMWARE_UPGRADE) {
