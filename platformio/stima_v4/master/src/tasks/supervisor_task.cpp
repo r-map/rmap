@@ -191,10 +191,6 @@ void SupervisorTask::Run()
       TaskWatchDog(1500);
       Delay(Ticks::MsToTicks(1500));
 
-      // Config TEST Private
-      param.configuration->observation_s = 60;
-      param.configuration->report_s = 120;
-
       // TEST CONNECTION
       if(0) {
 
