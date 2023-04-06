@@ -417,7 +417,9 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     bMeasValid_B = false;
   }
   bMeasValid_A == true ? snprintf(measure_A, sizeof(measure_A), "%s %s", measure_A, unit_type_A) : snprintf(measure_A, sizeof(measure_A), "--- %s", unit_type_A);
-  bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
+  if(printMeasB) {
+    bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
+  }
 
   // Print description of measure
   display.setFont(u8g2_font_helvR08_tf);
