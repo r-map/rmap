@@ -1668,6 +1668,7 @@ void CanTask::Run() {
                 // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
                 if ((bStartGetIstant)||(bStartGetData)) {
                     // For all node
+                    // bStartGetData are priority Command if both requested
                     for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                         // For all node onLine
                         if(clCanard.slave[queueId].is_online()) {
@@ -1679,6 +1680,7 @@ void CanTask::Run() {
                                 // parametri.run_for_second = 900; ( not used for get_istant )
                                 rmap_service_setmode_1_0 paramRequest;
                                 paramRequest.chanel = 0; // Request only for chanel analog/digital adressed 1..X
+                                // higher priority guaranteed
                                 if(bStartGetData) {
                                     paramRequest.command = rmap_service_setmode_1_0_get_last;
                                     paramRequest.obs_sectime = param.configuration->observation_s;
@@ -1770,13 +1772,13 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value_A = retTHData->STH.temperature.val.value;
                                     param.system_status->data_slave[queueId].data_value_B = retTHData->STH.humidity.val.value;
                                     // Add info RMAP to system
-                                    if(bStartGetIstant)
+                                    if(retTHData->state == rmap_service_setmode_1_0_get_istant)
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     else
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
                                     param.systemStatusLock->Give();
-                                    // Set data into queue if data value (not for istant observation acquire)
-                                    if(bStartGetData) {
+                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
+                                    if(retTHData->state == rmap_service_setmode_1_0_get_last) {
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -1828,15 +1830,18 @@ void CanTask::Run() {
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value
+                                    // Rain value istant depending from request type. If request is get_istant (Rain is FullRain)
+                                    // Full Rain is Real Rain + Maintenance Rain Value, Otherwise if request is Get_Data, Rain is only
+                                    // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
                                     param.system_status->data_slave[queueId].data_value_A = retRainData->TBR.rain.val.value;
                                     // Add info RMAP to system
-                                    if(bStartGetIstant)
+                                    if(retRainData->state == rmap_service_setmode_1_0_get_istant)
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     else
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
                                     param.systemStatusLock->Give();
-                                    // Set data into queue if data value (not for istant observation acquire)
-                                    if(bStartGetData) {
+                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
+                                    if(retRainData->state == rmap_service_setmode_1_0_get_last) {
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -2005,15 +2010,6 @@ void CanTask::Run() {
                 // ***********************************************************************
                 // ****** REMOTE REGISTER GET/SET SERVER AND REMOTE CONFIGURATION  *******
                 // ***********************************************************************
-
-                // TEST CONFIGURE NODE WITH QUEUE COMMAND!
-                if (0) {
-                    system_message_t system_message = {0};
-                    system_message.task_dest = CAN_TASK_ID;
-                    system_message.command.do_remotecfg = true;
-                    system_message.param = 0;
-                    param.systemMessageQueue->Enqueue(&system_message, 0);
-                }
 
                 // Avvio configurazione remota automatica su richiesta slave (Appena CONFIGURATO da PNP)
                 // La procedura parte solo senza register_server in funzione (un solo avvio ammesso)

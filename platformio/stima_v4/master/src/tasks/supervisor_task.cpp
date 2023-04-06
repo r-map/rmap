@@ -34,14 +34,6 @@
 
 #include "tasks/supervisor_task.h"
 
-// TODO: Move to MQTT
-#include "date_time.h"
-// Namespace RMAP
-#include <rmap/_module/TH_1_0.h>
-#include <rmap/service/_module/TH_1_0.h>
-#include <rmap/_module/RAIN_1_0.h>
-#include <rmap/service/_module/RAIN_1_0.h>
-
 using namespace cpp_freertos;
 
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
@@ -198,6 +190,10 @@ void SupervisorTask::Run()
 
       TaskWatchDog(1500);
       Delay(Ticks::MsToTicks(1500));
+
+      // Config TEST Private
+      param.configuration->observation_s = 60;
+      param.configuration->report_s = 120;
 
       // TEST CONNECTION
       if(0) {
