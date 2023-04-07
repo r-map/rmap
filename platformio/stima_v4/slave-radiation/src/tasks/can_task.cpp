@@ -1584,7 +1584,8 @@ void CanTask::Run() {
                     // Solo quando passo da OffLine ad OnLine
                     if (masterOnline) {
                         TRACE_INFO_F(F("Master controller OFFLINE !!! ALERT -> OffLineFunction()\r\n"));
-                        // .... Codice OffLineFunction()
+                        // When enter off_line Master. Full power are automatic resetted for slave module 
+                        clCanard.flag.set_local_power_mode(Power_Mode::pwr_on);
                     }
                     masterOnline = false;
                     // Gestisco situazione con Master OFFLine...
@@ -1708,10 +1709,13 @@ void CanTask::Run() {
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
                 if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
-                    TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                    last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
-                    // Update publisher
-                    clCanard.slave_servicelist_send_message();
+                    // Publish list service only if full power mode are selected
+                    if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
+                        TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
+                        last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
+                        // Update publisher
+                        clCanard.slave_servicelist_send_message();
+                    }
                 }
 
                 // ***************************************************************************
