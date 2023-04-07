@@ -241,6 +241,18 @@ void LCDTask::Run() {
 
       case LCD_STATE_CHECK_OPERATION: {
         // **************************************************************************
+        // ************************* REFRESH DISPLAY HANDLER ************************
+        // **************************************************************************
+        
+        // Refresh display when a new data from current channel is available
+        if (param.system_status->data_slave[channel].is_new_ist_data_ready) {
+          param.systemStatusLock->Take();
+          param.system_status->data_slave[channel].is_new_ist_data_ready = false;
+          param.systemStatusLock->Give();
+          data_printed = false;
+        }
+
+        // **************************************************************************
         // ************************* MENU HANDLER ***********************************
         // **************************************************************************
 
