@@ -1255,7 +1255,7 @@ void CanTask::Run() {
                 // **********************************************************************************
                 //Setup configuration module node and start canard class slave istance with loaded ID
                 // **********************************************************************************
-                #ifdef INIT_CONFIGURATION
+                #ifdef TEST_CONFIGURATION
                 param.configuration->board_slave[0].can_address = 123;
                 param.configuration->board_slave[0].module_type = Module_Type::rain;
                 param.configuration->board_slave[0].can_port_id = 51;
@@ -1787,10 +1787,12 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value_A = retTHData->STH.temperature.val.value;
                                     param.system_status->data_slave[queueId].data_value_B = retTHData->STH.humidity.val.value;
                                     // Add info RMAP to system
-                                    if(retTHData->state == rmap_service_setmode_1_0_get_istant)
+                                    if(retTHData->state == rmap_service_setmode_1_0_get_istant) {
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    else
+                                    } else {
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
+                                    }
                                     param.systemStatusLock->Give();
                                     // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
                                     if(retTHData->state == rmap_service_setmode_1_0_get_last) {
@@ -1850,10 +1852,12 @@ void CanTask::Run() {
                                     // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
                                     param.system_status->data_slave[queueId].data_value_A = retRainData->TBR.rain.val.value;
                                     // Add info RMAP to system
-                                    if(retRainData->state == rmap_service_setmode_1_0_get_istant)
+                                    if(retRainData->state == rmap_service_setmode_1_0_get_istant) {
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    else
+                                    } else {
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
+                                    }
                                     param.systemStatusLock->Give();
                                     // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
                                     if(retRainData->state == rmap_service_setmode_1_0_get_last) {
