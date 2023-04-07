@@ -1255,7 +1255,7 @@ void CanTask::Run() {
                 // **********************************************************************************
                 //Setup configuration module node and start canard class slave istance with loaded ID
                 // **********************************************************************************
-                #ifdef TEST_CONFIGURATION
+                #if TEST_CONFIGURATION
                 param.configuration->board_slave[0].can_address = 123;
                 param.configuration->board_slave[0].module_type = Module_Type::rain;
                 param.configuration->board_slave[0].can_port_id = 51;

@@ -192,7 +192,7 @@ void SupervisorTask::Run()
       Delay(Ticks::MsToTicks(1500));
 
       // TEST CONNECTION
-      #ifndef TEST_CONFIGURATION
+      #if !(TEST_CONFIGURATION)
       if(1) {
 
         // 1 TEST di configurazione
