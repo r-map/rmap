@@ -411,13 +411,15 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         break;
     }
     dtostrf(value_display_A, 0, decimals_A, measure_A);
-    dtostrf(value_display_B, 0, decimals_B, measure_B);
+    if (printMeasB) {
+      dtostrf(value_display_B, 0, decimals_B, measure_B);
+    }
   } else {
     bMeasValid_A = false;
     bMeasValid_B = false;
   }
   bMeasValid_A == true ? snprintf(measure_A, sizeof(measure_A), "%s %s", measure_A, unit_type_A) : snprintf(measure_A, sizeof(measure_A), "--- %s", unit_type_A);
-  if(printMeasB) {
+  if (printMeasB) {
     bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
   }
 
@@ -528,6 +530,7 @@ void LCDTask::display_print_main_interface() {
             rtc.getDay(), rtc.getMonth(), rtc.getYear(), rtc.getHours(), rtc.getMinutes());
     param.rtcLock->Give();
   }
+
   // Get Station name
   snprintf(station, sizeof(station), "Station: %s", param.configuration->stationslug);
 

@@ -1255,6 +1255,20 @@ void CanTask::Run() {
                 // **********************************************************************************
                 //Setup configuration module node and start canard class slave istance with loaded ID
                 // **********************************************************************************
+                #ifdef INIT_CONFIGURATION
+                param.configuration->board_slave[0].can_address = 123;
+                param.configuration->board_slave[0].module_type = Module_Type::rain;
+                param.configuration->board_slave[0].can_port_id = 51;
+                param.configuration->board_slave[0].can_publish_id = 100;
+                param.configuration->board_slave[0].serial_number = 0;
+                // Configure istance in a class
+                clCanard.slave[0].configure(
+                    param.configuration->board_slave[0].can_address,
+                    param.configuration->board_slave[0].module_type,
+                    param.configuration->board_slave[0].can_port_id,
+                    param.configuration->board_slave[0].can_publish_id,
+                    param.configuration->board_slave[0].serial_number);
+                #else
                 for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
                     #ifdef USE_SUB_PUBLISH_SLAVE_DATA
                     // If valid address, configure node
@@ -1276,6 +1290,7 @@ void CanTask::Run() {
                             param.configuration->board_slave[iCnt].serial_number);
                     #endif
                 }
+                #endif
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;

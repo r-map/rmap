@@ -58,8 +58,8 @@
 
 // Parametri default per Modulo Slave (INIT_PARAMETER)
 #define NODE_VALUE_UNSET  255
-#define NODE_SLAVE_ID     125
-#define PORT_SERVICE_RMAP 100
+#define NODE_SLAVE_ID     123
+#define PORT_SERVICE_RMAP 51
 #define SUBJECTID_PUBLISH_RMAP 2100
 
 // Maschera Check S.N. messaggio Hash Canard per PnP

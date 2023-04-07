@@ -192,7 +192,8 @@ void SupervisorTask::Run()
       Delay(Ticks::MsToTicks(1500));
 
       // TEST CONNECTION
-      if(0) {
+      #ifndef INIT_CONFIGURATION
+      if(1) {
 
         // 1 TEST di configurazione
         test_get_config = true;
@@ -221,6 +222,7 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
 
       }
+      #endif
 
       break;
 
