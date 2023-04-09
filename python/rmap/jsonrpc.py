@@ -884,7 +884,7 @@ class SSLPSKContext(ssl.SSLContext):
 class SSLPSKObject(ssl.SSLObject):
     def do_handshake(self, *args, **kwargs):
         if not hasattr(self,'_did_psk_setup'):
-        _ssl_setup_psk_callbacks(self)
+            _ssl_setup_psk_callbacks(self)
             self._did_psk_setup = True
         super().do_handshake(*args, **kwargs)
 
@@ -892,7 +892,7 @@ class SSLPSKObject(ssl.SSLObject):
 class SSLPSKSocket(ssl.SSLSocket):
     def do_handshake(self, *args, **kwargs):
         if not hasattr(self,'_did_psk_setup'):
-        _ssl_setup_psk_callbacks(self)
+            _ssl_setup_psk_callbacks(self)
             self._did_psk_setup = True
         super().do_handshake(*args, **kwargs)
 

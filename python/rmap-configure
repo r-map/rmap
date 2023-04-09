@@ -123,7 +123,7 @@ except:
         return datetime.datetime.strptime(isoformat, '%Y-%m-%dT%H:%M:%S')
     parser.add_argument('--datetimestart', default=None, type=fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
     parser.add_argument('--datetimeend', default=None, type=fromisoformat, help="recovery data ending to this date and time in iso format (2011-11-05T18:06:23)" )
-parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
+parser.add_argument('--station_slug',  default=None, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
 parser.add_argument('--baudrate',  default=None, help="use this baudrate for serial transport")
@@ -213,32 +213,32 @@ args = parser.parse_args()
 if (args.serial_monitor):
 
     if (args.username is None or
-        args.station_slug is None):
-        print(" selected serial_monitor without username or station_slug")
+        args.station_slug is None or
+        args.board_slug is None):
+        print(" selected serial_monitor without username or station_slug or board_slug")
         raise SystemExit(1)
 
-    mystation=StationMetadata.objects.get(slug=args.station_slug,user__username=args.username)
+    board=Board.objects.get(stationmetadata__slug=args.station_slug,stationmetadata__user__username=args.username,slug=args.board_slug)
+    print(">station:",board.stationmetadata.name, ">board: ", board.name," slug="+board.slug," active=",board.active)
 
-    print("STATION:", mystation)
-
-    for board in mystation.board_set.all():
-        print(">board: ", board.name," slug="+board.slug," active=",board.active)
-        try:
-            if ( board.transportserial.active):
-                device= args.device if args.device else  board.transportserial.device
-                baudrate= args.baudrate if args.baudrate else  board.transportserial.baudrate
-                print("\tSerial Transport device=",device," baudrate=",baudrate)
-
-                from serial.tools import miniterm
-                import sys
-                sys.argv=[sys.argv[0],]
-                miniterm.main( 
-                    default_port=device, 
-                    default_baudrate=baudrate
-                )
+    try:
+        if ( board.transportserial.active):
+            device= args.device if args.device else  board.transportserial.device
+            baudrate= args.baudrate if args.baudrate else  board.transportserial.baudrate
+            print("\tSerial Transport device=",device," baudrate=",baudrate)
+            
+            from serial.tools import miniterm
+            import sys
+            sys.argv=[sys.argv[0],]
+            miniterm.main( 
+                default_port=device, 
+                default_baudrate=baudrate
+            )
+        else:
+            print("\ttransport serial not active for this board")
                 
-        except ObjectDoesNotExist:
-            print("\ttransport serial not present for this board")
+    except ObjectDoesNotExist:
+        print("\ttransport serial not present for this board")
 
 
 
@@ -594,10 +594,15 @@ if args.addsensors_by_template is not None:
 
 if args.list_stations:
 
-    for mystation in StationMetadata.objects.all():
-        print("STATION:", mystation)
-        print("slug=",mystation.slug)
-
+    if (args.username is None):   
+        for mystation in StationMetadata.objects.all():
+            print("STATION:", mystation)
+            print("slug=",mystation.slug)
+    else:
+        for mystation in StationMetadata.objects.filter(user__username=args.username):
+            print("STATION:", mystation)
+            print("slug=",mystation.slug)
+            
     print("END of station list")
     #raise SystemExit(0)
 
