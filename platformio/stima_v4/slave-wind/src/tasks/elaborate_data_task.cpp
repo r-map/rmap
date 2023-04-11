@@ -158,7 +158,7 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueued from can task (get data, start command...)
-    if (!param.elaborataDataQueue->IsEmpty()) {
+    if (!param.requestDataQueue->IsEmpty()) {
       if (param.requestDataQueue->Peek(&request_data, 0))
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
