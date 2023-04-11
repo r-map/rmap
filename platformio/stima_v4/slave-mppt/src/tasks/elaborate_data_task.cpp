@@ -148,6 +148,7 @@ void ElaborateDataTask::Run() {
         case POWER_BATTERY_CHARGE_INDEX:
           TRACE_VERBOSE_F(F("Battery charge: %d\r\n"), edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX, edata.value);
+          printBuffer(&battery_charge_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           break;
         case POWER_BATTERY_VOLTAGE_INDEX:
@@ -700,4 +701,11 @@ void addValue(buffer_g *buffer, length_v length, value_v value)
 {
   *buffer->write_ptr = (value_v)value;
   incrementBuffer<buffer_g, length_v>(buffer, length);
+}
+
+void printBuffer(sample_t *buffer, uint16_t length, uint32_t value)
+{
+  Serial.println(buffer->count);
+  Serial.println(*(buffer->write_ptr));
+  Serial.println(*(buffer->read_ptr));
 }

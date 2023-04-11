@@ -259,45 +259,6 @@ void SupervisorTask::loadConfiguration()
     }
   }
 
-  // Reading RMAP Module sensor count -> (READ)
-  // uint8_t sensors_count
-  if(register_config_valid) {
-    // Select type register (uint_8)
-    uint8_t sensor_count = 0;
-    uavcan_register_Value_1_0_select_natural8_(&val);
-    val.natural8.value.count = 1;
-    #if (USE_SENSOR_ADT)
-    sensor_count++;
-    #endif
-    #if (USE_SENSOR_HIH)
-    sensor_count++;
-    #endif
-    #if (USE_SENSOR_HYT)
-    sensor_count++;
-    #if (USE_REDUNDANT_SENSOR)
-    sensor_count++;
-    #endif
-    #endif
-    #if (USE_SENSOR_SHT)
-    sensor_count++;
-    #if (USE_REDUNDANT_SENSOR)
-    sensor_count++;
-    #endif
-    #endif
-    // Loading Default
-    val.natural8.value.elements[0] = sensor_count;
-    param.registerAccessLock->Take();
-    param.clRegister->read("rmap.module.sensor.count", &val);
-    param.registerAccessLock->Give();
-    if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != 1)) {
-      register_config_valid = false;
-    } else {
-      param.configurationLock->Take();
-      param.configuration->sensors_count = val.natural8.value.elements[0];
-      param.configurationLock->Give();
-    }
-  }
-
   // Reading RMAP Module sensor delay acquire -> (READ/WRITE)
   // uint32_t sensor_acquisition_delay_ms;
   if(register_config_valid) {
@@ -314,128 +275,6 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       param.configuration->sensor_acquisition_delay_ms = val.natural32.value.elements[0];
-      param.configurationLock->Give();
-    }
-  }
-
-  // Reading RMAP Module sensor address -> (READ/WRITE)
-  // uint8_t i2c_address[sensor_count];   // I2C Address
-  // uint8_t is_redundant[sensor_count];  // Is Redundant sensor
-  if(register_config_valid) {
-    u_int8_t elements = 0;
-    // Select type register (uint_8)
-    uavcan_register_Value_1_0_select_natural8_(&val);
-    // Loading Default
-    #if (USE_SENSOR_ADT)
-    val.natural8.value.elements[elements++] = 0x28;   // I2C ADDRESS
-    val.natural8.value.elements[elements++] = 0;      // IS REDUNDANT
-    #endif
-    #if (USE_SENSOR_HIH)
-    val.natural8.value.elements[elements++] = 0x28;   // I2C ADDRESS
-    val.natural8.value.elements[elements++] = 0;      // IS REDUNDANT
-    #endif
-    #if (USE_SENSOR_HYT)
-    val.natural8.value.elements[elements++] = HYT_DEFAULT_ADDRESS;   // ADDRESS
-    val.natural8.value.elements[elements++] = 0;                     // IS REDUNDANT
-    #if (USE_REDUNDANT_SENSOR)
-    val.natural8.value.elements[elements++] = HYT_REDUNDANT_ADDRESS; // ADDRESS
-    val.natural8.value.elements[elements++] = 1;                     // IS REDUNDANT
-    #endif
-    #endif
-    #if (USE_SENSOR_SHT)
-    val.natural8.value.elements[elements++] = SHT_DEFAULT_ADDRESS;   // ADDRESS
-    val.natural8.value.elements[elements++] = 0;                     // IS REDUNDANT
-    #if (USE_REDUNDANT_SENSOR)
-    val.natural8.value.elements[elements++] = SHT_REDUNDANT_ADDRESS; // ADDRESS
-    val.natural8.value.elements[elements++] = 1;                     // IS REDUNDANT
-    #endif
-    #endif
-    // Total element
-    val.natural8.value.count = elements;
-    param.registerAccessLock->Take();
-    param.clRegister->read("rmap.module.sensor.config", &val);
-    param.registerAccessLock->Give();
-    if(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count != elements)) {
-      register_config_valid = false;
-    } else {
-      // Copy Register value to local_type config
-      param.configurationLock->Take();
-      for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-        param.configuration->sensors[id].i2c_address = val.natural8.value.elements[id*2];
-        param.configuration->sensors[id].is_redundant = (val.natural8.value.elements[id*2+1] != 0);
-      }
-      param.configurationLock->Give();
-    }
-  }
-
-  /// Reading RMAP Module sensor address -> (READ/WRITE)
-  // char type[TYPE_LENGTH];
-  if(register_config_valid) {
-    // Select type register (string)
-    uavcan_register_Value_1_0_select_string_(&val);
-    // Loading Default
-    #if (USE_SENSOR_ADT)
-    strcpy((char*)val._string.value.elements, SENSOR_TYPE_ADT);
-    val._string.value.count = strlen(SENSOR_TYPE_ADT);
-    #endif
-    #if (USE_SENSOR_HIH)
-    strcpy((char*)val._string.value.elements, SENSOR_TYPE_HYH);
-    val._string.value.count = strlen(SENSOR_TYPE_HYH);
-    #endif
-    #if (USE_SENSOR_HYT)
-    strcpy((char*)val._string.value.elements, SENSOR_TYPE_HYT);
-    val._string.value.count = strlen(SENSOR_TYPE_HYT);
-    #endif
-    #if (USE_SENSOR_SHT)
-    strcpy((char*)val._string.value.elements, SENSOR_TYPE_SHT);
-    val._string.value.count = strlen(SENSOR_TYPE_SHT);
-    #endif
-    // Total element
-    param.registerAccessLock->Take();
-    param.clRegister->read("rmap.module.sensor.type", &val);
-    param.registerAccessLock->Give();
-    if(!uavcan_register_Value_1_0_is_string_(&val)) {
-      register_config_valid = false;
-    } else {
-      param.configurationLock->Take();
-      for(uint8_t id = 0; id < param.configuration->sensors_count; id++)
-        memcpy(param.configuration->sensors[id].type, val._string.value.elements, val._string.value.count);
-      param.configurationLock->Give();
-    }
-  }
-
-  // Reading RMAP Module sensor driver -> (READ/WRITE)
-  // char driver[DRIVER_LENGTH];
-  if(register_config_valid) {
-    // Select type register (string)
-    uavcan_register_Value_1_0_select_string_(&val);
-    // Loading Default
-    #if (USE_SENSOR_ADT)
-    strcpy((char*)val._string.value.elements, SENSOR_DRIVER_I2C);
-    val._string.value.count = strlen(SENSOR_DRIVER_I2C);
-    #endif
-    #if (USE_SENSOR_HIH)
-    strcpy((char*)val._string.value.elements, SENSOR_DRIVER_I2C);
-    val._string.value.count = strlen(SENSOR_DRIVER_I2C);
-    #endif
-    #if (USE_SENSOR_HYT)
-    strcpy((char*)val._string.value.elements, SENSOR_DRIVER_I2C);
-    val._string.value.count = strlen(SENSOR_DRIVER_I2C);
-    #endif
-    #if (USE_SENSOR_SHT)
-    strcpy((char*)val._string.value.elements, SENSOR_DRIVER_I2C);
-    val._string.value.count = strlen(SENSOR_DRIVER_I2C);
-    #endif
-    // Total element
-    param.registerAccessLock->Take();
-    param.clRegister->read("rmap.module.sensor.driver", &val);
-    param.registerAccessLock->Give();
-    if(!uavcan_register_Value_1_0_is_string_(&val)) {
-      register_config_valid = false;
-    } else {
-      param.configurationLock->Take();
-      for(uint8_t id = 0; id < param.configuration->sensors_count; id++)
-        memcpy(param.configuration->sensors[id].driver, val._string.value.elements, val._string.value.count);
       param.configurationLock->Give();
     }
   }
@@ -468,80 +307,8 @@ void SupervisorTask::saveConfiguration(bool is_default)
     param.configuration->module_minor_version = MODULE_MINOR_VERSION;
     param.configuration->module_type = MODULE_TYPE;
 
-    // Get sensor_count
-    #if (USE_SENSOR_ADT)
-    sensor_count++;
-    #endif
-    #if (USE_SENSOR_HIH)
-    sensor_count++;
-    #endif
-    #if (USE_SENSOR_HYT)
-    sensor_count++;
-    #if (USE_REDUNDANT_SENSOR)
-    sensor_count++;
-    #endif
-    #endif
-    #if (USE_SENSOR_SHT)
-    sensor_count++;
-    #if (USE_REDUNDANT_SENSOR)
-    sensor_count++;
-    #endif
-    #endif
-
     // Acquisition time sensor default
     param.configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
-
-    // Get elements
-    #if (USE_SENSOR_ADT)
-    param.configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
-    #endif
-    #if (USE_SENSOR_HIH)
-    param.configuration->sensors[elements].i2c_address = 0x28;   // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 0;   // IS REDUNDANT
-    #endif
-    #if (USE_SENSOR_HYT)
-    param.configuration->sensors[elements].i2c_address = HYT_DEFAULT_ADDRESS;   // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
-    #if (USE_REDUNDANT_SENSOR)
-    param.configuration->sensors[elements].i2c_address = HYT_REDUNDANT_ADDRESS; // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
-    #endif
-    #endif
-    #if (USE_SENSOR_SHT)
-    param.configuration->sensors[elements].i2c_address = SHT_DEFAULT_ADDRESS;   // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 0;  // IS REDUNDANT
-    #if (USE_REDUNDANT_SENSOR)
-    param.configuration->sensors[elements].i2c_address = SHT_REDUNDANT_ADDRESS; // I2C ADDRESS
-    param.configuration->sensors[elements++].is_redundant = 1;  // IS REDUNDANT
-    #endif
-    #endif
-
-    // Loading Default
-    #if (USE_SENSOR_ADT)
-    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_ADT);
-      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
-    }
-    #endif
-    #if (USE_SENSOR_HIH)
-    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HYH);
-      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
-    }
-    #endif
-    #if (USE_SENSOR_HYT)
-    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HYT);
-      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
-    }
-    #endif
-    #if (USE_SENSOR_SHT)
-    for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_SHT);
-      strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
-    }
-    #endif
 
     param.configurationLock->Give();
 
@@ -564,19 +331,6 @@ void SupervisorTask::saveConfiguration(bool is_default)
   param.clRegister->write("rmap.module.identify", &val);
   param.registerAccessLock->Give();
 
-  // Writing RMAP Module sensor count -> (READ)
-  // uint8_t sensors_count
-  // Select type register (uint_8)
-  sensor_count = 0;
-  uavcan_register_Value_1_0_select_natural8_(&val);
-  val.natural8.value.count = 1;
-  param.configurationLock->Take();
-  val.natural8.value.elements[0] = sensor_count;
-  param.configurationLock->Give();
-  param.registerAccessLock->Take();
-  param.clRegister->write("rmap.module.sensor.count", &val);
-  param.registerAccessLock->Give();
-
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
   // uint32_t sensor_acquisition_delay_ms;
   // Select type register (uint_32)
@@ -588,51 +342,6 @@ void SupervisorTask::saveConfiguration(bool is_default)
   param.configurationLock->Give();
   param.registerAccessLock->Take();
   param.clRegister->write("rmap.module.sensor.acquisition", &val);
-  param.registerAccessLock->Give();
-
-  // Writing RMAP Module sensor address -> (READ/WRITE)
-  // uint8_t i2c_address[sensor_count];   // I2C Address
-  // uint8_t is_redundant[sensor_count];  // Is Redundant sensor
-  // Select type register (uint_8)
-  uavcan_register_Value_1_0_select_natural8_(&val);
-  // Loading Default
-  // Total element = sensor_count x 2 => sensor_count == elements
-  val.natural8.value.count = sensor_count * 2;
-  // Copy Register value to local_type config
-  param.configurationLock->Take();
-  for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-    val.natural8.value.elements[id*2] = param.configuration->sensors[id].i2c_address;
-    val.natural8.value.elements[id*2+1] = param.configuration->sensors[id].is_redundant;
-  }
-  param.configurationLock->Give();
-  param.registerAccessLock->Take();
-  param.clRegister->write("rmap.module.sensor.config", &val);
-  param.registerAccessLock->Give();
-
-  /// Writing RMAP Module sensor type -> (READ/WRITE)
-  // char type[TYPE_LENGTH] same for sensor standard and redundant;
-  // Select type register (string)
-  uavcan_register_Value_1_0_select_string_(&val);
-  // Total element (len of string)
-  param.configurationLock->Take();
-  val._string.value.count = strlen(param.configuration->sensors[0].type);
-  memcpy(val._string.value.elements, param.configuration->sensors[0].type, val._string.value.count);
-  param.configurationLock->Give();
-  param.registerAccessLock->Take();
-  param.clRegister->write("rmap.module.sensor.type", &val);
-  param.registerAccessLock->Give();
-
-  /// Writing RMAP Module sensor type -> (READ/WRITE)
-  // char driver[DRIVER_LENGTH] same for sensor standard and redundant;
-  // Select type register (string)
-  uavcan_register_Value_1_0_select_string_(&val);
-  // Total element (len of string)
-  param.configurationLock->Take();
-  val._string.value.count = strlen(param.configuration->sensors[0].driver);
-  memcpy(val._string.value.elements, param.configuration->sensors[0].driver, val._string.value.count);
-  param.configurationLock->Give();
-  param.registerAccessLock->Take();
-  param.clRegister->write("rmap.module.sensor.driver", &val);
   param.registerAccessLock->Give();
 
   if(is_default) {
@@ -659,13 +368,6 @@ void SupervisorTask::printConfiguration()
   TRACE_INFO_F(F("-> main version: %u\r\n"), param.configuration->module_main_version);
   TRACE_INFO_F(F("-> minor version: %u\r\n"), param.configuration->module_minor_version);
   TRACE_INFO_F(F("-> acquisition delay: %u [ms]\r\n"), param.configuration->sensor_acquisition_delay_ms);
-
-  TRACE_INFO_F(F("-> %u configured sensors:\r\n"), param.configuration->sensors_count);
-  for (uint8_t i = 0; i < param.configuration->sensors_count; i++)
-  {
-    //TODO:_TH_RAIN_ SENSOR_DRIVER_I2C PRINT -> "RAD."
-    TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i + 1, "RAD.", param.configuration->sensors[i].type, param.configuration->sensors[i].i2c_address, param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
-  }
 
   param.configurationLock->Give();
 }

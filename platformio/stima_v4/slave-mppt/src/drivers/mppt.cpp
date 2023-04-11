@@ -99,6 +99,38 @@ float Mppt::get_V_SYS(void) {
   return vIn;
 }
 
+/// @brief Read LTC4015 V_BAT parameter
+/// @param  None
+/// @return V_BAT Value converted to V
+float Mppt::get_V_BAT(void) {
+  uint16_t data;
+  LTC4015_read_register(LTC4015_VBAT, &data);
+  float vIn = ((float)data * V_REF_LH_BAT / V_CELL_COUNT) / V_REF_BVAL;
+  return vIn;
+}
+
+/// @brief Read LTC4015 I_BAT parameter
+/// @param  None
+/// @return I_BAT Value converted to I
+float Mppt::get_I_BAT(void) {
+  uint16_t data;
+  LTC4015_read_register(LTC4015_IBAT, &data);
+  float iIn = ((float)data * I_REF_IN / I_REF_RSNSB) / I_REF_CVAL;
+  return iIn;
+}
+
+/// @brief Read LTC4015 I_IN parameter
+/// @param  None
+/// @return I_IN Value converted to I
+float Mppt::get_I_IN(void) {
+  uint16_t data;
+  LTC4015_read_register(LTC4015_IIN, &data);
+  float iIn = ((float)data * I_REF_IN / I_REF_RSNSB) / I_REF_CVAL;
+  return iIn;
+}
+
+// I BAT 1.46487μV/RSNSB
+
 // ****************************************************************************************
 // ******************************* PRIVATE FUNCTION ***************************************
 // ****************************************************************************************

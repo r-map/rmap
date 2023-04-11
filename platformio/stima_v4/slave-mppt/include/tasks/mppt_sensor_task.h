@@ -72,8 +72,6 @@ class MpptSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
-    SENSOR_STATE_SETUP,
-    SENSOR_STATE_PREPARE,
     SENSOR_STATE_READ,
     SENSOR_STATE_END
   } State_t;

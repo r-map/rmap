@@ -142,14 +142,6 @@ void MpptSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      state = SENSOR_STATE_SETUP;
-      break;
-
-    case SENSOR_STATE_SETUP:
-      state = SENSOR_STATE_PREPARE;
-      break;
-
-    case SENSOR_STATE_PREPARE:
       state = SENSOR_STATE_READ;
       break;
 
@@ -159,19 +151,23 @@ void MpptSensorTask::Run() {
         edata.index = POWER_BATTERY_CHARGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = 12.5 * POWER_BATTERY_VOLTAGE_MULT;
+        // edata.value = 12.5 * POWER_BATTERY_VOLTAGE_MULT;
+        edata.value = param.mpptIC->get_V_BAT() * POWER_BATTERY_VOLTAGE_MULT;
         edata.index = POWER_BATTERY_VOLTAGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = 0.25 * POWER_BATTERY_CURRENT_MULT;
+        // edata.value = 0.25 * POWER_BATTERY_CURRENT_MULT;
+        edata.value = param.mpptIC->get_I_BAT() * POWER_INPUT_CURRENT_MULT;
         edata.index = POWER_BATTERY_CURRENT_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = 20.3 * POWER_INPUT_VOLTAGE_MULT;
+        // edata.value = 20.3 * POWER_INPUT_VOLTAGE_MULT;
+        edata.value = param.mpptIC->get_V_IN() * POWER_INPUT_VOLTAGE_MULT;
         edata.index = POWER_INPUT_VOLTAGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = 0.19 * POWER_INPUT_CURRENT_MULT;
+        // edata.value = 0.19 * POWER_INPUT_CURRENT_MULT;
+        edata.value = param.mpptIC->get_I_IN() * POWER_INPUT_CURRENT_MULT;
         edata.index = POWER_INPUT_CURRENT_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
@@ -190,7 +186,7 @@ void MpptSensorTask::Run() {
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-        state = SENSOR_STATE_SETUP;
+        state = SENSOR_STATE_READ;
         break;
     }
   }

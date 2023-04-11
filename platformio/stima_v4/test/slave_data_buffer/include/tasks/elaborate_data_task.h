@@ -83,14 +83,7 @@ public:
 protected:
   virtual void Run();
 
-
 private:
-
-  #if (ENABLE_STACK_USAGE)
-  void TaskMonitorStack();
-  #endif
-  void TaskWatchDog(uint32_t millis_standby);
-  void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkMppt(rmapdata_t main_mppt);
@@ -116,7 +109,5 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v>void addValue(buffer_g *buffer, length_v length, value_v value);
-
-void printBuffer(sample_t *buffer, uint16_t length, uint32_t value);
 
 #endif
