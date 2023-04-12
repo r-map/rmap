@@ -1,0 +1,29 @@
+atmega1284p8m: TARGET     = atmega1284p
+atmega1284p8m: MCU_TARGET = atmega1284p
+atmega1284p8m: F_CPU      = 8000000
+atmega1284p8m: BOOT_ADR   = 0x1F000
+atmega1284p8m: BAUD_RATE  = 57600
+
+atmega1284p8m: $(PROGRAM)_atmega1284p.hex
+atmega1284p: $(PROGRAM)_atmega1284p.lst
+
+atmega1284p8m_isp: TARGET     = atmega1284p
+atmega1284p8m_isp: MCU_TARGET = atmega1284p
+atmega1284p8m_isp: F_CPU      = 8000000
+atmega1284p8m_isp: BOOT_ADR   = 0x1F000
+atmega1284p8m_isp: BAUD_RATE  = 57600
+
+atmega1284p8m_isp: MCU_AVRDUDE = atmega1284p
+# 8192 byte boot
+atmega1284p8m_isp: HFUSE     ?= 0xD8
+# Full Swing xtal (16MHz) 16KCK/14CK+65ms
+atmega1284p8m_isp: LFUSE     ?= 0xFF
+# 2.7V brownout
+atmega1284p8m_isp: EFUSE     ?= 0xFD
+atmega1284p8m_isp: UNLOCK    ?= 0x3F
+atmega1284p8m_isp: LOCK      ?= 0x0F
+
+atmega1284p8m_isp: clean
+atmega1284p8m_isp: $(PROGRAM)_atmega1284p.hex
+atmega1284p8m_isp: $(PROGRAM)_atmega1284p.lst
+atmega1284p8m_isp: fuse flash lock

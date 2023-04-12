@@ -20,7 +20,9 @@ AVRDUDE         = avrdude -F -v -c stk500v1 -P /dev/ttyUSB0 -b$(ISP_BAUD_RATE) -
 PROGRAM		= digitecoboot
 include avr_conf
 include Makefile.644
+include Makefile.644_16m
 include Makefile.1284
+include Makefile.1284_8m
 CSRC        	= optiboot.c pff/src/pff.c diskio.c
 ASRC        	= asmfunc.S
 DEFS        	= -DBIGBOOT -DBOOT_ADR=$(BOOT_ADR) -DF_CPU=$(F_CPU) -DUSE_LED=$(USE_LED) -DSD_CS_PORT=$(SD_CS_PORT) -DSD_CS_DDR=$(SD_CS_DDR) -DSD_CS_BIT=$(SD_CS_BIT) -DUSE_FAT16=$(USE_FAT16) -DUSE_FAT32=$(USE_FAT32) -DBAUD_RATE=$(BAUD_RATE)
