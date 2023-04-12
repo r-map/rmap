@@ -116,7 +116,4 @@ template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g 
 template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
 template<typename buffer_g, typename length_v, typename value_v>void addValue(buffer_g *buffer, length_v length, value_v value);
-
-void printBuffer(sample_t *buffer, uint16_t length, uint32_t value);
-
 #endif

@@ -47,22 +47,21 @@ using namespace cpp_freertos;
 #define MPPT_LTC4015_I2C_ADDR_DEFAULT     (LTC4015_ADDR_68)
 
 // LTC4015 VIN Conversion Factor
-#define V_DQ1_OFFS    700
-#define V_REF_IN      1.648f
+#define V_DQ1_OFFS    500
+#define V_REF_IN      1.6807f
 #define V_REF_CVAL    1000.0f
 
 // LTC4015 VBAT Conversion Factor
-#define V_CELL_COUNT  1
-#define V_REF_LH_BAT  192.264f
-#define V_REF_PB_BAT  128.176f
+#define V_REF_LH_BAT  1.298f
+#define V_REF_PB_BAT  0.865f
 #define V_REF_BVAL    1000.0f
+#define V_REF_V_DCHG  0.75f
+#define V_REF_A_RCHG  3.00f
 
 // LTC4015 IBAT Conversion Factor
-#define I_REF_CALC_5  0.29297f
-#define I_REF_CALC_10 0.14658f
-#define I_REF_IN      1.46487f
-#define I_REF_RSNSB   LTC4015_RSNSB
-#define I_REF_CVAL    1000.0f
+#define I_REF_IN      1.41895f
+#define I_REF_BATT    1.47807f
+#define I_REF_CVAL    10000.0f
 
 // Class Mppt LT4015 implementation
 class Mppt {
@@ -92,6 +91,7 @@ public:
   float get_V_BAT(void);    // Get V_BAT
   float get_I_BAT(void);    // Get I_BAT
   float get_I_IN(void);     // Get I_IN
+  float get_P_CHG(void);    // Get P_CHG
 
 protected:
 private:

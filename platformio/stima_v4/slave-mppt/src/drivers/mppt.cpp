@@ -95,8 +95,8 @@ float Mppt::get_V_IN(void) {
 float Mppt::get_V_SYS(void) {
   uint16_t data;
   LTC4015_read_register(LTC4015_VSYS, &data);
-  float vIn = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
-  return vIn;
+  float vSys = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
+  return vSys;
 }
 
 /// @brief Read LTC4015 V_BAT parameter
@@ -104,32 +104,59 @@ float Mppt::get_V_SYS(void) {
 /// @return V_BAT Value converted to V
 float Mppt::get_V_BAT(void) {
   uint16_t data;
+  float iBatt = get_I_BAT();
   LTC4015_read_register(LTC4015_VBAT, &data);
-  float vIn = ((float)data * V_REF_LH_BAT / V_CELL_COUNT) / V_REF_BVAL;
-  return vIn;
+  float vBatt = ((float)data / V_REF_LH_BAT) / V_REF_BVAL;
+  if(iBatt>V_REF_A_RCHG) {
+    vBatt-=V_REF_V_DCHG;
+  } else if(iBatt>0) vBatt-=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
+  if (vBatt<5.00) vBatt = 0;
+  return vBatt;
 }
 
 /// @brief Read LTC4015 I_BAT parameter
 /// @param  None
-/// @return I_BAT Value converted to I
+/// @return I_BAT Value converted to I Ampere
 float Mppt::get_I_BAT(void) {
   uint16_t data;
   LTC4015_read_register(LTC4015_IBAT, &data);
-  float iIn = ((float)data * I_REF_IN / I_REF_RSNSB) / I_REF_CVAL;
-  return iIn;
+  if(data>32767) data = 0;
+  float iBatt = ((float)data * I_REF_BATT) / I_REF_CVAL;
+  return iBatt;
 }
 
 /// @brief Read LTC4015 I_IN parameter
 /// @param  None
-/// @return I_IN Value converted to I
+/// @return I_IN Value converted to I Ampere
 float Mppt::get_I_IN(void) {
   uint16_t data;
   LTC4015_read_register(LTC4015_IIN, &data);
-  float iIn = ((float)data * I_REF_IN / I_REF_RSNSB) / I_REF_CVAL;
+  float iIn = ((float)data * I_REF_IN) / I_REF_CVAL;
   return iIn;
 }
 
-// I BAT 1.46487μV/RSNSB
+float Mppt::get_P_CHG(void) {
+  uint16_t data;
+  float pChg;
+  float vBatt = get_V_BAT();
+  if(vBatt>13.35) pChg = 100.0;
+  else if(vBatt>13.27) { pChg = 98.73624 + ((vBatt - 13.27) * 18.05371429); }
+  else if(vBatt>13.17) { pChg = 94.667243 + ((vBatt - 13.17) * 40.68997); }
+  else if(vBatt>13.06) { pChg = 90.23132 + ((vBatt - 13.06) * 40.32657273); }
+  else if(vBatt>12.91) { pChg = 83.93915757 + ((vBatt - 12.91) * 41.94774952); }
+  else if(vBatt>12.77) { pChg = 77.13744076 + ((vBatt - 12.77) * 48.5836915); }
+  else if(vBatt>12.63) { pChg = 64.27316294 + ((vBatt - 12.63) * 91.88769871); }
+  else if(vBatt>12.47) { pChg = 49.35379644 + ((vBatt - 12.47) * 93.24604062); }
+  else if(vBatt>12.30) { pChg = 39.47583948 + ((vBatt - 12.30) * 58.10562922); }
+  else if(vBatt>12.07) { pChg = 29.40298507 + ((vBatt - 12.07) * 43.79501914); }
+  else if(vBatt>11.75) { pChg = 19.62711864 + ((vBatt - 11.75) * 40.7327768); }
+  else if(vBatt>11.40) { pChg = 14.54347826 + ((vBatt - 11.40) * 11.82241949); }
+  else if(vBatt>11.05) { pChg = 9.713518356 + ((vBatt - 11.10) * 16.09986635); }
+  else if(vBatt>10.75) { pChg = 4.838709677 + ((vBatt - 10.75) * 13.9280248); }
+  else pChg = 0.0;  
+  return pChg;
+}
+
 
 // ****************************************************************************************
 // ******************************* PRIVATE FUNCTION ***************************************
