@@ -1,25 +1,32 @@
-/**@file elaborate_data_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    elaborate_data_task.cpp
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Elaborate data Task MPPT source file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     ELABORATE_DATA_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   ELABORATE_TASK_ID
@@ -147,8 +154,8 @@ void ElaborateDataTask::Run() {
         {
         case POWER_BATTERY_CHARGE_INDEX:
           TRACE_VERBOSE_F(F("Battery charge: %d\r\n"), edata.value);
-          addValue<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+          addValue<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
         case POWER_BATTERY_VOLTAGE_INDEX:
           TRACE_VERBOSE_F(F("Battery voltage: %d\r\n"), edata.value);
@@ -176,7 +183,7 @@ void ElaborateDataTask::Run() {
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
         param.requestDataQueue->Dequeue(&request_data, 0);
-        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        make_report(request_data.report_time_s, request_data.observation_time_s);
         param.reportDataQueue->Enqueue(&report, 0);
       }
     }
@@ -192,105 +199,160 @@ void ElaborateDataTask::Run() {
   }
 }
 
-uint8_t ElaborateDataTask::checkMppt(rmapdata_t main_mppt) {
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
+uint8_t ElaborateDataTask::checkMppt_P_Chg(rmapdata_t data_in)
+{
   // Optional check quality data function
   uint8_t quality = 100;
   return quality;
 }
 
-void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  rmapdata_t battery_charge = 0;
-  rmapdata_t battery_voltage = 0;
-  rmapdata_t battery_current = 0;
-  rmapdata_t input_voltage = 0;
-  rmapdata_t input_current = 0;
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
+uint8_t ElaborateDataTask::checkMppt_V_Bat(rmapdata_t data_in)
+{
+  // Optional check quality data function
+  uint8_t quality = 100;
+  return quality;
+}
 
-  rmapdata_t avg_battery_charge = 0;
-  rmapdata_t avg_battery_voltage = 0;
-  rmapdata_t avg_battery_current = 0;
-  rmapdata_t avg_input_voltage = 0;
-  rmapdata_t avg_input_current = 0;
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
+uint8_t ElaborateDataTask::checkMppt_I_Bat(rmapdata_t data_in)
+{
+  // Optional check quality data function
+  uint8_t quality = 100;
+  return quality;
+}
 
-  rmapdata_t avg_battery_charge_quality = 0;
-  rmapdata_t avg_battery_voltage_quality = 0;
-  rmapdata_t avg_battery_current_quality = 0;
-  rmapdata_t avg_input_voltage_quality = 0;
-  rmapdata_t avg_input_current_quality = 0;
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
+uint8_t ElaborateDataTask::checkMppt_V_In(rmapdata_t data_in)
+{
+  // Optional check quality data function
+  uint8_t quality = 100;
+  return quality;
+}
 
-  bool measures_maintenance = false;
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
+uint8_t ElaborateDataTask::checkMppt_I_In(rmapdata_t data_in)
+{
+  // Optional check quality data function
+  uint8_t quality = 100;
+  return quality;
+}
 
-  uint16_t valid_count_battery_charge = 0;
-  uint16_t error_count_battery_charge = 0;
-  float error_battery_charge_per = 0;
+/// @brief Create a report from buffered sample
+/// @param report_time_s Report time for the calc
+/// @param observation_time_s Observation time for the calc
+void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation_time_s)
+{
+  // Generic and shared var
+  bool measures_maintenance = false;  // Maintenance mode?
+  float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
+  bool is_observation = false;        // Is an observation (when calculate is requested)
+  uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
 
-  uint16_t valid_count_battery_voltage = 0;
-  uint16_t error_count_battery_voltage = 0;
-  float error_battery_voltage_per = 0;
+  // Elaborate suffix description: _s(sample) _o(observation) _t(total) [Optional for debug]
 
-  uint16_t valid_count_battery_current = 0;
-  uint16_t error_count_battery_current = 0;
-  float error_battery_current_per = 0;
+  // Elaboration battery_charge
+  rmapdata_t battery_charge_s = 0;
+  float avg_battery_charge_s = 0;
+  float avg_battery_charge_o = 0;
+  float avg_battery_charge_quality_s = 0;
+  float avg_battery_charge_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_battery_charge_t = 0;
+  #endif
+  uint16_t valid_count_battery_charge_s = 0;
+  uint16_t total_count_battery_charge_s = 0;
+  uint16_t valid_count_battery_charge_o = 0;
 
-  uint16_t valid_count_input_voltage = 0;
-  uint16_t error_count_input_voltage = 0;
-  float error_input_voltage_per = 0;
+  // Elaboration battery_voltage
+  rmapdata_t battery_voltage_s = 0;
+  float avg_battery_voltage_s = 0;
+  float avg_battery_voltage_o = 0;
+  float avg_battery_voltage_quality_s = 0;
+  float avg_battery_voltage_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_battery_voltage_t = 0;
+  #endif
+  uint16_t valid_count_battery_voltage_s = 0;
+  uint16_t total_count_battery_voltage_s = 0;
+  uint16_t valid_count_battery_voltage_o = 0;
+  
+  // Elaboration battery_current
+  rmapdata_t battery_current_s = 0;
+  float avg_battery_current_s = 0;
+  float avg_battery_current_o = 0;
+  float avg_battery_current_quality_s = 0;
+  float avg_battery_current_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_battery_current_t = 0;
+  #endif
+  uint16_t valid_count_battery_current_s = 0;
+  uint16_t total_count_battery_current_s = 0;
+  uint16_t valid_count_battery_current_o = 0;
 
-  uint16_t valid_count_input_current = 0;
-  uint16_t error_count_input_current = 0;
-  float error_input_current_per = 0;
+  // Elaboration input_voltage
+  rmapdata_t input_voltage_s = 0;
+  float avg_input_voltage_s = 0;
+  float avg_input_voltage_o = 0;
+  float avg_input_voltage_quality_s = 0;
+  float avg_input_voltage_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_input_voltage_t = 0;
+  #endif
+  uint16_t valid_count_input_voltage_s = 0;
+  uint16_t total_count_input_voltage_s = 0;
+  uint16_t valid_count_input_voltage_o = 0;
 
-  static uint16_t valid_count_battery_charge_o;
-  static uint16_t error_count_battery_charge_o;
-  float error_battery_charge_per_o = 0;
+  // Elaboration input_current
+  rmapdata_t input_current_s = 0;
+  float avg_input_current_s = 0;
+  float avg_input_current_o = 0;
+  float avg_input_current_quality_s = 0;
+  float avg_input_current_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_input_current_t = 0;
+  #endif
+  uint16_t valid_count_input_current_s = 0;
+  uint16_t total_count_input_current_s = 0;
+  uint16_t valid_count_input_current_o = 0;
 
-  static uint16_t valid_count_battery_voltage_o;
-  static uint16_t error_count_battery_voltage_o;
-  float error_battery_voltage_per_o = 0;
-
-  static uint16_t valid_count_battery_current_o;
-  static uint16_t error_count_battery_current_o;
-  float error_battery_current_per_o = 0;
-
-  static uint16_t valid_count_input_voltage_o;
-  static uint16_t error_count_input_voltage_o;
-  float error_input_voltage_per_o = 0;
-
-  static uint16_t valid_count_input_current_o;
-  static uint16_t error_count_input_current_o;
-  float error_input_current_per_o = 0;
-
-  static rmapdata_t avg_battery_charge_o;
-  static rmapdata_t avg_battery_charge_quality_o;
-
-  static rmapdata_t avg_battery_voltage_o;
-  static rmapdata_t avg_battery_voltage_quality_o;
-
-  static rmapdata_t avg_battery_current_o;
-  static rmapdata_t avg_battery_current_quality_o;
-
-  static rmapdata_t avg_input_voltage_o;
-  static rmapdata_t avg_input_voltage_quality_o;
-
-  static rmapdata_t avg_input_current_o;
-  static rmapdata_t avg_input_current_quality_o;
-
+  // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+  uint16_t sample_for_observation = 0;
+  if(report_time_s && observation_sample_count) sample_for_observation = report_sample_count / observation_sample_count;
 
-  if (is_init) {
-
-    avg_battery_charge_o = 0;
-    avg_battery_charge_quality_o = 0;
-    avg_battery_voltage_o = 0;
-    avg_battery_voltage_quality_o = 0;
-    avg_battery_current_o = 0;
-    avg_battery_current_quality_o = 0;
-    avg_input_voltage_o = 0;
-    avg_input_voltage_quality_o = 0;
-    avg_input_current_o = 0;
-    avg_input_current_quality_o = 0;
+  // Request to calculate is correct? Trace request
+  if (report_time_s == 0)
+  {
+    // Request an direct sample value for istant measure
+    TRACE_INFO_F(F("Elaborate: Requested an istant value\r\n"));
+  }
+  else
+  {
+    TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
+    TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
+    TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
+    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), sample_for_observation);
+    TRACE_DEBUG_F(F("-> %d available battery charge samples count\r\n"), battery_charge_samples.count);
+    TRACE_DEBUG_F(F("-> %d available battery voltage samples count\r\n"), battery_voltage_samples.count);
+    TRACE_DEBUG_F(F("-> %d available battery current samples count\r\n"), battery_current_samples.count);
+    TRACE_DEBUG_F(F("-> %d available input voltage samples count\r\n"), input_voltage_samples.count);
+    TRACE_DEBUG_F(F("-> %d available input current samples count\r\n"), input_current_samples.count);
   }
 
+  // Default value to RMAP Limit error value
   report.avg_battery_charge = RMAPDATA_MAX;
   report.avg_battery_charge_quality = RMAPDATA_MAX;
   report.avg_battery_voltage = RMAPDATA_MAX;
@@ -302,45 +364,30 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   report.avg_input_current = RMAPDATA_MAX;
   report.avg_input_current_quality = RMAPDATA_MAX;
 
-  if (report_time_s && observation_time_s)
-  {
-    TRACE_INFO_F(F("Making report on %d seconds\r\n"), report_time_s);
-    TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
-    TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d available battery charge samples count\r\n"), battery_charge_samples.count);
-    TRACE_DEBUG_F(F("-> %d available battery voltage samples count\r\n"), battery_voltage_samples.count);
-    TRACE_DEBUG_F(F("-> %d available battery current samples count\r\n"), battery_current_samples.count);
-    TRACE_DEBUG_F(F("-> %d available input voltage samples count\r\n"), input_voltage_samples.count);
-    TRACE_DEBUG_F(F("-> %d available input current samples count\r\n"), input_current_samples.count);
-  }
-
+  // Ptr for maintenance
+  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+  // Ptr for value sample
   bufferPtrResetBack<sample_t, uint16_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&input_current_samples, SAMPLES_COUNT_MAX);
 
-  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-  // align all sensor's data to last common acquired sample
+  // align all sensor's data to last common acquired sample (miantenance is always first data add into queue)
+  // ALign with last maintenance record pointer
   uint16_t samples_count = battery_charge_samples.count;
-
   if (battery_voltage_samples.count < samples_count)
   {
     samples_count = battery_voltage_samples.count;
   }
-
   if (battery_current_samples.count < samples_count)
   {
     samples_count = battery_current_samples.count;
   }
-
   if (input_voltage_samples.count < samples_count)
   {
     samples_count = input_voltage_samples.count;
   }
-
   if (input_current_samples.count < samples_count)
   {
     samples_count = input_current_samples.count;
@@ -352,276 +399,243 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < battery_voltage_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < battery_current_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < input_voltage_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < input_current_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
   }
 
-  // it's a report request
-  if (report_time_s && observation_time_s)
+  // it's a simple istant or report request?
+  if (report_time_s == 0)
   {
-    for (uint16_t i = 0; i < battery_charge_samples.count; i++)
-    {
-      battery_charge = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      if (!measures_maintenance)
-      {
-        avg_battery_charge_quality += (rmapdata_t)((checkMppt(battery_charge) - avg_battery_charge_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(battery_charge))
-        {
-          valid_count_battery_charge++;
-          avg_battery_charge += (rmapdata_t)((avg_battery_charge - battery_charge) / valid_count_battery_charge);
-        }
-        else
-        {
-          error_count_battery_charge++;
-        }
-      }
-
-      battery_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      if (!measures_maintenance)
-      {
-        avg_battery_voltage_quality += (rmapdata_t)((checkMppt(battery_voltage) - avg_battery_voltage_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(battery_voltage))
-        {
-          valid_count_battery_voltage++;
-          avg_battery_voltage += (rmapdata_t)((avg_battery_voltage - battery_voltage) / valid_count_battery_voltage);
-        }
-        else
-        {
-          error_count_battery_voltage++;
-        }
-      }
-
-      battery_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      if (!measures_maintenance)
-      {
-        avg_battery_current_quality += (rmapdata_t)((checkMppt(battery_current) - avg_battery_current_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(battery_current))
-        {
-          valid_count_battery_current++;
-          avg_battery_current += (rmapdata_t)((avg_battery_current - battery_current) / valid_count_battery_current);
-        }
-        else
-        {
-          error_count_battery_current++;
-        }
-      }
-
-      input_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      if (!measures_maintenance)
-      {
-        avg_input_voltage_quality += (rmapdata_t)((checkMppt(input_voltage) - avg_input_voltage_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(input_voltage))
-        {
-          valid_count_input_voltage++;
-          avg_input_voltage += (rmapdata_t)((avg_input_voltage - input_voltage) / valid_count_input_voltage);
-        }
-        else
-        {
-          error_count_input_voltage++;
-        }
-      }
-
-      input_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      if (!measures_maintenance)
-      {
-        avg_input_current_quality += (rmapdata_t)((checkMppt(input_current) - avg_input_current_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(input_current))
-        {
-          valid_count_input_current++;
-          avg_input_current += (rmapdata_t)((avg_input_current - input_current) / valid_count_input_current);
-        }
-        else
-        {
-          error_count_input_current++;
-        }
-      }
-    }
-
-    error_battery_charge_per = (float)(error_count_battery_charge) / (float)(battery_charge_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d battery charge error (%d%%)\r\n"), error_count_battery_charge, (int32_t)error_battery_charge_per);
-
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    if (battery_charge_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_battery_charge && (error_battery_charge_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_battery_charge_o++;
-
-        avg_battery_charge_o += (rmapdata_t)((avg_battery_charge - avg_battery_charge_o) / valid_count_battery_charge_o);
-        avg_battery_charge_quality_o += (rmapdata_t)((avg_battery_charge_quality - avg_battery_charge_quality_o) / (valid_count_battery_charge_o + error_count_battery_charge_o));
-      }
-      else
-      {
-        error_count_battery_charge_o++;
-      }
-
-      error_battery_charge_per_o = (float)(error_count_battery_charge_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d battery charge observation error (%d%%)\r\n"), error_count_battery_charge_o, (int32_t)error_battery_charge_per_o);
-
-      if (valid_count_battery_charge_o && (error_battery_voltage_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.avg_battery_charge = avg_battery_charge_o;
-        report.avg_battery_charge_quality = avg_battery_charge_quality_o;
-      }
-    }
-
-    error_battery_voltage_per = (float)(error_count_battery_voltage) / (float)(battery_voltage_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d battery voltage error (%d%%)\r\n"), error_count_battery_voltage, (int32_t)error_battery_voltage_per);
-
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    if (battery_voltage_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_battery_voltage && (error_battery_voltage_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_battery_voltage_o++;
-
-        avg_battery_voltage_o += (rmapdata_t)((avg_battery_voltage - avg_battery_voltage_o) / valid_count_battery_voltage_o);
-        avg_battery_voltage_quality_o += (rmapdata_t)((avg_battery_voltage_quality - avg_battery_voltage_quality_o) / (valid_count_battery_voltage_o + error_count_battery_voltage_o));
-      }
-      else
-      {
-        error_count_battery_voltage_o++;
-      }
-
-      error_battery_voltage_per_o = (float)(error_count_battery_voltage_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d battery voltage observation error (%d%%)\r\n"), error_count_battery_voltage_o, (int32_t)error_battery_voltage_per_o);
-
-      if (valid_count_battery_voltage_o && (error_battery_voltage_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.avg_battery_voltage = avg_battery_voltage_o;
-        report.avg_battery_voltage_quality = avg_battery_voltage_quality_o;
-      }
-    }
-
-    error_battery_current_per = (float)(error_count_battery_current) / (float)(battery_current_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), error_count_battery_current, (int32_t)error_battery_current_per);
-
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    if (battery_current_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_battery_current && (error_battery_current_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_battery_current_o++;
-
-        avg_battery_current_o += (rmapdata_t)((avg_battery_current - avg_battery_current_o) / valid_count_battery_current_o);
-        avg_battery_current_quality_o += (rmapdata_t)((avg_battery_current_quality - avg_battery_current_quality_o) / (valid_count_battery_current_o + error_count_battery_current_o));
-      }
-      else
-      {
-        error_count_battery_current_o++;
-      }
-
-      error_battery_current_per_o = (float)(error_count_battery_current_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d battery current observation error (%d%%)\r\n"), error_count_battery_current_o, (int32_t)error_battery_current_per_o);
-
-      if (valid_count_battery_current_o && (error_battery_current_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.avg_battery_current = avg_battery_current_o;
-        report.avg_battery_current_quality = avg_battery_current_quality_o;
-      }
-    }
-
-    error_input_voltage_per = (float)(error_count_input_voltage) / (float)(input_voltage_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), error_count_input_voltage, (int32_t)error_input_voltage_per);
-
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    if (input_voltage_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_input_voltage && (error_input_voltage_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_input_voltage_o++;
-
-        avg_input_voltage_o += (rmapdata_t)((avg_input_voltage - avg_input_voltage_o) / valid_count_input_voltage_o);
-        avg_input_voltage_quality_o += (rmapdata_t)((avg_input_voltage_quality - avg_input_voltage_quality_o) / (valid_count_input_voltage_o + error_count_input_voltage_o));
-      }
-      else
-      {
-        error_count_input_voltage_o++;
-      }
-
-      error_input_voltage_per_o = (float)(error_count_input_voltage_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d input voltage observation error (%d%%)\r\n"), error_count_input_voltage_o, (int32_t)error_input_voltage_per_o);
-
-      if (valid_count_input_voltage_o && (error_input_voltage_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.avg_input_voltage = avg_input_voltage_o;
-        report.avg_input_voltage_quality = avg_input_voltage_quality_o;
-      }
-    }
-
-    error_input_current_per = (float)(error_count_input_current) / (float)(input_current_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), error_count_input_current, (int32_t)error_input_current_per);
-
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    if (input_current_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_input_current && (error_input_current_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_input_current_o++;
-
-        avg_input_current_o += (rmapdata_t)((avg_input_current - avg_input_current_o) / valid_count_input_current_o);
-        avg_input_current_quality_o += (rmapdata_t)((avg_input_current_quality - avg_input_current_quality_o) / (valid_count_input_current_o + error_count_input_current_o));
-      }
-      else
-      {
-        error_count_input_current_o++;
-      }
-
-      error_input_current_per_o = (float)(error_count_input_current_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d input current observation error (%d%%)\r\n"), error_count_input_current_o, (int32_t)error_input_current_per_o);
-
-      if (valid_count_input_current_o && (error_input_current_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.avg_input_current = avg_input_current_o;
-        report.avg_input_current_quality = avg_input_current_quality_o;
-      }
-    }
+    // Make last data value to Get Istant show value
+    report.avg_battery_charge = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
+    report.avg_battery_charge_quality = (rmapdata_t)checkMppt_P_Chg(report.avg_battery_charge);
+    report.avg_battery_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
+    report.avg_battery_voltage_quality = (rmapdata_t)checkMppt_V_Bat(report.avg_battery_voltage);
+    report.avg_battery_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
+    report.avg_battery_current_quality = (rmapdata_t)checkMppt_I_Bat(report.avg_battery_current);
+    report.avg_input_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
+    report.avg_input_voltage_quality = (rmapdata_t)checkMppt_V_In(report.avg_input_voltage);
+    report.avg_input_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
+    report.avg_input_current_quality = (rmapdata_t)checkMppt_I_In(report.avg_input_current);
   }
-  // it's a sample request
   else
   {
+    // Make a report complete (try with all sample present)
+    for (uint16_t i = 0; i < battery_charge_samples.count; i++)
+    {
+      // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
+      if(n_sample >= report_sample_count) break;
+      // Get base operation for any record...
+      n_sample++; // Elaborate next sample... (Initzialize with 0, Sample 1 is first. Exit UP if buffer completed)
+      // Check if is an observation
+      is_observation = (n_sample % sample_for_observation) == 0;
+      // Is Maintenance mode? (Excluding measure from elaboration value)
+      // Maintenance is sytemic value for all measure (always pushed into module for excuding value with maintenance)
+      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+      // ***************************************************************************************************
+      // ************* GET SAMPLE VALUE DATA FROM AND CREATE OBSERVATION VALUES FOR TYPE SENSOR ************
+      // ***************************************************************************************************
+      
+      battery_charge_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
+      total_count_battery_charge_s++;
+      avg_battery_charge_quality_s += (float)(((float)checkMppt_P_Chg(battery_charge_s) - avg_battery_charge_quality_s) / total_count_battery_charge_s);
+      if ((ISVALID_RMAPDATA(battery_charge_s)) && !measures_maintenance)
+      {
+        valid_count_battery_charge_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_battery_charge_t++;
+        #endif
+        avg_battery_charge_s += (float)(((float)battery_charge_s - avg_battery_charge_s) / valid_count_battery_charge_s);
+      }
+
+      battery_voltage_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
+      total_count_battery_voltage_s++;
+      avg_battery_voltage_quality_s += (float)(((float)checkMppt_V_Bat(battery_voltage_s) - avg_battery_voltage_quality_s) / total_count_battery_voltage_s);
+      if ((ISVALID_RMAPDATA(battery_voltage_s)) && !measures_maintenance)
+      {
+        valid_count_battery_voltage_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_battery_voltage_t++;
+        #endif
+        avg_battery_voltage_s += (float)(((float)battery_voltage_s - avg_battery_voltage_s) / valid_count_battery_voltage_s);
+      }
+
+      battery_current_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
+      total_count_battery_current_s++;
+      avg_battery_current_quality_s += (float)(((float)checkMppt_I_Bat(battery_current_s) - avg_battery_current_quality_s) / total_count_battery_current_s);
+      if ((ISVALID_RMAPDATA(battery_current_s)) && !measures_maintenance)
+      {
+        valid_count_battery_current_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_battery_current_t++;
+        #endif
+        avg_battery_current_s += (float)(((float)battery_current_s - avg_battery_current_s) / valid_count_battery_current_s);
+      }
+
+      input_voltage_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
+      total_count_input_voltage_s++;
+      avg_input_voltage_quality_s += (float)(((float)checkMppt_V_In(input_voltage_s) - avg_input_voltage_quality_s) / total_count_input_voltage_s);
+      if ((ISVALID_RMAPDATA(input_voltage_s)) && !measures_maintenance)
+      {
+        valid_count_input_voltage_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_input_voltage_t++;
+        #endif
+        avg_input_voltage_s += (float)(((float)input_voltage_s - avg_input_voltage_s) / valid_count_input_voltage_s);
+      }
+
+      input_current_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
+      total_count_input_current_s++;
+      avg_input_current_quality_s += (float)(((float)checkMppt_I_In(input_current_s) - avg_input_current_quality_s) / total_count_input_current_s);
+      if ((ISVALID_RMAPDATA(input_current_s)) && !measures_maintenance)
+      {
+        valid_count_input_current_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_input_current_t++;
+        #endif
+        avg_input_current_s += (float)(((float)input_current_s - avg_input_current_s) / valid_count_input_current_s);
+      }
+
+      // ***************************************************************************************************
+      // ************* ELABORATE OBSERVATION VALUES FOR TYPE SENSOR FOR PREPARE REPORT RESPONSE ************
+      // ***************************************************************************************************
+      if(is_observation) {
+
+        // battery_charge, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_battery_charge_s) / (float)(total_count_battery_charge_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_battery_charge_o++;
+          avg_battery_charge_o += (avg_battery_charge_s - avg_battery_charge_o) / valid_count_battery_charge_o;
+          avg_battery_charge_quality_o += (avg_battery_charge_quality_s - avg_battery_charge_quality_o) / valid_count_battery_charge_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_battery_charge_quality_s = 0;
+        avg_battery_charge_s = 0;
+        valid_count_battery_charge_s = 0;
+        total_count_battery_charge_s = 0;
+
+        // battery_voltage, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_battery_voltage_s) / (float)(total_count_battery_voltage_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_battery_voltage_o++;
+          avg_battery_voltage_o += (avg_battery_voltage_s - avg_battery_voltage_o) / valid_count_battery_voltage_o;
+          avg_battery_voltage_quality_o += (avg_battery_voltage_quality_s - avg_battery_voltage_quality_o) / valid_count_battery_voltage_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_battery_voltage_quality_s = 0;
+        avg_battery_voltage_s = 0;
+        valid_count_battery_voltage_s = 0;
+        total_count_battery_voltage_s = 0;
+
+        // battery_current, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_battery_current_s) / (float)(total_count_battery_current_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_battery_current_o++;
+          avg_battery_current_o += (avg_battery_current_s - avg_battery_current_o) / valid_count_battery_current_o;
+          avg_battery_current_quality_o += (avg_battery_current_quality_s - avg_battery_current_quality_o) / valid_count_battery_current_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_battery_current_quality_s = 0;
+        avg_battery_current_s = 0;
+        valid_count_battery_current_s = 0;
+        total_count_battery_current_s = 0;
+
+        // input_voltage, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_input_voltage_s) / (float)(total_count_input_voltage_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_input_voltage_o++;
+          avg_input_voltage_o += (avg_input_voltage_s - avg_input_voltage_o) / valid_count_input_voltage_o;
+          avg_input_voltage_quality_o += (avg_input_voltage_quality_s - avg_input_voltage_quality_o) / valid_count_input_voltage_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_input_voltage_quality_s = 0;
+        avg_input_voltage_s = 0;
+        valid_count_input_voltage_s = 0;
+        total_count_input_voltage_s = 0;
+
+        // input_current, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_input_current_s) / (float)(total_count_input_current_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_input_current_o++;
+          avg_input_current_o += (avg_input_current_s - avg_input_current_o) / valid_count_input_current_o;
+          avg_input_current_quality_o += (avg_input_current_quality_s - avg_input_current_quality_o) / valid_count_input_current_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_input_current_quality_s = 0;
+        avg_input_current_s = 0;
+        valid_count_input_current_s = 0;
+        total_count_input_current_s = 0;
+
+      }
+    }
+
+    // ***************************************************************************************************
+    // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
+    // ***************************************************************************************************
+
+    valid_data_calc_perc = (float)(valid_count_battery_charge_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d battery charge sample error (%d%%)\r\n"), (n_sample - valid_count_battery_charge_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_charge_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d battery charge observation avaiable (%d%%)\r\n"), valid_count_battery_charge_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      report.avg_battery_charge = (rmapdata_t)avg_battery_charge_o;
+      report.avg_battery_charge_quality = (rmapdata_t)avg_battery_charge_quality_o;
+    }
+
+    valid_data_calc_perc = (float)(valid_count_battery_voltage_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d battery voltage error (%d%%)\r\n"), (n_sample - valid_count_battery_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_voltage_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d battery voltage observation avaiable (%d%%)\r\n"), valid_count_battery_voltage_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      report.avg_battery_voltage = (rmapdata_t)avg_battery_voltage_o;
+      report.avg_battery_voltage_quality = (rmapdata_t)avg_battery_voltage_quality_o;
+    }
+
+    valid_data_calc_perc = (float)(valid_count_battery_current_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), (n_sample - valid_count_battery_current_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_current_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d battery current observation avaiable (%d%%)\r\n"), valid_count_battery_current_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      report.avg_battery_current = (rmapdata_t)avg_battery_current_o;
+      report.avg_battery_current_quality = (rmapdata_t)avg_battery_current_quality_o;
+    }
+
+    valid_data_calc_perc = (float)(valid_count_input_voltage_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d input voltage error (%d%%)\r\n"), (n_sample - valid_count_input_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_input_voltage_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d input voltage observation avaiable (%d%%)\r\n"), valid_count_input_voltage_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      report.avg_input_voltage = (rmapdata_t)avg_input_voltage_o;
+      report.avg_input_voltage_quality = (rmapdata_t)avg_input_voltage_quality_o;
+    }
+
+    valid_data_calc_perc = (float)(valid_count_input_current_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d input current error (%d%%)\r\n"), (n_sample - valid_count_input_current_t), (uint8_t)(((float)n_sample - (float)valid_count_input_current_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d input current observation avaiable (%d%%)\r\n"), valid_count_input_current_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      report.avg_input_current = (rmapdata_t)avg_input_current_o;
+      report.avg_input_current_quality = (rmapdata_t)avg_input_current_quality_o;
+    }
   }
 }
 

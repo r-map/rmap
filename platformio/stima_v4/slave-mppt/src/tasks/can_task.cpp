@@ -1763,6 +1763,27 @@ void CanTask::Run() {
                 break;
         }
 
+        #ifdef TEST_ELABORATE_DATA_REQUEST_RESPONSE
+        uint32_t millis_ok;        
+        if((millis() - millis_ok) > 2000) {
+            millis_ok = millis();
+
+            request_data_t request_data;
+            report_t report;
+
+            request_data.is_init = false;           // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+            request_data.report_time_s = 180;       // richiedo i dati su request secondi
+            request_data.observation_time_s = 60;   // richiedo i dati mediati su request secondi
+
+            // coda di richiesta dati
+            param.requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            // coda di attesa dati (attesa rmap_calc_data)
+            if (param.reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
+                TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
+            }
+        }
+        #endif
+
         #if (ENABLE_STACK_USAGE)
         TaskMonitorStack();
         #endif

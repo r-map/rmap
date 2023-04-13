@@ -85,7 +85,7 @@ using namespace cpp_freertos;
 // Main TASK Switch Delay
 #define CAN_TASK_WAIT_DELAY_MS          (20)
 #define CAN_TASK_WAIT_MAXSPEED_DELAY_MS (1)
-#define CAN_TASK_SLEEP_DELAY_MS         (1250)
+#define CAN_TASK_SLEEP_DELAY_MS         (850)
 
 // Task waiting Semaphore Driver access
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)

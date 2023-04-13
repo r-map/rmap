@@ -84,8 +84,12 @@ bool Mppt::LTC4015_read_register(uint16_t registerinfo, uint16_t *data)
 /// @return V_IN Value converted to V
 float Mppt::get_V_IN(void) {
   uint16_t data;
+  float iBatt = get_I_BAT();
   LTC4015_read_register(LTC4015_VIN, &data);
   float vIn = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
+  if(iBatt>V_REF_A_RCHG) {
+    vIn+=V_REF_V_DCHG;
+  } else if(iBatt>0) vIn+=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
   return vIn;
 }
 
@@ -110,7 +114,6 @@ float Mppt::get_V_BAT(void) {
   if(iBatt>V_REF_A_RCHG) {
     vBatt-=V_REF_V_DCHG;
   } else if(iBatt>0) vBatt-=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
-  if (vBatt<5.00) vBatt = 0;
   return vBatt;
 }
 

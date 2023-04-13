@@ -1,25 +1,32 @@
-/**@file elaborate_data_task.h */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    elaborate_data_task.h
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Elaborate data Task MPPT header file
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #ifndef _ELABORATE_DATA_TASK_H
 #define _ELABORATE_DATA_TASK_H
@@ -42,7 +49,7 @@ using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define ELABORATE_TASK_WAIT_DELAY_MS      (20)
-#define ELABORATE_TASK_SLEEP_DELAY_MS     (1250)
+#define ELABORATE_TASK_SLEEP_DELAY_MS     (850)
 
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
@@ -92,8 +99,13 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
-  uint8_t checkMppt(rmapdata_t main_mppt);
+  void make_report(uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
+
+  uint8_t checkMppt_P_Chg(rmapdata_t data_in);
+  uint8_t checkMppt_V_Bat(rmapdata_t data_in);
+  uint8_t checkMppt_I_Bat(rmapdata_t data_in);
+  uint8_t checkMppt_V_In(rmapdata_t data_in);
+  uint8_t checkMppt_I_In(rmapdata_t data_in);
 
   State_t state;
   ElaborateDataParam_t param;
