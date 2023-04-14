@@ -270,15 +270,13 @@ void HttpTask::Run() {
       TaskMonitorStack();
       #endif
 
-      getStimaNameByType(module_type, param.configuration->module_type, 7);
-
       if (is_get_configuration)
       {
         snprintf(uri, sizeof(uri), "/stationconfig/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug);
       }
       else if (is_get_firmware)
       {
-        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", module_type);
+        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%u/", param.configuration->module_type);
       }
 
       TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
