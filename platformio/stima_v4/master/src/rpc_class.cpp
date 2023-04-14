@@ -93,14 +93,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
   {
     if (strcmp(it.key().c_str(), "fdownload") == 0)
     {
-      // download new firmware
-      if (it.value().as<bool>() == true)
-      {
-      }
-    }
-    if (strcmp(it.key().c_str(), "fupload") == 0)
-    {
-      // upload new firmware
+      // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
       }
@@ -1143,8 +1136,8 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 
   for (JsonPair it : params)
   {
-    // loop in params
-    if (strcmp(it.key().c_str(), "update") == 0)
+    // do the firmware update on all of the boards
+    if (strcmp(it.key().c_str(), "fupdate") == 0)
     {
       if (it.value().as<bool>() == true)
       {
