@@ -148,7 +148,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define POWER_INPUT_VOLTAGE_INDEX         (3)
 #define POWER_INPUT_CURRENT_INDEX         (4)
 
-// TODO:_TH_RAIN_
 // Limit range for module sensor
 #define MAX_VALID_POWER_MPPT_VBAT         (15.0)
 #define MIN_VALID_POWER_MPPT_VBAT         (7.0)

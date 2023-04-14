@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
   * @file    elaborate_data_task.cpp
-  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   Elaborate data Task MPPT source file
+  * @brief   Elaborate data sensor to CAN source file
   ******************************************************************************
   * @attention
   *

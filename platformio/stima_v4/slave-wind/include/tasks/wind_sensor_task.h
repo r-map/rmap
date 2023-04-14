@@ -53,8 +53,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <Wire.h>
 #endif
 
-// TODO:_TH_RAIN_
-// #include "SensorDriver.h"
 #include "debug_F.h"
 
 using namespace cpp_freertos;

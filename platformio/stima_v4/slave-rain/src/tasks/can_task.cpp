@@ -689,7 +689,6 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
-          // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
             prepareSensorsDataValue(canardClass::Sensor_Type::tbm, &report, &resp);

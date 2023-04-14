@@ -202,7 +202,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   report.quality = checkRain();
   if (is_init)
   {
-    // Effettuo il reset nel task rain (event = false) No Event of Rain. (Other Request)
+    // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
     bool edata = false;
     param.rainDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
   }

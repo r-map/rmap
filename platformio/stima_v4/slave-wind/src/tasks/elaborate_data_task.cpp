@@ -101,10 +101,9 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
-  //TODO:_TH_RAIN_
+  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -179,14 +178,18 @@ void ElaborateDataTask::Run() {
   }
 }
 
-// TODO:_TH_RAIN Implement function se necessario
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkWindSpeed(rmapdata_t speed) {
   // Optional check quality data function
   uint8_t quality = 100;
   return quality;
 }
 
-// TODO:_TH_RAIN Implement function se necessario
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkWindDirection(rmapdata_t direction) {
   // Optional check quality data function
   uint8_t quality = 100;

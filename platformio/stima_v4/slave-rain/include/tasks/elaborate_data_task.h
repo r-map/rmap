@@ -49,7 +49,7 @@ using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define ELABORATE_TASK_WAIT_DELAY_MS      (20)
-#define ELABORATE_TASK_SLEEP_DELAY_MS     (1250)
+#define ELABORATE_TASK_SLEEP_DELAY_MS     (850)
 
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
@@ -90,7 +90,6 @@ public:
 
 protected:
   virtual void Run();
-
 
 private:
 

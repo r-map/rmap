@@ -35,8 +35,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
-// TODO:_TH_RAIN_
-// #include "SensorDriver.h"
 
 // Register EEprom
 #include "register_class.hpp"

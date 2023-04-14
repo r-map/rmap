@@ -150,12 +150,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define RAIN_FULL_INDEX                   (2)
 #define RAIN_RESET_INDEX                  (3)
 
-// TODO:_TH_RAIN_
 // Limit range for module sensor
 #define MAX_VALID_RAIN                    (1000.0)
 #define MIN_VALID_RAIN                    (0.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
 #endif

@@ -28,7 +28,6 @@
   ******************************************************************************
 */
 
-
 #define TRACE_LEVEL     RAIN_SENSOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SENSOR_TASK_ID
 
@@ -178,11 +177,11 @@ void RainSensorTask::Run() {
       if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
       {
         rain.tips_count++;
-        // Add Value if system is not in maintenance mode
+        // !!! Add Value if system is not in maintenance mode
         if(!param.system_status->flags.is_maintenance) {
           rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
         }
-        // Full rain excluding maintenance_mode
+        // Full rain excluding maintenance_mode ( to see into display... )
         rain.rain_full = rain.tips_count * param.configuration->sensors.rain_for_tip;
         TRACE_INFO_F(F("Sensor: Rain tips count: %d\r\n"), rain.tips_count);
       }
@@ -239,7 +238,7 @@ void RainSensorTask::ISR_tipping_bucket() {
     detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
     bool flags = true;
     BaseType_t pxHigherPTW = true;
-    //  enable Tipping bucket task
+    // enable Tipping bucket task queue
     localRainQueue->EnqueueFromISR(&flags, &pxHigherPTW);
   }
 }

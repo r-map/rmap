@@ -354,7 +354,6 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @param rmap_data report data module output value per modulo sensore specifico publish
 ///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
 /// @return None
-/// TODO:_TH_RAIN (Sistemare report/connfidence/values...)
 /// Controllo ElaborateData report!!! .... Corretto sensore...
 void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Power_1_0 *rmap_data) {
     // Inserisco i dati reali
@@ -684,7 +683,6 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
-          // TODO:_TH_RAIN
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
             prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report, &resp);

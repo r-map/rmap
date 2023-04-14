@@ -43,15 +43,13 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
-// TODO:_TH_RAIN_
-// #include "SensorDriver.h"
 
 // Register EEprom
 #include "register_class.hpp"
 
 // Main TASK Switch Delay
 #define SUPERVISOR_TASK_WAIT_DELAY_MS     (20)
-#define SUPERVISOR_TASK_SLEEP_DELAY_MS    (1250)
+#define SUPERVISOR_TASK_SLEEP_DELAY_MS    (850)
 
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)

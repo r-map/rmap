@@ -952,7 +952,6 @@ bool canardClass::flag::is_requested_system_restart(void) {
 void canardClass::flag::request_sleep(void) {
     // Con inibizione, non permetto lo sleep del modulo
     if(_inibith_sleep) return;
-    // TODO:
     // Eseguo la procedura di messa in sleep del modulo
     // Variabili, HW CAN ecc... alla fine setto la var di entrata in sleep
     _enter_sleep = true;

@@ -317,7 +317,6 @@ void EERegister::setup(void)
 
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
-    // TODO: Default a CAN_BIT_RATE, se CAN_BIT_RATE <> readRegister setup bxCAN con nuovo RATE hot reload
     uavcan_register_Value_1_0_select_natural32_(&val);
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;

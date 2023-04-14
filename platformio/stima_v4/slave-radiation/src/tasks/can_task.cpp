@@ -354,7 +354,6 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @param rmap_data report data module output value per modulo sensore specifico publish
 ///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
 /// @return None
-/// TODO:_TH_RAIN (Sistemare report/connfidence/values...)
 /// Controllo ElaborateData report!!! .... Corretto sensore...
 void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Radiation_1_0 *rmap_data) {
     // Inserisco i dati reali

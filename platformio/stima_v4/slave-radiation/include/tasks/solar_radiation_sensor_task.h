@@ -66,8 +66,6 @@
 #include <Wire.h>
 #endif
 
-// TODO:_TH_RAIN_
-// #include "SensorDriver.h"
 #include "debug_F.h"
 
 using namespace cpp_freertos;
@@ -119,8 +117,6 @@ private:
 
   State_t state;
   SolarRadiationSensorParam_t param;
-  //TODO:_TH_RAIN_
-  //SensorDriver *sensors[SENSORS_COUNT_MAX];
 };
 
 #endif
