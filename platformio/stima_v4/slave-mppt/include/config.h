@@ -155,8 +155,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MAX_VALID_POWER_MPPT_IBAT         (10.0)
 #define MIN_VALID_POWER_MPPT_IBAT         (-2.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MIN       (50.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MIN  (50.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
 #define POWER_BATTERY_VOLTAGE_MULT        (10)
 #define POWER_INPUT_VOLTAGE_MULT          (10)

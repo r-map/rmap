@@ -101,11 +101,11 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
+  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -146,8 +146,8 @@ void ElaborateDataTask::Run() {
         {
         case TEMPERATURE_MAIN_INDEX:
           TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
-          addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+          addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
 
         case TEMPERATURE_REDUNDANT_INDEX:
@@ -190,6 +190,9 @@ void ElaborateDataTask::Run() {
   }
 }
 
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
   uint8_t quality = 0;
 
@@ -247,6 +250,9 @@ uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdat
   return quality;
 }
 
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
   uint8_t quality = 0;
 
@@ -301,111 +307,108 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
   return quality;
 }
 
+/// @brief Create a report from buffered sample
+/// @param report_time_s Report time for the calc
+/// @param observation_time_s Observation time for the calc
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  rmapdata_t main_temperature = 0;
-  rmapdata_t redundant_temperature = 0;
 
-  rmapdata_t main_humidity = 0;
-  rmapdata_t redundant_humidity = 0;
+  // Generic and shared var
+  bool measures_maintenance = false;  // Maintenance mode?
+  float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
+  bool is_observation = false;        // Is an observation (when calculate is requested)
+  uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
 
-  bool measures_maintenance = false;
+  // Elaborate suffix description: _s(sample) _o(observation) _t(total) [Optional for debug]
 
-  uint16_t valid_count_temperature = 0;
-  uint16_t error_count_temperature = 0;
-  float error_temperature_per = 0;
+  // Elaboration main_temperature
+  rmapdata_t main_temperature_s = 0;
+  float avg_main_temperature_s = 0;
+  float avg_main_temperature_o = 0;
+  float min_main_temperature_o = 0;
+  float max_main_temperature_o = 0;
+  float avg_main_temperature_quality_s = 0;
+  float avg_main_temperature_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_main_temperature_t = 0;
+  #endif
+  uint16_t valid_count_main_temperature_s = 0;
+  uint16_t total_count_main_temperature_s = 0;
+  uint16_t valid_count_main_temperature_o = 0;
 
-  uint16_t valid_count_humidity = 0;
-  uint16_t error_count_humidity = 0;
-  float error_humidity_per = 0;
+  // Elaboration main_humidity
+  rmapdata_t main_humidity_s = 0;
+  float avg_main_humidity_s = 0;
+  float avg_main_humidity_o = 0;
+  float min_main_humidity_o = 0;
+  float max_main_humidity_o = 0;
+  float avg_main_humidity_quality_s = 0;
+  float avg_main_humidity_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_main_humidity_t = 0;
+  #endif
+  uint16_t valid_count_main_humidity_s = 0;
+  uint16_t total_count_main_humidity_s = 0;
+  uint16_t valid_count_main_humidity_o = 0;
 
-  static uint16_t valid_count_temperature_o;
-  static uint16_t error_count_temperature_o;
-  float error_temperature_per_o = 0;
+  // Var for redundant_sensor
+  rmapdata_t redundant_temperature_s = 0;
+  rmapdata_t redundant_humidity_s = 0;
 
-  static uint16_t valid_count_humidity_o;
-  static uint16_t error_count_humidity_o;
-  float error_humidity_per_o = 0;
-
-  rmapdata_t avg_temperature = 0;
-  rmapdata_t avg_temperature_quality = 0;
-
-  rmapdata_t avg_humidity = 0;
-  rmapdata_t avg_humidity_quality = 0;
-
-  static rmapdata_t avg_temperature_o;
-  static rmapdata_t min_temperature_o;
-  static rmapdata_t max_temperature_o;
-  static rmapdata_t avg_temperature_quality_o;
-
-  static rmapdata_t avg_humidity_o;
-  static rmapdata_t min_humidity_o;
-  static rmapdata_t max_humidity_o;
-  static rmapdata_t avg_humidity_quality_o;
-
+  // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+  uint16_t sample_for_observation = 0;
+  if(report_time_s && observation_sample_count) sample_for_observation = report_sample_count / observation_sample_count;
 
-  if (is_init) {
-    valid_count_temperature_o = 0;
-    error_count_temperature_o = 0;
-
-    valid_count_humidity_o = 0;
-    error_count_humidity_o = 0;
-
-    avg_temperature_o = 0;
-    min_temperature_o = RMAPDATA_MAX;
-    max_temperature_o = RMAPDATA_MIN;
-    avg_temperature_quality_o = 0;
-
-    avg_humidity_o = 0;
-    min_humidity_o = RMAPDATA_MAX;
-    max_humidity_o = RMAPDATA_MIN;
-    avg_humidity_quality_o = 0;
-  }
-
-  report.temperature.ist = RMAPDATA_MAX;
-  report.temperature.min = RMAPDATA_MAX;
-  report.temperature.avg = RMAPDATA_MAX;
-  report.temperature.max = RMAPDATA_MAX;
-  report.temperature.quality = RMAPDATA_MAX;
-
-  report.humidity.ist = RMAPDATA_MAX;
-  report.humidity.min = RMAPDATA_MAX;
-  report.humidity.avg = RMAPDATA_MAX;
-  report.humidity.max = RMAPDATA_MAX;
-  report.humidity.quality = RMAPDATA_MAX;
-
-  if (report_time_s && observation_time_s)
+  // Request to calculate is correct? Trace request
+  if (report_time_s == 0)
   {
-    TRACE_INFO_F(F("Making report on %d seconds\r\n"), report_time_s);
+    // Request an direct sample value for istant measure
+    TRACE_INFO_F(F("Elaborate: Requested an istant value\r\n"));
+  }
+  else
+  {
+    TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
+    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), sample_for_observation);
     TRACE_DEBUG_F(F("-> %d available temperature main samples count\r\n"), temperature_main_samples.count);
     TRACE_DEBUG_F(F("-> %d available temperature redundant samples count\r\n"), temperature_redundant_samples.count);
     TRACE_DEBUG_F(F("-> %d available humidity main samples count\r\n"), humidity_main_samples.count);
     TRACE_DEBUG_F(F("-> %d available humidity redundant samples count\r\n"), humidity_redundant_samples.count);
   }
 
+  // Default value to RMAP Limit error value
+  report.temperature.ist = RMAPDATA_MAX;
+  report.temperature.min = RMAPDATA_MAX;
+  report.temperature.avg = RMAPDATA_MAX;
+  report.temperature.max = RMAPDATA_MAX;
+  report.temperature.quality = RMAPDATA_MAX;
+  report.humidity.ist = RMAPDATA_MAX;
+  report.humidity.min = RMAPDATA_MAX;
+  report.humidity.avg = RMAPDATA_MAX;
+  report.humidity.max = RMAPDATA_MAX;
+  report.humidity.quality = RMAPDATA_MAX;
+
+  // Ptr for maintenance
+  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+  // Ptr for value sample
   bufferPtrResetBack<sample_t, uint16_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-  bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
-  // align all sensor's data to last common acquired sample
+  // Align all sensor's data to last common acquired sample (miantenance is always first data add into queue)
+  // Align with last maintenance record pointer
   uint16_t samples_count = temperature_main_samples.count;
-
   if (temperature_redundant_samples.count < samples_count)
   {
     samples_count = temperature_redundant_samples.count;
   }
-
   if (humidity_main_samples.count < samples_count)
   {
     samples_count = humidity_main_samples.count;
   }
-
   if (humidity_redundant_samples.count < samples_count)
   {
     samples_count = humidity_redundant_samples.count;
@@ -414,203 +417,468 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // flush all data that is not aligned
   for (uint16_t i = samples_count; i < temperature_main_samples.count; i++)
   {
-    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < temperature_redundant_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < humidity_main_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   }
-
   for (uint16_t i = samples_count; i < humidity_redundant_samples.count; i++)
   {
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
   }
 
-  // it's a report request
-  if (report_time_s && observation_time_s)
+  // it's a simple istant or report request?
+  if (report_time_s == 0)
   {
-    for (uint16_t i = 0; i < temperature_main_samples.count; i++)
-    {
-      main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-
-      #if (USE_REDUNDANT_SENSOR)
-      redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
-      #endif
-
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      // last sample
-      if (i == 0)
-      {
-        report.temperature.sample = main_temperature;
-      }
-
-      // module in maintenance: ist, min, avg, max data it were not calculated
-      if (!measures_maintenance)
-      {
-        avg_temperature_quality += (rmapdata_t)((checkTemperature(main_temperature, redundant_temperature) - avg_temperature_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(main_temperature))
-        {
-          valid_count_temperature++;
-          avg_temperature += (rmapdata_t)((main_temperature - avg_temperature) / valid_count_temperature);
-        }
-        else
-        {
-          error_count_temperature++;
-        }
-      }
-    }
-
-    error_temperature_per = (float)(error_count_temperature) / (float)(temperature_main_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d temperature samples error (%d%%)\r\n"), error_count_temperature, (int32_t)error_temperature_per);
-
-    // x MARCO
-    // TODO: Verify Reset buffer maintenance se corretto qua ......
-    // TODO: Verify soot e sopra ... for i..humidity samples.count o sensor_count allineato???
-    // TODO: all'inizio c'e sempre un valore MIN a 0 di TP e UR se rihiesta è senza init
-    // Non mi è chiaro a capire cosa è giusto chiedere dal master (init o no?)
-    // Non capisco la differenza per avere il dato corrente o il dato complessivo da registrare
-    // Io ho previsto 3 comandi 1 chè è solo il sample (x visualizzazione display == OK)
-    // Gli altri due 1 per avere il dato corrente attuale e l'altro per il dato calcolato
-    // alla fine con richiesta valore e reinizializzazione per nuovo calcolo...
-    bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-    // humidity samples
-    for (uint16_t i = 0; i < humidity_main_samples.count; i++)
-    {
-      main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
-
-      #if (USE_REDUNDANT_SENSOR)
-      redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
-      #endif
-
-      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-
-      // last sample
-      if (i == 0)
-      {
-        report.humidity.sample = main_humidity;
-      }
-
-      // module in maintenance: ist, min, avg, max data it were not calculated
-      if (!measures_maintenance)
-      {
-
-        avg_humidity_quality += (rmapdata_t)((checkHumidity(main_humidity, redundant_humidity) - avg_humidity_quality) / (i + 1));
-
-        if (ISVALID_RMAPDATA(main_humidity))
-        {
-          valid_count_humidity++;
-          avg_humidity += (rmapdata_t)((main_humidity - avg_humidity) / valid_count_humidity);
-        }
-        else
-        {
-          error_count_humidity++;
-        }
-      }
-    }
-
-    error_humidity_per = (float)(error_count_humidity) / (float)(humidity_main_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d humidity samples error (%d%%)\r\n"), error_count_humidity, (int32_t)error_humidity_per);
-
-    // temperature
-    if (temperature_main_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_temperature && (error_temperature_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_temperature_o++;
-
-        avg_temperature_o += (rmapdata_t)((avg_temperature - avg_temperature_o) / valid_count_temperature_o);
-
-        avg_temperature_quality_o += (rmapdata_t)((avg_temperature_quality - avg_temperature_quality_o) / (valid_count_temperature_o + error_count_temperature_o));
-
-        if (avg_temperature <= min_temperature_o)
-        {
-          min_temperature_o = avg_temperature;
-        }
-
-        if (avg_temperature >= max_temperature_o)
-        {
-          max_temperature_o = avg_temperature;
-        }
-      }
-      else
-      {
-        error_count_temperature_o++;
-      }
-
-      error_temperature_per_o = (float)(error_count_temperature_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d temperature observation error (%d%%)\r\n"), error_count_temperature_o, (int32_t)error_temperature_per_o);
-
-      if (valid_count_temperature_o && (error_temperature_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.temperature.ist = avg_temperature;
-        report.temperature.min = min_temperature_o;
-        report.temperature.avg = avg_temperature_o;
-        report.temperature.max = max_temperature_o;
-        report.temperature.quality = avg_temperature_quality_o;
-      }
-    }
-
-    // humidity
-    if (humidity_main_samples.count >= observation_sample_count)
-    {
-      // sufficient number of valid samples
-      if (valid_count_humidity && (error_humidity_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
-      {
-        valid_count_humidity_o++;
-
-        avg_humidity_o += (rmapdata_t)((avg_humidity - avg_humidity_o) / valid_count_humidity_o);
-
-        avg_humidity_quality_o += (rmapdata_t)((avg_humidity_quality - avg_humidity_quality_o) / (valid_count_humidity_o + error_count_humidity_o));
-
-        if (avg_humidity <= min_humidity_o)
-        {
-          min_humidity_o = avg_humidity;
-        }
-
-        if (avg_humidity >= max_humidity_o)
-        {
-          max_humidity_o = avg_humidity;
-        }
-      }
-      else
-      {
-        error_count_humidity_o++;
-      }
-
-      error_humidity_per_o = (float)(error_count_humidity_o) / (float)(observation_sample_count)*100.0;
-      TRACE_DEBUG_F(F("-> %d humidity observation error (%d%%)\r\n"), error_count_humidity_o, (int32_t)error_humidity_per_o);
-
-      if (valid_count_humidity_o && (error_humidity_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
-      {
-        report.humidity.ist = avg_humidity;
-        report.humidity.min = min_humidity_o;
-        report.humidity.avg = avg_humidity_o;
-        report.humidity.max = max_humidity_o;
-        report.humidity.quality = avg_humidity_quality_o;
-      }
-    }
-
-    TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.temperature.sample, (int32_t)report.temperature.ist, (int32_t)report.temperature.min, (int32_t)report.temperature.avg, (int32_t)report.temperature.max, (int32_t)report.temperature.quality);
-    TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
-  }
-  // it's a sample request
-  else
-  {
+    // Make last data value to Get Istant show value
     report.temperature.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
     report.humidity.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   }
+  else
+  {
+    // Make a report complete (try with all sample present aligned)
+    for (uint16_t i = 0; i < samples_count; i++)
+    {
+      // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
+      if(n_sample >= report_sample_count) break;
+      // Get base operation for any record...
+      n_sample++; // Elaborate next sample... (Initzialize with 0, Sample 1 is first. Exit UP if buffer completed)
+      // Check if is an observation
+      is_observation = (n_sample % sample_for_observation) == 0;
+      // Is Maintenance mode? (Excluding measure from elaboration value)
+      // Maintenance is sytemic value for all measure (always pushed into module for excuding value with maintenance)
+      measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+      // ***************************************************************************************************
+      // ************* GET SAMPLE VALUE DATA FROM AND CREATE OBSERVATION VALUES FOR TYPE SENSOR ************
+      // ***************************************************************************************************
+
+      main_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+      #if (USE_REDUNDANT_SENSOR)
+      redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+      #endif
+      if (i == 0) report.temperature.sample = main_temperature_s; // Elaboration sample -> Last data
+      total_count_main_temperature_s++;
+      avg_main_temperature_quality_s += (float)(((float)checkTemperature(main_temperature_s, redundant_temperature_s) - avg_main_temperature_quality_s) / total_count_main_temperature_s);
+      if ((ISVALID_RMAPDATA(main_temperature_s)) && !measures_maintenance)
+      {
+        valid_count_main_temperature_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_main_temperature_t++;
+        #endif
+        avg_main_temperature_s += (float)(((float)main_temperature_s - avg_main_temperature_s) / valid_count_main_temperature_s);
+      }
+
+      main_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+      #if (USE_REDUNDANT_SENSOR)
+      redundant_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+      #endif
+      if (i == 0) report.humidity.sample = main_humidity_s; // Elaboration sample -> Last data
+      total_count_main_humidity_s++;
+      avg_main_humidity_quality_s += (float)(((float)checkHumidity(main_humidity_s, redundant_humidity_s) - avg_main_humidity_quality_s) / total_count_main_humidity_s);
+      if ((ISVALID_RMAPDATA(main_humidity_s)) && !measures_maintenance)
+      {
+        valid_count_main_humidity_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_main_humidity_t++;
+        #endif
+        avg_main_humidity_s += (float)(((float)main_humidity_s - avg_main_humidity_s) / valid_count_main_humidity_s);
+      }
+
+      // ***************************************************************************************************
+      // ************* ELABORATE OBSERVATION VALUES FOR TYPE SENSOR FOR PREPARE REPORT RESPONSE ************
+      // ***************************************************************************************************
+      if(is_observation) {
+
+        // main_temperature, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_main_temperature_s) / (float)(total_count_main_temperature_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_main_temperature_o++;
+          avg_main_temperature_o += (avg_main_temperature_s - avg_main_temperature_o) / valid_count_main_temperature_o;
+          avg_main_temperature_quality_o += (avg_main_temperature_quality_s - avg_main_temperature_quality_o) / valid_count_main_temperature_o;
+          // Elaboration MIN and MAX for observation
+          if(avg_main_temperature_o < min_main_temperature_o) min_main_temperature_o = avg_main_temperature_o;
+          if(avg_main_temperature_o > max_main_temperature_o) max_main_temperature_o = avg_main_temperature_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_main_temperature_quality_s = 0;
+        avg_main_temperature_s = 0;
+        valid_count_main_temperature_s = 0;
+        total_count_main_temperature_s = 0;
+
+        // main_humidity, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_main_humidity_s) / (float)(total_count_main_humidity_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_main_humidity_o++;
+          avg_main_humidity_o += (avg_main_humidity_s - avg_main_humidity_o) / valid_count_main_humidity_o;
+          avg_main_humidity_quality_o += (avg_main_humidity_quality_s - avg_main_humidity_quality_o) / valid_count_main_humidity_o;
+          // Elaboration MIN and MAX for observation
+          if(avg_main_humidity_o < min_main_humidity_o) min_main_humidity_o = avg_main_humidity_o;
+          if(avg_main_humidity_o > max_main_humidity_o) max_main_humidity_o = avg_main_humidity_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_main_humidity_quality_s = 0;
+        avg_main_humidity_s = 0;
+        valid_count_main_humidity_s = 0;
+        total_count_main_humidity_s = 0;
+
+      }
+    }
+
+    // ***************************************************************************************************
+    // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
+    // ***************************************************************************************************
+
+    // temperature, elaboration final
+    valid_data_calc_perc = (float)(valid_count_main_temperature_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d temperature sample error (%d%%)\r\n"), (n_sample - valid_count_main_temperature_t), (uint8_t)(((float)n_sample - (float)valid_count_main_temperature_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d temperature observation avaiable (%d%%)\r\n"), valid_count_main_temperature_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      // report.temperature.ist (already assigned)
+      report.temperature.avg = (rmapdata_t)avg_main_temperature_o;
+      report.temperature.min = (rmapdata_t)min_main_temperature_o;
+      report.temperature.max = (rmapdata_t)max_main_temperature_o;
+      report.temperature.quality = (rmapdata_t)avg_main_temperature_quality_o;
+    }
+
+    // humidity, elaboration final
+    valid_data_calc_perc = (float)(valid_count_main_humidity_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d humidity sample error (%d%%)\r\n"), (n_sample - valid_count_main_humidity_t), (uint8_t)(((float)n_sample - (float)valid_count_main_humidity_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d humidity observation avaiable (%d%%)\r\n"), valid_count_main_humidity_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      // report.humidity.ist (already assigned)
+      report.humidity.avg = (rmapdata_t)avg_main_humidity_o;
+      report.humidity.min = (rmapdata_t)min_main_humidity_o;
+      report.humidity.max = (rmapdata_t)max_main_humidity_o;
+      report.humidity.quality = (rmapdata_t)avg_main_humidity_quality_o;
+    }
+
+    // Trace report final
+    TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.temperature.sample, (int32_t)report.temperature.ist, (int32_t)report.temperature.min, (int32_t)report.temperature.avg, (int32_t)report.temperature.max, (int32_t)report.temperature.quality);
+    TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+  }
 }
+
+// void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
+//   rmapdata_t main_temperature = 0;
+//   rmapdata_t redundant_temperature = 0;
+
+//   rmapdata_t main_humidity = 0;
+//   rmapdata_t redundant_humidity = 0;
+
+//   bool measures_maintenance = false;
+
+//   uint16_t valid_count_temperature = 0;
+//   uint16_t error_count_temperature = 0;
+//   float error_temperature_per = 0;
+
+//   uint16_t valid_count_humidity = 0;
+//   uint16_t error_count_humidity = 0;
+//   float error_humidity_per = 0;
+
+//   static uint16_t valid_count_temperature_o;
+//   static uint16_t error_count_temperature_o;
+//   float error_temperature_per_o = 0;
+
+//   static uint16_t valid_count_humidity_o;
+//   static uint16_t error_count_humidity_o;
+//   float error_humidity_per_o = 0;
+
+//   rmapdata_t avg_temperature = 0;
+//   rmapdata_t avg_temperature_quality = 0;
+
+//   rmapdata_t avg_humidity = 0;
+//   rmapdata_t avg_humidity_quality = 0;
+
+//   static rmapdata_t avg_temperature_o;
+//   static rmapdata_t min_temperature_o;
+//   static rmapdata_t max_temperature_o;
+//   static rmapdata_t avg_temperature_quality_o;
+
+//   static rmapdata_t avg_humidity_o;
+//   static rmapdata_t min_humidity_o;
+//   static rmapdata_t max_humidity_o;
+//   static rmapdata_t avg_humidity_quality_o;
+
+//   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+//   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+
+//   if (is_init) {
+//     valid_count_temperature_o = 0;
+//     error_count_temperature_o = 0;
+
+//     valid_count_humidity_o = 0;
+//     error_count_humidity_o = 0;
+
+//     avg_temperature_o = 0;
+//     min_temperature_o = RMAPDATA_MAX;
+//     max_temperature_o = RMAPDATA_MIN;
+//     avg_temperature_quality_o = 0;
+
+//     avg_humidity_o = 0;
+//     min_humidity_o = RMAPDATA_MAX;
+//     max_humidity_o = RMAPDATA_MIN;
+//     avg_humidity_quality_o = 0;
+//   }
+
+//   report.temperature.ist = RMAPDATA_MAX;
+//   report.temperature.min = RMAPDATA_MAX;
+//   report.temperature.avg = RMAPDATA_MAX;
+//   report.temperature.max = RMAPDATA_MAX;
+//   report.temperature.quality = RMAPDATA_MAX;
+
+//   report.humidity.ist = RMAPDATA_MAX;
+//   report.humidity.min = RMAPDATA_MAX;
+//   report.humidity.avg = RMAPDATA_MAX;
+//   report.humidity.max = RMAPDATA_MAX;
+//   report.humidity.quality = RMAPDATA_MAX;
+
+//   if (report_time_s && observation_time_s)
+//   {
+//     TRACE_INFO_F(F("Making report on %d seconds\r\n"), report_time_s);
+//     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
+//     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
+//     TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
+//     TRACE_DEBUG_F(F("-> %d available temperature main samples count\r\n"), temperature_main_samples.count);
+//     TRACE_DEBUG_F(F("-> %d available temperature redundant samples count\r\n"), temperature_redundant_samples.count);
+//     TRACE_DEBUG_F(F("-> %d available humidity main samples count\r\n"), humidity_main_samples.count);
+//     TRACE_DEBUG_F(F("-> %d available humidity redundant samples count\r\n"), humidity_redundant_samples.count);
+//   }
+
+//   bufferPtrResetBack<sample_t, uint16_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+//   bufferPtrResetBack<sample_t, uint16_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+//   bufferPtrResetBack<sample_t, uint16_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+//   bufferPtrResetBack<sample_t, uint16_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+//   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+//   // align all sensor's data to last common acquired sample
+//   uint16_t samples_count = temperature_main_samples.count;
+
+//   if (temperature_redundant_samples.count < samples_count)
+//   {
+//     samples_count = temperature_redundant_samples.count;
+//   }
+
+//   if (humidity_main_samples.count < samples_count)
+//   {
+//     samples_count = humidity_main_samples.count;
+//   }
+
+//   if (humidity_redundant_samples.count < samples_count)
+//   {
+//     samples_count = humidity_redundant_samples.count;
+//   }
+
+//   // flush all data that is not aligned
+//   for (uint16_t i = samples_count; i < temperature_main_samples.count; i++)
+//   {
+//     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+//     bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+//   }
+
+//   for (uint16_t i = samples_count; i < temperature_redundant_samples.count; i++)
+//   {
+//     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+//   }
+
+//   for (uint16_t i = samples_count; i < humidity_main_samples.count; i++)
+//   {
+//     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+//   }
+
+//   for (uint16_t i = samples_count; i < humidity_redundant_samples.count; i++)
+//   {
+//     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+//   }
+
+//   // it's a report request
+//   if (report_time_s && observation_time_s)
+//   {
+//     for (uint16_t i = 0; i < temperature_main_samples.count; i++)
+//     {
+//       main_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+
+//       #if (USE_REDUNDANT_SENSOR)
+//       redundant_temperature = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+//       #endif
+
+//       measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+//       // last sample
+//       if (i == 0)
+//       {
+//         report.temperature.sample = main_temperature;
+//       }
+
+//       // module in maintenance: ist, min, avg, max data it were not calculated
+//       if (!measures_maintenance)
+//       {
+//         avg_temperature_quality += (rmapdata_t)((checkTemperature(main_temperature, redundant_temperature) - avg_temperature_quality) / (i + 1));
+
+//         if (ISVALID_RMAPDATA(main_temperature))
+//         {
+//           valid_count_temperature++;
+//           avg_temperature += (rmapdata_t)((main_temperature - avg_temperature) / valid_count_temperature);
+//         }
+//         else
+//         {
+//           error_count_temperature++;
+//         }
+//       }
+//     }
+
+//     error_temperature_per = (float)(error_count_temperature) / (float)(temperature_main_samples.count) * 100.0;
+//     TRACE_DEBUG_F(F("-> %d temperature samples error (%d%%)\r\n"), error_count_temperature, (int32_t)error_temperature_per);
+
+//     // x MARCO
+//     // TODO: Verify Reset buffer maintenance se corretto qua ......
+//     // TODO: Verify soot e sopra ... for i..humidity samples.count o sensor_count allineato???
+//     // TODO: all'inizio c'e sempre un valore MIN a 0 di TP e UR se rihiesta è senza init
+//     // Non mi è chiaro a capire cosa è giusto chiedere dal master (init o no?)
+//     // Non capisco la differenza per avere il dato corrente o il dato complessivo da registrare
+//     // Io ho previsto 3 comandi 1 chè è solo il sample (x visualizzazione display == OK)
+//     // Gli altri due 1 per avere il dato corrente attuale e l'altro per il dato calcolato
+//     // alla fine con richiesta valore e reinizializzazione per nuovo calcolo...
+//     bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+//     // humidity samples
+//     for (uint16_t i = 0; i < humidity_main_samples.count; i++)
+//     {
+//       main_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+
+//       #if (USE_REDUNDANT_SENSOR)
+//       redundant_humidity = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+//       #endif
+
+//       measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+
+//       // last sample
+//       if (i == 0)
+//       {
+//         report.humidity.sample = main_humidity;
+//       }
+
+//       // module in maintenance: ist, min, avg, max data it were not calculated
+//       if (!measures_maintenance)
+//       {
+
+//         avg_humidity_quality += (rmapdata_t)((checkHumidity(main_humidity, redundant_humidity) - avg_humidity_quality) / (i + 1));
+
+//         if (ISVALID_RMAPDATA(main_humidity))
+//         {
+//           valid_count_humidity++;
+//           avg_humidity += (rmapdata_t)((main_humidity - avg_humidity) / valid_count_humidity);
+//         }
+//         else
+//         {
+//           error_count_humidity++;
+//         }
+//       }
+//     }
+
+//     error_humidity_per = (float)(error_count_humidity) / (float)(humidity_main_samples.count) * 100.0;
+//     TRACE_DEBUG_F(F("-> %d humidity samples error (%d%%)\r\n"), error_count_humidity, (int32_t)error_humidity_per);
+
+//     // temperature
+//     if (temperature_main_samples.count >= observation_sample_count)
+//     {
+//       // sufficient number of valid samples
+//       if (valid_count_temperature && (error_temperature_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
+//       {
+//         valid_count_temperature_o++;
+
+//         avg_temperature_o += (rmapdata_t)((avg_temperature - avg_temperature_o) / valid_count_temperature_o);
+
+//         avg_temperature_quality_o += (rmapdata_t)((avg_temperature_quality - avg_temperature_quality_o) / (valid_count_temperature_o + error_count_temperature_o));
+
+//         if (avg_temperature <= min_temperature_o)
+//         {
+//           min_temperature_o = avg_temperature;
+//         }
+
+//         if (avg_temperature >= max_temperature_o)
+//         {
+//           max_temperature_o = avg_temperature;
+//         }
+//       }
+//       else
+//       {
+//         error_count_temperature_o++;
+//       }
+
+//       error_temperature_per_o = (float)(error_count_temperature_o) / (float)(observation_sample_count)*100.0;
+//       TRACE_DEBUG_F(F("-> %d temperature observation error (%d%%)\r\n"), error_count_temperature_o, (int32_t)error_temperature_per_o);
+
+//       if (valid_count_temperature_o && (error_temperature_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
+//       {
+//         report.temperature.ist = avg_temperature;
+//         report.temperature.min = min_temperature_o;
+//         report.temperature.avg = avg_temperature_o;
+//         report.temperature.max = max_temperature_o;
+//         report.temperature.quality = avg_temperature_quality_o;
+//       }
+//     }
+
+//     // humidity
+//     if (humidity_main_samples.count >= observation_sample_count)
+//     {
+//       // sufficient number of valid samples
+//       if (valid_count_humidity && (error_humidity_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
+//       {
+//         valid_count_humidity_o++;
+
+//         avg_humidity_o += (rmapdata_t)((avg_humidity - avg_humidity_o) / valid_count_humidity_o);
+
+//         avg_humidity_quality_o += (rmapdata_t)((avg_humidity_quality - avg_humidity_quality_o) / (valid_count_humidity_o + error_count_humidity_o));
+
+//         if (avg_humidity <= min_humidity_o)
+//         {
+//           min_humidity_o = avg_humidity;
+//         }
+
+//         if (avg_humidity >= max_humidity_o)
+//         {
+//           max_humidity_o = avg_humidity;
+//         }
+//       }
+//       else
+//       {
+//         error_count_humidity_o++;
+//       }
+
+//       error_humidity_per_o = (float)(error_count_humidity_o) / (float)(observation_sample_count)*100.0;
+//       TRACE_DEBUG_F(F("-> %d humidity observation error (%d%%)\r\n"), error_count_humidity_o, (int32_t)error_humidity_per_o);
+
+//       if (valid_count_humidity_o && (error_humidity_per_o <= OBSERVATION_ERROR_PERCENTAGE_MAX))
+//       {
+//         report.humidity.ist = avg_humidity;
+//         report.humidity.min = min_humidity_o;
+//         report.humidity.avg = avg_humidity_o;
+//         report.humidity.max = max_humidity_o;
+//         report.humidity.quality = avg_humidity_quality_o;
+//       }
+//     }
+
+//     TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.temperature.sample, (int32_t)report.temperature.ist, (int32_t)report.temperature.min, (int32_t)report.temperature.avg, (int32_t)report.temperature.max, (int32_t)report.temperature.quality);
+//     TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+//   }
+//   // it's a sample request
+//   else
+//   {
+//     report.temperature.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+//     report.humidity.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+//   }
+// }
 
 template <typename buffer_g, typename length_v, typename value_v>
 value_v bufferRead(buffer_g *buffer, length_v length)

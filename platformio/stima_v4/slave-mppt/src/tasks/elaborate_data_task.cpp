@@ -108,12 +108,11 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
-  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -373,8 +372,8 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
   bufferPtrResetBack<sample_t, uint16_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
   bufferPtrResetBack<sample_t, uint16_t>(&input_current_samples, SAMPLES_COUNT_MAX);
 
-  // align all sensor's data to last common acquired sample (miantenance is always first data add into queue)
-  // ALign with last maintenance record pointer
+  // Align all sensor's data to last common acquired sample (miantenance is always first data add into queue)
+  // Align with last maintenance record pointer
   uint16_t samples_count = battery_charge_samples.count;
   if (battery_voltage_samples.count < samples_count)
   {
@@ -396,8 +395,8 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
   // flush all data that is not aligned
   for (uint16_t i = samples_count; i < battery_charge_samples.count; i++)
   {
-    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
   }
   for (uint16_t i = samples_count; i < battery_voltage_samples.count; i++)
   {
@@ -433,8 +432,8 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
   }
   else
   {
-    // Make a report complete (try with all sample present)
-    for (uint16_t i = 0; i < battery_charge_samples.count; i++)
+    // Make a report complete (try with all sample present aligned)
+    for (uint16_t i = 0; i < samples_count; i++)
     {
       // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
       if(n_sample >= report_sample_count) break;
@@ -592,6 +591,7 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
     // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
     // ***************************************************************************************************
 
+    // battery_charge, elaboration final
     valid_data_calc_perc = (float)(valid_count_battery_charge_o) / (float)(observation_sample_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery charge sample error (%d%%)\r\n"), (n_sample - valid_count_battery_charge_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_charge_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery charge observation avaiable (%d%%)\r\n"), valid_count_battery_charge_o, (uint8_t)valid_data_calc_perc);
@@ -601,6 +601,7 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
       report.avg_battery_charge_quality = (rmapdata_t)avg_battery_charge_quality_o;
     }
 
+    // battery_voltage, elaboration final
     valid_data_calc_perc = (float)(valid_count_battery_voltage_o) / (float)(observation_sample_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery voltage error (%d%%)\r\n"), (n_sample - valid_count_battery_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_voltage_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery voltage observation avaiable (%d%%)\r\n"), valid_count_battery_voltage_o, (uint8_t)valid_data_calc_perc);
@@ -610,6 +611,7 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
       report.avg_battery_voltage_quality = (rmapdata_t)avg_battery_voltage_quality_o;
     }
 
+    // battery_current, elaboration final
     valid_data_calc_perc = (float)(valid_count_battery_current_o) / (float)(observation_sample_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), (n_sample - valid_count_battery_current_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_current_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery current observation avaiable (%d%%)\r\n"), valid_count_battery_current_o, (uint8_t)valid_data_calc_perc);
@@ -619,6 +621,7 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
       report.avg_battery_current_quality = (rmapdata_t)avg_battery_current_quality_o;
     }
 
+    // input_voltage, elaboration final
     valid_data_calc_perc = (float)(valid_count_input_voltage_o) / (float)(observation_sample_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d input voltage error (%d%%)\r\n"), (n_sample - valid_count_input_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_input_voltage_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d input voltage observation avaiable (%d%%)\r\n"), valid_count_input_voltage_o, (uint8_t)valid_data_calc_perc);
@@ -628,6 +631,7 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
       report.avg_input_voltage_quality = (rmapdata_t)avg_input_voltage_quality_o;
     }
 
+    // input_current, elaboration final
     valid_data_calc_perc = (float)(valid_count_input_current_o) / (float)(observation_sample_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d input current error (%d%%)\r\n"), (n_sample - valid_count_input_current_t), (uint8_t)(((float)n_sample - (float)valid_count_input_current_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d input current observation avaiable (%d%%)\r\n"), valid_count_input_current_o, (uint8_t)valid_data_calc_perc);
@@ -636,6 +640,13 @@ void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation
       report.avg_input_current = (rmapdata_t)avg_input_current_o;
       report.avg_input_current_quality = (rmapdata_t)avg_input_current_quality_o;
     }
+
+    // Trace report final
+    TRACE_INFO_F(F("--> battery charge\t%d\t%d\r\n"), (int32_t)report.avg_battery_charge, (int32_t)report.avg_battery_charge_quality);
+    TRACE_INFO_F(F("--> battery voltage\t%d\t%d\r\n"), (int32_t)report.avg_battery_voltage, (int32_t)report.avg_battery_voltage_quality);
+    TRACE_INFO_F(F("--> battery current\t%d\t%d\r\n"), (int32_t)report.avg_battery_current, (int32_t)report.avg_battery_current_quality);
+    TRACE_INFO_F(F("--> input voltage\t%d\t%d\r\n"), (int32_t)report.avg_input_voltage, (int32_t)report.avg_input_voltage_quality);
+    TRACE_INFO_F(F("--> input current\t%d\t%d\r\n"), (int32_t)report.avg_input_current, (int32_t)report.avg_input_current_quality);
   }
 }
 
