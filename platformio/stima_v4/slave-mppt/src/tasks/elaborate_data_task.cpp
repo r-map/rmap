@@ -182,7 +182,7 @@ void ElaborateDataTask::Run() {
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
         param.requestDataQueue->Dequeue(&request_data, 0);
-        make_report(request_data.report_time_s, request_data.observation_time_s);
+        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
         param.reportDataQueue->Enqueue(&report, 0);
       }
     }

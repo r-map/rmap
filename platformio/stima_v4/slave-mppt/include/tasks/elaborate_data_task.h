@@ -99,8 +99,7 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void make_report(uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
-
+  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkMppt_P_Chg(rmapdata_t data_in);
   uint8_t checkMppt_V_Bat(rmapdata_t data_in);
   uint8_t checkMppt_I_Bat(rmapdata_t data_in);
