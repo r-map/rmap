@@ -249,9 +249,10 @@ uint8_t ElaborateDataTask::checkMppt_I_In(rmapdata_t data_in)
 }
 
 /// @brief Create a report from buffered sample
+/// @param is_init Bool optional backup ptr_wr calc
 /// @param report_time_s Report time for the calc
 /// @param observation_time_s Observation time for the calc
-void ElaborateDataTask::make_report (uint16_t report_time_s, uint8_t observation_time_s)
+void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s)
 {
   // Generic and shared var
   bool measures_maintenance = false;  // Maintenance mode?

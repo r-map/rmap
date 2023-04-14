@@ -325,8 +325,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   rmapdata_t main_temperature_s = 0;
   float avg_main_temperature_s = 0;
   float avg_main_temperature_o = 0;
-  float min_main_temperature_o = 0;
-  float max_main_temperature_o = 0;
+  float min_main_temperature_o = __FLT_MAX__;
+  float max_main_temperature_o = __FLT_MIN__;
   float avg_main_temperature_quality_s = 0;
   float avg_main_temperature_quality_o = 0;
   #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
@@ -340,8 +340,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   rmapdata_t main_humidity_s = 0;
   float avg_main_humidity_s = 0;
   float avg_main_humidity_o = 0;
-  float min_main_humidity_o = 0;
-  float max_main_humidity_o = 0;
+  float min_main_humidity_o = __FLT_MAX__;
+  float max_main_humidity_o = __FLT_MIN__;
   float avg_main_humidity_quality_s = 0;
   float avg_main_humidity_quality_o = 0;
   #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG

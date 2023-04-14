@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Main TASK Switch Delay
 #define SUPERVISOR_TASK_WAIT_DELAY_MS     (20)
-#define SUPERVISOR_TASK_SLEEP_DELAY_MS    (1250)
+#define SUPERVISOR_TASK_SLEEP_DELAY_MS    (850)
 
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)

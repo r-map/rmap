@@ -101,9 +101,8 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
-  //TODO:_TH_RAIN_
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -144,10 +143,9 @@ void ElaborateDataTask::Run() {
         {
         case SOLAR_RADIATION_INDEX:
           TRACE_VERBOSE_F(F("Solar radiation: %d\r\n"), edata.value);
-          addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+          addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
-
         }
       }
     }
@@ -174,6 +172,9 @@ void ElaborateDataTask::Run() {
   }
 }
 
+/// @brief Check data in and perform calculate of Optional Quality value
+/// @param data_in real value readed from sensor
+/// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkSolarRadiation(rmapdata_t solar_radiation) {
   // Optional check quality data function
   uint8_t quality = 100;
@@ -181,95 +182,148 @@ uint8_t ElaborateDataTask::checkSolarRadiation(rmapdata_t solar_radiation) {
 }
 
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s) {
-  rmapdata_t solar_radiation = 0;
+  // Generic and shared var
+  bool measures_maintenance = false;  // Maintenance mode?
+  float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
+  bool is_observation = false;        // Is an observation (when calculate is requested)
+  uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
 
-  bool measures_maintenance = false;
+  // Elaborate suffix description: _s(sample) _o(observation) _t(total) [Optional for debug]
 
-  uint16_t valid_count_solar_radiation = 0;
-  uint16_t error_count_solar_radiation = 0;
-  float error_solar_radiation_per = 0;
+  // Elaboration solar_radiation
+  rmapdata_t solar_radiation_s = 0;
+  float avg_solar_radiation_s = 0;
+  float avg_solar_radiation_o = 0;
+  float min_solar_radiation_o = __FLT_MAX__;
+  float max_solar_radiation_o = __FLT_MIN__;
+  float avg_solar_radiation_quality_s = 0;
+  float avg_solar_radiation_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_solar_radiation_t = 0;
+  #endif
+  uint16_t valid_count_solar_radiation_s = 0;
+  uint16_t total_count_solar_radiation_s = 0;
+  uint16_t valid_count_solar_radiation_o = 0;
 
-  static uint16_t valid_count_solar_radiation_o;
-  static uint16_t error_count_solar_radiation_o;
-  float error_solar_radiation_per_o = 0;
+  // Var for redundant_sensor
+  rmapdata_t redundant_temperature_s = 0;
+  rmapdata_t redundant_humidity_s = 0;
 
-  rmapdata_t avg_solar_radiation = 0;
-  rmapdata_t avg_solar_radiation_quality = 0;
-
-  static rmapdata_t avg_solar_radiation_o;
-  static rmapdata_t min_solar_radiation_o;
-  static rmapdata_t max_solar_radiation_o;
-  static rmapdata_t avg_solar_radiation_quality_o;
-
+  // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+  uint16_t sample_for_observation = 0;
+  if(report_time_s && observation_sample_count) sample_for_observation = report_sample_count / observation_sample_count;
 
-  if (is_init) {
-    valid_count_solar_radiation_o = 0;
-    error_count_solar_radiation_o = 0;
-
-    avg_solar_radiation_o = 0;
-    min_solar_radiation_o = RMAPDATA_MAX;
-    max_solar_radiation_o = RMAPDATA_MIN;
-    avg_solar_radiation_quality_o = 0;
-
-  }
-
-  report.avg = RMAPDATA_MAX;
-  report.quality = RMAPDATA_MAX;
-
-  if (report_time_s && observation_time_s)
+  // Request to calculate is correct? Trace request
+  if (report_time_s == 0)
   {
-    TRACE_INFO_F(F("Making report on %d seconds\r\n"), report_time_s);
+    // Request an direct sample value for istant measure
+    TRACE_INFO_F(F("Elaborate: Requested an istant value\r\n"));
+  }
+  else
+  {
+    TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_sample_count / observation_sample_count);
+    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), sample_for_observation);
     TRACE_DEBUG_F(F("-> %d available solar radiation samples count\r\n"), solar_radiation_samples.count);
   }
 
-  bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
+  // Default value to RMAP Limit error value
+  report.avg = RMAPDATA_MAX;
+  report.quality = RMAPDATA_MAX;
+
+  // Ptr for maintenance
   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+  // Ptr for value sample
+  bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
 
   // align all sensor's data to last common acquired sample
   uint16_t samples_count = solar_radiation_samples.count;
 
-  // it's a report request
-  if (report_time_s && observation_time_s)
+  // it's a simple istant or report request?
+  if (report_time_s == 0)
+  {
+    // Make last data value to Get Istant show value
+    report.avg = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
+  }
+  else
   {
     for (uint16_t i = 0; i < samples_count; i++)
     {
-      solar_radiation = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
+      // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
+      if(n_sample >= report_sample_count) break;
+      // Get base operation for any record...
+      n_sample++; // Elaborate next sample... (Initzialize with 0, Sample 1 is first. Exit UP if buffer completed)
+      // Check if is an observation
+      is_observation = (n_sample % sample_for_observation) == 0;
+      // Is Maintenance mode? (Excluding measure from elaboration value)
+      // Maintenance is sytemic value for all measure (always pushed into module for excuding value with maintenance)
       measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
 
-      // last sample
-      // if (i == 0)
-      // {
-      // }
+      // ***************************************************************************************************
+      // ************* GET SAMPLE VALUE DATA FROM AND CREATE OBSERVATION VALUES FOR TYPE SENSOR ************
+      // ***************************************************************************************************
 
-      // module in maintenance: ist, min, avg, max data it were not calculated
-      if (!measures_maintenance)
+      solar_radiation_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX);
+      #if (USE_REDUNDANT_SENSOR)
+      redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+      #endif
+      total_count_solar_radiation_s++;
+      avg_solar_radiation_quality_s += (float)(((float)checkSolarRadiation(solar_radiation_s) - avg_solar_radiation_quality_s) / total_count_solar_radiation_s);
+      if ((ISVALID_RMAPDATA(solar_radiation_s)) && !measures_maintenance)
       {
-        avg_solar_radiation_quality += (rmapdata_t)((checkSolarRadiation(solar_radiation) - avg_solar_radiation_quality) / (i + 1));
+        valid_count_solar_radiation_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_solar_radiation_t++;
+        #endif
+        avg_solar_radiation_s += (float)(((float)solar_radiation_s - avg_solar_radiation_s) / valid_count_solar_radiation_s);
+      }
 
-        if (ISVALID_RMAPDATA(solar_radiation))
+      // ***************************************************************************************************
+      // ************* ELABORATE OBSERVATION VALUES FOR TYPE SENSOR FOR PREPARE REPORT RESPONSE ************
+      // ***************************************************************************************************
+      if(is_observation) {
+
+        // solar_radiation, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_solar_radiation_s) / (float)(total_count_solar_radiation_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
         {
-          valid_count_solar_radiation++;
-          avg_solar_radiation += (rmapdata_t)((solar_radiation - avg_solar_radiation) / valid_count_solar_radiation);
+          valid_count_solar_radiation_o++;
+          avg_solar_radiation_o += (avg_solar_radiation_s - avg_solar_radiation_o) / valid_count_solar_radiation_o;
+          avg_solar_radiation_quality_o += (avg_solar_radiation_quality_s - avg_solar_radiation_quality_o) / valid_count_solar_radiation_o;
+          // Elaboration MIN and MAX for observation
+          if(avg_solar_radiation_o < min_solar_radiation_o) min_solar_radiation_o = avg_solar_radiation_o;
+          if(avg_solar_radiation_o > max_solar_radiation_o) max_solar_radiation_o = avg_solar_radiation_o;
         }
-        else
-        {
-          error_count_solar_radiation++;
-        }
+        // Reset Buffer sample for calculate next observation
+        avg_solar_radiation_quality_s = 0;
+        avg_solar_radiation_s = 0;
+        valid_count_solar_radiation_s = 0;
+        total_count_solar_radiation_s = 0;
       }
     }
 
-    error_solar_radiation_per = (float)(error_count_solar_radiation) / (float)(solar_radiation_samples.count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d solar radiation error (%d%%)\r\n"), error_count_solar_radiation, (int32_t)error_solar_radiation_per);
-    TRACE_INFO_F(F("--> solar_radiation report\t%d\t%d\r\n"), (int32_t)report.avg, (int32_t)report.quality);
-  }
-  // it's a sample request
-  else
-  {
+    // ***************************************************************************************************
+    // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
+    // ***************************************************************************************************
+
+    // temperature, elaboration final
+    valid_data_calc_perc = (float)(valid_count_solar_radiation_o) / (float)(observation_sample_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d solar radiation sample error (%d%%)\r\n"), (n_sample - valid_count_solar_radiation_t), (uint8_t)(((float)n_sample - (float)valid_count_solar_radiation_t)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d solar radiation observation avaiable (%d%%)\r\n"), valid_count_solar_radiation_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      // report.temperature.ist (already assigned)
+      report.avg = (rmapdata_t)avg_solar_radiation_o;
+      // report.min = (rmapdata_t)min_solar_radiation_o;
+      // report.max = (rmapdata_t)max_solar_radiation_o;
+      report.quality = (rmapdata_t)avg_solar_radiation_quality_o;
+    }
+
+    // Trace report final
+    TRACE_INFO_F(F("--> solar radiation report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.avg, (int32_t)report.quality);
   }
 }
 

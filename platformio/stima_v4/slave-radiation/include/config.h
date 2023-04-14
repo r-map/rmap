@@ -160,8 +160,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
 #define SOLAR_RADIATION_ERROR_MIN                     (1.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
 #define ACQUISITION_COUNT_FOR_POWER_RESET (100)
 
