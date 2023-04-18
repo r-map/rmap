@@ -1,25 +1,32 @@
-/**@file swind_sensor_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    wind_sensor_task.cpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @author  Moreno Gasperini <m.baldinetti@digiteco.it>
+  * @brief   wind_sensor_task source file (Module sensor task acquire WindGill)
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     WIND_SENSOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SENSOR_TASK_ID
@@ -112,6 +119,9 @@ void WindSensorTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Start Serial
+  SerialWindSonic.begin(9600);
+
   powerOff();
 
   while (true)
@@ -124,6 +134,8 @@ void WindSensorTask::Run() {
       {
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
+        // Reset check time sync Get and Verify Data
+        check_wait = 0;
       }
       // other
       else
@@ -137,48 +149,94 @@ void WindSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      retry = 0;
       is_error = false;
-      serialReset();
-      wind_acquisition_count++;
 
       if (isWindOff())
       {
         powerOn();
         TaskWatchDog(WIND_POWER_ON_DELAY_MS);
         Delay(Ticks::MsToTicks(WIND_POWER_ON_DELAY_MS));
-        TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_READING\r\n"));
-        state = SENSOR_STATE_READING;
+        // Flushing all data (After powered ON... Clean message startup)
+        serialReset();
       }
-      else
-      {
-        TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_READING\r\n"));
-        state = SENSOR_STATE_READING;
-      }
+      TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_WAIT_DATA\r\n"));
+      state = SENSOR_STATE_WAIT_DATA;
       break;
 
-    case SENSOR_STATE_READING:
-      if (Serial2.available())
-      {
-        uart_rx_buffer_length = Serial2.readBytes(uart_rx_buffer, UART_RX_BUFFER_LENGTH);
-        state = SENSOR_STATE_ELABORATE;
-        TRACE_VERBOSE_F(F("SENSOR_STATE_READING --> SENSOR_STATE_ELABORATE\r\n"));
+    case SENSOR_STATE_WAIT_DATA:
+      // Ready data from WindSonic?
+      if(SerialWindSonic.available()) {
+        Serial.print("check_wait? -> ");
+        Serial.println(check_wait);
+        Serial.print("Avaiable? -> ");
+        Serial.println(SerialWindSonic.available());
+
+        TaskWatchDog(WIND_MESSAGE_DELAY_MS);
+        Delay(Ticks::MsToTicks(WIND_MESSAGE_DELAY_MS));
+
+        state = SENSOR_STATE_READING;
+        break;
       }
-      else if (++retry <= WIND_RETRY_MAX)
+      // Max Delay ms to wait a message from WindSonic... (WIND_check_wait_MAX_DELAY_MS)
+      else if (++check_wait <= (WIND_RETRY_MAX_DELAY_MS / WIND_MESSAGE_DELAY_MS))
       {
-        TaskWatchDog(WIND_RETRY_DELAY_MS);
-        Delay(Ticks::MsToTicks(WIND_RETRY_DELAY_MS));
+        // Put task in wait for next check
+        TaskWatchDog(WIND_MESSAGE_DELAY_MS);
+        Delay(Ticks::MsToTicks(WIND_MESSAGE_DELAY_MS));
       }
       else
       {
         is_error = true;
         error_count++;
         state = SENSOR_STATE_ELABORATE;
-        TRACE_VERBOSE_F(F("SENSOR_STATE_READING --> SENSOR_STATE_ELABORATE\r\n"));
+        TRACE_VERBOSE_F(F("SENSOR_STATE_WAIT_DATA (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
+      }
+      break;
+
+    case SENSOR_STATE_READING:
+      // Avaiable > MAX LENGHT_MESSAGE ? Normally the message is as long as expected (Align with STX Character)
+      // This can occur after a sensor reset or if the set acquisition time does not comply with the continuous acquisition
+      // time set on the sensor. It is still to be considered as an error but the procedure works correctly
+      if(SerialWindSonic.available() > UART_RX_BUFFER_LENGTH) {
+        while (SerialWindSonic.available()) {
+          uint8_t alignSTX = SerialWindSonic.read();
+          if(alignSTX == STX_VALUE) {
+            uart_rx_buffer[uart_rx_buffer_ptr++] = STX_VALUE;
+            break;
+          }
+        }
+      }
+      // Get all avaiable data (synch to get Full Buffer)
+      while (SerialWindSonic.available())
+      {
+        // Get Buffer Data ( END TO MAX Buffer or LF occurs )
+        // The sensor are syncronized with the functionality of the previous alignment
+        uart_rx_buffer[uart_rx_buffer_ptr++] = SerialWindSonic.read();
+        if((uart_rx_buffer_ptr >= UART_RX_BUFFER_LENGTH) || (uart_rx_buffer[uart_rx_buffer_ptr - 1] == LF_VALUE)) {
+          uart_rx_buffer_ptr--;
+          state = SENSOR_STATE_ELABORATE;
+          TRACE_VERBOSE_F(F("SENSOR_STATE_READING (OK) --> SENSOR_STATE_ELABORATE\r\n"));
+          break;
+        }
+      }
+      // Direct exit (Buffer readed control char OK)
+      if(state == SENSOR_STATE_ELABORATE) break;
+      // Put task in wait for not completed buffer check
+      if (++check_wait <= (WIND_RETRY_MAX_DELAY_MS / WIND_MESSAGE_DELAY_MS)) {
+        TaskWatchDog(WIND_MESSAGE_DELAY_MS);
+        Delay(Ticks::MsToTicks(WIND_MESSAGE_DELAY_MS));
+      }
+      else
+      {
+        is_error = true;
+        error_count++;
+        state = SENSOR_STATE_ELABORATE;
+        TRACE_VERBOSE_F(F("SENSOR_STATE_READING (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
       }
       break;
 
     case SENSOR_STATE_ELABORATE:
+      // Any Error (Not Readed?)
       if (is_error)
       {
         speed = FLT_MAX;
@@ -186,9 +244,16 @@ void WindSensorTask::Run() {
       }
       else
       {
-        windsonicInterpreter(&speed, &direction);
+        // Get Intepreter data Value from Sensor (Get an error if string not valid)
+        if(windsonicInterpreter(&speed, &direction))
+          error_count = 0;
+        else
+          error_count++;
       }
+      // Reset In Buffer Serial for next Acquire (Align request immediatly after Interpretate data)
+      serialReset();
 
+      // Put data into queue to elaborate istant value
       edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
       edata.index = WIND_SPEED_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
@@ -199,12 +264,11 @@ void WindSensorTask::Run() {
 
       TRACE_VERBOSE_F(F("SENSOR_STATE_ELABORATE --> SENSOR_STATE_END\r\n"));
       state = SENSOR_STATE_END;
+
       break;
 
       case SENSOR_STATE_END:
-        #ifdef TH_TASK_LOW_POWER_ENABLED
-        powerOff();
-        #else
+        #ifdef WIND_TASK_LOW_POWER_ENABLED
         if (error_count > WIND_TASK_ERROR_FOR_POWER_OFF)
         {
           powerOff();
@@ -215,13 +279,27 @@ void WindSensorTask::Run() {
         TaskMonitorStack();
         #endif
 
+        // Reset check time synch for next verify get data timings
+        check_wait = 0;
+
         // Local TaskWatchDog update and Sleep Activate before Next Read
-        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
+        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms - 60);
         TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-        DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
+        // Freq. To Acquire depends from Sensor Continuos Mode. To be set to Setup Freq.
+        // Delay is NotSync RTOS but Delay from Last Acquire Sensor. Freq. ADD DATA Is from Sensor
+        // Need to WakeUp Reading before acquire for get Data from Sensor Complete without loss data.
+        // We need about 30 mSec for reading correct next record from Sensor. We doubling the time!
+        // Time less most possible can set more time for Power_Down. Time WakeUp is already anticipated.
+        Delay(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms - 60));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-        state = SENSOR_STATE_READING;
+        // If error > WIND_TASK_ERROR_FOR_POWER_OFF ( Perform a Reset Power to Sensor )
+        // Next Init Reset Sensor Power and wait time to stabilization data
+        if (error_count) {
+          state = SENSOR_STATE_INIT;
+        } else {
+          state = SENSOR_STATE_WAIT_DATA;
+        }
         break;
     }
   }
@@ -229,12 +307,9 @@ void WindSensorTask::Run() {
 
 void WindSensorTask::serialReset()
 {
-  while (Serial2.available())
-  {
-    Serial2.read();
-  }
-  memset(uart_rx_buffer, 0, uart_rx_buffer_length);
-  uart_rx_buffer_length = 0;
+  while (SerialWindSonic.available()) SerialWindSonic.read();
+  memset(uart_rx_buffer, 0, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer_ptr = 0;
 }
 
 bool WindSensorTask::isWindOn()
@@ -277,7 +352,7 @@ bool WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   *direction = UINT16_MAX;
   memset(tempstr, 0, GWS_SPEED_LENGTH + 1);
 
-  if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 2] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 1] == LF_VALUE))
+  if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr - 1] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr] == LF_VALUE))
   {
     strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
     *direction = (float)atof(tempstr);
@@ -321,7 +396,7 @@ bool WindSensorTask::windsonicInterpreter(float *speed, float *direction)
         is_crc_ok = false;
     }
   }
-  else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 2] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_length - 1] == LF_VALUE))
+  else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTION_OFFSET] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr - 1] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr] == LF_VALUE))
   {
     *direction = WIND_DIRECTION_MIN;
 
@@ -357,5 +432,4 @@ bool WindSensorTask::windsonicInterpreter(float *speed, float *direction)
 
   return is_crc_ok;
 }
-
 #endif

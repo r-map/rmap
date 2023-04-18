@@ -111,14 +111,9 @@ void SolarRadiationSensorTask::Run() {
   elaborate_data_t edata;
   // Request response for system queue Task controlled...
   system_message_t system_message;
-  
-  uint8_t error_count;
-  uint8_t retry;
+
   uint8_t adc_channel;
-  int16_t adc_value;
-  uint8_t solar_radiation_acquisition_count;
   float value;
-  bool is_error;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -126,7 +121,26 @@ void SolarRadiationSensorTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Using powered rest mode (comparator and optional sesnsor chanel power)
+  #if (SOLAR_RADIATION_TASK_LOW_POWER_ENABLED)
   powerOff();
+  #else
+  digitalWrite(PIN_EN_5VA, HIGH);  // Fixed powered Analog Comparator (xIAN) Get value
+  #endif
+
+  // Fixed Chanel Powered used define (Sensor do not switching power, always on from define)
+  #if(SOLAR_RADIATION_FIXED_POWER_CHANEL_0)
+  digitalWrite(PIN_OUT0, HIGH);  // Enable relative fixed Output Chanel alim
+  #endif
+  #if(SOLAR_RADIATION_FIXED_POWER_CHANEL_1)
+  digitalWrite(PIN_OUT1, HIGH);  // Enable relative fixed Output Chanel alim
+  #endif
+  #if(SOLAR_RADIATION_FIXED_POWER_CHANEL_2)
+  digitalWrite(PIN_OUT2, HIGH);  // Enable relative fixed Output Chanel alim
+  #endif
+  #if(SOLAR_RADIATION_FIXED_POWER_CHANEL_3)
+  digitalWrite(PIN_OUT3, HIGH);  // Enable relative fixed Output Chanel alim
+  #endif
 
   while (true)
   {
@@ -144,7 +158,6 @@ void SolarRadiationSensorTask::Run() {
             break;
           }
         }
-        solar_radiation_acquisition_count = 0;
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -155,40 +168,33 @@ void SolarRadiationSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
+      #if (SOLAR_RADIATION_TASK_LOW_POWER_ENABLED) // Auto power chanel with switching mode and power time waiting...
       powerOn(adc_channel);
-      value = 0;
-      solar_radiation_acquisition_count = SAMPLES_REPETED_ADC;
+      #endif
+      resetADCData(adc_channel);
       state = SENSOR_STATE_SET;
       TRACE_INFO_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_SET\r\n"));
-      // TODO: NB. STABILIZED TIME FOR SENSOR HERE IF > OF TIME_SLEEP SENSOR POWER FULL ON FOR EVER
-      // ON OFF ONLY CIRCUIT COMPARATOR ADC IN
-
       break;
 
     case SENSOR_STATE_SET:
 
-      solar_radiation_acquisition_count++;
-      value+=(float)analogRead(PIN_ANALOG_01);
-
-      if(solar_radiation_acquisition_count>=SAMPLES_REPETED_ADC)
-      {
+      // Add sample ADC value to data
+      if(addADCData(adc_channel) >= SAMPLES_REPETED_ADC) {
+        // Read real value
+        value = getADCData(adc_channel);
         state = SENSOR_STATE_EVALUATE;
         break;
       }
-
-      DelayUntil(Ticks::MsToTicks(SENSORS_ACQUISITION_DELAY_MS));
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
-      TRACE_INFO_F(F("SENSOR_STATE_SET --> SENSOR_STATE_EVALUATE\r\n"));
       break;
 
     case SENSOR_STATE_EVALUATE:
 
-      // Report to a single acquisition
-      value /= SAMPLES_REPETED_ADC;
-
+      // Gain - offset to ADC to real value, anc d connvert to scale used (mV for solar_radiation)
       value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
       value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
+      TRACE_DEBUG_F(F("SENSOR ANALOG VALUE %d (mV)\r\n"), (uint16_t)round(value));
+
+      // Read value into U.M. Real Solar Radiation (Sample value)
       value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max);
 
       state = SENSOR_STATE_READ;
@@ -204,7 +210,9 @@ void SolarRadiationSensorTask::Run() {
       break;
 
     case SENSOR_STATE_END:
+      #if (SOLAR_RADIATION_TASK_LOW_POWER_ENABLED)
       powerOff();
+      #endif
 
 #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
@@ -224,15 +232,19 @@ void SolarRadiationSensorTask::Run() {
 
 }
 
+/// @brief Power ON Method (rest power mode)
+/// @param chanel_out chanel To be powered (Fixed or switching depending from define into header_file) 
 void SolarRadiationSensorTask::powerOn(uint8_t chanel_out)
 {
-  if (!is_power_on)
-  {
+  if (!is_power_on) {
     digitalWrite(PIN_EN_5VA, HIGH);  // Enable Analog Comparator (xIAN)
+    // Switching powered chanel mode
+    #if(SOLAR_RADIATION_TASK_SWITCH_POWER_ENABLED)
     if(chanel_out == 0) digitalWrite(PIN_OUT0, HIGH);  // Enable relative Output Chanel alim
     if(chanel_out == 1) digitalWrite(PIN_OUT1, HIGH);  // Enable relative Output Chanel alim
     if(chanel_out == 2) digitalWrite(PIN_OUT2, HIGH);  // Enable relative Output Chanel alim
     if(chanel_out == 3) digitalWrite(PIN_OUT3, HIGH);  // Enable relative Output Chanel alim
+    #endif
     // WDT
     TaskWatchDog(SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS);
     Delay(Ticks::MsToTicks(SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS));
@@ -240,14 +252,55 @@ void SolarRadiationSensorTask::powerOn(uint8_t chanel_out)
   }
 }
 
+/// @brief Power OFF Method (rest power mode)
 void SolarRadiationSensorTask::powerOff()
 {
   digitalWrite(PIN_EN_5VA, LOW);  // Disable Analog Comparator (xIAN)
-  digitalWrite(PIN_OUT0, HIGH);   // Disable Output Chanel alim
-  digitalWrite(PIN_OUT1, HIGH);   // Disable Output Chanel alim
-  digitalWrite(PIN_OUT2, HIGH);   // Disable Output Chanel alim
-  digitalWrite(PIN_OUT3, HIGH);   // Disable Output Chanel alim
+  #if(SOLAR_RADIATION_TASK_SWITCH_POWER_ALIM_SENS)
+  digitalWrite(PIN_OUT0, LOW);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT1, LOW);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT2, LOW);   // Disable Output Chanel alim
+  digitalWrite(PIN_OUT3, LOW);   // Disable Output Chanel alim
+  #endif
   is_power_on = false;
+}
+
+/// @brief Add Data ADC to counter
+/// @param chanel_out Chanel to be getted
+uint8_t SolarRadiationSensorTask::addADCData(uint8_t chanel_out)
+{
+  adc_in_count[chanel_out]++;
+  switch(chanel_out) {
+    case 0: 
+      adc_in[chanel_out] += analogRead(PIN_ANALOG_01);
+      break;
+    case 1: 
+      adc_in[chanel_out] += analogRead(PIN_ANALOG_02);
+      break;
+    case 2: 
+      adc_in[chanel_out] += analogRead(PIN_ANALOG_03);
+      break;
+    case 3: 
+      adc_in[chanel_out] += analogRead(PIN_ANALOG_04);
+      break;
+  }
+  return adc_in_count[chanel_out];
+}
+
+/// @brief Reset ADC Counter
+/// @param chanel_out Chanel to be resetted value
+void SolarRadiationSensorTask::resetADCData(uint8_t chanel_out)
+{
+  adc_in_count[chanel_out] = 0;
+  adc_in[chanel_out] = 0;
+}
+
+/// @brief Get real ADC Data
+/// @param chanel_out Chanel to be resetted value
+/// @return ADC Value (float conversion)
+float SolarRadiationSensorTask::getADCData(uint8_t chanel_out)
+{
+  return adc_in[chanel_out] / adc_in_count[chanel_out];
 }
 
 int32_t SolarRadiationSensorTask::getVrefTemp(void)
@@ -279,7 +332,7 @@ float SolarRadiationSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_
   {
   case Adc_Mode::mVolt:
     min = 0.0;
-    max = 3.3;
+    max = 3300.0;
     /* code */
     break;
 

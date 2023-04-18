@@ -38,20 +38,30 @@
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
 
-#define SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS  (100)
-#define SOLAR_RADIATION_TASK_MEASURE_WAIT_DELAY_MS   (100)
+#define SOLAR_RADIATION_TASK_LOW_POWER_ENABLED       (true)
+#define SOLAR_RADIATION_TASK_SWITCH_POWER_ENABLED    (false)
 #define SOLAR_RADIATION_TASK_WAIT_DELAY_MS           (50)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY           (3)
-#define SOLAR_RADIATION_TASK_LOW_POWER_ENABLED       (true)
-#define SOLAR_RADIATION_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
+#define WAIT_QUEUE_REQUEST_ELABDATA_MS               (50)
 
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
+// POWER SENSOR SWITCHING OR FIXED MODE...
+#if (!SOLAR_RADIATION_TASK_SWITCH_POWER_ENABLED)
+// Timing to wakeUP only internal comparator ADC
+#define SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS  (5)
+#define SOLAR_RADIATION_FIXED_POWER_CHANEL_0         (true)
+#define SOLAR_RADIATION_FIXED_POWER_CHANEL_1         (false)
+#define SOLAR_RADIATION_FIXED_POWER_CHANEL_2         (false)
+#define SOLAR_RADIATION_FIXED_POWER_CHANEL_3         (false)
+#else
+// Timing to wakeUP exernal sensor if automatic powered
+#define SOLAR_RADIATION_TASK_POWER_ON_WAIT_DELAY_MS  (100)
+#endif
 
 /* Analog read resolution */
-// CAL VREF 940 30 <--> 914 21
 #define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
 #define ADC_RANGE ADC_MAX
+#define SAMPLES_REPETED_ADC 64
 
 #include "stm32yyxx_ll_adc.h"
 
@@ -106,6 +116,10 @@ private:
 
   void powerOn(uint8_t chanel_out);
   void powerOff();
+  
+  void resetADCData(uint8_t chanel_out);
+  uint8_t addADCData(uint8_t chanel_out);
+  float getADCData(uint8_t chanel_out);
 
   int32_t getVrefTemp(void);
   
@@ -113,7 +127,12 @@ private:
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
   float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
 
+  // Global flag powered
   bool is_power_on;
+
+  // Value of chanel ADC
+  uint8_t adc_in_count[MAX_ADC_CHANELS];
+  uint64_t adc_in[MAX_ADC_CHANELS];
 
   State_t state;
   SolarRadiationSensorParam_t param;

@@ -46,10 +46,6 @@
 extern TwoWire Wire2;
 #endif
 
-#if (ENABLE_SERIAL2)
-extern HardwareSerial Serial2;
-#endif
-
 #if (ENABLE_QSPI)
 extern QSPI_HandleTypeDef hqspi;
 #define QSPI_NVIC_INT_PREMPT_PRIORITY 7

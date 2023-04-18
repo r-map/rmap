@@ -67,7 +67,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // HW device enabled
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
-#define ENABLE_SERIAL2        (true)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_ACCELEROMETER  (false)
@@ -118,7 +117,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Queue Lenght
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
-#define ELABORATE_DATA_QUEUE_LENGTH (4)
+#define ELABORATE_DATA_QUEUE_LENGTH (2)
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define REPORT_DATA_QUEUE_LENGTH    (1)
 
@@ -134,7 +133,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
-#define SENSORS_ACQUISITION_DELAY_MS      (4000)
+#define SENSORS_ACQUISITION_DELAY_MS      (1000)
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 
@@ -148,8 +147,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MAX_VALID_WIND_DIRECTION          (359.9)
 #define MIN_VALID_WIND_DIRECTION          (0.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
 #define WIND_POWER_ON_DELAY_MS            (5000)
 
@@ -166,13 +165,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def WIND_READ_DELAY_MS
 \brief Reading delay.
 */
-#define WIND_RETRY_DELAY_MS               (2)
+#define WIND_MESSAGE_DELAY_MS             (4)
 
 /*!
 \def WIND_READ_COUNT
 \brief number of read.
 */
-#define WIND_RETRY_MAX                    (600)
+#define WIND_RETRY_MAX_DELAY_MS           (4000)
 
 #define WIND_POWER_PIN                                  (4)
 

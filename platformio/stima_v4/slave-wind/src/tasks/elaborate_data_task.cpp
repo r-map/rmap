@@ -143,14 +143,14 @@ void ElaborateDataTask::Run() {
         switch (edata.index)
         {
         case WIND_SPEED_INDEX:
-          TRACE_VERBOSE_F(F("Speed: %d\r\n"), edata.value);
-          addValue<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+          addValue<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX, edata.value);
+          TRACE_VERBOSE_F(F("Speed: %d\r\n"), edata.value);
           break;
 
         case WIND_DIRECTION_INDEX:
-          TRACE_VERBOSE_F(F("Direction: %d\r\n"), edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX, edata.value);
+          TRACE_VERBOSE_F(F("Direction: %d\r\n"), edata.value);
           break;
         }
       }

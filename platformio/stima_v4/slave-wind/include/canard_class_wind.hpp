@@ -330,7 +330,7 @@ class canardClass {
 
         } next_transfer_id;
 
-        // Flag di stato TODO: da implementare funzioni sleep/inibith locali
+        // Flag di stato
         class flag
         {
 

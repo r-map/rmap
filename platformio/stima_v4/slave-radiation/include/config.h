@@ -65,7 +65,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // HW device enabled
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
-#define ENABLE_SERIAL2        (false)
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_ACCELEROMETER  (false)
@@ -132,7 +131,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
 // Sample and default value for elaborate task 
-#define SAMPLES_REPETED_ADC               (8)
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)
@@ -160,9 +158,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
 #define SOLAR_RADIATION_ERROR_MIN                     (1.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN                   (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN              (90.0)
 
-#define ACQUISITION_COUNT_FOR_POWER_RESET (100)
+#define ACQUISITION_COUNT_FOR_POWER_RESET             (100)
 
 #endif

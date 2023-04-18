@@ -298,7 +298,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.natural8.value.elements[idx] = param.configuration->sensors[idx].is_active;
+        param.configuration->sensors[idx].is_active = val.natural8.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -319,7 +319,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.natural8.value.elements[idx] = param.configuration->sensors[idx].adc_type;
+        param.configuration->sensors[idx].adc_type = (Adc_Mode)val.natural8.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -340,7 +340,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.real32.value.elements[idx] = param.configuration->sensors[idx].adc_gain;
+        param.configuration->sensors[idx].adc_gain = val.real32.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -361,7 +361,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.real32.value.elements[idx] = param.configuration->sensors[idx].adc_offset;
+        param.configuration->sensors[idx].adc_offset = val.real32.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -382,7 +382,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.real32.value.elements[idx] = param.configuration->sensors[idx].analog_min;
+        param.configuration->sensors[idx].analog_min = val.real32.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -403,7 +403,7 @@ void SupervisorTask::loadConfiguration()
     } else {
       param.configurationLock->Take();
       for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-        val.real32.value.elements[idx] = param.configuration->sensors[idx].analog_max;
+        param.configuration->sensors[idx].analog_max = val.real32.value.elements[idx];
       param.configurationLock->Give();
     }
   }
@@ -437,6 +437,17 @@ void SupervisorTask::saveConfiguration(bool is_default)
 
     // Acquisition time sensor default
     param.configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
+
+    for(idx=0; idx<MAX_ADC_CHANELS; idx++) {
+      param.configuration->sensors[idx].adc_gain = 1;
+      param.configuration->sensors[idx].adc_offset = 0;
+      param.configuration->sensors[idx].adc_type = Adc_Mode::mVolt;
+      param.configuration->sensors[idx].analog_min = SOLAR_RADIATION_VOLTAGE_MIN;
+      param.configuration->sensors[idx].analog_max = SOLAR_RADIATION_VOLTAGE_MAX;
+      param.configuration->sensors[idx].is_active = 0;
+    }
+    // Enable first chanel
+    param.configuration->sensors[0].is_active = 1;
 
     param.configurationLock->Give();
 

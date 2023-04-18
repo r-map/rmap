@@ -35,15 +35,6 @@ enum Power_Mode : uint8_t {
    pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
 };
 
-// Sensor configuration
-typedef struct
-{
-   uint8_t i2c_address;             //!< i2c sensor's address
-   char driver[DRIVER_LENGTH];      //!< sensor's string driver
-   char type[TYPE_LENGTH];          //!< sensor type
-   bool is_redundant;
-} sensor_configuration_t;
-
 // System module configuration
 typedef struct
 {
@@ -52,8 +43,6 @@ typedef struct
    uint8_t configuration_version;                        //!< module configuration version
    uint64_t serial_number;                               //!< module serial number
    uint8_t module_type;                                  //!< module type
-   uint8_t sensors_count;                                //!< number of configured sensors
-   sensor_configuration_t sensors[SENSORS_COUNT_MAX];    //!< sensors configurations
    uint32_t sensor_acquisition_delay_ms;
 } configuration_t;
 

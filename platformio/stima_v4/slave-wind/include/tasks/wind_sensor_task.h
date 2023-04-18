@@ -1,25 +1,32 @@
-/**@file wind_sensor_task.h */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    wind_sensor_task.h
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @author  Moreno Gasperini <m.baldinetti@digiteco.it>
+  * @brief   wind_sensor_task header file (Module sensor task acquire WindGill)
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #ifndef _WIND_SENSOR_TASK_H
 #define _WIND_SENSOR_TASK_H
@@ -36,11 +43,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define WIND_TASK_GENERIC_RETRY           (3)
 #define WIND_TASK_LOW_POWER_ENABLED       (true)
-#define WIND_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
+#define WIND_TASK_ERROR_FOR_POWER_OFF     (5)
 
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS    (50)
 
-#define UART_RX_BUFFER_LENGTH             (40)
+#define UART_RX_BUFFER_LENGTH             (24)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -54,6 +61,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 #include "debug_F.h"
+
+// Local Serial for WindSonic
+#define SerialWindSonic   Serial2
 
 using namespace cpp_freertos;
 
@@ -72,6 +82,7 @@ class WindSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
+    SENSOR_STATE_WAIT_DATA,
     SENSOR_STATE_READING,
     SENSOR_STATE_ELABORATE,
     SENSOR_STATE_END
@@ -99,16 +110,15 @@ private:
 
   bool is_power_on;
   bool is_error;
-  uint16_t retry;
+  uint16_t check_wait;
   float speed;
   float direction;
 
   State_t state;
   WindSensorParam_t param;
-  uint16_t uart_rx_buffer_length;
+  uint8_t uart_rx_buffer_ptr;
   uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
   bool is_wind_on;
-  uint8_t wind_acquisition_count;
 };
 
 #endif
