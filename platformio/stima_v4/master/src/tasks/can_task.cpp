@@ -2337,8 +2337,6 @@ void CanTask::Run() {
                     // loop for all Node and switching from list command sequence.
                     // Create and send register command and wait progression in server command procedure
                     for(uint8_t register_server_queueId=0; register_server_queueId<MAX_NODE_CONNECT; register_server_queueId++) {
-                        // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
-                        // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
                         if (clCanard.slave[register_server_queueId].register_access.event_timeout()) {
                             // Reset del pending comando
                             clCanard.slave[register_server_queueId].register_access.reset_pending();

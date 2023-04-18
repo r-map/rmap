@@ -964,12 +964,9 @@ void MqttTask::Run()
 
                 break;
             }
-            // *****************************************
-            // *****************************************
-            // TODO: PUSH REAL DATA MQTT, EXIT ON ERROR
-            // *****************************************
-            // *****************************************            
-          } else {
+          }
+          else
+          {
             TRACE_VERBOSE_F(F("MQTT: RMAP Reading Data queue error!!!\r\n"));
           }
           // Non blocking task

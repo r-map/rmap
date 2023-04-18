@@ -95,12 +95,14 @@ private:
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
-  uint8_t checkWindSpeed(rmapdata_t speed);
-  uint8_t checkWindDirection(rmapdata_t direction);
+  uint8_t checkWindQuality(float speed, float direction);
   void getSDFromUV(float u, float v, float *speed, float *direction);
 
   State_t state;
   ElaborateDataParam_t param;
+
+  float speed_last;     // Bkp value for check quality
+  float direction_last; // Bkp value for check quality
 
   sample_t wind_speed_samples;
   sample_t wind_direction_samples;

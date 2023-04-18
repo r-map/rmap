@@ -154,10 +154,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         // On method reboot if is called before Saving is possible saving by check cfg_modified flag;
         is_configuration_changed = true;
         // No more action here if save configuration.
-        // TODO:Action to start configuration module before rebot or deinit remote node and restart PnP to Reset
-        // Pnp Reset is need only if is changed node_id remote otherwise no more action required here
         if(isMasterConfigure) {
-          //TODO: if node_id master <> node_old master... Reconfigure Node Id Slave !!!
           initFixedConfigurationParam();
           saveConfiguration();
           is_configuration_changed = false;
@@ -230,8 +227,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     }
     else if (strcmp(it.key().c_str(), "cansampletime") == 0)
     {
-      // TODO:CAN_SAMPLE_TIME
-      // can_sampletime (Time to auto publish data. Master future use)
+      // can_sampletime (Time to auto publish data. Master only future use)
       if(isSlaveConfigure) {
         param.configurationLock->Take();
         param.configuration->board_slave[slaveId].can_sampletime = it.value().as<unsigned int>();
@@ -258,9 +254,11 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
-        // can_sampletime are porting to observation_s require
+        //TODO: if node_id master <> node_old master... Reconfigure Node Id Slave !!!
         param.configurationLock->Take();
+        #if (!USE_NODE_MASTER_ID_FIXED)
         param.configuration->board_master.can_address = it.value().as<unsigned int>();
+        #endif
         param.configurationLock->Give();
       }
       else error_command = true;

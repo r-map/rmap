@@ -109,10 +109,6 @@ void SupervisorTask::Run()
   connection_response_t connection_response;
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
 
-  // TODO: remove
-  bool test_put_firmware = false;
-  bool test_get_config = false;
-
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -194,9 +190,6 @@ void SupervisorTask::Run()
       // TEST CONNECTION
       #if !(TEST_CONFIGURATION)
       if(1) {
-
-        // 1 TEST di configurazione
-        test_get_config = true;
 
         // TODO: REMOVE
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
