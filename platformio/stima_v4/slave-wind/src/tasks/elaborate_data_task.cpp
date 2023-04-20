@@ -363,10 +363,8 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
     // Make last data value to Get Istant show value
     speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
     if (!ISVALID_FLOAT(speed)) speed = 0;
-    else speed /= WIND_CASTING_SPEED_MULT;
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
     if (!ISVALID_FLOAT(direction)) direction = 0;
-    else direction /= WIND_CASTING_DIRECTION_MULT;
     // Used as sample for istant value (Only LCD for show value)
     report.vavg10_speed = speed;
     report.vavg10_direction = direction;
