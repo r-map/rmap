@@ -256,7 +256,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       else if(isMasterConfigure) {
         //TODO: if node_id master <> node_old master... Reconfigure Node Id Slave !!!
         param.configurationLock->Take();
-        #if (!USE_NODE_MASTER_ID_FIXED)
+        #ifndef USE_NODE_MASTER_ID_FIXED
         param.configuration->board_master.can_address = it.value().as<unsigned int>();
         #endif
         param.configurationLock->Give();

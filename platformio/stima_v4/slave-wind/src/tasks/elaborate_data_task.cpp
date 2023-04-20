@@ -1,25 +1,32 @@
-/**@file elaborate_data_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    elaborate_data_task.cpp
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @author  Moreno Gasperini <m.baldinetti@digiteco.it>
+  * @brief   elaborate_data_task source file (Elaborate acquire WindGill)
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     ELABORATE_DATA_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   ELABORATE_TASK_ID
@@ -355,9 +362,14 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   if (report_time_s == 0) {
     // Make last data value to Get Istant show value
     speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-    speed /= WIND_CASTING_SPEED_MULT;
+    if (!ISVALID_FLOAT(speed)) speed = 0;
+    else speed /= WIND_CASTING_SPEED_MULT;
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-    direction /= WIND_CASTING_DIRECTION_MULT;
+    if (!ISVALID_FLOAT(direction)) direction = 0;
+    else direction /= WIND_CASTING_DIRECTION_MULT;
+    // Used as sample for istant value (Only LCD for show value)
+    report.vavg10_speed = speed;
+    report.vavg10_direction = direction;
   }
   else
   {

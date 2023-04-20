@@ -421,15 +421,10 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   {
     // Make last data value to Get Istant show value
     report.avg_battery_charge = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
-    report.avg_battery_charge_quality = (rmapdata_t)checkMppt_P_Chg(report.avg_battery_charge);
     report.avg_battery_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
-    report.avg_battery_voltage_quality = (rmapdata_t)checkMppt_V_Bat(report.avg_battery_voltage);
     report.avg_battery_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_current_samples, SAMPLES_COUNT_MAX);
-    report.avg_battery_current_quality = (rmapdata_t)checkMppt_I_Bat(report.avg_battery_current);
     report.avg_input_voltage = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_voltage_samples, SAMPLES_COUNT_MAX);
-    report.avg_input_voltage_quality = (rmapdata_t)checkMppt_V_In(report.avg_input_voltage);
     report.avg_input_current = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
-    report.avg_input_current_quality = (rmapdata_t)checkMppt_I_In(report.avg_input_current);
   }
   else
   {
@@ -641,14 +636,13 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       report.avg_input_current = (rmapdata_t)avg_input_current_o;
       report.avg_input_current_quality = (rmapdata_t)avg_input_current_quality_o;
     }
-
-    // Trace report final
-    TRACE_INFO_F(F("--> battery charge\t%d\t%d\r\n"), (int32_t)report.avg_battery_charge, (int32_t)report.avg_battery_charge_quality);
-    TRACE_INFO_F(F("--> battery voltage\t%d\t%d\r\n"), (int32_t)report.avg_battery_voltage, (int32_t)report.avg_battery_voltage_quality);
-    TRACE_INFO_F(F("--> battery current\t%d\t%d\r\n"), (int32_t)report.avg_battery_current, (int32_t)report.avg_battery_current_quality);
-    TRACE_INFO_F(F("--> input voltage\t%d\t%d\r\n"), (int32_t)report.avg_input_voltage, (int32_t)report.avg_input_voltage_quality);
-    TRACE_INFO_F(F("--> input current\t%d\t%d\r\n"), (int32_t)report.avg_input_current, (int32_t)report.avg_input_current_quality);
   }
+  // Trace report final (Istant or Elaborate)
+  TRACE_INFO_F(F("--> battery charge\t%d\t%d\r\n"), (int32_t)report.avg_battery_charge, (int32_t)report.avg_battery_charge_quality);
+  TRACE_INFO_F(F("--> battery voltage\t%d\t%d\r\n"), (int32_t)report.avg_battery_voltage, (int32_t)report.avg_battery_voltage_quality);
+  TRACE_INFO_F(F("--> battery current\t%d\t%d\r\n"), (int32_t)report.avg_battery_current, (int32_t)report.avg_battery_current_quality);
+  TRACE_INFO_F(F("--> input voltage\t%d\t%d\r\n"), (int32_t)report.avg_input_voltage, (int32_t)report.avg_input_voltage_quality);
+  TRACE_INFO_F(F("--> input current\t%d\t%d\r\n"), (int32_t)report.avg_input_current, (int32_t)report.avg_input_current_quality);
 }
 
 template <typename buffer_g, typename length_v, typename value_v>

@@ -68,7 +68,17 @@
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
 #define USE_NODE_MASTER_ID_FIXED
 
-// Utilizzo della m odalità full power per la rete UAVCAN (non permette sleep. Da usare Per test e/o debug)
+// Utilizzo del flag di configurazione fissa (check moduli CAN connection and data)
+#if (FIXED_CONFIGURATION)
+// #define USE_MODULE_FIXED_TH
+// #define USE_MODULE_FIXED_RAIN
+#define USE_MODULE_FIXED_WIND
+// #define USE_MODULE_FIXED_RADIATION
+// #define USE_MODULE_FIXED_VWC
+// #define USE_MODULE_FIXED_POWER
+#endif
+
+// Utilizzo della modalità full power per la rete UAVCAN (non permette sleep. Da usare Per test e/o debug)
 // #define FORCE_FULL_POWER
 
 // Utilizza metodo di sottoscrizione al publisher per acceso ai dati slave remoti

@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    elaborate_data_task.h
-  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Elaborate data sensor to CAN header file
   ******************************************************************************
@@ -201,8 +201,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   rmapdata_t solar_radiation_s = 0;
   float avg_solar_radiation_s = 0;
   float avg_solar_radiation_o = 0;
-  float min_solar_radiation_o = __FLT_MAX__;
-  float max_solar_radiation_o = __FLT_MIN__;
+  float min_solar_radiation_o = FLT_MAX;
+  float max_solar_radiation_o = FLT_MIN;
   float avg_solar_radiation_quality_s = 0;
   float avg_solar_radiation_quality_o = 0;
   #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
