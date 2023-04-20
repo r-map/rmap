@@ -135,7 +135,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WAIT_QUEUE_RESPONSE_ELABDATA_MS   (50)
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
 
-// Sample and default value for elaborate task 
+// Sample and default value for elaborate task
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)

@@ -385,18 +385,18 @@ void LCDTask::display_on() {
  *
  */
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
-  bool bMeasValid_A = true, bMeasValid_B = true;
-  bool printMeasB = false;
-  char description_A[STIMA_LCD_DESCRIPTION_LENGTH], description_B[STIMA_LCD_DESCRIPTION_LENGTH];
-  char measure_A[STIMA_LCD_MEASURE_LENGTH], measure_B[STIMA_LCD_MEASURE_LENGTH];
-  char unit_type_A[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_B[STIMA_LCD_UNIT_TYPE_LENGTH];
-  float value_display_A, value_display_B;
-  uint8_t decimals_A, decimals_B;
+  bool bMeasValid_A = true, bMeasValid_B = true, bMeasValid_C = true;
+  bool printMeasB = false, printMeasC = false;
+  char description_A[STIMA_LCD_DESCRIPTION_LENGTH], description_B[STIMA_LCD_DESCRIPTION_LENGTH], description_C[STIMA_LCD_DESCRIPTION_LENGTH];
+  char measure_A[STIMA_LCD_MEASURE_LENGTH], measure_B[STIMA_LCD_MEASURE_LENGTH], measure_C[STIMA_LCD_MEASURE_LENGTH];
+  char unit_type_A[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_B[STIMA_LCD_UNIT_TYPE_LENGTH], unit_type_C[STIMA_LCD_UNIT_TYPE_LENGTH];
+  float value_display_A, value_display_B, value_display_C;
+  uint8_t decimals_A, decimals_B, decimals_C;
 
   // Take the informations to print
-  getStimaLcdDescriptionByType(description_A, description_B, module_type);
-  getStimaLcdUnitTypeByType(unit_type_A, unit_type_B, module_type);
-  getStimaLcdDecimalsByType(&decimals_A, &decimals_B, module_type);
+  getStimaLcdDescriptionByType(description_A, description_B, description_C, module_type);
+  getStimaLcdUnitTypeByType(unit_type_A, unit_type_B, unit_type_C, module_type);
+  getStimaLcdDecimalsByType(&decimals_A, &decimals_B, &decimals_C, module_type);
 
   // Process string format to print
   if (param.system_status->data_slave[channel].is_online) {
@@ -425,22 +425,44 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         if ((value_display_A < 0) || (value_display_A > 60)) bMeasValid_A = false;
         if ((value_display_B < 0) || (value_display_B > 359.9)) bMeasValid_B = false;
         break;
+      case Module_Type::radiation:
+        value_display_A = param.system_status->data_slave[channel].data_value_A;
+        if ((value_display_A < 0) || (value_display_A > 2000)) bMeasValid_A = false;
+        break;
+      case Module_Type::power:
+        printMeasB = true;
+        printMeasC = true;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
+        value_display_B = (float)param.system_status->data_slave[channel].data_value_B / 10.0;
+        value_display_C = (float)param.system_status->data_slave[channel].data_value_C;
+        if ((value_display_A < 5) || (value_display_A > 20)) bMeasValid_A = false;
+        if ((value_display_B < 0) || (value_display_B > 30)) bMeasValid_B = false;
+        if ((value_display_C < -350) || (value_display_C > 5000)) bMeasValid_C = false;
+        break;
       default:
         value_display_A = param.system_status->data_slave[channel].data_value_A;
         value_display_B = param.system_status->data_slave[channel].data_value_B;
+        value_display_C = param.system_status->data_slave[channel].data_value_C;
         break;
     }
     dtostrf(value_display_A, 0, decimals_A, measure_A);
     if (printMeasB) {
       dtostrf(value_display_B, 0, decimals_B, measure_B);
     }
+    if (printMeasC) {
+      dtostrf(value_display_C, 0, decimals_C, measure_C);
+    }
   } else {
     bMeasValid_A = false;
     bMeasValid_B = false;
+    bMeasValid_C = false;
   }
   bMeasValid_A == true ? snprintf(measure_A, sizeof(measure_A), "%s %s", measure_A, unit_type_A) : snprintf(measure_A, sizeof(measure_A), "--- %s", unit_type_A);
   if (printMeasB) {
     bMeasValid_B == true ? snprintf(measure_B, sizeof(measure_B), "%s %s", measure_B, unit_type_B) : snprintf(measure_B, sizeof(measure_B), "--- %s", unit_type_B);
+  }
+  if (printMeasC) {
+    bMeasValid_C == true ? snprintf(measure_C, sizeof(measure_C), "%s %s", measure_C, unit_type_C) : snprintf(measure_C, sizeof(measure_C), "--- %s", unit_type_C);
   }
 
   // Print description of measure
@@ -464,6 +486,19 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE + 2.5 * LINE_BREAK);
     display.setFont(u8g2_font_helvR10_tf);
     display.print(measure_B);
+  }
+
+  // Print the third measure for special cases
+  if (printMeasC) {
+    // Print description of measure
+    display.setFont(u8g2_font_helvR08_tf);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4.5 * LINE_BREAK);
+    display.print(description_C);
+
+    // Print measurement information
+    display.setCursor(X_TEXT_FROM_RECT + 4 * STIMA_LCD_DESCRIPTION_LENGTH, Y_TEXT_FIRST_LINE + 4.5 * LINE_BREAK);
+    display.setFont(u8g2_font_helvR10_tf);
+    display.print(measure_C);
   }
 
   // Print maintenance information if enabled

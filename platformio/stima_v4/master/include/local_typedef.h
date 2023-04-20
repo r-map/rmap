@@ -261,8 +261,9 @@ typedef struct
       bool maintenance_mode;        // Maintenance mode flag
       Module_Type module_type;      // Type of remote module
       uint16_t last_acquire;        // Last acquire data (refered to...)
-      uint32_t data_value_A;        // Data value first chanel (istant value)
-      uint32_t data_value_B;        // Data value optional second chanel (istant value)
+      rmapdata_t data_value_A;      // Data value first chanel (istant value)
+      rmapdata_t data_value_B;      // Data value optional second chanel (istant value)
+      rmapdata_t data_value_C;      // Data value optional third chanel (istant value)
       uint8_t module_revision;      // Revision RMAP
       uint8_t module_version;       // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];

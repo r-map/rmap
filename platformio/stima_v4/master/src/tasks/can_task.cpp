@@ -2095,6 +2095,8 @@ void CanTask::Run() {
                                     param.systemStatusLock->Take();
                                     // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
                                     param.system_status->data_slave[queueId].data_value_A = retPwrData->DEP.battery_voltage.val.value;
+                                    param.system_status->data_slave[queueId].data_value_B = retPwrData->DEP.input_voltage.val.value;
+                                    param.system_status->data_slave[queueId].data_value_C = retPwrData->DEP.battery_current.val.value;
                                     // Add info RMAP to system
                                     if(retPwrData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;

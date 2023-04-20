@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/unit/torque/Scalar.1.0.dsdl
-// Generated at:  2023-03-18 13:51:14.396054 UTC
+// Generated at:  2023-04-20 17:13:35.236929 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.unit.torque.Scalar

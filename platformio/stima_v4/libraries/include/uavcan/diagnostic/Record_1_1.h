@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/diagnostic/8184.Record.1.1.dsdl
-// Generated at:  2023-03-18 13:51:14.797905 UTC
+// Generated at:  2023-04-20 17:13:34.654750 UTC
 // Is deprecated: no
 // Fixed port-ID: 8184
 // Full name:     uavcan.diagnostic.Record

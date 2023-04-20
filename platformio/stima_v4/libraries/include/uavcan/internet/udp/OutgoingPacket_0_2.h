@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/internet/udp/8174.OutgoingPacket.0.2.dsdl
-// Generated at:  2023-03-18 13:51:13.970935 UTC
+// Generated at:  2023-04-20 17:13:35.615696 UTC
 // Is deprecated: no
 // Fixed port-ID: 8174
 // Full name:     uavcan.internet.udp.OutgoingPacket

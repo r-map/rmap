@@ -239,7 +239,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_HUMIDITY              ("Humidity")
 #define STIMA_LCD_DESCRIPTION_LEAF                  ("Leaf wetness")
 #define STIMA_LCD_DESCRIPTION_OPC                   ("Air particle")
-#define STIMA_LCD_DESCRIPTION_POWER_MPPT            ("Power regulator mppt")
+#define STIMA_LCD_DESCRIPTION_POWER_BATT            ("Battery voltage")
+#define STIMA_LCD_DESCRIPTION_POWER_INPUT           ("System voltage")
+#define STIMA_LCD_DESCRIPTION_POWER_CURRENT         ("Battery current")
 #define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
 #define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")
 #define STIMA_LCD_DESCRIPTION_TEMPERATURE           ("Temperature")
@@ -257,6 +259,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_UNIT_TYPE_MILLIMETERS             ("mm")
 #define STIMA_LCD_UNIT_TYPE_PERCENTS                ("%")
 #define STIMA_LCD_UNIT_TYPE_VOLTS                   ("V")
+#define STIMA_LCD_UNIT_TYPE_MILLI_AMPERE            ("mA")
 #define STIMA_LCD_UNIT_TYPE_WATTS_PER_SQUARE_METER  ("W/m2")
 
 /*!

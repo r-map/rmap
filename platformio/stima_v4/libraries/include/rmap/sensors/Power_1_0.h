@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/sensors/Power.1.0.dsdl
-// Generated at:  2023-03-18 13:51:16.276848 UTC
+// Generated at:  2023-04-20 17:13:37.215317 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.sensors.Power
@@ -77,8 +77,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_sensors_Power_1_0_EXTENT_BYTES_                    29UL
-#define rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 29UL
+#define rmap_sensors_Power_1_0_EXTENT_BYTES_                    28UL
+#define rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 28UL
 static_assert(rmap_sensors_Power_1_0_EXTENT_BYTES_ >= rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -129,7 +129,7 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 232UL)
+    if ((8U * (size_t) capacity_bytes) < 224UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -238,7 +238,7 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
     }
 
     {   // rmap.measures.BatteryCurrent.1.0 battery_current
-        size_t _size_bytes4_ = 4UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes4_ = 3UL;  // Nested object (max) size, in bytes.
         int8_t _err8_ = rmap_measures_BatteryCurrent_1_0_serialize_(
             &obj->battery_current, &buffer[offset_bits / 8U], &_size_bytes4_);
         if (_err8_ < 0)

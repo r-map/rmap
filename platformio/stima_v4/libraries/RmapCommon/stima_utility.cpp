@@ -139,7 +139,7 @@ void getStimaDescriptionByType(char *description, uint8_t type) {
   }
 }
 
-void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description_B, uint8_t type) {
+void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description_B, char* lcd_description_C, uint8_t type) {
   switch (type) {
     case STIMA_MODULE_TYPE_RAIN:
       strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_RAIN, STIMA_LCD_DESCRIPTION_LENGTH);
@@ -176,7 +176,9 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_POWER_MPPT, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_POWER_BATT, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_B, STIMA_LCD_DESCRIPTION_POWER_INPUT, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_C, STIMA_LCD_DESCRIPTION_POWER_CURRENT, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_VVC:
@@ -189,7 +191,7 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
   }
 }
 
-void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uint8_t type) {
+void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, char *lcd_unit_type_C, uint8_t type) {
   switch (type) {
     case STIMA_MODULE_TYPE_RAIN:
       strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_MILLIMETERS, STIMA_LCD_UNIT_TYPE_LENGTH);
@@ -226,6 +228,8 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uin
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
       strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_B, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_C, STIMA_LCD_UNIT_TYPE_MILLI_AMPERE, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_VVC:
@@ -238,7 +242,7 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uin
   }
 }
 
-void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t type) {
+void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t *decimals_C, uint8_t type) {
   switch (type) {
     case STIMA_MODULE_TYPE_RAIN:
       *decimals_A = STIMA_LCD_DECIMALS_ONE;
@@ -274,7 +278,9 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      *decimals_A = STIMA_LCD_DECIMALS_TWO;
+      *decimals_A = STIMA_LCD_DECIMALS_ONE;
+      *decimals_B = STIMA_LCD_DECIMALS_ONE;
+      *decimals_C = STIMA_LCD_DECIMALS_ZERO;
       break;
 
     case STIMA_MODULE_TYPE_VVC:

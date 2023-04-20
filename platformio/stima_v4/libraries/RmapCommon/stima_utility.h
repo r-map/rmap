@@ -48,31 +48,31 @@ void getStimaNameByType(char *name, uint8_t type, uint8_t offset = 0);
 void getStimaDescriptionByType(char *description, uint8_t type);
 
 /*!
-\fn void getStimaLcdDescriptionByType(char *lcd_description, uint8_t type)
+\fn void getStimaLcdDescriptionByType(char *lcd_description_X, uint8_t type)
 \brief Return a STIMA's description to print with LCD display from a module type stored in configuration.
 \param[out] *description STIMA's description.
 \param[in] *type module type stored in configuration.
 \return void.
 */
-void getStimaLcdDescriptionByType(char *lcd_description_A, char *lcd_description_B, uint8_t type);
+void getStimaLcdDescriptionByType(char *lcd_description_A, char *lcd_description_B, char *lcd_description_C, uint8_t type);
 
 /*!
-\fn void getStimaLcdUnitTypeByType(char *lcd_unit_type, uint8_t type)
+\fn void getStimaLcdUnitTypeByType(char *lcd_unit_type_X, uint8_t type)
 \brief Return a STIMA's Unit type to print with LCD display from a module type stored in configuration.
 \param[out] *description STIMA's description.
 \param[in] *type module type stored in configuration.
 \return void.
 */
-void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, uint8_t type);
+void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, char *lcd_unit_type_C, uint8_t type);
 
 /*!
-\fn void getStimaLcdDecimalsByType(uint8_t *decimals, uint8_t type)
+\fn void getStimaLcdDecimalsByType(uint8_t *decimals_X, uint8_t type)
 \brief Return a STIMA's Decimals for use to print value of measurement with LCD display from a module type stored in configuration.
 \param[out] *description STIMA's description.
 \param[in] *type module type stored in configuration.
 \return void.
 */
-void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t type);
+void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t *decimals_C, uint8_t type);
 
 /*!
 \fn void checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)

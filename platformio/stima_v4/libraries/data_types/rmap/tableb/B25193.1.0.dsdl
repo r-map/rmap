@@ -1,6 +1,7 @@
 # Corrente batteria (A)
 # fattore scala x1000
-# MAX 250.0 Ampere
-uint18 MAX = 250000
-uint18 value
+# MAX 30.0 Ampere
+int16 MIN = -30000
+int16 MAX = 30000
+int16 value
 @sealed

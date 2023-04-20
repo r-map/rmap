@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B13003.1.0.dsdl
-// Generated at:  2023-03-18 13:51:16.398320 UTC
+// Generated at:  2023-04-20 17:13:37.011664 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.tableb.B13003
