@@ -121,9 +121,8 @@ float Mppt::get_V_BAT(void) {
 /// @param  None
 /// @return I_BAT Value converted to I Ampere
 float Mppt::get_I_BAT(void) {
-  uint16_t data;
-  LTC4015_read_register(LTC4015_IBAT, &data);
-  if(data>32767) data = 0;
+  int16_t data;
+  LTC4015_read_register(LTC4015_IBAT, (uint16_t*) &data);
   float iBatt = ((float)data * I_REF_BATT) / I_REF_CVAL;
   return iBatt;
 }

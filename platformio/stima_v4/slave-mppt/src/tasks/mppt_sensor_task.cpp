@@ -156,7 +156,7 @@ void MpptSensorTask::Run() {
         edata.index = POWER_BATTERY_VOLTAGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = param.mpptIC->get_I_BAT() * POWER_INPUT_CURRENT_MULT;
+        edata.value = param.mpptIC->get_I_BAT() * POWER_BATTERY_CURRENT_MULT;
         edata.index = POWER_BATTERY_CURRENT_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
