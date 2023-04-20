@@ -254,11 +254,11 @@ void WindSensorTask::Run() {
       serialReset();
 
       // Put data into queue to elaborate istant value
-      edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
+      edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_RMAP_MULT);
       edata.index = WIND_SPEED_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-      edata.value = (rmapdata_t)(direction * WIND_CASTING_DIRECTION_MULT);
+      edata.value = (rmapdata_t)(direction);
       edata.index = WIND_DIRECTION_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
