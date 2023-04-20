@@ -417,6 +417,14 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
         if ((value_display_A < 0) || (value_display_A > 1000)) bMeasValid_A = false;
         break;
+      // Adjust UDM with comprensible value
+      case Module_Type::wind:
+        printMeasB = true;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
+        value_display_B = (float)param.system_status->data_slave[channel].data_value_B;
+        if ((value_display_A < 0) || (value_display_A > 60)) bMeasValid_A = false;
+        if ((value_display_B < 0) || (value_display_B > 359.9)) bMeasValid_B = false;
+        break;
       default:
         value_display_A = param.system_status->data_slave[channel].data_value_A;
         value_display_B = param.system_status->data_slave[channel].data_value_B;

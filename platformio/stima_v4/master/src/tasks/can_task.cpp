@@ -1258,7 +1258,8 @@ void CanTask::Run() {
                 #if (FIXED_CONFIGURATION)
                 // **** Used for Test module and check CAN data exchange ****
                 // TH
-                int8_t idxFixed = -1;
+                int8_t idxFixed;
+                idxFixed = -1;
                 #ifdef USE_MODULE_FIXED_TH
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 60;
@@ -1307,6 +1308,14 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 #endif
+                // RESET Next Board
+                for(uint8_t iIdxRst = idxFixed + 1; iIdxRst < MAX_NODE_CONNECT; iIdxRst++) {
+                    param.configuration->board_slave[iIdxRst].can_address = NODE_VALUE_UNSET;
+                    param.configuration->board_slave[iIdxRst].module_type = Module_Type::undefined;
+                    param.configuration->board_slave[iIdxRst].can_port_id = 0xFFFFu;
+                    param.configuration->board_slave[iIdxRst].can_publish_id = 0xFFFFu;
+                    param.configuration->board_slave[iIdxRst].serial_number = 0;
+                }
                 #endif
 
                 // INIT istance class for UAVCAN Network
