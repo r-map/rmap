@@ -147,8 +147,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MAX_VALID_WIND_DIRECTION          (359.9)
 #define MIN_VALID_WIND_DIRECTION          (0.0)
 
-#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
+#define SAMPLE_ERROR_PERCENTAGE_MAX       (100.0 - 90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MAX  (100.0 - 90.0)
 
 #define WIND_POWER_ON_DELAY_MS            (5000)
 

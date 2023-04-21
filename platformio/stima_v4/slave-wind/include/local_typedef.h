@@ -116,21 +116,21 @@ typedef struct
 typedef struct
 {
    // DWA
-   float vavg10_speed;     // B11002   254,0,0
-   float vavg10_direction; // B11001   254,0,0
+   float vavg10_speed;     // B11002   254,0,0     velocità media vettoriale su 10'
+   float vavg10_direction; // B11001   254,0,0     direzione media vettoriale su 10'
 
    // DWB
-   float vavg_speed;     // B11002   200,0,900
-   float vavg_direction; // B11001   200,0,900
+   float vavg_speed;     // B11002   200,0,900     velocità media vettoriale su 15'
+   float vavg_direction; // B11001   200,0,900     direzione media vettoriale su 15'
 
    // DWC
-   float peak_gust_speed; // B11041   2,0,900
-   float long_gust_speed; // B11209   2,0,900
+   float peak_gust_speed; // B11041   2,0,900      velocità della raffica sui samples
+   float long_gust_speed; // B11209   2,0,900      velocità della raffica sulle osservazioni
 
    // DWD
-   float avg_speed; // B11002   0,0,900
+   float avg_speed; // B11002   0,0,900            velocità media scalare
 
-   // DWE
+   // DWE: classi di vento
    float class_1; // B11211   9,0,900
    float class_2; // B11212   9,0,900
    float class_3; // B11213   9,0,900
@@ -140,9 +140,9 @@ typedef struct
    // dtable={"51":["B11211","B11212","B11213","B11214","B11215","B11216"]}
 
    // DWF
-   float peak_gust_direction; // B11043   205,0,900
-   float long_gust_direction; // B11210   205,0,900
-   
+   float peak_gust_direction; // B11043   205,0,900   direzione della raffica sui samples
+   float long_gust_direction; // B11210   205,0,900   direzione della raffica sulle osservazioni
+
    // common for all DWA DWB DWC DWD DWE DWF
    float quality;
 } report_t;

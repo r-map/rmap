@@ -365,8 +365,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
-  uint16_t sample_for_observation = 0;
-  if(report_time_s && observation_sample_count) sample_for_observation = report_sample_count / observation_sample_count;
+  uint16_t report_observations_count = 0;
+  if(report_time_s && observation_sample_count) report_observations_count = report_sample_count / observation_sample_count;
 
   // Request to calculate is correct? Trace request
   if (report_time_s == 0)
@@ -379,7 +379,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), sample_for_observation);
+    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_observations_count);
     TRACE_DEBUG_F(F("-> %d available temperature main samples count\r\n"), temperature_main_samples.count);
     TRACE_DEBUG_F(F("-> %d available temperature redundant samples count\r\n"), temperature_redundant_samples.count);
     TRACE_DEBUG_F(F("-> %d available humidity main samples count\r\n"), humidity_main_samples.count);
@@ -458,7 +458,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       // Get base operation for any record...
       n_sample++; // Elaborate next sample... (Initzialize with 0, Sample 1 is first. Exit UP if buffer completed)
       // Check if is an observation
-      is_observation = (n_sample % sample_for_observation) == 0;
+      is_observation = (n_sample % observation_sample_count) == 0;
       // Is Maintenance mode? (Excluding measure from elaboration value)
       // Maintenance is sytemic value for all measure (always pushed into module for excuding value with maintenance)
       measures_maintenance = bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
