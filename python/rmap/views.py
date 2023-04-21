@@ -479,10 +479,10 @@ def acl(request):
                             if myboard is not None:
                                 if (hasattr(myboard, 'transportmqtt')):
                                     if ( myboard.active and myboard.transportmqtt.active):
-                                        username = myboard.transportmqtt.mqttuser
+                                        ident = myboard.transportmqtt.mqttuser
                                         mynetwork=mystation.network
                                         if lat is None:
-                                            mytopic="/"
+                                            mytopic=ident+"/"
                                         else:
                                             mytopic="/%d,%d/" % (nint(mystation.lon*100000),nint(mystation.lat*100000))
 
@@ -549,10 +549,10 @@ def acl(request):
                             for myboard in mystation.board_set.all():
                                 if (hasattr(myboard, 'transportmqtt')):
                                     if ( myboard.active and myboard.transportmqtt.active):
-                                        username = myboard.transportmqtt.mqttuser
+                                        ident = myboard.transportmqtt.mqttuser
                                         mynetwork=mystation.network
                                         if lat is None:
-                                            mytopic="/"
+                                            mytopic=ident+"/"
                                         else:
                                             mytopic="/%d,%d/" % (nint(lon*100000),nint(lat*100000))
 
