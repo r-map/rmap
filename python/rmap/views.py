@@ -479,7 +479,7 @@ def acl(request):
                             if myboard is not None:
                                 if (hasattr(myboard, 'transportmqtt')):
                                     if ( myboard.active and myboard.transportmqtt.active):
-                                        ident = myboard.transportmqtt.mqttuser
+                                        ident = mystation.ident
                                         mynetwork=mystation.network
                                         if lat is None:
                                             mytopic=ident+"/"
@@ -549,7 +549,7 @@ def acl(request):
                             for myboard in mystation.board_set.all():
                                 if (hasattr(myboard, 'transportmqtt')):
                                     if ( myboard.active and myboard.transportmqtt.active):
-                                        ident = myboard.transportmqtt.mqttuser
+                                        ident = mystation.ident
                                         mynetwork=mystation.network
                                         if lat is None:
                                             mytopic=ident+"/"
