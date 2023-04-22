@@ -821,7 +821,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     canardClass::heartbeat_VSC remoteVSC;
                     // remoteVSC.powerMode
                     remoteVSC.uint8_val = msg.vendor_specific_status_code;
-                    TRACE_VERBOSE_F(F("RX HeartBeat from master, master power mode SET: -> %u\r\n"), remoteVSC.powerMode);
+                    TRACE_INFO_F(F("RX HeartBeat from master, master power mode SET: -> %u\r\n"), remoteVSC.powerMode);
 
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set canard_us local per controllo NodoOffline (validità area di OnLine)
@@ -1270,13 +1270,11 @@ void CanTask::Run() {
                     {
                         // Enter module sleep procedure (OFF Module)
                         HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
-                        
                         // Enter sleep module OK and update WDT
                         TaskWatchDog(CAN_TASK_SLEEP_DELAY_MS);
                         TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
                         Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
                         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
                         // Restore module from Sleep
                         HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
                     }
@@ -1567,7 +1565,7 @@ void CanTask::Run() {
                 // Check eventuale Nodo Master OFFLINE (Ultimo comando sempre perchè posso)
                 // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
                 // Entro in OffLine ed eseguo eventuali operazioni di entrata
-                if (clCanard.master.heartbeat.is_online()) {
+                if (clCanard.master.heartbeat.is_online(false)) {
                     // Solo quando passo da OffLine ad OnLine controllo con VarLocale
                     if (masterOnline != true) {
                         TRACE_INFO_F(F("Master controller ONLINE !!! -> OnLineFunction()\r\n"));
@@ -1701,20 +1699,28 @@ void CanTask::Run() {
                     } else {
                         TRACE_INFO_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                         clCanard.slave_heartbeat_send_message();
-                        // Update publisher
-                        last_pub_heartbeat += MEGA * TIME_PUBLISH_HEARTBEAT;
+                        // Update publisher when real syncro onLine Master (Synch with master publish HeartBeat)
+                        if(clCanard.master.heartbeat.is_online(true))
+                            last_pub_heartbeat = clCanard.master.heartbeat.last_online() + MEGA * TIME_PUBLISH_HEARTBEAT;
+                        else
+                            last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
                     }
                 }
 
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
-                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
-                    // Publish list service only if full power mode are selected
-                    if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
+                if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
+                    if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
+                        // Publish list service only if full power mode are selected
                         TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                        last_pub_port_list += MEGA * TIME_PUBLISH_PORT_LIST;
+                        last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
                         // Update publisher
                         clCanard.slave_servicelist_send_message();
                     }
+                } else {
+                    // Mantengo il publish Port avanti nel tempo e Avvio solo a MAX Power e tempo
+                    // di pubblicazione interamente trascorso. Evita Publish inutile in Request PowerUP
+                    // da Master, per semplici operazioni di lettura e/o configurazione ( In Power::Sleep )
+                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time);
                 }
 
                 // ***************************************************************************

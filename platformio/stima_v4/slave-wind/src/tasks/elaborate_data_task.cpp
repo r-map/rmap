@@ -215,8 +215,8 @@ void ElaborateDataTask::getSDFromUV(float u, float v, float *speed, float *direc
 {
   *speed = sqrt(u * u + v * v);
   *direction = RAD_TO_DEG * atan2(-u, -v);
-  *direction = round(*direction);
-  *direction = *direction % 360;
+  int16_t tpm_dir = round(*direction);
+  *direction = tpm_dir % 360;
 
   if (*speed == 0)
   {
@@ -236,24 +236,24 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   float direction = 0;
 
   uint16_t valid_count_a = 0;
-  uint16_t error_count_a = 0;
-  float error_a_per = 0;
+  uint16_t total_count_a = 0;
+  float valid_a_per = 0;
 
   uint16_t valid_count_b = 0;
-  uint16_t error_count_b = 0;
-  float error_b_per = 0;
+  uint16_t total_count_b = 0;
+  float valid_b_per = 0;
 
   uint16_t valid_count_a_o = 0;
-  uint16_t error_count_a_o = 0;
-  float error_a_o_per = 0;
+  uint16_t total_count_a_o = 0;
+  float valid_a_o_per = 0;
 
   uint16_t valid_count_b_o = 0;
-  uint16_t error_count_b_o = 0;
-  float error_b_o_per = 0;
+  uint16_t total_count_b_o = 0;
+  float valid_b_o_per = 0;
 
   uint16_t valid_count_speed = 0;
-  uint16_t error_count_speed = 0;
-  float error_count_speed_per = 0;
+  uint16_t total_count_speed = 0;
+  float valid_count_speed_per = 0;
 
   float ua = 0;
   float va = 0;
@@ -297,6 +297,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t wmo_report_sample_count = round((600 * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
+  uint16_t wmo_report_observations_count = wmo_report_sample_count / observation_sample_count;
   uint16_t report_observations_count = 0;
   if(report_time_s && observation_sample_count) report_observations_count = report_sample_count / observation_sample_count;
 
@@ -313,6 +314,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
     TRACE_DEBUG_F(F("-> %d samples counts need for WMO avg 10 min.\r\n"), wmo_report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
     TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_observations_count);
+    TRACE_DEBUG_F(F("-> %d WMO observation counts need for report\r\n"), wmo_report_observations_count);
     TRACE_DEBUG_F(F("-> %d available wind speed samples count\r\n"), wind_speed_samples.count);
     TRACE_DEBUG_F(F("-> %d available wind direction samples count\r\n"), wind_direction_samples.count);
   }
@@ -396,7 +398,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       if (speed < CALM_WIND_MAX_MS) direction = WIND_DIRECTION_MAX;
 
       // last sample
-      if (i == 0)
+      if (n_sample == 1)
       {
         TRACE_DEBUG_F(F("Elaborate: last sample [count, data (spd dir)] %u\t%u\t%.2f\t%.0f\t"), wind_speed_samples.count, wind_direction_samples.count, speed, direction);
       }
@@ -405,39 +407,32 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       avg_quality += ((checkWindQuality(speed, direction) - avg_quality) / n_sample);
 
       // calc report on 10'
-      if (i < wmo_report_sample_count)
+      if (n_sample <= wmo_report_sample_count)
       {
+        total_count_a++;
         if ((ISVALID_FLOAT(speed) && ISVALID_FLOAT(direction)) && !measures_maintenance)
         {
           valid_count_a++;
           ua += ((float)(-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count_a;
           va += ((float)(-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count_a;
         }
-        else
-        {
-          error_count_a++;
-        }
       }
 
       // calc report
+      total_count_b++;
       if ((ISVALID_FLOAT(speed) && ISVALID_FLOAT(direction)) && !measures_maintenance)
       {
         valid_count_b++;
-
         ub += ((float)(-speed * sin(DEG_TO_RAD * direction)) - ub) / valid_count_b;
         vb += ((float)(-speed * cos(DEG_TO_RAD * direction)) - vb) / valid_count_b;
-
         if (speed >= peak_gust_speed)
         {
           peak_gust_speed = speed;
           peak_gust_direction = direction;
         }
       }
-      else
-      {
-        error_count_b++;
-      }
 
+      total_count_speed++;
       if (ISVALID_FLOAT(speed) && !measures_maintenance)
       {
         valid_count_speed++;
@@ -468,10 +463,6 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
           class_6++;
         }
       }
-      else
-      {
-        error_count_speed++;
-      }
 
       // ***************************************************************************************************
       // ************* ELABORATE OBSERVATION VALUES FOR TYPE SENSOR FOR PREPARE REPORT RESPONSE ************
@@ -479,31 +470,23 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       if (is_observation)
       {
         // calc report on 10'
-        if (i < wmo_report_sample_count)
+        if (n_sample < wmo_report_sample_count)
         {
-          error_a_per = (float)(error_count_a) / (float)(samples_count)*100.0;
-
-          if (valid_count_a && (error_a_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
+          valid_a_per = (float)(valid_count_a) / (float)(total_count_a) * 100.0;
+          if (valid_a_per >= SAMPLE_ERROR_PERCENTAGE_MIN)
           {
             valid_count_a_o++;
-
-            ua_b += (ua - ua_b) / valid_count_a_o;
-            va_b += (va - va_b) / valid_count_a_o;
-          }
-          else
-          {
-            error_count_a_o++;
+            ua_o += (ua - ua_o) / valid_count_a_o;
+            va_o += (va - va_o) / valid_count_a_o;
           }
         }
 
-        error_b_per = (float)(error_count_b) / (float)(samples_count)*100.0;
-
-        if (valid_count_b && (error_b_per <= SAMPLE_ERROR_PERCENTAGE_MAX))
+        valid_b_per = (float)(valid_count_b) / (float)(total_count_b) * 100.0;
+        if (valid_b_per >= SAMPLE_ERROR_PERCENTAGE_MIN)
         {
           valid_count_b_o++;
-
-          ub_b += (ub - ub_b) / valid_count_b_o;
-          vb_b += (vb - vb_b) / valid_count_b_o;
+          ub_o += (ub - ub_o) / valid_count_b_o;
+          vb_o += (vb - vb_o) / valid_count_b_o;
 
           // raffica su 1 minuto (su una osservazione)
           getSDFromUV(ub, vb, &vavg_speed_o, &vavg_direction_o);
@@ -513,10 +496,6 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
             long_gust_direction = vavg_direction_o;
           }
         }
-        else
-        {
-          error_count_b_o++;
-        }
 
         ua = 0;
         va = 0;
@@ -525,22 +504,21 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
         vavg_speed_o = 0;
         vavg_direction_o = 0;
         valid_count_a = 0;
-        error_count_a = 0;
+        total_count_a = 0;
         valid_count_b = 0;
-        error_count_b = 0;
+        total_count_b = 0;
       }
     }
 
-    error_a_o_per = (float)(error_count_o_a) / (float)(report_observations_count)*100.0;
-    error_b_o_per = (float)(error_count_o_b) / (float)(report_observations_count)*100.0;
-    error_count_speed_per = (float)(error_count_speed) / (float)(samples_count)*100.0;
+    valid_a_o_per = (float)(valid_count_a_o) / (float)(wmo_report_observations_count) * 100.0;
+    valid_b_o_per = (float)(valid_count_b_o) / (float)(report_observations_count) * 100.0;
+    valid_count_speed_per = (float)(total_count_speed) / (float)(samples_count) * 100.0;
 
-    TRACE_DEBUG_F(F("-> %d samples error on wmo report (%d%%)\r\n"), error_count_a, (int32_t)error_a_per);
-    TRACE_DEBUG_F(F("-> %d samples error on report (%d%%)\r\n"), error_count_b, (int32_t)error_b_per);
-    TRACE_DEBUG_F(F("-> %d samples error on long gust (%d%%)\r\n"), error_count_o, (int32_t)error_c_per);
-    TRACE_DEBUG_F(F("-> %d samples error on class (%d%%)\r\n"), error_count_speed, (int32_t)error_count_speed_per);
+    TRACE_DEBUG_F(F("-> %d samples error on wmo report (%d%%)\r\n"), (n_sample - valid_count_a), (uint8_t)(((float)n_sample - (float)valid_count_a) / (float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d samples error on report (%d%%)\r\n"), (n_sample - valid_count_b), (uint8_t)(((float)n_sample - (float)valid_count_b) / (float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d samples error on speed and class (%d%%)\r\n"), (n_sample - total_count_speed), (uint8_t)(((float)n_sample - (float)total_count_speed) / (float)n_sample * 100.0));
 
-    if (!measures_maintenance && valid_count_a && (error_a_per >= SAMPLE_ERROR_PERCENTAGE_MIN))
+    if (valid_a_o_per >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
       getSDFromUV(ua_o, va_o, &vavg10_speed, &vavg10_direction);
       report.vavg10_speed = vavg10_speed;
@@ -548,22 +526,19 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       report.quality = avg_quality;
     }
 
-    if (!measures_maintenance && valid_count_b && (error_b_per >= SAMPLE_ERROR_PERCENTAGE_MIN))
+    if (valid_b_o_per >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
       getSDFromUV(ub_o, vb_o, &vavg_speed_o, &vavg_direction_o);
       report.vavg_speed = vavg_speed;
       report.vavg_direction = round(vavg_direction);
       report.peak_gust_speed = peak_gust_speed;
       report.peak_gust_direction = round(peak_gust_direction);
-    }
 
-    if (!measures_maintenance && valid_count_o && (error_o_per >= SAMPLE_ERROR_PERCENTAGE_MIN))
-    {
       report.long_gust_speed = long_gust_speed;
       report.long_gust_direction = round(long_gust_direction);
     }
 
-    if (!measures_maintenance && error_count_speed && (error_count_speed_per >= SAMPLE_ERROR_PERCENTAGE_MIN))
+    if (valid_count_speed_per >= SAMPLE_ERROR_PERCENTAGE_MIN)
     {
       class_1 = calcFrequencyPercent(class_1, valid_count_speed);
       class_2 = calcFrequencyPercent(class_2, valid_count_speed);

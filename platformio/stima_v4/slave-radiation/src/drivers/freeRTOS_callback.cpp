@@ -41,6 +41,8 @@
 
 #ifdef _USE_FREERTOS_LOW_POWER
 
+volatile bool isSleep = false;
+
 /// @brief Prepara il sistema allo Sleep (OFF Circuirterie ed entrata in PowerDown)
 /// @param xExpectedIdleTime Ticks RTOS (ms) attesi per la funzione di Sleep
 extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
@@ -49,6 +51,7 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
   #elif (LOWPOWER_MODE==SLEEP_LOWPOWER)
     LowPower.sleep(*xExpectedIdleTime - 10);
   #elif (LOWPOWER_MODE==SLEEP_STOP2)
+    isSleep = true;
     LowPower.deepSleep(*xExpectedIdleTime - 10);
   #else
   *xExpectedIdleTime = 0;
@@ -58,6 +61,7 @@ extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
 /// @brief Riattiva il sistema dopo lo Sleep (Riattivazione perifieriche, Clock ecc...)
 /// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
 extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
+  isSleep = false;
 }
 
 // Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)

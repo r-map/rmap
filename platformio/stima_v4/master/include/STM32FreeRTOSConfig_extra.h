@@ -35,17 +35,18 @@
 
 // Define for lptimTick.c
 #if (configUSE_TICKLESS_IDLE==LOW_POWER_PRIVATE_LPTIMx_TICK)
-    #define configTICK_USES_LSE                 // USE LSE CLOCK
-    #define configLPTIM_REF_CLOCK_HZ 32768UL    // LSE CLOCK REFERENCE
-    #define configLPTIM_ENABLE_PRECISION 1      // ENABLE AUTO PRECISION
-    #define configLPTIM_SRC_LPTIM1              // LPTIM1 OR LPTIM2 CONFIG
+    #define configTICK_USES_LSE                     // USE LSE CLOCK
+    #define configLPTIM_REF_CLOCK_HZ 32768UL        // LSE CLOCK REFERENCE
+    #define configLPTIM_ENABLE_PRECISION 1          // ENABLE AUTO PRECISION
+    #define configLPTIM_SRC_LPTIM1                  // LPTIM1 OR LPTIM2 CONFIG
+    #define configTICK_ENABLE_UWTICK_PRECISION 1    // ENABLE UPDATE SYSTICK
 #endif
 
 // Time minimal for start LOW_POWER && SuppressTick...
 #ifdef _EXIT_SLEEP_FOR_DEBUGGING
     #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   60000
 #else
-    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
+    #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   50
 #endif
 
 // Macro Pre && Post Sleep/Wake method

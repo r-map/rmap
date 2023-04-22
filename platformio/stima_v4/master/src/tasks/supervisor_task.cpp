@@ -147,6 +147,8 @@ void SupervisorTask::Run()
         // Init default security value
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
+        // Start INIT for Clear RPC Queue at first connection MQTT (Only at startup)
+        param.system_status->connection.is_mqtt_first_check_rpc = true;
         param.systemStatusLock->Give();
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));

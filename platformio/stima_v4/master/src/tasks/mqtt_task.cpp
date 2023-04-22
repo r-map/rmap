@@ -53,6 +53,7 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
   // local to static member private access
   localRpcLock = param.rpcLock;
   localStreamRpc = param.streamRpc;
+  localSystemStatus = param.system_status;
 
   state = MQTT_STATE_INIT;
   version = MQTT_VERSION_3_1_1;
@@ -991,6 +992,9 @@ void MqttTask::Run()
 
     case MQTT_STATE_DISCONNECT:
       param.systemStatusLock->Take();
+      // Remove first connection FLAG (Clear queue of RPC in safety mode)
+      // RPC Must ececuted only from next connection without error to remote server
+      if(!rmap_data_error) param.system_status->connection.is_mqtt_first_check_rpc = false;
       param.system_status->connection.is_mqtt_disconnecting = true;
       param.systemStatusLock->Give();
 
@@ -1084,6 +1088,10 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 
   bool is_event_rpc = true;
   localStreamRpc->init();
+
+  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC
+  if(localSystemStatus->connection.is_mqtt_first_check_rpc)
+    is_event_rpc = false;
 
   if (localRpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
   {

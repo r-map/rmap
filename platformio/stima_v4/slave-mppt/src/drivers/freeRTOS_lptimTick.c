@@ -244,7 +244,15 @@ static uint32_t ulTimerCountsForOneTick;        //   A "baseline" tick has this 
                                                 // the next tick is slightly early.  This field allows us to
                                                 // schedule each tick on the timer count closest to the ideal
                                                 // tick time.
+
 #endif // configLPTIM_ENABLE_PRECISION
+
+#if ( configTICK_ENABLE_UWTICK_PRECISION != 0 )
+
+   static uint32_t uwTickSuppressedSystem;      //   A "system" tick read suppressed time isTickNowSuppressed
+                                                // elapsed function sleep running, for update System sysTick
+
+#endif // configTICK_ENABLE_UWTICK_PRECISION
 
 static volatile uint16_t usIdealCmp;            //   This field doubles as a write cache for LPTIM->CMP and a
                                                 // way to remember that we set CMP to 0 because 0xFFFF isn't
@@ -256,7 +264,6 @@ static volatile uint8_t isCmpWriteInProgress;   //   This field helps us remembe
 
 static volatile uint8_t isTickNowSuppressed;    //   This field helps the tick ISR determine whether
                                                 // usIdealCmp is in the past or the future.
-
 
 // LPTIM Instance Selection
 //
@@ -476,6 +483,11 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
       //
       isTickNowSuppressed = pdTRUE;
 
+      #if ( configTICK_ENABLE_UWTICK_PRECISION != 0 )
+      // Clone uwTick value to calculate systemTick Real value in LowPower Mode from xCompleteTickPeriods
+      uwTickSuppressedSystem = uwTick;
+      #endif
+
       //      Add the extra counts to the upcoming timer interrupt.  If we can't write to the CMP register
       // right now, the ISR for CMPOK will do it for us.  If the timer happens to match on the old value
       // before the new value takes effect (any time after we mask interrupts above), the tick ISR rejects it
@@ -518,11 +530,11 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
          configPRE_SLEEP_PROCESSING( xModifiableIdleTime );
          if (xModifiableIdleTime > 0)
          {
-            //      Wait for an interrupt.
-            //
-            __DSB();
-            __WFI();
-            __ISB(); // required when debugging in low-power modes (ie, DBGMCU->CR != 0) on some MCUs.
+            // //      Wait for an interrupt.
+            // //
+            // __DSB();
+            // __WFI();
+            // __ISB(); // required when debugging in low-power modes (ie, DBGMCU->CR != 0) on some MCUs.
          }
          configPOST_SLEEP_PROCESSING( (const TickType_t)xExpectedIdleTime );
 
@@ -684,6 +696,15 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
       // currently suspended.  That causes the tick ISR to accumulate ticks into a pended-ticks field.
       //
       vTaskStepTick( xCompleteTickPeriods );
+
+      #if ( configTICK_ENABLE_UWTICK_PRECISION != 0 )
+      // Adding uwTick Offset to systemTick in LowPower Mode from xCompleteTickPeriods
+      // Check expected period to real tick executed in lowPowerMode and update SysTick
+      if(xCompleteTickPeriods > (uwTick - uwTickSuppressedSystem)) {
+         uwTick = uwTick + ((uint32_t)(xCompleteTickPeriods - (uwTick - uwTickSuppressedSystem)));
+      }
+      #endif
+
    }
 }
 

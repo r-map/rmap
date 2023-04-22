@@ -295,10 +295,11 @@ void HttpTask::Run() {
       #endif
 
       // from uint64_t to string
+      // TODO: SERIALNUMBER: OGGI
       serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
       serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
 
-      snprintf(serial_number_str, sizeof(serial_number_str), "%lu%lu", serial_number_l, serial_number_h);
+      snprintf(serial_number_str, sizeof(serial_number_str), "%04X%04X", serial_number_h, serial_number_l);
 
       if (is_get_firmware)
       {
@@ -367,10 +368,26 @@ void HttpTask::Run() {
 
       // Retrieve HTTP status code
       status = httpClientGetStatus(&httpClientContext);
+      // TODO: OGGI 304 NO FIRMWARE NUOVO
+      // 300 VERSIONE NON CORRETA
+      // 500 FIRMWARE NON ESISTE
+      // 403 HEADER NON CORRETTO
+      // 200 O ALTRI OK....
+
       TRACE_ERROR_F(F("%s http status code %u\r\n"), Thread::GetName().c_str(), status);
 
       // Retrieve the value of the Content-Type header field
-      value = httpClientGetHeaderField(&httpClientContext, "Content-Type");
+      value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
+      // TODO: CHECK HEADER
+      // https://test.rmap.cc/admin/firmware_updater_stima/firmware/
+
+      // curl -v  -H "X-STIMA4-VERSION: {\"version\": 4,\"revision\": 
+      // 0,\"user\":\"userv4\",\"slug\":\"stimacan\",\"bslug\":\"stimav4\"}" -H
+      // "X-STIMA4-BOARD-MAC: 101" -A "STIMA4-http-Update"  
+      // http://test.rmap.cc/firmware/stima/v4/update/11/ --output firmware
+
+      // 
+
 
       #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
@@ -438,6 +455,10 @@ void HttpTask::Run() {
 
             http_buffer[http_buffer_length] = '\0';
             TRACE_INFO_F(F("%s"), http_buffer);
+
+            //TODO: PUT INTO QUEUE
+            //OGGI
+
           }
         }
 
@@ -446,6 +467,9 @@ void HttpTask::Run() {
 
       // Terminate the HTTP response body with a CRLF
       TRACE_INFO_F(F("\r\n"));
+
+// TODO: OGGI ENDO OF STREAM CHIUDO CODA
+// MD5 FILE????
 
       // Any error to report?
       if (error != ERROR_END_OF_STREAM)

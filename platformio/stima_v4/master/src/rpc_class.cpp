@@ -96,6 +96,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
+        //TODO: OGGI
       }
     }
   }
@@ -1140,6 +1141,9 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
       if (it.value().as<bool>() == true)
       {
         TRACE_INFO_F(F("UPDATE FIRMWARE\r\n"));
+        // TODO: OGGI
+        // AVVIA COMANDo FIRMWARE UPDATE
+        
         // set_default_configuration();
         // lcd_error |= lcd.clear();
         // lcd_error |= lcd.print(F("Reset configuration")) == 0;

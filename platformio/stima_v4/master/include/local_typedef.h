@@ -218,6 +218,7 @@ typedef struct
       bool is_mqtt_publishing_end;
       bool is_mqtt_disconnected;
       bool is_mqtt_disconnecting;
+      bool is_mqtt_first_check_rpc;
 
       bool is_http_configuration_updated;
       bool is_http_configuration_updating;

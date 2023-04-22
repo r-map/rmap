@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define TYPE_LENGTH (5)
 
-typedef int32_t rmapdata_t;
+typedef uint16_t rmapdata_t;
 
 #define RMAPDATA_MAX            (std::numeric_limits<rmapdata_t>::max())
 #define RMAPDATA_MIN            (std::numeric_limits<rmapdata_t>::min())

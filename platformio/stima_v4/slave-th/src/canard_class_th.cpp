@@ -491,16 +491,38 @@ bool canardClass::send_file_read_block(CanardNodeID server_id, char * fileName, 
 // ******************************** HEART BEAT ***********************************
 
 /// @brief Controlla se il modulo master è online
-/// @param  None
+/// @param is_heart_syncronized (controlla se nell'ambito del tempo di haert_beat x Syncro HeartBeat Locale)
 /// @return true se il mater remoto è correttamente onLine (ha comunicato) nel limite di tempo valido
-bool canardClass::master::heartbeat::is_online(void) {
-    return _syncMicros < _timeout_us;
+bool canardClass::master::heartbeat::is_online(bool is_heart_syncronized) {
+    // ? Out of TIME Max (Sempre false)
+    if (_syncMicros < _timeout_us) {
+        // Richiedo Internal HeartBeat Area check ? (Possibile syncro HeartBeat Locale...)
+        // Altrimenti la richiesta ha già esito positivo
+        if(is_heart_syncronized) {
+            // ? Siamo all'interno del tempo di HeartBeat Max (x1.5)
+            if ((_syncMicros - _mastMicros) < MEGA * (TIME_PUBLISH_HEARTBEAT * 1.5)) {
+                // Reset (Wait Next Syncro Master...)
+                _mastMicros = _syncMicros;
+                return true;
+            }
+            else return false;
+        }        
+        else return true;
+    }
+    else return false;
 }
 
 /// @brief Imposta il nodo OnLine, richiamato in heartbeat o altre comunicazioni client
 /// @param dead_line_us validità di tempo us a partire dal time_stamp sincronizzato interno
 void canardClass::master::heartbeat::set_online(uint32_t dead_line_us) {
     _timeout_us = _syncMicros + dead_line_us;
+    _mastMicros = _syncMicros;
+}
+
+/// @brief Imposta il nodo OnLine, richiamato in heartbeat o altre comunicazioni client
+/// @param dead_line_us validità di tempo us a partire dal time_stamp sincronizzato interno
+CanardMicrosecond canardClass::master::heartbeat::last_online(void) {
+    return _mastMicros;
 }
 
 // ******************************** TIME STAMP ***********************************

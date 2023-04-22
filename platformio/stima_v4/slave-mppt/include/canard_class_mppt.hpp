@@ -198,8 +198,9 @@ class canardClass {
 
                 public:
 
-                bool is_online(void);
+                bool is_online(bool is_heart_syncronized);
                 void set_online(uint32_t dead_line_us);
+                CanardMicrosecond last_online(void);
 
                 private:
 
@@ -391,6 +392,7 @@ class canardClass {
         inline static uint32_t _lastMicros;
         inline static uint64_t _currMicros;
         inline static uint64_t _syncMicros;
+        inline static uint64_t _mastMicros;
 
         // Funzioni di utility private (sezione publish list_message)
         void _fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port_SubjectIDList_0_1* const obj);

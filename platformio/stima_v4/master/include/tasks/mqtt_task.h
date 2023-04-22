@@ -222,6 +222,8 @@ private:
   inline static cpp_freertos::BinarySemaphore *localRpcLock;
   inline static JsonRPC *localStreamRpc;
 
+  inline static system_status_t *localSystemStatus;
+
   inline static YarrowContext *MqttYarrowContext;
 
   // Client's PSK key

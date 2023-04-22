@@ -124,6 +124,7 @@ float Mppt::get_I_BAT(void) {
   int16_t data;
   LTC4015_read_register(LTC4015_IBAT, (uint16_t*) &data);
   float iBatt = ((float)data * I_REF_BATT) / I_REF_CVAL;
+  if (iBatt<0) iBatt = 0;
   return iBatt;
 }
 
