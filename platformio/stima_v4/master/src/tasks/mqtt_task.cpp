@@ -331,46 +331,6 @@ void MqttTask::Run()
       // *****************************************
       if(start_get_data) {
 
-        // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
-        // TODO: ------->>>>>>>>>>>>>>  METTERE IN FUNZIONE RECOVERY RPC
-        // // -> SETTING FROM RPC
-        // // // **** SET POINTER DATA REQUEST *****
-        // // // Example SET Timer from datTime ->
-        // uint32_t countData = 0;
-        // DateTime date_request;
-        // date_request.day = 16;
-        // date_request.month = 2;
-        // date_request.year = 2023;
-        // date_request.hours = 4;
-        // date_request.minutes = 22;
-        // date_request.seconds = 23;
-        // uint32_t rmap_date_time_ptr = convertDateToUnixTime(&date_request);
-
-        // memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
-        // rmap_get_request.param = rmap_date_time_ptr;
-        // rmap_get_request.command.do_synch_ptr = true;
-        // // Optional Save Pointer in File (Probabiliy always in SetPtr)
-        // rmap_get_request.command.do_save_ptr = true;
-        // TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
-        // // Push data request to queue MMC
-        // param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
-
-        // // Non blocking task
-        // TaskWatchDog(SUPERVISOR_TASK_WAIT_DELAY_MS);
-        // Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
-
-        // // Waiting response from MMC with TimeOUT
-        // memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-        // // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
-        // // Task WDT Are suspended
-        // TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-        // rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
-        // TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-        // rmap_data_error |= rmap_get_response.result.event_error;
-        // // Rmap Pointer setted? Get All Data from RMAP Archive
-        // bool rmap_eof = false;
-        // *********** END OPTIONAL SET PONTER REQUEST RESPONSE **********
-
         rmap_eof = false;
         rmap_data_error = false;
         countData = 0;
@@ -381,6 +341,7 @@ void MqttTask::Run()
           // Get Next data... Stop at EOF
           rmap_get_request.command.do_get_data = true;
           // Save Pointer? Optional
+          // BUT is Automatic save on Get Last Data Avaiable if Normal Request (Not Recovery...)
           // rmap_get_request.command.do_save_ptr = true;
           // Push data request to queue MMC
           param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
@@ -388,22 +349,9 @@ void MqttTask::Run()
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
           TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
           rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmap_data_error |= rmap_get_response.result.event_error;
 
-          // ------------>>>>>>>>>>>>  REAL DATA FROM QUEU READ DATA SD CARD...
-          // rmap_data_error |= rmap_get_response.result.event_error;
-          // if(!rmap_data_error) {
-          //   // EOF Data? (Save and Exit, after last data process)
-          //   rmap_eof = rmap_get_response.result.end_of_data;
-          //   // ******************************************************************
-          //   // Exampe of Current Session Upload CountData and DateTime Block Print
-          //   countData++;
-          //   DateTime rmap_date_time_val;
-          //   convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
-          //   TRACE_VERBOSE_F(F("Data RMAP current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
-          //   // ******************************************************************
-          //   // Process Data with casting RMAP Module Type
-          //   switch (rmap_get_response.rmap_data.module_type) {
-          // ------------>>>>>>>>>>>>  REAL DATA FROM QUEU READ DATA SD CARD...
+          #if (TEST_MQTT_FIXED_DATA)
 
           // INIZIO PROVA CON DATI FISSI...
           rmap_get_response.result.event_error = 0;
@@ -678,8 +626,8 @@ void MqttTask::Run()
 
           rmap_get_response.rmap_data.date_time = 1679985000;
           // FINE PROVA
+          #endif          
 
-          rmap_data_error |= rmap_get_response.result.event_error;
           if(!rmap_data_error) {
             // EOF Data? (Save and Exit, after last data process)
             rmap_eof = rmap_get_response.result.end_of_data;
@@ -1097,7 +1045,11 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   {
     while (is_event_rpc)
     {
+      // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
       localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::normal;
+      localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
     }
     localRpcLock->Give();
   }

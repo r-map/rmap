@@ -115,6 +115,12 @@ void HttpTask::Run() {
 
   bool is_get_configuration;
   bool is_get_firmware;
+  bool bValidFirmwareRequest = false;
+  bool bErrorFirmwareDownload = false;
+  uint8_t module_download; // Module download firmware from ID Master FF 00..BOARDS_COUNT_MAX (Slave)
+  uint8_t module_download_ver, module_download_rev; // firmware version and revision in download
+  uint8_t module_download_type; // firmware module type in download
+  char module_download_md5[32]; // firmware md5 ckeck
 
   connection_request_t connection_request;
   connection_response_t connection_response;
@@ -148,25 +154,34 @@ void HttpTask::Run() {
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
         HttpServer = param.configuration->mqtt_server;
 
-        // do http get configuration
+        // do http get configuration (prioritary)
         if (connection_request.do_http_get_configuration)
         {
           is_get_configuration = true;
           param.connectionRequestQueue->Dequeue(&connection_request, 0);
           state = HTTP_STATE_SEND_REQUEST;
-          TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
+          TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST (get configuration)\r\n"));
         }
         // do http get firmware
         else if (connection_request.do_http_get_firmware)
         {
-          is_get_firmware = true;
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
-          state = HTTP_STATE_SEND_REQUEST;
-          TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST\r\n"));
+          // MMC have to GET Ready before Push DATA (Firmware download?! Exit immediatly)
+          // EXIT from function if not MMC Ready or present into system_status
+          if(!param.system_status->flags.sd_card_ready) {
+            TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+            state = HTTP_STATE_END;
+          } else {
+            is_get_firmware = true;
+            module_download = 0xFF; // Starting from Master
+            param.connectionRequestQueue->Dequeue(&connection_request, 0);
+            state = HTTP_STATE_SEND_REQUEST;
+            TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST (get firmware)\r\n"));
+          }
         }
       }
       break;
 
+    // Send Request HTTP
     case HTTP_STATE_SEND_REQUEST:
       httpClientInit(&httpClientContext);
 
@@ -187,7 +202,6 @@ void HttpTask::Run() {
         is_error = true;
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
         TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
         break;
       }
@@ -212,7 +226,6 @@ void HttpTask::Run() {
         is_error = true;
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
-
         TRACE_ERROR_F(F("%s Failed to init https callback [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         break;
       }
@@ -276,6 +289,12 @@ void HttpTask::Run() {
       }
       else if (is_get_firmware)
       {
+        // ? Master or Slave module (module_download_type is type_id module to download)
+        if(module_download == 0xFF) {
+          module_download_type = param.configuration->module_type;
+        } else {
+          module_download_type = param.configuration->board_slave[module_download].module_type;
+        }
         snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%u/", param.configuration->module_type);
       }
 
@@ -283,7 +302,7 @@ void HttpTask::Run() {
 
       httpClientSetUri(&httpClientContext, uri);
 
-      // Set query string
+      // Set query string example
       // httpClientAddQueryParam(&httpClientContext, "param1", "value1");
       // httpClientAddQueryParam(&httpClientContext, "param2", "value2");
 
@@ -294,16 +313,22 @@ void HttpTask::Run() {
       TaskMonitorStack();
       #endif
 
-      // from uint64_t to string
-      // TODO: SERIALNUMBER: OGGI
-      serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
-      serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
-
-      snprintf(serial_number_str, sizeof(serial_number_str), "%04X%04X", serial_number_h, serial_number_l);
-
-      if (is_get_firmware)
-      {
-        snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      // MAC AND Version for Firmware Upload
+      if(is_get_firmware) {
+        // ? Master or slave (Add Board-SN)
+        if(module_download == 0xFF) {
+          // Master request
+          serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
+          serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
+          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+        } else {
+          // Slave request
+          serial_number_l = param.configuration->board_slave[module_download].serial_number & 0xFFFFFFFF;
+          serial_number_h = (param.configuration->board_slave[module_download].serial_number >> 32) & 0xFFFFFFFF;
+          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+        }
+        snprintf(serial_number_str, sizeof(serial_number_str), "%04X%04X", serial_number_h, serial_number_l);
+        // Add header request
         httpClientAddHeaderField(&httpClientContext, "X-STIMA4-VERSION", header);
         httpClientAddHeaderField(&httpClientContext, "X-STIMA4-BOARD-MAC", serial_number_str);
       }
@@ -323,7 +348,7 @@ void HttpTask::Run() {
         break;
       }
 
-      // // Send HTTP request body
+      // Send HTTP request body example
       // error = httpClientWriteBody(&httpClientContext, "", 0, NULL, 0);
       // // Any error to report?
       // if (error)
@@ -336,6 +361,7 @@ void HttpTask::Run() {
       //   TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
       //   break;
       // }
+
       #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
       #endif
@@ -368,26 +394,42 @@ void HttpTask::Run() {
 
       // Retrieve HTTP status code
       status = httpClientGetStatus(&httpClientContext);
-      // TODO: OGGI 304 NO FIRMWARE NUOVO
-      // 300 VERSIONE NON CORRETA
-      // 500 FIRMWARE NON ESISTE
-      // 403 HEADER NON CORRETTO
-      // 200 O ALTRI OK....
+      bValidFirmwareRequest = false;
+      switch (status) {
+        case 300:
+          TRACE_ERROR_F(F("%s http status code %u [Firmware version not correct]\r\n"), Thread::GetName().c_str(), status);
+          break;
+        case 304:
+          TRACE_ERROR_F(F("%s http status code %u [Firmware version already installed]\r\n"), Thread::GetName().c_str(), status);
+          break;
+        case 403:
+          TRACE_ERROR_F(F("%s http status code %u [Firmware version not exist]\r\n"), Thread::GetName().c_str(), status);
+          break;
+        case 500:
+          TRACE_ERROR_F(F("%s http status code %u [Header request not valid]\r\n"), Thread::GetName().c_str(), status);
+          break;
+        default:
+          TRACE_VERBOSE_F(F("%s http status code %u [Firmware request valid]\r\n"), Thread::GetName().c_str(), status);
+          bValidFirmwareRequest = true;
+      }
 
-      TRACE_ERROR_F(F("%s http status code %u\r\n"), Thread::GetName().c_str(), status);
+      if(bValidFirmwareRequest) {
+        TRACE_INFO_F(F("%s http request firmware dowload [ OK ], ready to download\r\n"), Thread::GetName().c_str(), status);
+        // Retrieve the value of the Content-Type header field
+        value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
+        strcpy(module_download_md5, value);
+        value = httpClientGetHeaderField(&httpClientContext, "version");
+        module_download_ver = atoi(value);
+        value = httpClientGetHeaderField(&httpClientContext, "revision");
+        module_download_rev = atoi(value);
+      }
 
-      // Retrieve the value of the Content-Type header field
-      value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
-      // TODO: CHECK HEADER
       // https://test.rmap.cc/admin/firmware_updater_stima/firmware/
-
+      // Command CURL To Test :
       // curl -v  -H "X-STIMA4-VERSION: {\"version\": 4,\"revision\": 
       // 0,\"user\":\"userv4\",\"slug\":\"stimacan\",\"bslug\":\"stimav4\"}" -H
       // "X-STIMA4-BOARD-MAC: 101" -A "STIMA4-http-Update"  
       // http://test.rmap.cc/firmware/stima/v4/update/11/ --output firmware
-
-      // 
-
 
       #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
@@ -408,8 +450,13 @@ void HttpTask::Run() {
         break;
       }
 
-      // Receive HTTP response body
-      while (!error)
+      // is_firmware (start queue naming file)
+      if(bValidFirmwareRequest) {
+        bErrorFirmwareDownload = do_firmware_set_name((Module_Type)module_download_type, module_download_ver, module_download_rev);
+      }
+
+      // Receive HTTP response body (and no Error Dowload Firmware (always false is not firmware request))
+      while ((!error)&&(!bErrorFirmwareDownload))
       {
         TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
 
@@ -430,6 +477,7 @@ void HttpTask::Run() {
             TRACE_INFO_F(F("%s"), http_buffer);
           }
 
+          // Put RPC for configuration mode
           if (param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
           {
             while (is_event_rpc)
@@ -437,7 +485,11 @@ void HttpTask::Run() {
               #if (ENABLE_STACK_USAGE)
               TaskMonitorStack();
               #endif
+              // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+              param.system_status->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
               param.streamRpc->parseCharpointer(&is_event_rpc, (char *)http_buffer, http_buffer_length, NULL, 0, RPC_TYPE_HTTPS);
+              param.system_status->tasks[LOCAL_TASK_ID].state = task_flag::normal;
+              param.system_status->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
             }
             param.rpcLock->Give();
           }
@@ -456,8 +508,8 @@ void HttpTask::Run() {
             http_buffer[http_buffer_length] = '\0';
             TRACE_INFO_F(F("%s"), http_buffer);
 
-            //TODO: PUT INTO QUEUE
-            //OGGI
+            // AddBlock Firmware to Queue -> and Put do MMC/SD
+            bErrorFirmwareDownload |= do_firmware_add_block((uint8_t*)http_buffer, http_buffer_length);
 
           }
         }
@@ -468,8 +520,15 @@ void HttpTask::Run() {
       // Terminate the HTTP response body with a CRLF
       TRACE_INFO_F(F("\r\n"));
 
-// TODO: OGGI ENDO OF STREAM CHIUDO CODA
-// MD5 FILE????
+      // Any error to report?
+      if (bErrorFirmwareDownload)
+      {
+        // Error if of queue/SD no more action here, exit and signal the problem to server (SD)
+        is_error = true;
+        state = HTTP_STATE_END;
+        TRACE_ERROR_F(F("%s Failed to upload firmware stream to MMC/SD [ %s ]\r\n"), Thread::GetName().c_str(), ABORT_STRING);
+        break;
+      }
 
       // Any error to report?
       if (error != ERROR_END_OF_STREAM)
@@ -485,6 +544,9 @@ void HttpTask::Run() {
         }
         break;
       }
+
+      // Closing Queue and File data (Ready for next firmware...)
+      bErrorFirmwareDownload |= do_firmware_end_data();
 
       // Close HTTP response body
       error = httpClientCloseBody(&httpClientContext);
@@ -506,8 +568,43 @@ void HttpTask::Run() {
       // Gracefully disconnect from the HTTP server
       httpClientDisconnect(&httpClientContext);
 
-      state = HTTP_STATE_END;
-      TRACE_VERBOSE_F(F("HTTP_STATE_GET_RESPONSE -> HTTP_STATE_END\r\n"));
+      // End or next request (only for firmware download)
+      if(is_get_firmware)
+      {
+        state = HTTP_STATE_LOOP_REQUEST_FIRMWARE;
+        TRACE_VERBOSE_F(F("HTTP_STATE_GET_RESPONSE -> HTTP_STATE_LOOP_REQUEST_FIRMWARE\r\n"));
+      }
+      else
+      {
+        state = HTTP_STATE_END;
+        TRACE_VERBOSE_F(F("HTTP_STATE_GET_RESPONSE -> HTTP_STATE_END\r\n"));
+      }
+      break;
+
+    // Loop for module enabled and configure to check download firmware
+    case HTTP_STATE_LOOP_REQUEST_FIRMWARE:
+      while(true) {
+        // ( From Master to first slave FF -> 00 start to first module )
+        // Ending Module? End Of Procedure
+        if(++module_download >= BOARDS_COUNT_MAX) break;
+        if(param.system_status->data_slave[module_download].module_version) {
+          TRACE_INFO_F(F("Http: Starting next firmware request download module: [ %d ] \r\n"), param.system_status->data_slave[module_download].module_type);
+          // Here if comunication with slave module are established and module_version is Getted
+          // Firmware download request can be start normally
+          break;
+        }
+      }
+      if(module_download >= BOARDS_COUNT_MAX) {
+        state = HTTP_STATE_END;
+        TRACE_VERBOSE_F(F("HTTP_STATE_LOOP_REQUEST_FIRMWARE -> HTTP_STATE_END\r\n"));
+      } 
+      else
+      {
+        // Deinit Current context and restart next
+        httpClientDeinit(&httpClientContext);
+        state = HTTP_STATE_SEND_REQUEST;
+        TRACE_VERBOSE_F(F("HTTP_STATE_LOOP_REQUEST_FIRMWARE -> HTTP_STATE_SEND_REQUEST\r\n"));
+      }
       break;
 
     case HTTP_STATE_END:
@@ -625,24 +722,27 @@ error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsConte
   return NO_ERROR;
 }
 
-  // // MMC have to GET Ready before Push DATA
-  // // EXIT from function if not MMC Ready or present into system_status
-  // if(!param.system_status->flags.sd_card_ready) {
-  //   TRACE_VERBOSE_F(F("SUPERVISOR: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
-  //   break;
-  // }
+/// @brief Init queue update firmware data block to MMC/SD Card (create file name on SD/MMC)
+/// @param module_type module_type requested and found
+/// @param version versione requested and found
+/// @param revision revision requested and found
+/// @return if error occurs return (true)
+bool HttpTask::do_firmware_set_name(Module_Type module_type, uint8_t version, uint8_t revision)
+{  
+  bool set_file_name_error = false;
 
-void HttpTask::do_firmware(void) {
-  file_put_request_t firmwareDownloadChunck;
-  file_put_response_t sdcard_task_response;
-  bool file_upload_error = false;
+  // MMC have to GET Ready before Push DATA
+  // EXIT from function if not MMC Ready or present into system_status
+  if(!param.system_status->flags.sd_card_ready) {
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    return true;
+  }
 
   // First block NAME OF FILE (Prepare name and Put to queue)
-  // TODO: Get From HTTP
   memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
   firmwareDownloadChunck.block_type = file_block_type::file_name;
   // Chose one method to put name file (only name file without prefix directory)
-  strcpy((char*)firmwareDownloadChunck.block, "stima4.module_th-4.3.app.hex");
+  setStimaFirmwareName((char*)firmwareDownloadChunck.block, module_type, version, revision);
   // OR FILE NAME FROM TYPE... IF HTTP Responding with Module, Version and Revision...
   // setStimaFirmwareName((char*)firmwareDownloadChunck.block, STIMA_MODULE_TYPE_TH, 4, 3);
   firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
@@ -650,57 +750,75 @@ void HttpTask::do_firmware(void) {
   // Push data request to queue MMC
   param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
 
-  // Non blocking task
-  TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
-  Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
+  // Waiting response from MMC with TimeOUT
+  memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
+  TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+  set_file_name_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+  set_file_name_error |= !sdcard_task_response.done_operation;
+
+  return(set_file_name_error);
+}
+
+/// @brief Adda queue update firmware data block to MMC/SD Card
+/// @param block_addr adrres buffer to add into SD Block data
+/// @param block_len lenght of block to ADD
+/// @return if error occurs return (true)
+bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
+  bool file_upload_error = false;
+
+  // MMC have to GET Ready before Push DATA
+  // EXIT from function if not MMC Ready or present into system_status
+  if(!param.system_status->flags.sd_card_ready) {
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    return true;
+  }
+
+  // Add Data Chunck...
+  // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
+  firmwareDownloadChunck.block_type = file_block_type::data_chunck;
+  strncpy((char*)firmwareDownloadChunck.block, (char*)block_addr, block_len);
+  firmwareDownloadChunck.block_lenght = block_len;
+
+  // Push data request to queue MMC
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+  // Waiting response from MMC with TimeOUT
+  memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
+  TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+  file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+  file_upload_error |= !sdcard_task_response.done_operation;
+  
+  return(file_upload_error);
+}
+
+/// @brief Close queue update firmware data block to MMC/SD Card
+/// @param  none
+/// @return if error occurs return (true)
+bool HttpTask::do_firmware_end_data(void) {
+  bool file_upload_error = false;
+  memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
+
+  // MMC have to GET Ready before Push DATA
+  // EXIT from function if not MMC Ready or present into system_status
+  if(!param.system_status->flags.sd_card_ready) {
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    return true;
+  }
+
+  // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
+  firmwareDownloadChunck.block_type = file_block_type::end_of_file;
+  // Push data request to queue MMC
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
 
   // Waiting response from MMC with TimeOUT
   memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
   TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
   file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
   file_upload_error |= !sdcard_task_response.done_operation;
-  // Add Data Chunck... TODO: Get From HTTP...
-  if(!file_upload_error) {
-    // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
-    firmwareDownloadChunck.block_type = file_block_type::data_chunck;
-    for(u_int16_t j=0; j<512; j++) {
-      // ASCII Char... Fill example
-      // TODO: Correct bytes read from buffer http...
-      firmwareDownloadChunck.block[j] = 48 + (j % 10);
-    }
-    firmwareDownloadChunck.block_lenght = 512;
-    // Try 100 Block Data chunk... Queue to MMC (x 512 Bytes -> 51200 Bytes to Write)
-    for(uint8_t i=0; i<100; i++) {
-      // Push data request to queue MMC
-      param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-      // Waiting response from MMC with TimeOUT
-      memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-      TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-      file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-      file_upload_error |= !sdcard_task_response.done_operation;
-      // Non blocking task
-      TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);
-      Delay(Ticks::MsToTicks(HTTP_TASK_WAIT_DELAY_MS));
-      // Any error? Exit Uploading
-      if (file_upload_error) {
-        TRACE_VERBOSE_F(F("Uploading file error!!!\r\n"));
-        break;
-      }
-    }
-    // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
-    firmwareDownloadChunck.block_type = file_block_type::end_of_file;
-    // Push data request to queue MMC
-    param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-
-    // Waiting response from MMC with TimeOUT
-    memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
-    TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-    file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-    file_upload_error |= !sdcard_task_response.done_operation;
-  }
 
   // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
-  TRACE_VERBOSE_F(F("Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+  TRACE_VERBOSE_F(F("HTTP: Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
+  return(file_upload_error);
+
 }
 
 #endif

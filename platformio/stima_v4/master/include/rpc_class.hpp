@@ -48,6 +48,8 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 
+#include "date_time.h"
+
 #include "canard_config.hpp"
 
 #include <arduinoJsonRPC.h>
@@ -72,6 +74,8 @@ typedef struct
     cpp_freertos::BinarySemaphore *rpcLock;
     cpp_freertos::Queue *systemMessageQueue;
     cpp_freertos::Queue *dataLogPutQueue;
+    cpp_freertos::Queue *dataRmapGetRequestQueue;
+    cpp_freertos::Queue *dataRmapGetResponseQueue;
     EEprom *eeprom;
 } RpcParam_t;
 

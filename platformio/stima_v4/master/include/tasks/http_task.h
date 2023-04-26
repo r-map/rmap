@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #if (USE_HTTP)
 
 #define HTTP_TASK_WAIT_DELAY_MS (100)
+#define HTTP_TASK_FAST_DELAY_MS (5)
 #define HTTP_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define HTTP_TASK_GENERIC_RETRY (3)
 
@@ -99,6 +100,7 @@ typedef enum
   HTTP_STATE_INIT,
   HTTP_STATE_WAIT_NET_EVENT,
   HTTP_STATE_SEND_REQUEST,
+  HTTP_STATE_LOOP_REQUEST_FIRMWARE,
   HTTP_STATE_GET_RESPONSE,
   HTTP_STATE_END
 } HttpState_t;
@@ -137,7 +139,9 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void do_firmware(void);
+  bool do_firmware_set_name(Module_Type module_type, uint8_t version, uint8_t revision);
+  bool do_firmware_add_block(uint8_t *block_addr, uint16_t block_len);
+  bool do_firmware_end_data(void);
 
   static error_t httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext);
 
@@ -156,6 +160,11 @@ private:
   inline static char_t *HttpServer;
 
   bool is_event_rpc;
+
+  // queue to Put Firmware to SD/MMC
+  file_put_request_t firmwareDownloadChunck;
+  file_put_response_t sdcard_task_response;
+
 };
 
 #endif

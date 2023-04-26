@@ -228,6 +228,15 @@ typedef struct
       uint32_t mqtt_data_published;
    } connection;
 
+  // Command Flag
+  struct
+  {
+      bool do_ntp_synchronization;
+      bool do_http_configuration_update;
+      bool do_http_firmware_domload;
+      bool do_mqtt_connect;
+   } command;
+
    // GSM Flag
    struct
    {
@@ -283,6 +292,7 @@ typedef struct
       bool reg_serever_running;  // True if remote configure or register server procedure over CAN are running
       bool rmap_server_running;  // True if get rmap data from slave module procedure over CAN are running
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
+      bool config_empty;         // True if configuration missed on system
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;
 
@@ -334,17 +344,20 @@ typedef struct
    uint8_t task_dest;
    struct
    {
-      uint8_t do_reboot    : 1;  // Request reboot from RPC7Other in security mode (waiting operation)
-      uint8_t do_update_fw : 1;  // Request update firmware (node or master) from SD file
-      uint8_t do_inibith   : 1;  // Request inibith sleep
-      uint8_t undo_inibith : 1;  // Remove inibith sleep
-      uint8_t do_maint     : 1;  // Request maintenance
-      uint8_t undo_maint   : 1;  // Remove maintenance
-      uint8_t do_calib_acc : 1;  // Request set calibration accellerometer
-      uint8_t do_remotecfg : 1;  // Request remote node configuration
-      uint8_t do_sleep     : 1;  // Optional param for difference level Sleep
-      uint8_t do_cmd       : 1;  // Using param to determine type of message command
-      uint8_t done_cmd     : 1;  // Using param to determine type of message response
+      uint8_t do_reboot       : 1;  // Request reboot from RPC Other in security mode (waiting operation)
+      uint8_t do_update_fw    : 1;  // Request update firmware (node or master) from SD file
+      uint8_t do_reload_fw    : 1;  // Request reload firmware really upgradable from SD file
+      uint8_t done_reload_fw  : 1;  // Request reload firmware really upgradable from SD file
+      uint8_t do_update_all   : 1;  // Request starting update all system (all firmware upgradable) and Reboot any boards
+      uint8_t do_inibith      : 1;  // Request inibith sleep
+      uint8_t undo_inibith    : 1;  // Remove inibith sleep
+      uint8_t do_maint        : 1;  // Request maintenance
+      uint8_t undo_maint      : 1;  // Remove maintenance
+      uint8_t do_calib_acc    : 1;  // Request set calibration accellerometer
+      uint8_t do_remotecfg    : 1;  // Request remote node configuration
+      uint8_t do_sleep        : 1;  // Optional param for difference level Sleep
+      uint8_t do_cmd          : 1;  // Using param to determine type of message command
+      uint8_t done_cmd        : 1;  // Using param to determine type of message response
    } command;
    uint32_t param;  // 32 Bit for generic data or casting to pointer
 
@@ -378,7 +391,8 @@ typedef struct
 {
    struct
    {
-      uint8_t do_synch_ptr  : 1;  // Request synch pointer data rmap with param (set pointer)
+      uint8_t do_synch_ptr  : 1;  // Request synch pointer data rmap START with param (set pointer)
+      uint8_t do_end_ptr    : 1;  // Request synch pointer data rmap END with param (set pointer)
       uint8_t do_get_data   : 1;  // Get first data avaiable and set pointer to next data
       uint8_t do_save_ptr   : 1;  // Request to Save Pointer Data (Optional with All other Request)
    } command;

@@ -28,7 +28,6 @@
  ******************************************************************************
 */
 
-
 #define TRACE_LEVEL     SUPERVISOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
@@ -104,7 +103,8 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 
 void SupervisorTask::Run()
 {
-  uint8_t retry;
+  uint8_t retry, hh, nn, ss;
+  uint32_t ms;
   connection_request_t connection_request;
   connection_response_t connection_response;
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
@@ -149,6 +149,13 @@ void SupervisorTask::Run()
         param.system_status->connection.is_mqtt_disconnected = true;
         // Start INIT for Clear RPC Queue at first connection MQTT (Only at startup)
         param.system_status->connection.is_mqtt_first_check_rpc = true;
+        // Check configuration remote is valid
+        param.system_status->flags.config_empty = true;
+        for(uint8_t iIdx=0; iIdx < BOARDS_COUNT_MAX; iIdx ++) {
+          if(param.configuration->board_slave[iIdx].module_type != Module_Type::undefined) {
+            param.system_status->flags.config_empty = false;
+          }
+        }
         param.systemStatusLock->Give();
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
@@ -174,20 +181,73 @@ void SupervisorTask::Run()
       break;
 
     case SUPERVISOR_STATE_WAITING_EVENT:
-      // TODO: Wait StimaV4 Start Event controlled time RUN Send Data
-
       // Retry connection
       retry = 0;
 
-      // TODO: Remove Test Wait new start as time test 2,5 sec...
-      // TODO: Create Date/Time Event start from configuration
-      // TODO: Start only modulePower Full OK (no energy rest)
-      // TODO: Start only if data enable to send
-      // TODO: Remove NTP Syncro (1 x day?)
-      // TODO: Get RPC Remote? When connected... + Queue Command RPC (system_message_t)
+      // Start only modulePower Full OK (no energy rest) Exit on Deep Power Save or Critical mode...
+      if(param.system_status->flags.power_state >= Power_Mode::pwr_deep_save) {
+        // Sleep TASK if notingh to do
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+        break;
+      }
 
-      TaskWatchDog(1500);
-      Delay(Ticks::MsToTicks(1500));
+      // Check date RTime for syncro operation (if required)
+      rtc.getTime(&hh, &nn, &ss, &ms);
+
+      // Without config try connection 1 time for hour (test config...)
+      // Or start connection at restart application... (One time while not connection established)
+      if(param.system_status->flags.config_empty) {
+        if(((nn % 0) == 0) || (param.system_status->connection.is_mqtt_first_check_rpc)) {
+          param.systemStatusLock->Take();
+          param.system_status->command.do_http_configuration_update = true;
+          param.systemStatusLock->Give();
+        }
+      } else {
+        // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days)
+        if((hh == 12) && (nn < 15)) {
+          param.systemStatusLock->Take();
+          param.system_status->command.do_ntp_synchronization = true;
+          param.systemStatusLock->Give();
+        }
+      }
+
+      // ? External or internal request command strart connection
+      // New data to send are syncronized with add new data (report_s time at data acquire)...
+      // If config_empty ( Start connection every hour... )
+      if((param.system_status->flags.new_data_to_send) ||
+          (param.system_status->command.do_ntp_synchronization) ||
+          (param.system_status->command.do_http_configuration_update) ||
+          (param.system_status->command.do_http_firmware_domload) ||
+          (param.system_status->command.do_mqtt_connect)) {
+        // ? Request external command OR Time to Run Connection?
+        // First connection? Update Time from NTP
+        if(param.system_status->modem.connection_attempted == 0) {
+          param.systemStatusLock->Take();
+          param.system_status->command.do_ntp_synchronization = true;
+          param.systemStatusLock->Give();
+        }
+
+        // START REQUEST function LIST...
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_ntp_synchronized = !param.system_status->command.do_ntp_synchronization;
+        param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
+        param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_domload;
+        param.system_status->connection.is_mqtt_connected = !param.system_status->command.do_mqtt_connect;
+        param.system_status->connection.is_mqtt_connected |= !param.system_status->flags.new_data_to_send;
+        param.systemStatusLock->Give();
+
+        // Start state check connection
+        state_check_connection = CONNECTION_INIT;
+        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+
+      }
+      else
+      {
+        // Sleep TASK if notingh to do
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+      }
 
       // TEST CONNECTION
       #if (!FIXED_CONFIGURATION)

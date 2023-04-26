@@ -313,8 +313,12 @@ void SdTask::Run()
   char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};  // Name current Write File Data RMAP
   char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};  // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
   char rmap_file_name_check[DATA_FILENAME_LEN] = {0}; // Check control Name VAR (RMAP Data Day changed?)
-  uint32_t rmap_pointer_seek; // Seek Absolute Position Pointer Read in File RMAP Queue Out
-  uint32_t rmap_pointer_datetime; // Date Time Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_seek;           // Seek Absolute Position Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_datetime;       // Date Time Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_seek_bkp;       // Bkp Seek Absolute Position Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_datetime_bkp;   // Bkp Date Time Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_datetime_end;   // End Date Time Pointer Read in File RMAP Queue Out (RPC Start/End)
+  bool using_rmap_pointer_datetime_end; // ? Using now End Date Time Pointer Read (RPC Start/End)
   // Queue file put and get from external Task
   // Put From extern task to card ( Es. Receive firmware from http to SD )
   file_put_request_t file_put_request;
@@ -330,6 +334,7 @@ void SdTask::Run()
   Module_Type module_type;
   uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
+  bool fw_load_send_resp = false; // True if request reload structure firmware and sen queue response
   File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
@@ -361,9 +366,9 @@ void SdTask::Run()
       state = SD_STATE_INIT_SD;
       // Check SD or Resynch after Error
       if (SD.begin(PIN_SPI_SS, SPI_SPEED)) {
-        TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_SD\r\n"));
+        TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
 
-        state = SD_STATE_CHECK_SD;
+        state = SD_STATE_CHECK_STRUCTURE;
         message_traced = false;
       } else {
         // Signal LED Blink every (500 mS) SD Not inizialized
@@ -385,18 +390,52 @@ void SdTask::Run()
       }
       break;
 
-    case SD_STATE_CHECK_SD:
+    case SD_STATE_CHECK_STRUCTURE:
+      // ***************************************************
+      //    SD Check and create structure Directory Data
+      // ***************************************************
       // LED Diag signal OFF (SD Ready and inizialized)
       bLedLevel = false;
       digitalWrite(PIN_SD_LED, bLedLevel);
       // Optional Trace Type of CARD... and Size
       // Check or create directory Structure...
-      if(!SD.exists("/firmware")) SD.mkdir("/firmware");
-      if(!SD.exists("/log")) SD.mkdir("/log");
-      if(!SD.exists("/data")) SD.mkdir("/data");
+      if(!SD.exists("/firmware")) {
+        if(!SD.mkdir("/firmware")) {
+          state = SD_STATE_INIT;
+          break;
+        }
+      }
+      // Create log directory
+      if(!SD.exists("/log")) {
+        if(!SD.mkdir("/log")) {
+          state = SD_STATE_INIT;
+          break;
+        }
+      }
+      // Create data and pointer ditectory
+      if(!SD.exists("/data")) {
+        if(!SD.mkdir("/data")) {
+          state = SD_STATE_INIT;
+          break;
+        }
+      }
 
-      // Open/Create File data pointer... and check if SD Starting OK
-      // Check data Pointer and create if not exist
+      // ***************************************************
+      // SD Was Ready... for System Structure and Pointer OK
+      // ***************************************************
+      param.systemStatusLock->Take();
+      param.system_status->flags.sd_card_ready = true;
+      param.systemStatusLock->Give();
+
+      TRACE_VERBOSE_F(F("SD_STATE_CHECK_STRUCTURE -> SD_STATE_CHECK_DATA_PTR\r\n"));
+
+      state = SD_STATE_CHECK_DATA_PTR;
+      break;
+
+    case SD_STATE_CHECK_DATA_PTR:
+      // **********************************************************************************
+      // Open/Create File data pointer... and check if SD Starting OK (create if not exist)
+      // **********************************************************************************
       if(SD.exists("/data/pointer.dat")) {
         tmpFile = SD.open("/data/pointer.dat", O_RDONLY);
         if(tmpFile) {
@@ -404,6 +443,11 @@ void SdTask::Run()
           digitalWrite(PIN_SD_LED, HIGH);
           tmpFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
           tmpFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          rmap_pointer_datetime_bkp = rmap_pointer_datetime;
+          rmap_pointer_datetime_end = rmap_pointer_datetime;
+          rmap_pointer_seek_bkp = rmap_pointer_datetime_bkp;
+          // At satrtup dontuse end ptr get data...
+          using_rmap_pointer_datetime_end = false;
           tmpFile.close();
           // Close File Low LED
           digitalWrite(PIN_SD_LED, LOW);
@@ -444,13 +488,12 @@ void SdTask::Run()
         }
       }
 
-      // ***************************************************
-      // SD Was Ready... for System Structure and Pointer OK
-      // ***************************************************
-      param.systemStatusLock->Take();
-      param.system_status->flags.sd_card_ready = true;
-      param.systemStatusLock->Give();
+      TRACE_VERBOSE_F(F("SD_STATE_CHECK_DATA_PTR -> SD_STATE_CHECK_FIRMWARE\r\n"));
 
+      state = SD_STATE_CHECK_FIRMWARE;
+      break;
+
+    case SD_STATE_CHECK_FIRMWARE:
       // **********************************************************************************
       // Check firmware file present Type, model and version from list file in firmware dir
       // Full system_status inform struct with firmware present on SD CARD
@@ -506,7 +549,16 @@ void SdTask::Run()
       digitalWrite(PIN_SD_LED, LOW);
       // **********************************************************************************
 
-      TRACE_VERBOSE_F(F("SD Card init complete -> SD_STATE_WAITING_EVENT\r\n"));
+      // ? Need to send response to sender (Not at startup -> fw_load_send_resp = false)
+      // Normally on request from RPC Before calling -> system_message.do_update_all
+      if(fw_load_send_resp) {
+        system_message_t system_message = {0};
+        system_message.task_dest == ALL_TASK_ID;
+        system_message.command.done_reload_fw = true;
+        param.systemMessageQueue->Enqueue(&system_message);
+      }
+
+      TRACE_VERBOSE_F(F("SD_STATE_CHECK_FIRMWARE -> SD_STATE_WAITING_EVENT\r\n"));
 
       state = SD_STATE_WAITING_EVENT;
       break;
@@ -525,11 +577,22 @@ void SdTask::Run()
         param.systemMessageQueue->Peek(&system_message);
         if(system_message.task_dest == MMC_TASK_ID) {
           param.systemMessageQueue->Dequeue(&system_message);
+          // Request direct Update local firmware (Master) from SD CARD
           if((system_message.command.do_update_fw)&&(system_message.param = 0xFF)) {
             retry = 0;
             state = SD_UPLOAD_FIRMWARE_TO_FLASH;
+            break;
           }
-          system_message.param = 0xFF;
+          // Request to reload structure File Firmware (Check firwware are really updatable)
+          // And Auto start CallBack Start Upload Firmware To CAN and Local...
+          if(system_message.command.do_reload_fw) {
+            retry = 0;
+            fw_load_send_resp = true; // Need to send a peply to sender
+            // Normally RPC Wait a response all firmware checke and loaded structure before
+            // Calling systemn update all with another system message to queue
+            state = SD_STATE_CHECK_FIRMWARE;
+            break;
+          }
         }
       }
 
@@ -639,6 +702,10 @@ void SdTask::Run()
             bool is_found = false;
             char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
             uint32_t dateTimeSearch = rmap_get_request.param;
+            // Backup Current REAL Pointer (if requested and Start/End Pointer Function SET)
+            // In This case after END Pointer or END Data Event, BKP Pointer is restored automatically
+            rmap_pointer_datetime_bkp = rmap_pointer_datetime;
+            rmap_pointer_seek_bkp = rmap_pointer_seek;
             // Trace INFO Queue Request SET Pointer TO->
             DateTime rmap_date_time_val;
             convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
@@ -768,6 +835,20 @@ void SdTask::Run()
             param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
           }
           // ******************************************************************
+          //           Request is end pointer to date/time?
+          // ******************************************************************
+          else if(rmap_get_request.command.do_end_ptr) {
+            using_rmap_pointer_datetime_end = true;
+            rmap_pointer_datetime_end = rmap_get_request.param;
+            // Trace INFO Queue Request SET END Pointer TO->
+            DateTime rmap_date_time_val;
+            convertUnixTimeToDate(rmap_pointer_datetime_end, &rmap_date_time_val);
+            TRACE_INFO_F(F("Data RMAP requested end pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+            rmap_get_response.result.done_synch = true;
+            // ***** Send response to request *****
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+          }
+          // ******************************************************************
           // Request next avaiable data? ( N.B. Standard Request for GET DATA )
           // ******************************************************************
           else if(rmap_get_request.command.do_get_data) {
@@ -852,6 +933,36 @@ void SdTask::Run()
             } else {
               // Error on open file
               rmap_get_response.result.event_error = true;
+            }
+            // Are currently function of SET POINTER START / END ?
+            // Post in ALL Data complete search OK. IF No More DATA. AUtomatically End
+            // Optional procedure in running (Set END Pointer)
+            // DateTime is > DatEnd Request? Procedure Have to End and PointerData is
+            // Restored with Backupped Pointer.
+            // N.B. using_rmap_pointer_datetime_end? CAN Modify Response !!!
+            if(using_rmap_pointer_datetime_end) {
+              // End Of Data... -> End of Pointer End Data No more data avaiable
+              // Probabiliy set request as Error > LastDateTime Avaiable
+              if(rmap_get_response.result.end_of_data) {
+                using_rmap_pointer_datetime_end = false;
+                // Save Pointer automatically because END OF Data Received > Last Data Avaiable
+                // Is Same of Data END in Standard MODE ( Save immediatly the pointer data )
+                rmap_get_request.command.do_save_ptr = true;
+                // No ned restore older pointer...
+              } else {
+                if(rmap_get_response.rmap_data.date_time >= rmap_pointer_datetime_end) {
+                  // Simulate an End Of Data. Data END is reached up!!! End of procedure
+                  rmap_get_response.result.end_of_data = true;
+                  // Restore older Pointer. Previous RPC Recovery request
+                  rmap_pointer_datetime = rmap_pointer_datetime_bkp;
+                  rmap_pointer_seek = rmap_pointer_seek_bkp;
+                }
+              }
+            } else {
+              // In standard Mode if END Of Data Receive, automatically Save Pointer DATA
+              if(rmap_get_response.result.end_of_data) {
+                rmap_get_request.command.do_save_ptr = true;
+              }
             }
             // ***** Send response to request *****
             param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
@@ -943,7 +1054,6 @@ void SdTask::Run()
             // Unlock session. File is ready for the system
             // Need to control checksum (if any error file have to delete)
             memset(remote_file_name, 0, sizeof(remote_file_name));
-            // TODO: checksum... other control file
             // Send response to caller ... OK done
             memset(&file_put_response, 0, sizeof(file_put_response));
             file_put_response.done_operation = true;

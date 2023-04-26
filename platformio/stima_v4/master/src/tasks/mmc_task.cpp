@@ -456,7 +456,6 @@ void MmcTask::Run()
       while(!param.dataRmapPutQueue->IsEmpty()) {
         // Get message from queue
         if(param.dataLogPutQueue->Dequeue(queueBuffer)) {
-          // TODO:
           // Put to MMC ( APPEND to File in Format ready to SEND Mqtt Format )
         }
       }
@@ -512,7 +511,6 @@ void MmcTask::Run()
             // Unlock session. File is ready for the system
             // Need to control checksum (if any error file have to delete)
             memset(remote_file_name, 0, sizeof(remote_file_name));
-            // TODO: checksum... other control file
             // Send response to caller ... OK done
             memset(&system_response, 0, sizeof(system_response));
             system_response.done_operation = true;
@@ -532,7 +530,7 @@ void MmcTask::Run()
       //           Perform Local Firmware FLASH Update
       // *********************************************************
 
-      // N.B TODO: Need to Inform Other TASK Priority MAX to Upload Firmware To Flash
+      // No Need to Inform Other TASK Priority MAX to Upload Firmware To Flash
       // All operation are to suspend, MMC Task End to Responding at Standard Queue request
 
       // Check firmware file present Type, model and version

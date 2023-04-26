@@ -195,6 +195,8 @@ void setup() {
   rpcParam.rtcLock = rtcLock;
   rpcParam.configurationLock = configurationLock;
   rpcParam.systemStatusLock = systemStatusLock;
+  rpcParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
+  rpcParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   rpcParam.rpcLock = rpcLock;
   // Init class procedure and linked callBack with parameter
   static JsonRPC streamRpc;

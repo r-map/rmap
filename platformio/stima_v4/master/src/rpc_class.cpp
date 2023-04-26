@@ -96,7 +96,10 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
-        //TODO: OGGI
+        // Start command sequnce for download module firmware
+        param.systemStatusLock->Take();
+        param.system_status->command.do_http_firmware_domload = true;
+        param.systemStatusLock->Give();
       }
     }
   }
@@ -244,7 +247,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     }
     else if (strcmp(it.key().c_str(), "node_id") == 0)
     {
-      // TODO:unset registration node, register_node_new. Delete if ID <>. Nothing if ==
       if(isSlaveConfigure) {
         param.configurationLock->Take();
         param.configuration->board_slave[slaveId].can_address = it.value().as<unsigned int>();
@@ -255,7 +257,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
-        //TODO: if node_id master <> node_old master... Reconfigure Node Id Slave !!!
         param.configurationLock->Take();
         #ifndef USE_NODE_MASTER_ID_FIXED
         param.configuration->board_master.can_address = it.value().as<unsigned int>();
@@ -1022,109 +1023,84 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
 #if (USE_RPC_METHOD_RECOVERY)
 int RegisterRPC::recovery(JsonObject params, JsonObject result)
 {
-  static int state;
+  bool rmap_data_error = false;
   static int tmpstate;
-  static time_t ptr_time;
-  // static File mqtt_ptr_rpc_file;
+  rmap_get_request_t rmap_get_request = {0};
+  rmap_get_response_t rmap_get_response = {0};
 
-  // switch (rpc_state)
-  // {
-  // case RPC_INIT:
-  //   state = E_BUSY;
-  //   {
-  //     bool is_start_found = false;
-  //     bool is_end_found = false;
+  for (JsonPair it : params)
+  {
+    // start date
+    if (strcmp(it.key().c_str(), "dts") == 0)
+    {
+      DateTime startDate;
+      startDate.year = it.value().as<JsonArray>()[0].as<int>();
+      startDate.month = it.value().as<JsonArray>()[1].as<int>();
+      startDate.day = it.value().as<JsonArray>()[2].as<int>();
+      startDate.hours = it.value().as<JsonArray>()[3].as<int>();
+      startDate.minutes = it.value().as<JsonArray>()[4].as<int>();
+      startDate.seconds = it.value().as<JsonArray>()[5].as<int>();
+      TRACE_INFO_F(F("RPC start data pointer... [ %d/%d/%d %d:%d:%d ]"), startDate.day, startDate.month, startDate.year, startDate.hours, startDate.minutes, startDate.seconds);
 
-  //     for (JsonPair it : params)
-  //     {
-  //       // start date
-  //       if (strcmp(it.key().c_str(), "dts") == 0)
-  //       {
-  //         is_start_found = true;
+      // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
+      uint32_t rmap_date_time_ptr = convertDateToUnixTime(&startDate);
 
-  //         // read current data pointer
-  //         // if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT))
-  //         // {
-  //         //   tmpstate = E_INTERNAL_ERROR;
-  //         //   is_sdcard_error = true;
-  //         //   result[F("state")] = F("error");
-  //         //   LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-  //         //   rpc_state = RPC_END;
-  //         //   break;
-  //         // }
+      memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
+      rmap_get_request.param = rmap_date_time_ptr;
+      rmap_get_request.command.do_synch_ptr = true;
+      // Optional Save Pointer in File (No need in SetPtr. Only in Get Last Data Memory OK!!!)
+      rmap_get_request.command.do_save_ptr = false;
+      TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
+      // Push data request to queue MMC
+      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
 
-  //         DateTime startDate;
-  //         startDate.year = it.value().as<JsonArray>()[0].as<int>();
-  //         startDate.month = it.value().as<JsonArray>()[1].as<int>();
-  //         startDate.day = it.value().as<JsonArray>()[2].as<int>();
-  //         startDate.hour = it.value().as<JsonArray>()[3].as<int>();
-  //         startDate.minute = it.value().as<JsonArray>()[4].as<int>();
-  //         startDate.second = it.value().as<JsonArray>()[5].as<int>();
-  //         TRACE_INFO_F(F("RPC start data pointer... [ %d/%d/%d %d:%d:%d ]"), startDate.day, startDate.month, startDate.year, startDate.hour, startDate.minute, startDate.second);
+      // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
+      // No Task Suspended (RPC Can entre from various Task) Time Not Problem to queue
+      rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
+      rmap_data_error |= rmap_get_response.result.event_error;
 
-  //         rpc_state = RPC_EXECUTE;
+      break;
+    }
+    // end date
+    else if (strcmp(it.key().c_str(), "dte") == 0)
+    {
+      DateTime endDate;
+      endDate.year = it.value().as<JsonArray>()[0].as<int>();
+      endDate.month = it.value().as<JsonArray>()[1].as<int>();
+      endDate.day = it.value().as<JsonArray>()[2].as<int>();
+      endDate.hours = it.value().as<JsonArray>()[3].as<int>();
+      endDate.minutes = it.value().as<JsonArray>()[4].as<int>();
+      endDate.seconds = it.value().as<JsonArray>()[5].as<int>();
+      TRACE_INFO_F(F("RPC end data pointer... [ %d/%d/%d %d:%d:%d ]"), endDate.day, endDate.month, endDate.year, endDate.hours, endDate.minutes, endDate.seconds);
 
-  //         break;
-  //       }
-  //       // end date
-  //       else if (strcmp(it.key().c_str(), "dte") == 0)
-  //       {
-  //         is_end_found = true;
+      // *********** START OPTIONAL SET PONTER REQUEST RESPONSE **********
+      uint32_t rmap_date_time_ptr = convertDateToUnixTime(&endDate);
 
-  //         DateTime endDate;
-  //         endDate.year = it.value().as<JsonArray>()[0].as<int>();
-  //         endDate.month = it.value().as<JsonArray>()[1].as<int>();
-  //         endDate.day = it.value().as<JsonArray>()[2].as<int>();
-  //         endDate.hour = it.value().as<JsonArray>()[3].as<int>();
-  //         endDate.minute = it.value().as<JsonArray>()[4].as<int>();
-  //         endDate.second = it.value().as<JsonArray>()[5].as<int>();
-  //         TRACE_INFO_F(F("RPC end data pointer... [ %d/%d/%d %d:%d:%d ]"), endDate.day, endDate.month, endDate.year, endDate.hour, endDate.minute, endDate.second);
+      memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
+      rmap_get_request.param = rmap_date_time_ptr;
+      rmap_get_request.command.do_end_ptr = true;
+      TRACE_VERBOSE_F(F("Starting request END Data RMAP PTR to local MMC\r\n"));
+      // Push data request to queue MMC
+      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
 
-  //         rpc_state = RPC_EXECUTE;
-
-  //         break;
-  //       }
-  //     }
-
-  //     if (!is_start_found)
-  //     {
-  //       tmpstate = E_INVALID_PARAMS;
-  //       result[F("state")] = F("error");
-  //       TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
-
-  //       rpc_state = RPC_END;
-  //     }
-  //   }
-  //   break;
-
-  // case RPC_EXECUTE:
-  //   // write new data pointer
-  //   // if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t))
-  //   // {
-  //   //   mqtt_ptr_rpc_file.flush();
-  //   //   mqtt_ptr_rpc_file.close();
-
-  //   //   TRACE_INFO_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
-  //   //   tmpstate = E_SUCCESS;
-  //   //   result[F("state")] = F("done");
-  //   // }
-  //   // else
-  //   // {
-  //   //   tmpstate = E_INTERNAL_ERROR;
-  //   //   result[F("state")] = F("error");
-  //   //   TRACE_ERROR_F(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
-  //   // }
-
-  //   rpc_state = RPC_END;
-  //   break;
-
-  // case RPC_END:
-  //   rpc_state = RPC_INIT;
-  //   state = tmpstate;
-  //   break;
-  // }
-
-  return state;
+      // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
+      // No Task Suspended (RPC Can entre from various Task) Time Not Problem to queue
+      rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
+      rmap_data_error |= rmap_get_response.result.event_error;
+    }
+  }
+  // ? Any Error on RMAP Set Pointer
+  if (rmap_data_error)
+  {
+    tmpstate = E_INVALID_PARAMS;
+    result[F("state")] = F("error");
+    TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
+  } else {
+    TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
+    tmpstate = E_SUCCESS;
+    result[F("state")] = F("done");
+  }
+  return tmpstate;
 }
 #endif
 
@@ -1132,6 +1108,9 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
 int RegisterRPC::reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
+  bool inibith_reboot = false;
+
+  TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
 
   for (JsonPair it : params)
   {
@@ -1140,26 +1119,50 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     {
       if (it.value().as<bool>() == true)
       {
-        TRACE_INFO_F(F("UPDATE FIRMWARE\r\n"));
-        // TODO: OGGI
-        // AVVIA COMANDo FIRMWARE UPDATE
-        
-        // set_default_configuration();
-        // lcd_error |= lcd.clear();
-        // lcd_error |= lcd.print(F("Reset configuration")) == 0;
+        TRACE_INFO_F(F("RPC: Starting update firmware\r\n"));
+
+        inibith_reboot = true;
+
+        // Satrting queue request reload structure firmware upgradable
+        // And waiting response. After start update all firmware boardd on system (upgradable)
+        system_message_t system_message = {0};
+        system_message.task_dest == MMC_TASK_ID;
+        system_message.command.do_reload_fw = true;
+        param.systemMessageQueue->Enqueue(&system_message);
+
+        // Waiting a response done before continue (reload firmware OK!!!)
+        while(true) {
+          if(!param.systemMessageQueue->IsEmpty()) {
+            param.systemMessageQueue->Peek(&system_message);
+            if(system_message.command.done_reload_fw) {
+              // Remove message (Reload Done is OK)
+              param.systemMessageQueue->Dequeue(&system_message);
+              break;
+            }
+          }
+        }
+
+        // Satrting queue request upload all system board firmware ( on CAN )
+        memset(&system_message, 0, sizeof(system_message_t));
+        system_message.task_dest == CAN_TASK_ID;
+        system_message.command.do_update_all = true;
+        param.systemMessageQueue->Enqueue(&system_message);
       }
     }
   }
 
-  TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
+  // Send a response...
   result[F("state")] = "done";
 
   #if (ENABLE_RPC_LOCAL_REBOOT)
-  // Start REBOOT with queue command
-  system_message_t system_message = {0};
-  system_message.task_dest = CAN_TASK_ID;
-  system_message.command.do_reboot = true;
-  param.systemMessageQueue->Enqueue(&system_message, 0);
+  if(!inibith_reboot) {
+    TRACE_INFO_F(F("RPC: Perform reboot...\r\n"));
+    // Start delayed REBOOT with queue command (need to send response callback)
+    system_message_t system_message = {0};
+    system_message.task_dest = CAN_TASK_ID;
+    system_message.command.do_reboot = true;
+    param.systemMessageQueue->Enqueue(&system_message, 0);
+  }
   #endif
 
   return E_SUCCESS;

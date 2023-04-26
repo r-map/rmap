@@ -354,7 +354,11 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             bool is_event_rpc = true;
             localStreamRpc->init();
             localRpcLock->Take();
+            // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+            localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
             localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_CAN);
+            localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::normal;
+            localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
             localRpcLock->Give();
             if(!is_event_rpc)
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
@@ -1728,13 +1732,6 @@ void CanTask::Run() {
                 // ********************** RMAP GETDATA TX-> RX<- *************************
                 // ***********************************************************************
 
-    // rmap_service_module_TH_Response_1_0* retTHData;
-    // rmap_service_module_Rain_Response_1_0* retRainData;
-    // rmap_service_module_Wind_Response_1_0* retWindData;
-    // rmap_service_module_Radiation_Response_1_0* retRadiationData;
-    // rmap_service_module_VWC_Response_1_0* retVwcData;
-    // rmap_service_module_Power_Response_1_0* retPwrData;
-
                 // IS START COMMAND DATA RMAP AUTOMATIC REQUEST (From Local Syncro Activity UP...)?
                 // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
                 if ((bStartGetIstant)||(bStartGetData)) {
@@ -1860,10 +1857,6 @@ void CanTask::Run() {
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                        // Set system_status with NewData To SEND... For all operation need this signal
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.new_data_to_send = false;
-                                        param.systemStatusLock->Give();
                                     }
                                     break;
 
@@ -1925,10 +1918,6 @@ void CanTask::Run() {
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                        // Set system_status with NewData To SEND... For all operation need this signal
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.new_data_to_send = false;
-                                        param.systemStatusLock->Give();
                                     }
                                     break;
 
@@ -1988,10 +1977,6 @@ void CanTask::Run() {
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                        // Set system_status with NewData To SEND... For all operation need this signal
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.new_data_to_send = false;
-                                        param.systemStatusLock->Give();
                                     }
                                     break;
 
@@ -2050,10 +2035,6 @@ void CanTask::Run() {
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                        // Set system_status with NewData To SEND... For all operation need this signal
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.new_data_to_send = false;
-                                        param.systemStatusLock->Give();
                                     }
                                     break;
 
@@ -2115,10 +2096,6 @@ void CanTask::Run() {
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
-                                        // Set system_status with NewData To SEND... For all operation need this signal
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.new_data_to_send = false;
-                                        param.systemStatusLock->Give();
                                     }
                                     break;
 
@@ -2897,11 +2874,19 @@ void CanTask::Run() {
                     }
                 }
                 // ********************** SERVICE PORT LIST PUBLISHER ***********************
-                if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
-                    TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
-                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
-                    // Update publisher
-                    clCanard.master_servicelist_send_message();
+                if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
+                    if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
+                        // Publish list service only if full power mode are selected
+                        TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
+                        last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
+                        // Update publisher
+                        clCanard.master_servicelist_send_message();
+                    }
+                } else {
+                    // Mantengo il publish Port avanti nel tempo e Avvio solo a MAX Power e tempo
+                    // di pubblicazione interamente trascorso. Evita Publish inutile in Request PowerUP
+                    // da Master, per semplici operazioni di lettura e/o configurazione ( In Power::Sleep )
+                    last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time);
                 }
 
                 // ***************************************************************************
