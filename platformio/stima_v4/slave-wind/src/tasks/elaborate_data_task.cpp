@@ -293,6 +293,15 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
   float avg_quality = 0;
 
+  // Request to init counter parameter (checking error)
+  if(is_init) {
+    param.systemStatusLock->Take();
+    param.system_status->events.perc_rs232_error = 0;
+    param.system_status->events.error_count = 0;
+    param.system_status->events.measure_count = 0;
+    param.systemStatusLock->Give();
+  }
+
   // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t wmo_report_sample_count = round((600 * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));

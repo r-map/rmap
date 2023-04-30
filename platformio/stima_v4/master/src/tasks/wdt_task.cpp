@@ -41,8 +41,8 @@ void WdtTask::Run() {
   bool firsCheck = true;
   u_int16_t stackUsage;
   char strTask[12] = {0};
+  u_int8_t last_day_boot_rst;
   bootloader_t boot_check;
-  char logMessage[LOG_PUT_DATA_ELEMENT_SIZE] = {0};
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -55,6 +55,26 @@ void WdtTask::Run() {
 
     // Check WDT Ready to reload (reset)
     bool resetWdt = true;
+
+    // Reset one time for day (reset and wdt index if event occurs. Send to Master)
+    if(firsCheck) {
+      // Init last day at first
+      last_day_boot_rst = rtc.getDay();
+    } else {
+      // Check day is changed
+      if(last_day_boot_rst != rtc.getDay()) {
+        last_day_boot_rst = rtc.getDay();
+        // Reset counter if occurs event
+        if((boot_check.tot_reset)||(boot_check.wdt_reset)) {
+          // Reset counter on new or restored firmware
+          boot_check.tot_reset = 0;
+          boot_check.wdt_reset = 0;
+          // Save info bootloader block
+          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+        }
+      }
+    }
+
     TRACE_INFO_F(F("%s: "), Thread::GetName().c_str());
     // Trace DateTime with Semaphore
     if(param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
@@ -80,7 +100,7 @@ void WdtTask::Run() {
           {
             // Exit Time validity check WDT. Remove Flag and reset TimeUp
             param.system_status->tasks[id].watch_dog_ms = 0;
-            param.system_status->tasks[id].watch_dog == wdt_flag::clear;
+            param.system_status->tasks[id].watch_dog = wdt_flag::clear;
           }          
         }
         // If single task not performed local signal WDT...

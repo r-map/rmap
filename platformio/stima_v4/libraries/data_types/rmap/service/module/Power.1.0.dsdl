@@ -11,6 +11,13 @@ uint4 state
 uint8 version
 uint8 revision
 
+#MODULE Flags state
+bool is_ltc_unit_error
+bool is_power_full
+bool is_power_critical
+uint8 rbt_event
+uint8 wdt_event
+
 rmap.sensors.Power.1.0 DEP
 
 @sealed

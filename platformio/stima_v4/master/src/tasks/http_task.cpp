@@ -210,10 +210,6 @@ void HttpTask::Run() {
       HttpYarrowContext = param.yarrowContext;
       HttpClientPSKKey = param.configuration->client_psk_key;
 
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
       // Set PSK identity
       snprintf(HttpClientPSKIdentity, sizeof(HttpClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
       TRACE_VERBOSE_F(F("HTTP PSK Identity: %s\r\n"), HttpClientPSKIdentity);
@@ -256,10 +252,6 @@ void HttpTask::Run() {
         break;
       }
 
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
-
       TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
       // Connect to the HTTP server
       error = httpClientConnect(&httpClientContext, &ipAddr, HTTP_CLIENT_PORT);
@@ -278,10 +270,6 @@ void HttpTask::Run() {
       // Create an HTTP request
       httpClientCreateRequest(&httpClientContext);
       httpClientSetMethod(&httpClientContext, "GET");
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
 
       if (is_get_configuration)
       {
@@ -308,10 +296,6 @@ void HttpTask::Run() {
 
       // Add HTTP header fields
       httpClientAddHeaderField(&httpClientContext, "Host", HttpServer);
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
 
       // MAC AND Version for Firmware Upload
       if(is_get_firmware) {
@@ -361,10 +345,6 @@ void HttpTask::Run() {
       //   TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
       //   break;
       // }
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
 
       state = HTTP_STATE_GET_RESPONSE;
       retry_get_response = 0;
@@ -430,10 +410,6 @@ void HttpTask::Run() {
       // 0,\"user\":\"userv4\",\"slug\":\"stimacan\",\"bslug\":\"stimav4\"}" -H
       // "X-STIMA4-BOARD-MAC: 101" -A "STIMA4-http-Update"  
       // http://test.rmap.cc/firmware/stima/v4/update/11/ --output firmware
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
 
       // Header field found?
       if (value == NULL)
@@ -662,10 +638,6 @@ void HttpTask::Run() {
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
       }
       break;
-
-      #if (ENABLE_STACK_USAGE)
-      TaskMonitorStack();
-      #endif
 
       // One step base non blocking switch
       TaskWatchDog(HTTP_TASK_WAIT_DELAY_MS);

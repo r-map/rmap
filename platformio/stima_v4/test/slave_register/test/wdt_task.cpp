@@ -171,7 +171,10 @@ void WdtTask::Run() {
           boot_check.rollback_executed = false;          
           boot_check.upload_error = 0;          
           boot_check.upload_executed = false;
-          // No modify SerialNumber
+          // Reset counter on new or restored firmware
+          boot_check.tot_reset = 0;
+          boot_check.wdt_reset = 0;
+          // Save info bootloader block
           param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
         }
       }

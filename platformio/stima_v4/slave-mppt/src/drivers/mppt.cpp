@@ -80,84 +80,111 @@ bool Mppt::LTC4015_read_register(uint16_t registerinfo, uint16_t *data)
 }
 
 /// @brief Read LTC4015 V_IN parameter
-/// @param  None
+/// @param is_ok true if measure is done ok
 /// @return V_IN Value converted to V
-float Mppt::get_V_IN(void) {
+float Mppt::get_V_IN(bool *is_ok) {
   uint16_t data;
-  float iBatt = get_I_BAT();
-  LTC4015_read_register(LTC4015_VIN, &data);
-  float vIn = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
-  if(iBatt>V_REF_A_RCHG) {
-    vIn+=V_REF_V_DCHG;
-  } else if(iBatt>0) vIn+=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
-  return vIn;
+  float iBatt = get_I_BAT(is_ok);
+  if(*is_ok) {
+    *is_ok = LTC4015_read_register(LTC4015_VIN, &data);
+    if(*is_ok) {
+      float vIn = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
+      if(iBatt>V_REF_A_RCHG) {
+        vIn+=V_REF_V_DCHG;
+      } else if(iBatt>0) vIn+=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
+      return vIn;
+    }
+    else return 0;
+  } 
+  else return 0;
 }
 
 /// @brief Read LTC4015 V_SYS parameter
-/// @param  None
+/// @param is_ok true if measure is done ok
 /// @return V_SYS Value converted to V
-float Mppt::get_V_SYS(void) {
+float Mppt::get_V_SYS(bool *is_ok) {
   uint16_t data;
-  LTC4015_read_register(LTC4015_VSYS, &data);
-  float vSys = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
-  return vSys;
+  *is_ok = LTC4015_read_register(LTC4015_VSYS, &data);
+  if(*is_ok) {
+    float vSys = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
+    return vSys;
+  }
+  else return 0;
 }
 
 /// @brief Read LTC4015 V_BAT parameter
-/// @param  None
+/// @param is_ok true if measure is done ok
 /// @return V_BAT Value converted to V
-float Mppt::get_V_BAT(void) {
+float Mppt::get_V_BAT(bool *is_ok) {
   uint16_t data;
-  float iBatt = get_I_BAT();
-  LTC4015_read_register(LTC4015_VBAT, &data);
-  float vBatt = ((float)data / V_REF_LH_BAT) / V_REF_BVAL;
-  if(iBatt>V_REF_A_RCHG) {
-    vBatt-=V_REF_V_DCHG;
-  } else if(iBatt>0) vBatt-=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
-  return vBatt;
+  float iBatt = get_I_BAT(is_ok);
+  if(*is_ok) {
+    *is_ok = LTC4015_read_register(LTC4015_VBAT, &data);
+    if(*is_ok) {
+      float vBatt = ((float)data / V_REF_LH_BAT) / V_REF_BVAL;
+      if(iBatt>V_REF_A_RCHG) {
+        vBatt-=V_REF_V_DCHG;
+      } else if(iBatt>0) vBatt-=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
+      return vBatt;
+    }
+    else return 0;
+  }
+  else return 0;
 }
 
 /// @brief Read LTC4015 I_BAT parameter
-/// @param  None
+/// @param is_ok true if measure is done ok
 /// @return I_BAT Value converted to I Ampere
-float Mppt::get_I_BAT(void) {
+float Mppt::get_I_BAT(bool *is_ok) {
   int16_t data;
-  LTC4015_read_register(LTC4015_IBAT, (uint16_t*) &data);
-  float iBatt = ((float)data * I_REF_BATT) / I_REF_CVAL;
-  if (iBatt<0) iBatt = 0;
-  return iBatt;
+  *is_ok = LTC4015_read_register(LTC4015_IBAT, (uint16_t*) &data);
+  if(*is_ok) {
+    float iBatt = ((float)data * I_REF_BATT) / I_REF_CVAL;
+    if (iBatt<0) iBatt = 0;
+    return iBatt;
+  }
+  else return 0;
 }
 
 /// @brief Read LTC4015 I_IN parameter
-/// @param  None
+/// @param is_ok true if measure is done ok
 /// @return I_IN Value converted to I Ampere
-float Mppt::get_I_IN(void) {
+float Mppt::get_I_IN(bool *is_ok) {
   uint16_t data;
-  LTC4015_read_register(LTC4015_IIN, &data);
-  float iIn = ((float)data * I_REF_IN) / I_REF_CVAL;
-  return iIn;
+  *is_ok = LTC4015_read_register(LTC4015_IIN, &data);
+  if(*is_ok) {
+    float iIn = ((float)data * I_REF_IN) / I_REF_CVAL;
+    return iIn;
+  }
+  else return 0;
 }
 
-float Mppt::get_P_CHG(void) {
+/// @brief Read power charge calculation
+/// @param is_ok true if measure is done ok
+/// @return Power battery istant value
+float Mppt::get_P_CHG(bool *is_ok) {
   uint16_t data;
   float pChg;
-  float vBatt = get_V_BAT();
-  if(vBatt>13.35) pChg = 100.0;
-  else if(vBatt>13.27) { pChg = 98.73624 + ((vBatt - 13.27) * 18.05371429); }
-  else if(vBatt>13.17) { pChg = 94.667243 + ((vBatt - 13.17) * 40.68997); }
-  else if(vBatt>13.06) { pChg = 90.23132 + ((vBatt - 13.06) * 40.32657273); }
-  else if(vBatt>12.91) { pChg = 83.93915757 + ((vBatt - 12.91) * 41.94774952); }
-  else if(vBatt>12.77) { pChg = 77.13744076 + ((vBatt - 12.77) * 48.5836915); }
-  else if(vBatt>12.63) { pChg = 64.27316294 + ((vBatt - 12.63) * 91.88769871); }
-  else if(vBatt>12.47) { pChg = 49.35379644 + ((vBatt - 12.47) * 93.24604062); }
-  else if(vBatt>12.30) { pChg = 39.47583948 + ((vBatt - 12.30) * 58.10562922); }
-  else if(vBatt>12.07) { pChg = 29.40298507 + ((vBatt - 12.07) * 43.79501914); }
-  else if(vBatt>11.75) { pChg = 19.62711864 + ((vBatt - 11.75) * 40.7327768); }
-  else if(vBatt>11.40) { pChg = 14.54347826 + ((vBatt - 11.40) * 11.82241949); }
-  else if(vBatt>11.05) { pChg = 9.713518356 + ((vBatt - 11.10) * 16.09986635); }
-  else if(vBatt>10.75) { pChg = 4.838709677 + ((vBatt - 10.75) * 13.9280248); }
-  else pChg = 0.0;  
-  return pChg;
+  float vBatt = get_V_BAT(is_ok);
+  if(*is_ok) {
+    if(vBatt>13.45) pChg = 100.0;
+    else if(vBatt>13.37) { pChg = 98.73624 + ((vBatt - 13.37) * 18.05371429); }
+    else if(vBatt>13.27) { pChg = 94.667243 + ((vBatt - 13.27) * 40.68997); }
+    else if(vBatt>13.16) { pChg = 90.23132 + ((vBatt - 13.16) * 40.32657273); }
+    else if(vBatt>13.01) { pChg = 83.93915757 + ((vBatt - 13.01) * 41.94774952); }
+    else if(vBatt>12.87) { pChg = 77.13744076 + ((vBatt - 12.87) * 48.5836915); }
+    else if(vBatt>12.73) { pChg = 64.27316294 + ((vBatt - 12.73) * 91.88769871); }
+    else if(vBatt>12.57) { pChg = 49.35379644 + ((vBatt - 12.57) * 93.24604062); }
+    else if(vBatt>12.40) { pChg = 39.47583948 + ((vBatt - 12.40) * 58.10562922); }
+    else if(vBatt>12.17) { pChg = 29.40298507 + ((vBatt - 12.17) * 43.79501914); }
+    else if(vBatt>11.85) { pChg = 19.62711864 + ((vBatt - 11.85) * 40.7327768); }
+    else if(vBatt>11.50) { pChg = 14.54347826 + ((vBatt - 11.50) * 11.82241949); }
+    else if(vBatt>11.15) { pChg = 9.713518356 + ((vBatt - 11.15) * 16.09986635); }
+    else if(vBatt>10.85) { pChg = 4.838709677 + ((vBatt - 10.85) * 13.9280248); }
+    else pChg = 0.0;  
+    return pChg;
+  }
+  else return 0;
 }
 
 

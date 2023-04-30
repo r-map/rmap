@@ -173,7 +173,7 @@ void SupervisorTask::Run()
                 TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
                 // ... -> Enter LowPower on call Delay ... ->
                 Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
-                TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
               }
             }
           }

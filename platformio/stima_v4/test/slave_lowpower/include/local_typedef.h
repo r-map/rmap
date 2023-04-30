@@ -146,12 +146,14 @@ typedef struct
 // Backup && Upload Firmware TypeDef
 typedef struct
 {
-  bool request_upload;
-  bool backup_executed;
-  bool upload_executed;
-  bool rollback_executed;
-  bool app_executed_ok;
-  uint8_t upload_error;
+   bool request_upload;
+   bool backup_executed;
+   bool upload_executed;
+   bool rollback_executed;
+   bool app_executed_ok;
+   uint8_t upload_error;
+   uint8_t tot_reset;
+   uint8_t wdt_reset;
 } bootloader_t;
 
 #endif

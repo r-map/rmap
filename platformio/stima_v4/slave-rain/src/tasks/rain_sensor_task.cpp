@@ -45,9 +45,16 @@ RainSensorTask::RainSensorTask(const char *taskName, uint16_t stackSize, uint8_t
 
   localRainQueue = param.rainQueue;
 
+  // Initialize ISR Event to Lock mode (Wait Init sensor to start)
+  is_isr_event_running = true;
+
   TRACE_INFO_F(F("Initializing rain event sensor handler...\r\n"));
   pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
-  attachInterrupt(TIPPING_BUCKET_PIN, ISR_tipping_bucket, LOW);
+  attachInterrupt(TIPPING_BUCKET_PIN, ISR_tipping_bucket, TIPPING_EVENT_VALUE);
+  #if (USE_TIPPING_BUCKET_REDUNDANT)
+  pinMode(TIPPING_BUCKET_PIN, TIPPING_BUCKET_PIN_REDUNDANT);
+  attachInterrupt(TIPPING_BUCKET_PIN_REDUNDANT, ISR_tipping_bucket, TIPPING_EVENT_VALUE);
+  #endif
 
   state = SENSOR_STATE_WAIT_CFG;
   Start();
@@ -115,9 +122,13 @@ void RainSensorTask::Run() {
 
   // Request response for system queue Task controlled...
   system_message_t system_message;
-  
-  uint8_t error_count;
+
   bool flag_event;
+
+  bool bMainError, bRedundantError, bTippingError;
+  bool bEventMain, bEventRedundant;
+
+  uint16_t error_count = 0;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -139,10 +150,9 @@ void RainSensorTask::Run() {
         TRACE_VERBOSE_F(F("Sensror: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
-      // other
       else
       {
-        // Local WatchDog update;
+        // Local WatchDog update while config loaded
         TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
         Delay(Ticks::MsToTicks(RAIN_TASK_WAIT_DELAY_MS));
       }
@@ -151,14 +161,27 @@ void RainSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       // Enter in suspended mode (wait queue from ISR Event...)
+      // Reset is_isr_event_running. Now Event interrupt ISR are checked (main and/or redundant)
+      is_isr_event_running = false;
       TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-      // Waiting interrupt (Suspend task)
+      // Waiting interrupt or External Reset (Suspend task)
       param.rainQueue->Dequeue(&flag_event, portMAX_DELAY);
+      #if (USE_TIPPING_BUCKET_REDUNDANT)
+      // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
+      param.systemStatusLock->Take();
+      param.system_status->events.is_clogged_up = digitalRead(CLOGGED_UP_PIN);
+      param.systemStatusLock->Give();
+      #endif
       // Is Event RAIN? (false, is request Reset Counter value)
       if(!flag_event) {
+        // Reset signal event (if error persistent, event error restored)
+        bMainError = false;
+        bRedundantError = false;
+        bTippingError = false;
+        error_count = 0;
         // Reset counter and exit
-        memset(&rain, 0, sizeof(rain));        
+        memset(&rain, 0, sizeof(rain));
         break;
       }
       // ********************************************
@@ -168,13 +191,68 @@ void RainSensorTask::Run() {
       TRACE_INFO_F(F("Sensor: checking event...\r\n"));
       TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms / 2);
       Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms / 2));
-      state = SENSOR_STATE_READ;
+      state = SENSOR_STATE_CHECK_SPIKE;
+      break;
+
+    case SENSOR_STATE_CHECK_SPIKE:
+      // re-read pin status to filter spikes before increment rain tips
+      // Read time now is tipping_bucket_time_ms / 2 -> from event start
+      #if (!USE_TIPPING_BUCKET_REDUNDANT)
+      // Standard control with only one PIN
+      if (digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE)
+      {
+        // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
+        TRACE_INFO_F(F("Sensor: Skip spike (to fast)\r\n"));
+        error_count++;
+        bTippingError = true;
+        state = SENSOR_STATE_END;
+        break;
+      }
+      #else
+      // Read Pin standard and redundant (all reed is not event... Error. If one is event, continue)
+      // Standard control with only one PIN
+      bEventMain = (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE);
+      bEventRedundant = (digitalRead(TIPPING_BUCKET_PIN_REDUNDANT) == TIPPING_EVENT_VALUE);
+      // All sensor readin gone (Sensor are synch, event too fast)
+      if ((!bEventMain)&&(!bEventRedundant))
+      {
+        TRACE_INFO_F(F("Sensor: Skip spike (to fast)\r\n"));
+        error_count++;
+        bTippingError = true;
+        state = SENSOR_STATE_END;
+        break;
+      }
+      // Here event Main and/or Redundat is Ok. Check if difference occurs
+      if ((bEventMain)&&(!bEventRedundant))
+      {
+        // Error sensor redundant and signal to master
+        bRedundantError = true;
+        TRACE_INFO_F(F("Sensor: Error reading redundant tipping (no event)\r\n"));
+      }
+      if ((!bEventMain)&&(bEventRedundant))
+      {
+        // Error sensor redundant and signal to master
+        bMainError = true;
+        TRACE_INFO_F(F("Sensor: Error reading main tipping (no event)\r\n"));
+      }
+      #endif
+      TRACE_VERBOSE_F(F("Sensor: checking end event...\r\n"));
+      TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms);
+      Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms));
+      state = SENSOR_STATE_CHECK_SPIKE;
       break;
 
     case SENSOR_STATE_READ:
-      // increment rain tips if oneshot mode is on and oneshot start command It has been received
-      // re-read pin status to filter spikes
-      if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
+      // re-read pin status to be inverted from event before increment rain tips
+      // Read time now is tipping_bucket_time_ms * 1.5 -> from event start
+      #if (!USE_TIPPING_BUCKET_REDUNDANT)
+      // Standard control with only one PIN
+      if (digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE)
+      #else
+      // Read Pin standard and redundant (all reed must to be !event... Error if one is event)
+      if ((digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE) &&
+          (digitalRead(TIPPING_BUCKET_PIN_REDUNDANT) != TIPPING_EVENT_VALUE))
+      #endif
       {
         rain.tips_count++;
         // !!! Add Value if system is not in maintenance mode
@@ -187,13 +265,12 @@ void RainSensorTask::Run() {
       }
       else
       {
-        TRACE_INFO_F(F("Sensor: Skip spike\r\n"));
+        TRACE_INFO_F(F("Sensor: Skip spike (to late)\r\n"));
+        error_count++;
+        bTippingError = true;
         state = SENSOR_STATE_END;
         break;
       }
-
-      TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms * 2);
-      Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms * 2));
 
       edata.value = rain.tips_count;
       edata.index = RAIN_TIPS_INDEX;
@@ -207,37 +284,60 @@ void RainSensorTask::Run() {
       edata.index = RAIN_FULL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
       state = SENSOR_STATE_END;
       break;
 
     case SENSOR_STATE_END:
-      if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
+      // Inibith (Interrupt) next input data for event_end_time_ms and check error stall
+      TaskWatchDog(param.configuration->sensors.event_end_time_ms);
+      Delay(Ticks::MsToTicks(param.configuration->sensors.event_end_time_ms));
+      // Standard control with only one PIN
+      if (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE)
       {
-        TRACE_INFO_F(F("Sensor: Wrong timing or stalled tipping bucket\r\n"));
-        TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms);
-        Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms));
+        bMainError = true;
+        TRACE_INFO_F(F("Sensor: Main tipping wrong timing or stalled tipping bucket\r\n"));
+        // Signal an error
       }
+      #if (USE_TIPPING_BUCKET_REDUNDANT)
+      if (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE)
+      {
+        bRedundantError = true;
+        TRACE_INFO_F(F("Sensor: Redundant tipping wrong timing or stalled tipping bucket\r\n"));
+        // Signal an error
+      }
+      #endif
 
-#if (ENABLE_STACK_USAGE)
+      // Checking signal Event and error sensor
+      param.systemStatusLock->Take();
+      param.system_status->events.is_main_error = bMainError;
+      param.system_status->events.is_redundant_error = bRedundantError;
+      param.system_status->events.is_tipping_error = bTippingError;
+      param.system_status->events.error_count = error_count;
+      param.systemStatusLock->Give();
+
+      #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
-#endif
+      #endif
 
-      // Local TaskWatchDog update and Sleep Activate before Next Read
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-      attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), ISR_tipping_bucket, LOW);
       state = SENSOR_STATE_INIT;
       break;
     }
   }
 }
 
+/// @brief ISR Waiting event (restore task)
 void RainSensorTask::ISR_tipping_bucket() {
-  // reading TIPPING_BUCKET_PIN value to be sure the interrupt has occurred
-  if (digitalRead(TIPPING_BUCKET_PIN) == LOW)
-  {
-    detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
-    bool flags = true;
-    BaseType_t pxHigherPTW = true;
+  // Event TIPPING_BUCKET_PIN start when interrupt has occurred (security check on reading state)
+  bool flags = true;
+  BaseType_t pxHigherPTW = true;
+  // Event is also in execution... Exit, else Calling Queue from ISR
+  if(!is_isr_event_running) {
+    // Start an ISR Event
+    is_isr_event_running = true;
     // enable Tipping bucket task queue
     localRainQueue->EnqueueFromISR(&flags, &pxHigherPTW);
   }

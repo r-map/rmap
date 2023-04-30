@@ -106,7 +106,8 @@ private:
   bool isWindOn();
   bool isWindOff();
   void serialReset();
-  bool windsonicInterpreter(float *speed, float *direction);
+  
+  uint8_t windsonicInterpreter(float *speed, float *direction);
 
   bool is_power_on;
   bool is_error;

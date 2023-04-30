@@ -180,7 +180,7 @@ void SupervisorTask::Run()
                 TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
                 // ... -> Enter LowPower on call Delay ... ->
                 Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
-                TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
               }
             }
           }
@@ -287,6 +287,26 @@ void SupervisorTask::loadConfiguration()
   }
 
   // Reading RMAP Module sensor delay acquire -> (READ/WRITE)
+  // uint16_t sensor_tipping_delay_ms; Event stall time inibith
+  if(register_config_valid) {
+    // Select type register (uint_32)
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count       = 1;
+    // Loading Default
+    val.natural16.value.elements[0] = SENSORS_TIPPING_TIMEOUT_DELAY_MS;
+    param.registerAccessLock->Take();
+    param.clRegister->read("rmap.module.sensor.tipping.timeout", &val);
+    param.registerAccessLock->Give();
+    if(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count != 1)) {
+      register_config_valid = false;
+    } else {
+      param.configurationLock->Take();
+      param.configuration->sensors.event_end_time_ms = val.natural16.value.elements[0];
+      param.configurationLock->Give();
+    }
+  }
+
+  // Reading RMAP Module sensor delay acquire -> (READ/WRITE)
   // uint16_t sensor_tipping_delay_ms; Event tipping time inibith
   if(register_config_valid) {
     // Select type register (uint_32)
@@ -358,8 +378,8 @@ void SupervisorTask::saveConfiguration(bool is_default)
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
-  // uint16_t sensor_acquisition_delay_ms;
-  // Select type register (uint_32)
+  // uint16_t tipping_bucket_time_ms;
+  // Select type register (uint_16)
   uavcan_register_Value_1_0_select_natural16_(&val);
   val.natural16.value.count       = 1;
   // Loading Default
@@ -371,8 +391,21 @@ void SupervisorTask::saveConfiguration(bool is_default)
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
+  // uint16_t event_end_time_ms;
+  // Select type register (uint_16)
+  uavcan_register_Value_1_0_select_natural16_(&val);
+  val.natural16.value.count       = 1;
+  // Loading Default
+  param.configurationLock->Take();
+  val.natural16.value.elements[0] = param.configuration->sensors.event_end_time_ms;
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
+  param.clRegister->write("rrmap.module.sensor.tipping.timeout", &val);
+  param.registerAccessLock->Give();
+
+  // Writing RMAP Module sensor delay acquire -> (READ/WRITE)
   // uint16_t sensor_acquisition_delay_ms;
-  // Select type register (uint_32)
+  // Select type register (uint_16)
   uavcan_register_Value_1_0_select_natural16_(&val);
   val.natural16.value.count       = 1;
   // Loading Default

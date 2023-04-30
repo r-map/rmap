@@ -58,7 +58,7 @@ using namespace cpp_freertos;
 #define PROPERTY_DISABLE    (0U)
 #define PROPERTY_ENABLE     (1U)
 
-#define ARR_REG_FILTER      10
+#define ARR_REG_FILTER      30
 
 // Class Accelerometer implementation
 class Accelerometer {

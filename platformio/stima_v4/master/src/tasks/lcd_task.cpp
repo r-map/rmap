@@ -401,48 +401,48 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   // Process string format to print
   if (param.system_status->data_slave[channel].is_online) {
     switch (param.system_status->data_slave[channel].module_type) {
-      value_display_A = param.system_status->data_slave[channel].data_value_A;
-      value_display_B = param.system_status->data_slave[channel].data_value_B;
+      value_display_A = param.system_status->data_slave[channel].data_value[0];
+      value_display_B = param.system_status->data_slave[channel].data_value[1];
       // Adjust UDM with comprensible value
       case Module_Type::th:
         printMeasB = true;
-        value_display_A = param.system_status->data_slave[channel].data_value_A - 27315;
+        value_display_A = param.system_status->data_slave[channel].data_value[0] - 27315;
         value_display_A /= 100;
-        value_display_B = param.system_status->data_slave[channel].data_value_B;
+        value_display_B = param.system_status->data_slave[channel].data_value[1];
         if ((value_display_A < MIN_VALID_TEMPERATURE) || (value_display_A > MAX_VALID_TEMPERATURE)) bMeasValid_A = false;
         if ((value_display_B < MIN_VALID_HUMIDITY) || (value_display_B > MAX_VALID_HUMIDITY)) bMeasValid_B = false;
         break;
       // Adjust UDM with comprensible value
       case Module_Type::rain:
-        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / 10.0;
         if ((value_display_A < 0) || (value_display_A > 1000)) bMeasValid_A = false;
         break;
       // Adjust UDM with comprensible value
       case Module_Type::wind:
         printMeasB = true;
-        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
-        value_display_B = (float)param.system_status->data_slave[channel].data_value_B;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / 10.0;
+        value_display_B = (float)param.system_status->data_slave[channel].data_value[1];
         if ((value_display_A < 0) || (value_display_A > 60)) bMeasValid_A = false;
         if ((value_display_B < 0) || (value_display_B > 359.9)) bMeasValid_B = false;
         break;
       case Module_Type::radiation:
-        value_display_A = param.system_status->data_slave[channel].data_value_A;
+        value_display_A = param.system_status->data_slave[channel].data_value[0];
         if ((value_display_A < 0) || (value_display_A > 2000)) bMeasValid_A = false;
         break;
       case Module_Type::power:
         printMeasB = true;
         printMeasC = true;
-        value_display_A = (float)param.system_status->data_slave[channel].data_value_A / 10.0;
-        value_display_B = (float)param.system_status->data_slave[channel].data_value_B / 10.0;
-        value_display_C = (float)param.system_status->data_slave[channel].data_value_C;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / 10.0;
+        value_display_B = (float)param.system_status->data_slave[channel].data_value[1] / 10.0;
+        value_display_C = (float)param.system_status->data_slave[channel].data_value[2];
         if ((value_display_A < 5) || (value_display_A > 20)) bMeasValid_A = false;
         if ((value_display_B < 0) || (value_display_B > 30)) bMeasValid_B = false;
         if ((value_display_C < -350) || (value_display_C > 5000)) bMeasValid_C = false;
         break;
       default:
-        value_display_A = param.system_status->data_slave[channel].data_value_A;
-        value_display_B = param.system_status->data_slave[channel].data_value_B;
-        value_display_C = param.system_status->data_slave[channel].data_value_C;
+        value_display_A = param.system_status->data_slave[channel].data_value[0];
+        value_display_B = param.system_status->data_slave[channel].data_value[1];
+        value_display_C = param.system_status->data_slave[channel].data_value[2];
         break;
     }
     dtostrf(value_display_A, 0, decimals_A, measure_A);

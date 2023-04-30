@@ -112,6 +112,9 @@ void SolarRadiationSensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
 
+  bool is_adc_overflow;
+  bool is_adc_error;
+  uint8_t perc_error_adc;
   uint8_t adc_channel;
   float value;
 
@@ -181,7 +184,9 @@ void SolarRadiationSensorTask::Run() {
       // Add sample ADC value to data
       if(addADCData(adc_channel) >= SAMPLES_REPETED_ADC) {
         // Read real value
-        value = getADCData(adc_channel);
+        value = getADCData(adc_channel, &perc_error_adc);
+        // ?Error ADC reading < MIN_PERRCENT_READING_VALUE_OK
+        is_adc_error = (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN);
         state = SENSOR_STATE_EVALUATE;
         break;
       }
@@ -189,13 +194,34 @@ void SolarRadiationSensorTask::Run() {
 
     case SENSOR_STATE_EVALUATE:
 
-      // Gain - offset to ADC to real value, anc d connvert to scale used (mV for solar_radiation)
-      value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
-      value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
-      TRACE_DEBUG_F(F("SENSOR ANALOG VALUE %d (mV)\r\n"), (uint16_t)round(value));
+      // With ADC Error nothing to do...
+      if(is_adc_error) {
+        // Error code data
+        TRACE_ERROR_F(F("Sensor analog: Error reading ADC\r\n"));
+        value = (float)UINT16_MAX;
+      } else {
+        // Gain - offset to ADC to real value, anc d connvert to scale used (mV for solar_radiation)
+        value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
+        value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
+        TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value));
+        // Read value into U.M. Real Solar Radiation (Sample value)
+        value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
+      }
 
-      // Read value into U.M. Real Solar Radiation (Sample value)
-      value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max);
+      // Inform system state if ADC error event ( reading measure % error < MIN_VALID_PERCENTAGE )
+      if(param.system_status->events.is_adc_unit_error != (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN)) {
+        param.systemStatusLock->Take();
+        param.system_status->events.is_adc_unit_error = (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN);
+        param.systemStatusLock->Give();
+      }
+      // Inform system state if ADC oveflow analog sensor limits      
+      if((param.system_status->events.is_adc_unit_overflow != is_adc_overflow) ||
+         (param.system_status->events.is_adc_unit_error != is_adc_error)) {
+        param.systemStatusLock->Take();
+        param.system_status->events.is_adc_unit_overflow = is_adc_overflow;
+        param.system_status->events.is_adc_unit_error = is_adc_error;
+        param.systemStatusLock->Give();
+      }
 
       state = SENSOR_STATE_READ;
       TRACE_INFO_F(F("SENSOR_STATE_EVALUATE --> SENSOR_STATE_READ\r\n"));
@@ -269,20 +295,27 @@ void SolarRadiationSensorTask::powerOff()
 /// @param chanel_out Chanel to be getted
 uint8_t SolarRadiationSensorTask::addADCData(uint8_t chanel_out)
 {
+  uint32_t analogReadVal;
   adc_in_count[chanel_out]++;
   switch(chanel_out) {
-    case 0: 
-      adc_in[chanel_out] += analogRead(PIN_ANALOG_01);
+    case 0:
+      analogReadVal = analogRead(PIN_ANALOG_01);
       break;
     case 1: 
-      adc_in[chanel_out] += analogRead(PIN_ANALOG_02);
+      analogReadVal = analogRead(PIN_ANALOG_02);
       break;
     case 2: 
-      adc_in[chanel_out] += analogRead(PIN_ANALOG_03);
+      analogReadVal = analogRead(PIN_ANALOG_03);
       break;
     case 3: 
-      adc_in[chanel_out] += analogRead(PIN_ANALOG_04);
+      analogReadVal = analogRead(PIN_ANALOG_04);
       break;
+  }
+  // Add data only if not an error (count error)
+  if(analogReadVal) {
+    adc_in[chanel_out] += analogReadVal;
+  } else {
+    adc_err_count[chanel_out]++;
   }
   return adc_in_count[chanel_out];
 }
@@ -292,15 +325,27 @@ uint8_t SolarRadiationSensorTask::addADCData(uint8_t chanel_out)
 void SolarRadiationSensorTask::resetADCData(uint8_t chanel_out)
 {
   adc_in_count[chanel_out] = 0;
+  adc_err_count[chanel_out] = 0;
   adc_in[chanel_out] = 0;
 }
 
 /// @brief Get real ADC Data
 /// @param chanel_out Chanel to be resetted value
+/// @param quality_data Return quality perc of good measure in current cycle reading
 /// @return ADC Value (float conversion)
-float SolarRadiationSensorTask::getADCData(uint8_t chanel_out)
+float SolarRadiationSensorTask::getADCData(uint8_t chanel_out, uint8_t *quality_data)
 {
-  return adc_in[chanel_out] / adc_in_count[chanel_out];
+  *quality_data = 0;
+  // All measure are error?
+  if(adc_in_count[chanel_out] == adc_err_count[chanel_out]) return 0;
+  // Get quality of repeted measure
+  if(adc_err_count[chanel_out] == 0) {
+    *quality_data = 100;
+  } else {
+    *quality_data = (uint8_t) (100.0 - (((float)adc_err_count[chanel_out] / (float)adc_in_count[chanel_out]) * 100.0));
+  }
+  // Return measure, eliminating the wrong measurements
+  return adc_in[chanel_out] / (adc_in_count[chanel_out] - adc_err_count[chanel_out]);
 }
 
 int32_t SolarRadiationSensorTask::getVrefTemp(void)
@@ -362,12 +407,14 @@ float SolarRadiationSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_
   return value;
 }
 
-float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max)
+float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow)
 {
   float value = adc_value;
+  *adc_overflow = false;
 
   if ((value < (adc_voltage_min + SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX)))
   {
+    *adc_overflow = true;
     value = UINT16_MAX;
   }
   else
@@ -376,12 +423,14 @@ float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_vol
 
     if (value <= SOLAR_RADIATION_ERROR_MIN)
     {
-        value = SOLAR_RADIATION_MIN;
+      *adc_overflow = true;
+      value = SOLAR_RADIATION_MIN;
     }
 
     if (value >= SOLAR_RADIATION_ERROR_MAX)
     {
-        value = SOLAR_RADIATION_MAX;
+      *adc_overflow = true;
+      value = SOLAR_RADIATION_MAX;
     }
   }
 

@@ -39,9 +39,12 @@
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_RAIN)
 
-#define TIPPING_BUCKET_PIN        PIN_IN0   // Input PIN tipping
-#define TIPPING_BUCKET_PIN_CTRL   PIN_IN1   // Redundant PIN tipping (verify and alert)
-#define CLOGGED_UP_PIN            PIN_IN2   // Clogged Up Alert PIN
+#define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)
+
+#define TIPPING_EVENT_VALUE               HIGH      // Input PIN tipping expected event value
+#define TIPPING_BUCKET_PIN                PIN_IN0   // Input PIN tipping
+#define TIPPING_BUCKET_PIN_REDUNDANT      PIN_IN1   // Redundant PIN tipping (verify and alert)
+#define CLOGGED_UP_PIN                    PIN_IN2   // Clogged Up Alert PIN
 
 #define RAIN_TASK_POWER_ON_WAIT_DELAY_MS  (100)
 #define RAIN_TASK_WAIT_DELAY_MS           (50)
@@ -77,6 +80,7 @@ class RainSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
+    SENSOR_STATE_CHECK_SPIKE,
     SENSOR_STATE_READ,
     SENSOR_STATE_END
   } State_t;
@@ -102,6 +106,9 @@ private:
 
   // Acces static memeber parameter of class
   inline static cpp_freertos::Queue *localRainQueue;
+
+  // Isr event flag running event
+  inline static bool is_isr_event_running;
 };
 
 #endif

@@ -119,19 +119,20 @@ private:
   
   void resetADCData(uint8_t chanel_out);
   uint8_t addADCData(uint8_t chanel_out);
-  float getADCData(uint8_t chanel_out);
+  float getADCData(uint8_t chanel_out, uint8_t *quality_data);
 
   int32_t getVrefTemp(void);
   
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
-  float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
+  float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow);
 
   // Global flag powered
   bool is_power_on;
 
   // Value of chanel ADC
   uint8_t adc_in_count[MAX_ADC_CHANELS];
+  uint8_t adc_err_count[MAX_ADC_CHANELS];
   uint64_t adc_in[MAX_ADC_CHANELS];
 
   State_t state;

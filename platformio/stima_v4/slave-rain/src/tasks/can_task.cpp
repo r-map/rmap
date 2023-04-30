@@ -558,7 +558,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
             // Send queue command to TASK
             system_message.task_dest = ACCELEROMETER_TASK_ID;
-            system_message.command.do_init = true;
+            system_message.command.do_calib = true;
             if(localSystemMessageQueue->Enqueue(&system_message, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS))) {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             } else {                
@@ -676,6 +676,17 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
             clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
           }
 
+          // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
+          resp.is_accelerometer_error = param->system_status->events.is_accelerometer_error;
+          resp.is_bubble_level_error = param->system_status->events.is_bubble_level_error;
+          resp.is_clogged_up = param->system_status->events.is_clogged_up;
+          resp.is_main_error = param->system_status->events.is_main_error;
+          resp.is_redundant_error = param->system_status->events.is_redundant_error;
+          resp.is_tipping_error = param->system_status->events.is_tipping_error;
+          // Preparo gli event Reboot and WDT Event
+          resp.rbt_event = boot_state->tot_reset;
+          resp.wdt_event = boot_state->wdt_reset;
+
           // coda di richiesta dati
           param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
@@ -688,6 +699,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.state = req->parameter.command;
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
+
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
@@ -1093,6 +1105,8 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   localSystemMessageQueue = param.systemMessageQueue;
   localQspiLock = param.qspiLock;
   localRegisterAccessLock = param.registerAccessLock;
+
+  boot_state = param.boot_request;
 
   // FullChip Power Mode after Startup
   // Resume from LowPower or reset the controller TJA1443ATK
@@ -1659,12 +1673,12 @@ void CanTask::Run() {
                                 start_firmware_upgrade = true;
                                 // Preparo la struttua per informare il Boot Loader
                                 if(start_firmware_upgrade) {
-                                    bootloader_t boot_request;
-                                    boot_request.app_executed_ok = false;
-                                    boot_request.backup_executed = false;
-                                    boot_request.rollback_executed = false;
-                                    boot_request.request_upload = true;
-                                    param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+                                    // Update boot_request from param loaded struct and Save before Reset
+                                    param.boot_request->app_executed_ok = false;
+                                    param.boot_request->backup_executed = false;
+                                    param.boot_request->rollback_executed = false;
+                                    param.boot_request->request_upload = true;
+                                    param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
                                 }
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo

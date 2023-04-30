@@ -136,7 +136,7 @@ void AccelerometerTask::Run()
         {
           // Pull && elaborate command, after response if...
           param.systemMessageQueue->Dequeue(&system_message, 0);
-          if(system_message.command.do_init) // == Calibrate && Save {
+          if(system_message.command.do_calib) // == Calibrate && Save {
           {
             start_calibration = true;
           }

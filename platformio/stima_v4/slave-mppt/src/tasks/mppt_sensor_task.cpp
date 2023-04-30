@@ -110,7 +110,11 @@ void MpptSensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
-  uint8_t error_count;
+  // Measure flags
+  bool is_power_full = false;
+  bool is_power_critical = true;
+  bool is_measure_done = true;
+  bool is_error_measure = false;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -147,26 +151,58 @@ void MpptSensorTask::Run() {
 
       case SENSOR_STATE_READ:
 
+        // Reinit var flags
+        is_power_full = false;
+        is_power_critical = true;
+        is_measure_done = true;
+        is_error_measure = false;
+
         // Read Data from LTC_4015
-        edata.value = param.mpptIC->get_P_CHG();
+        edata.value = param.mpptIC->get_P_CHG(&is_measure_done);
+        is_error_measure |= !is_measure_done;
+        // Power % > 70% (Full OK)
+        // Power % > 30% (No Critical)
+        if(edata.value > 70) is_power_full = true;
+        if(edata.value > 30) is_power_critical = false;
         edata.index = POWER_BATTERY_CHARGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = param.mpptIC->get_V_BAT() * POWER_BATTERY_VOLTAGE_MULT;
+        edata.value = param.mpptIC->get_V_BAT(&is_measure_done) * POWER_BATTERY_VOLTAGE_MULT;
+        is_error_measure |= !is_measure_done;
         edata.index = POWER_BATTERY_VOLTAGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = param.mpptIC->get_I_BAT() * POWER_BATTERY_CURRENT_MULT;
+        edata.value = param.mpptIC->get_I_BAT(&is_measure_done) * POWER_BATTERY_CURRENT_MULT;
+        is_error_measure |= !is_measure_done;
         edata.index = POWER_BATTERY_CURRENT_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = param.mpptIC->get_V_IN() * POWER_INPUT_VOLTAGE_MULT;
+        edata.value = param.mpptIC->get_V_IN(&is_measure_done) * POWER_INPUT_VOLTAGE_MULT;
+        is_error_measure |= !is_measure_done;
+        // VIn > 15.5 V (Full OK)
+        if(edata.value > 155) {
+          is_power_full = true;
+          is_power_critical = false;
+        }
         edata.index = POWER_INPUT_VOLTAGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
-        edata.value = param.mpptIC->get_I_IN() * POWER_INPUT_CURRENT_MULT;
+        edata.value = param.mpptIC->get_I_IN(&is_measure_done) * POWER_INPUT_CURRENT_MULT;
+        is_error_measure |= !is_measure_done;
+        // IIn > 250 mA (Full OK)
+        if(edata.value > 250) {
+          is_power_full = true;
+          is_power_critical = false;
+        }
         edata.index = POWER_INPUT_CURRENT_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+
+        // Response system_status power level event flags
+        param.systemStatusLock->Take();
+        param.system_status->events.is_ltc_unit_error = is_error_measure;
+        param.system_status->events.is_power_full = is_power_full;
+        param.system_status->events.is_power_critical = is_power_critical;
+        param.systemStatusLock->Give();
 
         state = SENSOR_STATE_END;
         break;

@@ -86,12 +86,12 @@ public:
   #define setflag_AL_V_SYS_LO(X) LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, X);  // Set request SMBAlert LO V_SYS
 
   // Float data reading value
-  float get_V_IN(void);     // Get V_IN
-  float get_V_SYS(void);    // Get V_SYS
-  float get_V_BAT(void);    // Get V_BAT
-  float get_I_BAT(void);    // Get I_BAT
-  float get_I_IN(void);     // Get I_IN
-  float get_P_CHG(void);    // Get P_CHG
+  float get_V_IN(bool *is_ok);     // Get V_IN
+  float get_V_SYS(bool *is_ok);    // Get V_SYS
+  float get_V_BAT(bool *is_ok);    // Get V_BAT
+  float get_I_BAT(bool *is_ok);    // Get I_BAT
+  float get_I_IN(bool *is_ok);     // Get I_IN
+  float get_P_CHG(bool *is_ok);    // Get P_CHG
 
 protected:
 private:

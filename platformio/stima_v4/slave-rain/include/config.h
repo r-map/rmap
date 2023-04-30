@@ -136,6 +136,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Default value for sensor acquire task 
 #define SENSORS_TIPPING_DELAY_MS          (200)
+#define SENSORS_TIPPING_TIMEOUT_DELAY_MS  (500)
 #define SENSORS_TIPS_FOR_EVENT            (1)
 
 // Sample and default value for elaborate task 

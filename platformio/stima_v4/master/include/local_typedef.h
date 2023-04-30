@@ -250,6 +250,7 @@ typedef struct
       uint8_t cereg_n;
       uint8_t cereg_stat;
       // Indicator state connection sequence (Ok/err)
+      uint8_t perc_modem_connection_valid;
       uint16_t connection_attempted;
       uint16_t connection_completed;
    } modem;
@@ -257,11 +258,13 @@ typedef struct
    // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
-      bool is_new_info_ready;      // New info available
-      bool fw_upgradable;          // Fw upgrade flag
+      bool is_new_info_ready;       // New info available
+      bool fw_upgradable;           // Fw upgrade flag
+      uint32_t heartbeat_run_epoch; // Heart beat time_epoch start to check expected heartbeat remote
    } data_master;
 
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
+   #define MAX_DATA_VALUE_MEASURE   3
    struct
    {
       bool fw_upgradable;           // Fw upgradable flag
@@ -271,9 +274,10 @@ typedef struct
       bool maintenance_mode;        // Maintenance mode flag
       Module_Type module_type;      // Type of remote module
       uint16_t last_acquire;        // Last acquire data (refered to...)
-      rmapdata_t data_value_A;      // Data value first chanel (istant value)
-      rmapdata_t data_value_B;      // Data value optional second chanel (istant value)
-      rmapdata_t data_value_C;      // Data value optional third chanel (istant value)
+      uint16_t heartbeat_rx;        // Heart beat recived from run_epoch (check expected)
+      uint8_t perc_can_comm_ok;     // Percent of good comunication TX-RX-TX HeartBeat Status OK
+      // Data value data chanel (istant value)
+      rmapdata_t data_value[MAX_DATA_VALUE_MEASURE];
       uint8_t module_revision;      // Revision RMAP
       uint8_t module_version;       // Version RMAP
    } data_slave[BOARDS_COUNT_MAX];
@@ -453,6 +457,8 @@ typedef struct
    bool rollback_executed;
    bool app_executed_ok;
    uint8_t upload_error;
+   uint8_t tot_reset;
+   uint8_t wdt_reset;
 } bootloader_t;
 
 #endif

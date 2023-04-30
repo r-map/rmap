@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/time/SynchronizedTimestamp.1.0.dsdl
-// Generated at:  2023-04-20 17:13:35.631338 UTC
+// Generated at:  2023-04-29 16:46:45.186673 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.time.SynchronizedTimestamp

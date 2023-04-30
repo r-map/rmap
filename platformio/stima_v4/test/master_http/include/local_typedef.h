@@ -436,6 +436,8 @@ typedef struct
    bool rollback_executed;
    bool app_executed_ok;
    uint8_t upload_error;
+   uint8_t tot_reset;
+   uint8_t wdt_reset;
 } bootloader_t;
 
 #endif

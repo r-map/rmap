@@ -185,15 +185,33 @@ void ElaborateDataTask::Run() {
   }
 }
 
+/// @brief Check sensor Quality
+/// @param  None
+/// @return Quality of measure (0-100%)
 uint8_t ElaborateDataTask::checkRain(void) {
   // TODO: Set Check (redundamt, Inclinometer pole)
-  uint8_t quality = 0;
- 
-  quality = 100;
-
-  return quality;
+  float quality = 100.0;
+  if(param.system_status->events.is_clogged_up) {
+    quality = 0.0;
+  } else {
+    if(param.system_status->events.is_tipping_error) {
+      quality -= (100.0 - param.system_status->events.error_count); // 1 Error = -1%
+      if(quality<0.0) quality = 0.0;
+    }
+    // Reduce 15% for error on one reed
+    if(param.system_status->events.is_main_error) quality *= 0.85;
+    if(param.system_status->events.is_redundant_error) quality *= 0.85;
+    // Reduce 30% on error bubble_level (if accelerometr working correctly)
+    if((!param.system_status->events.is_accelerometer_error) &&
+       (param.system_status->events.is_bubble_level_error)) quality *= 0.7;
+  }
+  return (uint8_t) quality;
 }
 
+/// @brief Create an RMAP report value
+/// @param is_init reset param memory (if true)
+/// @param report_time_s time of report
+/// @param observation_time_s time to make an observation
 void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_t observation_time_s)
 {
   report.tips_count = rain.tips_count;

@@ -11,6 +11,12 @@ uint4 state
 uint8 version
 uint8 revision
 
+#MODULE Flags state
+bool is_adc_unit_error
+bool is_adc_unit_overflow
+uint8 rbt_event
+uint8 wdt_event
+
 rmap.sensors.VWC.1.0 VWC
 
 @sealed

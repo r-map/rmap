@@ -158,6 +158,7 @@ void setup() {
   static CanParam_t canParam = {0};
   canParam.configuration = &configuration;
   canParam.system_status = &system_status;
+  canParam.boot_request = &boot_check;
   canParam.configurationLock = configurationLock;
   canParam.systemStatusLock = systemStatusLock;
   canParam.registerAccessLock = registerAccessLock;

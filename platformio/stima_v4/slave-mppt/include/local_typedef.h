@@ -91,6 +91,14 @@ typedef struct
      bool is_inibith_sleep;
    } flags;
 
+   // Module error or alert
+   struct
+   {
+     bool is_ltc_unit_error;
+     bool is_power_full;
+     bool is_power_critical;
+   } events;
+
 } system_status_t;
 
 // System message for queue
@@ -99,9 +107,7 @@ typedef struct
    uint8_t task_dest;
    struct
    {
-      uint8_t do_init    : 1;
-      uint8_t do_load    : 1;
-      uint8_t do_save    : 1;
+      uint8_t do_calib   : 1;   // Calibrate accelerometr
       uint8_t do_inibith : 1;   // Request inibith sleep (system_status)
       uint8_t do_maint   : 1;   // Request maintenance (system_status)
       uint8_t do_sleep   : 1;   // Optional param for difference level Sleep
@@ -136,6 +142,8 @@ typedef struct
   bool rollback_executed;
   bool app_executed_ok;
   uint8_t upload_error;
+  uint8_t tot_reset;
+  uint8_t wdt_reset;
 } bootloader_t;
 
 #endif

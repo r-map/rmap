@@ -186,10 +186,17 @@ void SupervisorTask::Run()
 
       // Start only modulePower Full OK (no energy rest) Exit on Deep Power Save or Critical mode...
       if(param.system_status->flags.power_state >= Power_Mode::pwr_deep_save) {
-        // Sleep TASK if notingh to do
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        // Sleep continuos TASK if notingh to do
         TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_DEEP_POWER_DELAY_MS));
         break;
+      } else {
+        // Standard Waiting Sleeping mode
+        TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       }
 
       // Check date RTime for syncro operation (if required)
@@ -242,12 +249,6 @@ void SupervisorTask::Run()
         state = SUPERVISOR_STATE_CONNECTION_OPERATION;
 
       }
-      else
-      {
-        // Sleep TASK if notingh to do
-        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-        TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
-      }
 
       // TEST CONNECTION
       #if (!FIXED_CONFIGURATION)
@@ -267,8 +268,15 @@ void SupervisorTask::Run()
       // Start state check connection
       state_check_connection = CONNECTION_INIT;
       state = SUPERVISOR_STATE_CONNECTION_OPERATION;
-      // Save next attempt of connection
+      // Update percentage good connection vs attemtped
       param.systemStatusLock->Take();
+      if(param.system_status->modem.connection_attempted) {
+        param.system_status->modem.perc_modem_connection_valid = (uint8_t)
+          (((float)(param.system_status->modem.connection_completed / (float)param.system_status->modem.connection_attempted)) * 100.0);
+      } else {
+        param.system_status->modem.perc_modem_connection_valid = 100;
+      }
+      // Save next attempt of connection
       param.system_status->modem.connection_attempted++;
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
       TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),

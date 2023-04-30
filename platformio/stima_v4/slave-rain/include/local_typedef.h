@@ -39,6 +39,7 @@ enum Power_Mode : uint8_t {
 typedef struct
 {
    uint16_t tipping_bucket_time_ms;
+   uint16_t event_end_time_ms;
    uint8_t rain_for_tip;
 } sensor_configuration_t;
 
@@ -95,8 +96,20 @@ typedef struct
    {
      bool is_cfg_loaded;
      bool is_maintenance;
-     bool is_inibith_sleep;
+     bool is_inibith_sleep;     
    } flags;
+
+   // Module error or alert
+   struct
+   {
+     bool is_accelerometer_error;
+     bool is_bubble_level_error;
+     bool is_clogged_up;
+     bool is_main_error;
+     bool is_redundant_error;
+     bool is_tipping_error;
+     uint16_t error_count;
+   } events;
 
 } system_status_t;
 
@@ -106,9 +119,7 @@ typedef struct
    uint8_t task_dest;
    struct
    {
-      uint8_t do_init    : 1;
-      uint8_t do_load    : 1;
-      uint8_t do_save    : 1;
+      uint8_t do_calib   : 1;   // Calibrate accelerometr
       uint8_t do_inibith : 1;   // Request inibith sleep (system_status)
       uint8_t do_maint   : 1;   // Request maintenance (system_status)
       uint8_t do_sleep   : 1;   // Optional param for difference level Sleep
@@ -145,6 +156,8 @@ typedef struct
   bool rollback_executed;
   bool app_executed_ok;
   uint8_t upload_error;
+  uint8_t tot_reset;
+  uint8_t wdt_reset;
 } bootloader_t;
 
 #endif

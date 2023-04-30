@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/Radiation.1.0.dsdl
-// Generated at:  2023-04-20 17:13:37.058541 UTC
+// Generated at:  2023-04-29 16:46:47.222942 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Radiation
@@ -38,6 +38,7 @@
 #include <nunavut/support/serialization.h>
 #include <rmap/sensors/Radiation_1_0.h>
 #include <rmap/service/setmode_1_0.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -248,8 +249,8 @@ static inline void rmap_service_module_Radiation_Request_1_0_initialize_(rmap_se
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_Radiation_Response_1_0_EXTENT_BYTES_                    19UL
-#define rmap_service_module_Radiation_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 19UL
+#define rmap_service_module_Radiation_Response_1_0_EXTENT_BYTES_                    21UL
+#define rmap_service_module_Radiation_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 21UL
 static_assert(rmap_service_module_Radiation_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_Radiation_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -263,6 +264,18 @@ typedef struct
 
     /// saturated uint8 revision
     uint8_t revision;
+
+    /// saturated bool is_adc_unit_error
+    bool is_adc_unit_error;
+
+    /// saturated bool is_adc_unit_overflow
+    bool is_adc_unit_overflow;
+
+    /// saturated uint8 rbt_event
+    uint8_t rbt_event;
+
+    /// saturated uint8 wdt_event
+    uint8_t wdt_event;
 
     /// rmap.sensors.Radiation.1.0 DSA
     rmap_sensors_Radiation_1_0 DSA;
@@ -294,7 +307,7 @@ static inline int8_t rmap_service_module_Radiation_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 152UL)
+    if ((8U * (size_t) capacity_bytes) < 168UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -343,24 +356,80 @@ static inline int8_t rmap_service_module_Radiation_Response_1_0_serialize_(
     }
 
 
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err5_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad1_);  // Optimize?
+
+
+    {   // saturated bool is_adc_unit_error
+        if (obj->is_adc_unit_error)
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] | (1U << (offset_bits % 8U)));
+        }
+        else
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] & ~(1U << (offset_bits % 8U)));
+        }
+        offset_bits += 1U;
+    }
+
+
+
+
+    {   // saturated bool is_adc_unit_overflow
+        if (obj->is_adc_unit_overflow)
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] | (1U << (offset_bits % 8U)));
+        }
+        else
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] & ~(1U << (offset_bits % 8U)));
+        }
+        offset_bits += 1U;
+    }
+
+
+
+
+    {   // saturated uint8 rbt_event
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        const int8_t _err5_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, obj->rbt_event, 8U);
         if (_err5_ < 0)
         {
             return _err5_;
+        }
+        offset_bits += 8U;
+    }
+
+
+
+
+    {   // saturated uint8 wdt_event
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        const int8_t _err6_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, obj->wdt_event, 8U);
+        if (_err6_ < 0)
+        {
+            return _err6_;
+        }
+        offset_bits += 8U;
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err7_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad1_);  // Optimize?
+        if (_err7_ < 0)
+        {
+            return _err7_;
         }
         offset_bits += _pad1_;
     }
 
     {   // rmap.sensors.Radiation.1.0 DSA
         size_t _size_bytes2_ = 16UL;  // Nested object (max) size, in bytes.
-        int8_t _err6_ = rmap_sensors_Radiation_1_0_serialize_(
+        int8_t _err8_ = rmap_sensors_Radiation_1_0_serialize_(
             &obj->DSA, &buffer[offset_bits / 8U], &_size_bytes2_);
-        if (_err6_ < 0)
+        if (_err8_ < 0)
         {
-            return _err6_;
+            return _err8_;
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested object.
@@ -370,10 +439,10 @@ static inline int8_t rmap_service_module_Radiation_Response_1_0_serialize_(
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad2_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err7_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad2_);  // Optimize?
-        if (_err7_ < 0)
+        const int8_t _err9_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad2_);  // Optimize?
+        if (_err9_ < 0)
         {
-            return _err7_;
+            return _err9_;
         }
         offset_bits += _pad2_;
     }
@@ -453,16 +522,58 @@ static inline int8_t rmap_service_module_Radiation_Response_1_0_deserialize_(
     offset_bits += 8U;
 
 
+
+
+    // saturated bool is_adc_unit_error
+    if (offset_bits < capacity_bits)
+    {
+        out_obj->is_adc_unit_error = (buffer[offset_bits / 8U] & (1U << (offset_bits % 8U))) != 0U;
+    }
+    else
+    {
+        out_obj->is_adc_unit_error = false;
+    }
+    offset_bits += 1U;
+
+
+
+
+    // saturated bool is_adc_unit_overflow
+    if (offset_bits < capacity_bits)
+    {
+        out_obj->is_adc_unit_overflow = (buffer[offset_bits / 8U] & (1U << (offset_bits % 8U))) != 0U;
+    }
+    else
+    {
+        out_obj->is_adc_unit_overflow = false;
+    }
+    offset_bits += 1U;
+
+
+
+
+    // saturated uint8 rbt_event
+    out_obj->rbt_event = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 8);
+    offset_bits += 8U;
+
+
+
+
+    // saturated uint8 wdt_event
+    out_obj->wdt_event = nunavutGetU8(&buffer[0], capacity_bytes, offset_bits, 8);
+    offset_bits += 8U;
+
+
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
     // rmap.sensors.Radiation.1.0 DSA
     {
         size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err8_ = rmap_sensors_Radiation_1_0_deserialize_(
+        const int8_t _err10_ = rmap_sensors_Radiation_1_0_deserialize_(
             &out_obj->DSA, &buffer[offset_bits / 8U], &_size_bytes3_);
-        if (_err8_ < 0)
+        if (_err10_ < 0)
         {
-            return _err8_;
+            return _err10_;
         }
         offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
     }

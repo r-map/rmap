@@ -105,8 +105,9 @@ void TemperatureHumidtySensorTask::Run() {
   bool is_humidity_redundant;
   // Request response for system queue Task controlled...
   system_message_t system_message;
-  
+  #ifndef TH_TASK_LOW_POWER_ENABLED
   uint8_t error_count;
+  #endif
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -151,7 +152,9 @@ void TemperatureHumidtySensorTask::Run() {
       break;
 
     case SENSOR_STATE_SETUP:
+      #ifndef TH_TASK_LOW_POWER_ENABLED
       error_count = 0;
+      #endif
 
       powerOn();
 
@@ -186,11 +189,19 @@ void TemperatureHumidtySensorTask::Run() {
           delay_ms = sensors[i]->getDelay();
         }
 
-        // end with error
+        // end with error prepare
+        param.systemStatusLock->Take();
+        param.system_status->events.measure_count++;
         if (!sensors[i]->isSuccess())
         {
+          #ifndef TH_TASK_LOW_POWER_ENABLED
           error_count++;
+          #endif
+          param.system_status->events.error_count++;
         }
+        param.system_status->events.perc_i2c_error = (uint8_t)
+          (100.0 - ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
+        param.systemStatusLock->Give();
       }
 
       // Local WatchDog update;
@@ -215,11 +226,34 @@ void TemperatureHumidtySensorTask::Run() {
             Delay(Ticks::MsToTicks(sensors[i]->getDelay()));
           } while (!sensors[i]->isEnd() && !sensors[i]->isReaded());
 
-          // end with error
+          // end with error measure
+          param.systemStatusLock->Take();
+          param.system_status->events.measure_count++;
           if (!sensors[i]->isSuccess())
           {
+            #ifndef TH_TASK_LOW_POWER_ENABLED
             error_count++;
+            #endif
+            param.system_status->events.error_count++;
+            // 0 - 1 is indextype of measure Humidity/Temperature
+            // Redundant or not depending from configuration register (default first loaded is main)
+            // Reading Error
+            if(param.configuration->sensors[0].is_redundant)
+              param.system_status->events.is_redundant_error = true;
+            else
+              param.system_status->events.is_main_error = true;
+          } else {
+            // 0 - 1 is indextype of measure Humidity/Temperature
+            // Redundant or not depending from configuration register (default first loaded is main)
+            // Reading OK
+            if(param.configuration->sensors[0].is_redundant)
+              param.system_status->events.is_redundant_error = false;
+            else
+              param.system_status->events.is_main_error = false;
           }
+          param.system_status->events.perc_i2c_error = (uint8_t)
+            (param.system_status->events.error_count / param.system_status->events.measure_count);
+          param.systemStatusLock->Give();
 
           if (false) {}
 

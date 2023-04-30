@@ -574,6 +574,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
                         msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);
+                    localSystemStatus->data_slave[queueId].heartbeat_rx++;
                     // Controlla se il modulo è ready (configurato) Altrimenti avvio la configurazione...
                     if(!clCanard.slave[queueId].heartbeat.get_module_ready()) {
                         TRACE_VERBOSE_F(F("Module slave [ %u ] is not (ready) configured\r\n"), transfer->metadata.remote_node_id);
@@ -1722,6 +1723,16 @@ void CanTask::Run() {
                         param.systemStatusLock->Take();
                         param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
                         param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
+                        // Calculate expected/recived HeartBeat sequence... and reset counter
+                        // Only At first data % can be < 100%, depending of acquire time but isn't a real error
+                        for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
+                            // Calculate % from expected Heartbeat sequence TX-RX Complete
+                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (param.system_status->data_slave[iSlave].heartbeat_rx / param.configuration->report_s) + 1;
+                            if (param.system_status->data_slave[iSlave].perc_can_comm_ok > 100) param.system_status->data_slave[iSlave].perc_can_comm_ok = 100;
+                            // Reset Next Counter for next acquire data
+                            param.system_status->data_slave[iSlave].heartbeat_rx = 0;
+                        }
+                        param.system_status->data_master.heartbeat_run_epoch = curEpoch; // Reset Epoch for Check Slave RX Heartbeat OK from now...
                         param.systemStatusLock->Give();
                         bStartGetData = true;
                     }
@@ -1837,8 +1848,8 @@ void CanTask::Run() {
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value
-                                    param.system_status->data_slave[queueId].data_value_A = retTHData->STH.temperature.val.value;
-                                    param.system_status->data_slave[queueId].data_value_B = retTHData->STH.humidity.val.value;
+                                    param.system_status->data_slave[queueId].data_value[0] = retTHData->STH.temperature.val.value;
+                                    param.system_status->data_slave[queueId].data_value[1] = retTHData->STH.humidity.val.value;
                                     // Add info RMAP to system
                                     if(retTHData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
@@ -1899,7 +1910,7 @@ void CanTask::Run() {
                                     // Rain value istant depending from request type. If request is get_istant (Rain is FullRain)
                                     // Full Rain is Real Rain + Maintenance Rain Value, Otherwise if request is Get_Data, Rain is only
                                     // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
-                                    param.system_status->data_slave[queueId].data_value_A = retRainData->TBR.rain.val.value;
+                                    param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
                                     // Add info RMAP to system
                                     if(retRainData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
@@ -1957,8 +1968,8 @@ void CanTask::Run() {
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value (switch depends from request, istant = sample, Data = Avg on 10 min.)
-                                    param.system_status->data_slave[queueId].data_value_A = retWindData->DWA.speed.val.value;
-                                    param.system_status->data_slave[queueId].data_value_B = retWindData->DWA.direction.val.value;
+                                    param.system_status->data_slave[queueId].data_value[0] = retWindData->DWA.speed.val.value;
+                                    param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
                                     // Add info RMAP to system
                                     if(retWindData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
@@ -2016,7 +2027,7 @@ void CanTask::Run() {
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
-                                    param.system_status->data_slave[queueId].data_value_A = retRadiationData->DSA.radiation.val.value;
+                                    param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
                                     // Add info RMAP to system
                                     if(retRadiationData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
@@ -2075,9 +2086,9 @@ void CanTask::Run() {
                                     // Put data in system_status
                                     param.systemStatusLock->Take();
                                     // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
-                                    param.system_status->data_slave[queueId].data_value_A = retPwrData->DEP.battery_voltage.val.value;
-                                    param.system_status->data_slave[queueId].data_value_B = retPwrData->DEP.input_voltage.val.value;
-                                    param.system_status->data_slave[queueId].data_value_C = retPwrData->DEP.battery_current.val.value;
+                                    param.system_status->data_slave[queueId].data_value[0] = retPwrData->DEP.battery_voltage.val.value;
+                                    param.system_status->data_slave[queueId].data_value[1] = retPwrData->DEP.input_voltage.val.value;
+                                    param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
                                     // Add info RMAP to system
                                     if(retPwrData->state == rmap_service_setmode_1_0_get_istant) {
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
@@ -2266,7 +2277,7 @@ void CanTask::Run() {
                             if(!clCanard.slave[cfg_remote_queueId].heartbeat.get_module_ready()) {
                                 // Module not configured.
                                 // Starting configuration procedure with push command to queue
-                                // QWueue gestion power UP, starting command ecc... is performed
+                                // Queue gestion power UP, starting command ecc... is performed
                                 // After terminate procedure and reboot remote Node. Configuration is ready
                                 system_message_t system_message = {0};
                                 system_message.task_dest = CAN_TASK_ID;
@@ -2340,6 +2351,7 @@ void CanTask::Run() {
                     // Check end of configure remote module
                     bool cfgConfigureEnd = true;
                     uint8_t sensorCount = 0;
+                    bool reCheckEndEvent = false; // True if end of one programming (recheck back end of server register running)
                     // loop for all Node and switching from list command sequence.
                     // Create and send register command and wait progression in server command procedure
                     for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
@@ -2527,6 +2539,8 @@ void CanTask::Run() {
                                         // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
                                         // END PROGRAMMING REGISTER REMOTE LIST OK !!!!
                                         remote_configure[cfg_remote_queueId] = 0;
+                                        // Try end of all event recheck control
+                                        reCheckEndEvent = true;
                                         TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // *******************************************************************************
                                         // Sending Reboot command to slave node remote CFG COMPLETE WITHOUT PENDING METHOD
@@ -2541,7 +2555,19 @@ void CanTask::Run() {
                             } else {
                                 // Node is OFF_LINE Procedure ERROR
                                 remote_configure[cfg_remote_queueId] = 0;
+                                // Try end of all event recheck control
+                                reCheckEndEvent = true;
                                 TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id(), ABORT_STRING);
+                            }
+                        }
+                    }
+                    // Next reckeck immediatly end event server register running
+                    if(reCheckEndEvent) {
+                        cfgConfigureEnd = true;
+                        for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
+                            if(remote_configure[cfg_remote_queueId]) {
+                                cfgConfigureEnd = false;
+                                break;
                             }
                         }
                     }

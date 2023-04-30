@@ -285,15 +285,21 @@ void loop(void)
         #if USE_SERIAL_MESSAGE
         printf("Reading E2Prom external fail. Starting APP...\r\n");
         #endif
-        // Run application...
+        // Run application... No save Info E2Error
         STM32Flash_JumpToApplication(APP_ADDRESS);
     }
+
+    // Increment num of reset and WDT (if < MAX_VALUE UINT_8)
+    if(boot_request.tot_reset != 0XFF) boot_request.tot_reset++;
+    if((wdtResetEvent)&&(boot_request.wdt_reset != 0xFF)) boot_request.wdt_reset++;
 
     // If recived WDT Reset event perform Field for check RollBack...
     // wdtResetEvent with check boot_request.app_executed_ok = false
     if((wdtResetEvent)&&(boot_request.app_executed_ok == true)) {
         // Event is External Flashing procedure...
         // Starting APP Directly
+        // Save WDT and Reboot flag
+        memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
         #if USE_SERIAL_MESSAGE
         printf("WatchDOG: signal not depending from flashing procedure. Starting APP...\r\n");
         #endif
@@ -535,6 +541,7 @@ void loop(void)
     printf("Starting application...\r\n");
     #endif
 
+    // Save WDT and Reboot flag
+    memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
     STM32Flash_JumpToApplication(APP_ADDRESS);
-
 }

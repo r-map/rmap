@@ -123,7 +123,7 @@ enum eFlashProtectionTypes
 typedef void (*pFunction)(void);
 
 // Backup && Upload Firmware TypeDef
-typedef struct bootloader_t
+typedef struct
 {
   bool request_upload;
   bool backup_executed;
@@ -131,7 +131,9 @@ typedef struct bootloader_t
   bool rollback_executed;
   bool app_executed_ok;
   uint8_t upload_error;
-};
+  uint8_t tot_reset;
+  uint8_t wdt_reset;
+} bootloader_t;
 
 // ***********************************************************************
 //                           MACRO DEFINITION

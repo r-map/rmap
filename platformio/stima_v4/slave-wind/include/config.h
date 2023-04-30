@@ -156,11 +156,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_CASTING_DIRECTION_MULT       (10)
 #define WIND_CASTING_SPEED_RMAP_MULT      (10)
 
-#define WIND_CLASS_1_MAX                                (1.0)
-#define WIND_CLASS_2_MAX                                (2.0)
-#define WIND_CLASS_3_MAX                                (4.0)
-#define WIND_CLASS_4_MAX                                (7.0)
-#define WIND_CLASS_5_MAX                                (10.0)
+#define WIND_CLASS_1_MAX                  (1.0)
+#define WIND_CLASS_2_MAX                  (2.0)
+#define WIND_CLASS_3_MAX                  (4.0)
+#define WIND_CLASS_4_MAX                  (7.0)
+#define WIND_CLASS_5_MAX                  (10.0)
 
 /*!
 \def WIND_READ_DELAY_MS
@@ -174,34 +174,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define WIND_RETRY_MAX_DELAY_MS           (4000)
 
-#define WIND_POWER_PIN                                  (4)
+#define WIND_DIRECTION_MAX                (360.0)
+#define WIND_DIRECTION_MIN                (0.0)
 
-#define WIND_DIRECTION_MAX                              (360.0)
-#define WIND_DIRECTION_MIN                              (0.0)
+#define WIND_SPEED_MAX                    (60.0)
+#define WIND_SPEED_MIN                    (0.0)
 
-#define WIND_SPEED_MAX                                  (60.0)
-#define WIND_SPEED_MIN                                  (0.0)
+#define CALM_WIND_MAX_MS                  (0.1)
 
-#define CALM_WIND_MAX_MS                                (0.1)
+#define GWS_SERIAL_BAUD                   (9600)
 
-#define GWS_SERIAL_BAUD                                 (9600)
-#define GWS_SERIAL_TIMEOUT_MS                           (8)
-#define GWS_ACQUISITION_COUNT_FOR_POWER_RESET           (100)
+#define GWS_STX_INDEX                     (0)
+#define GWS_ETX_INDEX                     (19)
 
-#define GWS_STX_INDEX                                   (0)
-#define GWS_ETX_INDEX                                   (19)
+#define GWS_WITHOUT_DIRECTION_OFFSET      (3)
 
-#define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
-
-#define GWS_DIRECTION_INDEX                             (3)
-#define GWS_DIRECTION_LENGTH                            (3)
-#define GWS_SPEED_INDEX                                 (7)
-#define GWS_SPEED_LENGTH                                (6)
-#define GWS_CRC_INDEX                                   (20)
-#define GWS_CRC_LENGTH                                  (2)
-#define STX_VALUE                                       (2)
-#define ETX_VALUE                                       (3)
-#define CR_VALUE                                        (13)
-#define LF_VALUE                                        (10)
+#define GWS_DIRECTION_INDEX               (3)
+#define GWS_DIRECTION_LENGTH              (3)
+#define GWS_SPEED_INDEX                   (7)
+#define GWS_SPEED_LENGTH                  (6)
+#define GWS_STATUS_INDEX                  (16)
+#define GWS_STATUS_LENGTH                 (2)
+#define GWS_CRC_INDEX                     (20)
+#define GWS_CRC_LENGTH                    (2)
+#define STX_VALUE                         (2)
+#define ETX_VALUE                         (3)
+#define CR_VALUE                          (13)
+#define LF_VALUE                          (10)
 
 #endif
