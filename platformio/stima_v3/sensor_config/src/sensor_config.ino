@@ -28,9 +28,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 byte start_address = 1;
 byte end_address = 127;
 
+#define WIND_POWER_ON_DELAY_MS                          (5000)
+#define WIND_POWER_PIN                                  (4)
+#define GWS_SERIAL_BAUD                                 (9600)
+#define GWS_SERIAL_TIMEOUT_MS                           (500)
+#define UART_RX_BUFFER_LENGTH                           (120)
+uint16_t uart_rx_buffer_length;
+char uart_rx_buffer[UART_RX_BUFFER_LENGTH];
+#ifndef ARDUINO_ARCH_AVR
+//HardwareSerial Serial1(PB11, PB10);
+HardwareSerial Serial1(D0, D1);
+#endif
 
-const char version[] = "1.1";
-
+const char version[] = "2.0";
 
 //extern "C" { 
   //#include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -67,6 +77,477 @@ void scanFunc( byte addr, byte result ) {
   Serial.print( (addr%4) ? "\t":"\n\r");
 }
 
+void windsonicSerialReset() {
+  // reset serial settings
+  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
+  Serial1.begin(GWS_SERIAL_BAUD);
+  windsonicFlush();
+}
+
+void windsonicReceiveTerminatedMessage(const char terminator){
+  // receive message on serial until terminator is found and terminate message
+  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer[uart_rx_buffer_length] = '\0';
+  uart_rx_buffer_length++;
+  Serial.print(F("receive:"));
+  Serial.println(uart_rx_buffer);
+}
+
+void windsonicReceiveMessage(const char terminator){
+  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+}
+
+void windsonicPowerOff () {
+  digitalWrite(WIND_POWER_PIN, LOW);
+}
+
+void windsonicPowerOn () {
+  digitalWrite(WIND_POWER_PIN, HIGH);
+}
+
+void windsonicFlush(void){
+  while (Serial1.available() > 0){
+    //Serial1.read();
+    Serial.write((uint8_t)Serial1.read());
+    Serial.flush();
+  }
+  memset(uart_rx_buffer, 0, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer_length = 0;
+}
+
+bool windsonicEnterConfigMode(void){
+  // try to enter in config mode
+  // windsonic can be in polled or continuous mode
+  // return true on success
+  
+  uint8_t count=0;
+  bool config_mode=false;
+  Serial1.setTimeout(1000);  
+  Serial.println(F("try to enter configure mode"));
+  windsonicFlush();
+  do {
+    /*
+    if ((count % 2) == 0) {
+      Serial.println("send:*Q");
+      Serial1.print("*Q");
+      Serial1.flush();
+    }else{
+      Serial.println("send:*");
+      Serial1.print("*");
+      Serial1.flush();
+    }
+    */
+
+    Serial.println("send:**Q");
+    Serial1.print("**Q");
+    delay(100);
+    Serial.println("send:**Q");
+    Serial1.print("**Q");
+    delay(100);
+    Serial.println("send:**Q");
+    Serial1.print("**Q");
+    Serial1.flush();
+    
+    #define CONFMSG "CONFIGURATION MODE"
+    uint8_t countr=0;
+    do{
+      uart_rx_buffer_length=Serial1.readBytesUntil('\r', uart_rx_buffer, UART_RX_BUFFER_LENGTH-1);
+      countr++;
+      if (uart_rx_buffer_length >= strlen(CONFMSG)){
+	uart_rx_buffer[uart_rx_buffer_length] = '\0';
+	uart_rx_buffer_length++;
+	Serial.print(F("receive:"));
+	Serial.println(uart_rx_buffer);
+	if (strcmp(&uart_rx_buffer[uart_rx_buffer_length-strlen(CONFMSG)-1],CONFMSG)==0){
+	  Serial.println(F("entered configure mode"));
+	  config_mode=true;
+	  break;
+	}
+      }
+      //} while ((uart_rx_buffer_length > 0) || (countr < 10));
+    } while (countr < 3);
+    if (!config_mode) {
+      count++;
+      delay(1000);
+      Serial.println("send:Q");
+      Serial1.print("Q\r\n");
+      Serial1.flush();
+      delay(1000);
+      windsonicFlush();
+    }
+  } while ((!config_mode) && (count < 2));
+  
+  windsonicFlush();
+  return config_mode;
+}
+
+
+// this is required to reset windsonic to default configuration and baud
+bool windsonicEnterConfigModeAllBaudrate() {
+  // try to enter in config mode
+  // windsonic can be in polled or continuous mode
+  // no matter about witch baudrate windsonic want to comunicate
+  // return true on success
+
+  // change baudrate on winsonic is a very strange procedure!
+  // it need confirmation and we need to set other things before
+  // quitting to force windsonic to save parameters
+  
+  /* Initialize serial for wind sensor comunication
+     WindSonic default settings are :
+     Bits per second            option 1: 9600 ; option 2 : 19200
+     Data bits                  8
+     Parity                     None
+     Stop bits                  1
+     Flow Control(Handshaking)  None
+  */
+
+  // try different fixed baud rate
+  long int baudrate []={9600,2400,4800,19200,38400};
+
+  for (byte i=0; (i<(sizeof(baudrate) / sizeof(long int))); i++) {
+
+    //ATTENTION here all is blocking!
+
+    Serial.print(F("TRY BAUDRATE: "));
+    Serial.println(baudrate[i]);
+    Serial1.begin(baudrate[i]);
+    
+    if (windsonicEnterConfigMode()){   
+      Serial.println(F("send: D3"));
+      Serial1.print("D3\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+
+      Serial.println(F("send: M2"));
+      Serial1.print("M2\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+
+      Serial.println(F("send: M4"));
+      Serial1.print("M4\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      Serial.println(F("send: D3"));
+      Serial1.print("D3\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      Serial.println(F("baudrate found"));
+          
+      //// set Communications protocol RS232
+      //Serial.println(F("send: E3"));
+      //Serial1.print("E3\r\n");
+      //windsonicReceiveTerminatedMessage('\r');
+      //delay(500);
+      //windsonicFlush();
+
+      // set Baud rate 9600
+      Serial.println(F("send: B3"));
+      Serial1.print("B3\r\n");
+      delay(1000);
+      windsonicFlush();
+      Serial1.end();
+      Serial1.begin(GWS_SERIAL_BAUD);
+      delay(1000);
+      Serial.println(F("send: B at 9600"));
+      Serial1.print("B\r\n");
+      delay(1000);
+      windsonicFlush();
+
+      Serial.println(F("send: M2"));
+      Serial1.print("M2\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      Serial.println("send:Q");
+      Serial1.print("Q\r\n");
+      Serial1.flush();
+      delay(1000);
+      windsonicFlush();
+
+      if (!windsonicEnterConfigMode()){
+	Serial.println("failed");
+      } else { 
+	return true;
+      }
+    }
+
+    windsonicPowerOff();
+    delay(1000);
+    windsonicPowerOn();
+    delay(WIND_POWER_ON_DELAY_MS);
+    windsonicSerialReset();
+       
+  }
+  Serial.println(F("inizialize failed"));
+  return false;
+}
+
+// this is required to reset windsonic to default configuration and baud
+bool windsonicInitSafeMode() {
+  //use safe mode to reset windsonic to comunicate on RS232
+  // safe mode in windsonic is very strange
+  // only some paramters are taken in account for save
+  // for example baudrate can be changed only in configuration mode ...
+  
+  Serial.println(F("TRY SAFE MODE"));
+  Serial1.end();
+  Serial1.begin(19200);
+  Serial1.setTimeout(10);  
+  windsonicFlush();
+
+  uint8_t count=0;
+  bool config_mode=false;
+  #define SAFEMSG "SAFE MODE (RS232 ONLY)"
+  do {
+    Serial.println(F("try to enter safe mode"));
+    windsonicPowerOff();
+    delay(2000);
+    windsonicPowerOn();
+    uint16_t countr=0;
+    while (countr < 400){
+      Serial1.print("*****************");      // enter in setup
+      Serial1.flush();
+      countr++;
+      uart_rx_buffer_length=Serial1.readBytesUntil('\r', uart_rx_buffer, UART_RX_BUFFER_LENGTH-1);
+      if (uart_rx_buffer_length >= strlen(SAFEMSG)){
+	uart_rx_buffer[uart_rx_buffer_length] = '\0';
+	uart_rx_buffer_length++;
+	Serial.print(F("receive:"));
+	Serial.println(uart_rx_buffer);
+	if (strcmp(&uart_rx_buffer[uart_rx_buffer_length-strlen(SAFEMSG)-1],SAFEMSG)==0){
+	  Serial.println(F("entered safe mode"));
+	  config_mode=true;
+	  break;
+	}
+      }
+    }
+    count++;
+  } while ((!config_mode) && (count < 3));
+  
+  Serial1.print("\r\n");
+  delay(500);
+  windsonicFlush();
+  
+  if (config_mode){
+
+
+    Serial.println(F("send: M2"));
+    Serial1.print("M2\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+    
+    Serial.println(F("send: M4"));
+    Serial1.print("M4\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+      
+    Serial.println(F("send: D3"));
+    Serial1.print("D3\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+
+    // set Communications protocol RS232
+    Serial.println(F("send: E3"));
+    Serial1.print("E3\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(2000);
+    windsonicFlush();
+
+    // set Baud rate 9600
+    Serial.println(F("send: B3"));
+    Serial1.print("B3\r\n");
+    delay(1000);
+    windsonicFlush();
+    /*
+    Serial1.end();
+    Serial1.begin(GWS_SERIAL_BAUD);
+    delay(1000);
+    Serial.println(F("send: B at 9600"));
+    Serial1.print("B\r\n");
+    delay(1000);
+    windsonicFlush();
+    */
+    
+    Serial.println(F("send: M2"));
+    Serial1.print("M2\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+    
+    Serial.println("send:Q");
+    Serial1.print("Q\r\n");
+    Serial1.flush();
+    delay(1000);
+    windsonicFlush();
+
+    Serial1.end();
+    Serial1.begin(GWS_SERIAL_BAUD);
+
+    windsonicPowerOff();
+    delay(1000);
+    windsonicPowerOn();
+    delay(WIND_POWER_ON_DELAY_MS);
+    windsonicSerialReset();
+
+    
+    if (!windsonicEnterConfigMode()){
+      Serial.println("failed");
+    } else { 
+      return true;
+    }
+  }
+    
+  windsonicPowerOff();
+  delay(1000);
+  windsonicPowerOn();
+  delay(WIND_POWER_ON_DELAY_MS);
+  windsonicSerialReset();
+  Serial.println("failed enter safe mode");
+  return false;
+
+}
+
+void windsonicConfigure(void){
+  // configure windsonic starting by any unknow settings
+  // enter in safe mode to change comunication port
+  // change RS232 baudrate
+  // enter in config mode and set all parameters
+  
+  Serial.println(F("go to configure Windsonic"));
+
+  while (!windsonicInitSafeMode()) {
+    if (windsonicEnterConfigModeAllBaudrate()) break;
+  }
+  
+  Serial.println(F("send: L1"));
+  Serial1.print("L1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: C2"));
+  Serial1.print("C2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: H2"));
+  Serial1.print("H2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: K50"));
+  Serial1.print("K50\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: M4"));
+  Serial1.print("M4\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+    
+  Serial.println(F("send: NQ"));
+  Serial1.print("NQ\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: O1"));
+  Serial1.print("O1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: U1"));
+  Serial1.print("U1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+    
+  Serial.println(F("send: Y1"));
+  Serial1.print("Y1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: P3"));
+  Serial1.print("P3\r\n");   // 4 per second
+  windsonicReceiveMessage('\r');
+  delay(500);
+  windsonicFlush();
+
+  Serial.println(F("exit configure mode"));
+  Serial1.print("Q\r\n");
+  delay(10);
+  Serial1.print("Q\r\n");
+  windsonicFlush();
+  delay(1000);
+  windsonicFlush();
+}
+
+void windsonicSconfigure(void){
+  // unset any usefull settings on windsonic
+  
+  Serial.println(F("go to sconfigure Windsonic"));
+
+  while (!windsonicEnterConfigModeAllBaudrate()) {
+    windsonicInitSafeMode();
+  }
+  Serial.println(F("send: M4"));
+  Serial1.print("M4\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: E2"));
+  Serial1.print("E2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  Serial.println(F("send: B2"));
+  Serial1.print("B2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  Serial1.end();
+  Serial1.begin(4800);
+  Serial1.print("B\r\n");
+  delay(500);
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+
+  Serial.println(F("send: M2"));
+  Serial1.print("M2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+
+  Serial.println(F("exit configure mode"));
+  Serial1.print("Q\r\n");
+  delay(10);
+  Serial1.print("Q\r\n");
+  windsonicFlush();
+  delay(1000);
+  windsonicFlush();
+}
 
 char getCommand()
 {
@@ -91,6 +572,9 @@ void displayHelp()
   Serial.println(F("\tw = i2c-wind"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
+  Serial.println(F("\tu = windsonic sconfigurator ! (use to broke your sensor!)"));
+  Serial.println(F("\tv = windsonic setup"));
+  Serial.println(F("\tz = windsonic transparent mode"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
   //Serial.println(F("\th = toggle header - noHeader."));
@@ -130,6 +614,27 @@ void loop() {
   switch (command)
     {
 
+    case 'i':
+      {
+
+	Serial.println("\nI2CScanner ready!");
+
+	Serial.print("starting scanning of I2C bus from ");
+	Serial.print(start_address,HEX);
+	Serial.print(" to ");
+	Serial.print(end_address,HEX);
+	Serial.println("...Hex");
+
+	// start the scan, will call "scanFunc()" on result from each address
+	scanI2CBus( start_address, end_address, scanFunc );
+
+	Serial.println("\ndone");
+
+	displayHelp();
+	break;
+      }
+
+      
     case 's':
       {
 	
@@ -475,26 +980,100 @@ void loop() {
 	break;
       }
 
-    case 'i':
+    case 'u':
       {
+	Serial1.begin(GWS_SERIAL_BAUD);
+	Serial1.setTimeout(500);
+	Serial.setTimeout(500);
+	Serial.println("Windsonic sconfiguration");
+	pinMode(WIND_POWER_PIN, OUTPUT);
+	windsonicPowerOff();
+	delay(1000);
+	windsonicPowerOn();
+	delay(WIND_POWER_ON_DELAY_MS);
+	Serial.println("windsonic ON");
 
-	Serial.println("\nI2CScanner ready!");
+	windsonicSerialReset();
+	windsonicSconfigure();
 
-	Serial.print("starting scanning of I2C bus from ");
-	Serial.print(start_address,HEX);
-	Serial.print(" to ");
-	Serial.print(end_address,HEX);
-	Serial.println("...Hex");
-
-	// start the scan, will call "scanFunc()" on result from each address
-	scanI2CBus( start_address, end_address, scanFunc );
-
-	Serial.println("\ndone");
-
-	displayHelp();
+	while(true){
+	  delay(1000);
+	  windsonicFlush();
+	  Serial1.print("?Q!\r\n");
+	  windsonicReceiveMessage('\r');
+	  Serial.println(uart_rx_buffer);
+	}
+	  
 	break;
       }
 
+    case 'v':
+      {
+
+
+	Serial1.begin(GWS_SERIAL_BAUD);
+	Serial1.setTimeout(500);
+	Serial.setTimeout(500);
+	Serial.println("Windsonic configuration");
+	pinMode(WIND_POWER_PIN, OUTPUT);
+	windsonicPowerOff();
+	delay(1000);
+	windsonicPowerOn();
+	delay(WIND_POWER_ON_DELAY_MS);
+	Serial.println("windsonic ON");
+	windsonicSerialReset();
+	
+	windsonicConfigure();
+
+	while(true){
+	  delay(1000);
+	  windsonicFlush();
+	  Serial1.print("?Q!\n");
+	  windsonicReceiveMessage('\n');
+	  Serial.println(uart_rx_buffer);
+	}
+	  
+	break;
+      }
+      
+    case 'z':
+      {
+
+	long int baudrate = -1;
+	while (baudrate < 2400 || baudrate > 38400){
+	  Serial.print(F("digit new i2c address for i2c-rain (244-38400) default: "));
+	  Serial.println(GWS_SERIAL_BAUD);
+	  baudrate=Serial.parseInt();
+	  Serial.println(baudrate);
+	}
+	
+	Serial1.begin(baudrate);
+	Serial1.setTimeout(500);
+	Serial.setTimeout(500);
+	Serial.println("transparent mode with windsonic at:");
+	Serial.println(baudrate);
+	
+	pinMode(WIND_POWER_PIN, OUTPUT);
+	windsonicPowerOff();
+	delay(1000);
+	windsonicPowerOn();
+	//delay(WIND_POWER_ON_DELAY_MS);
+	Serial.println("windsonic ON");
+ 	
+	while (true){
+	  while (Serial1.available() > 0){
+	    Serial.write((uint8_t)Serial1.read());
+	  }
+	  Serial.flush();
+	  while (Serial.available() > 0){
+	    Serial1.write((uint8_t)Serial.read());
+	  }
+	  Serial1.flush();
+	}
+
+	break;
+      }
+      
     case '?':
       displayHelp();
       break;

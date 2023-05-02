@@ -43,8 +43,6 @@ void setup() {
   wdt_reset();
 
   #if (USE_SENSOR_GWS)
-  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
-  Serial1.begin(GWS_SERIAL_BAUD);
   serial1_reset();
   #endif
 }
@@ -61,7 +59,7 @@ void loop() {
     init_tasks();
     init_sensors();
     wdt_reset();
-    state = TASKS_EXECUTION;
+    state = TASKS_EXECUTION;  
     break;
     
   #if (USE_POWER_DOWN)
@@ -187,11 +185,13 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
     noInterrupts ();
     sleep_enable();
 
+    wdt_disable();
     interrupts ();
 
     sleep_cpu();
     sleep_disable();
-
+    init_wdt(WDT_TIMER);
+    
     power_adc_enable();
     power_spi_enable();
     power_timer0_enable();
@@ -1125,7 +1125,7 @@ void wind_task () {
         start_time_ms = millis();
         state_after_wait = WIND_READING;
         wind_state = WIND_WAIT_STATE;
-        LOGV(F("WIND_READING --> WIND_READING"));
+        LOGV(F("WIND_INIT (WAIT:%d) --> WIND_READING"),WIND_POWER_ON_DELAY_MS);
       } else {
 
 	if(Serial1.available()){
@@ -1163,7 +1163,7 @@ void wind_task () {
         start_time_ms = millis();
         state_after_wait = WIND_READING;
         wind_state = WIND_WAIT_STATE;
-        LOGV(F("WIND_READING --> WIND_READING"));
+        LOGV(F("WIND_INIT (WAIT:%d)--> WIND_READING"),WIND_POWER_RESPONSE_DELAY_MS);
       }
     break;
 
@@ -1215,16 +1215,9 @@ void wind_task () {
 	error_count++;
 	if (error_count >= GWS_ERROR_COUNT_MAX){
 	  error_count=0;
-	  //ATTENTION here all is blocking!
-	  windPowerOff();
-	  delay(1000);
-	  wdt_reset();
-	  windPowerOn();
-	  delay(WIND_POWER_ON_DELAY_MS);
-	  wdt_reset();
-	  Serial1.setTimeout(500);
-	  configureWindsonic();
-	  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
+ 	  //ATTENTION here all is blocking!
+	  windsonicReboot();
+	  //windsonicConfigure(); // if we want this we can take it from sensor_config
 	}
       }
       noInterrupts();
@@ -1244,11 +1237,9 @@ void wind_task () {
 }
 
 void serial1_reset() {
-  while (Serial1.available()) {
-     Serial1.read();
-  }
-  memset(uart_rx_buffer, 0, uart_rx_buffer_length);
-  uart_rx_buffer_length = 0;
+  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
+  Serial1.begin(GWS_SERIAL_BAUD);
+  flush();
 }
 
 void receive_message(const char terminator){
@@ -1259,82 +1250,20 @@ void flush(void){
   while (Serial1.available() > 0){
     Serial1.read();
   }
+  memset(uart_rx_buffer, 0, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer_length = 0;
   wdt_reset();
 }
 
-void configureWindsonic(void){
 
-  LOGN(F("configure Windsonic"));
-
-  LOGV(F("enter configure mode"));
-  Serial1.print("*Q");
-  receive_message('\n');
-  //CONFIGURATION MODE
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: L1"));
-  Serial1.print("L1\n");
-  receive_message('\n');
-  flush();
-  
-  LOGV(F("send: C2"));
-  Serial1.print("C2\n");
-  receive_message('\n');
-  flush();
-  
-  LOGV(F("send: H2"));
-  Serial1.print("H2\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: K50"));
-  Serial1.print("K50\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: M4"));
-  Serial1.print("M4\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: NQ"));
-  Serial1.print("NQ\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: O1"));
-  Serial1.print("O1\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: U1"));
-  Serial1.print("U1\n");
-  receive_message('\n');
-  flush();
-
-  LOGV(F("send: Y1"));
-  Serial1.print("Y1\n");
-  receive_message('\n');
-  flush();
-
-  /*  
-  Serial1.print("D3\n");
-  receive_message('\n');
-  flush();
-
-  Serial1.print("D5\n");
-  receive_message('\n');
-  flush();
-  */
-
-  LOGV(F("exit configure mode"));
-  Serial1.print("Q\r\n");
-  delay(10);
-  Serial1.print("Q\r\n");
-  flush();
+void windsonicReboot(void){
+  //ATTENTION here all is blocking!
+  windPowerOff();
   delay(1000);
-  flush();  
+  wdt_reset();
+  windPowerOn();
+  delay(WIND_POWER_ON_DELAY_MS);
+  wdt_reset();
 }
 
 bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
