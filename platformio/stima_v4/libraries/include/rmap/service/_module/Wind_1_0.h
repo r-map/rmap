@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/Wind.1.0.dsdl
-// Generated at:  2023-04-29 16:46:47.270044 UTC
+// Generated at:  2023-05-02 13:26:19.548150 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Wind
@@ -276,6 +276,9 @@ typedef struct
     /// saturated bool is_windsonic_hardware_error
     bool is_windsonic_hardware_error;
 
+    /// saturated bool is_windsonic_responding_error
+    bool is_windsonic_responding_error;
+
     /// saturated uint7 perc_rs232_error
     uint8_t perc_rs232_error;
 
@@ -398,6 +401,21 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_serialize_(
 
     {   // saturated bool is_windsonic_hardware_error
         if (obj->is_windsonic_hardware_error)
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] | (1U << (offset_bits % 8U)));
+        }
+        else
+        {
+            buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] & ~(1U << (offset_bits % 8U)));
+        }
+        offset_bits += 1U;
+    }
+
+
+
+
+    {   // saturated bool is_windsonic_responding_error
+        if (obj->is_windsonic_responding_error)
         {
             buffer[offset_bits / 8U] = (uint8_t)(buffer[offset_bits / 8U] | (1U << (offset_bits % 8U)));
         }
@@ -706,6 +724,20 @@ static inline int8_t rmap_service_module_Wind_Response_1_0_deserialize_(
     else
     {
         out_obj->is_windsonic_hardware_error = false;
+    }
+    offset_bits += 1U;
+
+
+
+
+    // saturated bool is_windsonic_responding_error
+    if (offset_bits < capacity_bits)
+    {
+        out_obj->is_windsonic_responding_error = (buffer[offset_bits / 8U] & (1U << (offset_bits % 8U))) != 0U;
+    }
+    else
+    {
+        out_obj->is_windsonic_responding_error = false;
     }
     offset_bits += 1U;
 

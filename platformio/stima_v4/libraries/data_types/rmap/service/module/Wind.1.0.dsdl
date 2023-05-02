@@ -14,6 +14,7 @@ uint8 revision
 #MODULE Flags state
 bool is_windsonic_unit_error
 bool is_windsonic_hardware_error
+bool is_windsonic_responding_error
 uint7 perc_rs232_error
 uint8 rbt_event
 uint8 wdt_event

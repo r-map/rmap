@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/node/435.ExecuteCommand.1.0.dsdl
-// Generated at:  2023-04-29 16:46:44.456048 UTC
+// Generated at:  2023-05-02 13:26:17.099440 UTC
 // Is deprecated: yes
 // Fixed port-ID: 435
 // Full name:     uavcan.node.ExecuteCommand

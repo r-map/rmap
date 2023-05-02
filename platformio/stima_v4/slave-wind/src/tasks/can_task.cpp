@@ -777,6 +777,7 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
           resp.is_windsonic_hardware_error = param->system_status->events.is_windsonic_hardware_error;
           resp.is_windsonic_unit_error = param->system_status->events.is_windsonic_unit_error;
+          resp.is_windsonic_responding_error = param->system_status->events.is_windsonic_responding_error;
           resp.perc_rs232_error = param->system_status->events.perc_rs232_error;
           // Preparo gli event Reboot and WDT Event
           resp.rbt_event = boot_state->tot_reset;

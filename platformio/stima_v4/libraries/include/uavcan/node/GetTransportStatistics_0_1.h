@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/node/434.GetTransportStatistics.0.1.dsdl
-// Generated at:  2023-04-29 16:46:44.471915 UTC
+// Generated at:  2023-05-02 13:26:17.112769 UTC
 // Is deprecated: no
 // Fixed port-ID: 434
 // Full name:     uavcan.node.GetTransportStatistics

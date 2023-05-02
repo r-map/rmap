@@ -166,10 +166,7 @@ void WindSensorTask::Run() {
     case SENSOR_STATE_WAIT_DATA:
       // Ready data from WindSonic?
       if(SerialWindSonic.available()) {
-        Serial.print("check_wait? -> ");
-        Serial.println(check_wait);
-        Serial.print("Avaiable? -> ");
-        Serial.println(SerialWindSonic.available());
+        TRACE_DEBUG_F(F("check_wait ms [ %u ], Avaiable char [ %u ]"), check_wait * WIND_MESSAGE_DELAY_MS, SerialWindSonic.available());
 
         TaskWatchDog(WIND_MESSAGE_DELAY_MS);
         Delay(Ticks::MsToTicks(WIND_MESSAGE_DELAY_MS));
@@ -261,7 +258,10 @@ void WindSensorTask::Run() {
       param.system_status->events.measure_count++;
       if(windCodeError) {
         param.system_status->events.error_count++;
-        if(windCodeError == -2) {
+        if(windCodeError == -6) {
+          param.system_status->events.is_windsonic_responding_error = true;
+        }
+        else if(windCodeError == -2) {
           param.system_status->events.is_windsonic_hardware_error = true;
         } else {
           param.system_status->events.is_windsonic_unit_error = true;
@@ -269,9 +269,10 @@ void WindSensorTask::Run() {
       } else {
         param.system_status->events.is_windsonic_hardware_error = false;
         param.system_status->events.is_windsonic_unit_error = false;
+        param.system_status->events.is_windsonic_responding_error = false;
       }
       param.system_status->events.perc_rs232_error = (uint8_t)
-        (100.0 - ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
+        ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0;
       param.systemStatusLock->Give();
 
       // Put data into queue to elaborate istant value
@@ -304,14 +305,14 @@ void WindSensorTask::Run() {
         check_wait = 0;
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
-        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms - 60);
+        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms - 70);
         TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
         // Freq. To Acquire depends from Sensor Continuos Mode. To be set to Setup Freq.
         // Delay is NotSync RTOS but Delay from Last Acquire Sensor. Freq. ADD DATA Is from Sensor
         // Need to WakeUp Reading before acquire for get Data from Sensor Complete without loss data.
-        // We need about 30 mSec for reading correct next record from Sensor. We doubling the time!
+        // We need about 30 mSec for reading correct next record from Sensor. We use secure time!
         // Time less most possible can set more time for Power_Down. Time WakeUp is already anticipated.
-        Delay(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms - 60));
+        Delay(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms - 70));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
         // If error > WIND_TASK_ERROR_FOR_POWER_OFF ( Perform a Reset Power to Sensor )

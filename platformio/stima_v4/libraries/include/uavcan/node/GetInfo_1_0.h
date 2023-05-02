@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/node/430.GetInfo.1.0.dsdl
-// Generated at:  2023-04-29 16:46:44.456048 UTC
+// Generated at:  2023-05-02 13:26:17.107253 UTC
 // Is deprecated: no
 // Fixed port-ID: 430
 // Full name:     uavcan.node.GetInfo

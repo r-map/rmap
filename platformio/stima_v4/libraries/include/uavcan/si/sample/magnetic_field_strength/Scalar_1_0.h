@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/sample/magnetic_field_strength/Scalar.1.0.dsdl
-// Generated at:  2023-04-29 16:46:44.917049 UTC
+// Generated at:  2023-05-02 13:26:17.578526 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.sample.magnetic_field_strength.Scalar

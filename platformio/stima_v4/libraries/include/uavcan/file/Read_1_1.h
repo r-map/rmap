@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/file/408.Read.1.1.dsdl
-// Generated at:  2023-04-29 16:46:45.518782 UTC
+// Generated at:  2023-05-02 13:26:17.288321 UTC
 // Is deprecated: no
 // Fixed port-ID: 408
 // Full name:     uavcan.file.Read
