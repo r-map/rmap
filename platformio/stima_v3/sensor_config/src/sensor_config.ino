@@ -484,8 +484,8 @@ void windsonicConfigure(void){
   delay(500);
   windsonicFlush();
   
-  Serial.println(F("send: P3"));
-  Serial1.print("P3\r\n");   // 4 per second
+  Serial.println(F("send: P2"));
+  Serial1.print("P2\r\n");   // 2 per second;  required by i2c-wind setted for 1 measure by sec.
   windsonicReceiveMessage('\r');
   delay(500);
   windsonicFlush();
