@@ -87,7 +87,7 @@ float Mppt::get_V_IN(bool *is_ok) {
   float iBatt = get_I_BAT(is_ok);
   if(*is_ok) {
     *is_ok = LTC4015_read_register(LTC4015_VIN, &data);
-    if(*is_ok) {
+    if((*is_ok) && (data!=0)) {
       float vIn = ((float)data * V_REF_IN + V_DQ1_OFFS) / V_REF_CVAL;
       if(iBatt>V_REF_A_RCHG) {
         vIn+=V_REF_V_DCHG;

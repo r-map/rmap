@@ -293,9 +293,9 @@ void SupervisorTask::loadConfiguration()
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     // Loading Default
-    val.natural16.value.elements[0] = SENSORS_TIPPING_TIMEOUT_DELAY_MS;
+    val.natural16.value.elements[0] = SENSORS_TIPPING_INIBITH_DELAY_MS;
     param.registerAccessLock->Take();
-    param.clRegister->read("rmap.module.sensor.tipping.timeout", &val);
+    param.clRegister->read("rmap.module.sensor.tipping.eventend", &val);
     param.registerAccessLock->Give();
     if(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count != 1)) {
       register_config_valid = false;
@@ -400,7 +400,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
   val.natural16.value.elements[0] = param.configuration->sensors.event_end_time_ms;
   param.configurationLock->Give();
   param.registerAccessLock->Take();
-  param.clRegister->write("rrmap.module.sensor.tipping.timeout", &val);
+  param.clRegister->write("rrmap.module.sensor.tipping.eventend", &val);
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor delay acquire -> (READ/WRITE)

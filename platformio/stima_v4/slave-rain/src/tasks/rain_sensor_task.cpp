@@ -52,7 +52,7 @@ RainSensorTask::RainSensorTask(const char *taskName, uint16_t stackSize, uint8_t
   pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
   attachInterrupt(TIPPING_BUCKET_PIN, ISR_tipping_bucket, TIPPING_EVENT_VALUE);
   #if (USE_TIPPING_BUCKET_REDUNDANT)
-  pinMode(TIPPING_BUCKET_PIN, TIPPING_BUCKET_PIN_REDUNDANT);
+  pinMode(TIPPING_BUCKET_PIN_REDUNDANT, INPUT_PULLUP);
   attachInterrupt(TIPPING_BUCKET_PIN_REDUNDANT, ISR_tipping_bucket, TIPPING_EVENT_VALUE);
   #endif
 
@@ -239,7 +239,7 @@ void RainSensorTask::Run() {
       TRACE_VERBOSE_F(F("Sensor: checking end event...\r\n"));
       TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms);
       Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms));
-      state = SENSOR_STATE_CHECK_SPIKE;
+      state = SENSOR_STATE_READ;
       break;
 
     case SENSOR_STATE_READ:
