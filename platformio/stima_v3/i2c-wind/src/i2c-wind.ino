@@ -1242,10 +1242,6 @@ void serial1_reset() {
   flush();
 }
 
-void receive_message(const char terminator){
-  Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
-}
-
 void flush(void){
   while (Serial1.available() > 0){
     Serial1.read();
