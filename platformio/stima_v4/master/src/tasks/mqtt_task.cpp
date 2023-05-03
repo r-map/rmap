@@ -130,19 +130,18 @@ void MqttTask::Run()
   IpAddr ipAddr;
   bool is_data_publish_end = false;
   // RMAP Data queue and status local VAR
-  bool start_get_data = true;
   rmap_get_request_t rmap_get_request;
   rmap_get_response_t rmap_get_response;
   bool rmap_eof;
   bool rmap_data_error;
   uint32_t countData;
   // RMAP Casting value to Uavcan Structure
-  rmap_module_TH_1_0 *rmapDataTH;
-  rmap_module_Rain_1_0 *rmapDataRain;
-  rmap_module_Radiation_1_0 *rmapDataRadiation;
-  rmap_module_Wind_1_0 *rmapDataWind;
-  rmap_module_VWC_1_0 *rmapDataVWC;
-  rmap_module_Power_1_0 *rmapDataPower;
+  rmap_service_module_TH_Response_1_0 *rmapDataTH;
+  rmap_service_module_Rain_Response_1_0 *rmapDataRain;
+  rmap_service_module_Radiation_Response_1_0 *rmapDataRadiation;
+  rmap_service_module_Wind_Response_1_0 *rmapDataWind;
+  rmap_service_module_VWC_Response_1_0 *rmapDataVWC;
+  rmap_service_module_Power_Response_1_0 *rmapDataPower;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -329,7 +328,7 @@ void MqttTask::Run()
       // *****************************************
       //  RUN GET RMAP Data Queue and Append MQTT
       // *****************************************
-      if(start_get_data) {
+      if(param.system_status->flags.new_data_to_send) {
 
         rmap_eof = false;
         rmap_data_error = false;
@@ -641,7 +640,7 @@ void MqttTask::Run()
             // Process Data with casting RMAP Module Type
             switch (rmap_get_response.rmap_data.module_type) {
               case Module_Type::th:
-                rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataTH = (rmap_service_module_TH_Response_1_0 *) rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -698,7 +697,7 @@ void MqttTask::Run()
                 }
                 break;
               case Module_Type::rain:
-                rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataRain = (rmap_service_module_Rain_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -736,7 +735,7 @@ void MqttTask::Run()
 
                 break;
               case Module_Type::radiation:
-                rmapDataRadiation = (rmap_module_Radiation_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataRadiation = (rmap_service_module_Radiation_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -774,7 +773,7 @@ void MqttTask::Run()
 
                 break;
               case Module_Type::wind:
-                rmapDataWind = (rmap_module_Wind_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataWind = (rmap_service_module_Wind_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -837,7 +836,7 @@ void MqttTask::Run()
 
                 break;
               case Module_Type::vwc:
-                rmapDataVWC = (rmap_module_VWC_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataVWC = (rmap_service_module_VWC_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -875,7 +874,7 @@ void MqttTask::Run()
 
                 break;
               case Module_Type::power:
-                rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
+                rmapDataPower = (rmap_service_module_Power_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
@@ -2747,7 +2746,7 @@ error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 i
 
   if (ISVALID_UINT16(inputVoltage.val.value))
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,") <= 0)
+    if (snprintf(message, message_length, "{\"v\":%ld,", inputVoltage.val.value) <= 0)
     {
       error = ERROR_FAILURE;
     }

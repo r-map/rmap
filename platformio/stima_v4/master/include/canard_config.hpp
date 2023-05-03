@@ -68,12 +68,12 @@
 // Nodo fisso per Modulo Slave (FIXED, NO READING FROM REGISTER)
 #define USE_NODE_MASTER_ID_FIXED
 
-// Utilizzo del flag di configurazione fissa (check moduli CAN connection and data)
+// Utilizzo del flag di configurazione fissi (check moduli CAN connection and data)
 #if (FIXED_CONFIGURATION)
 // #define USE_MODULE_FIXED_TH
-// #define USE_MODULE_FIXED_RAIN
+#define USE_MODULE_FIXED_RAIN
 // #define USE_MODULE_FIXED_WIND
-#define USE_MODULE_FIXED_RADIATION
+// #define USE_MODULE_FIXED_RADIATION
 // #define USE_MODULE_FIXED_VWC
 #define USE_MODULE_FIXED_POWER
 #endif
@@ -85,6 +85,7 @@
 // Opzionale se non utilizzata per il popolamento di dati come ad. esempio display
 // Sempre attiva invece sui nodi slave per accesso con tool esterni di debug (Yakut)
 #define USE_SUB_PUBLISH_SLAVE_DATA
+// #define SUBSCRIBE_PUBLISH_SLAVE_DATA
 
 // Numero di nodi massimo da collegare al MASTER
 #define MAX_NODE_CONNECT        BOARDS_COUNT_MAX

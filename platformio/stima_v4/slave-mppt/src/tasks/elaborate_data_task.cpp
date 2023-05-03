@@ -108,6 +108,7 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
+  bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&input_current_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
   bufferReset<sample_t, uint16_t, rmapdata_t>(&battery_voltage_samples, SAMPLES_COUNT_MAX);
@@ -396,7 +397,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // flush all data that is not aligned
   for (uint16_t i = samples_count; i < battery_charge_samples.count; i++)
   {
-    bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&battery_charge_samples, SAMPLES_COUNT_MAX);
   }
   for (uint16_t i = samples_count; i < battery_voltage_samples.count; i++)
@@ -588,7 +589,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     // ***************************************************************************************************
 
     // battery_charge, elaboration final
-    valid_data_calc_perc = (float)(valid_count_battery_charge_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_battery_charge_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery charge sample error (%d%%)\r\n"), (n_sample - valid_count_battery_charge_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_charge_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery charge observation avaiable (%d%%)\r\n"), valid_count_battery_charge_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
@@ -598,7 +599,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // battery_voltage, elaboration final
-    valid_data_calc_perc = (float)(valid_count_battery_voltage_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_battery_voltage_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery voltage error (%d%%)\r\n"), (n_sample - valid_count_battery_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_voltage_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery voltage observation avaiable (%d%%)\r\n"), valid_count_battery_voltage_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
@@ -608,7 +609,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // battery_current, elaboration final
-    valid_data_calc_perc = (float)(valid_count_battery_current_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_battery_current_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d battery current error (%d%%)\r\n"), (n_sample - valid_count_battery_current_t), (uint8_t)(((float)n_sample - (float)valid_count_battery_current_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d battery current observation avaiable (%d%%)\r\n"), valid_count_battery_current_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
@@ -618,7 +619,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // input_voltage, elaboration final
-    valid_data_calc_perc = (float)(valid_count_input_voltage_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_input_voltage_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d input voltage error (%d%%)\r\n"), (n_sample - valid_count_input_voltage_t), (uint8_t)(((float)n_sample - (float)valid_count_input_voltage_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d input voltage observation avaiable (%d%%)\r\n"), valid_count_input_voltage_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
@@ -628,7 +629,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // input_current, elaboration final
-    valid_data_calc_perc = (float)(valid_count_input_current_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_input_current_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d input current error (%d%%)\r\n"), (n_sample - valid_count_input_current_t), (uint8_t)(((float)n_sample - (float)valid_count_input_current_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d input current observation avaiable (%d%%)\r\n"), valid_count_input_current_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)

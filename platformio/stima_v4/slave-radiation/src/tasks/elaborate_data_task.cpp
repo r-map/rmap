@@ -317,7 +317,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     // ***************************************************************************************************
 
     // temperature, elaboration final
-    valid_data_calc_perc = (float)(valid_count_solar_radiation_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_solar_radiation_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d solar radiation sample error (%d%%)\r\n"), (n_sample - valid_count_solar_radiation_t), (uint8_t)(((float)n_sample - (float)valid_count_solar_radiation_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d solar radiation observation avaiable (%d%%)\r\n"), valid_count_solar_radiation_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)

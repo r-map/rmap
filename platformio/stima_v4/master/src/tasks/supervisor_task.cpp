@@ -158,6 +158,15 @@ void SupervisorTask::Run()
         }
         param.systemStatusLock->Give();
 
+        #if (FIXED_CONFIGURATION)
+        // TODO: REMOVE
+        strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
+        strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
+        param.configuration->observation_s = 60;
+        param.configuration->report_s = 180;
+        param.system_status->flags.config_empty = false;
+        #endif
+
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
         state = SUPERVISOR_STATE_WAITING_EVENT;
       }
@@ -219,43 +228,49 @@ void SupervisorTask::Run()
         }
       }
 
-      // ? External or internal request command strart connection
-      // New data to send are syncronized with add new data (report_s time at data acquire)...
-      // If config_empty ( Start connection every hour... )
-      if((param.system_status->flags.new_data_to_send) ||
-          (param.system_status->command.do_ntp_synchronization) ||
-          (param.system_status->command.do_http_configuration_update) ||
-          (param.system_status->command.do_http_firmware_domload) ||
-          (param.system_status->command.do_mqtt_connect)) {
-        // ? Request external command OR Time to Run Connection?
-        // First connection? Update Time from NTP
-        if(param.system_status->modem.connection_attempted == 0) {
+      #if (!TEST_CONNECTION)
+      // Checkinng starting Connection inibition next Start... If something Wrong... (Default 10 min)
+      if((rtc.getEpoch() - param.system_status->data_master.connect_run_epoch) > MIN_INIBITH_CONNECT_RETRY_S)
+      {
+
+        // ? External or internal request command strart connection
+        // New data to send are syncronized with add new data (report_s time at data acquire)...
+        // If config_empty ( Start connection every hour... )
+        if((param.system_status->flags.new_data_to_send) ||
+            (param.system_status->command.do_ntp_synchronization) ||
+            (param.system_status->command.do_http_configuration_update) ||
+            (param.system_status->command.do_http_firmware_domload) ||
+            (param.system_status->command.do_mqtt_connect)) {
+          // ? Request external command OR Time to Run Connection?
+          // First connection? Update Time from NTP
+          if(param.system_status->modem.connection_attempted == 0) {
+            param.systemStatusLock->Take();
+            param.system_status->command.do_ntp_synchronization = true;
+            param.systemStatusLock->Give();
+          }
+
+          // START REQUEST function LIST...
           param.systemStatusLock->Take();
-          param.system_status->command.do_ntp_synchronization = true;
+          param.system_status->connection.is_ntp_synchronized = !param.system_status->command.do_ntp_synchronization;
+          param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
+          param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_domload;
+          // is_mqtt_connected, generic set to false to start mqtt_connection. If true excluding Mqtt Procedure for this session
+          param.system_status->connection.is_mqtt_connected = !param.system_status->command.do_mqtt_connect;
+          param.system_status->connection.is_mqtt_connected &= !param.system_status->flags.new_data_to_send;
+          // Saving starting Connection to inibith next Connection... If something Wrong...
+          param.system_status->data_master.connect_run_epoch = rtc.getEpoch();
           param.systemStatusLock->Give();
+
+          // Start state check connection
+          state_check_connection = CONNECTION_INIT;
+          state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+
         }
-
-        // START REQUEST function LIST...
-        param.systemStatusLock->Take();
-        param.system_status->connection.is_ntp_synchronized = !param.system_status->command.do_ntp_synchronization;
-        param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
-        param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_domload;
-        param.system_status->connection.is_mqtt_connected = !param.system_status->command.do_mqtt_connect;
-        param.system_status->connection.is_mqtt_connected |= !param.system_status->flags.new_data_to_send;
-        param.systemStatusLock->Give();
-
-        // Start state check connection
-        state_check_connection = CONNECTION_INIT;
-        state = SUPERVISOR_STATE_CONNECTION_OPERATION;
-
       }
 
-      // TEST CONNECTION
-      #if (!FIXED_CONFIGURATION)
+      #else
 
-      // TODO: REMOVE
-      strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
-      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
+      // ***** ONLY TEST CONNECTION *****
 
       // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
       param.systemStatusLock->Take();
@@ -361,6 +376,13 @@ void SupervisorTask::Run()
             state = SUPERVISOR_STATE_DO_HTTP;
           }
           // Prepare next state controller
+          if (param.system_status->connection.is_mqtt_connected) // Mqtt have executed connect for this session? (False = require connect)
+          {
+            // No more action. Mqtt is not required (Also connected or dropped)
+            param.system_status->connection.is_mqtt_disconnected = true;
+            state_check_connection = CONNECTION_END;
+            break;
+          }
           state_check_connection = CONNECTION_CHECK_MQTT;
           break;
 
@@ -398,6 +420,8 @@ void SupervisorTask::Run()
             state = SUPERVISOR_STATE_REQUEST_DISCONNECTION;
             // Saving connection sequence completed
             param.systemStatusLock->Take();
+            // Clear inibith time. Next Send can start immediatly
+            param.system_status->data_master.connect_run_epoch = 0;
             param.system_status->modem.connection_completed++;
             param.systemStatusLock->Give();
           }
@@ -809,8 +833,8 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
 
       strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
-      // strSafeCopy(param.configuration->data_level, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
-      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
+      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
+      // strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
 
       param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
       param.configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;

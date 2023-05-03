@@ -106,6 +106,7 @@ private:
   ElaborateDataParam_t param;
 
   sample_t solar_radiation_samples;
+
   maintenance_t maintenance_samples;
   report_t report;
 };

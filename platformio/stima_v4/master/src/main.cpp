@@ -429,7 +429,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 900, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 2900, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);
@@ -480,8 +480,8 @@ void init_rtc(bool init)
   // Set the time if requireq to Reset value
   if(init) {
     // Set the date && Time Init Value
-    rtc.setHours(0);rtc.setMinutes(0);rtc.setSeconds(0);
-    rtc.setWeekDay(0);rtc.setDay(1);rtc.setMonth(1);rtc.setYear(23);
+    rtc.setHours(17);rtc.setMinutes(10);rtc.setSeconds(0);
+    rtc.setWeekDay(2);rtc.setDay(2);rtc.setMonth(5);rtc.setYear(23);
   }
   // Start LowPower configuration
   LowPower.begin();

@@ -205,7 +205,7 @@ void RainSensorTask::Run() {
         TRACE_INFO_F(F("Sensor: Skip spike (to fast)\r\n"));
         error_count++;
         bTippingError = true;
-        state = SENSOR_STATE_END;
+        state = SENSOR_STATE_SPIKE;
         break;
       }
       #else
@@ -219,7 +219,7 @@ void RainSensorTask::Run() {
         TRACE_INFO_F(F("Sensor: Skip spike (to fast)\r\n"));
         error_count++;
         bTippingError = true;
-        state = SENSOR_STATE_END;
+        state = SENSOR_STATE_SPIKE;
         break;
       }
       // Here event Main and/or Redundat is Ok. Check if difference occurs
@@ -268,7 +268,7 @@ void RainSensorTask::Run() {
         TRACE_INFO_F(F("Sensor: Skip spike (to late)\r\n"));
         error_count++;
         bTippingError = true;
-        state = SENSOR_STATE_END;
+        state = SENSOR_STATE_SPIKE;
         break;
       }
 
@@ -296,6 +296,8 @@ void RainSensorTask::Run() {
       TaskWatchDog(param.configuration->sensors.event_end_time_ms);
       Delay(Ticks::MsToTicks(param.configuration->sensors.event_end_time_ms));
       // Standard control with only one PIN
+
+    case SENSOR_STATE_SPIKE:
       if (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE)
       {
         bMainError = true;

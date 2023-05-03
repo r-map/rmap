@@ -258,9 +258,9 @@ typedef struct
    // Local data info && value for local simple direct access (LCD/Trace/Config/Check...)
    struct
    {
-      bool is_new_info_ready;       // New info available
       bool fw_upgradable;           // Fw upgrade flag
       uint32_t heartbeat_run_epoch; // Heart beat time_epoch start to check expected heartbeat remote
+      uint32_t connect_run_epoch;   // Connection start epoch (to inibit for retry start... if something wrong)
    } data_master;
 
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)

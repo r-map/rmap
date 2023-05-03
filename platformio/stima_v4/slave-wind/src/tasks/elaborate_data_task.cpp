@@ -360,7 +360,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   // flush all data that is not aligned
   for (uint16_t i = samples_count; i < wind_speed_samples.count; i++)
   {
-    bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
   }
   for (uint16_t i = samples_count; i < wind_direction_samples.count; i++)
@@ -523,8 +523,11 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
     valid_b_o_per = (float)(valid_count_b_o) / (float)(report_observations_count) * 100.0;
     valid_count_speed_per = (float)(total_count_speed) / (float)(samples_count) * 100.0;
 
+    TRACE_DEBUG_F(F("-> %d Wmo observation avaiable (%d%%)\r\n"), valid_count_a_o, (uint8_t)valid_a_o_per);
     TRACE_DEBUG_F(F("-> %d samples error on wmo report (%d%%)\r\n"), (n_sample - valid_count_a), (uint8_t)(((float)n_sample - (float)valid_count_a) / (float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d Report observation avaiable (%d%%)\r\n"), valid_count_b_o, (uint8_t)valid_b_o_per);
     TRACE_DEBUG_F(F("-> %d samples error on report (%d%%)\r\n"), (n_sample - valid_count_b), (uint8_t)(((float)n_sample - (float)valid_count_b) / (float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d Speed and class observation avaiable (%d%%)\r\n"), total_count_speed, (uint8_t)valid_count_speed_per);
     TRACE_DEBUG_F(F("-> %d samples error on speed and class (%d%%)\r\n"), (n_sample - total_count_speed), (uint8_t)(((float)n_sample - (float)total_count_speed) / (float)n_sample * 100.0));
 
     if (valid_a_o_per >= OBSERVATION_ERROR_PERCENTAGE_MIN)

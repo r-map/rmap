@@ -175,8 +175,10 @@
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_PUT_DATA_BLOCK_SIZE    (512U)
-#define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN TH = 144 Bytes
+#define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN TH = 148 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128U)
+
+#define MIN_INIBITH_CONNECT_RETRY_S (600)   // MIN TIME TO WAIT AFTER CONNECTION ERROR BEFORE RETRY...
 
 // Queue timeOut on FILE SD/MMC ACCESS
 #define FILE_IO_DATA_QUEUE_TIMEOUT  (2500)  // Time out before error to R/W operartion with queue File

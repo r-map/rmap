@@ -339,6 +339,7 @@ void SdTask::Run()
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
   File dir, entry, tmpFile;       // Only used for Temp(shared Open Close Single Operation) or Access directory List
+  bool error_sd_card = false;     // Generic error Open/Other operation to SD require a new Synch Reset SD CARD
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -445,19 +446,27 @@ void SdTask::Run()
           tmpFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
           rmap_pointer_datetime_bkp = rmap_pointer_datetime;
           rmap_pointer_datetime_end = rmap_pointer_datetime;
-          rmap_pointer_seek_bkp = rmap_pointer_datetime_bkp;
-          // At satrtup dontuse end ptr get data...
+          rmap_pointer_seek_bkp = rmap_pointer_seek;
+          // At satrtup dont use end ptr get data...
           using_rmap_pointer_datetime_end = false;
           tmpFile.close();
           // Close File Low LED
           digitalWrite(PIN_SD_LED, LOW);
           // At First Get Data Set Sync Pointer position with loaded param
           namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_rd);
-          // Not opened? Open... in append (Normally close But ReOpen if Full Resync SD)
-          if(rmapRdFile) rmapRdFile.close();
-          // Set Current Pointer Position
-          rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
-          rmapRdFile.seek(rmap_pointer_seek);
+          // Check file
+          if(SD.exists(rmap_file_name_rd)) {
+            // Set Current Pointer Position
+            rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+            rmapRdFile.seek(rmap_pointer_seek);
+            rmap_pointer_seek_bkp = rmap_pointer_seek;
+          } else {
+            // Pointer file not coerent, Remove and new creation starting
+            SD.remove("/data/pointer.dat");
+            // SD Pointer Error, general Openon first File...
+            // Error. Send to system_stae and retry OPEN INIT SD (Exit and restart UP...)
+            break;
+          }
         } else {
           // SD Pointer Error, general Openon first File...
           // Error. Send to system_stae and retry OPEN INIT SD
@@ -499,6 +508,11 @@ void SdTask::Run()
       // Full system_status inform struct with firmware present on SD CARD
       // **********************************************************************************
       dir = SD.open("/firmware");
+      if(!dir) {
+        // Exit Error and Reset
+        state = SD_STATE_INIT;
+        break;
+      }
       while(true) {
         entry = dir.openNextFile();
         if(!entry) break;
@@ -628,6 +642,9 @@ void SdTask::Run()
             logFile.flush();
             // Close File Low LED
             digitalWrite(PIN_SD_LED, LOW);
+          } else {
+            // Generic open file Error
+            error_sd_card = true;
           }
         }
       }
@@ -650,8 +667,8 @@ void SdTask::Run()
         if(param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data)) {
           // Put to MMC ( APPEND to File in Native Format. Check naming file )
           namingFileData(rmap_put_archive_data.date_time, "/data", rmap_file_name_check);
-          // Day Name File Changed (Data is to save in New File?)
-          if(strcmp(rmap_file_name_wr, rmap_file_name_check)) {
+          // Day Name File Changed (Data is to save in New File?) or Not Open...
+          if((strcmp(rmap_file_name_wr, rmap_file_name_check)) || (!rmapWrFile)) {
             // Save new file_name for next control
             strcpy(rmap_file_name_wr, rmap_file_name_check);
             // Not opened? Open... in append
@@ -668,6 +685,9 @@ void SdTask::Run()
             param.systemStatusLock->Take();
             param.system_status->flags.new_data_to_send = true;
             param.systemStatusLock->Give();
+          } else {
+            // Generic open file Error
+            error_sd_card = true;
           }
         }
         // Close File Low LED
@@ -762,6 +782,8 @@ void SdTask::Run()
                     }
                   } else {
                     // Error readed block not correctly dimensioned
+                    // Generic open file Error
+                    error_sd_card = true;
                     file_get_response.error_operation = true;
                     break;
                   }
@@ -772,6 +794,8 @@ void SdTask::Run()
               } else {
                 // Error opening file
                 file_get_response.error_operation = true;
+                // Generic open file Error
+                error_sd_card = true;
               }
             } else {
               // Request Name File NOT EXIST (Search another file in date sequence)
@@ -853,13 +877,19 @@ void SdTask::Run()
           // ******************************************************************
           else if(rmap_get_request.command.do_get_data) {
             namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
-            // Day Name File Changed (Data is to save in New File?)
-            if(strcmp(rmap_file_name_rd, rmap_file_name_check)) {
+            // Day Name File Changed (Data is to save in New File? Or Not Realy Open...)
+            if((strcmp(rmap_file_name_rd, rmap_file_name_check)) || (!rmapRdFile)) {
               // Save new file_name for next control
               strcpy(rmap_file_name_rd, rmap_file_name_check);
-              // Not opened? Open... in append
+              // Not opened? open... in append
+              // Resynch if file is close and (file_name not changed... Closed By End Of Data)
+              bool reSyncPtr;
+              reSyncPtr = (!rmapRdFile);
               if(rmapRdFile) rmapRdFile.close();
-              rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+              reSyncPtr = SD.open(rmap_file_name_rd, O_RDONLY);
+              // Resync Position Before Last Data Read OtherWise Other File (SeekPosition = 0)
+              if (reSyncPtr) rmapRdFile.seek(rmap_pointer_seek);
+              else rmap_pointer_seek = 0;
               // Open File High LED
               digitalWrite(PIN_SD_LED, HIGH);
             }
@@ -906,6 +936,8 @@ void SdTask::Run()
                 } else {
                   // Error readed block not correctly dimensioned
                   rmap_get_response.result.event_error = true;
+                  // Generic open file Error
+                  error_sd_card = true;
                 }
               } else {
                   // Check if another Day (Next) is present before sending End Of Data
@@ -933,6 +965,7 @@ void SdTask::Run()
             } else {
               // Error on open file
               rmap_get_response.result.event_error = true;
+              error_sd_card = true;
             }
             // Are currently function of SET POINTER START / END ?
             // Post in ALL Data complete search OK. IF No More DATA. AUtomatically End
@@ -962,6 +995,8 @@ void SdTask::Run()
               // In standard Mode if END Of Data Receive, automatically Save Pointer DATA
               if(rmap_get_response.result.end_of_data) {
                 rmap_get_request.command.do_save_ptr = true;
+                // Need to close file to check next block if exenral write. No more data if not reclose/reopen File
+                if(rmapRdFile) rmapRdFile.close();
               }
             }
             // ***** Send response to request *****
@@ -986,6 +1021,9 @@ void SdTask::Run()
               tmpFile.close();
               // Close File Low LED
               digitalWrite(PIN_SD_LED, LOW);
+            } else {
+              // Generic open file Error
+              error_sd_card = true;
             }
           }
         }
@@ -1143,6 +1181,15 @@ void SdTask::Run()
       // *********************************************************
       //        End OF FILE (FIRMWARE) WRITE append message
       // *********************************************************
+
+      // ***********************************************************
+      // Generic open or Other Operation file Error... Restart Synch
+      // ***********************************************************
+      if(error_sd_card) {
+        // Remove error and Try Reset
+        error_sd_card = false;
+        state = SD_STATE_INIT;
+      }
 
       break;
 

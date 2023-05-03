@@ -110,7 +110,9 @@ private:
   sample_t temperature_redundant_samples;
   sample_t humidity_main_samples;
   sample_t humidity_redundant_samples;
+
   maintenance_t maintenance_samples;
+  
   report_t report;
 };
 

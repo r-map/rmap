@@ -1520,7 +1520,7 @@ void CanTask::Run() {
                             }
                         }
                     }
-                    #ifdef USE_SUB_PUBLISH_SLAVE_DATA
+                    #if defined(USE_SUB_PUBLISH_SLAVE_DATA) && defined(SUBSCRIBE_PUBLISH_SLAVE_DATA)
                     // *************   PUBLISH    *************
                     // Se previsto il servizio publisher (subject_id valido)
                     // Non alloco niente per il publish (gestione esempio display o altro debug interno da gestire)
@@ -1532,6 +1532,61 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindMessage,
                                                     clCanard.slave[queueId].publisher.get_subject_id(),
                                                     rmap_module_TH_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::rain) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_Rain_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::wind) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_Wind_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::radiation) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_Radiation_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::vwc) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_VWC_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::power) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_Power_1_0_EXTENT_BYTES_,
                                                     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
@@ -1702,7 +1757,9 @@ void CanTask::Run() {
                     // need do acquire data value for RMAP Archive?
                     // Perform an Full Power request Method 5 second before Starting aquire data
                     // In this time we can regulate syncro_time method and perform Full Wake UP of remote Module
-                    if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+// TODO: remove
+                    if (((curEpoch + 5) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    //if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start full power for sending request and syncronize time\r\n"));
                         // Only for RMAP Get Data is need to Forced power ON on Starting time before procedure GET DATA
@@ -1717,12 +1774,16 @@ void CanTask::Run() {
                         // Normal mode (Not WakeUP)
                         bStartSetFullPower = false;
                     }
-                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+//TODO: remove
+                    if ((curEpoch / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    //if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
-                        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
-                        param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
+                        //param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+                        //param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
+                        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / 60;
+                        param.system_status->datetime.epoch_sensors_get_value = (curEpoch / 60) * 60;
                         // Calculate expected/recived HeartBeat sequence... and reset counter
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
@@ -1925,7 +1986,7 @@ void CanTask::Run() {
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
-                                        memcpy(rmap_archive_data.block, retRainData, sizeof(retRainData));
+                                        memcpy(rmap_archive_data.block, retRainData, sizeof(*retRainData));
                                         // Send queue to MMC/SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);

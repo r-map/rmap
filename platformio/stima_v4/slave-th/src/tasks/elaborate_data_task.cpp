@@ -434,7 +434,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // flush all data that is not aligned
   for (uint16_t i = samples_count; i < temperature_main_samples.count; i++)
   {
-    bufferReadBack<maintenance_t, uint16_t, rmapdata_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
     bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
   }
   for (uint16_t i = samples_count; i < temperature_redundant_samples.count; i++)
@@ -555,7 +555,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     // ***************************************************************************************************
 
     // temperature, elaboration final
-    valid_data_calc_perc = (float)(valid_count_main_temperature_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_main_temperature_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d temperature sample error (%d%%)\r\n"), (n_sample - valid_count_main_temperature_t), (uint8_t)(((float)n_sample - (float)valid_count_main_temperature_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d temperature observation avaiable (%d%%)\r\n"), valid_count_main_temperature_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
@@ -568,7 +568,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // humidity, elaboration final
-    valid_data_calc_perc = (float)(valid_count_main_humidity_o) / (float)(observation_sample_count) * 100.0;
+    valid_data_calc_perc = (float)(valid_count_main_humidity_o) / (float)(report_observations_count) * 100.0;
     TRACE_DEBUG_F(F("-> %d humidity sample error (%d%%)\r\n"), (n_sample - valid_count_main_humidity_t), (uint8_t)(((float)n_sample - (float)valid_count_main_humidity_t)/(float)n_sample * 100.0));
     TRACE_DEBUG_F(F("-> %d humidity observation avaiable (%d%%)\r\n"), valid_count_main_humidity_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)

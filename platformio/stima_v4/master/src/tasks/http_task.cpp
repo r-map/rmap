@@ -374,61 +374,72 @@ void HttpTask::Run() {
 
       // Retrieve HTTP status code
       status = httpClientGetStatus(&httpClientContext);
-      bValidFirmwareRequest = false;
-      switch (status) {
-        case 300:
-          TRACE_ERROR_F(F("%s http status code %u [Firmware version not correct]\r\n"), Thread::GetName().c_str(), status);
-          break;
-        case 304:
-          TRACE_ERROR_F(F("%s http status code %u [Firmware version already installed]\r\n"), Thread::GetName().c_str(), status);
-          break;
-        case 403:
-          TRACE_ERROR_F(F("%s http status code %u [Firmware version not exist]\r\n"), Thread::GetName().c_str(), status);
-          break;
-        case 500:
-          TRACE_ERROR_F(F("%s http status code %u [Header request not valid]\r\n"), Thread::GetName().c_str(), status);
-          break;
-        default:
-          TRACE_VERBOSE_F(F("%s http status code %u [Firmware request valid]\r\n"), Thread::GetName().c_str(), status);
-          bValidFirmwareRequest = true;
-      }
-
-      if(bValidFirmwareRequest) {
-        TRACE_INFO_F(F("%s http request firmware dowload [ OK ], ready to download\r\n"), Thread::GetName().c_str(), status);
-        // Retrieve the value of the Content-Type header field
-        value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
-        strcpy(module_download_md5, value);
-        value = httpClientGetHeaderField(&httpClientContext, "version");
-        module_download_ver = atoi(value);
-        value = httpClientGetHeaderField(&httpClientContext, "revision");
-        module_download_rev = atoi(value);
-      }
-
-      // https://test.rmap.cc/admin/firmware_updater_stima/firmware/
-      // Command CURL To Test :
-      // curl -v  -H "X-STIMA4-VERSION: {\"version\": 4,\"revision\": 
-      // 0,\"user\":\"userv4\",\"slug\":\"stimacan\",\"bslug\":\"stimav4\"}" -H
-      // "X-STIMA4-BOARD-MAC: 101" -A "STIMA4-http-Update"  
-      // http://test.rmap.cc/firmware/stima/v4/update/11/ --output firmware
-
-      // Header field found?
-      if (value == NULL)
-      {
-        if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
-          is_error = true;
-          state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
-        } else {
-          TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
-          Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-          TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+            
+      if(is_get_firmware) {
+        bValidFirmwareRequest = false;
+        switch (status) {
+          case 300:
+            TRACE_ERROR_F(F("%s http status code %u [Firmware version not correct]\r\n"), Thread::GetName().c_str(), status);
+            break;
+          case 304:
+            TRACE_ERROR_F(F("%s http status code %u [Firmware version already installed]\r\n"), Thread::GetName().c_str(), status);
+            break;
+          case 403:
+            TRACE_ERROR_F(F("%s http status code %u [Firmware version not exist]\r\n"), Thread::GetName().c_str(), status);
+            break;
+          case 500:
+            TRACE_ERROR_F(F("%s http status code %u [Header request not valid]\r\n"), Thread::GetName().c_str(), status);
+            break;
+          default:
+            TRACE_VERBOSE_F(F("%s http status code %u [Firmware request valid]\r\n"), Thread::GetName().c_str(), status);
+            bValidFirmwareRequest = true;
         }
-        break;
+
+        // ************** GET FIRMWARE EXAMPLES REQUEST ****************
+        // https://test.rmap.cc/admin/firmware_updater_stima/firmware/
+        // Command CURL To Test :
+        // curl -v  -H "X-STIMA4-VERSION: {\"version\": 4,\"revision\": 
+        // 0,\"user\":\"userv4\",\"slug\":\"stimacan\",\"bslug\":\"stimav4\"}" -H
+        // "X-STIMA4-BOARD-MAC: 101" -A "STIMA4-http-Update"  
+        // http://test.rmap.cc/firmware/stima/v4/update/11/ --output firmware
+
+        if(bValidFirmwareRequest) {
+          TRACE_INFO_F(F("%s http request firmware dowload [ OK ], ready to download\r\n"), Thread::GetName().c_str(), status);
+          // Retrieve the value of the Content-Type header field
+          value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
+          strcpy(module_download_md5, value);
+          value = httpClientGetHeaderField(&httpClientContext, "version");
+          module_download_ver = atoi(value);
+          value = httpClientGetHeaderField(&httpClientContext, "revision");
+          module_download_rev = atoi(value);
+        }
+
+        // Header field found?
+        if (value == NULL)
+        {
+          if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
+            is_error = true;
+            state = HTTP_STATE_END;
+            TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+          } else {
+            TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
+            Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
+            TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+          }
+          break;
+        }
+
+        // is_firmware (start queue naming file)
+        if(bValidFirmwareRequest) {
+          bErrorFirmwareDownload = do_firmware_set_name((Module_Type)module_download_type, module_download_ver, module_download_rev);
+        }
       }
 
-      // is_firmware (start queue naming file)
-      if(bValidFirmwareRequest) {
-        bErrorFirmwareDownload = do_firmware_set_name((Module_Type)module_download_type, module_download_ver, module_download_rev);
+      if(is_get_configuration) {
+        if(status==200)
+          TRACE_VERBOSE_F(F("%s http status code %u [Configuration request valid]\r\n"), Thread::GetName().c_str(), status);
+        else
+          TRACE_ERROR_F(F("%s http status code %u [Configuration request failed]\r\n"), Thread::GetName().c_str(), status);
       }
 
       // Receive HTTP response body (and no Error Dowload Firmware (always false is not firmware request))
