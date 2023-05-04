@@ -259,7 +259,25 @@ void SupervisorTask::Run()
           param.system_status->connection.is_mqtt_connected &= !param.system_status->flags.new_data_to_send;
           // Saving starting Connection to inibith next Connection... If something Wrong...
           param.system_status->data_master.connect_run_epoch = rtc.getEpoch();
+          // Resetting command request (Not event setted but external request)
+          param.system_status->command.do_http_configuration_update = false;
+          param.system_status->command.do_http_firmware_domload = false;
+          param.system_status->command.do_mqtt_connect = false;
+          param.system_status->command.do_ntp_synchronization = false;
+
+          if(param.system_status->modem.connection_attempted) {
+            param.system_status->modem.perc_modem_connection_valid = (uint8_t)
+              (((float)(param.system_status->modem.connection_completed / (float)param.system_status->modem.connection_attempted)) * 100.0);
+          } else {
+            param.system_status->modem.perc_modem_connection_valid = 100;
+          }
+          // Save next attempt of connection
+          param.system_status->modem.connection_attempted++;
           param.systemStatusLock->Give();
+
+          TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
+          TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
+            param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
 
           // Start state check connection
           state_check_connection = CONNECTION_INIT;
@@ -283,6 +301,7 @@ void SupervisorTask::Run()
       // Start state check connection
       state_check_connection = CONNECTION_INIT;
       state = SUPERVISOR_STATE_CONNECTION_OPERATION;
+
       // Update percentage good connection vs attemtped
       param.systemStatusLock->Take();
       if(param.system_status->modem.connection_attempted) {

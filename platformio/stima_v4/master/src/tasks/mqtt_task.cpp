@@ -627,16 +627,22 @@ void MqttTask::Run()
           // FINE PROVA
           #endif          
 
-          if(!rmap_data_error) {
+          error = NO_ERROR; // Error MQTT Cycone
+
+          if((!error)&&(!rmap_data_error)&&(rmap_get_response.result.done_get_data)) {
             // EOF Data? (Save and Exit, after last data process)
             rmap_eof = rmap_get_response.result.end_of_data;
-            // ******************************************************************
-            // Example of Current Session Upload CountData and DateTime Block Print
             countData++;
-            DateTime rmap_date_time_val;
-            convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
-            TRACE_VERBOSE_F(F("MQTT: RMAP data current date/time [ %d ] %s\r\n"), (uint32_t)countData, formatDate(&rmap_date_time_val, NULL));
+            #if TRACE_LEVEL >= TRACE_VERBOSE
             // ******************************************************************
+            // Trace of Current Session Upload CountData and DateTime Block Print
+            DateTime rmap_date_time_val;
+            char stima_name[STIMA_MODULE_NAME_LENGTH] = {0};
+            getStimaNameByType(stima_name, rmap_get_response.rmap_data.module_type);
+            convertUnixTimeToDate(rmap_get_response.rmap_data.date_time, &rmap_date_time_val);
+            TRACE_VERBOSE_F(F("MQTT: Publish RMAP data count id: [ %d ], module [ %s ], date/time [ %s ]\r\n"), (uint32_t)countData, stima_name, formatDate(&rmap_date_time_val, NULL));
+            // ******************************************************************
+            #endif
             // Process Data with casting RMAP Module Type
             switch (rmap_get_response.rmap_data.module_type) {
               case Module_Type::th:
@@ -681,7 +687,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -718,7 +724,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -756,7 +762,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -819,7 +825,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -857,7 +863,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -895,7 +901,7 @@ void MqttTask::Run()
                     {
                       // Connection to MQTT server lost?
                       state = MQTT_STATE_DISCONNECT;
-                      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH -> MQTT_STATE_DISCONNECT\r\n"));
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
                       break;
                     }
                     else
@@ -915,26 +921,24 @@ void MqttTask::Run()
           }
           else
           {
-            TRACE_VERBOSE_F(F("MQTT: RMAP Reading Data queue error!!!\r\n"));
+            TRACE_ERROR_F(F("MQTT: RMAP Reading Data queue error!!!\r\n"));
           }
           // Non blocking task
           TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
           Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
         // Trace END Data response
-        TRACE_VERBOSE_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+        TRACE_INFO_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
       }
       // *****************************************
       //  END GET RMAP Data Queue and Append MQTT
       // *****************************************
 
-      if (rmap_eof || rmap_data_error)
-      {
-        param.systemStatusLock->Take();
-        is_data_publish_end = true;
-        param.systemStatusLock->Give();
-        state = MQTT_STATE_DISCONNECT;
-      }
+      param.systemStatusLock->Take();
+      is_data_publish_end = true;
+      param.systemStatusLock->Give();
+      state = MQTT_STATE_DISCONNECT;
+
       break;
 
     case MQTT_STATE_DISCONNECT:

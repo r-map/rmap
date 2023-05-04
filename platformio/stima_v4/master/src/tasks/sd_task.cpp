@@ -405,6 +405,7 @@ void SdTask::Run()
           state = SD_STATE_INIT;
           break;
         }
+        TRACE_INFO_F(F("SD: created base structure dir firmware\r\n"));
       }
       // Create log directory
       if(!SD.exists("/log")) {
@@ -412,6 +413,7 @@ void SdTask::Run()
           state = SD_STATE_INIT;
           break;
         }
+        TRACE_INFO_F(F("SD: created base structure dir log\r\n"));
       }
       // Create data and pointer ditectory
       if(!SD.exists("/data")) {
@@ -419,6 +421,7 @@ void SdTask::Run()
           state = SD_STATE_INIT;
           break;
         }
+        TRACE_INFO_F(F("SD: created base structure dir data\r\n"));
       }
 
       // ***************************************************
@@ -444,6 +447,10 @@ void SdTask::Run()
           digitalWrite(PIN_SD_LED, HIGH);
           tmpFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
           tmpFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          // Debug message timestamp Ptr
+          DateTime date;
+          convertUnixTimeToDate(rmap_pointer_datetime, &date);
+          TRACE_INFO_F(F("SD: load current data pointer at date/time %s\r\n"), formatDate(&date, NULL));
           rmap_pointer_datetime_bkp = rmap_pointer_datetime;
           rmap_pointer_datetime_end = rmap_pointer_datetime;
           rmap_pointer_seek_bkp = rmap_pointer_seek;
@@ -456,10 +463,13 @@ void SdTask::Run()
           namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_rd);
           // Check file
           if(SD.exists(rmap_file_name_rd)) {
-            // Set Current Pointer Position
+            // Set Current Pointer Position (Error can checked on WaitingEvent State)
             rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
-            rmapRdFile.seek(rmap_pointer_seek);
-            rmap_pointer_seek_bkp = rmap_pointer_seek;
+            if(rmapRdFile) {
+              rmapRdFile.seek(rmap_pointer_seek);
+              rmap_pointer_seek_bkp = rmap_pointer_seek;
+              TRACE_INFO_F(F("SD: load current data position at [ %d ], bytes avaible to read [ %d ]\r\n"), rmap_pointer_seek, rmapRdFile.available());
+            }
           } else {
             // Pointer file not coerent, Remove and new creation starting
             SD.remove("/data/pointer.dat");
@@ -476,6 +486,7 @@ void SdTask::Run()
       } else {
         tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
         if(tmpFile) {
+          TRACE_INFO_F(F("SD: create new data pointer at now() %s\r\n"));
           // Open File High LED
           digitalWrite(PIN_SD_LED, HIGH);
           rmap_pointer_seek = 0;
@@ -886,7 +897,7 @@ void SdTask::Run()
               bool reSyncPtr;
               reSyncPtr = (!rmapRdFile);
               if(rmapRdFile) rmapRdFile.close();
-              reSyncPtr = SD.open(rmap_file_name_rd, O_RDONLY);
+              rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
               // Resync Position Before Last Data Read OtherWise Other File (SeekPosition = 0)
               if (reSyncPtr) rmapRdFile.seek(rmap_pointer_seek);
               else rmap_pointer_seek = 0;
@@ -946,7 +957,9 @@ void SdTask::Run()
                   // Not Exist? End Of Data, Otherwise next request in New Day Direct open Day File without other operation
                   if(SD.exists(rmap_file_name_check)) {
                     // Reopen Operation can be Start Immediatly.
+                    // Set SEEK Position to Start File and DateTime to hh:nn:ss at 0.0.0 Begin of Day
                     rmap_pointer_seek = 0;
+                    rmap_pointer_datetime = ((rmap_pointer_datetime + SECS_DAY) / SECS_DAY) * SECS_DAY;
                     // Save new file_name for next control
                     strcpy(rmap_file_name_rd, rmap_file_name_check);
                     // Not opened? Open... in append

@@ -50,6 +50,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "mqtt/mqtt_client.h"
 #include "canard_config.hpp"
 
+#include "stima_utility.h"
+
 // Canard Type data
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>

@@ -166,7 +166,7 @@ void WindSensorTask::Run() {
     case SENSOR_STATE_WAIT_DATA:
       // Ready data from WindSonic?
       if(SerialWindSonic.available()) {
-        TRACE_DEBUG_F(F("check_wait ms [ %u ], Avaiable char [ %u ]"), check_wait * WIND_MESSAGE_DELAY_MS, SerialWindSonic.available());
+        TRACE_DEBUG_F(F("check_wait ms [ %u ], Avaiable char [ %u ]\r\n"), check_wait * WIND_MESSAGE_DELAY_MS, SerialWindSonic.available());
 
         TaskWatchDog(WIND_MESSAGE_DELAY_MS);
         Delay(Ticks::MsToTicks(WIND_MESSAGE_DELAY_MS));
