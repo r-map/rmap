@@ -26,21 +26,23 @@ due modalità continua e poll.
 Questo utilizzando le seguent1 due configurazione del windsonic
 (corrispondente all'output del comando D3):
 continua
-M2,U1,O1,L1,P2,B3,H2,NQ,F1,E3,T1,S4,C2,G0,K50,
+M2,U1,O1,L1,P1,B3,H2,NQ,F1,E3,T1,S4,C2,G0,K50,
 
 poll
-M4,U1,O1,L1,P2,B3,H2,NQ,F1,E3,T1,S4,C2,G0,K50,
+M4,U1,O1,L1,P1,B3,H2,NQ,F1,E3,T1,S4,C2,G0,K50,
 
 La macro POLL_MODE pernette l'attivazione della modalità poll.
 
 La macro TIMER_INTERVAL_MS definisce l'intervallo di pubblicazione dei
-mati in modalità continua (250 millisec con configurazione M2 che è il
+mati in modalità continua (1 per secondo con configurazione M2 e P1 che è il
 default)
 
 La porta seriale 0 è utilizzata per il loggin mentre la portaseriale 1
 è qualla che simula il windsonic. In un microduino core+ la porta
 seriale 1 corrisponde a:
  D2 -> RX1 D3 -> TX1
+
+Le porte possono essere invertite
 
 Attivando la macro PLOT è possibile generare dei grafici delle
 variabili del vento simulate.
@@ -60,6 +62,10 @@ L'unità di musura della velocità è m/s
  */
 
 ///////////////////////////////////////
+
+// exchange serial port definition
+#define MYSERIAL0 Serial1
+#define MYSERIAL1 Serial
 
 //switch from M2 and M4 Message format windsonic configuration parameter
 // Gill, Polar, Continuous
@@ -92,7 +98,8 @@ L'unità di musura della velocità è m/s
 #define LOG_LEVEL LOG_LEVEL_NOTICE
 
 // Continuous MODE : M2 Message format windsonic configuration parameter
-#define TIMER_INTERVAL_MS        250L
+// P1  1 per second
+#define TIMER_INTERVAL_MS        1000L
 
 // induce crc error if != 0
 #define CRC_ERROR 0
@@ -112,6 +119,26 @@ V    -                        NMEA data Void
 */
 # define WINDSONIC_STATUS 0x00
 
+#ifdef ARDUINO_ARCH_AVR
+  // Select the timers you're using, here ITimer1
+  #define USE_TIMER_1     true
+  #define USE_TIMER_2     false
+  #define USE_TIMER_3     false
+  #define USE_TIMER_4     false
+  #include "ATmega_TimerInterrupt.h"
+#else
+
+  HardwareTimer Tim2 = HardwareTimer(TIM2);      
+
+  #if defined (STM32L452xx)
+    HardwareSerial MYSERIAL0(PC11, PC10);
+  #elif defined (STM32L476xx)
+    HardwareSerial MYSERIAL0(PC11, PC10);
+  #else
+    HardwareSerial MYSERIAL0(D0, D1);
+  #endif
+#endif
+
 
 ///////////////////////////////////////
 
@@ -119,14 +146,7 @@ V    -                        NMEA data Void
 #define DISABLE_LOGGING true
 #endif
 
-// Select the timers you're using, here ITimer1
-#define USE_TIMER_1     true
-#define USE_TIMER_2     false
-#define USE_TIMER_3     false
-#define USE_TIMER_4     false
-
 #include <ArduinoLog.h>
-#include "ATmega_TimerInterrupt.h"
 #if defined(PLOT)
 #include "Plotter.h"
 #endif
@@ -191,7 +211,7 @@ void message(void){
     //scambio seno e coseno per rotazione 90 gradi
     dd=atan2(-u,-v)*180.D/PI;
     LOGV(F("dd1: %D\n"),dd);
-    dd=round(dd) % 360;
+    dd=int(round(dd)) % 360;
     if (round(dd) == 360) dd=0.D ;
     if (dd < 0.) dd=360.D+dd;
   }
@@ -219,35 +239,35 @@ void message(void){
     }
     buffer[16]=3;
 
-    Serial.write(buffer,17);
-    Serial1.write(buffer,17);
+    MYSERIAL0.write(buffer,17);
+    MYSERIAL1.write(buffer,17);
 
     sprintf(buffer,"%02X",myCrc);
-    Serial.write(buffer,2);
-    Serial1.write(buffer,2);
+    MYSERIAL0.write(buffer,2);
+    MYSERIAL1.write(buffer,2);
 
-    Serial.print("\r\n");
-    Serial1.print("\r\n");
+    MYSERIAL0.print("\r\n");
+    MYSERIAL1.print("\r\n");
     
   }else{
     //Q,126,200.42,M,00,
     buffer[0]=2;
-    sprintf(&buffer[1],"Q,%03ld,%06.2f,M,%02X,",round(dd),ff,status);
+    sprintf(&buffer[1],"Q,%03d,%06.2f,M,%02X,",int(round(dd)),ff,status);
     uint8_t myCrc=CRC_ERROR;
     for (uint8_t i =1; i < 19; i++) {
       myCrc ^= buffer[i];
     }
     buffer[19]=3;
 
-    Serial.write(buffer,20);
-    Serial1.write(buffer,20);
+    MYSERIAL0.write(buffer,20);
+    MYSERIAL1.write(buffer,20);
 
     sprintf(buffer,"%02X",myCrc);
-    Serial.write(buffer,2);
-    Serial1.write(buffer,2);
+    MYSERIAL0.write(buffer,2);
+    MYSERIAL1.write(buffer,2);
  
-    Serial.print("\r\n");    
-    Serial1.print("\r\n");
+    MYSERIAL0.print("\r\n");    
+    MYSERIAL1.print("\r\n");
     
   }
 }
@@ -255,34 +275,45 @@ void message(void){
 
 void setup() {
 
-  Serial.begin(115200);        // connect to the serial port
-  Log.begin(LOG_LEVEL, &Serial);
+  MYSERIAL0.begin(115200);        // connect to the serial port
+  Log.begin(LOG_LEVEL, &MYSERIAL0);
 
-  Serial1.begin(9600);        // connect to the Windsonic serial port
-
+  MYSERIAL1.begin(9600);        // connect to the Windsonic serial port
+  
   #if defined(PLOT)
   plot.Begin(); // start plotter  
   plot.AddTimeGraph( "Fake Windsonic", 600, "Direction", dd,"Velocity",ff,"u component", u,"v component",v ); 
   #endif
 
   starttime = millis();       // start the daily cycle for temperature and humidity
-  ITimer1.init();
 
-  #ifndef POLL_MODE 
-  // Interval in unsigned long millisecs
-  if (ITimer1.attachInterruptInterval(TIMER_INTERVAL_MS, message))
-    LOGN("Starting ITimer OK, millis() = %l\n",millis());
-  else
-    LOGE("Can't set ITimer. Select another freq. or timer\n");
+  #ifndef POLL_MODE
+    #ifdef ARDUINO_ARCH_AVR
+      ITimer1.init();
+      // Interval in unsigned long millisecs
+      if (ITimer1.attachInterruptInterval(TIMER_INTERVAL_MS, message))
+        LOGN("Starting ITimer OK, millis() = %l\n",millis());
+      else
+        LOGE("Can't set ITimer. Select another freq. or timer\n");
+    #else
+      
+      Tim2.setOverflow(TIMER_INTERVAL_MS*1000, MICROSEC_FORMAT);
+      Tim2.attachInterrupt(message);
+      
+    #endif
   #endif
   
-  Serial.println(F("end setup"));
-
+  MYSERIAL0.println(F("end setup"));
+  MYSERIAL0.flush();
+  Tim2.resume();
+  
 }
 
 void loop() {  
 
   #ifdef POLL_MODE 
-  if(Serial1.find("?Q!",3))  message();
+    if(MYSERIAL1.find("?Q!",3))  message();
+  #else
+    delay(10000);
   #endif
 }
