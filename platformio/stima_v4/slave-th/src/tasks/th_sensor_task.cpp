@@ -357,7 +357,15 @@ void TemperatureHumidtySensorTask::Run() {
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-        state = SENSOR_STATE_SETUP;
+        // ************************ GEST ERROR AND POWER RESET ****************************
+        // is_powerd_off only when in Error mode (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
+        // Or Always if used (TH_TASK_LOW_POWER_ENABLED)
+        // Otherwise can be go directly to PREPARE State
+        if(is_power_on) {
+          state = SENSOR_STATE_PREPARE;
+        } else {
+          state = SENSOR_STATE_SETUP;
+        }
         break;
     }
   }
