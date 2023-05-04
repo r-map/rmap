@@ -17,11 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define OUTPIN  D6
+#define OUTPIN  PC13
 
 // reverse output on OUTPIN !  usefull for simulatea switch closed on GND
-#define MYHIGH  LOW  
-#define MYLOW   HIGH
+//#define MYHIGH  LOW  
+//#define MYLOW   HIGH
+
+#define MYHIGH  HIGH
+#define MYLOW   LOW
 
 
 // use 100 microsends here as unit
@@ -38,15 +41,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define MINTIMETORAIN      500          // 50 ms
 //#define MAXTIMETORAIN      3000          // 300 ms
 
-// Digiteco rain gauge
+// Digiteco rain gauge Stima V3
 #define MAXTIMETOBOUNCE    8            // 0.8 ms
 #define MINTIMETORAIN      400          // 40 ms
 #define MAXTIMETORAIN      600          // 60 ms
 
+// Digiteco rain gauge Stima V4
+#define MAXTIMETOBOUNCE    8            // 0.8 ms
+#define MINTIMETORAIN      300          // 80 ms
+#define MAXTIMETORAIN      450          // 120 ms
+
 // rain period definitions
-#define SECONDSTOPOWERON   10
-#define SECONDSTOPOWEROFF  850
-#define MAXPRECIPITATION   360
+#define SECONDSTOPOWERON   30
+#define SECONDSTOPOWEROFF  300
+#define MAXPRECIPITATION   100
 
 
 
@@ -512,7 +520,7 @@ void setup (void)
   digitalWrite(OUTPIN, MYLOW);
   pinMode(OUTPIN, OUTPUT);
   digitalWrite(OUTPIN, MYLOW);  // in reverse mode here is possible we have a spurious tick ! 
-
+    
   randomSeed(analogRead(0));    // on STM32F1 we do not have a true random generator
   
   // start sensor machine
