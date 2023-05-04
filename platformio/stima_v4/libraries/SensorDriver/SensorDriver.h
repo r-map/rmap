@@ -352,7 +352,6 @@ class SensorDriverAdt7420 : public SensorDriver {
 public:
    SensorDriverAdt7420(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("adt7420 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -388,7 +387,6 @@ class SensorDriverHih6100 : public SensorDriver {
 public:
    SensorDriverHih6100(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("hih6100 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -508,7 +506,6 @@ class SensorDriverDw1 : public SensorDriver {
 public:
    SensorDriverDw1(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("dw1 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -551,7 +548,6 @@ class SensorDriverRain : public SensorDriver {
 public:
   SensorDriverRain(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("rain create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -587,10 +583,9 @@ protected:
 #include "registers-th.h"
 class SensorDriverTh : public SensorDriver {
 public:
-  SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
-
+  SensorDriverTh(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
+      _wire = local_wire;
       SensorDriver::printInfo();
-      //TRACE_VERBOSE(F("th create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -631,7 +626,6 @@ class SensorDriverDigitecoPower : public SensorDriver {
 public:
    SensorDriverDigitecoPower(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("digitecopower create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -684,7 +678,6 @@ class SensorDriverWind : public SensorDriver {
 public:
   SensorDriverWind(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    TRACE_VERBOSE(F("wind create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
@@ -720,7 +713,6 @@ class SensorDriverSolarRadiation : public SensorDriver {
 public:
   SensorDriverSolarRadiation(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    TRACE_VERBOSE(F("solarradiation create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
@@ -756,7 +748,6 @@ class SensorDriverOpc : public SensorDriver {
 public:
    SensorDriverOpc(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("opc create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -802,7 +793,6 @@ class SensorDriverLeaf : public SensorDriver {
 public:
   SensorDriverLeaf(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    TRACE_VERBOSE(F("leaf create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
