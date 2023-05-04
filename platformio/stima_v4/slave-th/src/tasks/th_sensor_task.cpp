@@ -257,6 +257,15 @@ void TemperatureHumidtySensorTask::Run() {
 
           if (false) {}
 
+          #if (USE_SENSOR_ITH)
+          else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ITH) == 0) {
+            edata.value = values_readed_from_sensor[0];
+            edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            is_temperature_redundant = param.configuration->sensors[i].is_redundant;
+          }
+          #endif
+
           #if (USE_SENSOR_ADT)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
             edata.value = values_readed_from_sensor[0];

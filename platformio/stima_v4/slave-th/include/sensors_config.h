@@ -29,7 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_REDUNDANT_SENSOR
 \brief Enable if you want use redundant sensor. Redundant sensor MUST be equal to main sensor.
 */
-#define USE_REDUNDANT_SENSOR        (true)
+////////////#define USE_REDUNDANT_SENSOR        (true)
+#define USE_REDUNDANT_SENSOR        (false)
 
 /*!
 \def USE_JSON
@@ -67,7 +68,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_SHT
 \brief Enable if you want use SHT35 sensor.
 */
-#define USE_SENSOR_SHT              (true)
+#define USE_SENSOR_SHT              (false)
+///////////// TRUEEEEEEEEEEE
 
 /*!
 \def USE_SENSOR_B28
@@ -265,7 +267,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_ITH
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
-#define USE_SENSOR_ITH              (false)
+#define USE_SENSOR_ITH              (true)
+///////////// FALSEEEEEEEEEEE
 
 /*!
 \def USE_SENSOR_NTH

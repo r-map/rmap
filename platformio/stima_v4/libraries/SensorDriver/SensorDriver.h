@@ -590,7 +590,7 @@ public:
   SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
 
       SensorDriver::printInfo();
-      TRACE_VERBOSE(F("th create... [ %s ]"), OK_STRING);
+      //TRACE_VERBOSE(F("th create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
