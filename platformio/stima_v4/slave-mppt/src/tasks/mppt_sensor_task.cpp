@@ -146,6 +146,9 @@ void MpptSensorTask::Run() {
 
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
+      // Start with measure ready also with VIN < VBAT
+      param.mpptIC->set_Full_Measure(true);
+
       state = SENSOR_STATE_READ;
       break;
 

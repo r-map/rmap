@@ -81,10 +81,15 @@ public:
   // *********** User facility data access *********** //
 
   // Register Access with macro examples
-  #define enable_AL_V_SYS_LO()        LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, 1);    // Enable SMBAlert LO V_SYS
-  #define disable_AL_V_SYS_LO()       LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, 0);   // Disable SMBAlert LO V_SYS
-  #define setflag_AL_V_SYS_LO(X)      LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, X);  // Set request SMBAlert LO V_SYS
-  #define enable_FRZ_MIS_SYS_VBAT(X)  LTC4015_write_register(LTC4015_FORCE_MEAS_SYS_ON_BF_SUBADDR, 4); //!< @ref LTC4015_FORCE_MEAS_SYS_ON_BF "FORCE_MEAS_SYS_ON_BF"
+  #define enable_AL_V_SYS_LO()          LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, 1);   // Enable SMBAlert LO V_SYS
+  #define disable_AL_V_SYS_LO()         LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, 0);   // Disable SMBAlert LO V_SYS
+  #define setflag_AL_V_SYS_LO(X)        LTC4015_write_register(LTC4015_EN_VSYS_LO_ALERT_BF, X);   // Set request SMBAlert LO V_SYS
+  #define enable_FRZ_MIS_SYS_VBAT()     LTC4015_write_register(LTC4015_FORCE_MEAS_SYS_ON_BF, 1);  // Enable Measure without VIN
+  #define disable_FRZ_MIS_SYS_VBAT()    LTC4015_write_register(LTC4015_FORCE_MEAS_SYS_ON_BF, 0);  // Disable Measure without VIN
+  #define setflag_FRZ_MIS_SYS_VBAT(X)   LTC4015_write_register(LTC4015_FORCE_MEAS_SYS_ON_BF, X);  // Set request Measure without VIN
+
+  // Setting command
+  bool set_Full_Measure(bool is_enable);
 
   // Float data reading value
   float get_V_IN(bool *is_ok);     // Get V_IN

@@ -79,6 +79,13 @@ bool Mppt::LTC4015_read_register(uint16_t registerinfo, uint16_t *data)
   return result;
 }
 
+/// @brief Set Flag Full measure operation (or standard mode)
+/// @param is_enable true if full operation measure is reqiest. False Standard mode Only if VIN Present
+/// @return true is operation is done 
+bool Mppt::set_Full_Measure(bool is_enable) {
+  return setflag_FRZ_MIS_SYS_VBAT(is_enable);
+}
+
 /// @brief Read LTC4015 V_IN parameter
 /// @param is_ok true if measure is done ok
 /// @return V_IN Value converted to V
