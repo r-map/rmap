@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TH_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define TH_TASK_GENERIC_RETRY           (3)
 #define TH_TASK_LOW_POWER_ENABLED       (true)
-#define TH_TASK_ERROR_FOR_POWER_OFF     (SENSORS_COUNT_MAX * 3 * 2)
+#define TH_TASK_ERROR_FOR_RESET         (5)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
@@ -74,7 +74,8 @@ class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_SETUP,
     SENSOR_STATE_PREPARE,
     SENSOR_STATE_READ,
-    SENSOR_STATE_END
+    SENSOR_STATE_END,
+    SENSOR_STATE_CHECK_ERROR
   } State_t;
 
 public:

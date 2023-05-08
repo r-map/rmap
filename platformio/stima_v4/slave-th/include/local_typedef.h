@@ -107,7 +107,7 @@ typedef struct
    {
      bool is_main_error;
      bool is_redundant_error;
-     bool perc_i2c_error;
+     uint8_t perc_i2c_error;
      uint16_t measure_count;
      uint16_t error_count;
    } events;

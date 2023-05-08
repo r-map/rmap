@@ -29,7 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_REDUNDANT_SENSOR
 \brief Enable if you want use redundant sensor. Redundant sensor MUST be equal to main sensor.
 */
-////////////#define USE_REDUNDANT_SENSOR        (true)
 #define USE_REDUNDANT_SENSOR        (false)
 
 /*!
@@ -69,7 +68,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Enable if you want use SHT35 sensor.
 */
 #define USE_SENSOR_SHT              (false)
-///////////// TRUEEEEEEEEEEE
 
 /*!
 \def USE_SENSOR_B28
@@ -268,7 +266,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
 #define USE_SENSOR_ITH              (true)
-///////////// FALSEEEEEEEEEEE
 
 /*!
 \def USE_SENSOR_NTH
@@ -287,6 +284,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Enable if you want use Temperature and humidity continuous maximum sensor.
 */
 #define USE_SENSOR_XTH              (false)
+
+
+/*!
+\def USE_SENSOR_STH
+\brief Enable if you want use Temperature and humidity oneshot sensor.
+*/
+#define USE_SENSOR_STH_V2           (false)
+
+/*!
+\def USE_SENSOR_ITH
+\brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
+*/
+#define USE_SENSOR_ITH_V2           (false)
+
+/*!
+\def USE_SENSOR_NTH
+\brief Enable if you want use Temperature and humidity continuous minium sensor.
+*/
+#define USE_SENSOR_NTH_V2           (false)
+
+/*!
+\def USE_SENSOR_MTH
+\brief Enable if you want use Temperature and humidity continuous average sensor.
+*/
+#define USE_SENSOR_MTH_V2           (false)
+
+/*!
+\def USE_SENSOR_XTH
+\brief Enable if you want use Temperature and humidity continuous maximum sensor.
+*/
+#define USE_SENSOR_XTH_V2           (false)
 
 /*!
 \def USE_SENSOR_SSD
@@ -368,7 +396,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // #define VALUES_TO_READ_FROM_SENSOR_COUNT      (24)
 // #define JSONS_TO_READ_FROM_SENSOR_COUNT       (1)
 
-#define USE_TH_SENSORS                        (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + USE_SENSOR_STH + USE_SENSOR_ITH + USE_SENSOR_MTH + USE_SENSOR_NTH + USE_SENSOR_XTH)
+#define USE_TH_SENSORS                        (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + \
+                                               USE_SENSOR_STH + USE_SENSOR_ITH + USE_SENSOR_MTH + USE_SENSOR_NTH + USE_SENSOR_XTH + \
+                                               USE_SENSOR_STH_V2 + USE_SENSOR_ITH_V2 + USE_SENSOR_MTH_V2 + USE_SENSOR_NTH_V2 + USE_SENSOR_XTH_V2)
 #define USE_RAIN_SENSORS                      (USE_SENSOR_TBR + USE_SENSOR_TBS)
 #define USE_RADIAITION_SENSORS                (USE_SENSOR_DSR + USE_SENSOR_VSR + USE_SENSOR_DSA)
 #define USE_WIND_SENSORS                      (USE_SENSOR_DWA + USE_SENSOR_DWB + USE_SENSOR_DWC + USE_SENSOR_DWD + USE_SENSOR_DWE + USE_SENSOR_DWF)
@@ -388,7 +418,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MODULE_POWER_MPPT                 (true)
 #endif
 
-#define SENSORS_COUNT_MAX                     (USE_SENSOR_HYT + USE_SENSOR_SHT + USE_SENSOR_ITH + USE_REDUNDANT_SENSOR)
+#define SENSORS_COUNT_MAX                     (USE_REDUNDANT_SENSOR + USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + \
+                                               USE_SENSOR_STH + USE_SENSOR_ITH + USE_SENSOR_MTH + USE_SENSOR_NTH + USE_SENSOR_XTH + \
+                                               USE_SENSOR_STH_V2 + USE_SENSOR_ITH_V2 + USE_SENSOR_MTH_V2 + USE_SENSOR_NTH_V2 + USE_SENSOR_XTH_V2)
 
 /*!
 \def SENSOR_MAX

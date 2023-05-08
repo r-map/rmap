@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
 #include "tasks/supervisor_task.h"
-#include "registers-th.h"
 
 using namespace cpp_freertos;
 
@@ -267,7 +266,7 @@ void SupervisorTask::loadConfiguration()
     uint8_t sensor_count = 0;
     uavcan_register_Value_1_0_select_natural8_(&val);
     val.natural8.value.count = 1;
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     sensor_count++;
     #endif
     #if (USE_SENSOR_ADT)
@@ -330,7 +329,7 @@ void SupervisorTask::loadConfiguration()
     // Select type register (uint_8)
     uavcan_register_Value_1_0_select_natural8_(&val);
     // Loading Default
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     val.natural8.value.elements[elements++] = I2C_TH_DEFAULT_ADDRESS; // I2C ADDRESS
     val.natural8.value.elements[elements++] = 0;                      // IS REDUNDANT
     #endif
@@ -382,7 +381,7 @@ void SupervisorTask::loadConfiguration()
     // Select type register (string)
     uavcan_register_Value_1_0_select_string_(&val);
     // Loading Default
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     strcpy((char*)val._string.value.elements, SENSOR_TYPE_ITH);
     val._string.value.count = strlen(SENSOR_TYPE_ITH);
     #endif
@@ -391,8 +390,8 @@ void SupervisorTask::loadConfiguration()
     val._string.value.count = strlen(SENSOR_TYPE_ADT);
     #endif
     #if (USE_SENSOR_HIH)
-    strcpy((char*)val._string.value.elements, SENSOR_TYPE_HYH);
-    val._string.value.count = strlen(SENSOR_TYPE_HYH);
+    strcpy((char*)val._string.value.elements, SENSOR_TYPE_HIH);
+    val._string.value.count = strlen(SENSOR_TYPE_HIH);
     #endif
     #if (USE_SENSOR_HYT)
     strcpy((char*)val._string.value.elements, SENSOR_TYPE_HYT);
@@ -422,7 +421,7 @@ void SupervisorTask::loadConfiguration()
     // Select type register (string)
     uavcan_register_Value_1_0_select_string_(&val);
     // Loading Default
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     strcpy((char*)val._string.value.elements, SENSOR_DRIVER_I2C);
     val._string.value.count = strlen(SENSOR_DRIVER_I2C);
     #endif
@@ -485,7 +484,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     param.configuration->module_type = MODULE_TYPE;
 
     // Get sensor_count
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     sensor_count++;
     #endif
     #if (USE_SENSOR_ADT)
@@ -511,7 +510,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     param.configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
 
     // Get elements
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     param.configuration->sensors[elements].i2c_address = I2C_TH_DEFAULT_ADDRESS;  // I2C ADDRESS
     param.configuration->sensors[elements++].is_redundant = 0;                    // IS REDUNDANT
     #endif
@@ -541,7 +540,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     #endif
 
     // Loading Default
-    #if (USE_SENSOR_ITH)
+    #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
     for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
       strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_ITH);
       strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
@@ -555,7 +554,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     #endif
     #if (USE_SENSOR_HIH)
     for(uint8_t id = 0; id < param.configuration->sensors_count; id++) {
-      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HYH);
+      strcpy(param.configuration->sensors[id].type, SENSOR_TYPE_HIH);
       strcpy(param.configuration->sensors[id].driver, SENSOR_DRIVER_I2C);
     }
     #endif

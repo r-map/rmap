@@ -350,7 +350,8 @@ protected:
 #if (USE_SENSOR_ADT)
 class SensorDriverAdt7420 : public SensorDriver {
 public:
-   SensorDriverAdt7420(const char* driver, const char* type) : SensorDriver(driver, type) {
+   SensorDriverAdt7420(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
+      _wire = local_wire;
       SensorDriver::printInfo();
    };
    void setup();
@@ -385,8 +386,9 @@ protected:
 #if (USE_SENSOR_HIH)
 class SensorDriverHih6100 : public SensorDriver {
 public:
-   SensorDriverHih6100(const char* driver, const char* type) : SensorDriver(driver, type) {
-      SensorDriver::printInfo();
+   SensorDriverHih6100(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
+      _wire = local_wire;
+      SensorDriver::printInfo();      
    };
    void setup();
    void prepare(bool is_test = false);
@@ -601,6 +603,48 @@ protected:
 
    uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
    uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
+
+   enum {
+      INIT,
+      SET_TEMPERATURE_ADDRESS,
+      READ_TEMPERATURE,
+      SET_HUMIDITY_ADDRESS,
+      READ_HUMIDITY,
+      END
+   } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   rmapdata_t values[];
+
+};
+#endif
+
+#if (USE_SENSOR_STH_V2 || USE_SENSOR_ITH_V2 || USE_SENSOR_MTH_V2 || USE_SENSOR_NTH_V2 || USE_SENSOR_XTH_V2)
+#include "registers-th_v2.h"
+class SensorDriverTh : public SensorDriver {
+public:
+  SensorDriverTh(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
+      _wire = local_wire;
+      SensorDriver::printInfo();
+   };
+   void setup();
+   void prepare(bool is_test = false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
+
+   #if (USE_JSON)
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   #endif
+
+   void resetPrepared(bool is_test = false);
+
+protected:
+
+   // Lenght Fixed to 0x02
+   uint8_t temperature_data[0x02];
+   uint8_t humidity_data[0x02];
 
    enum {
       INIT,

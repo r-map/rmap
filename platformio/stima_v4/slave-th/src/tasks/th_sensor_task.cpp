@@ -105,9 +105,7 @@ void TemperatureHumidtySensorTask::Run() {
   bool is_humidity_redundant;
   // Request response for system queue Task controlled...
   system_message_t system_message;
-  #ifndef TH_TASK_LOW_POWER_ENABLED
-  uint8_t error_count;
-  #endif
+  uint8_t error_count = 0;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -115,6 +113,7 @@ void TemperatureHumidtySensorTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Starting RESET
   powerOff();
 
   while (true)
@@ -127,6 +126,11 @@ void TemperatureHumidtySensorTask::Run() {
       if (param.system_status->flags.is_cfg_loaded)
       {
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
+        powerOn();
+        // Local WatchDog update;
+        TaskWatchDog(TH_TASK_WAIT_DELAY_MS);
+        Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
+        break;
         state = SENSOR_STATE_INIT;
       }
       // other
@@ -152,15 +156,12 @@ void TemperatureHumidtySensorTask::Run() {
       break;
 
     case SENSOR_STATE_SETUP:
-      #ifndef TH_TASK_LOW_POWER_ENABLED
-      error_count = 0;
-      #endif
 
-      powerOn();
+      // Turn ON ( On Power ON/OFF if Start or Reset after Error Or Always if not use LOW_POWER Method )
+      if(!is_power_on) powerOn();
 
       is_test = false;
       memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
-
       for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
       {
         if (!sensors[i]->isSetted())
@@ -169,12 +170,12 @@ void TemperatureHumidtySensorTask::Run() {
           sensors[i]->setup();
           param.wireLock->Give();
           TRACE_INFO_F(F("--> %u: %s-%s 0x%02X [ %s ]\t [ %s ]\r\n"), i + 1, SENSOR_DRIVER_I2C, sensors[i]->getType(), sensors[i]->getAddress(), param.configuration->sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-        }
+        }        
       }
       state = SENSOR_STATE_PREPARE;
       break;
 
-    case SENSOR_STATE_PREPARE:
+    case SENSOR_STATE_PREPARE:    
       delay_ms = 0;
       for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
       {
@@ -194,10 +195,10 @@ void TemperatureHumidtySensorTask::Run() {
         param.system_status->events.measure_count++;
         if (!sensors[i]->isSuccess())
         {
-          #ifndef TH_TASK_LOW_POWER_ENABLED
           error_count++;
-          #endif
           param.system_status->events.error_count++;
+        } else {
+          error_count=0;
         }
         param.system_status->events.perc_i2c_error = (uint8_t)
           (100.0 - ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
@@ -209,7 +210,6 @@ void TemperatureHumidtySensorTask::Run() {
       Delay(Ticks::MsToTicks(delay_ms));
 
       state = SENSOR_STATE_READ;
-
       break;
 
       case SENSOR_STATE_READ:
@@ -231,9 +231,7 @@ void TemperatureHumidtySensorTask::Run() {
           param.system_status->events.measure_count++;
           if (!sensors[i]->isSuccess())
           {
-            #ifndef TH_TASK_LOW_POWER_ENABLED
             error_count++;
-            #endif
             param.system_status->events.error_count++;
             // 0 - 1 is indextype of measure Humidity/Temperature
             // Redundant or not depending from configuration register (default first loaded is main)
@@ -243,6 +241,7 @@ void TemperatureHumidtySensorTask::Run() {
             else
               param.system_status->events.is_main_error = true;
           } else {
+            error_count=0;
             // 0 - 1 is indextype of measure Humidity/Temperature
             // Redundant or not depending from configuration register (default first loaded is main)
             // Reading OK
@@ -257,7 +256,7 @@ void TemperatureHumidtySensorTask::Run() {
 
           if (false) {}
 
-          #if (USE_SENSOR_ITH)
+          #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ITH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
@@ -340,16 +339,24 @@ void TemperatureHumidtySensorTask::Run() {
       case SENSOR_STATE_END:
         #ifdef TH_TASK_LOW_POWER_ENABLED
         powerOff();
-        #else
-        if (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
-        {
-          powerOff();
-        }
         #endif
 
         #if (ENABLE_STACK_USAGE)
         TaskMonitorStack();
         #endif
+
+        // ************************ GEST ERROR AND POWER RESET ****************************
+        // is_powerd_off only when in Error mode (error_count > TH_TASK_ERROR_FOR_RESET)
+        // Or Always if used (TH_TASK_LOW_POWER_ENABLED). Otherwise can be go directly to PREPARE State
+
+        // Need to Reset Wire?
+        if(error_count > TH_TASK_ERROR_FOR_RESET) {
+          // Restart Hardware Wire (On repeted Error) Power Off Sensor and Rebegin HW I2C State
+          error_count = 0;
+          Wire2.begin();
+          powerOff();
+          break;
+        }
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
@@ -357,10 +364,6 @@ void TemperatureHumidtySensorTask::Run() {
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-        // ************************ GEST ERROR AND POWER RESET ****************************
-        // is_powerd_off only when in Error mode (error_count > TH_TASK_ERROR_FOR_POWER_OFF)
-        // Or Always if used (TH_TASK_LOW_POWER_ENABLED)
-        // Otherwise can be go directly to PREPARE State
         if(is_power_on) {
           state = SENSOR_STATE_PREPARE;
         } else {
