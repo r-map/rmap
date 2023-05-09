@@ -75,25 +75,25 @@ void init_sensors () {
   SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: [ %s ]\r\n"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_ITH)
+  #if (USE_SENSOR_ITH)||(USE_SENSOR_ITH_V2)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ITH, address, 1, sensors, &sensors_count);
   SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: [ %s ]\r\n"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_MTH)
+  #if (USE_SENSOR_MTH)||(USE_SENSOR_MTH_V2)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_MTH, address, 1, sensors, &sensors_count);
   SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: [ %s ]\r\n"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_NTH)
+  #if (USE_SENSOR_NTH)||(USE_SENSOR_NTH_V2)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_NTH, address, 1, sensors, &sensors_count);
   SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: [ %s ]\r\n"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_XTH)
+  #if (USE_SENSOR_XTH)||(USE_SENSOR_XTH_V2)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_XTH, address, 1, sensors, &sensors_count);
   SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: [ %s ]\r\n"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);

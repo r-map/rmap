@@ -86,7 +86,7 @@ public:
    \param[in] *type sensor's type.
    \return instance of SensorDriver for specified sensor.
    */
-   static SensorDriver *create(const char* driver, const char* type, TwoWire *wire = &Wire);
+   static SensorDriver *create(const char* driver, const char* type, TwoWire *sdr_wire = &Wire);
 
    /*!
    \fn void createSensor(const char* driver, const char* type, uint8_t address, SensorDriver *sensors[], uint8_t *sensors_count)
@@ -99,7 +99,7 @@ public:
    \param[in] *sensors_count setted sensors count.
    \return void.
    */
-   static void createSensor(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], TwoWire *wire = &Wire);
+   static void createSensor(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], TwoWire *sdr_wire = &Wire);
 
 
    /*!
@@ -258,7 +258,7 @@ public:
    static uint8_t getSensorsCount();
 
 protected:
-  TwoWire *_wire;
+   TwoWire *_sdr_wire;
 
    /*!
    \var _driver
@@ -351,7 +351,7 @@ protected:
 class SensorDriverAdt7420 : public SensorDriver {
 public:
    SensorDriverAdt7420(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
-      _wire = local_wire;
+      _sdr_wire = local_wire;
       SensorDriver::printInfo();
    };
    void setup();
@@ -387,7 +387,7 @@ protected:
 class SensorDriverHih6100 : public SensorDriver {
 public:
    SensorDriverHih6100(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
-      _wire = local_wire;
+      _sdr_wire = local_wire;
       SensorDriver::printInfo();      
    };
    void setup();
@@ -586,7 +586,7 @@ protected:
 class SensorDriverTh : public SensorDriver {
 public:
   SensorDriverTh(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
-      _wire = local_wire;
+      _sdr_wire = local_wire;
       SensorDriver::printInfo();
    };
    void setup();
@@ -623,11 +623,12 @@ protected:
 #endif
 
 #if (USE_SENSOR_STH_V2 || USE_SENSOR_ITH_V2 || USE_SENSOR_MTH_V2 || USE_SENSOR_NTH_V2 || USE_SENSOR_XTH_V2)
+#include "registers-th.h"
 #include "registers-th_v2.h"
 class SensorDriverTh : public SensorDriver {
 public:
   SensorDriverTh(const char* driver, const char* type, TwoWire *local_wire) : SensorDriver(driver, type) {
-      _wire = local_wire;
+      _sdr_wire = local_wire;
       SensorDriver::printInfo();
    };
    void setup();
@@ -642,9 +643,8 @@ public:
 
 protected:
 
-   // Lenght Fixed to 0x02
-   uint8_t temperature_data[0x02];
-   uint8_t humidity_data[0x02];
+   uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
+   uint8_t humidity_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
 
    enum {
       INIT,

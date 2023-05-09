@@ -38,13 +38,13 @@ namespace _SensorDriver {
 * SensorDriver
 *********************************************************************/
 
-SensorDriver::SensorDriver(const char* driver, const char* type, TwoWire *wire) {
+SensorDriver::SensorDriver(const char* driver, const char* type, TwoWire *sdr_wire) {
   _driver = driver;
   _type = type;
-  _wire = wire;
+  _sdr_wire = sdr_wire;
 }
 
-SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire *wire) {
+SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire *sdr_wire) {
   if (strlen(driver) == 0 || strlen(type) == 0) {
     TRACE_ERROR_F(F("SensorDriver %s-%s create... [ %s ]--> driver or type is null."), driver, type, FAIL_STRING);
     return NULL;
@@ -52,22 +52,22 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire
 
   #if (USE_SENSOR_ADT)
   else if (strcmp(type, SENSOR_TYPE_ADT) == 0)
-  return new SensorDriverAdt7420(driver, type, wire);
+  return new SensorDriverAdt7420(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_HIH)
   else if (strcmp(type, SENSOR_TYPE_HIH) == 0)
-  return new SensorDriverHih6100(driver, type, wire);
+  return new SensorDriverHih6100(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_HYT)
   else if (strcmp(type, SENSOR_TYPE_HYT) == 0)
-  return new SensorDriverHyt(driver, type, wire);
+  return new SensorDriverHyt(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_SHT)
   else if (strcmp(type, SENSOR_TYPE_SHT) == 0)
-  return new SensorDriverSht(driver, type, wire);
+  return new SensorDriverSht(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_DW1)
@@ -82,12 +82,12 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type, TwoWire
 
   #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
   else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
-  return new SensorDriverTh(driver, type, wire);
+  return new SensorDriverTh(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_STH_V2 || USE_SENSOR_ITH_V2 || USE_SENSOR_MTH_V2 || USE_SENSOR_NTH_V2 || USE_SENSOR_XTH_V2)
   else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
-  return new SensorDriverTh(driver, type, wire);
+  return new SensorDriverTh(driver, type, sdr_wire);
   #endif
 
   #if (USE_SENSOR_DEP)
@@ -206,7 +206,7 @@ uint8_t SensorDriver::getSensorsCount() {
   return _SensorDriver::_sensors_count;
 }
 
-void SensorDriver::createSensor(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], TwoWire *wire) {
+void SensorDriver::createSensor(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], TwoWire *sdr_wire) {
   uint8_t index;
   bool found = false;
 
@@ -235,7 +235,7 @@ void SensorDriver::createSensor(const char* driver, const char* type, const uint
     _SensorDriver::_pool_new_pointer++;
   }
 
-  sensors[_SensorDriver::_sensors_count] = SensorDriver::create(driver, type, wire);
+  sensors[_SensorDriver::_sensors_count] = SensorDriver::create(driver, type, sdr_wire);
   if (sensors[_SensorDriver::_sensors_count]) {
     sensors[_SensorDriver::_sensors_count]->init(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
     // sensors[_sensors_count]->setup();
@@ -271,11 +271,11 @@ void SensorDriverAdt7420::setup() {
   _delay_ms = 0;
 
   if (!*_is_setted) {
-    _wire->beginTransmission(_address);
-    _wire->write(0x03); // Set the register pointer to (0x01)
-    _wire->write(0x20); // Set resolution and one shot
+    _sdr_wire->beginTransmission(_address);
+    _sdr_wire->write(0x03); // Set the register pointer to (0x01)
+    _sdr_wire->write(0x20); // Set resolution and one shot
 
-    if (_wire->endTransmission()) {
+    if (_sdr_wire->endTransmission()) {
       TRACE_ERROR_F(F("adt7420 setup... [ %s ]"), FAIL_STRING);
       _error_count++;
       return;
@@ -294,11 +294,11 @@ void SensorDriverAdt7420::prepare(bool is_test) {
   SensorDriver::printInfo();
 
   if (!*_is_prepared) {
-    _wire->beginTransmission(_address);
-    _wire->write(0x03); // Set the register pointer to (0x01)
-    _wire->write(0x20); // Set resolution and one shot
+    _sdr_wire->beginTransmission(_address);
+    _sdr_wire->write(0x03); // Set the register pointer to (0x01)
+    _sdr_wire->write(0x20); // Set resolution and one shot
 
-    if (_wire->endTransmission()) {
+    if (_sdr_wire->endTransmission()) {
       TRACE_ERROR_F(F("adt7420 prepare... [ %s ]"), FAIL_STRING);
       _error_count++;
       return;
@@ -334,10 +334,10 @@ void SensorDriverAdt7420::get(rmapdata_t *values, uint8_t length, bool is_test) 
     _is_end = false;
 
     if (*_is_prepared && length >= 1) {
-      _wire->beginTransmission(_address);
-      _wire->write(0x00); // Set the register pointer to (0x00)
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(0x00); // Set the register pointer to (0x00)
 
-      if (_wire->endTransmission()) {
+      if (_sdr_wire->endTransmission()) {
 	_error_count++;
         _is_success = false;
       }
@@ -359,15 +359,15 @@ void SensorDriverAdt7420::get(rmapdata_t *values, uint8_t length, bool is_test) 
     break;
 
     case READ:
-    _wire->requestFrom(_address, (uint8_t) 2);
+    _sdr_wire->requestFrom(_address, (uint8_t) 2);
 
-    if (_wire->available() < 2) {
+    if (_sdr_wire->available() < 2) {
       _error_count++;
       _is_success = false;
     }
     else {
-      msb = _wire->read();
-      lsb = _wire->read();
+      msb = _sdr_wire->read();
+      lsb = _sdr_wire->read();
 
       if ((msb == 255) && (lsb == 255)) {
 	_error_count++;
@@ -467,9 +467,9 @@ void SensorDriverHih6100::setup() {
 
   if (!*_is_setted) {
 
-    _wire->beginTransmission(_address);
+    _sdr_wire->beginTransmission(_address);
 
-    if (_wire->endTransmission() == 0) {
+    if (_sdr_wire->endTransmission() == 0) {
       *_is_setted = true;
       _error_count = 0;
       TRACE_VERBOSE_F(F("hih6100 setup... [ %s ]"), OK_STRING);
@@ -486,9 +486,9 @@ void SensorDriverHih6100::prepare(bool is_test) {
   SensorDriver::printInfo();
 
   if (!*_is_prepared) {
-    _wire->beginTransmission(_address);
+    _sdr_wire->beginTransmission(_address);
 
-    if (_wire->endTransmission()) {
+    if (_sdr_wire->endTransmission()) {
       _error_count++;
       TRACE_ERROR_F(F("hih6100 prepare... [ %s ]"), FAIL_STRING);
       return;
@@ -538,25 +538,25 @@ void SensorDriverHih6100::get(rmapdata_t *values, uint8_t length, bool is_test) 
     break;
 
     case READ:
-    _wire->requestFrom(_address, (uint8_t)  4);
+    _sdr_wire->requestFrom(_address, (uint8_t)  4);
 
-    if (_wire->available() < 4) {
+    if (_sdr_wire->available() < 4) {
       _error_count++;
       _is_success = false;
     }
     else {
-      x = _wire->read();
+      x = _sdr_wire->read();
       s = (x & 0xC0 ) >> 6;
 
       if (s == 0) {
         // status 0 == OK
         // Normal Operation, Valid Data that has not been fetched since the last measurement cycle
 
-        y = _wire->read();
+        y = _sdr_wire->read();
         humidity = (((uint16_t) (x & 0x3F)) << 8) | y;
 
-        x = _wire->read();
-        y = _wire->read();
+        x = _sdr_wire->read();
+        y = _sdr_wire->read();
 
         temperature = (((uint16_t) x) << 6) | ((y & 0xFC) >> 2);
         _is_success = true;
@@ -580,7 +580,7 @@ void SensorDriverHih6100::get(rmapdata_t *values, uint8_t length, bool is_test) 
     }
 
     // mmm what is this ?
-    if (_wire->endTransmission()) {
+    if (_sdr_wire->endTransmission()) {
       _is_success = false;
     }
 
@@ -1617,10 +1617,10 @@ void SensorDriverTh::setup() {
     }
 
     if (is_i2c_write) {
-      _wire->beginTransmission(_address);
-      _wire->write(_buffer, i+1);
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(_buffer, i+1);
 
-      if (_wire->endTransmission() == 0) {
+      if (_sdr_wire->endTransmission() == 0) {
         _error_count = 0;
         _is_success = true;
         *_is_setted = true;
@@ -1670,10 +1670,10 @@ void SensorDriverTh::prepare(bool is_test) {
     }
 
     if (is_i2c_write) {
-      _wire->beginTransmission(_address);
-      _wire->write(_buffer, i+1);
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(_buffer, i+1);
 
-      if (_wire->endTransmission() == 0) {
+      if (_sdr_wire->endTransmission() == 0) {
 	      _error_count = 0;
         _is_success = true;
         *_is_prepared = true;
@@ -1767,10 +1767,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (is_i2c_write) {
-        _wire->beginTransmission(_address);
-        _wire->write(_buffer, i+1);
+        _sdr_wire->beginTransmission(_address);
+        _sdr_wire->write(_buffer, i+1);
 
-        if (_wire->endTransmission()) {
+        if (_sdr_wire->endTransmission()) {
           TRACE_VERBOSE_F(F("th get... ERROR SET_TEMPERATURE_ADDRESS\r\n"));
 	        _error_count++;
           _is_success = false;
@@ -1809,8 +1809,8 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (_is_success) {
-        _wire->requestFrom(_address, (uint8_t)(data_length + 1));
-        if (_wire->available() < (data_length + 1)) {
+        _sdr_wire->requestFrom(_address, (uint8_t)(data_length + 1));
+        if (_sdr_wire->available() < (data_length + 1)) {
           TRACE_VERBOSE_F(F("th get... ERROR READ_TEMPERATURE\r\n"));
           _error_count++;
                 _is_success = false;
@@ -1821,10 +1821,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          temperature_data[i] = _wire->read();
+          temperature_data[i] = _sdr_wire->read();
         }
 
-        if (crc8(temperature_data, data_length) != _wire->read()) {
+        if (crc8(temperature_data, data_length) != _sdr_wire->read()) {
 	        TRACE_VERBOSE_F(F("th get... ERROR READ_TEMPERATURE CRC error\r\n"));
           _is_success = false;
         }
@@ -1882,10 +1882,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (is_i2c_write) {
-        _wire->beginTransmission(_address);
-        _wire->write(_buffer, i+1);
+        _sdr_wire->beginTransmission(_address);
+        _sdr_wire->write(_buffer, i+1);
 
-        if (_wire->endTransmission()) {
+        if (_sdr_wire->endTransmission()) {
           TRACE_VERBOSE_F(F("th get... ERROR SET_HUMIDITY_ADDRESS\r\n"));
           _error_count++;
           _is_success = false;
@@ -1927,8 +1927,8 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (_is_success) {
-        _wire->requestFrom(_address, (uint8_t)(data_length + 1));
-        if (_wire->available() < (data_length + 1)) {
+        _sdr_wire->requestFrom(_address, (uint8_t)(data_length + 1));
+        if (_sdr_wire->available() < (data_length + 1)) {
           TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY\r\n"));
           _error_count++;
           _is_success = false;
@@ -1939,10 +1939,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          humidity_data[i] = _wire->read();
+          humidity_data[i] = _sdr_wire->read();
         }
 
-        if (crc8(humidity_data, data_length) != _wire->read()) {
+        if (crc8(humidity_data, data_length) != _sdr_wire->read()) {
           TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY CRC error\r\n"));
           _is_success = false;
         }
@@ -2073,9 +2073,9 @@ void SensorDriverTh::setup() {
     }
 
     if (is_i2c_write) {
-      _wire->beginTransmission(_address);
-      _wire->write(_buffer, i+1);
-      if (_wire->endTransmission() == 0) {
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(_buffer, i+1);
+      if (_sdr_wire->endTransmission() == 0) {
         _error_count = 0;
         _is_success = true;
         *_is_setted = true;
@@ -2088,9 +2088,9 @@ void SensorDriverTh::setup() {
       i=0;
       _buffer[i++] = I2C_TH_COMMAND;
       _buffer[i] = I2C_TH_COMMAND_ONESHOT_STOP;
-      _wire->beginTransmission(_address);
-      _wire->write(_buffer, i+1);
-      if (_wire->endTransmission() == 0) {
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(_buffer, i+1);
+      if (_sdr_wire->endTransmission() == 0) {
         _error_count = 0;
         _is_success = true;
         *_is_setted = true;
@@ -2133,10 +2133,10 @@ void SensorDriverTh::prepare(bool is_test) {
     }
 
     if (is_i2c_write) {
-      _wire->beginTransmission(_address);
-      _wire->write(_buffer, i+1);
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(_buffer, i+1);
 
-      if (_wire->endTransmission() == 0) {
+      if (_sdr_wire->endTransmission() == 0) {
 	      _error_count = 0;
         _is_success = true;
         *_is_prepared = true;
@@ -2168,25 +2168,28 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       for (uint8_t i =0; i < length; i++) {
 	      values[i]=INT32_MAX;
       }
-      memset(temperature_data, UINT8_MAX, 0x02);
-      memset(humidity_data, UINT8_MAX, 0x02);
+      memset(temperature_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
+      memset(humidity_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
 
-      _wire->beginTransmission(_address);
-      _wire->write(I2C_TH_COMMAND);
-      _wire->write(I2C_TH_COMMAND_ONESHOT_STOP);
-      _wire->endTransmission();
+      _sdr_wire->beginTransmission(_address);
+      _sdr_wire->write(I2C_TH_COMMAND);
+      _sdr_wire->write(I2C_TH_COMMAND_ONESHOT_STOP);
+      if(_sdr_wire->endTransmission()) {
+        TRACE_ERROR_F(F("th get INIT ERROR SET ONESHOT_STOP COMMAND\r\n"));
+        _is_success = false;
+        _get_state = END;
+      }
       delay(10);
 
       _is_readed = false;
       _is_end = false;
 
       if ( *_is_prepared && length >= 1) {
-        TRACE_VERBOSE_F(F("th get INIT\r\n"));
+        TRACE_VERBOSE_F(F("th get INIT [ OK ]\r\n"));
         _is_success = true;
         _get_state = SET_TEMPERATURE_ADDRESS;
-      }
-      else {
-        TRACE_ERROR_F(F("th get INIT\r\n"));
+      } else {
+        TRACE_ERROR_F(F("th get INIT [ Len error ]\r\n"));
         _is_success = false;
         _get_state = END;
       }
@@ -2226,10 +2229,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (is_i2c_write) {
-        _wire->beginTransmission(_address);
-        _wire->write(_buffer, i+1);
+        _sdr_wire->beginTransmission(_address);
+        _sdr_wire->write(_buffer, i+1);
 
-        if (_wire->endTransmission()) {
+        if (_sdr_wire->endTransmission()) {
           TRACE_VERBOSE_F(F("th get... ERROR SET_TEMPERATURE_ADDRESS\r\n"));
 	        _error_count++;
           _is_success = false;
@@ -2270,8 +2273,8 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (_is_success) {
-        _wire->requestFrom(_address, (uint8_t)(data_length + 1));
-        if (_wire->available() < (data_length + 1)) {
+        _sdr_wire->requestFrom(_address, (uint8_t)(data_length));
+        if (_sdr_wire->available() < (data_length)) {
           TRACE_VERBOSE_F(F("th get... ERROR READ_TEMPERATURE\r\n"));
           _error_count++;
           _is_success = false;
@@ -2282,7 +2285,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          temperature_data[i] = _wire->read();
+          temperature_data[i] = _sdr_wire->read();
         }
       }
 
@@ -2328,10 +2331,10 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (is_i2c_write) {
-        _wire->beginTransmission(_address);
-        _wire->write(_buffer, i+1);
+        _sdr_wire->beginTransmission(_address);
+        _sdr_wire->write(_buffer, i+1);
 
-        if (_wire->endTransmission()) {
+        if (_sdr_wire->endTransmission()) {
           TRACE_VERBOSE_F(F("th get... ERROR SET_HUMIDITY_ADDRESS\r\n"));
           _error_count++;
           _is_success = false;
@@ -2373,8 +2376,8 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
       }
 
       if (_is_success) {
-        _wire->requestFrom(_address, (uint8_t)(data_length + 1));
-        if (_wire->available() < (data_length + 1)) {
+        _sdr_wire->requestFrom(_address, (uint8_t)(data_length));
+        if (_sdr_wire->available() < (data_length)) {
           TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY\r\n"));
           _error_count++;
           _is_success = false;
@@ -2385,12 +2388,7 @@ void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          humidity_data[i] = _wire->read();
-        }
-
-        if (crc8(humidity_data, data_length) != _wire->read()) {
-          TRACE_VERBOSE_F(F("th get... ERROR READ_HUMIDITY CRC error\r\n"));
-          _is_success = false;
+          humidity_data[i] = _sdr_wire->read();
         }
       }
 

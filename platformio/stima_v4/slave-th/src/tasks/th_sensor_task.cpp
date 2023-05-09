@@ -130,8 +130,8 @@ void TemperatureHumidtySensorTask::Run() {
         // Local WatchDog update;
         TaskWatchDog(TH_TASK_WAIT_DELAY_MS);
         Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
-        break;
         state = SENSOR_STATE_INIT;
+        break;
       }
       // other
       else
@@ -176,9 +176,11 @@ void TemperatureHumidtySensorTask::Run() {
       break;
 
     case SENSOR_STATE_PREPARE:    
+
       delay_ms = 0;
       for (uint8_t i = 0; i < SensorDriver::getSensorsCount(); i++)
       {
+
         sensors[i]->resetPrepared();
         param.wireLock->Take();
         sensors[i]->prepare(is_test);
@@ -348,15 +350,15 @@ void TemperatureHumidtySensorTask::Run() {
         // ************************ GEST ERROR AND POWER RESET ****************************
         // is_powerd_off only when in Error mode (error_count > TH_TASK_ERROR_FOR_RESET)
         // Or Always if used (TH_TASK_LOW_POWER_ENABLED). Otherwise can be go directly to PREPARE State
-
-        // Need to Reset Wire?
         if(error_count > TH_TASK_ERROR_FOR_RESET) {
           // Restart Hardware Wire (On repeted Error) Power Off Sensor and Rebegin HW I2C State
           error_count = 0;
-          Wire2.begin();
           powerOff();
-          break;
         }
+
+        param.wireLock->Take();
+        param.wire->begin();
+        param.wireLock->Give();
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
@@ -364,6 +366,7 @@ void TemperatureHumidtySensorTask::Run() {
         DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+        // Check next state if need to Restart Power and new call setup method
         if(is_power_on) {
           state = SENSOR_STATE_PREPARE;
         } else {

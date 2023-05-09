@@ -226,7 +226,7 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static TemperatureHumidtySensorTask th_sensor_task("THTask", 350, OS_TASK_PRIORITY_03, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 350, OS_TASK_PRIORITY_02, elaborateDataParam);
 
@@ -235,7 +235,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7400, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_WDT)

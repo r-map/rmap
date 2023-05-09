@@ -121,6 +121,7 @@ void HttpTask::Run() {
   uint8_t module_download_ver, module_download_rev; // firmware version and revision in download
   uint8_t module_download_type; // firmware module type in download
   char module_download_md5[32]; // firmware md5 ckeck
+  uint32_t totBytesRead = 0;    // firmware download bytes for file
 
   connection_request_t connection_request;
   connection_response_t connection_response;
@@ -283,7 +284,9 @@ void HttpTask::Run() {
         } else {
           module_download_type = param.configuration->board_slave[module_download].module_type;
         }
-        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%u/", param.configuration->module_type);
+        // snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%u/", param.configuration->module_type);
+        getStimaNameByType(header, module_download_type, STIMA_MODULE_OFFSET_IDENT_V4);
+        snprintf(uri, sizeof(uri), "/firmware/stima/v4/update/%s/", header);
       }
 
       TRACE_INFO_F(F("%s http request to %s%s\r\n"), Thread::GetName().c_str(), HttpServer, uri);
@@ -408,10 +411,9 @@ void HttpTask::Run() {
           // Retrieve the value of the Content-Type header field
           value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
           strcpy(module_download_md5, value);
-          value = httpClientGetHeaderField(&httpClientContext, "version");
-          module_download_ver = atoi(value);
-          value = httpClientGetHeaderField(&httpClientContext, "revision");
-          module_download_rev = atoi(value);
+          // Next module revision (Correct version are writed into Firmware)
+          module_download_ver = param.configuration->module_main_version;
+          module_download_rev = param.configuration->module_minor_version + 1;
         }
 
         // Header field found?
@@ -442,6 +444,8 @@ void HttpTask::Run() {
           TRACE_ERROR_F(F("%s http status code %u [Configuration request failed]\r\n"), Thread::GetName().c_str(), status);
       }
 
+      // Firmware bytes download module
+      totBytesRead = 0;
       // Receive HTTP response body (and no Error Dowload Firmware (always false is not firmware request))
       while ((!error)&&(!bErrorFirmwareDownload))
       {
@@ -483,7 +487,7 @@ void HttpTask::Run() {
         }
         else if (is_get_firmware)
         {
-          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer) - 1, &http_buffer_length, 0);
+          error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer), &http_buffer_length, 0);
 
           if (!error)
           {
@@ -492,8 +496,10 @@ void HttpTask::Run() {
             TaskMonitorStack();
             #endif
 
-            http_buffer[http_buffer_length] = '\0';
-            TRACE_INFO_F(F("%s"), http_buffer);
+            totBytesRead += http_buffer_length;
+
+            // Read all entire buffer lenght without filter of CR/LF
+            TRACE_INFO_F(F("Recived block of [ %d ] bytes, total downloaded [ %d ] bytes\r\n"), http_buffer_length, totBytesRead);
 
             // AddBlock Firmware to Queue -> and Put do MMC/SD
             bErrorFirmwareDownload |= do_firmware_add_block((uint8_t*)http_buffer, http_buffer_length);
@@ -582,6 +588,8 @@ void HttpTask::Run() {
         }
       }
       if(module_download >= BOARDS_COUNT_MAX) {
+        // End of loop downloading firmware
+        is_error = NO_ERROR;
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_LOOP_REQUEST_FIRMWARE -> HTTP_STATE_END\r\n"));
       } 
@@ -589,6 +597,7 @@ void HttpTask::Run() {
       {
         // Deinit Current context and restart next
         httpClientDeinit(&httpClientContext);
+        is_error = NO_ERROR;
         state = HTTP_STATE_SEND_REQUEST;
         TRACE_VERBOSE_F(F("HTTP_STATE_LOOP_REQUEST_FIRMWARE -> HTTP_STATE_SEND_REQUEST\r\n"));
       }
@@ -759,7 +768,7 @@ bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
   // Add Data Chunck...
   // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
   firmwareDownloadChunck.block_type = file_block_type::data_chunck;
-  strncpy((char*)firmwareDownloadChunck.block, (char*)block_addr, block_len);
+  memcpy((char*)firmwareDownloadChunck.block, (char*)block_addr, block_len);
   firmwareDownloadChunck.block_lenght = block_len;
 
   // Push data request to queue MMC

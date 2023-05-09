@@ -265,7 +265,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_ITH
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
-#define USE_SENSOR_ITH              (true)
+#define USE_SENSOR_ITH              (false)
 
 /*!
 \def USE_SENSOR_NTH
@@ -296,7 +296,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SENSOR_ITH
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
-#define USE_SENSOR_ITH_V2           (false)
+#define USE_SENSOR_ITH_V2           (true)
 
 /*!
 \def USE_SENSOR_NTH

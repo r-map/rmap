@@ -775,7 +775,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                             TRACE_INFO_F(F("File server: End of data block data, readed [ %lu ] bytes\r\n"), ((uint32_t)(firmwareDownloadChunck.block_id) * (uint32_t)(FILE_GET_DATA_BLOCK_SIZE)) + sdcard_task_response.block_lenght);
                         } else {
                             // Normal block, prepare for next block
-                            TRACE_VERBOSE_F(F("File serve: Readed data block id: [ %d ]\r\n"), firmwareDownloadChunck.block_id);
+                            TRACE_VERBOSE_F(F("File server: Readed data block id: [ %d ]\r\n"), firmwareDownloadChunck.block_id);
                         }
                     }
                     // *********** END GET Data File (Firmware) from SD CARD Queue ************

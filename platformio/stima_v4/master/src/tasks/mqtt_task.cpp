@@ -333,9 +333,10 @@ void MqttTask::Run()
         rmap_eof = false;
         rmap_data_error = false;
         countData = 0;
+        error = NO_ERROR;
 
         // Exit on End of data or Error from queue
-        while((!rmap_data_error)&&(!rmap_eof)) {
+        while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
           memset(&rmap_get_request, 0, sizeof(rmap_get_request));
           // Get Next data... Stop at EOF
           rmap_get_request.command.do_get_data = true;
@@ -627,11 +628,12 @@ void MqttTask::Run()
           // FINE PROVA
           #endif          
 
-          error = NO_ERROR; // Error MQTT Cycone
+          error = NO_ERROR; // Init NoError MQTT Cyclone
+
+          // EOF Data? (Save and Exit, after last data process)
+          rmap_eof = rmap_get_response.result.end_of_data;
 
           if((!error)&&(!rmap_data_error)&&(rmap_get_response.result.done_get_data)) {
-            // EOF Data? (Save and Exit, after last data process)
-            rmap_eof = rmap_get_response.result.end_of_data;
             countData++;
             #if TRACE_LEVEL >= TRACE_VERBOSE
             // ******************************************************************
@@ -919,13 +921,16 @@ void MqttTask::Run()
                 break;
             }
           }
-          else
-          {
-            TRACE_ERROR_F(F("MQTT: RMAP Reading Data queue error!!!\r\n"));
-          }
           // Non blocking task
           TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
           Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+        }
+        // TRACE Only Exit End Result code
+        if(error) {
+          TRACE_ERROR_F(F("MQTT: RMAP Publish Data, exit from upload Data MQTT [ %s ]\r\n"), ERROR_STRING);
+        }
+        if(rmap_data_error) {
+          TRACE_ERROR_F(F("MQTT: RMAP Reading Data, exit from upload Data Queue [ %s ]\r\n"), ERROR_STRING);
         }
         // Trace END Data response
         TRACE_INFO_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);

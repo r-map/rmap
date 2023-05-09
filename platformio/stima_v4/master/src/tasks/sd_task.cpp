@@ -340,6 +340,7 @@ void SdTask::Run()
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
   File dir, entry, tmpFile;       // Only used for Temp(shared Open Close Single Operation) or Access directory List
   bool error_sd_card = false;     // Generic error Open/Other operation to SD require a new Synch Reset SD CARD
+  bool is_real_time_task = false; // Request min delay (real time type for task) Need if queue file is opened direct to minimize external wait
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -486,7 +487,7 @@ void SdTask::Run()
       } else {
         tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
         if(tmpFile) {
-          TRACE_INFO_F(F("SD: create new data pointer at now() %s\r\n"));
+          TRACE_INFO_F(F("SD: create new data pointer at now()\r\n"));
           // Open File High LED
           digitalWrite(PIN_SD_LED, HIGH);
           rmap_pointer_seek = 0;
@@ -951,15 +952,21 @@ void SdTask::Run()
                   error_sd_card = true;
                 }
               } else {
+                // Test from last data to now() for synch pointer data
+                uint32_t now_dt = rtc.getEpoch();
+                // Loop while find dataPointer or DateTime > now()
+                while(true) {
+                  // Full search from last data send to now() If day not present test next Day File...
+                  rmap_pointer_datetime += SECS_DAY;
                   // Check if another Day (Next) is present before sending End Of Data
                   // If Exist The Seek Pointer Have to be resetted to Init Value (First Data of New File)
-                  namingFileData(rmap_pointer_datetime + SECS_DAY, "/data", rmap_file_name_check);
+                  namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
                   // Not Exist? End Of Data, Otherwise next request in New Day Direct open Day File without other operation
                   if(SD.exists(rmap_file_name_check)) {
                     // Reopen Operation can be Start Immediatly.
                     // Set SEEK Position to Start File and DateTime to hh:nn:ss at 0.0.0 Begin of Day
                     rmap_pointer_seek = 0;
-                    rmap_pointer_datetime = ((rmap_pointer_datetime + SECS_DAY) / SECS_DAY) * SECS_DAY;
+                    rmap_pointer_datetime = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
                     // Save new file_name for next control
                     strcpy(rmap_file_name_rd, rmap_file_name_check);
                     // Not opened? Open... in append
@@ -967,13 +974,21 @@ void SdTask::Run()
                     rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
                     // Open File High LED
                     digitalWrite(PIN_SD_LED, HIGH);
+                    // EXIT DATA FOUND...!!!
+                    break;
                   } else {
-                    rmap_get_response.result.end_of_data = true;
-                    // No more data avaiable
-                    param.systemStatusLock->Take();
-                    param.system_status->flags.new_data_to_send = false;
-                    param.systemStatusLock->Give();
+                    // >= Current date time... End of Search...
+                    if(rmap_pointer_datetime >= now_dt) {
+                      rmap_get_response.result.end_of_data = true;
+                      // No more data avaiable
+                      param.systemStatusLock->Take();
+                      param.system_status->flags.new_data_to_send = false;
+                      param.systemStatusLock->Give();
+                      // EXIT DATA NOT FOUND...!!!
+                      break;
+                    }
                   }
+                }
               }
             } else {
               // Error on open file
@@ -1055,6 +1070,8 @@ void SdTask::Run()
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         if(param.dataFilePutRequestQueue->Dequeue(&file_put_request)) {
+          // Put the TASK in real_time mode to minimize external queue waiting and not blocking task (SD)
+          is_real_time_task = true;
           // Put to SD ( CREATE / APPEND Firmware Block File session )
           if(file_put_request.block_type == file_block_type::file_name) {
             // Get File name set file name Upload (session current START)
@@ -1363,9 +1380,20 @@ void SdTask::Run()
     #endif
 
     // One step base non blocking switch
-    TaskWatchDog(SD_TASK_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(SD_TASK_WAIT_DELAY_MS));
-
+    // WDT non blocking task (Delay basic operation)
+    if(is_real_time_task) {
+      // Perform an real_time task wait (switching task not blocking and restart immediatly)
+      TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+      Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+      // Put request real_time to false. Next queue request must set this var to true
+      is_real_time_task = false;
+    }
+    else
+    {
+      // Standard waiting
+      TaskWatchDog(SD_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(SD_TASK_WAIT_DELAY_MS));
+    }
   }
 }
 

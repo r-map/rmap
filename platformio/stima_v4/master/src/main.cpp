@@ -425,11 +425,11 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 1400, OS_TASK_PRIORITY_02, httpParam);
+  static HttpTask http_task("HttpTask", 900, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 2900, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 1400, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);
