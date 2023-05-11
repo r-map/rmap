@@ -165,7 +165,7 @@ void SupervisorTask::Run()
         strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
         param.configuration->observation_s = 60;
         // param.configuration->report_s = 180;
-        param.configuration->report_s = 900;
+        param.configuration->report_s = 180;
         param.system_status->flags.config_empty = false;
         #endif
 

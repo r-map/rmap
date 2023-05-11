@@ -1294,6 +1294,7 @@ void CanTask::Run() {
                 idxFixed = -1;
                 #ifdef USE_MODULE_FIXED_TH
                 idxFixed++;
+                // TODO: SISTEMAAAAAAAAA
                 param.configuration->board_slave[idxFixed].can_address = 60;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::th;
                 param.configuration->board_slave[idxFixed].can_port_id = 50;
@@ -1804,10 +1805,11 @@ void CanTask::Run() {
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
-                        //param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
-                        //param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
-                        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / 60;
-                        param.system_status->datetime.epoch_sensors_get_value = (curEpoch / 60) * 60;
+                        // TODO: TEST
+                        param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
+                        param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
+                        // param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / 60;
+                        // param.system_status->datetime.epoch_sensors_get_value = (curEpoch / 60) * 60;
                         // Calculate expected/recived HeartBeat sequence... and reset counter
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
@@ -1835,6 +1837,7 @@ void CanTask::Run() {
                     // bStartGetData are priority Command if both requested
                     for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                         // For all node onLine
+                        // TODO: remove
                         if(clCanard.slave[queueId].is_online()) {
                             // Command are sending without other Pending Command
                             // Service request structure is same for all RMAP object to simplify function

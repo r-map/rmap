@@ -2145,6 +2145,21 @@ void SensorDriverTh::prepare(bool is_test) {
         TRACE_ERROR_F(F("th prepare... endTransmission\r\n"));
       }
     }
+
+    // if (is_i2c_write || _error_count) {
+    //   _sdr_wire->beginTransmission(_address);
+    //   _sdr_wire->write(_buffer, i+1);
+
+    //   if (_sdr_wire->endTransmission() == 0) {
+	  //     _error_count = 0;
+    //     _is_success = true;
+    //     *_is_prepared = true;
+    //   }else{
+    //     _error_count++;
+    //     TRACE_ERROR_F(F("th prepare... endTransmission\r\n"));
+    //   }
+    // }
+
   }
   else {
     _is_success = true;

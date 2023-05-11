@@ -70,8 +70,8 @@
 
 // Utilizzo del flag di configurazione fissi (check moduli CAN connection and data)
 #if (FIXED_CONFIGURATION)
-// #define USE_MODULE_FIXED_TH
-#define USE_MODULE_FIXED_RAIN
+#define USE_MODULE_FIXED_TH
+// #define USE_MODULE_FIXED_RAIN
 // #define USE_MODULE_FIXED_WIND
 // #define USE_MODULE_FIXED_RADIATION
 // #define USE_MODULE_FIXED_VWC
