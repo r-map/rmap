@@ -96,6 +96,8 @@ typedef struct
    {
      bool is_windsonic_hardware_error;
      bool is_windsonic_unit_error;
+     bool is_windsonic_crc_error;
+     bool is_windsonic_axis_error;
      bool is_windsonic_responding_error;
      uint8_t perc_rs232_error;
      uint16_t measure_count;

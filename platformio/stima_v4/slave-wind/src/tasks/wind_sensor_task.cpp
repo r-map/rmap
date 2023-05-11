@@ -241,7 +241,7 @@ void WindSensorTask::Run() {
       {
         speed = FLT_MAX;
         direction = FLT_MAX;
-        windCodeError = -6;  // Add interpreter error No message measure...
+        windCodeError = -10;  // Add interpreter error No message measure...
       }
       else
       {
@@ -251,23 +251,34 @@ void WindSensorTask::Run() {
       // Reset In Buffer Serial for next Acquire (Align request immediatly after Interpretate data)
       serialReset();
 
-      // -1 Invalid message, -2 Status hardware error, -3 status message error
-      // -4 Unit measure not valid, -5 CRC Error, -6 No message (time out)
-      // Prepare signal to Master
+      /// -1 Invalid message, -2 Axis Measurement Error, -3 Status hardware error,
+      /// -4 status message error, -5 Unit measure not valid, -6 CRC Error
       param.systemStatusLock->Take();
       param.system_status->events.measure_count++;
       if(windCodeError) {
         param.system_status->events.error_count++;
-        if(windCodeError == -6) {
+        if(windCodeError == -2) {
+          param.system_status->events.is_windsonic_axis_error = true;
+        }
+        else if(windCodeError == -3) {
+          // Message ROM Error
+          param.system_status->events.is_windsonic_hardware_error = true;
+        }
+        else if(windCodeError == -6) {
+          // Message CRC Error
+          param.system_status->events.is_windsonic_crc_error = true;
+        }
+        else if(windCodeError == -5) {
+          // Generic Unnown message Error or Format Data Not Valid
+          param.system_status->events.is_windsonic_unit_error = true;
+        } else {
+          // Fake Error code (Init value, Reset to 0 if Measurement OK...) Or Unknown Error or Message Format Error
           param.system_status->events.is_windsonic_responding_error = true;
         }
-        else if(windCodeError == -2) {
-          param.system_status->events.is_windsonic_hardware_error = true;
-        } else {
-          param.system_status->events.is_windsonic_unit_error = true;
-        }
       } else {
+        param.system_status->events.is_windsonic_axis_error = false;
         param.system_status->events.is_windsonic_hardware_error = false;
+        param.system_status->events.is_windsonic_crc_error = false;
         param.system_status->events.is_windsonic_unit_error = false;
         param.system_status->events.is_windsonic_responding_error = false;
       }
@@ -373,8 +384,8 @@ void WindSensorTask::powerOff()
 /// @param speed pointer to returned speed wind value
 /// @param direction pointer to returned direction wind value
 /// @return 0 is measure is valid (value = check control status, CRC and message composition)
-///         -1 Invalid message, -2 Status hardware error, -3 status message error
-///         -4 Unit measure not valid, -5 CRC Error
+///         -1 Invalid message, -2 Axis Measurement Error, -3 Status hardware error,
+///         -4 status message error, -5 Unit measure not valid, -6 CRC Error
 uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
 {
   char tempstr[GWS_SPEED_LENGTH + 1];
@@ -382,6 +393,7 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   uint8_t myCrc = 0, chrOffset;
   int crc = 0;
   bool is_crc_ok = false;
+  bool bVoidDataMessage = false;
   *speed = UINT16_MAX;
   *direction = UINT16_MAX;
 
@@ -389,7 +401,6 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   {
     // Standard complete measure Dir + Wind (no offset required)
     chrOffset = 0;
-
     memset(tempstr, 0, sizeof(tempstr));
     strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_DIRECTION_INDEX), GWS_DIRECTION_LENGTH);
     *direction = (float)atof(tempstr);
@@ -398,26 +409,34 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   {
     // Only wind measure without direction (adding offset)    
     chrOffset = GWS_WITHOUT_DIRECTION_OFFSET;
-
     *direction = WIND_DIRECTION_MIN;
   }
-  else {
+  else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_MEASUREMENT_OFFSET] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr - 1] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr] == LF_VALUE))
+  {
+    // Only message error without wind and direction (adding offset)    
+    chrOffset = GWS_WITHOUT_MEASUREMENT_OFFSET;
+    bVoidDataMessage = true;
+  }
+  else
+  {
     // Return an error
     TRACE_ERROR_F(F("Windsonic: data read invalid"));
     return -1;
   }
 
-  memset(tempstr, 0, sizeof(tempstr));
-  strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_SPEED_INDEX - chrOffset), GWS_SPEED_LENGTH);
-  *speed = (float)atof(tempstr);
+  if (!bVoidDataMessage) {
+    memset(tempstr, 0, sizeof(tempstr));
+    strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_SPEED_INDEX - chrOffset), GWS_SPEED_LENGTH);
+    *speed = (float)atof(tempstr);
 
-  if (*speed < CALM_WIND_MAX_MS)
-  {
-      *speed = WIND_SPEED_MIN;
-  }
-  else if (*speed > WIND_SPEED_MAX)
-  {
-      *speed = UINT16_MAX;
+    if (*speed < CALM_WIND_MAX_MS)
+    {
+        *speed = WIND_SPEED_MIN;
+    }
+    else if (*speed > WIND_SPEED_MAX)
+    {
+        *speed = UINT16_MAX;
+    }
   }
 
   // check status flag
@@ -427,40 +446,43 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   if (strncmp(tempstr, "00", 2)!=0) {
     // Trace known error
     if (strncmp(tempstr, "01", 2)==0){
-      TRACE_ERROR_F(F("Windsonic: Axis 1 failed: Insufficient samples in average period on U axis"));
+      TRACE_ERROR_F(F("Windsonic: Axis 1 failed: Insufficient samples in average period on U axis\r\n"));
+      return -2;
     }
     else if (strncmp(tempstr, "02", 2)==0){
-      TRACE_ERROR_F(F("Windsonic: Axis 2 failed: Insufficient samples in average period on V axis"));
+      TRACE_ERROR_F(F("Windsonic: Axis 2 failed: Insufficient samples in average period on V axis\r\n"));
+      return -2;
     }
     else if (strncmp(tempstr, "04", 2)==0){
-      TRACE_ERROR_F(F("Windsonic: Axis 1 and 2 failed: Insufficient samples in average period on both axes"));
+      TRACE_ERROR_F(F("Windsonic: Axis 1 and 2 failed: Insufficient samples in average period on both axes\r\n"));
+      return -2;
     }
     else if (strncmp(tempstr, "08", 2)==0){
-      TRACE_ERROR_F(F("Windsonic: NVM error checksum failed"));
-      return -2;
+      TRACE_ERROR_F(F("Windsonic: NVM error checksum failed\r\n"));
+      return -3;
     }
     else if (strncmp(tempstr, "09", 2)==0){
-      TRACE_ERROR_F(F("Windsonic: ROM checksum failed"));
-      return -2;
+      TRACE_ERROR_F(F("Windsonic: ROM checksum failed\r\n"));
+      return -3;
     }
     else
-      TRACE_ERROR_F(F("Windsonic: Unknown error, status error in windsonic message"));
-    return -3;
+      TRACE_ERROR_F(F("Windsonic: Unknown error, status error in windsonic message\r\n"));
+    return -4;
   }
 
   // Check units (Only "M" m/s is valid)
   memset(tempstr, 0, sizeof(tempstr));
   strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_SPEED_INDEX + GWS_SPEED_LENGTH + 1 - chrOffset), 1);
   if (strncmp(tempstr, "M", 1)!= 0) {
-    TRACE_ERROR_F(F("Windsonic: units error in windsonic message"));
-    return -4;
+    TRACE_ERROR_F(F("Windsonic: units error in windsonic message\r\n"));
+    return -5;
   }
 
   memset(tempstr, 0, sizeof(tempstr));
   strncpy(tempstr, (const char *)(uart_rx_buffer + GWS_CRC_INDEX - chrOffset), GWS_CRC_LENGTH);
   crc = (uint8_t)strtol(tempstr, &tempstrptr, 16);
 
-  for (uint8_t i = GWS_STX_INDEX + 1; i < GWS_ETX_INDEX; i++)
+  for (uint8_t i = GWS_STX_INDEX + 1; i < (GWS_ETX_INDEX - chrOffset); i++)
   {
       myCrc ^= uart_rx_buffer[i];
   }
@@ -475,6 +497,9 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   }
 
   is_crc_ok = (crc == myCrc);
+  if(!is_crc_ok) {
+    TRACE_ERROR_F(F("Windsonic: CRC Error\r\n"));
+  }
 
   if (!ISVALID_FLOAT(*speed) || !ISVALID_FLOAT(*direction))
   {
@@ -483,6 +508,6 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
 
   // Check status and CRC
   if(is_crc_ok) return 0;
-  else return -5;
+  else return -6;
 }
 #endif
