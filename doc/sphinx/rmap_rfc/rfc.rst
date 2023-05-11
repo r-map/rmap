@@ -4,6 +4,7 @@ RFC rmap versione 3.1
 Storia del documento
 --------------------
 
+- 2023/03/06 v. 3.2 : Revisionate le Remote Procedure Call
 - 2023/02/21 v. 3.1 : Migliorata documentazione RMAP web services, riassuntivo
 - 2022/06/10 v. 3.0 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
 - 2021/11/21 v. 2.8 : corretto topic MQTT per RPC
@@ -1241,8 +1242,7 @@ parametri:
 
 - recovery
         
-
-Richiede il re-invio dei dati non trasmessi al server; senza parametri
+Senza parametri: richiede il re-invio dei dati non trasmessi al server; 
 
 esempio:
 
@@ -1250,10 +1250,8 @@ esempio:
 
    {"jsonrpc": "2.0", "method": "recovery", "id": 0}
 
-- resend
-      
 
-Richiede il re-invio dei dati non trasmessi al server da una data
+Con parametri: richiede il re-invio dei dati non trasmessi al server da una data
 iniziale a una data finale
 
 -  int[6] dts: start date and time; anno, mese, giorno, ora, minuti,
@@ -1265,8 +1263,25 @@ esempio:
 
 ::
    
-   {"jsonrpc": "2.0", "method": "resend", "params": {"dts":[2014,2,10,18,45,18],"dte":[2015,3,25,12,0,0] }, "id": 0}
+   {"jsonrpc": "2.0", "method": "recovery", "params": {"dts":[2014,2,10,18,45,18],"dte":[2015,3,25,12,0,0] }, "id": 0}
 
+
+admin
+      
+
+Comandi di amministrazione
+
+parametri:
+
+-  bool fdownload: true= richiede il download del nuovo firmware disponibile sul server
+
+esempio:
+
+::
+   
+   {"jsonrpc": "2.0", "method": "reboot","params": {"fupdate":true}, "id": 0}
+
+   
 reboot
       
 
@@ -1274,13 +1289,13 @@ Richiede il riavvio della stazione
 
 parametri:
 
--  bool update: true=update firmware available on SDcard
+-  bool fupdate: true=update firmware available on SDcard
 
 esempio:
 
 ::
    
-   {"jsonrpc": "2.0", "method": "reboot","params": {"update":true}, "id": 0}
+   {"jsonrpc": "2.0", "method": "reboot","params": {"fupdate":true}, "id": 0}
 
 
 prepare

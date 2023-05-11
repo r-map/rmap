@@ -499,7 +499,7 @@ Aggiunta repository e installazione pacchetti da utente amministratore
   dnf install yum-plugin-copr
   dnf copr enable simc/stable
   dnf copr enable pat1/rmap
-  dnf config-manager --set-enabled powertool
+  dnf config-manager --set-enabled powertools
   dnf groupinstall rmap
 
 

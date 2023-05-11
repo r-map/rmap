@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"POT-Creation-Date: 2023-01-26 09:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../stima_wifi/stima_wifi_howto.rst:2
 msgid "Stima-wifi"
@@ -278,24 +278,24 @@ msgid ""
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:144
-#: ../../stima_wifi/stima_wifi_howto.rst:250
+#: ../../stima_wifi/stima_wifi_howto.rst:269
 msgid "Se si ha il display"
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:146
-#: ../../stima_wifi/stima_wifi_howto.rst:252
+#: ../../stima_wifi/stima_wifi_howto.rst:271
 msgid ""
 "Tenendo premuto il pulsante A premere il pulsante Reset. Dovranno "
 "apparire le seguenti scritte:"
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:149
-#: ../../stima_wifi/stima_wifi_howto.rst:255
+#: ../../stima_wifi/stima_wifi_howto.rst:274
 msgid "``Clean FS``"
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:150
-#: ../../stima_wifi/stima_wifi_howto.rst:256
+#: ../../stima_wifi/stima_wifi_howto.rst:275
 msgid "``Reset wifi configuration``"
 msgstr ""
 
@@ -364,7 +364,7 @@ msgid "Se questo non avviene rieseguire le istruzioni di questa sezione."
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:183
-#: ../../stima_wifi/stima_wifi_howto.rst:264
+#: ../../stima_wifi/stima_wifi_howto.rst:283
 msgid "Se non si ha il display"
 msgstr ""
 
@@ -454,42 +454,73 @@ msgid ""
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:240
-msgid "Visualizzazione dei dati"
+msgid "Visualizzazione dei dati in tempo reale"
 msgstr ""
 
 #: ../../stima_wifi/stima_wifi_howto.rst:242
-msgid "`Dati stazione <http://rmapv.rmap.cc/accounts/profile/>`__"
+msgid ""
+"Se la rete a cui accede la stazione è la stessa a cui avete collegato il "
+"dispositivo che utilizzerete per visualizzare i dati con un browser e "
+"tale rete è correttamente configurata per utilizzare i servizi "
+"Zeroconf/Bonjour sarà' possibile visualizzare i dati tramite un browser "
+"appena questi vengono rilevati dai sensori interrogando direttamente la "
+"stazione senza interessare il server. Questa funsione è consigliata ad "
+"esempio per creare pannelli informativi."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:245
+#: ../../stima_wifi/stima_wifi_howto.rst:250
+msgid ""
+"Accedere con il browser a: | `Dati stazione "
+"<http://rmap.cc/accounts/profile/>`__"
+msgstr ""
+
+#: ../../stima_wifi/stima_wifi_howto.rst:253
+msgid ""
+"selezionare la propria stazione e selezionare \"mostra dettagli "
+"stazione\" e successivamente \"dati locali in tempo reale"
+msgstr ""
+
+#: ../../stima_wifi/stima_wifi_howto.rst:256
+msgid ""
+"E possibile accedere anche direttamente alla stazione tramite l'URL: | "
+"`Dati stazione <http://NOMESTAZIONE/>`__"
+msgstr ""
+
+#: ../../stima_wifi/stima_wifi_howto.rst:259
+msgid ""
+"sostituendo NOMESTAZIONE con appunto il nome della vostra stazione in "
+"forma abbreviata."
+msgstr ""
+
+#: ../../stima_wifi/stima_wifi_howto.rst:264
 msgid "Cancellazione delle configurazioni e reset alle condizioni di \"fabbrica\""
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:258
+#: ../../stima_wifi/stima_wifi_howto.rst:277
 msgid ""
 "Potranno essere necessarie alcune decine di secondi prima che queste "
 "scritte scompaiano e si possa procedere."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:266
+#: ../../stima_wifi/stima_wifi_howto.rst:285
 msgid ""
 "Con un filo connettere il pin 7 a massa e premere il pulsante Reset e "
 "attendere 5 secondi prima di scollegare il filo dal pin 7 e attendere "
 "ulteriori 60 secondi."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:271
+#: ../../stima_wifi/stima_wifi_howto.rst:290
 msgid "Assemblaggio"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:273
+#: ../../stima_wifi/stima_wifi_howto.rst:292
 msgid ""
 "Infilare i connettori con i pin lunghi e saldarli sul modulo Wemos D1 "
 "mini. Se si dispone di un display Wemos v2 impilarlo sul modulo Wemos D1 "
 "mini. Aggiungere alla pila Wemos il DC Power Shield."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:277
+#: ../../stima_wifi/stima_wifi_howto.rst:296
 msgid ""
 "Saldare alla wemos protoboard i pin necessari a connettere tutti i "
 "sensori e aggiungerlo alla pila Wemos come da foto. |protoboard shield "
@@ -497,11 +528,11 @@ msgid ""
 "|pila wemos|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:284
+#: ../../stima_wifi/stima_wifi_howto.rst:303
 msgid "opzione display oled"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:286
+#: ../../stima_wifi/stima_wifi_howto.rst:305
 msgid ""
 "Se si possiede la versione v2.0.0 sul circuito stampato dal lato opposto "
 "del display interrompere la piazzola sulla destra indicata con D3 "
@@ -512,308 +543,308 @@ msgid ""
 "selezionando l'indirizzo I2C corrispondente a 0x3C."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:295
+#: ../../stima_wifi/stima_wifi_howto.rst:314
 msgid "Sensore Sensirion SPS30 per le polveri"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:300
+#: ../../stima_wifi/stima_wifi_howto.rst:319
 msgid "sps30 connector"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:302
-#: ../../stima_wifi/stima_wifi_howto.rst:322
-#: ../../stima_wifi/stima_wifi_howto.rst:375
-#: ../../stima_wifi/stima_wifi_howto.rst:421
+#: ../../stima_wifi/stima_wifi_howto.rst:321
+#: ../../stima_wifi/stima_wifi_howto.rst:341
+#: ../../stima_wifi/stima_wifi_howto.rst:394
+#: ../../stima_wifi/stima_wifi_howto.rst:440
 msgid "Connettere:"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:305
-#: ../../stima_wifi/stima_wifi_howto.rst:325
-#: ../../stima_wifi/stima_wifi_howto.rst:346
-#: ../../stima_wifi/stima_wifi_howto.rst:362
-#: ../../stima_wifi/stima_wifi_howto.rst:378
-#: ../../stima_wifi/stima_wifi_howto.rst:398
-#: ../../stima_wifi/stima_wifi_howto.rst:424
+#: ../../stima_wifi/stima_wifi_howto.rst:324
+#: ../../stima_wifi/stima_wifi_howto.rst:344
+#: ../../stima_wifi/stima_wifi_howto.rst:365
+#: ../../stima_wifi/stima_wifi_howto.rst:381
+#: ../../stima_wifi/stima_wifi_howto.rst:397
+#: ../../stima_wifi/stima_wifi_howto.rst:417
+#: ../../stima_wifi/stima_wifi_howto.rst:443
 msgid "Wemos D1 mini"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:305
+#: ../../stima_wifi/stima_wifi_howto.rst:324
 msgid "SPS30"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:307
-#: ../../stima_wifi/stima_wifi_howto.rst:327
-#: ../../stima_wifi/stima_wifi_howto.rst:349
-#: ../../stima_wifi/stima_wifi_howto.rst:365
-#: ../../stima_wifi/stima_wifi_howto.rst:381
+#: ../../stima_wifi/stima_wifi_howto.rst:326
+#: ../../stima_wifi/stima_wifi_howto.rst:346
+#: ../../stima_wifi/stima_wifi_howto.rst:368
+#: ../../stima_wifi/stima_wifi_howto.rst:384
+#: ../../stima_wifi/stima_wifi_howto.rst:400
 msgid "5V"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:307
-#: ../../stima_wifi/stima_wifi_howto.rst:308
-#: ../../stima_wifi/stima_wifi_howto.rst:309
-#: ../../stima_wifi/stima_wifi_howto.rst:310
-#: ../../stima_wifi/stima_wifi_howto.rst:311
+#: ../../stima_wifi/stima_wifi_howto.rst:326
 #: ../../stima_wifi/stima_wifi_howto.rst:327
 #: ../../stima_wifi/stima_wifi_howto.rst:328
 #: ../../stima_wifi/stima_wifi_howto.rst:329
 #: ../../stima_wifi/stima_wifi_howto.rst:330
+#: ../../stima_wifi/stima_wifi_howto.rst:346
+#: ../../stima_wifi/stima_wifi_howto.rst:347
 #: ../../stima_wifi/stima_wifi_howto.rst:348
 #: ../../stima_wifi/stima_wifi_howto.rst:349
-#: ../../stima_wifi/stima_wifi_howto.rst:350
-#: ../../stima_wifi/stima_wifi_howto.rst:351
-#: ../../stima_wifi/stima_wifi_howto.rst:364
-#: ../../stima_wifi/stima_wifi_howto.rst:365
-#: ../../stima_wifi/stima_wifi_howto.rst:366
 #: ../../stima_wifi/stima_wifi_howto.rst:367
-#: ../../stima_wifi/stima_wifi_howto.rst:380
-#: ../../stima_wifi/stima_wifi_howto.rst:381
-#: ../../stima_wifi/stima_wifi_howto.rst:382
+#: ../../stima_wifi/stima_wifi_howto.rst:368
+#: ../../stima_wifi/stima_wifi_howto.rst:369
+#: ../../stima_wifi/stima_wifi_howto.rst:370
 #: ../../stima_wifi/stima_wifi_howto.rst:383
+#: ../../stima_wifi/stima_wifi_howto.rst:384
+#: ../../stima_wifi/stima_wifi_howto.rst:385
+#: ../../stima_wifi/stima_wifi_howto.rst:386
+#: ../../stima_wifi/stima_wifi_howto.rst:399
 #: ../../stima_wifi/stima_wifi_howto.rst:400
 #: ../../stima_wifi/stima_wifi_howto.rst:401
 #: ../../stima_wifi/stima_wifi_howto.rst:402
-#: ../../stima_wifi/stima_wifi_howto.rst:403
-#: ../../stima_wifi/stima_wifi_howto.rst:426
-#: ../../stima_wifi/stima_wifi_howto.rst:427
-#: ../../stima_wifi/stima_wifi_howto.rst:428
-#: ../../stima_wifi/stima_wifi_howto.rst:429
+#: ../../stima_wifi/stima_wifi_howto.rst:419
+#: ../../stima_wifi/stima_wifi_howto.rst:420
+#: ../../stima_wifi/stima_wifi_howto.rst:421
+#: ../../stima_wifi/stima_wifi_howto.rst:422
+#: ../../stima_wifi/stima_wifi_howto.rst:445
+#: ../../stima_wifi/stima_wifi_howto.rst:446
+#: ../../stima_wifi/stima_wifi_howto.rst:447
+#: ../../stima_wifi/stima_wifi_howto.rst:448
 msgid "<->"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:307
-#: ../../stima_wifi/stima_wifi_howto.rst:349
-#: ../../stima_wifi/stima_wifi_howto.rst:402
+#: ../../stima_wifi/stima_wifi_howto.rst:326
+#: ../../stima_wifi/stima_wifi_howto.rst:368
+#: ../../stima_wifi/stima_wifi_howto.rst:421
 msgid "PIN 1"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:308
-#: ../../stima_wifi/stima_wifi_howto.rst:330
-#: ../../stima_wifi/stima_wifi_howto.rst:403
-#: ../../stima_wifi/stima_wifi_howto.rst:429
+#: ../../stima_wifi/stima_wifi_howto.rst:327
+#: ../../stima_wifi/stima_wifi_howto.rst:349
+#: ../../stima_wifi/stima_wifi_howto.rst:422
+#: ../../stima_wifi/stima_wifi_howto.rst:448
 msgid "D2"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:308
-#: ../../stima_wifi/stima_wifi_howto.rst:348
-#: ../../stima_wifi/stima_wifi_howto.rst:401
+#: ../../stima_wifi/stima_wifi_howto.rst:327
+#: ../../stima_wifi/stima_wifi_howto.rst:367
+#: ../../stima_wifi/stima_wifi_howto.rst:420
 msgid "PIN 2"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:309
-#: ../../stima_wifi/stima_wifi_howto.rst:329
-#: ../../stima_wifi/stima_wifi_howto.rst:402
-#: ../../stima_wifi/stima_wifi_howto.rst:428
+#: ../../stima_wifi/stima_wifi_howto.rst:328
+#: ../../stima_wifi/stima_wifi_howto.rst:348
+#: ../../stima_wifi/stima_wifi_howto.rst:421
+#: ../../stima_wifi/stima_wifi_howto.rst:447
 msgid "D1"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:309
-#: ../../stima_wifi/stima_wifi_howto.rst:400
+#: ../../stima_wifi/stima_wifi_howto.rst:328
+#: ../../stima_wifi/stima_wifi_howto.rst:419
 msgid "PIN 3"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:310
-#: ../../stima_wifi/stima_wifi_howto.rst:311
-#: ../../stima_wifi/stima_wifi_howto.rst:328
-#: ../../stima_wifi/stima_wifi_howto.rst:348
-#: ../../stima_wifi/stima_wifi_howto.rst:364
-#: ../../stima_wifi/stima_wifi_howto.rst:380
-#: ../../stima_wifi/stima_wifi_howto.rst:400
-#: ../../stima_wifi/stima_wifi_howto.rst:426
+#: ../../stima_wifi/stima_wifi_howto.rst:329
+#: ../../stima_wifi/stima_wifi_howto.rst:330
+#: ../../stima_wifi/stima_wifi_howto.rst:347
+#: ../../stima_wifi/stima_wifi_howto.rst:367
+#: ../../stima_wifi/stima_wifi_howto.rst:383
+#: ../../stima_wifi/stima_wifi_howto.rst:399
+#: ../../stima_wifi/stima_wifi_howto.rst:419
+#: ../../stima_wifi/stima_wifi_howto.rst:445
 msgid "GND"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:310
-#: ../../stima_wifi/stima_wifi_howto.rst:351
-#: ../../stima_wifi/stima_wifi_howto.rst:403
+#: ../../stima_wifi/stima_wifi_howto.rst:329
+#: ../../stima_wifi/stima_wifi_howto.rst:370
+#: ../../stima_wifi/stima_wifi_howto.rst:422
 msgid "PIN 4"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:311
-#: ../../stima_wifi/stima_wifi_howto.rst:350
+#: ../../stima_wifi/stima_wifi_howto.rst:330
+#: ../../stima_wifi/stima_wifi_howto.rst:369
 msgid "PIN 5"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:315
+#: ../../stima_wifi/stima_wifi_howto.rst:334
 msgid "Sensore Sensirion SCD30 per la CO2"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:320
+#: ../../stima_wifi/stima_wifi_howto.rst:339
 msgid "scds30 connector"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:325
+#: ../../stima_wifi/stima_wifi_howto.rst:344
 msgid "SCD30"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:327
+#: ../../stima_wifi/stima_wifi_howto.rst:346
 msgid "VDD"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:329
-#: ../../stima_wifi/stima_wifi_howto.rst:428
+#: ../../stima_wifi/stima_wifi_howto.rst:348
+#: ../../stima_wifi/stima_wifi_howto.rst:447
 msgid "SCL"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:330
-#: ../../stima_wifi/stima_wifi_howto.rst:429
+#: ../../stima_wifi/stima_wifi_howto.rst:349
+#: ../../stima_wifi/stima_wifi_howto.rst:448
 msgid "SDA"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:333
+#: ../../stima_wifi/stima_wifi_howto.rst:352
 msgid ""
 "Assemblaggio del sensore all'uscita del sensore di polveri: |scd30 "
 "assemblaggio 1| |scd30 assemblaggio 2|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:337
+#: ../../stima_wifi/stima_wifi_howto.rst:356
 msgid "opzione sensore Plantower PMS5003 per le polveri"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:339
+#: ../../stima_wifi/stima_wifi_howto.rst:358
 msgid "numbering pins from left to right with \"plantower\" stamps on the floor"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:341
+#: ../../stima_wifi/stima_wifi_howto.rst:360
 msgid ""
 "Effettuare i seguenti collegamenti tra Wemos e `PMS5003 "
 "<https://github.com/r-map/rmap/blob/master/arduino/sketchbook/libraries/pms/doc/pms5003-manual_v2-3.pdf>`__:"
 " Connettere:"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:346
+#: ../../stima_wifi/stima_wifi_howto.rst:365
 msgid "PMS5003"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:350
-#: ../../stima_wifi/stima_wifi_howto.rst:366
-#: ../../stima_wifi/stima_wifi_howto.rst:382
+#: ../../stima_wifi/stima_wifi_howto.rst:369
+#: ../../stima_wifi/stima_wifi_howto.rst:385
+#: ../../stima_wifi/stima_wifi_howto.rst:401
 msgid "D5"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:351
-#: ../../stima_wifi/stima_wifi_howto.rst:367
-#: ../../stima_wifi/stima_wifi_howto.rst:383
+#: ../../stima_wifi/stima_wifi_howto.rst:370
+#: ../../stima_wifi/stima_wifi_howto.rst:386
+#: ../../stima_wifi/stima_wifi_howto.rst:402
 msgid "D6"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:354
+#: ../../stima_wifi/stima_wifi_howto.rst:373
 msgid "eventualmente connettere anche il PIN 6 (reset) e PIN 3 (SET) (DA FARE)"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:357
+#: ../../stima_wifi/stima_wifi_howto.rst:376
 msgid "opzione sensore SDS011 per le polveri"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:359
+#: ../../stima_wifi/stima_wifi_howto.rst:378
 msgid "Effettuare i seguenti collegamenti tra Wemos e SDS011: Connettere:"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:362
+#: ../../stima_wifi/stima_wifi_howto.rst:381
 msgid "SDS011"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:364
+#: ../../stima_wifi/stima_wifi_howto.rst:383
 msgid "pin 5 GND"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:365
+#: ../../stima_wifi/stima_wifi_howto.rst:384
 msgid "pin 3 5V"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:366
+#: ../../stima_wifi/stima_wifi_howto.rst:385
 msgid "pin 7 TXD"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:367
+#: ../../stima_wifi/stima_wifi_howto.rst:386
 msgid "pin 6 RXD"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:371
+#: ../../stima_wifi/stima_wifi_howto.rst:390
 msgid "opzione sensore Honeywell HPM per le polveri"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:374
+#: ../../stima_wifi/stima_wifi_howto.rst:393
 msgid ""
 "Effettuare i seguenti collegamenti tra Wemos e Honeywell hpm: |Honeywell "
 "pinout|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:378
+#: ../../stima_wifi/stima_wifi_howto.rst:397
 msgid "Honeywell HPM"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:380
+#: ../../stima_wifi/stima_wifi_howto.rst:399
 msgid "PIN 8 GND"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:381
+#: ../../stima_wifi/stima_wifi_howto.rst:400
 msgid "PIN 2 5V"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:382
+#: ../../stima_wifi/stima_wifi_howto.rst:401
 msgid "PIN 6 TX"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:383
+#: ../../stima_wifi/stima_wifi_howto.rst:402
 msgid "PIN 7 RX"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:386
+#: ../../stima_wifi/stima_wifi_howto.rst:405
 msgid "|Assemblaggio moduli in scatola elettrica|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:387
+#: ../../stima_wifi/stima_wifi_howto.rst:406
 msgid "|Assemblaggio materiale espanso per flusso aria|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:389
+#: ../../stima_wifi/stima_wifi_howto.rst:408
 msgid ""
 "|Messa in opera con canaletta angolo a 90 gradi per flusso aria in/out "
 "antipioggia|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:390
+#: ../../stima_wifi/stima_wifi_howto.rst:409
 msgid "|Uso di rete zanzariera per filtro contro gli insetti|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:393
+#: ../../stima_wifi/stima_wifi_howto.rst:412
 msgid "sensore SHT85 per temperatura e umidità"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:395
+#: ../../stima_wifi/stima_wifi_howto.rst:414
 msgid "|sht85 connections| Connettere:"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:398
-#: ../../stima_wifi/stima_wifi_howto.rst:424
+#: ../../stima_wifi/stima_wifi_howto.rst:417
+#: ../../stima_wifi/stima_wifi_howto.rst:443
 msgid "modulo Stima-th"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:401
-#: ../../stima_wifi/stima_wifi_howto.rst:427
+#: ../../stima_wifi/stima_wifi_howto.rst:420
+#: ../../stima_wifi/stima_wifi_howto.rst:446
 msgid "3V3"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:407
+#: ../../stima_wifi/stima_wifi_howto.rst:426
 msgid "Opzione modulo Stima-th con HIH6121 e ADT7420 per temperatura e umidità"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:410
+#: ../../stima_wifi/stima_wifi_howto.rst:429
 msgid ""
 "|Sensore temperatura e umidità all'interno di apposito schermo per le "
 "radiazioni|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:412
+#: ../../stima_wifi/stima_wifi_howto.rst:431
 msgid "ponticellare (con un resistore) A1-centrale con A1-"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:413
+#: ../../stima_wifi/stima_wifi_howto.rst:432
 msgid "ponticellare (con un resistore) A0-centrale con A0+"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:415
+#: ../../stima_wifi/stima_wifi_howto.rst:434
 msgid ""
 "Una volta saldati i terminali dei cavi e protetti con nastro "
 "autoagglomerante è importante preservare le connessioni dalla corrosione "
@@ -822,11 +853,11 @@ msgid ""
 " vernice protettiva rimuovere la protezione adesiva del sensore HIH"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:427
+#: ../../stima_wifi/stima_wifi_howto.rst:446
 msgid "VCC"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:435
+#: ../../stima_wifi/stima_wifi_howto.rst:454
 msgid ""
 "Se non si utilizza la wemos_protoboard è necessario fare una modifica al "
 "modulo wemos per aggiungere un pin di collegamento a GND. Saldare a 45 "
@@ -834,65 +865,65 @@ msgid ""
 "da figura: |Pin aggiunto a GND|"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:438
+#: ../../stima_wifi/stima_wifi_howto.rst:457
 msgid "Opzione modulo Stima-i2c-sdsmics"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:440
+#: ../../stima_wifi/stima_wifi_howto.rst:459
 msgid ""
 "vedi: http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo"
 "#Modulo_Stima-i2c-sdsmics"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:444
+#: ../../stima_wifi/stima_wifi_howto.rst:463
 msgid "Opzione per alimentazione con cavo di lunghezza superiore a 2m."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:446
+#: ../../stima_wifi/stima_wifi_howto.rst:465
 msgid ""
 "Tagliare il cavo dell'alimentatore e inserire una piattina bipolare con "
 "rame di diametro opportuno ovviamente della lunghezza necessaria."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:450
+#: ../../stima_wifi/stima_wifi_howto.rst:469
 msgid "Per caricare il firmware"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:453
+#: ../../stima_wifi/stima_wifi_howto.rst:472
 msgid "Installare il driver USB2Serial"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:456
+#: ../../stima_wifi/stima_wifi_howto.rst:475
 msgid "Windows"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:458
+#: ../../stima_wifi/stima_wifi_howto.rst:477
 msgid "Per comunicare col Wemos c’è bisogno del driver usb2serial."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:461
+#: ../../stima_wifi/stima_wifi_howto.rst:480
 msgid "Linux"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:463
+#: ../../stima_wifi/stima_wifi_howto.rst:482
 msgid "Nessuna installazione necessaria."
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:466
+#: ../../stima_wifi/stima_wifi_howto.rst:485
 msgid "MacOS"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:468
+#: ../../stima_wifi/stima_wifi_howto.rst:487
 msgid ""
 "Per Sierra vedere queste instruzioni che sono state testate: "
 "https://github.com/adrianmihalko/ch340g-ch34g-ch34x-mac-os-driver"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:472
+#: ../../stima_wifi/stima_wifi_howto.rst:491
 msgid "Upload del firmware"
 msgstr ""
 
-#: ../../stima_wifi/stima_wifi_howto.rst:474
+#: ../../stima_wifi/stima_wifi_howto.rst:493
 msgid ""
 "Effettuare il download del firmware da "
 "http://rmap.cc/media/firmware/rmap_esp8266.ino.d1_mini_yhbp7E2.bin e "
@@ -901,4 +932,10 @@ msgid ""
 " particolare: https://github.com/espressif/esptool#writing-binaries-to-"
 "flash"
 msgstr ""
+
+#~ msgid "Visualizzazione dei dati"
+#~ msgstr ""
+
+#~ msgid "`Dati stazione <http://rmapv.rmap.cc/accounts/profile/>`__"
+#~ msgstr ""
 

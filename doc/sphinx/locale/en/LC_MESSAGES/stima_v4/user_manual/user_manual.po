@@ -1,0 +1,358 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2021, CC BY-SA 4.0, Arpae https://www.arpae.it
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-07 10:18+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../stima_v4/user_manual/user_manual.rst:2
+msgid "Manuale Utente"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:6
+msgid "Installazione del software per la configurazione"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:8
+msgid "Installare Rocky Linux 8."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:10
+msgid "Aggiunta repository e installazione pacchetti da utente amministratore ::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:22
+msgid "Uso dei tools a linea di comando"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:24
+msgid ""
+"Quando si utizzano i tool a linea di comando bisogna sempre considerare "
+"che saranno presenti due database:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:27
+msgid "database sul server RMAP (persistente)"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:28
+msgid "database locale (volatile)"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:30
+msgid ""
+"Mentre il database sul server RMAP è per definizione persistente quello "
+"locale se non già presente va creato utilizzando il comando::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:35
+msgid ""
+"Successivamente sono disponibili due comandi per mantenere i due database"
+" sincronizzati:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:38
+msgid "upload configuration to server::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:42
+#: ../../stima_v4/user_manual/user_manual.rst:112
+msgid "download station configuration from server::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:48
+msgid "Configurazione"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:50
+msgid ""
+"Qui vengono descritte le fasi per effettuare la configurazione della "
+"stazione necessaria al suo funzionamento."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:53
+msgid "Creare un nuovo utente RMAP"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:56
+msgid "Tramite interfaccia WEB"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:58
+msgid ""
+"Per iscriversi alla piattarforma RMAP bisogna collegarsi al sito: "
+"http://rmap.cc/"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:61
+msgid ""
+"andare con il mouse sul menù \"Il mio RMAP\", sulla destra della barra "
+"nera, e clickare su \"Entra\"."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:64
+msgid ""
+"Apparirà una maschera che chiede utente e password.  Nella seconda riga "
+"sotto a questa maschera clickare sul bottone blu \"Registrazione\" e si "
+"verrà inoltrati automaticamente alla maschera di registrazione."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:68
+msgid "Per registrarsi bisognerà scegliere ed inviare le seguenti informazioni:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:70
+msgid ""
+"username (una stringa lunga al massimo 9 caratteri che possono essere sia"
+" lettere che numeri);"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:71
+msgid "la propria e-mail"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:72
+msgid "la password (da inserire due volte per sicurezza)."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:74
+msgid ""
+"Quindi bisogna clickare sul quadratino per dichiarare di aver letto le "
+"Condizioni di Servizio (descritte nel quadrato sotto riportato). "
+"Completate queste operazioni si può procedere a clickare su \"Invia\". "
+"Fatto questo il server RMAP invierà una mail di conferma all'indirizzo "
+"indicato nella maschera di registrazione.  La registrazione verrà "
+"conclusa aprendo il mail e confermando la propria intenzione di "
+"iscriversi seguendo il link indicato."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:84
+msgid "Configurare una nuova stazione"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:87
+msgid "A linea di comando"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:88
+msgid "Il tool a linea di comando da utilizzare per configurare le stazioni è::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:94
+msgid "Con modello (tipo e template sensori) predefinito"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:96
+msgid "Eseguire l'apposito script a corredo per creare una nuova stazione."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:100
+msgid "Con modello (tipo e template sensori) non predefinito"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:102
+msgid ""
+"In questa modalità bisogna avere piena padronanza del data model, dei "
+"sensori connessi e dei relativi metadati."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:104
+msgid "Qui un esempio di configurazione::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:110
+msgid "Trasferire la configurazione al datalogger"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:116
+msgid ""
+"Ecco il comando da impartire per trasferire e salvare la configurazione "
+"nel datalogger::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:122
+msgid "Aggiornamento Firmware"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:125
+msgid "Tramite porta USB?"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:127
+msgid ""
+"Per l'aggiornamento del firmware è necessario avere a disposizione un "
+"file:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:129
+msgid "FIRMWARE.BIN"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:131
+msgid ""
+"che dorà risiedere nella cartella corrente da dove si eseguiranno i "
+"comandi."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:133
+msgid ""
+"Collegare il modulo tramite cavo USB e dovrà essere l'unico dispositivo "
+"USB collegato in modalità seriale."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:136
+msgid "Per il modulo master e impartire il comando::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:142
+msgid "Tramite HTTPS dal server"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:145
+msgid "Caricare il firmware tramite il back end del server alla seguente URL::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:145
+msgid "https://test.rmap.cc/admin/firmware_updater_stima/firmware/"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:147
+msgid ""
+"Una volta caricato il firmware con successo sul server eseguire le RPC "
+"over MQTT per impartire i comandi alle stazioni che necessitano l'update "
+"del firmware descritte in questo manuale."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:152
+msgid "Recupero dati"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:154
+msgid ""
+"I dati vengono salvati sul modulo master sulla SD card che deve essere "
+"asportata dopo aver scollegato l'alimentazione."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:157
+msgid ""
+"Una volta recuperata la scheda Sdcard dal datalogger i dati possono "
+"essere letti con apposito tool linea di comando."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:160
+msgid "Sono necessari almeno due file:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:162
+msgid "AAAA_MM_GG.txt : AAAA = anno ; MM = mese ; GG = giorno"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:163
+msgid "info.dat  : metadati"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:165
+msgid ""
+"Eseguire il seguente comando dalla stessa cartella contenete i file con i"
+" dati::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:169
+#: ../../stima_v4/user_manual/user_manual.rst:186
+msgid "dove:"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:171
+#: ../../stima_v4/user_manual/user_manual.rst:188
+msgid "myuser: nome utente RMAP"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:172
+#: ../../stima_v4/user_manual/user_manual.rst:189
+msgid "mypassword: password utente RMAP"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:176
+msgid "Remote Procedure Call over MQTT"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:178
+msgid ""
+"Le remote procedure call permettono di far eseguire delle operazioni dal "
+"datalogger da remoto."
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:181
+msgid ""
+"Prima di eseguire qualsiasi RPC è necessario scaricare dal server la "
+"configurazione della stazione su cui si vuole agire::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:190
+msgid "muslug: nome sintetico stazione"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:191
+msgid "mybslug: nome sintetico board"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:195
+msgid "configure"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:197
+msgid "La configurazione da remoto è possibile tramite tool a linea di comando::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:203
+msgid "admin"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:205
+msgid ""
+"Per impartire alla stazione dil comando per scaricare un nuovo firmware "
+"dal server eseguire il comando::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:211
+msgid "reboot"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:213
+msgid "Il reboot del modulo master è possibile tramite tool a linea di comando::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:217
+msgid ""
+"Se si vuole che al reboot venga installato un nuovo firmware se "
+"disponibile::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:223
+msgid "recovery"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:225
+msgid ""
+"Il recupero dei dati salvati su SDcard è possibile tramite tool a linea "
+"di comando specificando la data iniziale dei dati da recuperare (fino a "
+"data e ora corrente)::"
+msgstr ""
+
+#: ../../stima_v4/user_manual/user_manual.rst:231
+msgid "oppure specificando la data iniziale e finale dei dati da recuperare::"
+msgstr ""
+

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-14 14:02+0100\n"
+"POT-Creation-Date: 2023-02-11 20:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,40 +22,36 @@ msgstr ""
 msgid "Videotutorial"
 msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:5
-msgid "Su temi generali"
-msgstr ""
+#~ msgid "just `click here <../_static/generali_video1.html>`_ now!"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:7
-#: ../../videotutorial/videotutorial.rst:15
-msgid "video 1"
-msgstr ""
+#~ msgid "just `click here <../_static/stimawifi_video2.html>`_ now!"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:8
-msgid "just `click here <../_static/generali_video1.html>`_ now!"
-msgstr ""
+#~ msgid "just `click here <../_static/stimawifi_video3.html>`_ now!"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:12
-msgid "StimaWifi"
-msgstr ""
+#~ msgid "Su temi generali"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:16
-msgid "just `click here <../_static/stimawifi_video1.html>`_ now!"
-msgstr ""
+#~ msgid "video 1"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:19
-msgid "video 2"
-msgstr ""
+#~ msgid "StimaWifi"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:20
-msgid "just `click here <../_static/stimawifi_video2.html>`_ now!"
-msgstr ""
+#~ msgid "just `click here <../_static/stimawifi_video1.html>`_ now!"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:23
-msgid "video 3"
-msgstr ""
+#~ msgid "video 2"
+#~ msgstr ""
 
-#: ../../videotutorial/videotutorial.rst:24
-msgid "just `click here <../_static/stimawifi_video3.html>`_ now!"
-msgstr ""
+#~ msgid "just `click here <../_static/stimawifi_video2.html>`__ now!"
+#~ msgstr ""
+
+#~ msgid "video 3"
+#~ msgstr ""
+
+#~ msgid "just `click here <../_static/stimawifi_video3.html>`__ now!"
+#~ msgstr ""
 

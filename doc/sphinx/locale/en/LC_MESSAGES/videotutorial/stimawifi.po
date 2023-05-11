@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2021, CC BY-SA 4.0, Arpae https://www.arpae.it
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-14 19:52+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../videotutorial/stimawifi.rst:2
+msgid "Manuale utente"
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:8
+msgid "Semplici istruzioni per l'attivazione di una stazione StimaWiFi."
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:10
+msgid ""
+"Alcuni brevi video illustrano le procedure necessarie a registrare una "
+"stazione sul server rmap e cominciare ad inviare i dati raccolti."
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:14
+msgid "Registrazione nuovo utente"
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:16
+msgid ""
+"Tutte le stazioni RMAP registrate sul server sono associate all'utente "
+"che le gestisce."
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:18
+msgid ""
+"La procedura per registrare un nuovo utente è semplice, basta avere una "
+"email per ricevere il messaggio necessario alla conferma della creazione "
+"dell'account."
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:25
+msgid "Registrazione nuova stazione"
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:27
+msgid ""
+"La prima parte dell'abilitazione all'invio dei dati consiste nel "
+"registrare la stazione presso il server che dovrà ricevere i suoi "
+"campionamenti."
+msgstr ""
+
+#: ../../videotutorial/stimawifi.rst:36
+msgid "Configurazione stazione"
+msgstr ""
+
