@@ -147,8 +147,15 @@ void LCDTask::Run() {
 #endif
 
     // One step base non blocking switch
-    TaskWatchDog(LCD_TASK_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(LCD_TASK_WAIT_DELAY_MS));
+    // Long time sleeping task on LCD Off mode
+    if(display_is_off) {
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+      TaskWatchDog(LCD_TASK_SLEEP_DELAY_MS);
+      Delay(Ticks::MsToTicks(LCD_TASK_SLEEP_DELAY_MS));
+    } else {
+      TaskWatchDog(LCD_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(LCD_TASK_WAIT_DELAY_MS));
+    }
     TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
     // **************************************************************************

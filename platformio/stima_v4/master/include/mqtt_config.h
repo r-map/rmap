@@ -123,7 +123,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_DEFAULT_ROOT_TOPIC
 \brief Default MQTT root topic.
 */
-#define MQTT_DEFAULT_ROOT_TOPIC ("1/test")
+#define MQTT_DEFAULT_ROOT_TOPIC ("1/report")
 
 /*!
 \def MQTT_DEFAULT_MAINT_TOPIC

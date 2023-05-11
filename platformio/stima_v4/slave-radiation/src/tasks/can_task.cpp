@@ -1652,14 +1652,11 @@ void CanTask::Run() {
                                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_SOFTWARE_UPDATE);
                                 start_firmware_upgrade = true;
                                 // Preparo la struttua per informare il Boot Loader
-                                if(start_firmware_upgrade) {
-                                    // Update boot_request from param loaded struct and Save before Reset
-                                    param.boot_request->app_executed_ok = false;
-                                    param.boot_request->backup_executed = false;
-                                    param.boot_request->rollback_executed = false;
-                                    param.boot_request->request_upload = true;
-                                    param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
-                                }
+                                param.boot_request->app_executed_ok = false;
+                                param.boot_request->backup_executed = false;
+                                param.boot_request->rollback_executed = false;
+                                param.boot_request->request_upload = true;
+                                param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo
                             // di HeartBeat (svuotamento coda), quindi via subito in heart_beat send

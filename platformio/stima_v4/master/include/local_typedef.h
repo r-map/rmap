@@ -288,8 +288,9 @@ typedef struct
       bool sd_card_ready;        // Flag SD CARD Ready and full functional
       bool inibith_reboot;       // Flag inibition at reboot command (Rebot operation must wait flag is donw) 
       bool display_on;           // Display powered ON (Require Istant and other data)
+      bool run_connection;       // Flag indicate connection in run (Connection operation ex.must inibith sleep) 
       bool run_module_configure; // Flag indicate require check module configure (at least one module not configured)
-      bool full_wakeup_forced;   // Flag indicate request wakeup forced from RPC remote (PREPANDGET...) or local GET Data
+      bool full_wakeup_forced;   // Flag indicate request wakeup forced from RPC remote or local GET Data
       bool full_wakeup_request;  // Flag indicate request wakeup for starting operation with slave in full power mode
       bool file_server_running;  // True if file server are running
       bool cmd_server_running;   // True if command server are running

@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include "drivers/module_slave_hal.h"
 #include "drivers/STM32Flash.h"
+#include <IWatchdog.h>
 
 /// @brief  Initializes STM32Flash, and clear flags.
 /// @param  None
@@ -54,12 +55,22 @@ uint8_t STM32Flash_Erase(uint32_t address)
     uint32_t PageError = 0;
     FLASH_EraseInitTypeDef pEraseInit;
     HAL_StatusTypeDef status = HAL_OK;
+    #if (USE_FLASH_BANK_2) && defined(FLASH_BANK_2)
+    uint32_t NbrOfPages_bank_2 = 0;
+    #endif
 
     HAL_FLASH_Unlock();
 
     // Get the number of pages to erase and Starting From
     NbrOfPages = (FLASH_BASE + FLASH_SIZE - address) / FLASH_PAGE_SIZE;
     StartPages = (address - FLASH_BASE) / FLASH_PAGE_SIZE;
+
+    #if (USE_FLASH_BANK_2) && defined(FLASH_BANK_2)
+    if(NbrOfPages > FLASH_PAGE_NBPERBANK) {
+        NbrOfPages_bank_2 = NbrOfPages - FLASH_PAGE_NBPERBANK;
+        NbrOfPages = FLASH_PAGE_NBPERBANK - StartPages;
+    }
+    #endif
 
     if(status == HAL_OK)
     {
@@ -72,11 +83,13 @@ uint8_t STM32Flash_Erase(uint32_t address)
 
     #if (USE_FLASH_BANK_2) && defined(FLASH_BANK_2)
 
-    if(status == HAL_OK)
+    IWatchdog.reload();
+
+    if((status == HAL_OK)&&(NbrOfPages_bank_2))
     {
         pEraseInit.Banks     = FLASH_BANK_2;
-        pEraseInit.NbPages   = NbrOfPages;
-        pEraseInit.Page      = StartPages;
+        pEraseInit.NbPages   = NbrOfPages_bank_2;
+        pEraseInit.Page      = 0;
         pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
         status               = HAL_FLASHEx_Erase(&pEraseInit, &PageError);
     }

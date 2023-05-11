@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    Bootloader.h
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
-  * @brief   Bootloader STIMAV4 Slave STM32 HAL_based_function() header file
+  * @brief   Bootloader STIMAV4 Master STM32 HAL_based_function() header file
   ******************************************************************************
   * @attention
   *
@@ -72,7 +72,7 @@
 #define SET_MSP                 (0)
 
 // Using dual bank flash
-#define USE_FLASH_BANK_2        (0)
+#define USE_FLASH_BANK_2        (1)
 
 // ***********************************************************************
 //                  Private enumerations and Types
@@ -140,7 +140,7 @@ typedef struct
 // ***********************************************************************
 
 // Read poiter to data from flash at address (X)
-#define STM32Flash_ReadByte(X)  (uint8_t)((*(uint32_t*)X))
+#define STM32Flash_ReadByte(X)  (uint8_t)((*(uint8_t*)X))
 // Ending flashing
 #define STM32Flash_FlashEnd()   HAL_FLASH_Lock()
 

@@ -108,7 +108,6 @@ typedef struct
   configuration_t *configuration;
   system_status_t *system_status;
   bootloader_t *boot_request;
-  TwoWire *wire;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;

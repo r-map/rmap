@@ -140,7 +140,7 @@ typedef struct
 // ***********************************************************************
 
 // Read poiter to data from flash at address (X)
-#define STM32Flash_ReadByte(X)  (uint8_t)((*(uint32_t*)X))
+#define STM32Flash_ReadByte(X)  (uint8_t)((*(uint8_t*)X))
 // Ending flashing
 #define STM32Flash_FlashEnd()   HAL_FLASH_Lock()
 

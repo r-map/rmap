@@ -238,7 +238,6 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
     return true;
 }
 
-
 /// @brief GetInfo for Firmware File on Flash
 /// @param module_type type module of firmware
 /// @param version version firmware
@@ -1200,6 +1199,34 @@ void CanTask::Run() {
         // ********************************************************************************
         switch (state) {
 
+            // ********* SYSTEM QUEUE MESSAGE ***********
+            // enqueud system message from caller task
+            if (!param.systemMessageQueue->IsEmpty()) {
+                // Read queue in test mode
+                if (param.systemMessageQueue->Peek(&system_message, 0))
+                {
+                    // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+                    if(system_message.task_dest == ALL_TASK_ID)
+                    {
+                        // Pull && elaborate command, 
+                        if(system_message.command.do_sleep)
+                        {
+                            // Enter module sleep procedure (OFF Module)
+                            HW_CAN_Power(CAN_ModePower::CAN_SLEEP);
+                            
+                            // Enter sleep module OK and update WDT
+                            TaskWatchDog(CAN_TASK_SLEEP_DELAY_MS);
+                            TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                            Delay(Ticks::MsToTicks(CAN_TASK_SLEEP_DELAY_MS));
+                            TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
+                            // Restore module from Sleep
+                            HW_CAN_Power(CAN_ModePower::CAN_NORMAL);
+                        }
+                    }
+                }
+            }
+
             // Setup Class CB and NodeId
             case CAN_STATE_INIT:
 
@@ -1701,14 +1728,11 @@ void CanTask::Run() {
                                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_SOFTWARE_UPDATE);
                                 start_firmware_upgrade = true;
                                 // Preparo la struttua per informare il Boot Loader
-                                if(start_firmware_upgrade) {
-                                    bootloader_t boot_request;
-                                    boot_request.app_executed_ok = false;
-                                    boot_request.backup_executed = false;
-                                    boot_request.rollback_executed = false;
-                                    boot_request.request_upload = true;
-                                    param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
-                                }
+                                param.boot_request->app_executed_ok = false;
+                                param.boot_request->backup_executed = false;
+                                param.boot_request->rollback_executed = false;
+                                param.boot_request->request_upload = true;
+                                param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
                             }
                             // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo
                             // di HeartBeat (svuotamento coda), quindi via subito in heart_beat send
@@ -1757,9 +1781,9 @@ void CanTask::Run() {
                     // need do acquire data value for RMAP Archive?
                     // Perform an Full Power request Method 5 second before Starting aquire data
                     // In this time we can regulate syncro_time method and perform Full Wake UP of remote Module
-// TODO: remove
-                    if (((curEpoch + 5) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
-                    //if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+            // TODO: test
+            // if (((curEpoch + 5) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start full power for sending request and syncronize time\r\n"));
                         // Only for RMAP Get Data is need to Forced power ON on Starting time before procedure GET DATA
@@ -1774,9 +1798,9 @@ void CanTask::Run() {
                         // Normal mode (Not WakeUP)
                         bStartSetFullPower = false;
                     }
-//TODO: remove
-                    if ((curEpoch / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
-                    //if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+            // TODO: test
+            // if ((curEpoch / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
@@ -2943,7 +2967,9 @@ void CanTask::Run() {
                 // -> Scheduler temporizzato dei messaggi standard da inviare alla rete UAVCAN
                 // **************************************************************************
                 // ************************* HEARTBEAT DATA PUBLISHER ***********************
-                if((start_firmware_upgrade)||
+                // Abilita pubblicazione HB con upgrade_fw per segnalare lo start. Solo senza inibizione Reboot
+                // Altrimenti entrerebbe di continuo nel Publish fino al reboot
+                if(((start_firmware_upgrade) && (!param.system_status->flags.inibith_reboot)) ||
                     (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
                     TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
@@ -3017,7 +3043,7 @@ void CanTask::Run() {
                     }
                 }
                 // Request Reboot (Firmware upgrade direct... Or Request Reset with inibit control)
-                if ((!param.system_status->flags.inibith_reboot) && (!start_firmware_upgrade)) {
+                if (!param.system_status->flags.inibith_reboot) {
                     if (clCanard.flag.is_requested_system_restart() || (start_firmware_upgrade)) {
                         TRACE_INFO_F(F("Send signal to system Reset...\r\n"));
                         delay(250); // Waiting security queue empty send HB (Updating start...)

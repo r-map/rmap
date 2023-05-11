@@ -63,6 +63,8 @@
 
 #define SD_TASK_WAIT_DELAY_MS            (50)
 
+#define SD_TASK_SLEEP_DELAY_MS           (700)
+
 #define SD_TASK_WAIT_REBOOT_MS           (2500)
 
 #define SD_TASK_GENERIC_RETRY_DELAY_MS   (5000)

@@ -87,7 +87,7 @@ using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define CAN_TASK_WAIT_DELAY_MS          (20)
-#define CAN_TASK_SLEEP_DELAY_MS         (1250)
+#define CAN_TASK_SLEEP_DELAY_MS         (700)
 
 // Task waiting queue command/response
 #define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
@@ -129,6 +129,7 @@ enum CAN_ModePower
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
+  bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;  

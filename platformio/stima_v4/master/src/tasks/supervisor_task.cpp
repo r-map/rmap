@@ -159,11 +159,13 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
 
         #if (FIXED_CONFIGURATION)
-        // TODO: REMOVE
+        // TODO: TEST REMOVE
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
+        strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
         param.configuration->observation_s = 60;
-        param.configuration->report_s = 180;
+        // param.configuration->report_s = 180;
+        param.configuration->report_s = 900;
         param.system_status->flags.config_empty = false;
         #endif
 
@@ -190,6 +192,12 @@ void SupervisorTask::Run()
       break;
 
     case SUPERVISOR_STATE_WAITING_EVENT:
+
+      // Inibition Sleep on Waiting Event (always false, but TRUE on Starting Event Connection)
+      param.systemStatusLock->Take();
+      param.system_status->flags.run_connection = false;
+      param.systemStatusLock->Give();
+
       // Retry connection
       retry = 0;
 
@@ -279,6 +287,9 @@ void SupervisorTask::Run()
           TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
             param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
 
+          // Inibition Sleep on Waiting Event (always false, but TRUE on Starting Event Connection)
+          param.system_status->flags.run_connection = true;
+
           // Start state check connection
           state_check_connection = CONNECTION_INIT;
           state = SUPERVISOR_STATE_CONNECTION_OPERATION;
@@ -315,6 +326,8 @@ void SupervisorTask::Run()
       TRACE_VERBOSE_F(F("SUPERVISOR_STATE_WAITING_EVENT -> SUPERVISOR_STATE_CONNECTION_OPERATION\r\n"));
       TRACE_VERBOSE_F(F("Attempted: [ %d ] , Completed: [ %d ]\r\n"),
         param.system_status->modem.connection_attempted, param.system_status->modem.connection_completed);
+      // Inibition Sleep on Waiting Event (always false, but TRUE on Starting Event Connection)
+      param.system_status->flags.run_connection = true;
       param.systemStatusLock->Give();
 
       #endif

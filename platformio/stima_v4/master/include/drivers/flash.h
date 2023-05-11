@@ -46,8 +46,8 @@ using namespace cpp_freertos;
 #define CHECK_FLASH_WRITE
 
 #define FLASH_FW_POSITION   (0ul)       // 0000 - 1024 KBytes For Program Flash
-#define FLASH_FW_BACKUP     (1048756ul) // 1024 - 2048 KBytes For Program Flash (Backup)
-#define FLASH_FILE_POSITION (2097512ul) // 2048 - 3048 KBytes For Extra File (... -> Free)
+#define FLASH_FW_BACKUP     (1048576ul) // 1024 - 2048 KBytes For Program Flash (Backup)
+#define FLASH_FILE_POSITION (2097152ul) // 2048 - 3048 KBytes For Extra File (... -> Free)
 #define FLASH_FREE_ACCESS   (3145728ul) // 3048 - 8192 KBytes Free Access
 #define FLASH_BUFFER_SIZE   (256)
 #define FLASH_INFO_SIZE_LEN (256)

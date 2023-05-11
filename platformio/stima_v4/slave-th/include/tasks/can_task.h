@@ -108,7 +108,6 @@ typedef struct
   configuration_t *configuration;
   system_status_t *system_status;
   bootloader_t *boot_request;
-  TwoWire *wire;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *registerAccessLock;
@@ -165,6 +164,7 @@ private:
   State_t state;
   CanParam_t param;
 
+  // Acces static memeber parameter of class
   inline static bootloader_t *boot_state;
   inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static uint16_t last_req_rpt_time = (REPORTS_TIME_S);

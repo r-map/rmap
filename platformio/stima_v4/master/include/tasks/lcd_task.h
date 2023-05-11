@@ -64,6 +64,8 @@
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
 
+#define LCD_TASK_SLEEP_DELAY_MS (1000)
+
 typedef enum LCDState {
   LCD_STATE_CREATE,
   LCD_STATE_INIT,

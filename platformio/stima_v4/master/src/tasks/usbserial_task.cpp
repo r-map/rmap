@@ -104,7 +104,8 @@ void UsbSerialTask::TaskState(uint8_t state_position, uint8_t state_subposition,
 
 void UsbSerialTask::Run()
 {
-  bool message_traced=false;
+  bool message_traced = false;
+  bool task_usb_sleep = true;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -137,6 +138,8 @@ void UsbSerialTask::Run()
     case USBSERIAL_STATE_WAITING_EVENT:
       // Check enter USB Serial RX to take RPC Semaphore (release on END event OK/ERR)
       if(SerialUSB.available()) {
+        // On Event WakeUp
+        task_usb_sleep = false;
         if(param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS))) {
           is_event_rpc = false;
           while(!is_event_rpc) {
@@ -166,8 +169,17 @@ void UsbSerialTask::Run()
     #endif
 
     // One step base non blocking switch
-    TaskWatchDog(USBSERIAL_TASK_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(USBSERIAL_TASK_WAIT_DELAY_MS));
+    // time to pause depending to sleep mode (no sequence data event)
+    if(task_usb_sleep) {
+      TaskWatchDog(USBSERIAL_TASK_SLEEP_DELAY_MS);
+      Delay(Ticks::MsToTicks(USBSERIAL_TASK_SLEEP_DELAY_MS));
+    } else {
+      // Mode Task small Delay but not sleep Mode (After event... if Waiting ather command)
+      TaskWatchDog(USBSERIAL_TASK_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(USBSERIAL_TASK_WAIT_DELAY_MS));
+      // Next event can activate sleep mode
+      task_usb_sleep = true;
+    }
 
   }
 }

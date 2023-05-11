@@ -295,6 +295,8 @@ bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t 
 
 void SdTask::Run()
 {
+  // System message data queue structured
+  system_message_t system_message;
   // Diagnostic LED
   bool bLedLevel;
   uint8_t led_counter;
@@ -591,9 +593,28 @@ void SdTask::Run()
 
     case SD_STATE_WAITING_EVENT:
 
-      // If System SLEEP...  Long WAIT
-      // Else check all queue input
-      // Go to response/action
+      // ********* SYSTEM QUEUE MESSAGE ***********
+      // *** If System SLEEP... SD Sleep WAIT *****
+      // enqueud system message from caller task
+      if (!param.systemMessageQueue->IsEmpty()) {
+          // Read queue in test mode
+          if (param.systemMessageQueue->Peek(&system_message, 0))
+          {
+              // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+              if(system_message.task_dest == ALL_TASK_ID)
+              {
+                  // Pull && elaborate command, 
+                  if(system_message.command.do_sleep)
+                  {
+                      // Enter sleep module OK and update WDT
+                      TaskWatchDog(SD_TASK_SLEEP_DELAY_MS);
+                      TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                      Delay(Ticks::MsToTicks(SD_TASK_SLEEP_DELAY_MS));
+                      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+                  }
+              }
+          }
+      }
 
       // *********************************************************
       // Starting from LCD COMMAND or Remote RPC Request (->Queue)

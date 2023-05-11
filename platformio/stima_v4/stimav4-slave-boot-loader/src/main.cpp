@@ -130,7 +130,7 @@ bool putBackupBlock(uint16_t block, void* buf, size_t count, uint32_t *flashPtr,
         memFlash.BSP_QSPI_Read(check_data, *flashPtr, count);
         if(memcmp(buf, check_data, count)!=0) {
             #if USE_SERIAL_MESSAGE
-            printf("FLASH: verifyng data check ERROR\r\n");
+            printf("FLASH: verifying data check ERROR\r\n");
             #endif
             return false;
         }
@@ -293,6 +293,10 @@ void loop(void)
     if(boot_request.tot_reset != 0XFF) boot_request.tot_reset++;
     if((wdtResetEvent)&&(boot_request.wdt_reset != 0xFF)) boot_request.wdt_reset++;
 
+    #if USE_SERIAL_MESSAGE
+    printf("Number of Reboot: [ %d ] , WathcDog [ %d ]\r\n", boot_request.tot_reset, boot_request.wdt_reset);
+    #endif
+
     // If recived WDT Reset event perform Field for check RollBack...
     // wdtResetEvent with check boot_request.app_executed_ok = false
     if((wdtResetEvent)&&(boot_request.app_executed_ok == true)) {
@@ -396,6 +400,7 @@ void loop(void)
                 memBlock[memBlockIndex++] = STM32Flash_ReadByte(memPtr);
                 if(memBlockIndex == 0) {
                     putBackupBlock(pageFlashIndex++, memBlock, 0x100, &qspiWritePtr, &qspiFlashBlock);
+                    IWatchdog.reload();
                 }
             }
             if(memBlockIndex!=0) {
@@ -445,6 +450,8 @@ void loop(void)
             STM32Flash_JumpToApplication(APP_ADDRESS);
         }
 
+        IWatchdog.reload();
+
         // Programming Flash
         #if USE_SERIAL_MESSAGE
         printf("Starting programming flash...\r\n");
@@ -488,6 +495,7 @@ void loop(void)
                     if(eor_ctrl>=64u) end_flashing = true;
                 }
                 status = STM32Flash_FlashNext(data, &writeFlashPtr);
+                IWatchdog.reload();
                 if(status == BL_OK) {
                     cntr++;
                 } else  {
