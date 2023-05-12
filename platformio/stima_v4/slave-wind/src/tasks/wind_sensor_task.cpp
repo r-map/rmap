@@ -164,6 +164,44 @@ void WindSensorTask::Run() {
       break;
 
     case SENSOR_STATE_WAIT_DATA:
+
+
+  // TODO: AGGIUNGERE
+	// /*
+	//   When in the Polled mode, an output is only generated when the host system sends a Poll 
+	//   signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
+	//   letter A - Z.
+	//   The commands available in this mode are:
+	//   Description                       Command            WindSonic response
+	//   WindSonic Unit Identifier         A ..... Z          Wind speed output generated
+	//   Enable Polled mode                ?                  (None)
+	//   Disable Polled mode               !                  (None)
+	//   Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
+	//   Enter Configuration mode          *<N>               CONFIGURATION MODE
+	  
+	//   Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
+	//   ID's A to F and KMNP are not used as these characters can be present in the data string.
+	  
+	//   It is suggested that in polled mode the following sequence is used for every poll for 
+	//   information.
+	//   ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
+	//   A-Z Appropriate unit designator sent to retrieve a line of data.
+	//   ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
+	  
+	//   When in polled mode the system will respond to the data command within 130mS with the 
+	//   last valid data sample as calculated by the Output rate (P Mode Setting).
+	// */
+	
+	// Serial1.print("?Q!\n");
+  //       delay_ms = WIND_POWER_RESPONSE_DELAY_MS;
+  //       start_time_ms = millis();
+  //       state_after_wait = WIND_READING;
+  //       wind_state = WIND_WAIT_STATE;
+  //       LOGV(F("WIND_INIT (WAIT:%d)--> WIND_READING"),WIND_POWER_RESPONSE_DELAY_MS);
+  //     }
+  //   break;
+
+
       // Ready data from WindSonic?
       if(SerialWindSonic.available()) {
         TRACE_DEBUG_F(F("check_wait ms [ %u ], Avaiable char [ %u ]\r\n"), check_wait * WIND_MESSAGE_DELAY_MS, SerialWindSonic.available());

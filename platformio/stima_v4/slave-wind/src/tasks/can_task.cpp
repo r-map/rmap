@@ -1814,7 +1814,8 @@ void CanTask::Run() {
                                 uint64_t fwFileLen = 0;
                                 getFlashFwInfoFile(&module_type, &version, &revision, &fwFileLen);
                                 TRACE_VERBOSE_F(F("Firmware V%d.%d, Size: %lu bytes is ready for flash updating\r\n"),version, revision, (uint32_t) fwFileLen);
-                            }                            // Nessun altro evento necessario, chiudo File e stati
+                            }
+                            // Nessun altro evento necessario, chiudo File e stati
                             // procedo all'aggiornamento Firmware dopo le verifiche di conformità
                             // Ovviamente se si tratta di un file firmware
                             clCanard.master.file.download_end();
