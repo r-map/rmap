@@ -761,6 +761,40 @@ class StationMaintStatus(models.Model):
     firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware major version"))
     firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware minor version"))
 
+
+class BoardMaintStatus(models.Model):
+    """Board status based on maint messages over MQTT."""
+
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
+
+    lastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Last status update date"))
+    
+    statusb1  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 1"))
+    statusb2  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 2"))
+    statusb3  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 3"))
+    statusb4  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 4"))
+    statusb5  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 5"))
+    statusb6  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 6"))
+    statusb7  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 7"))
+    statusb8  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 8"))
+    statusb9  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 9"))
+    statusb10 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 10"))
+    statusb11 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 11"))
+    statusb12 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 12"))
+    statusb13 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 13"))
+    statusb14 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 14"))
+    statusb15 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 15"))
+    statusb16 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 16"))
+
+    statusv1 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 1 (%)"))
+    statusv2 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 2 (%)"))
+    statusv3 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 3 (%)"))
+    statusv4 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 4 (%)"))
+    statusv5 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 5 (%)"))
+    statusv6 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 6 (%)"))
+    statusv7 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 7 (%)"))
+    statusv8 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 8 (%)"))
+    
     
 class BoardFirmwareMetadata(models.Model):
     """Board metadata for firmware management."""

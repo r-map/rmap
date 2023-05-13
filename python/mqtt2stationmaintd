@@ -33,8 +33,8 @@ import json
 from django.utils import timezone
 import paho.mqtt.client as mqtt
 import logging,traceback
-from rmap.stations.models import StationMaintStatus,StationMetadata
-
+from rmap.stations.models import StationMaintStatus,StationMetadata,Board,BoardMaintStatus
+from datetime import datetime
 
 from rmap import daemon
 import rmap.settings
@@ -146,21 +146,36 @@ class MyMQTTClass(mqtt.Client):
         
         if msg is None:
             return None
-
         try:
             p = self.parse_payload(payload)
-            msg["value"] = p["v"]
-            msg["majorversion"] = p.get("s")
-            msg["minorversion"] = p.get("m")
-        except:
-            logging.error(traceback.format_exc())
+        except json.decoder.JSONDecodeError:
+            logging.error("invalid payload: {}".format(payload))
             return None
             
+        try:
+            msg["stationstatus"]={}
+            msg["stationstatus"]["value"] = p["v"]
+            msg["stationstatus"]["majorversion"] = p.get("s")
+            msg["stationstatus"]["minorversion"] = p.get("m")
+        except:
+            msg.pop("stationstatus")
+            logging.info("no conform maint message Stima V3")
+            logging.debug(traceback.format_exc())
+        try:
+            msg["boardstatus"]={}
+            msg["boardstatus"]["boardslug"] = p["bs"]                
+            msg["boardstatus"]["statusb"] = int(p["b"],2)                
+            msg["boardstatus"]["statusv"] = p.get("c")
+        except:
+            msg.pop("boardstatus")
+            logging.info("no conform maint message Stima V4")
+            logging.debug(traceback.format_exc())
+                    
         if all([
                 msg["level"] != (None, None, None, None),
                 msg["trange"] != (None, None, None)]):
-            if "t" in msg:
-                msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+            if "t" in p:
+                msg["datetime"] = datetime.strptime(p["t"], "%Y-%m-%dT%H:%M:%S")
             else:
                 msg["datetime"] = timezone.now()
         else:
@@ -178,7 +193,11 @@ class MyMQTTClass(mqtt.Client):
             logging.info("subscribe to topic: {}".format(topic))
             client.subscribe(topic,qos=userdata.get("qos",0))
 
+    def on_disconnect(self,client, userdata, flags):
+        logging.info("disconnected!")
 
+
+            
     def on_message(self,client, userdata, message):
         
         if userdata["logging"]:
@@ -193,6 +212,7 @@ class MyMQTTClass(mqtt.Client):
                 return
                 
             m = self.parse_message(message.topic, message.payload.decode("utf-8"))
+            logging.debug("message {}".format(m))
             if m is None:
                 return
 
@@ -213,9 +233,6 @@ class MyMQTTClass(mqtt.Client):
             logging.debug(m["level"])
             logging.debug(m["trange"])
             logging.debug(m["var"])
-            logging.debug(m["value"])
-            logging.debug(m["majorversion"])
-            logging.debug(m["minorversion"])
 
             for b, v in m["attributes"].items():
                 logging.debug("ignore: {} {}".format(b, v))
@@ -235,46 +252,111 @@ class MyMQTTClass(mqtt.Client):
                                                             ,user__username=m["user"]
                                                             ,ident=m["ident"] )
 
-                    if hasattr(mystation, 'stationmaintstatus'):
 
-                        logging.info("update maint information to station {} {} {} {} {}: {} {} {} {}".format
-                                      (mystation.network
-                                       ,mystation.lon
-                                       ,mystation.lat
-                                       ,mystation.user
-                                       ,mystation.ident
-                                       ,m["value"]
-                                       ,m["majorversion"]
-                                       ,m["minorversion"]
-                                       ,m["datetime"])                                
-                                     )
+                    if ('stationstatus' in m):
+                        if hasattr(mystation, 'stationmaintstatus'):
 
-                        mystation.stationmaintstatus.laststatus    = m["value"]
-                        mystation.stationmaintstatus.lastupdate    = m["datetime"]
-                        mystation.stationmaintstatus.firmwaremajor = m["majorversion"]
-                        mystation.stationmaintstatus.firmwareminor = m["minorversion"]
-                        mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
-                        if (m["value"] == "conn"): mystation.stationmaintstatus.save(update_fields=['firmwaremajor','firmwareminor'])
+                            logging.info("update maint information to station {} {} {} {} {}: {} {} {} {}".format
+                                         (mystation.network
+                                          ,mystation.lon
+                                          ,mystation.lat
+                                          ,mystation.user
+                                          ,mystation.ident
+                                          ,m["stationstatus"]["value"]
+                                          ,m["stationstatus"]["majorversion"]
+                                          ,m["stationstatus"]["minorversion"]
+                                          ,m["datetime"])                                
+                                         )
 
-                    else:
+                            mystation.stationmaintstatus.laststatus    = m["stationstatus"]["value"]
+                            mystation.stationmaintstatus.lastupdate    = m["datetime"]
+                            mystation.stationmaintstatus.firmwaremajor = m["stationstatus"]["majorversion"]
+                            mystation.stationmaintstatus.firmwareminor = m["stationstatus"]["minorversion"]
+                            if (m["value"] == "conn"):
+                                mystation.stationmaintstatus.save(force_update=True)
+                            else:
+                                mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
 
-                        logging.info("add maint information to station {} {} {} {} {}: {} {} {} {}".format
-                                      (mystation.network
-                                       ,mystation.lon
-                                       ,mystation.lat
-                                       ,mystation.user
-                                       ,mystation.ident
-                                       ,m["value"]
-                                       ,m["datetime"]                            
-                                       ,m["majorversion"]
-                                       ,m["minorversion"])
-                                     )
+                        else:
 
-                        sms=StationMaintStatus(station=mystation,laststatus=m["value"], lastupdate=m["datetime"], firmwaremajor=m["majorversion"], firmwareminor=m["minorversion"])
-                        sms.save()
+                            logging.info("add maint information to station {} {} {} {} {}: {} {} {} {}".format
+                                         (mystation.network
+                                          ,mystation.lon
+                                          ,mystation.lat
+                                          ,mystation.user
+                                          ,mystation.ident
+                                          ,m["stationstatus"]["value"]
+                                          ,m["datetime"]                            
+                                          ,m["stationstatus"]["majorversion"]
+                                          ,m["stationstatus"]["minorversion"])
+                                         )
 
+                            sms=StationMaintStatus(station=mystation,laststatus=m["stationstatus"]["value"], lastupdate=m["datetime"],
+                                                   firmwaremajor=m["stationstatus"]["majorversion"], firmwareminor=m["stationstatus"]["minorversion"])
+                            sms.save()
+
+
+                    if ('boardstatus' in m):
+
+                        try:
+                            myboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]
+                                                        ,stationmetadata=mystation)
+                        except Board.DoesNotExist :
+                            logging.error("board not present on DB; ignore it: {}".format(m["boardstatus"]["boardslug"]))
+                    
+                        if hasattr(myboard, 'boardmaintstatus'):
+
+                            logging.info("update maint information date {} to station {} {} board {}".format
+                                         ( m["datetime"]
+                                           ,mystation.user
+                                           ,mystation.slug
+                                           ,myboard.slug)                                
+                                         )
+
+                            myboard.boardmaintstatus.lastupdate     = m["datetime"]
+
+                            for bit,statusb in ((0, "statusb1" ),  (1,"statusb2" ), (2, "statusb3" ), (3, "statusb4" )
+                                            ,   (4, "statusb5" ),  (5,"statusb6" ), (6, "statusb7" ), (7, "statusb8" )
+                                            ,   (8, "statusb9" ),  (9,"statusb10"), (10,"statusb11"), (11,"statusb12")
+                                            ,   (12,"statusb13"), (13,"statusb14"), (14,"statusb15"), (15,"statusb16")):
+
+                                exec("myboard.boardmaintstatus."+statusb+"  = (m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1")
+
+
+                            for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
+                                            ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
+                                if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
+                                exec("myboard.boardmaintstatus."+statusv+" =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
+
+                            myboard.boardmaintstatus.save()
+
+                        else:
+
+                            logging.info("add maint information date {} to station {} {} board {}".format
+                                         ( m["datetime"]
+                                           ,mystation.user
+                                           ,mystation.slug
+                                           ,myboard.slug)                                
+                                         )
+
+                            bms=BoardMaintStatus(board=myboard, lastupdate=m["datetime"])
+
+                            for bit,statusb in ((0, "statusb1" ),  (1,"statusb2" ), (2, "statusb3" ), (3, "statusb4" )
+                                            ,   (4, "statusb5" ),  (5,"statusb6" ), (6, "statusb7" ), (7, "statusb8" )
+                                            ,   (8, "statusb9" ),  (9,"statusb10"), (10,"statusb11"), (11,"statusb12")
+                                            ,   (12,"statusb13"), (13,"statusb14"), (14,"statusb15"), (15,"statusb16")):
+                                exec("myboard.boardmaintstatus."+statusb+"  = (m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1")
+
+                            for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
+                                            ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
+
+                                if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
+                                exec("myboard.boardmaintstatus."+statusv+"  =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
+
+                            bms.save()
+                            
                 except StationMetadata.DoesNotExist :
-                    logging.debug("user/station not present on DB; ignore it: {} {} {} {}".format
+                    logging.error("user/station not present on DB; ignore it: {} {} {} {}".format
                                   (m["rep_memo"]
                                    ,m["lon"]/100000.
                                    ,m["lat"]/100000.
@@ -369,7 +451,6 @@ def main(self):
     mqttclient.enable_logger(logging)
     mqttclient.loop_start()
     mqttclient.connect(host=host)
-
     
     # infinite loop
     while True:

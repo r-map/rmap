@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (StationMetadata,Board,Sensor,SensorType,Bcode,
 TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,
-StationConstantData,BoardFirmwareMetadata,StationMaintStatus,StationImage)
+StationConstantData,BoardFirmwareMetadata,StationMaintStatus,StationImage,BoardMaintStatus)
 from django import forms
 from django.utils.translation import ugettext_lazy
 import rmap.settings
@@ -43,7 +43,12 @@ class BoardFirmwareMetadataInline(admin.StackedInline):
 class StationMaintStatusInline(admin.StackedInline):
     model = StationMaintStatus
     extra=0   # this require javascript to add record inline    
-    
+
+
+class BoardMaintStatusInline(admin.StackedInline):
+    model = BoardMaintStatus
+    extra=0   # this require javascript to add record inline    
+
 ## Board has Certificates inline but rather
 ## than nesting inlines (not possible), shows a link to
 ## its own ModelAdmin's change form, for accessing TrainingDates:
@@ -103,6 +108,7 @@ class BoardAdmin(admin.ModelAdmin):
         TransportCanInline,
         SensorInline,
         BoardFirmwareMetadataInline,
+        BoardMaintStatusInline,
     ]
 
     list_display = ('name','active','slug','category','stationmetadata')
