@@ -409,7 +409,7 @@ void WindSensorTask::Run() {
 
       // Put data into queue to elaborate istant value
       if(speed!=UINT16_MAX) {
-        edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_RMAP_MULT);
+        edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
       }
       edata.index = WIND_SPEED_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
