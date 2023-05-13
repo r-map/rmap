@@ -169,13 +169,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_MESSAGE_DELAY_MS             (4)
 
 /*!
-\def WIND_WAITING_RESPONSE_DELAY_MS
-\brief Windsonic compose response message delay.
-*/
-#define WIND_WAITING_RESPONSE_DELAY_MS    (100)
-
-/*!
-\def WIND_WAITING_RESPONSE_DELAY_MS
+\def WIND_WAITING_RESPONSE_TIMEOUT_MS
 \brief Windsonic compose response message delay.
 */
 #define WIND_WAITING_RESPONSE_TIMEOUT_MS  (500)
@@ -184,7 +178,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def WIND_WAITING_READCHAR_TIMEOUT_MS (0,9 mSec at 9600 Baud)
 \brief Windsonic compose response message timeout next char.
 */
-#define WIND_WAITING_READCHAR_TIMEOUT_MS  (5)
+#define WIND_WAITING_READCHAR_TIMEOUT_MS  (10)
 
 /*!
 \def WIND_READ_COUNT

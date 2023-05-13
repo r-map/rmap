@@ -486,6 +486,8 @@ void init_rtc(bool init)
   }
   // Start LowPower configuration
   LowPower.begin();
+  // Activate standard mode IdleHock Loop Power mode
+  LowPower.idleHookEnable();
 }
 
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)

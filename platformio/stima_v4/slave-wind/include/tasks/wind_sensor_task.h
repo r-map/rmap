@@ -56,6 +56,7 @@
 #include "ticks.hpp"
 #include "semaphore.hpp"
 #include "queue.hpp"
+#include <STM32LowPower.h>
 #include "drivers/module_slave_hal.hpp"
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)

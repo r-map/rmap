@@ -58,15 +58,37 @@ void STM32LowPower::begin(void)
 }
 
 /**
-  * @brief  Enable the idle low power mode (STM32 sleep). Exit this mode on
+  * @brief  Activate if enabled the idle low power mode (STM32 sleep). Exit this mode on
   *         standard system tick or interrupt. Is intended for IdleHook RTOS.
   * @param  None.
   * @retval None
   */
 void STM32LowPower::idleHook(void)
 {
-  LowPower_idleHook();
+  if(_hookEnable) LowPower_idleHook();
 }
+
+
+/**
+  * @brief  Enable the idle low power mode (STM32 sleep IdleHook) Mode
+  * @param  None.
+  * @retval None
+  */
+void STM32LowPower::idleHookEnable(void)
+{
+  _hookEnable = true;
+}
+
+/**
+  * @brief  Disable the idle low power mode (STM32 sleep IdleHook) Mode
+  * @param  None.
+  * @retval None
+  */
+void STM32LowPower::idleHookDisable(void)
+{
+  _hookEnable = false;
+}
+
 
 /**
   * @brief  Enable the idle low power mode (STM32 sleep). Exit this mode on

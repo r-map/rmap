@@ -242,7 +242,6 @@ void setup() {
 
 }
 
-// FreeRTOS idleHook callBack to loop
 void loop() {
   // Enable LowPower idleHock reduce power consumption without disable sysTick
   LowPower.idleHook();
@@ -300,4 +299,6 @@ void init_rtc(bool init)
   }
   // Start LowPower configuration
   LowPower.begin();
+  // Activate standard mode IdleHock Loop Power mode
+  LowPower.idleHookEnable();
 }

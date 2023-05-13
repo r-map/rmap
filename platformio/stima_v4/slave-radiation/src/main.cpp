@@ -300,4 +300,6 @@ void init_rtc(bool init)
   }
   // Start LowPower configuration
   LowPower.begin();
+  // Activate standard mode IdleHock Loop Power mode
+  LowPower.idleHookEnable();
 }

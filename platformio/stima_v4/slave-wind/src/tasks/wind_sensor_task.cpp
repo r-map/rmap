@@ -158,6 +158,7 @@ void WindSensorTask::Run() {
     case SENSOR_STATE_INIT:
       TRACE_INFO_F(F("Initializing sensors...\r\n"));
       is_error = false;
+      error_count = 0;
 
       if (isWindOff())
       {
@@ -209,14 +210,14 @@ void WindSensorTask::Run() {
         When in polled mode the system will respond to the data command within 130mS with the 
         last valid data sample as calculated by the Output rate (P Mode Setting).
       */
+      // Disable Sleep Mode while request response is done
+      LowPower.idleHookDisable();
+      // Starting request polling
       SerialWindSonic.print("?Q!\n");
       // Flush and Rest Buffer IN before Reading Messag response
       SerialWindSonic.flush();
       serialReset();
       TRACE_VERBOSE_F(F("SENSOR_STATE_REQUEST --> SENSOR_STATE_WAIT_DATA\r\n"));
-      // Waiting minimum Base delay Reading data to prepare message before reading
-      TaskWatchDog(WIND_WAITING_RESPONSE_DELAY_MS);
-      Delay(Ticks::MsToTicks(WIND_WAITING_RESPONSE_DELAY_MS));
       // Start timeout checking from now
       millis_timeout = millis();
       state = SENSOR_STATE_WAIT_DATA;
@@ -236,7 +237,7 @@ void WindSensorTask::Run() {
         break;
       } else {
         // Checking Time OUT End of Buffer IN Data otwerwise exit task without delay
-        if(millis() > (millis_timeout + (WIND_WAITING_RESPONSE_TIMEOUT_MS - WIND_WAITING_RESPONSE_DELAY_MS))) {
+        if(millis() > (millis_timeout + WIND_WAITING_RESPONSE_TIMEOUT_MS)) {
           is_error = true;
           error_count++;
           state = SENSOR_STATE_ELABORATE;
@@ -294,6 +295,9 @@ void WindSensorTask::Run() {
           uart_rx_buffer_ptr--;
           state = SENSOR_STATE_ELABORATE;
           TRACE_VERBOSE_F(F("SENSOR_STATE_READING (MESSAGE COMPLETE) --> SENSOR_STATE_ELABORATE\r\n"));
+          // Relax flag inibth_sleep. Mesage readed, Now sleep can be activable          
+          // Enable Sleep Mode while request response is done
+          LowPower.idleHookEnable();
           break;
         }
       }

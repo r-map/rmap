@@ -67,6 +67,8 @@ class STM32LowPower {
     void begin(void);
 
     void idleHook(void);
+    void idleHookEnable(void);
+    void idleHookDisable(void);
 
     void idle(uint32_t ms = 0);
     void idle(int ms)
@@ -98,6 +100,7 @@ class STM32LowPower {
     void enableWakeupFrom(STM32RTC *rtc, voidFuncPtr callback, void *data = NULL);
 
   private:
+    bool _hookEnable;     // LowPower Hook Generic Enable callBack var
     bool _configured;     // Low Power mode initialization status
     serial_t *_serial;    // Serial for wakeup from deep sleep
     bool _rtc_wakeup;     // Is RTC wakeup?
