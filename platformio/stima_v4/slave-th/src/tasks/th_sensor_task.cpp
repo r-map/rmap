@@ -268,6 +268,11 @@ void TemperatureHumidtySensorTask::Run() {
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
             param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
+
+            edata.value = values_readed_from_sensor[1];
+            edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
 
@@ -361,7 +366,7 @@ void TemperatureHumidtySensorTask::Run() {
         }
 
         param.wireLock->Take();
-        //param.wire->begin();
+        param.wire->begin();
         param.wireLock->Give();
 
         // Local TaskWatchDog update and Sleep Activate before Next Read

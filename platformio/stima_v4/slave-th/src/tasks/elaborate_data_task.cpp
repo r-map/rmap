@@ -325,7 +325,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
   bool is_observation = false;        // Is an observation (when calculate is requested)
   uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
-
+  uint16_t n_observation = 0;         // Observation elaboration number... (incremented on calc development)
   // Elaborate suffix description: _s(sample) _o(observation) _t(total) [Optional for debug]
 
   // Elaboration main_temperature
@@ -480,7 +480,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #if (USE_REDUNDANT_SENSOR)
       redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
       #endif
-      if (i == 0) report.temperature.sample = main_temperature_s; // Elaboration sample -> Last data
+      if (n_sample == 1) report.temperature.sample = main_temperature_s; // Elaboration sample -> Last data
       total_count_main_temperature_s++;
       avg_main_temperature_quality_s += (float)(((float)checkTemperature(main_temperature_s, redundant_temperature_s) - avg_main_temperature_quality_s) / total_count_main_temperature_s);
       if ((ISVALID_RMAPDATA(main_temperature_s)) && !measures_maintenance)
@@ -496,7 +496,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #if (USE_REDUNDANT_SENSOR)
       redundant_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
       #endif
-      if (i == 0) report.humidity.sample = main_humidity_s; // Elaboration sample -> Last data
+      if (n_sample == 1) report.humidity.sample = main_humidity_s; // Elaboration sample -> Last data
       total_count_main_humidity_s++;
       avg_main_humidity_quality_s += (float)(((float)checkHumidity(main_humidity_s, redundant_humidity_s) - avg_main_humidity_quality_s) / total_count_main_humidity_s);
       if ((ISVALID_RMAPDATA(main_humidity_s)) && !measures_maintenance)
@@ -512,6 +512,11 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       // ************* ELABORATE OBSERVATION VALUES FOR TYPE SENSOR FOR PREPARE REPORT RESPONSE ************
       // ***************************************************************************************************
       if(is_observation) {
+
+        n_observation++;
+
+        // Elaboration IST for observation (first observation in bufferBack)
+        if (n_observation == 1) report.temperature.ist = avg_main_temperature_s; // Elaboration sample -> Last data
 
         // main_temperature, sufficient number of valid samples?
         valid_data_calc_perc = (float)(valid_count_main_temperature_s) / (float)(total_count_main_temperature_s) * 100.0;
@@ -529,6 +534,9 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
         avg_main_temperature_s = 0;
         valid_count_main_temperature_s = 0;
         total_count_main_temperature_s = 0;
+
+        // Elaboration IST for observation (first observation in bufferBack)
+        if (n_observation == 1) report.humidity.ist = avg_main_humidity_s; // Elaboration sample -> Last data
 
         // main_humidity, sufficient number of valid samples?
         valid_data_calc_perc = (float)(valid_count_main_humidity_s) / (float)(total_count_main_humidity_s) * 100.0;

@@ -163,9 +163,9 @@ void SupervisorTask::Run()
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
         strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
-        param.configuration->observation_s = 60;
+        param.configuration->observation_s = 30;
         // param.configuration->report_s = 180;
-        param.configuration->report_s = 180;
+        param.configuration->report_s = 60;
         param.system_status->flags.config_empty = false;
         #endif
 
