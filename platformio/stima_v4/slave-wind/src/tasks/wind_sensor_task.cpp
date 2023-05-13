@@ -237,6 +237,8 @@ void WindSensorTask::Run() {
       } else {
         // Checking Time OUT End of Buffer IN Data otwerwise exit task without delay
         if(millis() > (millis_timeout + (WIND_WAITING_RESPONSE_TIMEOUT_MS - WIND_WAITING_RESPONSE_DELAY_MS))) {
+          is_error = true;
+          error_count++;
           state = SENSOR_STATE_ELABORATE;
           TRACE_VERBOSE_F(F("SENSOR_STATE_WAIT_DATA (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
         }        
@@ -552,7 +554,7 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   else
   {
     // Return an error
-    TRACE_ERROR_F(F("Windsonic: data read invalid"));
+    TRACE_ERROR_F(F("Windsonic: data read invalid block\r\n"));
     return -1;
   }
 
