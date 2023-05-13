@@ -278,12 +278,11 @@ void MqttTask::Run()
       }
       else
       {
-        // publish connection message
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
-        // TODO: AGGIUNGI!!!!!
-        // "s": Version, "n": Revision
-        error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_CONNECT_MESSAGE, strlen(MQTT_ON_CONNECT_MESSAGE), qos, true, NULL);
-        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_CONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
+        // publish connection message (Conn + Version and Revision)
+        sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"n\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
+        error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       }

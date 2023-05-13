@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/metatransport/can/BaseArbitrationID.0.1.dsdl
-// Generated at:  2023-05-02 13:26:17.365721 UTC
+// Generated at:  2023-05-13 10:35:54.074140 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.metatransport.can.BaseArbitrationID

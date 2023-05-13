@@ -49,6 +49,8 @@
 
 #define UART_RX_BUFFER_LENGTH             (24)
 
+#define WINDSONIC_POLLED_MODE             (true)
+
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -82,6 +84,10 @@ class WindSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CREATE,
     SENSOR_STATE_WAIT_CFG,
     SENSOR_STATE_INIT,
+    #if (WINDSONIC_POLLED_MODE)
+    SENSOR_STATE_SETUP,
+    SENSOR_STATE_REQUEST,
+    #endif
     SENSOR_STATE_WAIT_DATA,
     SENSOR_STATE_READING,
     SENSOR_STATE_ELABORATE,
@@ -111,7 +117,6 @@ private:
 
   bool is_power_on;
   bool is_error;
-  uint16_t check_wait;
   float speed;
   float direction;
 

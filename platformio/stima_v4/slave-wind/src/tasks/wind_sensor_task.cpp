@@ -108,6 +108,12 @@ void WindSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 void WindSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
+  // TimeOut mode from millis local timer FullOn on PolledMode or TaskWaiting standard Delay
+  #if (WINDSONIC_POLLED_MODE)
+  uint32_t millis_timeout;
+  #else
+  uint16_t check_wait;
+  #endif
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
@@ -134,8 +140,10 @@ void WindSensorTask::Run() {
       {
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
+        #if (!WINDSONIC_POLLED_MODE)
         // Reset check time sync Get and Verify Data
         check_wait = 0;
+        #endif
       }
       // other
       else
@@ -159,48 +167,83 @@ void WindSensorTask::Run() {
         // Flushing all data (After powered ON... Clean message startup)
         serialReset();
       }
+      #if (WINDSONIC_POLLED_MODE)
+      TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_SETUP\r\n"));
+      state = SENSOR_STATE_SETUP;
+      #else
       TRACE_VERBOSE_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_WAIT_DATA\r\n"));
       state = SENSOR_STATE_WAIT_DATA;
+      #endif
       break;
 
+    #if (WINDSONIC_POLLED_MODE)
+    case SENSOR_STATE_SETUP:
+      TRACE_VERBOSE_F(F("SENSOR_STATE_SETUP --> SENSOR_STATE_REQUEST\r\n"));
+      state = SENSOR_STATE_REQUEST;
+      break;
+
+    case SENSOR_STATE_REQUEST:
+    
+      /*
+        ***************** POLLED MODE, Preopare Request to Wind Sonic ******************
+        When in the Polled mode, an output is only generated when the host system sends a Poll 
+        signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
+        letter A - Z.
+        The commands available in this mode are:
+        Description                       Command            WindSonic response
+        WindSonic Unit Identifier         A ..... Z          Wind speed output generated
+        Enable Polled mode                ?                  (None)
+        Disable Polled mode               !                  (None)
+        Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
+        Enter Configuration mode          *<N>               CONFIGURATION MODE
+        
+        Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
+        ID's A to F and KMNP are not used as these characters can be present in the data string.
+        
+        It is suggested that in polled mode the following sequence is used for every poll for 
+        information.
+        ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
+        A-Z Appropriate unit designator sent to retrieve a line of data.
+        ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
+        
+        When in polled mode the system will respond to the data command within 130mS with the 
+        last valid data sample as calculated by the Output rate (P Mode Setting).
+      */
+      SerialWindSonic.print("?Q!\n");
+      // Flush and Rest Buffer IN before Reading Messag response
+      SerialWindSonic.flush();
+      serialReset();
+      TRACE_VERBOSE_F(F("SENSOR_STATE_REQUEST --> SENSOR_STATE_WAIT_DATA\r\n"));
+      // Waiting minimum Base delay Reading data to prepare message before reading
+      TaskWatchDog(WIND_WAITING_RESPONSE_DELAY_MS);
+      Delay(Ticks::MsToTicks(WIND_WAITING_RESPONSE_DELAY_MS));
+      // Start timeout checking from now
+      millis_timeout = millis();
+      state = SENSOR_STATE_WAIT_DATA;
+      break;
+    #endif
+
+    // Waiting Data String from Sensor
     case SENSOR_STATE_WAIT_DATA:
 
+      #if (WINDSONIC_POLLED_MODE)
 
-  // TODO: AGGIUNGERE
-	// /*
-	//   When in the Polled mode, an output is only generated when the host system sends a Poll 
-	//   signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
-	//   letter A - Z.
-	//   The commands available in this mode are:
-	//   Description                       Command            WindSonic response
-	//   WindSonic Unit Identifier         A ..... Z          Wind speed output generated
-	//   Enable Polled mode                ?                  (None)
-	//   Disable Polled mode               !                  (None)
-	//   Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
-	//   Enter Configuration mode          *<N>               CONFIGURATION MODE
-	  
-	//   Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
-	//   ID's A to F and KMNP are not used as these characters can be present in the data string.
-	  
-	//   It is suggested that in polled mode the following sequence is used for every poll for 
-	//   information.
-	//   ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
-	//   A-Z Appropriate unit designator sent to retrieve a line of data.
-	//   ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
-	  
-	//   When in polled mode the system will respond to the data command within 130mS with the 
-	//   last valid data sample as calculated by the Output rate (P Mode Setting).
-	// */
-	
-	// Serial1.print("?Q!\n");
-  //       delay_ms = WIND_POWER_RESPONSE_DELAY_MS;
-  //       start_time_ms = millis();
-  //       state_after_wait = WIND_READING;
-  //       wind_state = WIND_WAIT_STATE;
-  //       LOGV(F("WIND_INIT (WAIT:%d)--> WIND_READING"),WIND_POWER_RESPONSE_DELAY_MS);
-  //     }
-  //   break;
-
+      // Data ready on buffer?
+      if(SerialWindSonic.available()) {
+        // Got to Read message immediatly (start timeout end message)
+        millis_timeout = millis();
+        state = SENSOR_STATE_READING;
+        break;
+      } else {
+        // Checking Time OUT End of Buffer IN Data otwerwise exit task without delay
+        if(millis() > (millis_timeout + (WIND_WAITING_RESPONSE_TIMEOUT_MS - WIND_WAITING_RESPONSE_DELAY_MS))) {
+          state = SENSOR_STATE_ELABORATE;
+          TRACE_VERBOSE_F(F("SENSOR_STATE_WAIT_DATA (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
+        }        
+        else Yield();
+      }
+      
+      #else
 
       // Ready data from WindSonic?
       if(SerialWindSonic.available()) {
@@ -226,9 +269,37 @@ void WindSensorTask::Run() {
         state = SENSOR_STATE_ELABORATE;
         TRACE_VERBOSE_F(F("SENSOR_STATE_WAIT_DATA (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
       }
+
+      #endif
       break;
 
+    // Reading data from Serial Buffer to local buffer (in polled or continuos mode)
     case SENSOR_STATE_READING:
+
+      #if (WINDSONIC_POLLED_MODE)
+
+      // Reading data buffer
+      if (SerialWindSonic.available()) {
+        // Read all buffer existing and waiting next...
+        while(SerialWindSonic.available())
+          uart_rx_buffer[uart_rx_buffer_ptr++] = SerialWindSonic.read();
+        // Update last char reading time out and exit
+        millis_timeout = millis();
+      } else {
+        // Got to Read message
+        if(millis() > (millis_timeout + WIND_WAITING_READCHAR_TIMEOUT_MS)) {
+          // Set correct pointer last buffer index
+          uart_rx_buffer_ptr--;
+          state = SENSOR_STATE_ELABORATE;
+          TRACE_VERBOSE_F(F("SENSOR_STATE_READING (MESSAGE COMPLETE) --> SENSOR_STATE_ELABORATE\r\n"));
+          break;
+        }
+      }
+      // In any case return control immediatly at other task... On Wait
+      Yield();
+
+      #else
+
       // Avaiable > MAX LENGHT_MESSAGE ? Normally the message is as long as expected (Align with STX Character)
       // This can occur after a sensor reset or if the set acquisition time does not comply with the continuous acquisition
       // time set on the sensor. It is still to be considered as an error but the procedure works correctly
@@ -268,6 +339,9 @@ void WindSensorTask::Run() {
         state = SENSOR_STATE_ELABORATE;
         TRACE_VERBOSE_F(F("SENSOR_STATE_READING (ERROR) --> SENSOR_STATE_ELABORATE\r\n"));
       }
+
+      #endif
+
       break;
 
     case SENSOR_STATE_ELABORATE:
@@ -286,8 +360,11 @@ void WindSensorTask::Run() {
         // Get Intepreter data Value from Sensor (Get an error if string not valid)        
         windCodeError = windsonicInterpreter(&speed, &direction);
       }
+
+      #if (!WINDSONIC_POLLED_MODE)
       // Reset In Buffer Serial for next Acquire (Align request immediatly after Interpretate data)
       serialReset();
+      #endif
 
       /// -1 Invalid message, -2 Axis Measurement Error, -3 Status hardware error,
       /// -4 status message error, -5 Unit measure not valid, -6 CRC Error
@@ -325,7 +402,9 @@ void WindSensorTask::Run() {
       param.systemStatusLock->Give();
 
       // Put data into queue to elaborate istant value
-      edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_RMAP_MULT);
+      if(speed!=UINT16_MAX) {
+        edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_RMAP_MULT);
+      }
       edata.index = WIND_SPEED_INDEX;
       param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
 
@@ -350,10 +429,19 @@ void WindSensorTask::Run() {
         TaskMonitorStack();
         #endif
 
+        #if (WINDSONIC_POLLED_MODE)
+        // Synch request DelayUntil (RTOS Timer absolute) to delay_ms programmed on register UAVCAN
+        // Using DelayUntil to perform timeOut from Last Event (Synch Time is exacltly internal from Task)
+        // TaskWait Until is configured register uavcan param.configuration->sensor_acquisition_delay_ms
+        TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+        DelayUntil(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms));
+        TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+        #else
         // Reset check time synch for next verify get data timings
         check_wait = 0;
-
         // Local TaskWatchDog update and Sleep Activate before Next Read
+        // Using Delay to perform timeOut from Now (Synch Time is from external sensor publish message on RS232)
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms - 70);
         TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
         // Freq. To Acquire depends from Sensor Continuos Mode. To be set to Setup Freq.
@@ -363,13 +451,19 @@ void WindSensorTask::Run() {
         // Time less most possible can set more time for Power_Down. Time WakeUp is already anticipated.
         Delay(Ticks::MsToTicks(param.configuration->sensor_acquisition_delay_ms - 70));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+        #endif
 
         // If error > WIND_TASK_ERROR_FOR_POWER_OFF ( Perform a Reset Power to Sensor )
         // Next Init Reset Sensor Power and wait time to stabilization data
         if (error_count) {
           state = SENSOR_STATE_INIT;
         } else {
+          // Goto Read or Request state depending Polled Mode
+          #if (WINDSONIC_POLLED_MODE)
+          state = SENSOR_STATE_REQUEST;
+          #else
           state = SENSOR_STATE_WAIT_DATA;
+          #endif
         }
         break;
     }
