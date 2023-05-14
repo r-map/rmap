@@ -38,7 +38,7 @@ MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = LD_MAX_DATA_SIZE
   /* FLASH    (rx)    : ORIGIN = 0x8000000 , LENGTH = 0xBFFF */
-  FLASH    (rx)    : ORIGIN = 0x8000000 , LENGTH = 0x10FFF
+  FLASH    (rx)    : ORIGIN = 0x8000000 , LENGTH = 0x0AFFF
 }
 
 /* Sections */

@@ -290,9 +290,10 @@ void loop(void)
     }
 
     // Found Try to Start immediatly (if RESET Occurs before Starting APP)
-    if(boot_request.app_forcing_start == true) {
+    if(boot_request.app_forcing_start) {
         // Try one time without changing saving other flags
         boot_request.app_forcing_start = false;
+        boot_request.rollback_executed = false;
         memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
         #if USE_SERIAL_MESSAGE
         printf("Found flag, Forcing Starting APP...\r\n");
@@ -308,30 +309,6 @@ void loop(void)
     #if USE_SERIAL_MESSAGE
     printf("Number of Reboot: [ %d ] , WathcDog [ %d ]\r\n", boot_request.tot_reset, boot_request.wdt_reset);
     #endif
-
-    // //  ******** TEST *******
-    //  boot_request.request_upload = true;
-    //  boot_request.app_executed_ok = false;
-    //  boot_request.backup_executed = true;
-    //  boot_request.upload_executed = false;
-    //  Serial.print("Delay 1");
-    //  delay(1000);
-    //  Serial.print("Delay 2");
-    //  delay(1000);
-    //  Serial.print("Delay 3");
-    //  delay(1000);
-    //  Serial.print("Delay 4");
-    //  delay(1000);
-    //  Serial.print("Delay 5");
-    //  delay(1000);
-    //  Serial.print("Delay 6");
-    //  delay(1000);
-    //  Serial.print("Delay 7");
-    //  delay(1000);
-    //  Serial.print("Delay 8");
-    //  IWatchdog.reload();
-    //  STM32Flash_JumpToApplication(APP_ADDRESS);
-
 
     // If recived WDT Reset event perform Field for check RollBack...
     // wdtResetEvent with check boot_request.app_executed_ok = false
@@ -568,9 +545,9 @@ void loop(void)
             boot_request.upload_executed = true;
             boot_request.rollback_executed = false;
             boot_request.app_executed_ok = false; // True from APP... IF Starting OK
+            // Signal Flashing now (only to check on Reboot Try Start after flashing...)
+            boot_request.app_forcing_start = true;
         }
-        // Signal Flashing now (only to check on Reboot Try Start after flashing...)
-        boot_request.app_forcing_start = true;
         // Preformed down (as Starting APP... Normal Mode)
         memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
         STM32Flash_JumpToApplication(APP_ADDRESS);

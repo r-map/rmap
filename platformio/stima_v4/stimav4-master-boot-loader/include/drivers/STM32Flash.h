@@ -40,7 +40,7 @@
 
 // Start address of application space in flash
 // N.B. Enter Here Application start define value (used as address in Main.c)
-#define APP_ADDRESS (uint32_t)0x08012000
+#define APP_ADDRESS (uint32_t)0x0800B000
 
 // Calculate Address applicaton limit
 #define APP_ROMEND  (uint32_t)(FLASH_BASE + FLASH_SIZE)
