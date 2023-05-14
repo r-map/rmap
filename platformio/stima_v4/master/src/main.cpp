@@ -67,6 +67,8 @@ void setup() {
   static Queue *dataFileGetRequestQueue;
   static Queue *dataFileGetResponseQueue;
   static Queue *dataLogPutQueue;
+  //Display LCD
+  static Queue *displayEventWakeUp;
 
   // System and status configuration struct
   static configuration_t configuration = {0};
@@ -142,6 +144,7 @@ void setup() {
   dataRmapGetRequestQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_request_t));
   dataRmapGetResponseQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_response_t));
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
+  displayEventWakeUp = new Queue(DISPLAY_EVENT_QUEUE_LENGTH, sizeof(bool));
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n\r\n"));
 
@@ -208,16 +211,18 @@ void setup() {
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
+  wdtParam.boot_request = &boot_check;
   wdtParam.systemStatusLock = systemStatusLock;
   wdtParam.rtcLock = rtcLock;
   wdtParam.dataLogPutQueue = dataLogPutQueue;
   wdtParam.eeprom = &memEprom;
 
 #if (ENABLE_MMC)
- // TASK SUPERVISOR PARAM CONFIG
+  // TASK SUPERVISOR PARAM CONFIG
   static MmcParam_t mmcParam = {0};
   mmcParam.configuration = &configuration;
   mmcParam.system_status = &system_status;
+  mmcParam.boot_request = &boot_check;
   mmcParam.systemMessageQueue = systemMessageQueue;
   mmcParam.dataRmapPutQueue = dataRmapPutQueue;
   mmcParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
@@ -236,10 +241,11 @@ void setup() {
 #endif
 
 #if (ENABLE_SD)
- // TASK SUPERVISOR PARAM CONFIG
+  // TASK SUPERVISOR PARAM CONFIG
   static SdParam_t sdParam = {0};
   sdParam.configuration = &configuration;
   sdParam.system_status = &system_status;
+  sdParam.boot_request = &boot_check;
   sdParam.systemMessageQueue = systemMessageQueue;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
   sdParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
@@ -283,6 +289,7 @@ void setup() {
   lcdParam.systemStatusLock = systemStatusLock;
   lcdParam.systemMessageQueue = systemMessageQueue;
   lcdParam.dataLogPutQueue = dataLogPutQueue;
+  lcdParam.displayEventWakeUp = displayEventWakeUp;
   lcdParam.eeprom = &memEprom;
   lcdParam.rtcLock = rtcLock;
 #if (ENABLE_I2C2)

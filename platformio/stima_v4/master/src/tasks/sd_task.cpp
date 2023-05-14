@@ -1340,6 +1340,14 @@ void SdTask::Run()
                   // Optional send SIGTerm to all task
                   // WDT non blocking task (Delay basic operation)
                   TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\n\r"));
+                  // Preparo la struttua per informare il Boot Loader
+                  param.boot_request->app_executed_ok = false;
+                  param.boot_request->backup_executed = false;
+                  param.boot_request->app_forcing_start = false;
+                  param.boot_request->rollback_executed = false;
+                  param.boot_request->request_upload = true;
+                  param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
+                  // Wait for reset
                   TaskWatchDog(SD_TASK_WAIT_REBOOT_MS);
                   Delay(Ticks::MsToTicks(SD_TASK_WAIT_REBOOT_MS));
                   NVIC_SystemReset();

@@ -289,6 +289,18 @@ void loop(void)
         STM32Flash_JumpToApplication(APP_ADDRESS);
     }
 
+    // Found Try to Start immediatly (if RESET Occurs before Starting APP)
+    if(boot_request.app_forcing_start == true) {
+        // Try one time without changing saving other flags
+        boot_request.app_forcing_start = false;
+        memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+        #if USE_SERIAL_MESSAGE
+        printf("Found flag, Forcing Starting APP...\r\n");
+        #endif
+        // Run application...
+        STM32Flash_JumpToApplication(APP_ADDRESS);
+    }
+
     // Increment num of reset and WDT (if < MAX_VALUE UINT_8)
     if(boot_request.tot_reset != 0XFF) boot_request.tot_reset++;
     if((wdtResetEvent)&&(boot_request.wdt_reset != 0xFF)) boot_request.wdt_reset++;
@@ -533,7 +545,11 @@ void loop(void)
             boot_request.rollback_executed = false;
             boot_request.app_executed_ok = false; // True from APP... IF Starting OK
         }
+        // Signal Flashing now (only to check on Reboot Try Start after flashing...)
+        boot_request.app_forcing_start = true;
+        // Preformed down (as Starting APP... Normal Mode)
         memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+        STM32Flash_JumpToApplication(APP_ADDRESS);
 
     } else {
         

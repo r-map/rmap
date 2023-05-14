@@ -65,7 +65,7 @@
 
 #define SD_TASK_SLEEP_DELAY_MS           (700)
 
-#define SD_TASK_WAIT_REBOOT_MS           (2500)
+#define SD_TASK_WAIT_REBOOT_MS           (250)
 
 #define SD_TASK_GENERIC_RETRY_DELAY_MS   (5000)
 #define SD_TASK_GENERIC_RETRY            (3)
@@ -108,6 +108,7 @@ typedef enum
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
+  bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *qspiLock;
   cpp_freertos::BinarySemaphore *rtcLock;
   cpp_freertos::BinarySemaphore *configurationLock;

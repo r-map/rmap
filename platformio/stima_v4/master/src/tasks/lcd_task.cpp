@@ -40,6 +40,9 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(LCD_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Setting local static access parameter
+  localDisplayEventWakeUp = param.displayEventWakeUp;
+
   pin_bottom_left_encoder = PIN_ENCODER_A;
   pin_bottom_right_encoder = PIN_ENCODER_B;
   pin_top_left_encoder = PIN_ENCODER_INT;
@@ -134,6 +137,7 @@ void LCDTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
 }
 
 void LCDTask::Run() {
+  bool event_wake_up;
 // Start Running Monitor and First WDT normal state
 #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -146,12 +150,17 @@ void LCDTask::Run() {
     TaskMonitorStack();
 #endif
 
+    // Security continuos flush event pression queue before suspend task
+    if(!localDisplayEventWakeUp->IsEmpty()) {
+      localDisplayEventWakeUp->Dequeue(&event_wake_up);
+    }
+
     // One step base non blocking switch
     // Long time sleeping task on LCD Off mode
     if(display_is_off) {
-      TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-      TaskWatchDog(LCD_TASK_SLEEP_DELAY_MS);
-      Delay(Ticks::MsToTicks(LCD_TASK_SLEEP_DELAY_MS));
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
+      localDisplayEventWakeUp->Dequeue(&event_wake_up);
+      TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
     } else {
       TaskWatchDog(LCD_TASK_WAIT_DELAY_MS);
       Delay(Ticks::MsToTicks(LCD_TASK_WAIT_DELAY_MS));
@@ -891,6 +900,8 @@ void LCDTask::ISR_input_pression_pin_encoder() {
   // **************************************************************************
   // ************************* DEBOUNCE BUTTON HANDLER ************************
   // **************************************************************************
+  bool wake_up_event;
+  BaseType_t pxHigherPTW = true;
 
   // Processing
   if (millis() - debounce_millis >= DEBOUNCE_TIMEOUT) {
@@ -900,6 +911,11 @@ void LCDTask::ISR_input_pression_pin_encoder() {
   // Updating flags and states
   last_display_timeout = millis();
   debounce_millis = millis();
+
+  // Enque from ISR WakeUP Event on pression
+  if(pression_event) {
+    localDisplayEventWakeUp->EnqueueFromISR(&wake_up_event, &pxHigherPTW);
+  }
 }
 
 /**

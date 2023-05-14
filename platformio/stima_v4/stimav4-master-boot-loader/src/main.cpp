@@ -289,6 +289,18 @@ void loop(void)
         STM32Flash_JumpToApplication(APP_ADDRESS);
     }
 
+    // Found Try to Start immediatly (if RESET Occurs before Starting APP)
+    if(boot_request.app_forcing_start == true) {
+        // Try one time without changing saving other flags
+        boot_request.app_forcing_start = false;
+        memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+        #if USE_SERIAL_MESSAGE
+        printf("Found flag, Forcing Starting APP...\r\n");
+        #endif
+        // Run application...
+        STM32Flash_JumpToApplication(APP_ADDRESS);
+    }
+
     // Increment num of reset and WDT (if < MAX_VALUE UINT_8)
     if(boot_request.tot_reset != 0XFF) boot_request.tot_reset++;
     if((wdtResetEvent)&&(boot_request.wdt_reset != 0xFF)) boot_request.wdt_reset++;
@@ -297,7 +309,7 @@ void loop(void)
     printf("Number of Reboot: [ %d ] , WathcDog [ %d ]\r\n", boot_request.tot_reset, boot_request.wdt_reset);
     #endif
 
-    //  ******** TEST *******
+    // //  ******** TEST *******
     //  boot_request.request_upload = true;
     //  boot_request.app_executed_ok = false;
     //  boot_request.backup_executed = true;
@@ -492,7 +504,7 @@ void loop(void)
             // Print loaded Variables File Address
             #if USE_SERIAL_MESSAGE
             printf("Upload firmware to Ver %d.%d, Total bytes %lu\r\n",
-                version_fw, revision_fw, tot_bytes);
+                version_fw, revision_fw, (uint32_t)tot_bytes);
             #endif
             // Address Var Source Read (After INFO_SIZE 1 PAGE OF External Flash QSPI)
             qspiReadPtr = FLASH_FW_POSITION + FLASH_INFO_SIZE_LEN;
@@ -557,7 +569,11 @@ void loop(void)
             boot_request.rollback_executed = false;
             boot_request.app_executed_ok = false; // True from APP... IF Starting OK
         }
+        // Signal Flashing now (only to check on Reboot Try Start after flashing...)
+        boot_request.app_forcing_start = true;
+        // Preformed down (as Starting APP... Normal Mode)
         memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_request, sizeof(boot_request));
+        STM32Flash_JumpToApplication(APP_ADDRESS);
 
     } else {
         

@@ -64,8 +64,6 @@
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
 
-#define LCD_TASK_SLEEP_DELAY_MS (1000)
-
 typedef enum LCDState {
   LCD_STATE_CREATE,
   LCD_STATE_INIT,
@@ -112,6 +110,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataLogPutQueue;
+  cpp_freertos::Queue *displayEventWakeUp;
   EEprom *eeprom;
   TwoWire *wire;
 } LCDParam_t;
@@ -206,6 +205,9 @@ class LCDTask : public cpp_freertos::Thread {
   char pin_bottom_left_encoder;
   char pin_bottom_right_encoder;
   char pin_top_left_encoder;
+
+  // Static access for event quque
+  inline static cpp_freertos::Queue *localDisplayEventWakeUp;
 
   STM32RTC &rtc = STM32RTC::getInstance();
 

@@ -159,6 +159,7 @@ typedef struct
   bool upload_executed;
   bool rollback_executed;
   bool app_executed_ok;
+  bool app_forcing_start;
   uint8_t upload_error;
   uint8_t tot_reset;
   uint8_t wdt_reset;

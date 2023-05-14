@@ -44,7 +44,6 @@ void WdtTask::Run() {
   u_int16_t stackUsage;
   char strTask[12] = {0};
   u_int8_t last_day_boot_rst;
-  bootloader_t boot_check;
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -67,12 +66,12 @@ void WdtTask::Run() {
       if(last_day_boot_rst != rtc.getDay()) {
         last_day_boot_rst = rtc.getDay();
         // Reset counter if occurs event
-        if((boot_check.tot_reset)||(boot_check.wdt_reset)) {
+        if((param.boot_request->tot_reset)||(param.boot_request->wdt_reset)) {
           // Reset counter on new or restored firmware
-          boot_check.tot_reset = 0;
-          boot_check.wdt_reset = 0;
+          param.boot_request->tot_reset = 0;
+          param.boot_request->wdt_reset = 0;
           // Save info bootloader block
-          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
         }
       }
     }
@@ -174,26 +173,25 @@ void WdtTask::Run() {
       // If All Task Start and enter in WDT Task, The application is Ready to RUN
       if(firsCheck) {
         firsCheck = false;
-        param.eeprom->Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-        // Flag OK Start APP Eexcuted
-        if (!boot_check.app_executed_ok) {
-          if(boot_check.rollback_executed) {
+        // Flag OK Start APP Excuted (Loading structure at boot in main.c)
+        if (!param.boot_request->app_executed_ok) {
+          if(param.boot_request->rollback_executed) {
             TRACE_INFO_F(F("WDT: Flashing firmware with roll_back executed."));
           } else {
             TRACE_INFO_F(F("WDT: Flashing firmware with new version ready, clear flags."));
           }            
           // Remove request_upload and roll_back (firmware started OK)
-          boot_check.app_executed_ok = true;
-          boot_check.request_upload = false;          
-          boot_check.backup_executed = false;          
-          boot_check.rollback_executed = false;          
-          boot_check.upload_error = 0;          
-          boot_check.upload_executed = false;
+          param.boot_request->app_executed_ok = true;
+          param.boot_request->request_upload = false;          
+          param.boot_request->backup_executed = false;
+          param.boot_request->app_forcing_start = false;
+          param.boot_request->rollback_executed = false;          
+          param.boot_request->upload_error = 0;          
+          param.boot_request->upload_executed = false;
           // Reset counter on new or restored firmware
-          boot_check.tot_reset = 0;
-          boot_check.wdt_reset = 0;
-          // Save info bootloader block
-          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+          param.boot_request->tot_reset = 0;
+          param.boot_request->wdt_reset = 0;
+          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
         }
       }
     }

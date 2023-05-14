@@ -172,6 +172,7 @@
 #define FILE_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_PUT_DATA_QUEUE_LENGTH  (1)
 #define LOG_PUT_DATA_QUEUE_LENGTH   (16)
+#define DISPLAY_EVENT_QUEUE_LENGTH  (1)
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_PUT_DATA_BLOCK_SIZE    (256U)

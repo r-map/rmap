@@ -149,6 +149,7 @@ void setup() {
   // TASK WDT, INFO STACK PARAM CONFIG AND CHECK BOOTLOADER STATUS
   static WdtParam_t wdtParam = {0};
   wdtParam.system_status = &system_status;
+  wdtParam.boot_request = &boot_check;
   wdtParam.systemStatusLock = systemStatusLock;
   wdtParam.rtcLock = rtcLock;
   wdtParam.eeprom = &memEprom;

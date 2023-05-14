@@ -54,6 +54,7 @@ using namespace cpp_freertos;
 
 typedef struct {
   system_status_t *system_status;
+  bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *wireLock;
   cpp_freertos::BinarySemaphore *rtcLock;
