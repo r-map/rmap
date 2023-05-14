@@ -896,6 +896,24 @@ class StationMetadata(models.Model):
         return "%d,%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
 
+    def status_bits(self):
+
+        status = False
+        for board in self.board_set.all():
+            status = (status or board.boardmaintstatus.statusb1 or board.boardmaintstatus.statusb2 or board.boardmaintstatus.statusb3 or board.boardmaintstatus.statusb4)
+            status = (status or board.boardmaintstatus.statusb5 or board.boardmaintstatus.statusb6 or board.boardmaintstatus.statusb7 or board.boardmaintstatus.statusb8)
+            status = (status or board.boardmaintstatus.statusb9 or board.boardmaintstatus.statusb10 or board.boardmaintstatus.statusb11 or board.boardmaintstatus.statusb12)
+            status = (status or board.boardmaintstatus.statusb13 or board.boardmaintstatus.statusb14 or board.boardmaintstatus.statusb15 or board.boardmaintstatus.statusb16)
+        return status
+
+    def status_vals(self):
+
+        status = False
+        for board in self.board_set.all():
+            status = (status or board.boardmaintstatus.statusv1 < 100 or board.boardmaintstatus.statusv2 < 100 or board.boardmaintstatus.statusv3)
+            status = (status or board.boardmaintstatus.statusv4 < 100 or board.boardmaintstatus.statusv5 < 100 )
+        return status
+    
     def clean(self):
         # check sensor datalevel with roothpath
         if not self.active: return

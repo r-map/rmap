@@ -3,9 +3,9 @@ from django.conf.urls import url
 from rmap.stations.views import StationDetail
 from rmap.stations.views import StationsOnMap
 from rmap.stations.views import mystationmetadata_list
-from rmap.stations.views import mystationmetadata_list
-from rmap.stations.views import mystationmetadata_list
+from rmap.stations.views import mystationstatus_list
 from rmap.stations.views import mystationmetadata_detail
+from rmap.stations.views import mystationstatus_detail
 from rmap.stations.views import mystationmetadata_json
 from rmap.stations.views import mystationmetadata_upload_json
 from rmap.stations.views import mystationmetadata_del
@@ -33,6 +33,17 @@ urlpatterns = [
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_detail ,name='mystationmetadata-detail'),
 
+
+                       url(r'^stationstatus/$',
+                           mystationstatus_list ,name='stationstatus-list' ),
+
+                       url(r'^stationstatus/(?P<user>[-_\w]+)/$',
+                           mystationstatus_list ,name='mystationstatus-list'),
+
+                       url(r'^stationstatus/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
+                           mystationstatus_detail ,name='mystationstatus-detail'),
+
+    
                        url(r'^stationsupload/json/$',
                            mystationmetadata_upload_json ,name='mystationmetadata-upload-json'),
     

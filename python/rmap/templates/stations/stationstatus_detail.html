@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block extra_assets %}
+
+<style>
+[class*="col-"] {
+  border: 1px solid #ddd;
+  border: 1px solid rgba(86,61,124,.2);
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<section id="main_content">
+
+<h2>{% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
+
+<div class="table-responsive">
+<table class="table">
+<tr>
+<th> {% trans 'Active' %}         </th>
+<th> {% trans 'User' %}          </th>
+<th> {% trans 'Lat' %}            </th>
+<th> {% trans 'Lon' %}            </th>
+<th> {% trans 'Category' %}       </th>
+<th> {% trans 'View on the map' %}</th>
+</tr>
+
+<tr>
+  <td> 
+    {% if object.active %}
+      <i class="fa fa-check "></i>
+    {% else %}
+      <i class="fa fa-times "></i>
+    {% endif %}
+  </td>
+<td> {{ object.user }}   </td>
+<td> {{ object.lat }}     </td>
+<td> {{ object.lon }}     </td>
+<td> {{ object.category }}</td>
+<td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
+</tr>
+</table>
+</div>
+
+<h4>{% trans 'Station status' %}: {{ object.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ object.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
+<h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
+
+<div class="container-fluid">
+  <div class="table-responsive">
+    <table class="table">
+    <tr>
+
+      <th>{% trans 'Board name' %}</th>
+      <th>{% trans 'Firmware version' %}</th>
+      <th>{% trans 'Last firmware update' %}</th>
+      <th>{% trans 'Last status update' %}</th>
+      <th>{% trans 'Bit 1' %}</th>
+      <th>{% trans 'Bit 2' %}</th>
+      <th>{% trans 'Bit 3' %}</th>
+      <th>{% trans 'Bit 4' %}</th>
+      <th>{% trans 'Bit 5' %}</th>
+      <th>{% trans 'Bit 6' %}</th>
+      <th>{% trans 'Bit 7' %}</th>
+      <th>{% trans 'Bit 8' %}</th>
+      <th>{% trans 'Bit 9' %}</th>
+      <th>{% trans 'Bit 10' %}</th>
+      <th>{% trans 'Bit 11' %}</th>
+      <th>{% trans 'Bit 12' %}</th>
+      <th>{% trans 'Bit 13' %}</th>
+      <th>{% trans 'Bit 14' %}</th>
+      <th>{% trans 'Bit 15' %}</th>
+      <th>{% trans 'Bit 16' %}</th>
+
+      <th>{% trans 'Val 1' %}</th>
+      <th>{% trans 'Val 2' %}</th>
+      <th>{% trans 'Val 3' %}</th>
+      <th>{% trans 'Val 4' %}</th>
+      <th>{% trans 'Val 5' %}</th>
+
+    </tr>
+  
+    {% for board in object.board_set.all %}
+      {% if board.active  %}
+
+        <tr>
+          <td>{{ board.name }}</td>
+          <td>{{ board.boardfirmwaremetadata.swversion|default:_('Missing')}}</td>
+          <td>{{ board.boardfirmwaremetadata.swlastupdate|default:_('Missing')}}</td>
+
+          <td>{{ board.boardmaintstatus.lastupdate|date:"Y/m/d" }} {{ board.boardmaintstatus.lastupdate|time:"H:i:s" }}</td>
+	  
+          <td>{{ board.boardmaintstatus.statusb1|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb2|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb3|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb4|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb5|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb6|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb7|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb8|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb9|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb10|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb11|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb12|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb13|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb14|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb15|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusb16|default_if_none:'-'}}</td>
+
+          <td>{{ board.boardmaintstatus.statusv1|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusv2|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusv3|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusv4|default_if_none:'-'}}</td>
+          <td>{{ board.boardmaintstatus.statusv5|default_if_none:'-'}}</td>
+	  
+	</tr>
+	  
+      {% endif %}
+      {% endfor %}
+    </table>
+  </div>
+</div>
+</section>
+
+{% endblock %}

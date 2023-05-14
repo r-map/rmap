@@ -35,7 +35,28 @@ def mystationmetadata_list(request,user=None):
     page_obj = paginator.get_page(page_number)
     return render(request, 'stations/stationmetadata_list.html',{"page_obj":page_obj,"user":user,"search":search})
     
+
+def mystationstatus_list(request,user=None):
+
+    if (user is None):
+        query=Q()
+    else:
+        query = Q(user__username=user)
+        
+    if 'search' in request.GET:
+        search = request.GET['search']
+        query = query & (Q(user__username__icontains=search) | Q(slug__icontains=search))
+    else:
+        search = None
+
+    mystations = StationMetadata.objects.filter(query)
+
+    paginator = Paginator(mystations, 25) # Show 25 contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'stations/stationstatus_list.html',{"page_obj":page_obj,"user":user,"search":search})
     
+
 class StationDetail(DetailView):
     model = StationMetadata
 
@@ -94,6 +115,27 @@ def mystationmetadata_detail(request,user,slug):
 def mystation_localdata(request,user,slug):
     mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
+
+
+
+def mystationstatus_detail(request,user,slug):
+
+    now=datetime.utcnow()
+    showdate=(now-timedelta(minutes=30))
+    year='{:04d}'.format(showdate.year)
+    month='{:02d}'.format(showdate.month)
+    day='{:02d}'.format(showdate.day)
+    hour='{:02d}'.format(showdate.hour)
+    
+    mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
+    return render(request, 'stations/stationstatus_detail.html',{"object":mystation,"year":year,"month":month,"day":day,"hour":hour})
+
+
+def mystation_localdata(request,user,slug):
+    mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
+    return render(request, 'stations/stationlocaldata.html',{"object":mystation})
+
+
 
 
 @csrf_exempt

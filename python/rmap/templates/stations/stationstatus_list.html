@@ -10,12 +10,12 @@
     {% else %}
     <h2 id="striped-rows">{% trans 'Stations' %}</h2>
     {% endif %}
-
+    
     <h3 id="striped-rows"><a href="{% if user %}{% url 'stationsonmap' user %}{% else %}{% url 'stationsonmap' %}{% endif %}{% if search %}?search={{search}}{% endif %}"><i class="fa fa-map-marker"></i> {% trans 'View on the map' %}</a></h3>
 
     <div class="table-responsive">
 
-      <form action="{% if user %}{% url 'mystationmetadata-list' user %}{% else %}{% url 'stationmetadata-list' %}{% endif %}" method="get">
+      <form action="{% if user %}{% url 'mystationstatus-list' user %}{% else %}{% url 'stationstatus-list' %}{% endif %}" method="get">
 	<input name="search" type="text" placeholder="Search...">
       </form>
 
@@ -24,27 +24,25 @@
 	<tr>
 	  <th>Name</th>
 	  <th>User</th>
-	  <th>Lat</th>
-	  <th>Lon</th>
 	  <th>{% trans 'Station status' %}</th>
 	  <th>{% trans 'Last status update' %}</th>
 	  <th>{% trans 'Version' %}</th>
-	  <th>Category</th>
-	  <th><i class="fa fa-map"></i> {% trans 'View on the map' %}</th>
+	  <th>{% trans 'status bit' %}</th>
+	  <th>{% trans 'status val' %}</th>
 	</tr>
 	</thead>
         {% for station in page_obj %}
 	  {% if station.active  %}
 	    <tr>
-              <td> <a href="{% url 'mystationmetadata-detail' station.user.username station.slug %}">{{ station.name }}</a> </td>
-	      <td> <a href="{% url 'mystationmetadata-list' station.user.username %}">{{ station.user}}</a></td>
-	      <td> {{ station.lat}}</td>
-	      <td> {{ station.lon}}</td>
+              <td> <a href="{% url 'mystationstatus-detail' station.user.username station.slug %}">{{ station.name }}</a> </td>
+	      <td> <a href="{% url 'mystationstatus-list' station.user.username %}">{{ station.user}}</a></td>
 	      <td> {{ station.stationmaintstatus.laststatus}}</td>
 	      <td> {{ station.stationmaintstatus.lastupdate}}</td>
 	      <td> {{ station.stationmaintstatus.firmwaremajor }}.{{ station.stationmaintstatus.firmwareminor }}</td>
-	      <td> {{ station.category}}</td>
-	      <td> <a href="{% url 'stationsonmap' station.user station.slug %}"><i class="fa fa-map-marker "></i> {{ station.name }}</a></td>
+
+	      <td> {% if station.status_bits %}Error{% else %}Ok{% endif %}</td>
+	      <td> {% if station.status_vals %}Error{% else %}Ok{% endif %}</td>
+
 	    </tr>
 	  {% endif %}
 	{% empty %}
