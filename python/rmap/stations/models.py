@@ -910,8 +910,8 @@ class StationMetadata(models.Model):
 
         status = False
         for board in self.board_set.all():
-            status = (status or board.boardmaintstatus.statusv1 < 100 or board.boardmaintstatus.statusv2 < 100 or board.boardmaintstatus.statusv3)
-            status = (status or board.boardmaintstatus.statusv4 < 100 or board.boardmaintstatus.statusv5 < 100 )
+            status = (status or board.boardmaintstatus.statusv1 > 0 or board.boardmaintstatus.statusv2 > 0 or board.boardmaintstatus.statusv3 > 0 )
+            status = (status or board.boardmaintstatus.statusv4 > 0 or board.boardmaintstatus.statusv5 > 0 )
         return status
     
     def clean(self):
