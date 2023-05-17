@@ -118,6 +118,11 @@ void ElaborateDataTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Data Simulator
+  #ifdef USE_SIMULATOR
+  int simulate_dir = 0;
+  #endif
+
   while (true) {
 
     // ********* SYSTEM QUEUE MESSAGE ***********
@@ -150,12 +155,22 @@ void ElaborateDataTask::Run() {
         switch (edata.index)
         {
         case WIND_SPEED_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 200;
+          #endif
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           addValue<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX, edata.value);
           TRACE_VERBOSE_F(F("Speed: %d\r\n"), edata.value);
           break;
 
         case WIND_DIRECTION_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = simulate_dir;
+          simulate_dir++;
+          simulate_dir%=360;
+          #endif
           addValue<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX, edata.value);
           TRACE_VERBOSE_F(F("Direction: %d\r\n"), edata.value);
           break;

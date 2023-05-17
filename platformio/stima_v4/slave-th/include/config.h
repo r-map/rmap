@@ -50,7 +50,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 /*!
 \def USE_SIMULATOR
-\brief Random generator value for Local Test (500 + RNDx100) AVG ->550
+\brief Random generator value for Local Test
 */
 #define USE_SIMULATOR
 

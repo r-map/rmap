@@ -594,7 +594,7 @@ void SdTask::Run()
       // fw_reload_struct is true if must to respond queue to sender (RPC)
       if(fw_reload_struct) {
         system_message_t system_message = {0};
-        system_message.task_dest == ALL_TASK_ID;
+        system_message.task_dest = ALL_TASK_ID;
         system_message.command.done_reload_fw = true;
         param.systemMessageQueue->Enqueue(&system_message);
       }

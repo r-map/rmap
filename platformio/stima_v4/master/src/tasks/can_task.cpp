@@ -1159,10 +1159,10 @@ void CanTask::Run() {
     // RMAP Queue data Put to memory MMC/SD Card
     rmap_archive_data_t rmap_archive_data;
 
-    // Set when Firmware Upgrade is required
-    bool start_firmware_upgrade = false;
-    bool is_running_update_system = false;
-    uint8_t index_running_update_boards;
+    bool start_firmware_upgrade = false;        // Set when Firmware Upgrade is required
+    bool is_running_update_system = false;      // Multi update firmware running proc from RPC
+    bool is_running_update_send_cmd = false;    // Command queue started for one fw upgrading (Waiting end event for next)
+    uint8_t index_running_update_boards;        // Index of board actual running in file server upload event
 
     // Starting message trace
     bool message_traced = false;
@@ -1171,8 +1171,11 @@ void CanTask::Run() {
     uint32_t getUpTimeSecondCurr;
     uint32_t curEpoch;
     bool bStartGetIstant = false;       // Get Istant value from node
+    bool bStartupGetIstant = true;      // Get Istant value from node first time at startup
     bool bStartGetData = false;         // Get archive value from node
     bool bStartSetFullPower = false;    // Set remote node full power for get data
+    // Get Istant value from node first time at startup
+    uint8_t bStartupCount = CONFIGURATION_DEFAULT_UPDATE_IST_S + 1;
     // Register access register rfemote configuration array
     uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
     uint8_t remote_configure_retry[MAX_NODE_CONNECT] = {0};
@@ -1759,7 +1762,6 @@ void CanTask::Run() {
                     }
                 }
 
-
                 // ***********************************************************************
                 // **********  GET SYNCRO ACTIVITY FOR CYPAL RMAP DATA FUNCTION  *********
                 // ***********************************************************************
@@ -1775,11 +1777,11 @@ void CanTask::Run() {
                     // need do acquire istant value for display?
                     // N.B. param.system_status->datetime.ptr_time_for_sensors_get_istant automatic resetted when node entering onLine from offLine
                     // Read data only if Display or other Task need to show/get this value
-                    if(param.system_status->flags.display_on) {
-                        if ((curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
+                    if((param.system_status->flags.display_on)||(bStartupGetIstant)) {
+                        if ((curEpoch / CONFIGURATION_DEFAULT_UPDATE_IST_S) != param.system_status->datetime.ptr_time_for_sensors_get_istant) {
                             param.systemStatusLock->Take();
-                            param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S;
-                            param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / CONFIGURATION_DEFAULT_DISPLAY_IST_S) * CONFIGURATION_DEFAULT_DISPLAY_IST_S;
+                            param.system_status->datetime.ptr_time_for_sensors_get_istant = curEpoch / CONFIGURATION_DEFAULT_UPDATE_IST_S;
+                            param.system_status->datetime.epoch_sensors_get_istant = (curEpoch / CONFIGURATION_DEFAULT_UPDATE_IST_S) * CONFIGURATION_DEFAULT_UPDATE_IST_S;
                             param.systemStatusLock->Give();
                             bStartGetIstant = true;
                         }
@@ -2797,8 +2799,6 @@ void CanTask::Run() {
                             is_running_update_system = true;
                             // Start from last boards to first (When 0xFF) is Master Request and END Procedure upload
                             index_running_update_boards = MAX_NODE_CONNECT - 1;
-                            // Set STATE for boards request in firmware upgrade
-                            clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
                         }
                     }
                 }
@@ -2806,47 +2806,38 @@ void CanTask::Run() {
                 // True if Request all system update?! (UP)
                 // Next start if is avaiable, not running another file server (File Server can be run simultaneously)
                 // But we update one card at a time and Master for last
-                if(is_running_update_system) {
+                if((is_running_update_system)&&(!is_running_update_send_cmd)&&
+                    (!param.system_status->flags.file_server_running)) {
                     // Have reached the last boards (Master)?
                     if(index_running_update_boards == 0xFF) {
                         // Master Boards (Update start from MMC/SD Task but mode to request is same with queue)
                         if(param.system_status->data_master.fw_upgradable) {
-                            // Waiting End File server of previous procedure updating
-                            if(!param.system_status->flags.file_server_running) {
-                                memset(&system_message, 0, sizeof(system_message));
-                                // Starting sequence as queue command same LCD/RPC ecc...
-                                system_message.task_dest = MMC_TASK_ID;
-                                system_message.command.do_update_fw = true;
-                                system_message.param = index_running_update_boards;
-                                param.systemMessageQueue->Enqueue(&system_message);
-                                // Next Boards -> Finish Boards with Master 8End of procedure)
-                                is_running_update_system = false;
-                            }
-                        } else {
-                            // End of èreocedure. Master not required updating
-                            is_running_update_system = false;
+                            memset(&system_message, 0, sizeof(system_message));
+                            // Starting sequence as queue command same LCD/RPC ecc...
+                            system_message.task_dest = MMC_TASK_ID;
+                            system_message.command.do_update_fw = true;
+                            system_message.param = index_running_update_boards;
+                            param.systemMessageQueue->Enqueue(&system_message);
                         }
+                        // End of procedure. Master not required updating
+                        is_running_update_system = false;
                     } else {
                         // Slave Boards
                         // Are avaiable one firmware most recent?
                         if(param.system_status->data_slave[index_running_update_boards].fw_upgradable) {
                             // Is firmware_updating stopped (waiting end of last operation if started...)
-                            if(!param.system_status->flags.file_server_running) {
-                                memset(&system_message, 0, sizeof(system_message));
-                                // Starting sequence as queue command same LCD/RPC ecc...
-                                system_message.task_dest = CAN_TASK_ID;
-                                system_message.command.do_update_fw = true;
-                                system_message.param = index_running_update_boards;
-                                param.systemMessageQueue->Enqueue(&system_message);
-                                // Delay to security get queue immediatly (after this code)
-                                Delay(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
-                                // Goto Next Boards, Update start
-                                index_running_update_boards--;
-                            }
-                        } else {
-                            // Goto Next Boards... Not required update now
-                            index_running_update_boards--;
+                            memset(&system_message, 0, sizeof(system_message));
+                            // Inibith procedure uploading while end_event update occurs
+                            // Next check board only without server running and command waiting...
+                            is_running_update_send_cmd = true;
+                            // Starting sequence as queue command same LCD/RPC ecc...
+                            system_message.task_dest = CAN_TASK_ID;
+                            system_message.command.do_update_fw = true;
+                            system_message.param = index_running_update_boards;
+                            param.systemMessageQueue->Enqueue(&system_message);
                         }
+                        // Set check to Next Boards, Update event can start
+                        index_running_update_boards--;
                     }
                 }
 
@@ -2904,10 +2895,18 @@ void CanTask::Run() {
                                 // Starting request remote from any system
                                 char file_name[CAN_FILE_NAME_SIZE_MAX];
                                 // Set correct name of file from last avaiable (by module)
-                                setStimaFirmwareName(file_name,
-                                    param.system_status->boards_update_avaiable[file_server_queueId].module_type,
-                                    param.system_status->boards_update_avaiable[file_server_queueId].version,
-                                    param.system_status->boards_update_avaiable[file_server_queueId].revision);
+                                for(uint8_t iAvaiableFw=0; iAvaiableFw<STIMA_MODULE_TYPE_MAX_AVAIABLE; iAvaiableFw++) {
+                                    // Found corrispondence from avaiable firmware and module type installed
+                                    // Retrive name firmware to get up
+                                    if(param.system_status->boards_update_avaiable[iAvaiableFw].module_type == 
+                                        param.system_status->data_slave[file_server_queueId].module_type) {
+                                        setStimaFirmwareName(file_name,
+                                            param.system_status->boards_update_avaiable[iAvaiableFw].module_type,
+                                            param.system_status->boards_update_avaiable[iAvaiableFw].version,
+                                            param.system_status->boards_update_avaiable[iAvaiableFw].revision);
+                                        break;
+                                    }
+                                }
                                 // Start upload file with module_type last version found on SD Card
                                 clCanard.slave[file_server_queueId].file_server.set_file_name(file_name, true);
                                 break;
@@ -3051,6 +3050,7 @@ void CanTask::Run() {
                     (param.system_status->flags.cmd_server_running)||
                     (param.system_status->flags.file_server_running)||
                     (param.system_status->flags.rmap_server_running)||
+                    (bStartupGetIstant)||
                     (param.system_status->flags.display_on)) && 
                     (param.system_status->flags.power_state != Power_Mode::pwr_on)) {
                     // Disable module sleep if need operation into Class
@@ -3070,6 +3070,7 @@ void CanTask::Run() {
                     (!param.system_status->flags.cmd_server_running)&&
                     (!param.system_status->flags.file_server_running)&&
                     (!param.system_status->flags.rmap_server_running)&&
+                    (!bStartupGetIstant)&&
                     (!param.system_status->flags.display_on)) && 
                     (param.system_status->flags.power_state == Power_Mode::pwr_on)) {
                     // Enable module sleep if need operation into Class
@@ -3095,6 +3096,12 @@ void CanTask::Run() {
                 // Altrimenti entrerebbe di continuo nel Publish fino al reboot
                 if(((start_firmware_upgrade) && (!param.system_status->flags.inibith_reboot)) ||
                     (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
+                    // Startup FullPower to get istant value counter OFF (Synch to Numb Pub of HeartBeat)
+                    if(bStartupCount) {
+                        bStartupCount--;
+                        if(!bStartupCount) bStartupGetIstant = false;
+                    }
+                    // Publish HeartBeat
                     TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
                     param.systemStatusLock->Take();

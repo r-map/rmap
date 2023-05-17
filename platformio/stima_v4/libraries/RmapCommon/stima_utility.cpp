@@ -315,7 +315,6 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     *type = STIMA_MODULE_TYPE_RAIN;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_RAIN);
   } else if (strstr(file_name, STIMA_MODULE_NAME_TH)) {
-    // stima4.module_th
     *type = STIMA_MODULE_TYPE_TH;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_TH);
   } else if (strstr(file_name, STIMA_MODULE_NAME_THR)) {
@@ -338,7 +337,7 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_GAS);
   } else if (strstr(file_name, STIMA_MODULE_NAME_POWER_MPPT)) {
     *type = STIMA_MODULE_TYPE_POWER_MPPT;
-    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_MASTER_ETH);
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_POWER_MPPT);
   } else {
     // Error unknown module file
     return false;

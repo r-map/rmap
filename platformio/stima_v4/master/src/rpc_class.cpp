@@ -1126,12 +1126,15 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
         // Satrting queue request reload structure firmware upgradable
         // And waiting response. After start update all firmware boardd on system (upgradable)
         system_message_t system_message = {0};
-        system_message.task_dest == MMC_TASK_ID;
+        system_message.task_dest = MMC_TASK_ID;
         system_message.command.do_reload_fw = true;
         param.systemMessageQueue->Enqueue(&system_message);
 
         // Waiting a response done before continue (reload firmware OK!!!)
         while(true) {
+          // Continuos Switching context non blocking
+          taskYIELD();
+          // Check response done
           if(!param.systemMessageQueue->IsEmpty()) {
             param.systemMessageQueue->Peek(&system_message);
             if(system_message.command.done_reload_fw) {
@@ -1144,7 +1147,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 
         // Satrting queue request upload all system board firmware ( on CAN )
         memset(&system_message, 0, sizeof(system_message_t));
-        system_message.task_dest == CAN_TASK_ID;
+        system_message.task_dest = CAN_TASK_ID;
         system_message.command.do_update_all = true;
         param.systemMessageQueue->Enqueue(&system_message);
       }
@@ -1181,10 +1184,7 @@ int RegisterRPC::rpctest(JsonObject params, JsonObject result)
     {
       if (it.value().as<bool>() == true)
       {
-        TRACE_INFO_F(F("UPDATE FIRMWARE\r\n"));
-        // set_default_configuration();
-        // lcd_error |= lcd.clear();
-        // lcd_error |= lcd.print(F("Reset configuration")) == 0;
+        TRACE_INFO_F(F("UPDATE REQUEST TEST\r\n"));
       }
     }
   }
