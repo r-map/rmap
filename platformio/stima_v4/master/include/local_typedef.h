@@ -259,8 +259,10 @@ typedef struct
    struct
    {
       bool fw_upgradable;           // Fw upgrade flag
-      uint32_t heartbeat_run_epoch; // Heart beat time_epoch start to check expected heartbeat remote
+      uint16_t heartbeat_published; // Heart beat time_epoch start to check expected heartbeat remote
       uint32_t connect_run_epoch;   // Connection start epoch (to inibit for retry start... if something wrong)
+      uint8_t number_reboot;        // Total reboot
+      uint8_t number_wdt;           // Total WDT
    } data_master;
 
    // Remote data info && value for local simple direct access (LCD/Trace/Config/Check...)
@@ -280,6 +282,9 @@ typedef struct
       rmapdata_t data_value[MAX_DATA_VALUE_MEASURE];
       uint8_t module_revision;      // Revision RMAP
       uint8_t module_version;       // Version RMAP
+      // BitField Error or State
+      uint8_t bit8StateFlag;        // Bit State Remote module Error
+      uint8_t byteStateFlag[3];     // Byte State Remote module Error
    } data_slave[BOARDS_COUNT_MAX];
 
    // Hw/Sw Flags
@@ -390,6 +395,14 @@ typedef struct
    rmap_archive_data_t rmap_data; // RMAP Archive data value on response
 
 } rmap_get_response_t;
+
+// Older Archive Backup data type of RMAP generic data block for queue
+typedef struct
+{
+   uint32_t date_time;        // 32 Bit date time epoch_style d
+   uint8_t  block[RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE];   // RMAP Older Type block of data transparent MQTT
+
+} rmap_backup_data_t;
 
 // RMAP data archive request from any task to memory task (MMC/SD)
 typedef struct

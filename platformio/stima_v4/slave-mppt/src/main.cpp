@@ -123,7 +123,7 @@ void setup() {
 #if (ENABLE_I2C1)
   // Load Info from E2 boot_check flag and send to Config
   static EEprom  memEprom(&Wire, wireLock);
-  bootloader_t boot_check = {0};
+  static bootloader_t boot_check = {0};
   #if INIT_PARAMETER
   boot_check.app_executed_ok = true;
   memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));

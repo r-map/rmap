@@ -97,9 +97,11 @@ using namespace cpp_freertos;
 // Task waiting Semaphore Driver access
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
 
-#define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (2000)
+#define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (1500)
 
 #define GENERIC_UAVCAN_MAX_RETRY          (3)
+
+#define SEC_WAKE_UP_MODULE_FOR_QUERY      (5)   // Time to WakeUP Node for FullPower Request
 
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
@@ -157,7 +159,7 @@ class CanTask : public cpp_freertos::Thread {
   } State_t;
 
 public:
-  CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t CanParam);
+  CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam);
 
 protected:
   virtual void Run();

@@ -311,10 +311,13 @@ void SdTask::Run()
   rmap_archive_data_t rmap_put_archive_data;
   rmap_get_request_t rmap_get_request;
   rmap_get_response_t rmap_get_response;
+  rmap_backup_data_t rmap_backup_archive_data;
   // Name file for data append es. /data/2023_01_30.dat (RMAP File data are stored by Day)
   char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};  // Name current Write File Data RMAP
   char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};  // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
   char rmap_file_name_check[DATA_FILENAME_LEN] = {0}; // Check control Name VAR (RMAP Data Day changed?)
+  char rmap_file_name_bkp[DATA_FILENAME_LEN] = {0};   // Name current Backup Older File Data RMAP
+  char rmap_file_bkp_check[DATA_FILENAME_LEN] = {0};  // Check control Name VAR Backup (RMAP Data Day changed?)
   uint32_t rmap_pointer_seek;           // Seek Absolute Position Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime;       // Date Time Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_seek_bkp;       // Bkp Seek Absolute Position Pointer Read in File RMAP Queue Out
@@ -336,8 +339,9 @@ void SdTask::Run()
   Module_Type module_type;
   uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
-  bool fw_load_send_resp = false; // True if request reload structure firmware and sen queue response
+  bool fw_reload_struct = false;  // True if request reload structure firmware and send queue response
   File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
+  File rmapBkpFile;               // File (OLDER RMAP Backup Write Data Append from External Task request)
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
   File dir, entry, tmpFile;       // Only used for Temp(shared Open Close Single Operation) or Access directory List
@@ -425,6 +429,14 @@ void SdTask::Run()
           break;
         }
         TRACE_INFO_F(F("SD: created base structure dir data\r\n"));
+      }
+      // Create archive backup ditectory
+      if(!SD.exists("/bkp")) {
+        if(!SD.mkdir("/bkp")) {
+          state = SD_STATE_INIT;
+          break;
+        }
+        TRACE_INFO_F(F("SD: created base structure dir bkp\r\n"));
       }
 
       // ***************************************************
@@ -577,9 +589,10 @@ void SdTask::Run()
       digitalWrite(PIN_SD_LED, LOW);
       // **********************************************************************************
 
-      // ? Need to send response to sender (Not at startup -> fw_load_send_resp = false)
+      // ? Need to send response to sender (Not at startup -> fw_reload_struct = false)
       // Normally on request from RPC Before calling -> system_message.do_update_all
-      if(fw_load_send_resp) {
+      // fw_reload_struct is true if must to respond queue to sender (RPC)
+      if(fw_reload_struct) {
         system_message_t system_message = {0};
         system_message.task_dest == ALL_TASK_ID;
         system_message.command.done_reload_fw = true;
@@ -634,7 +647,7 @@ void SdTask::Run()
           // And Auto start CallBack Start Upload Firmware To CAN and Local...
           if(system_message.command.do_reload_fw) {
             retry = 0;
-            fw_load_send_resp = true; // Need to send a peply to sender
+            fw_reload_struct = true; // Need to send a peply to sender
             // Normally RPC Wait a response all firmware checke and loaded structure before
             // Calling systemn update all with another system message to queue
             state = SD_STATE_CHECK_FIRMWARE;
@@ -683,6 +696,49 @@ void SdTask::Run()
       }
       // *********************************************************
       //             End OF perform LOG append message
+      // *********************************************************
+
+      // *********************************************************
+      // Perform DATA RMAP BACKUP DATA WRITE Older Format message 
+      // *********************************************************
+      // If element get all element from the queue and Put to SD
+      // Typical Put of Older Data Block transparent MQTT Data
+      // Older File is Fixed lenght Type. DateTime Name is also used.
+      // File are always opened if Append for fast Access Operation
+      while(!param.dataRmapPutBackupQueue->IsEmpty()) {
+        // Get message from queue
+        if(param.dataRmapPutBackupQueue->Dequeue(&rmap_backup_archive_data)) {
+          // Put to MMC ( APPEND to File in Native Format. Check naming file )
+          namingFileData(rmap_backup_archive_data.date_time, "/bkp", rmap_file_bkp_check);
+          // Day Name File Changed (Data is to save in New File?) or Not Open...
+          if((strcmp(rmap_file_name_bkp, rmap_file_bkp_check)) || (!rmapBkpFile)) {
+            // Save new file_name for next control
+            strcpy(rmap_file_name_bkp, rmap_file_bkp_check);
+            // Not opened? Open... in append
+            if(rmapBkpFile) rmapBkpFile.close();
+            rmapBkpFile = SD.open(rmap_file_name_bkp, O_RDWR | O_CREAT | O_AT_END);
+            // Open File High LED
+            digitalWrite(PIN_SD_LED, HIGH);
+          }
+          // All correct... Write Block of data
+
+          // Put to SD ( APPEND File Always Opened with Flush Data )
+          if(rmapBkpFile) {          
+            // Open File High LED
+            digitalWrite(PIN_SD_LED, HIGH);
+            // Fixed Lenght File type
+            rmapBkpFile.write((char*)rmap_backup_archive_data.block, RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE);
+            rmapBkpFile.flush();
+            // Close File Low LED
+            digitalWrite(PIN_SD_LED, LOW);
+          } else {
+            // Generic open file Error
+            error_sd_card = true;
+          }
+        }
+      }
+      // *********************************************************
+      // End OF perform DATA RMAP BACKUP DATA WRITE Older message
       // *********************************************************
 
       // *********************************************************
@@ -1249,9 +1305,6 @@ void SdTask::Run()
       // *********************************************************
       //           Perform Local Firmware FLASH Update
       // *********************************************************
-
-      // N.B TODO: Need to Inform Other TASK Priority MAX to Upload Firmware To Flash
-      // All operation are to suspend, SD Task End to Responding at Standard Queue request
 
       // Check firmware file present Type, model and version
       fw_found = false;

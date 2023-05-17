@@ -88,7 +88,7 @@ typedef struct {
 class UsbSerialTask : public cpp_freertos::Thread {
 
 public:
-  UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t UsbSerialParam);
+  UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam);
 
 protected:
   virtual void Run();

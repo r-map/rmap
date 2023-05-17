@@ -99,7 +99,7 @@ typedef struct {
 class MmcTask : public cpp_freertos::Thread {
 
 public:
-  MmcTask(const char *taskName, uint16_t stackSize, uint8_t priority, MmcParam_t MmcParam);
+  MmcTask(const char *taskName, uint16_t stackSize, uint8_t priority, MmcParam_t mmcParam);
 
 protected:
   virtual void Run();

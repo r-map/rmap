@@ -197,7 +197,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
           uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
           if(requestIndex < BOARDS_COUNT_MAX) {
-            // Start configure slave module ID: slaveId            
+            // Start configure slave module ID: slaveId
             isSlaveConfigure = true;
             slaveId = requestIndex;
           }
@@ -1096,7 +1096,7 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
     result[F("state")] = F("error");
     TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
   } else {
-    TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
+    TRACE_INFO_F(F("RPC: Request Recovery\r\n"));
     tmpstate = E_SUCCESS;
     result[F("state")] = F("done");
   }

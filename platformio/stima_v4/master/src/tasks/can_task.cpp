@@ -573,7 +573,9 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
                         msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);
+                    localSystemStatusLock->Take();
                     localSystemStatus->data_slave[queueId].heartbeat_rx++;
+                    localSystemStatusLock->Give();
                     // Controlla se il modulo è ready (configurato) Altrimenti avvio la configurazione...
                     if(!clCanard.slave[queueId].heartbeat.get_module_ready()) {
                         TRACE_VERBOSE_F(F("Module slave [ %u ] is not (ready) configured\r\n"), transfer->metadata.remote_node_id);
@@ -946,7 +948,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// *********************************************************************************************
 /// @brief Main TASK && INIT TASK --- UAVCAN
 /// *********************************************************************************************
-CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t CanParam) : Thread(taskName, stackSize, priority), param(CanParam)
+CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam)
 {
     // Start WDT controller and TaskState Flags
     TaskWatchDog(WDT_STARTING_TASK_MS);
@@ -1159,6 +1161,8 @@ void CanTask::Run() {
 
     // Set when Firmware Upgrade is required
     bool start_firmware_upgrade = false;
+    bool is_running_update_system = false;
+    uint8_t index_running_update_boards;
 
     // Starting message trace
     bool message_traced = false;
@@ -1180,6 +1184,7 @@ void CanTask::Run() {
     rmap_service_module_Radiation_Response_1_0* retRadiationData;
     rmap_service_module_VWC_Response_1_0* retVwcData;
     rmap_service_module_Power_Response_1_0* retPwrData;
+    uint8_t bit8Flag; // Compose Error Status Flag for each Module Type
     // Trace of Module_type on Direct data Access
     #if TRACE_LEVEL >= TRACE_INFO
     char stimaName[STIMA_MODULE_NAME_LENGTH];
@@ -1294,7 +1299,6 @@ void CanTask::Run() {
                 idxFixed = -1;
                 #ifdef USE_MODULE_FIXED_TH
                 idxFixed++;
-                // TODO: SISTEMAAAAAAAAA
                 param.configuration->board_slave[idxFixed].can_address = 60;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::th;
                 param.configuration->board_slave[idxFixed].can_port_id = 50;
@@ -1781,11 +1785,11 @@ void CanTask::Run() {
                         }
                     }
                     // need do acquire data value for RMAP Archive?
-                    // Perform an Full Power request Method 5 second before Starting aquire data
+                    // Perform an Full Power request Method SEC_WAKE_UP_MODULE_FOR_QUERY (5) second before Starting aquire data
                     // In this time we can regulate syncro_time method and perform Full Wake UP of remote Module
             // TODO: test
-            // if (((curEpoch + 5) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
-                    if (((curEpoch + 5) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+            // if (((curEpoch + SEC_WAKE_UP_MODULE_FOR_QUERY) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    if (((curEpoch + SEC_WAKE_UP_MODULE_FOR_QUERY) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start full power for sending request and syncronize time\r\n"));
                         // Only for RMAP Get Data is need to Forced power ON on Starting time before procedure GET DATA
@@ -1815,12 +1819,12 @@ void CanTask::Run() {
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
                             // Calculate % from expected Heartbeat sequence TX-RX Complete
-                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (param.system_status->data_slave[iSlave].heartbeat_rx / param.configuration->report_s) + 1;
+                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (uint8_t)(((float)(param.system_status->data_slave[iSlave].heartbeat_rx) / (float)(param.system_status->data_master.heartbeat_published - SEC_WAKE_UP_MODULE_FOR_QUERY)) * 100.0);                            
                             if (param.system_status->data_slave[iSlave].perc_can_comm_ok > 100) param.system_status->data_slave[iSlave].perc_can_comm_ok = 100;
                             // Reset Next Counter for next acquire data
                             param.system_status->data_slave[iSlave].heartbeat_rx = 0;
                         }
-                        param.system_status->data_master.heartbeat_run_epoch = curEpoch; // Reset Epoch for Check Slave RX Heartbeat OK from now...
+                        param.system_status->data_master.heartbeat_published = 0; // Reset Epoch for Check Slave RX Heartbeat OK from now...
                         param.systemStatusLock->Give();
                         bStartGetData = true;
                     }
@@ -1838,7 +1842,6 @@ void CanTask::Run() {
                     // bStartGetData are priority Command if both requested
                     for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                         // For all node onLine
-                        // TODO: remove
                         if(clCanard.slave[queueId].is_online()) {
                             // Command are sending without other Pending Command
                             // Service request structure is same for all RMAP object to simplify function
@@ -1941,6 +1944,15 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value[1] = retTHData->STH.humidity.val.value;
                                     // Add info RMAP to system
                                     if(retTHData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retTHData->is_main_error) bit8Flag|=0x01;
+                                        if(retTHData->is_redundant_error) bit8Flag|=0x02;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retTHData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = retTHData->perc_i2c_error;
+                                        // Copy Data
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     } else {
@@ -2002,6 +2014,19 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
                                     // Add info RMAP to system
                                     if(retRainData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retRainData->is_main_error) bit8Flag|=0x01;
+                                        if(retRainData->is_redundant_error) bit8Flag|=0x02;
+                                        if(retRainData->is_tipping_error) bit8Flag|=0x04;
+                                        if(retRainData->is_bubble_level_error) bit8Flag|=0x08;
+                                        if(retRainData->is_clogged_up) bit8Flag|=0x10;
+                                        if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retRainData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
+                                        // Copy Data
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     } else {
@@ -2061,6 +2086,18 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
                                     // Add info RMAP to system
                                     if(retWindData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retWindData->is_windsonic_responding_error) bit8Flag|=0x01;
+                                        if(retWindData->is_windsonic_hardware_error) bit8Flag|=0x02;
+                                        if(retWindData->is_windsonic_unit_error) bit8Flag|=0x04;
+                                        if(retWindData->is_windsonic_axis_error) bit8Flag|=0x08;
+                                        if(retWindData->is_windsonic_crc_error) bit8Flag|=0x10;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retWindData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = retWindData->perc_rs232_error;
+                                        // Copy Data
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     } else {
@@ -2119,6 +2156,15 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
                                     // Add info RMAP to system
                                     if(retRadiationData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
+                                        if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
+                                        // Copy Data
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     } else {
@@ -2180,6 +2226,15 @@ void CanTask::Run() {
                                     param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
                                     // Add info RMAP to system
                                     if(retPwrData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
+                                        if(retPwrData->is_power_critical) bit8Flag|=0x0002;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
+                                        // Copy Data
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
                                     } else {
@@ -2730,6 +2785,71 @@ void CanTask::Run() {
                 // Al termine del trasferimento, esco dalla modalità >> FILE_STATE_WAIT_COMMAND <<
                 // direttamente nell' invio dell' ultimo pacchetto dati. E mi preparo a nuovo invio...
 
+                // Get coda comandi da system_message... se richiesto aggiornamenti dei firmware completi (tutta la stazione)
+                if(!param.systemMessageQueue->IsEmpty()) {
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_all)) {
+                            // Remove message from the queue
+                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            // Request start update firmware from LCD or Remote RPC
+                            // Start flags and state for file_server start
+                            is_running_update_system = true;
+                            // Start from last boards to first (When 0xFF) is Master Request and END Procedure upload
+                            index_running_update_boards = MAX_NODE_CONNECT - 1;
+                            // Set STATE for boards request in firmware upgrade
+                            clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                        }
+                    }
+                }
+
+                // True if Request all system update?! (UP)
+                // Next start if is avaiable, not running another file server (File Server can be run simultaneously)
+                // But we update one card at a time and Master for last
+                if(is_running_update_system) {
+                    // Have reached the last boards (Master)?
+                    if(index_running_update_boards == 0xFF) {
+                        // Master Boards (Update start from MMC/SD Task but mode to request is same with queue)
+                        if(param.system_status->data_master.fw_upgradable) {
+                            // Waiting End File server of previous procedure updating
+                            if(!param.system_status->flags.file_server_running) {
+                                memset(&system_message, 0, sizeof(system_message));
+                                // Starting sequence as queue command same LCD/RPC ecc...
+                                system_message.task_dest = MMC_TASK_ID;
+                                system_message.command.do_update_fw = true;
+                                system_message.param = index_running_update_boards;
+                                param.systemMessageQueue->Enqueue(&system_message);
+                                // Next Boards -> Finish Boards with Master 8End of procedure)
+                                is_running_update_system = false;
+                            }
+                        } else {
+                            // End of èreocedure. Master not required updating
+                            is_running_update_system = false;
+                        }
+                    } else {
+                        // Slave Boards
+                        // Are avaiable one firmware most recent?
+                        if(param.system_status->data_slave[index_running_update_boards].fw_upgradable) {
+                            // Is firmware_updating stopped (waiting end of last operation if started...)
+                            if(!param.system_status->flags.file_server_running) {
+                                memset(&system_message, 0, sizeof(system_message));
+                                // Starting sequence as queue command same LCD/RPC ecc...
+                                system_message.task_dest = CAN_TASK_ID;
+                                system_message.command.do_update_fw = true;
+                                system_message.param = index_running_update_boards;
+                                param.systemMessageQueue->Enqueue(&system_message);
+                                // Delay to security get queue immediatly (after this code)
+                                Delay(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
+                                // Goto Next Boards, Update start
+                                index_running_update_boards--;
+                            }
+                        } else {
+                            // Goto Next Boards... Not required update now
+                            index_running_update_boards--;
+                        }
+                    }
+                }
+
                 // Get coda comandi da system_message... se richiesto aggiornamento del firmware
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
@@ -2977,6 +3097,9 @@ void CanTask::Run() {
                     (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_heartbeat)) {
                     TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
+                    param.systemStatusLock->Take();
+                    param.system_status->data_master.heartbeat_published++;
+                    param.systemStatusLock->Give();
                     // Update next publisher
                     last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
                 }
@@ -3067,11 +3190,11 @@ void CanTask::Run() {
         // Run switch TASK CAN one STEP every...
         // If File Uploading MIN TimeOut For Task for Increse Speed Transfer RATE
         if(clCanard.master.file.download_request() || param.system_status->flags.file_server_running) {            
-            DelayUntil(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+            Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
         else
         {
-            DelayUntil(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
+            Delay(Ticks::MsToTicks(CAN_TASK_WAIT_DELAY_MS));
         }
     }
 }

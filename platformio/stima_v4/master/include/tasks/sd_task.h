@@ -117,6 +117,7 @@ typedef struct {
   cpp_freertos::Queue *dataRmapGetRequestQueue;
   cpp_freertos::Queue *dataRmapGetResponseQueue;
   cpp_freertos::Queue *dataRmapPutQueue;
+  cpp_freertos::Queue *dataRmapPutBackupQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *dataFilePutRequestQueue;
   cpp_freertos::Queue *dataFilePutResponseQueue;
@@ -129,7 +130,7 @@ typedef struct {
 class SdTask : public cpp_freertos::Thread {
 
 public:
-  SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t SdParam);
+  SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t sdParam);
 
 protected:
   virtual void Run();

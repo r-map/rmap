@@ -106,7 +106,7 @@ typedef struct {
 class SupervisorTask : public cpp_freertos::Thread {
 
 public:
-  SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t SupervisorParam);
+  SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam);
 
 protected:
   virtual void Run();

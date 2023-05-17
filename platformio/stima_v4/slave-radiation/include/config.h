@@ -49,6 +49,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define RMAP_PROCOTOL_VERSION (1)
 
 /*!
+\def USE_SIMULATOR
+\brief Random generator value for Local Test (500 + RNDx100) AVG ->550
+*/
+#define USE_SIMULATOR
+
+/*!
 \def MODULE_TYPE
 \brief Type of module. It is defined in registers.h.
 */

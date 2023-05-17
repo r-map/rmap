@@ -233,7 +233,8 @@ void SolarRadiationSensorTask::Run() {
     case SENSOR_STATE_READ:
       edata.value = value;
       edata.index = SOLAR_RADIATION_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
       TRACE_INFO_F(F("SENSOR_STATE_READ --> SENSOR_STATE_END\r\n"));
       state = SENSOR_STATE_END;
       break;

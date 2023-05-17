@@ -152,22 +152,38 @@ void ElaborateDataTask::Run() {
         switch (edata.index)
         {
         case TEMPERATURE_MAIN_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 29000 + random(300);
+          #endif
           TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
 
         case TEMPERATURE_REDUNDANT_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 29000 + random(300);
+          #endif
           TRACE_VERBOSE_F(F("Temperature [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
 
         case HUMIDITY_MAIN_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 50 + random(10);
+          #endif
           TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), MAIN_STRING, edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
 
         case HUMIDITY_REDUNDANT_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 50 + random(10);
+          #endif
           TRACE_VERBOSE_F(F("Humidity [ %s ]: %d\r\n"), REDUNDANT_STRING, edata.value);
           addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
           break;

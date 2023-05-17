@@ -1,25 +1,32 @@
-/**@file mqtt_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    can_task.cpp
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Mqtt RMAP over Cyclone TCP Source files
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     MQTT_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   MQTT_TASK_ID
@@ -280,7 +287,7 @@ void MqttTask::Run()
       {
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         // publish connection message (Conn + Version and Revision)
-        sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"n\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
+        sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
         error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
@@ -311,12 +318,137 @@ void MqttTask::Run()
       param.connectionResponseQueue->Enqueue(&connection_response, 0);
 
       // Successful connection?
+      state = MQTT_STATE_PUBLISH_INFO;
+      TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_PUBLISH_INFO\r\n"));
+      break;
+
+    case MQTT_STATE_PUBLISH_INFO:
+      // Local Var to Message status
+      DateTime dtStatus;
+      char dtBlock[30];
+      byte indexPosition;
+      char bitState[MQTT_PUB_MAX_BIT_STATE + 1];
+      byte byteState[MQTT_PUB_MAX_BYTE_STATE];
+
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
+
+      // Restore TOPIC -> MQTT_STATUS_TOPIC
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      // Prepare DateTime Generic status Message
+      convertUnixTimeToDate(param.system_status->datetime.epoch_sensors_get_value, &dtStatus);
+      makeDate(dtStatus, dtBlock, sizeof(dtBlock));
+
+      // ******************************************************************
+      // STATE: Publish Master Info, Message are Master Type structured
+      // ******************************************************************
+      // Prepare BIT Structure Type Message Start from MSB
+      for(uint8_t bitIdx = 0; bitIdx < MQTT_PUB_MAX_BIT_STATE; bitIdx++) {
+        bitState[bitIdx] = '0';
+      }
+      bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
+      indexPosition = 0;
+      if(!param.system_status->flags.sd_card_ready) {             // SD CARD
+         bitState[indexPosition] = '1';
+      }
+      indexPosition++;
+      if(!param.system_status->data_master.fw_upgradable) {       // IS FIRMWARE AVAIABLE?
+         bitState[indexPosition] = '1';
+      }
+      indexPosition++;
+      if(param.system_status->flags.power_state == Power_Mode::pwr_critical) {  // CRITICAL POWER?
+         bitState[indexPosition] = '1';
+      }
+
+      // Prepare BYTE Type
+      indexPosition=0;
+      for(uint8_t byteIdx = 0; byteIdx < MQTT_PUB_MAX_BYTE_STATE; byteIdx++) {
+        byteState[byteIdx] = 0;
+      }
+      // Invert OK with Error 100 - OK
+      byteState[indexPosition++] = 100 - param.system_status->modem.perc_modem_connection_valid;
+      byteState[indexPosition++] = param.boot_request->tot_reset;
+      byteState[indexPosition++] = param.boot_request->wdt_reset;
+      byteState[indexPosition] = param.system_status->modem.rssi;
+
+      // publish connection message (Conn + Version and Revision)
+      sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
+        dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+      TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+      // ******************************************************************
+      // STATE: Publish Slave Info, Message Depending by Node Module Type
+      // ******************************************************************
+      // For each Slave... Enabled and configured
+      for(uint8_t iNodeSlave = 0; iNodeSlave < MAX_NODE_CONNECT; iNodeSlave++) {
+        // SOlo per i moduli correttamente configurati
+        if(param.configuration->board_slave[iNodeSlave].module_type) {
+          // 3 BIT Fixed FROM Master Calcualtion and 8 BITS Relative Module Put on GET DATA from CAN TASK
+          for(uint8_t bitIdx = 0; bitIdx < MQTT_PUB_MAX_BIT_STATE; bitIdx++) {
+            bitState[bitIdx] = '0';
+          }
+          bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
+          indexPosition = 0;
+          // Depending from type module (Message composition)
+          if(!param.system_status->data_slave[iNodeSlave].is_online) {
+            bitState[indexPosition] = '1';
+          }
+          indexPosition++;
+          if(param.system_status->data_slave[iNodeSlave].fw_upgradable) {
+            bitState[indexPosition] = '1';
+          }
+          indexPosition++;
+          if(param.system_status->data_slave[iNodeSlave].maintenance_mode) {
+            bitState[indexPosition] = '1';
+          }
+          indexPosition++;
+          // Fill With 8xBIT Hardware Flag 8 Bits
+          for(uint8_t iBit=0; iBit<8; iBit++) {
+            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & 2^iBit) {
+                bitState[indexPosition++] = '1';
+            }
+          }
+
+          // Prepare BYTE Type
+          for(uint8_t byteIdx = 0; byteIdx < MQTT_PUB_MAX_BYTE_STATE; byteIdx++) {
+            byteState[byteIdx] = 0;
+          }
+          indexPosition = 0;
+          // Report inverted OK (100- for Error...)
+          byteState[indexPosition++] = 100 - param.system_status->data_slave[iNodeSlave].perc_can_comm_ok;
+          byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[0];
+          byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[1];
+          byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
+
+          // Fill With 8xBIT Hardware Flag 8 Bits
+          for(uint8_t iBit=0; iBit<8; iBit++) {
+            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & 2^iBit) {
+                bitState[indexPosition++] = '1';
+            }
+          }
+
+          // publish connection message (Conn + Version and Revision)
+          sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
+            dtBlock, NAME_BSLUG_BOARD_PREFIX, (iNodeSlave+1), bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+          error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+          TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+        }
+      }
+      // ******************************************************************
+
+      // Successful publish info message? No more action, go to publish Data...
+      // Check is need only for real data push to RMAP Server
       state = MQTT_STATE_PUBLISH;
-      TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_PUBLISH\r\n"));
+      TRACE_VERBOSE_F(F("MQTT_STATE_PUBLISH_INFO -> MQTT_STATE_PUBLISH\r\n"));
       break;
 
     case MQTT_STATE_PUBLISH:
 
+      #if (ENABLE_STACK_USAGE)
+      TaskMonitorStack();
+      #endif
       // **************************************
       //   GET RMAP Data, And Append to MQTT
       // **************************************
@@ -1179,6 +1311,23 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
   return error;
 }
 
+// Put data into queue to create File Data Backup Older Format
+void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *topic, char *message)
+{
+  rmap_backup_data_t archive_backup_data_line = {0};
+  size_t lenTopic = strlen(topic);
+  size_t lenMessage = strlen(message);
+  // Prepare message
+  archive_backup_data_line.date_time = convertDateToUnixTime(&dateTime);
+  // Check security Len Message before push queue message data
+  if((lenTopic + lenMessage) < RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE) {
+    strcpy((char*)archive_backup_data_line.block, topic);
+    strcpy((char*)(archive_backup_data_line.block + lenTopic), message);
+    // Send to queue with waiting Queue empty from SD/MMC Task if Full
+    param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
+  }
+}
+
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count = 0;
@@ -1210,6 +1359,10 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
   
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
+  // publish temperature value
   do
   {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
@@ -1251,6 +1404,10 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
+  // publish humidity value
   do
   {
     error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
@@ -1460,6 +1617,9 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish rain value
   do
   {
@@ -1560,6 +1720,9 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish radiation value
   do
   {
@@ -1606,6 +1769,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish speed value
   do
   {
@@ -1646,6 +1812,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish direction value
   do
@@ -1693,6 +1862,9 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish speed value
   do
   {
@@ -1724,6 +1896,9 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   {
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish direction value
   do
@@ -1771,6 +1946,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish speed peak value
   do
   {
@@ -1811,6 +1989,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish speed long value
   do
@@ -1858,6 +2039,9 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish speed peak value
   do
   {
@@ -1903,6 +2087,9 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish class speed value
   do
@@ -1950,6 +2137,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish peak value
   do
   {
@@ -1990,6 +2180,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish direction long value
   do
@@ -2515,6 +2708,9 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish soil value
   do
   {
@@ -2615,6 +2811,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish input voltage value
   do
   {
@@ -2655,6 +2854,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish input current value
   do
@@ -2697,6 +2899,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish battery voltage value
   do
   {
@@ -2738,6 +2943,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
+
   // publish battery current value
   do
   {
@@ -2778,6 +2986,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
+
+  // Saving Data Backup Older Data Firmat
+  putRmapBackupArchiveData(dateTime, topic, message);
 
   // publish battery charge value
   do
@@ -3065,6 +3276,7 @@ error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0
 
   return error;
 }
+
 
 /**
  * @brief TLS initialization callback

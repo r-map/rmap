@@ -1,25 +1,32 @@
-/**@file mqtt_task.h */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    can_task.cpp
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Mqtt RMAP over Cyclone TCP Header files
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #ifndef _MQTT_TASK_H
 #define _MQTT_TASK_H
@@ -36,8 +43,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_TASK_PUBLISH_DELAY_MS        (5)
 #define MQTT_TASK_PUBLISH_RETRY           (5)
 
+#define MQTT_PUT_QUEUE_BKP_TIMEOUT_MS     (1500)
+
 #define MQTT_PUB_CMD_DEBUG_PREFIX         (">")
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")
+
+#define MQTT_PUB_MAX_BIT_STATE            (16)
+#define MQTT_PUB_MAX_BYTE_STATE           (4)
 
 #include <STM32FreeRTOS.h>
 #include <arduinoJsonRPC.h>
@@ -127,6 +139,7 @@ typedef enum
   MQTT_STATE_WAIT_NET_EVENT,
   MQTT_STATE_CONNECT,
   MQTT_STATE_PUBLISH,
+  MQTT_STATE_PUBLISH_INFO,
   MQTT_STATE_DISCONNECT,
   MQTT_STATE_END
 } MqttState_t;
@@ -135,23 +148,25 @@ typedef struct
 {
   configuration_t *configuration;
   system_status_t *system_status;
+  bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataRmapGetRequestQueue;
   cpp_freertos::Queue *dataRmapGetResponseQueue;
+  cpp_freertos::Queue *dataRmapPutBackupQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;
   cpp_freertos::Queue *connectionResponseQueue;
-  YarrowContext *yarrowContext;
   cpp_freertos::BinarySemaphore *rpcLock;
+  YarrowContext *yarrowContext;
   JsonRPC *streamRpc;
 } MqttParam_t;
 
 class MqttTask : public cpp_freertos::Thread {
 
 public:
-  MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t MqttParam);
+  MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam);
 
 protected:
   virtual void Run();
@@ -170,6 +185,8 @@ private:
   error_t makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length);
   error_t makeCommonTopic(configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length);
   error_t makeDate(DateTime dateTime, char *message, size_t message_length);
+
+  void putRmapBackupArchiveData(DateTime dateTime, char *topic, char *message);
 
   error_t publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length);
   error_t makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length);

@@ -83,7 +83,7 @@ typedef struct
 class ModemTask : public cpp_freertos::Thread {
 
 public:
-  ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t ModemParam);
+  ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam);
 
 protected:
   NetInterface *interface;

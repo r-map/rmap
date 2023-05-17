@@ -142,13 +142,17 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueud from th sensors task (populate data)
-    if (!param.elaborataDataQueue->IsEmpty()) {
-      if (param.elaborataDataQueue->Peek(&edata, 0))
+    if (!param.elaborateDataQueue->IsEmpty()) {
+      if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata, 0);
+        param.elaborateDataQueue->Dequeue(&edata, 0);
         switch (edata.index)
         {
         case SOLAR_RADIATION_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 500 + random(100);
+          #endif
           TRACE_VERBOSE_F(F("Solar radiation: %d\r\n"), edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);

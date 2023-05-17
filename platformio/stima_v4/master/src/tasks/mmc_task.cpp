@@ -282,13 +282,13 @@ void MmcTask::FileOpenSecurity(File *reqFile, char* file_name, uint8_t file_mode
     SDMMC1->POWER = 0;
     RCC->APB2ENR &= ~RCC_APB2ENR_SDMMC1EN;
     // Waiting before RESET HW Complete
-    Delay(200);
+    Delay(Ticks::MsToTicks(200));
     SD.end();
     while(!SD.begin(PIN_MMC1_DTC)) {
       // Disable the MMC1 peripheral
       SDMMC1->POWER = 0;
       RCC->APB2ENR &= ~RCC_APB2ENR_SDMMC1EN;
-      Delay(200);
+      Delay(Ticks::MsToTicks(200));
       SD.end();
     }
     *reqFile = SD.open(file_name, file_mode);

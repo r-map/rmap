@@ -35,7 +35,7 @@
 
 using namespace cpp_freertos;
 
-LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCDParam_t LCDParam) : Thread(taskName, stackSize, priority), param(LCDParam) {
+LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam) : Thread(taskName, stackSize, priority), param(lcdParam) {
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(LCD_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);

@@ -62,6 +62,7 @@ void setup() {
   static Queue *dataRmapPutQueue;
   static Queue *dataRmapGetRequestQueue;
   static Queue *dataRmapGetResponseQueue;
+  static Queue *dataRmapPutBackupQueue;
   static Queue *dataFilePutRequestQueue;
   static Queue *dataFilePutResponseQueue;
   static Queue *dataFileGetRequestQueue;
@@ -143,6 +144,7 @@ void setup() {
   dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, sizeof(rmap_archive_data_t));
   dataRmapGetRequestQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_request_t));
   dataRmapGetResponseQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_response_t));
+  dataRmapPutBackupQueue = new Queue(RMAP_BKP_DATA_QUEUE_LENGTH, sizeof(rmap_backup_data_t));
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
   displayEventWakeUp = new Queue(DISPLAY_EVENT_QUEUE_LENGTH, sizeof(bool));
 
@@ -169,7 +171,7 @@ void setup() {
 #if (ENABLE_I2C2)
   // Load Info from E2 boot_check flag and send to Config
   static EEprom  memEprom(&Wire2, wire2Lock);
-  bootloader_t boot_check = {0};
+  static bootloader_t boot_check = {0};
   #if (INIT_PARAMETER)
   boot_check.app_executed_ok = true;
   memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
@@ -178,6 +180,8 @@ void setup() {
   #endif
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config) ...
 #endif
+  system_status.data_master.number_reboot = boot_check.tot_reset;
+  system_status.data_master.number_wdt = boot_check.wdt_reset;
   // Reset Factory register value
   static EERegister clRegister(&Wire2, wire2Lock);
   #if (INIT_PARAMETER)
@@ -248,6 +252,7 @@ void setup() {
   sdParam.boot_request = &boot_check;
   sdParam.systemMessageQueue = systemMessageQueue;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
+  sdParam.dataRmapPutBackupQueue = dataRmapPutBackupQueue;
   sdParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   sdParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   sdParam.dataLogPutQueue = dataLogPutQueue;
@@ -376,9 +381,9 @@ void setup() {
   httpParam.connectionResponseQueue = connectionResponseQueue;
   httpParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
   httpParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
+  httpParam.rpcLock = rpcLock;
   httpParam.yarrowContext = &yarrowContext;
   httpParam.streamRpc = &streamRpc;
-  httpParam.rpcLock = rpcLock;
 #endif
 
 #if (USE_MQTT)
@@ -386,17 +391,19 @@ void setup() {
   static MqttParam_t mqttParam = {0};
   mqttParam.configuration = &configuration;
   mqttParam.system_status = &system_status;
+  mqttParam.boot_request = &boot_check;
   mqttParam.configurationLock = configurationLock;
   mqttParam.systemStatusLock = systemStatusLock;
   mqttParam.systemMessageQueue = systemMessageQueue;
   mqttParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   mqttParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
+  mqttParam.dataRmapPutBackupQueue = dataRmapPutBackupQueue;
   mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;
+  mqttParam.rpcLock = rpcLock;
   mqttParam.yarrowContext = &yarrowContext;
   mqttParam.streamRpc = &streamRpc;
-  mqttParam.rpcLock = rpcLock;
 #endif
 
   // *****************************************************************************
@@ -437,7 +444,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 1400, OS_TASK_PRIORITY_02, mqttParam);
+  static MqttTask mqtt_task("MqttTask", 1100, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);

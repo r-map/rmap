@@ -312,7 +312,7 @@ void HttpTask::Run() {
           // Slave request
           serial_number_l = param.configuration->board_slave[module_download].serial_number & 0xFFFFFFFF;
           serial_number_h = (param.configuration->board_slave[module_download].serial_number >> 32) & 0xFFFFFFFF;
-          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s%u\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, NAME_BSLUG_BOARD_PREFIX, (module_download+1));
         }
         snprintf(serial_number_str, sizeof(serial_number_str), "%04X%04X", serial_number_h, serial_number_l);
         // Add header request
@@ -411,9 +411,20 @@ void HttpTask::Run() {
           // Retrieve the value of the Content-Type header field
           value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
           strcpy(module_download_md5, value);
-          // Next module revision (Correct version are writed into Firmware)
-          module_download_ver = param.configuration->module_main_version;
-          module_download_rev = param.configuration->module_minor_version + 1;
+          // Try check version and revision, otherwise we cann try with
+          // next module revision (Correct version are writed into Firmware)
+          value = httpClientGetHeaderField(&httpClientContext, "version");
+          if(value) {
+            module_download_ver = atoi(value);
+          } else {
+            module_download_ver = param.configuration->module_main_version;
+          }
+          value = httpClientGetHeaderField(&httpClientContext, "revision");
+          if(value) {
+            module_download_rev = atoi(value);
+          } else {
+            module_download_rev = param.configuration->module_minor_version + 1;
+          }
         }
 
         // Header field found?

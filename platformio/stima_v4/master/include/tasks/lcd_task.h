@@ -117,7 +117,7 @@ typedef struct {
 
 class LCDTask : public cpp_freertos::Thread {
  public:
-  LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t LCDParam);
+  LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam);
 
  protected:
   virtual void Run();
