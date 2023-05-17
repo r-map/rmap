@@ -124,7 +124,9 @@ def update(request,name):
     response['Content-Length']=mysize
     #https://tools.ietf.org/html/rfc1864#section-2
     response['x-MD5']= mymd5 
-
+    response['version'] = firmware.version
+    response['revision'] = firmware.revision
+    
     print("send new firmware")
     return response
     
