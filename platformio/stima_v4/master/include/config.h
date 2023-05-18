@@ -205,11 +205,11 @@
 #define USE_RPC_METHOD_ADMIN        (true)
 #define USE_RPC_METHOD_CONFIGURE    (true)
 #define USE_RPC_METHOD_REBOOT       (true)
-#define USE_RPC_METHOD_TEST         (true)
 #define USE_RPC_METHOD_RECOVERY     (true)
 #define USE_RPC_METHOD_PREPARE      (false)
 #define USE_RPC_METHOD_GETJSON      (false)
 #define USE_RPC_METHOD_PREPANDGET   (false)
+#define USE_RPC_METHOD_TEST         (false)
 
 // Disable for DEBUG
 #define ENABLE_RPC_LOCAL_REBOOT     (true)

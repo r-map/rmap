@@ -309,7 +309,13 @@ void HttpTask::Run() {
           serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
           snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
         } else {
-          // Slave request
+          // Slave request compose S.N. if not imposted on config
+          if(!param.configuration->board_slave[module_download].serial_number) {
+            for(uint8_t iSn=1; iSn<8; iSn++) {
+              param.configuration->board_slave[module_download].serial_number |= param.configuration->stationslug[iSn] << (iSn*8);
+            }
+            param.configuration->board_slave[module_download].serial_number |= module_download_type;
+          }
           serial_number_l = param.configuration->board_slave[module_download].serial_number & 0xFFFFFFFF;
           serial_number_h = (param.configuration->board_slave[module_download].serial_number >> 32) & 0xFFFFFFFF;
           snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s%u\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, NAME_BSLUG_BOARD_PREFIX, (module_download+1));
@@ -411,24 +417,15 @@ void HttpTask::Run() {
           // Retrieve the value of the Content-Type header field
           value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
           strcpy(module_download_md5, value);
-          // Try check version and revision, otherwise we cann try with
-          // next module revision (Correct version are writed into Firmware)
+          // Get version and revision for create file and check update is valid
           value = httpClientGetHeaderField(&httpClientContext, "version");
-          if(value) {
-            module_download_ver = atoi(value);
-          } else {
-            module_download_ver = param.configuration->module_main_version;
-          }
+          module_download_ver = atoi(value);
           value = httpClientGetHeaderField(&httpClientContext, "revision");
-          if(value) {
-            module_download_rev = atoi(value);
-          } else {
-            module_download_rev = param.configuration->module_minor_version + 1;
-          }
+          module_download_rev = atoi(value);
         }
 
-        // Header field found?
-        if (value == NULL)
+        // Header field found? With requet OK
+        if ((bValidFirmwareRequest) && (value == NULL))
         {
           if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
             is_error = true;
@@ -445,6 +442,8 @@ void HttpTask::Run() {
         // is_firmware (start queue naming file)
         if(bValidFirmwareRequest) {
           bErrorFirmwareDownload = do_firmware_set_name((Module_Type)module_download_type, module_download_ver, module_download_rev);
+        } else {
+          bErrorFirmwareDownload = true;
         }
       }
 
@@ -524,14 +523,21 @@ void HttpTask::Run() {
       // Terminate the HTTP response body with a CRLF
       TRACE_INFO_F(F("\r\n"));
 
-      // Any error to report?
-      if (bErrorFirmwareDownload)
-      {
-        // Error if of queue/SD no more action here, exit and signal the problem to server (SD)
-        is_error = true;
-        state = HTTP_STATE_END;
-        TRACE_ERROR_F(F("%s Failed to upload firmware stream to MMC/SD [ %s ]\r\n"), Thread::GetName().c_str(), ABORT_STRING);
-        break;
+      // Any error to report? With FW Request/Response OK
+      if (is_get_firmware) {
+        if (!bValidFirmwareRequest) {
+          // Clean error 
+          error = ERROR_END_OF_STREAM;
+          TRACE_ERROR_F(F("%s Firmware module not avaiable on server RMAP, next checking...\r\n"), Thread::GetName().c_str());
+        }
+        else if (bErrorFirmwareDownload)
+        {
+          // Error if of queue/SD no more action here, exit and signal the problem to server (SD)
+          is_error = true;
+          state = HTTP_STATE_END;
+          TRACE_ERROR_F(F("%s Failed to upload firmware stream to MMC/SD [ %s ]\r\n"), Thread::GetName().c_str(), ABORT_STRING);
+          break;
+        }
       }
 
       // Any error to report?
@@ -550,7 +556,9 @@ void HttpTask::Run() {
       }
 
       // Closing Queue and File data (Ready for next firmware...)
-      bErrorFirmwareDownload |= do_firmware_end_data();
+      if ((is_get_firmware)&&(bValidFirmwareRequest)) {
+        bErrorFirmwareDownload |= do_firmware_end_data();
+      }
 
       // Close HTTP response body
       error = httpClientCloseBody(&httpClientContext);

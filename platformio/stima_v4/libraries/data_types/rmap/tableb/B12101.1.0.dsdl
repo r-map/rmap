@@ -1,6 +1,6 @@
 # Temperatura aria (°K)
 # fattore scala x100 + 27315
-# MAX 2.250 °C
-uint18 MAX = 252315
-uint18 value
+# MAX 250.0 °C
+uint16 MAX = 52315
+uint16 value
 @sealed

@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/TH.1.0.dsdl
-// Generated at:  2023-05-13 10:35:56.644393 UTC
+// Generated at:  2023-05-18 15:44:27.625240 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.module.TH
@@ -72,8 +72,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_module_TH_1_0_EXTENT_BYTES_                    95UL
-#define rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 95UL
+#define rmap_module_TH_1_0_EXTENT_BYTES_                    90UL
+#define rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 90UL
 static_assert(rmap_module_TH_1_0_EXTENT_BYTES_ >= rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -121,7 +121,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 760UL)
+    if ((8U * (size_t) capacity_bytes) < 720UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -134,7 +134,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
 
 
     {   // rmap.sensors.TH.1.0 STH
-        size_t _size_bytes0_ = 19UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes0_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = rmap_sensors_TH_1_0_serialize_(
             &obj->STH, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
@@ -158,7 +158,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
     }
 
     {   // rmap.sensors.TH.1.0 ITH
-        size_t _size_bytes1_ = 19UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes1_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err2_ = rmap_sensors_TH_1_0_serialize_(
             &obj->ITH, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
@@ -182,7 +182,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
     }
 
     {   // rmap.sensors.TH.1.0 NTH
-        size_t _size_bytes2_ = 19UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes2_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err4_ = rmap_sensors_TH_1_0_serialize_(
             &obj->NTH, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err4_ < 0)
@@ -206,7 +206,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
     }
 
     {   // rmap.sensors.TH.1.0 MTH
-        size_t _size_bytes3_ = 19UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes3_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err6_ = rmap_sensors_TH_1_0_serialize_(
             &obj->MTH, &buffer[offset_bits / 8U], &_size_bytes3_);
         if (_err6_ < 0)
@@ -230,7 +230,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
     }
 
     {   // rmap.sensors.TH.1.0 XTH
-        size_t _size_bytes4_ = 19UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes4_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err8_ = rmap_sensors_TH_1_0_serialize_(
             &obj->XTH, &buffer[offset_bits / 8U], &_size_bytes4_);
         if (_err8_ < 0)

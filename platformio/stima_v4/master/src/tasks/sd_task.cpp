@@ -313,11 +313,12 @@ void SdTask::Run()
   rmap_get_response_t rmap_get_response;
   rmap_backup_data_t rmap_backup_archive_data;
   // Name file for data append es. /data/2023_01_30.dat (RMAP File data are stored by Day)
-  char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};  // Name current Write File Data RMAP
-  char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};  // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
-  char rmap_file_name_check[DATA_FILENAME_LEN] = {0}; // Check control Name VAR (RMAP Data Day changed?)
-  char rmap_file_name_bkp[DATA_FILENAME_LEN] = {0};   // Name current Backup Older File Data RMAP
-  char rmap_file_bkp_check[DATA_FILENAME_LEN] = {0};  // Check control Name VAR Backup (RMAP Data Day changed?)
+  char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};      // Name current Write File Data RMAP
+  char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};      // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
+  char rmap_file_name_check[DATA_FILENAME_LEN] = {0};   // Check control Name VAR (RMAP Data Day changed?)
+  char rmap_file_name_rd_bkp[DATA_FILENAME_LEN] = {0};  // Name Backup Read File Data RMAP for Recovery End of Time "dte" param
+  char rmap_file_name_bkp[DATA_FILENAME_LEN] = {0};     // Name current Backup Older File Data RMAP
+  char rmap_file_bkp_check[DATA_FILENAME_LEN] = {0};    // Check control Name VAR Backup (RMAP Data Day changed?)
   uint32_t rmap_pointer_seek;           // Seek Absolute Position Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime;       // Date Time Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_seek_bkp;       // Bkp Seek Absolute Position Pointer Read in File RMAP Queue Out
@@ -815,6 +816,7 @@ void SdTask::Run()
             // In This case after END Pointer or END Data Event, BKP Pointer is restored automatically
             rmap_pointer_datetime_bkp = rmap_pointer_datetime;
             rmap_pointer_seek_bkp = rmap_pointer_seek;
+            strcpy(rmap_file_name_rd_bkp, rmap_file_name_rd);
             // Trace INFO Queue Request SET Pointer TO->
             DateTime rmap_date_time_val;
             convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
@@ -909,7 +911,7 @@ void SdTask::Run()
                 // because the requested date is necessarily higher
                 dateTimeSearch += SECS_DAY;                
                 convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
-                TRACE_VERBOSE_F(F("Data RMAP current searching date/time (Not readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+                TRACE_DEBUG_F(F("Data RMAP current searching date/time (Not readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
                 namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
                 // Exist?
                 if(SD.exists(rmap_file_name_new)) {
@@ -939,6 +941,8 @@ void SdTask::Run()
             }
             // All OK?
             if(rmap_get_response.result.done_synch) {
+              // Force closing RDFile for ResSynch pointer in security mode
+              if(rmapRdFile) rmapRdFile.close();
               // System status enter in data ready for SENT (new data present)
               param.systemStatusLock->Take();
               param.system_status->flags.new_data_to_send = true;
@@ -971,7 +975,7 @@ void SdTask::Run()
               // Save new file_name for next control
               strcpy(rmap_file_name_rd, rmap_file_name_check);
               // Not opened? open... in append
-              // Resynch if file is close and (file_name not changed... Closed By End Of Data)
+              // Resynch if file is close and (file_name not changed... Closed By End Of Data, new data in this day)
               bool reSyncPtr;
               reSyncPtr = (!rmapRdFile);
               if(rmapRdFile) rmapRdFile.close();
@@ -1009,9 +1013,10 @@ void SdTask::Run()
                       rmap_pointer_datetime = ((rmap_pointer_datetime + SECS_DAY) / SECS_DAY) * SECS_DAY;
                       // Save new file_name for next control
                       strcpy(rmap_file_name_rd, rmap_file_name_check);
-                      // Not opened? Open... in append
+                      // Not opened? Open... in readonly
                       if(rmapRdFile) rmapRdFile.close();
                       rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                      // Not required Save pointer, data can be continued (rmap_pointer_seek is resetted to 0)
                       // Open File High LED
                       digitalWrite(PIN_SD_LED, HIGH);
                     } else {
@@ -1046,7 +1051,7 @@ void SdTask::Run()
                     rmap_pointer_datetime = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
                     // Save new file_name for next control
                     strcpy(rmap_file_name_rd, rmap_file_name_check);
-                    // Not opened? Open... in append
+                    // Not opened? Open... in read only
                     if(rmapRdFile) rmapRdFile.close();
                     rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
                     // Open File High LED
@@ -1088,19 +1093,24 @@ void SdTask::Run()
                 rmap_get_request.command.do_save_ptr = true;
                 // No ned restore older pointer...
               } else {
-                if(rmap_get_response.rmap_data.date_time >= rmap_pointer_datetime_end) {
+                if(rmap_get_response.rmap_data.date_time > rmap_pointer_datetime_end) {
+                  // Terminate END Control procedure, Return with backup at standard method
+                  using_rmap_pointer_datetime_end = false;
                   // Simulate an End Of Data. Data END is reached up!!! End of procedure
                   rmap_get_response.result.end_of_data = true;
-                  // Restore older Pointer. Previous RPC Recovery request
+                  // Restore older Pointer Seek and File. Previous backup from RPC Recovery request.
                   rmap_pointer_datetime = rmap_pointer_datetime_bkp;
                   rmap_pointer_seek = rmap_pointer_seek_bkp;
+                  strcpy(rmap_file_name_rd, rmap_file_name_rd_bkp);
+                  // Need to close file to check next block if external write. No more data if not reclose/reopen File
+                  if(rmapRdFile) rmapRdFile.close();
                 }
               }
             } else {
               // In standard Mode if END Of Data Receive, automatically Save Pointer DATA
               if(rmap_get_response.result.end_of_data) {
                 rmap_get_request.command.do_save_ptr = true;
-                // Need to close file to check next block if exenral write. No more data if not reclose/reopen File
+                // Need to close file to check next block if external write. No more data if not reclose/reopen File
                 if(rmapRdFile) rmapRdFile.close();
               }
             }

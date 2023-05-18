@@ -96,13 +96,18 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
+        TRACE_INFO_F(F("RPC: DO UPDATE FIRMWARE\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
-        param.system_status->command.do_http_firmware_domload = true;
+        param.system_status->command.do_http_firmware_download = true;
         param.systemStatusLock->Give();
       }
     }
   }
+
+  result[F("state")] = "done";
+  // Do something
+  return E_SUCCESS;
 }
 #endif
 
@@ -1058,8 +1063,6 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
       // No Task Suspended (RPC Can entre from various Task) Time Not Problem to queue
       rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response);
       rmap_data_error |= rmap_get_response.result.event_error;
-
-      break;
     }
     // end date
     else if (strcmp(it.key().c_str(), "dte") == 0)
@@ -1175,7 +1178,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 #if (USE_RPC_METHOD_TEST)
 int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 {
-  // print lcd message before reboot
+  // RPC Test
 
   for (JsonPair it : params)
   {

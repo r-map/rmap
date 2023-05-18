@@ -481,6 +481,10 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     bMeasValid_C == true ? snprintf(measure_C, sizeof(measure_C), "%s %s", measure_C, unit_type_C) : snprintf(measure_C, sizeof(measure_C), "--- %s", unit_type_C);
   }
 
+  #if (ENABLE_STACK_USAGE)
+  TaskMonitorStack();
+  #endif
+
   // Print description of measure
   display.setFont(u8g2_font_helvR08_tf);
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 0.5 * LINE_BREAK);
@@ -633,6 +637,10 @@ void LCDTask::display_print_main_interface() {
     display.print((uint8_t)((param.configuration->board_master.serial_number >> (8 * id)) & 0xFF), 16);
     if (id) display.print(F("-"));
   }
+
+  #if (ENABLE_STACK_USAGE)
+  TaskMonitorStack();
+  #endif
 
   // Apply the updates to display
   display.sendBuffer();

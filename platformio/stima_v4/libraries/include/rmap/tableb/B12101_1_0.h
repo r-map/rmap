@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/tableb/B12101.1.0.dsdl
-// Generated at:  2023-05-13 10:35:56.503145 UTC
+// Generated at:  2023-05-18 15:44:27.275199 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.tableb.B12101
@@ -72,18 +72,18 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_tableb_B12101_1_0_EXTENT_BYTES_                    3UL
-#define rmap_tableb_B12101_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 3UL
+#define rmap_tableb_B12101_1_0_EXTENT_BYTES_                    2UL
+#define rmap_tableb_B12101_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 2UL
 static_assert(rmap_tableb_B12101_1_0_EXTENT_BYTES_ >= rmap_tableb_B12101_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
-/// saturated uint18 MAX = 252315
-#define rmap_tableb_B12101_1_0_MAX (252315UL)
+/// saturated uint16 MAX = 52315
+#define rmap_tableb_B12101_1_0_MAX (52315U)
 
 typedef struct
 {
-    /// saturated uint18 value
-    uint32_t value;
+    /// saturated uint16 value
+    uint16_t value;
 } rmap_tableb_B12101_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -112,7 +112,7 @@ static inline int8_t rmap_tableb_B12101_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 24UL)
+    if ((8U * (size_t) capacity_bytes) < 16UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -124,14 +124,10 @@ static inline int8_t rmap_tableb_B12101_1_0_serialize_(
 
 
 
-    {   // saturated uint18 value
-        uint32_t _sat0_ = obj->value;
-        if (_sat0_ > 262143UL)
-        {
-            _sat0_ = 262143UL;
-        }
-        (void) memmove(&buffer[offset_bits / 8U], &_sat0_, 3U);
-        offset_bits += 18U;
+    {   // saturated uint16 value
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        (void) memmove(&buffer[offset_bits / 8U], &obj->value, 2U);
+        offset_bits += 16U;
     }
 
 
@@ -195,9 +191,9 @@ static inline int8_t rmap_tableb_B12101_1_0_deserialize_(
 
 
 
-    // saturated uint18 value
-    out_obj->value = nunavutGetU32(&buffer[0], capacity_bytes, offset_bits, 18);
-    offset_bits += 18U;
+    // saturated uint16 value
+    out_obj->value = nunavutGetU16(&buffer[0], capacity_bytes, offset_bits, 16);
+    offset_bits += 16U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.

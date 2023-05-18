@@ -51,6 +51,7 @@
 // Messaggi di lunghezza TimeOut Extra <> Standard
 #define CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC 3500000UL
 #define CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC     2500000UL
+#define CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC     2500000UL
 
 // Nodi Fissi per Moduli Master e Yakut
 #define NODE_YAKUT_ID   127

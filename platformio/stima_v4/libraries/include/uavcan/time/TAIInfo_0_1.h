@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/time/TAIInfo.0.1.dsdl
-// Generated at:  2023-05-13 10:35:54.209148 UTC
+// Generated at:  2023-05-18 15:44:25.464753 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.time.TAIInfo

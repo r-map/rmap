@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/sensors/TH.1.0.dsdl
-// Generated at:  2023-05-13 10:35:56.314721 UTC
+// Generated at:  2023-05-18 15:44:27.417962 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.sensors.TH
@@ -74,8 +74,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_sensors_TH_1_0_EXTENT_BYTES_                    19UL
-#define rmap_sensors_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 19UL
+#define rmap_sensors_TH_1_0_EXTENT_BYTES_                    18UL
+#define rmap_sensors_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 18UL
 static_assert(rmap_sensors_TH_1_0_EXTENT_BYTES_ >= rmap_sensors_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -117,7 +117,7 @@ static inline int8_t rmap_sensors_TH_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 152UL)
+    if ((8U * (size_t) capacity_bytes) < 144UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -154,7 +154,7 @@ static inline int8_t rmap_sensors_TH_1_0_serialize_(
     }
 
     {   // rmap.measures.Temperature.1.0 temperature
-        size_t _size_bytes1_ = 4UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes1_ = 3UL;  // Nested object (max) size, in bytes.
         int8_t _err2_ = rmap_measures_Temperature_1_0_serialize_(
             &obj->temperature, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)

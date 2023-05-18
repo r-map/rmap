@@ -975,8 +975,8 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 size_t serialized_size = sizeof(serialized);
                 const int8_t res = rmap_service_module_Rain_Response_1_0_serialize_(&module_rain_resp, &serialized[0], &serialized_size);
                 if (res >= 0) {
-                    // Risposta standard ad un secondo dal timeStamp Sincronizzato
-                    clCanard.sendResponse(MEGA, &transfer->metadata, serialized_size, &serialized[0]);
+                    // Risposta standard con validità time out RMAP_DATA personalizzato dal timeStamp Sincronizzato
+                    clCanard.sendResponse(CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC, &transfer->metadata, serialized_size, &serialized[0]);
                 }
             }
         }
@@ -1536,7 +1536,7 @@ void CanTask::Run() {
                 if (!clCanard.rxSubscribe(CanardTransferKindRequest,
                                         clCanard.port_id.service_module_rain,
                                         rmap_service_module_Rain_Request_1_0_EXTENT_BYTES_,
-                                        CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                        CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
 

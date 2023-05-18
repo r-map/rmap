@@ -101,6 +101,10 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   param.systemStatusLock->Give();
 }
 
+// TEST FUNCTION DEBUG
+#define TEST_CONNECTION     (false)
+#define DISABLE_CONNECTION  (false)
+
 void SupervisorTask::Run()
 {
   uint8_t retry, hh, nn, ss;
@@ -163,7 +167,7 @@ void SupervisorTask::Run()
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
         strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
-        param.configuration->report_s = 600;
+        param.configuration->report_s = 900;
         param.configuration->observation_s = 60;
         // param.configuration->observation_s = 30;
         // param.configuration->report_s = 60;
@@ -217,6 +221,8 @@ void SupervisorTask::Run()
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       }
 
+      #if (!DISABLE_CONNECTION)
+
       // Check date RTime for syncro operation (if required)
       rtc.getTime(&hh, &nn, &ss, &ms);
 
@@ -248,7 +254,7 @@ void SupervisorTask::Run()
         if((param.system_status->flags.new_data_to_send) ||
             (param.system_status->command.do_ntp_synchronization) ||
             (param.system_status->command.do_http_configuration_update) ||
-            (param.system_status->command.do_http_firmware_domload) ||
+            (param.system_status->command.do_http_firmware_download) ||
             (param.system_status->command.do_mqtt_connect)) {
           // ? Request external command OR Time to Run Connection?
           // First connection? Update Time from NTP
@@ -262,7 +268,7 @@ void SupervisorTask::Run()
           param.systemStatusLock->Take();
           param.system_status->connection.is_ntp_synchronized = !param.system_status->command.do_ntp_synchronization;
           param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
-          param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_domload;
+          param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_download;
           // is_mqtt_connected, generic set to false to start mqtt_connection. If true excluding Mqtt Procedure for this session
           param.system_status->connection.is_mqtt_connected = !param.system_status->command.do_mqtt_connect;
           param.system_status->connection.is_mqtt_connected &= !param.system_status->flags.new_data_to_send;
@@ -270,7 +276,7 @@ void SupervisorTask::Run()
           param.system_status->data_master.connect_run_epoch = rtc.getEpoch();
           // Resetting command request (Not event setted but external request)
           param.system_status->command.do_http_configuration_update = false;
-          param.system_status->command.do_http_firmware_domload = false;
+          param.system_status->command.do_http_firmware_download = false;
           param.system_status->command.do_mqtt_connect = false;
           param.system_status->command.do_ntp_synchronization = false;
 
@@ -330,6 +336,8 @@ void SupervisorTask::Run()
       // Inibition Sleep on Waiting Event (always false, but TRUE on Starting Event Connection)
       param.system_status->flags.run_connection = true;
       param.systemStatusLock->Give();
+
+      #endif
 
       #endif
 

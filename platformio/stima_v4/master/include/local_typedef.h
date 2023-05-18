@@ -233,7 +233,7 @@ typedef struct
   {
       bool do_ntp_synchronization;
       bool do_http_configuration_update;
-      bool do_http_firmware_domload;
+      bool do_http_firmware_download;
       bool do_mqtt_connect;
    } command;
 

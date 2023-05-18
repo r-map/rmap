@@ -1164,7 +1164,7 @@ void CanTask::Run() {
     bool is_running_update_send_cmd = false;    // Command queue started for one fw upgrading (Waiting end event for next)
     uint8_t index_running_update_boards;        // Index of board actual running in file server upload event
 
-    // Starting message trace
+    // Starting message trace one time for event if required
     bool message_traced = false;
 
     // Starting acquire IST and value control var
@@ -1248,6 +1248,7 @@ void CanTask::Run() {
                     }
                     break;
                 }
+                message_traced = false;
 
                 TRACE_INFO_F(F("Can task: STARTING Configuration\r\n"));
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
@@ -1307,6 +1308,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 50;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_RAIN
                 idxFixed++;
@@ -1315,6 +1318,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 51;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_WIND
                 idxFixed++;
@@ -1323,6 +1328,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 52;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_RADIATION
                 idxFixed++;
@@ -1331,6 +1338,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 53;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_VWC
                 idxFixed++;
@@ -1339,6 +1348,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 54;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_POWER
                 idxFixed++;
@@ -1347,6 +1358,8 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_port_id = 55;
                 param.configuration->board_slave[idxFixed].can_publish_id = 100;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 // RESET Next Board
                 for(uint8_t iIdxRst = idxFixed + 1; iIdxRst < MAX_NODE_CONNECT; iIdxRst++) {
@@ -1355,6 +1368,8 @@ void CanTask::Run() {
                     param.configuration->board_slave[iIdxRst].can_port_id = 0xFFFFu;
                     param.configuration->board_slave[iIdxRst].can_publish_id = 0xFFFFu;
                     param.configuration->board_slave[iIdxRst].serial_number = 0;
+                    for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                        param.configuration->board_slave[idxFixed].is_configured[isCfg] = false;
                 }
                 #endif
 
@@ -1495,7 +1510,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_TH_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1506,7 +1521,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_Rain_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1517,7 +1532,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_Wind_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1528,7 +1543,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_Radiation_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1539,7 +1554,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_VWC_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1550,7 +1565,7 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindResponse,
                                                     clCanard.slave[queueId].rmap_service.get_port_id(),
                                                     rmap_service_module_Power_Response_1_0_EXTENT_BYTES_,
-                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
                         }
@@ -1821,8 +1836,8 @@ void CanTask::Run() {
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
                             // Calculate % from expected Heartbeat sequence TX-RX Complete
-                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (uint8_t)(((float)(param.system_status->data_slave[iSlave].heartbeat_rx) / (float)(param.system_status->data_master.heartbeat_published - SEC_WAKE_UP_MODULE_FOR_QUERY)) * 100.0);                            
-                            if (param.system_status->data_slave[iSlave].perc_can_comm_ok > 100) param.system_status->data_slave[iSlave].perc_can_comm_ok = 100;
+                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (uint8_t)(((float)(param.system_status->data_slave[iSlave].heartbeat_rx) / (float)(param.system_status->data_master.heartbeat_published) + 1) * 100.0);                            
+                            if (param.system_status->data_slave[iSlave].perc_can_comm_ok > 90) param.system_status->data_slave[iSlave].perc_can_comm_ok = 100;
                             // Reset Next Counter for next acquire data
                             param.system_status->data_slave[iSlave].heartbeat_rx = 0;
                         }
@@ -1837,6 +1852,7 @@ void CanTask::Run() {
                 // ********************** RMAP GETDATA TX-> RX<- *************************
                 // ***********************************************************************
 
+uint32_t pippo[8];
                 // IS START COMMAND DATA RMAP AUTOMATIC REQUEST (From Local Syncro Activity UP...)?
                 // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
                 if ((bStartGetIstant)||(bStartGetData)) {
@@ -1856,6 +1872,9 @@ void CanTask::Run() {
                                 // higher priority guaranteed
                                 if(bStartGetData) {
                                     paramRequest.command = rmap_service_setmode_1_0_get_last;
+                                    // TODO: SIstemare
+                                    // paramRequest.obs_sectime = 60;
+                                    // paramRequest.run_sectime = 900;
                                     paramRequest.obs_sectime = param.configuration->observation_s;
                                     paramRequest.run_sectime = param.configuration->report_s;
                                 } else {
@@ -1865,6 +1884,7 @@ void CanTask::Run() {
                                 }
                                 // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
                                 // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
+              pippo[queueId] = millis();
                                 clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
                                 // Avvio il server RMAP Request
                                 param.systemStatusLock->Take();
@@ -1892,6 +1912,11 @@ void CanTask::Run() {
                             rmapServerEnd = false;
                         }
                         if (clCanard.slave[queueId].rmap_service.event_timeout()) {
+              Serial.print("TO");
+              Serial.print(queueId);
+              Serial.print(" - ");
+              Serial.println(millis() - pippo[queueId]);
+
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
                             TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
@@ -1901,6 +1926,10 @@ void CanTask::Run() {
                     // EVENT GESTION OF RECIVED DATA AT REQUEST
                     for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                         if(clCanard.slave[queueId].rmap_service.is_executed()) {
+              Serial.print("EV");
+              Serial.print(queueId);
+              Serial.print(" - ");
+              Serial.println(millis() - pippo[queueId]);
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // Interprete del messaggio in casting dal puntatore dinamico
                             // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
@@ -2271,6 +2300,11 @@ void CanTask::Run() {
                         param.system_status->flags.rmap_server_running = false;
                         param.systemStatusLock->Give();
                     }
+                } else {
+                    // Security off pending status
+                    for(uint8_t rmap_server_queueId=0; rmap_server_queueId<MAX_NODE_CONNECT; rmap_server_queueId++) {
+                        clCanard.slave[rmap_server_queueId].rmap_service.reset_pending();
+                    }
                 }
                 // ********************* END RMAP GETDATA TX-> RX<- **********************
 
@@ -2301,12 +2335,16 @@ void CanTask::Run() {
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.cmd_server_running = true;
                                     param.systemStatusLock->Give();
+                                    message_traced = false;
                                 } else {
                                     // IS NEED to Request FullPower Mode for type of command
-                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.full_wakeup_request = true;
-                                    param.systemStatusLock->Give();
+                                    if(!message_traced) {
+                                        message_traced = true;
+                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
                                 }
                             }
                             // UNDO MAINTENANCE
@@ -2326,12 +2364,16 @@ void CanTask::Run() {
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.cmd_server_running = true;
                                     param.systemStatusLock->Give();
+                                    message_traced = false;
                                 } else {
                                     // IS NEED to Request FullPower Mode for type of command
-                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.full_wakeup_request = true;
-                                    param.systemStatusLock->Give();
+                                    if(!message_traced) {
+                                        message_traced = true;
+                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
                                 }
                             }
                             // STARTING CALIBRATION (Accellerometer)
@@ -2350,12 +2392,16 @@ void CanTask::Run() {
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.cmd_server_running = true;
                                     param.systemStatusLock->Give();
+                                    message_traced = false;
                                 } else {
                                     // IS NEED to Request FullPower Mode for type of command
-                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.full_wakeup_request = true;
-                                    param.systemStatusLock->Give();
+                                    if(!message_traced) {
+                                        message_traced = true;
+                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
                                 }
                             }
                         }
@@ -2400,6 +2446,11 @@ void CanTask::Run() {
                         param.systemStatusLock->Take();
                         param.system_status->flags.cmd_server_running = false;
                         param.systemStatusLock->Give();
+                    }
+                } else {
+                    // Security off pending status
+                    for(uint8_t cmd_server_queueId=0; cmd_server_queueId<MAX_NODE_CONNECT; cmd_server_queueId++) {
+                        clCanard.slave[cmd_server_queueId].command.reset_pending();
                     }
                 }
                 // ************************* END COMMAND SERVER **************************
@@ -2859,12 +2910,16 @@ void CanTask::Run() {
                                 param.systemStatusLock->Give();
                                 // Set STATE for boards request in firmware upgrade
                                 clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                                message_traced = false;
                             } else {
-                                TRACE_VERBOSE_F(F("File server: Start full power for sending firmware to slave\n\r"));
                                 // IS NEED to Request FullPower Mode for type of command
-                                param.systemStatusLock->Take();
-                                param.system_status->flags.full_wakeup_request = true;
-                                param.systemStatusLock->Give();
+                                if(!message_traced) {
+                                    message_traced = true;
+                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending firmware at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.systemStatusLock->Give();
+                                }
                             }
                         }
                     }
@@ -3005,6 +3060,8 @@ void CanTask::Run() {
                             param.system_status->data_slave[file_server_queueId].is_fw_upgrading = false;
                         }
                         param.systemStatusLock->Give();
+                        // End command if started for update_all system RPC. Irrelevant in other cases.
+                        is_running_update_send_cmd = false;
                     }
                 }
                 // ********************* END FILE SERVER CAN UPLOADER ********************
