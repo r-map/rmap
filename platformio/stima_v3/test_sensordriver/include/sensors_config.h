@@ -70,6 +70,12 @@ Max value here is 10
 #define USE_SENSOR_DEP              (false)
 
 /*!
+\def USE_SENSOR_POW
+\brief Enable if you want use Power panel and battery sensor.
+*/
+#define USE_SENSOR_POW              (true)
+
+/*!
 \def USE_SENSOR_DES
 \brief Enable if you want use DigitEco Wind Speed sensor.
 */
@@ -193,12 +199,6 @@ Max value here is 10
 \brief Enable if you want use DW1 sensor.
 */
 #define USE_SENSOR_DW1              (false)
-
-/*!
-\def USE_SENSOR_TBS
-\brief Enable if you want use Tipping bucket rain gauge sensor.
-*/
-#define USE_SENSOR_TBS              (false)
 
 /*!
 \def USE_SENSOR_TBR

@@ -132,12 +132,6 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 #define USE_SENSOR_DW1              (false)
 
 /*!
-\def USE_SENSOR_TBS
-\brief Enable if you want use Tipping bucket rain gauge sensor.
-*/
-#define USE_SENSOR_TBS              (false)
-
-/*!
 \def USE_SENSOR_TBR
 \brief Enable if you want use Tipping bucket rain gauge sensor.
 */
