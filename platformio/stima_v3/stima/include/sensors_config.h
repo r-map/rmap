@@ -188,12 +188,6 @@ Max value here is 10
 #define USE_SENSOR_DW1              (false)
 
 /*!
-\def USE_SENSOR_TBS
-\brief Enable if you want use Tipping bucket rain gauge sensor.
-*/
-#define USE_SENSOR_TBS              (false)
-
-/*!
 \def USE_SENSOR_TBR
 \brief Enable if you want use Tipping bucket rain gauge sensor.
 */
