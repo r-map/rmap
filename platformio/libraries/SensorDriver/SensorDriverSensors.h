@@ -54,6 +54,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_DEP           ("DEP")
 
 /*!
+\def SENSOR_TYPE_DEP
+\brief Sensor driver's POW sensor type Power panel and battery monitor.
+*/
+#define SENSOR_TYPE_POW           ("POW")
+
+/*!
 \def SENSOR_TYPE_DES
 \brief Sensor driver's DES sensor type for DigitEco Wind Speed.
 */

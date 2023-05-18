@@ -627,6 +627,41 @@ protected:
 };
 #endif
 
+
+#if (USE_SENSOR_POW)
+#include "registers-power.h"
+class SensorDriverPower : public SensorDriver {
+public:
+   SensorDriverPower(const char* driver, const char* type) : SensorDriver(driver, type) {
+      SensorDriver::printInfo();
+      LOGT(F("power create... [ %s ]"), OK_STRING);
+   };
+   void setup();
+   void prepare(bool is_test = false);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
+
+   #if (USE_JSON)
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   #endif
+
+   void resetPrepared(bool is_test = false);
+
+protected:
+
+  uint8_t power_data[I2C_POWER_AVERAGE_PANEL_LENGTH];
+
+  enum {
+    INIT,
+    SET_PANEL_ADDRESS,
+    READ_PANEL_VALUE,
+    SET_BATTERY_ADDRESS,
+    READ_BATTERY_VALUE,
+    END
+  } _get_state;
+
+};
+#endif
+
 #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
 #include "registers-wind.h"
 class SensorDriverWind : public SensorDriver {

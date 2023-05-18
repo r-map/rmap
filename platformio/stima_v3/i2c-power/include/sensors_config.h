@@ -23,20 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SENSOR_CONFIG_H
 #define SENSOR_CONFIG_H
 
-
-/*!
-\def SENSOR_MAX
-\brief Max number of sensor.
-*/
-#define SENSORS_MAX      (1)
-
-/*!
-\def SENSOR_UNIQUE_MAX
-\brief Max number of unique sensor.
-unique sensors are sensors that can ghave more driver but only one i2c address and only one setup and prepare
-*/
-#define SENSORS_UNIQUE_MAX      (1)
-
 /*!
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
@@ -65,7 +51,73 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 \def USE_SENSOR_DEP
 \brief Enable if you want use DigitEco Power sensor.
 */
-#define USE_SENSOR_DEP              (true)
+#define USE_SENSOR_DEP              (false)
+
+/*!
+\def USE_SENSOR_DES
+\brief Enable if you want use DigitEco Wind Speed sensor.
+*/
+#define USE_SENSOR_DES              (false)
+
+/*!
+\def USE_SENSOR_DED
+\brief Enable if you want use DigitEco Wind Direction sensor.
+*/
+#define USE_SENSOR_DED              (false)
+
+/*!
+\def USE_SENSOR_DSR
+\brief Enable if you want use DigitEco Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSR              (false)
+
+/*!
+\def USE_SENSOR_VSR
+\brief Enable if you want use 0-2.5V High Resolution Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_VSR              (false)
+
+/*!
+\def USE_SENSOR_PWR
+\brief Enable if you want use power (solar panel and battery) sensor.
+*/
+#define USE_SENSOR_PWR              (true)
+
+/*!
+\def USE_SENSOR_DSA
+\brief Enable if you want average Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSA              (false)
+
+/*!
+\def USE_SENSOR_DWA
+\brief Enable if you want vectorial average Wind Speed and Direction over 10'.
+*/
+#define USE_SENSOR_DWA              (false)
+
+/*!
+\def USE_SENSOR_DWB
+\brief Enable if you want vectorial average Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWB              (false)
+
+/*!
+\def USE_SENSOR_DWC
+\brief Enable if you want gust Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWC              (false)
+
+/*!
+\def USE_SENSOR_DWD
+\brief Enable if you want average Wind Speed over report time.
+*/
+#define USE_SENSOR_DWD              (false)
+
+/*!
+\def USE_SENSOR_DWE
+\brief Enable if you want class Wind Speed over report time.
+*/
+#define USE_SENSOR_DWE              (false)
 
 /*!
 \def USE_SENSOR_OA2
@@ -123,13 +175,13 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 \def USE_SENSOR_DW1
 \brief Enable if you want use DW1 sensor.
 */
-#define USE_SENSOR_DW1              (true)
+#define USE_SENSOR_DW1              (false)
 
 /*!
 \def USE_SENSOR_TBR
 \brief Enable if you want use Tipping bucket rain gauge sensor.
 */
-#define USE_SENSOR_TBR              (true)
+#define USE_SENSOR_TBR              (false)
 
 /*!
 \def USE_SENSOR_STH
@@ -141,25 +193,25 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 \def USE_SENSOR_ITH
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
-#define USE_SENSOR_ITH              (true)
+#define USE_SENSOR_ITH              (false)
 
 /*!
 \def USE_SENSOR_NTH
 \brief Enable if you want use Temperature and humidity continuous minium sensor.
 */
-#define USE_SENSOR_NTH              (true)
+#define USE_SENSOR_NTH              (false)
 
 /*!
 \def USE_SENSOR_MTH
 \brief Enable if you want use Temperature and humidity continuous average sensor.
 */
-#define USE_SENSOR_MTH              (true)
+#define USE_SENSOR_MTH              (false)
 
 /*!
 \def USE_SENSOR_XTH
 \brief Enable if you want use Temperature and humidity continuous maximum sensor.
 */
-#define USE_SENSOR_XTH              (true)
+#define USE_SENSOR_XTH              (false)
 
 /*!
 \def USE_SENSOR_SSD

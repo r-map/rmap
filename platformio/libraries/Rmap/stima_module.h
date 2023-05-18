@@ -126,6 +126,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define STIMA_MODULE_TYPE_GAS                       (15)
 
 /*!
+\def STIMA_MODULE_POWER_RADIATION
+\brief This module acquire power solar panel and battery information.
+*/
+#define STIMA_MODULE_TYPE_POWER           (13)
+
+/*!
 \def STIMA_MODULE_NAME_SAMPLE_ETH
 \brief The module'name for sending sample over ethernet.
 */
