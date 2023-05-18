@@ -238,6 +238,7 @@ void init_tasks() {
 
   is_event_command_task = false;
   is_event_wind_task = false;
+  is_event_activate_wind_task = false;
 
   wind_state = WIND_INIT;
 
@@ -292,7 +293,7 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  //start_timer();
+  start_timer();
 }
 
 void start_timer() {
@@ -472,10 +473,12 @@ ISR(TIMER1_OVF_vect) {
 #endif
     
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
-  if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
-    if (!is_event_wind_task) {
-      is_event_wind_task = true;
-      ready_tasks_count++;
+  if (is_event_activate_wind_task){
+    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
+      if (!is_event_wind_task) {
+	is_event_wind_task = true;
+	ready_tasks_count++;
+      }
     }
   }
 #endif
@@ -944,6 +947,423 @@ for (uint16_t i = 0; i < cb_speed.size(); i++) {
   }
 }
 
+#if (USE_SENSOR_GWS)
+
+void windsonicSerialReset() {
+  // reset serial settings
+  Serial1.setTimeout(GWS_SERIAL_TIMEOUT_MS);
+  Serial1.begin(GWS_SERIAL_BAUD);
+  windsonicFlush();
+}
+
+void windsonicReceiveTerminatedMessage(const char terminator){
+  // receive message on serial until terminator is found and terminate message
+  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer[uart_rx_buffer_length] = '\0';
+  uart_rx_buffer_length++;
+  //Serial.print(F("receive:"));
+  //Serial.println(uart_rx_buffer);
+}
+
+void windsonicReceiveMessage(const char terminator){
+  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+}
+
+void windsonicFlush(void){
+  while (Serial1.available() > 0){
+    //Serial1.read();
+    //Serial.write((uint8_t)Serial1.read());
+    //Serial.flush();
+  }
+  memset(uart_rx_buffer, 0, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer_length = 0;
+}
+
+bool windsonicEnterConfigMode(void){
+  // try to enter in config mode
+  // windsonic can be in polled or continuous mode
+  // return true on success
+  
+  uint8_t count=0;
+  bool config_mode=false;
+  Serial1.setTimeout(1000);  
+  //Serial.println(F("try to enter configure mode"));
+  windsonicFlush();
+  do {
+    /*
+    if ((count % 2) == 0) {
+      Serial.println("send:*Q");
+      Serial1.print("*Q");
+      Serial1.flush();
+    }else{
+      Serial.println("send:*");
+      Serial1.print("*");
+      Serial1.flush();
+    }
+    */
+
+    //Serial.println("send:**Q");
+    Serial1.print("**Q");
+    delay(100);
+    //Serial.println("send:**Q");
+    Serial1.print("**Q");
+    delay(100);
+    //Serial.println("send:**Q");
+    Serial1.print("**Q");
+    Serial1.flush();
+    
+    #define CONFMSG "CONFIGURATION MODE"
+    uint8_t countr=0;
+    do{
+      uart_rx_buffer_length=Serial1.readBytesUntil('\r', uart_rx_buffer, UART_RX_BUFFER_LENGTH-1);
+      countr++;
+      if (uart_rx_buffer_length >= strlen(CONFMSG)){
+	uart_rx_buffer[uart_rx_buffer_length] = '\0';
+	uart_rx_buffer_length++;
+	//Serial.print(F("receive:"));
+	//Serial.println(uart_rx_buffer);
+	if (strcmp(&uart_rx_buffer[uart_rx_buffer_length-strlen(CONFMSG)-1],CONFMSG)==0){
+	  //Serial.println(F("entered configure mode"));
+	  config_mode=true;
+	  break;
+	}
+      }
+      //} while ((uart_rx_buffer_length > 0) || (countr < 10));
+    } while (countr < 3);
+    if (!config_mode) {
+      count++;
+      delay(1000);
+      //Serial.println("send:Q");
+      Serial1.print("Q\r\n");
+      Serial1.flush();
+      delay(1000);
+      windsonicFlush();
+    }
+  } while ((!config_mode) && (count < 2));
+  
+  windsonicFlush();
+  return config_mode;
+}
+
+
+// this is required to reset windsonic to default configuration and baud
+bool windsonicEnterConfigModeAllBaudrate() {
+  // try to enter in config mode
+  // windsonic can be in polled or continuous mode
+  // no matter about witch baudrate windsonic want to comunicate
+  // return true on success
+
+  // change baudrate on winsonic is a very strange procedure!
+  // it need confirmation and we need to set other things before
+  // quitting to force windsonic to save parameters
+  
+  /* Initialize serial for wind sensor comunication
+     WindSonic default settings are :
+     Bits per second            option 1: 9600 ; option 2 : 19200
+     Data bits                  8
+     Parity                     None
+     Stop bits                  1
+     Flow Control(Handshaking)  None
+  */
+
+  // try different fixed baud rate
+  long int baudrate []={9600,2400,4800,19200,38400};
+
+  for (byte i=0; (i<(sizeof(baudrate) / sizeof(long int))); i++) {
+
+    //ATTENTION here all is blocking!
+
+    //Serial.print(F("TRY BAUDRATE: "));
+    //Serial.println(baudrate[i]);
+    Serial1.begin(baudrate[i]);
+    
+    if (windsonicEnterConfigMode()){   
+      //Serial.println(F("send: D3"));
+      Serial1.print("D3\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+
+      //Serial.println(F("send: M2"));
+      Serial1.print("M2\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+
+      //Serial.println(F("send: M4"));
+      Serial1.print("M4\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      //Serial.println(F("send: D3"));
+      Serial1.print("D3\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      //Serial.println(F("baudrate found"));
+          
+      //// set Communications protocol RS232
+      //Serial.println(F("send: E3"));
+      //Serial1.print("E3\r\n");
+      //windsonicReceiveTerminatedMessage('\r');
+      //delay(500);
+      //windsonicFlush();
+
+      // set Baud rate 9600
+      //Serial.println(F("send: B3"));
+      Serial1.print("B3\r\n");
+      delay(1000);
+      windsonicFlush();
+      Serial1.end();
+      Serial1.begin(GWS_SERIAL_BAUD);
+      delay(1000);
+      //Serial.println(F("send: B at 9600"));
+      Serial1.print("B\r\n");
+      delay(1000);
+      windsonicFlush();
+
+      //Serial.println(F("send: M2"));
+      Serial1.print("M2\r\n");
+      windsonicReceiveTerminatedMessage('\r');
+      delay(500);
+      windsonicFlush();
+      
+      //Serial.println("send:Q");
+      Serial1.print("Q\r\n");
+      Serial1.flush();
+      delay(1000);
+      windsonicFlush();
+
+      if (!windsonicEnterConfigMode()){
+	//Serial.println("failed");
+      } else { 
+	return true;
+      }
+    }
+
+    windPowerOff();
+    delay(1000);
+    windPowerOn();
+    delay(WIND_POWER_ON_DELAY_MS);
+    windsonicSerialReset();
+       
+  }
+  //Serial.println(F("inizialize failed"));
+  return false;
+}
+
+// this is required to reset windsonic to default configuration and baud
+bool windsonicInitSafeMode() {
+  //use safe mode to reset windsonic to comunicate on RS232
+  // safe mode in windsonic is very strange
+  // only some paramters are taken in account for save
+  // for example baudrate can be changed only in configuration mode ...
+  
+  //Serial.println(F("TRY SAFE MODE"));
+  Serial1.end();
+  Serial1.begin(19200);
+  Serial1.setTimeout(10);  
+  windsonicFlush();
+
+  uint8_t count=0;
+  bool config_mode=false;
+  #define SAFEMSG "SAFE MODE (RS232 ONLY)"
+  do {
+    //Serial.println(F("try to enter safe mode"));
+    windPowerOff();
+    delay(2000);
+    windPowerOn();
+    uint16_t countr=0;
+    while (countr < 400){
+      Serial1.print("*****************");      // enter in setup
+      Serial1.flush();
+      countr++;
+      uart_rx_buffer_length=Serial1.readBytesUntil('\r', uart_rx_buffer, UART_RX_BUFFER_LENGTH-1);
+      if (uart_rx_buffer_length >= strlen(SAFEMSG)){
+	uart_rx_buffer[uart_rx_buffer_length] = '\0';
+	uart_rx_buffer_length++;
+	//Serial.print(F("receive:"));
+	//Serial.println(uart_rx_buffer);
+	if (strcmp(&uart_rx_buffer[uart_rx_buffer_length-strlen(SAFEMSG)-1],SAFEMSG)==0){
+	  //Serial.println(F("entered safe mode"));
+	  config_mode=true;
+	  break;
+	}
+      }
+    }
+    count++;
+  } while ((!config_mode) && (count < 3));
+  
+  Serial1.print("\r\n");
+  delay(500);
+  windsonicFlush();
+  
+  if (config_mode){
+
+
+    //Serial.println(F("send: M2"));
+    Serial1.print("M2\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+    
+    //Serial.println(F("send: M4"));
+    Serial1.print("M4\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+      
+    //Serial.println(F("send: D3"));
+    Serial1.print("D3\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+
+    // set Communications protocol RS232
+    //Serial.println(F("send: E3"));
+    Serial1.print("E3\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(2000);
+    windsonicFlush();
+
+    // set Baud rate 9600
+    //Serial.println(F("send: B3"));
+    Serial1.print("B3\r\n");
+    delay(1000);
+    windsonicFlush();
+    /*
+    Serial1.end();
+    Serial1.begin(GWS_SERIAL_BAUD);
+    delay(1000);
+    Serial.println(F("send: B at 9600"));
+    Serial1.print("B\r\n");
+    delay(1000);
+    windsonicFlush();
+    */
+    
+    //Serial.println(F("send: M2"));
+    Serial1.print("M2\r\n");
+    windsonicReceiveTerminatedMessage('\r');
+    delay(500);
+    windsonicFlush();
+    
+    //Serial.println("send:Q");
+    Serial1.print("Q\r\n");
+    Serial1.flush();
+    delay(1000);
+    windsonicFlush();
+
+    Serial1.end();
+    Serial1.begin(GWS_SERIAL_BAUD);
+
+    windPowerOff();
+    delay(1000);
+    windPowerOn();
+    delay(WIND_POWER_ON_DELAY_MS);
+    windsonicSerialReset();
+
+    
+    if (!windsonicEnterConfigMode()){
+      //Serial.println("failed");
+    } else { 
+      return true;
+    }
+  }
+    
+  windPowerOff();
+  delay(1000);
+  windPowerOn();
+  delay(WIND_POWER_ON_DELAY_MS);
+  windsonicSerialReset();
+  //Serial.println("failed enter safe mode");
+  return false;
+
+}
+
+void windsonicConfigure(void){
+  // configure windsonic starting by any unknow settings
+  // enter in safe mode to change comunication port
+  // change RS232 baudrate
+  // enter in config mode and set all parameters
+  
+  //Serial.println(F("go to configure Windsonic"));
+
+  while (!windsonicInitSafeMode()) {
+    if (windsonicEnterConfigModeAllBaudrate()) break;
+  }
+  
+  //Serial.println(F("send: L1"));
+  Serial1.print("L1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: C2"));
+  Serial1.print("C2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: H2"));
+  Serial1.print("H2\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: K50"));
+  Serial1.print("K50\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: M4"));
+  Serial1.print("M4\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+    
+  //Serial.println(F("send: NQ"));
+  Serial1.print("NQ\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: O1"));
+  Serial1.print("O1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: U1"));
+  Serial1.print("U1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+    
+  //Serial.println(F("send: Y1"));
+  Serial1.print("Y1\r\n");
+  windsonicReceiveTerminatedMessage('\r');
+  delay(500);
+  windsonicFlush();
+  
+  //Serial.println(F("send: P2"));
+  Serial1.print("P2\r\n");   // 2 per second;  required by i2c-wind setted for 1 measure by sec.
+  windsonicReceiveMessage('\r');
+  delay(500);
+  windsonicFlush();
+
+  //Serial.println(F("exit configure mode"));
+  Serial1.print("Q\r\n");
+  delay(10);
+  Serial1.print("Q\r\n");
+  windsonicFlush();
+  delay(1000);
+  windsonicFlush();
+}
+
+#endif
 
 #if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 void windPowerOff () {
@@ -1216,8 +1636,10 @@ void wind_task () {
 	if (error_count >= GWS_ERROR_COUNT_MAX){
 	  error_count=0;
  	  //ATTENTION here all is blocking!
+          #if (USE_SENSOR_GWS)
 	  windsonicReboot();
-	  //windsonicConfigure(); // if we want this we can take it from sensor_config
+	  //windsonicConfigure(); 
+	  #endif
 	}
       }
       noInterrupts();
@@ -1590,38 +2012,32 @@ void commands() {
   }
   //! CONTINUOUS START
   else if (!configuration.is_oneshot && is_start && !is_stop && !is_test) {
-
-    stop_timer();
+    is_event_activate_wind_task = false;
     reset_samples_buffer();
     make_report(true);
-    start_timer();
+    is_event_activate_wind_task = true;
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {
-    stop_timer();
+    is_event_activate_wind_task = false;
     elaborate_circular_buffer();
     copy_buffers();
     //exchange_buffers();
   }
   //! CONTINUOUS START-STOP
   else if (!configuration.is_oneshot && is_start && is_stop) {
-    stop_timer();                   // from here
+    is_event_activate_wind_task = false;     // from here
     elaborate_circular_buffer();
     exchange_buffers();             // to here require 32 ms with 16Mhz avr mcu and SENSORS_SAMPLE_TIME_MS 1000
     reset_samples_buffer();
     make_report(true);
-    start_timer();
+    is_event_activate_wind_task = true;
   }
   //! ONESHOT START
   else if (configuration.is_oneshot && is_start && !is_stop) {
     reset_samples_buffer();
     //! ONESHOT STOP
-    noInterrupts();
-    if (!is_event_wind_task) {
-      is_event_wind_task = true;
-      ready_tasks_count++;
-    }
-    interrupts();
+    is_event_activate_wind_task = true;
   }
 }
   

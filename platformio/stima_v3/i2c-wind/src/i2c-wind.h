@@ -577,6 +577,13 @@ uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
 /*********************************************************************
 * TASKS
 *********************************************************************/
+
+/*!
+\var is_event_activate_wind_task
+\brief Enable or disable activation of WIND task by timer.
+*/
+volatile bool is_event_activate_wind_task;
+
 /*!
 \var is_event_wind_task
 \brief Enable or disable the WIND task.
