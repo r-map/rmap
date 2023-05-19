@@ -266,12 +266,12 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ITH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[1];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -280,7 +280,7 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -289,7 +289,7 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -298,12 +298,12 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
             edata.value = values_readed_from_sensor[1];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -312,12 +312,12 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_SHT) == 0) {
             edata.value = values_readed_from_sensor[1];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
-            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+            param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
           }
           #endif
@@ -334,14 +334,14 @@ void TemperatureHumidtySensorTask::Run() {
         if (!is_temperature_redundant) {
           edata.value = RMAPDATA_MAX;
           edata.index = TEMPERATURE_REDUNDANT_INDEX;
-          param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+          param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
         }
 
         // If module fail fill void error data
         if (!is_humidity_redundant) {
           edata.value = RMAPDATA_MAX;
           edata.index = HUMIDITY_REDUNDANT_INDEX;
-          param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+          param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
         }
 
         state = SENSOR_STATE_END;
