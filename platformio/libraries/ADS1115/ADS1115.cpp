@@ -21,6 +21,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
+/*********************************************************************
+
+This library read values from ADS1115 ADC converter.
+It uses Single-shot mode only.
+It make 3 reads and return value when the 3 values are the same.
+You can change Input multiplexer configuration from
+AINP = AIN0, AINP = AIN1, AINP = AIN2, AINP = AIN3 with AINN = GND
+After the request of a new measurement wait a fixed time before reat it from registers
+The return status of initSingleEnded can be:
+  ADC_BUSY,
+  ADC_OK,
+  ADC_ERROR
+
+whith ADC_BUSY we need to recall initSingleEnded waiting for the other return codes.
+
+**********************************************************************/
+
 #include <debug_config.h>
 
 /*!
@@ -49,7 +66,7 @@ adc_result_t ADS1115::writeRegister(uint8_t i2c_address, uint8_t reg, uint16_t v
 adc_result_t ADS1115::readRegister(uint8_t i2c_address, uint8_t reg, uint16_t *value) {
   *value = UINT16_MAX;
   Wire.beginTransmission(i2c_address);
-  Wire.write(ADS1115_REG_POINTER_CONVERT);
+  Wire.write(reg);
   bool status = !Wire.endTransmission();
 
   if (status) {
@@ -86,7 +103,7 @@ adc_result_t ADS1115::initSingleEnded(uint8_t channel) {
   ADS1115_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
   ADS1115_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
   ADS1115_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
-  ADS1115_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
+  ADS1115_REG_CONFIG_DR_128SPS    | // 128 samples per second (default)
   ADS1115_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
 
   // Set PGA/voltage range

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <Wire.h>
 #include <debug.h>
 
+// 10 millis for ADS1115_REG_CONFIG_DR_128SPS  (for other DR adjust as 1000/DR)
 #define ADS1115_CONVERSION_DELAY_MS     (10)
 #define ADS1115_CHANNEL_COUNT           (4)
 
@@ -81,13 +82,14 @@ CONFIG REGISTER
 #define ADS1115_REG_CONFIG_MODE_SINGLE  (0x0100)  // Power-down single-shot mode (default)
 
 #define ADS1115_REG_CONFIG_DR_MASK      (0x00E0)
-#define ADS1115_REG_CONFIG_DR_128SPS    (0x0000)  // 128 samples per second
-#define ADS1115_REG_CONFIG_DR_250SPS    (0x0020)  // 250 samples per second
-#define ADS1115_REG_CONFIG_DR_490SPS    (0x0040)  // 490 samples per second
-#define ADS1115_REG_CONFIG_DR_920SPS    (0x0060)  // 920 samples per second
-#define ADS1115_REG_CONFIG_DR_1600SPS   (0x0080)  // 1600 samples per second (default)
-#define ADS1115_REG_CONFIG_DR_2400SPS   (0x00A0)  // 2400 samples per second
-#define ADS1115_REG_CONFIG_DR_3300SPS   (0x00C0)  // 3300 samples per second
+#define ADS1115_REG_CONFIG_DR_8SPS      (0x0000)  // 8 samples per second
+#define ADS1115_REG_CONFIG_DR_16SPS     (0x0020)  // 16 samples per second
+#define ADS1115_REG_CONFIG_DR_32SPS     (0x0040)  // 32 samples per second
+#define ADS1115_REG_CONFIG_DR_64SPS     (0x0060)  // 64 samples per second
+#define ADS1115_REG_CONFIG_DR_128SPS    (0x0080)  // 128 samples per second (default)
+#define ADS1115_REG_CONFIG_DR_250SPS    (0x00A0)  // 250 samples per second
+#define ADS1115_REG_CONFIG_DR_475SPS    (0x00C0)  // 475 samples per second
+#define ADS1115_REG_CONFIG_DR_860SPS    (0x00E0)  // 860 samples per second
 
 #define ADS1115_REG_CONFIG_CMODE_MASK   (0x0010)
 #define ADS1115_REG_CONFIG_CMODE_TRAD   (0x0000)  // Traditional comparator with hysteresis (default)
