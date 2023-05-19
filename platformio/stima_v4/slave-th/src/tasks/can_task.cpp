@@ -357,13 +357,6 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_TH_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
-        case canardClass::Sensor_Type::sth:
-            // Prepara i dati SMP (Sample)
-            rmap_data->STH.temperature.val.value = report->temperature.sample;
-            rmap_data->STH.temperature.confidence.value = report->temperature.quality;
-            rmap_data->STH.humidity.val.value = report->humidity.sample;
-            rmap_data->STH.humidity.confidence.value = report->humidity.quality;
-            break;
         case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
             rmap_data->ITH.temperature.val.value = report->temperature.ist;
@@ -397,13 +390,6 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
 void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_TH_Response_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
-        case canardClass::Sensor_Type::sth:
-            // Prepara i dati SMP (Sample)
-            rmap_data->STH.temperature.val.value = report->temperature.sample;
-            rmap_data->STH.temperature.confidence.value = report->temperature.quality;
-            rmap_data->STH.humidity.val.value = report->humidity.sample;
-            rmap_data->STH.humidity.confidence.value = report->humidity.quality;
-            break;
         case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
             rmap_data->ITH.temperature.val.value = report->temperature.ist;
@@ -466,17 +452,15 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.temperature.sample, (rmapdata_t) report.temperature.ist, (rmapdata_t) report.temperature.min, (rmapdata_t) report.temperature.avg, (rmapdata_t) report.temperature.max, (rmapdata_t) report.temperature.quality);
+        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.humidity.sample, (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &module_th_msg);
         prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &module_th_msg);
         prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &module_th_msg);
         prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &module_th_msg);
         prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &module_th_msg);
         // Metadata
-        module_th_msg.STH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.MTH.metadata = clCanard.module_th.MTH.metadata;
         module_th_msg.NTH.metadata = clCanard.module_th.NTH.metadata;
@@ -752,8 +736,8 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
 
           // coda di attesa dati (attesa rmap_calc_data)
           param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.temperature.sample, (rmapdata_t) report.temperature.ist, (rmapdata_t) report.temperature.min, (rmapdata_t) report.temperature.avg, (rmapdata_t) report.temperature.max, (rmapdata_t) report.temperature.quality);
+          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.humidity.sample, (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -762,9 +746,8 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &resp);
           } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::sth, &report, &resp);
             prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &resp);
             prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &resp);
             prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &resp);
@@ -792,7 +775,6 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     }
 
     // Copio i metadati fissi e mobili
-    resp.STH.metadata = clCanard.module_th.STH.metadata;
     resp.ITH.metadata = clCanard.module_th.ITH.metadata;
     resp.MTH.metadata = clCanard.module_th.MTH.metadata;
     resp.NTH.metadata = clCanard.module_th.NTH.metadata;
@@ -1459,11 +1441,10 @@ void CanTask::Run() {
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
-                // SENSOR_METADATA_STH                   (0)
-                // SENSOR_METADATA_ITH                   (1)
-                // SENSOR_METADATA_MTH                   (2)
-                // SENSOR_METADATA_NTH                   (3)
-                // SENSOR_METADATA_XTH                   (4)
+                // SENSOR_METADATA_ITH                   (0)
+                // SENSOR_METADATA_MTH                   (1)
+                // SENSOR_METADATA_NTH                   (2)
+                // SENSOR_METADATA_XTH                   (3)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1474,7 +1455,6 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
@@ -1489,7 +1469,6 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
@@ -1504,7 +1483,6 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
@@ -1519,7 +1497,6 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
@@ -1534,14 +1511,12 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_TIME_P1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_NTH];
                 clCanard.module_th.XTH.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_XTH];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                clCanard.module_th.STH.metadata.timerange.P2 = 0;
                 clCanard.module_th.ITH.metadata.timerange.P2 = 0;
                 clCanard.module_th.MTH.metadata.timerange.P2 = 0;
                 clCanard.module_th.NTH.metadata.timerange.P2 = 0;
@@ -1550,7 +1525,6 @@ void CanTask::Run() {
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural8.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
-                val.natural8.value.elements[SENSOR_METADATA_STH] = SENSOR_METADATA_LEVEL_P_IND_STH;
                 val.natural8.value.elements[SENSOR_METADATA_ITH] = SENSOR_METADATA_LEVEL_P_IND_ITH;
                 val.natural8.value.elements[SENSOR_METADATA_MTH] = SENSOR_METADATA_LEVEL_P_IND_MTH;
                 val.natural8.value.elements[SENSOR_METADATA_NTH] = SENSOR_METADATA_LEVEL_P_IND_NTH;
@@ -1559,7 +1533,6 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_th.STH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_STH];
                 clCanard.module_th.ITH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_ITH];
                 clCanard.module_th.MTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_MTH];
                 clCanard.module_th.NTH.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_NTH];

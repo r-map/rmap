@@ -136,8 +136,7 @@ typedef struct
 \brief Value struct for storing sample, observation and minium, average and maximum measurement.
 */
 typedef struct {
-  rmapdata_t sample;  //!< last sample
-  rmapdata_t ist;     //!< last observation
+  rmapdata_t ist;     //!< last observation or sample on request
   rmapdata_t min;     //!< average values of observations
   rmapdata_t avg;     //!< maximum values of observations
   rmapdata_t max;     //!< minium values of observations

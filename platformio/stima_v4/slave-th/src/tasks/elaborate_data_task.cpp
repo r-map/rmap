@@ -470,8 +470,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   if (report_time_s == 0)
   {
     // Make last data value to Get Istant show value
-    report.temperature.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-    report.humidity.sample = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+    report.temperature.ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+    report.humidity.ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
   }
   else
   {
@@ -496,7 +496,6 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #if (USE_REDUNDANT_SENSOR)
       redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
       #endif
-      if (n_sample == 1) report.temperature.sample = main_temperature_s; // Elaboration sample -> Last data
       total_count_main_temperature_s++;
       avg_main_temperature_quality_s += (float)(((float)checkTemperature(main_temperature_s, redundant_temperature_s) - avg_main_temperature_quality_s) / total_count_main_temperature_s);
       if ((ISVALID_RMAPDATA(main_temperature_s)) && !measures_maintenance)
@@ -512,7 +511,6 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #if (USE_REDUNDANT_SENSOR)
       redundant_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
       #endif
-      if (n_sample == 1) report.humidity.sample = main_humidity_s; // Elaboration sample -> Last data
       total_count_main_humidity_s++;
       avg_main_humidity_quality_s += (float)(((float)checkHumidity(main_humidity_s, redundant_humidity_s) - avg_main_humidity_quality_s) / total_count_main_humidity_s);
       if ((ISVALID_RMAPDATA(main_humidity_s)) && !measures_maintenance)
@@ -605,8 +603,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // Trace report final
-    TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.temperature.sample, (int32_t)report.temperature.ist, (int32_t)report.temperature.min, (int32_t)report.temperature.avg, (int32_t)report.temperature.max, (int32_t)report.temperature.quality);
-    TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.humidity.sample, (int32_t)report.humidity.ist, (int32_t)report.humidity.min, (int32_t)report.humidity.avg, (int32_t)report.humidity.max, (int32_t)report.humidity.quality);
+    TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.temperature.ist, (rmapdata_t)report.temperature.min, (rmapdata_t)report.temperature.avg, (rmapdata_t)report.temperature.max, (rmapdata_t)report.temperature.quality);
+    TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
   }
 }
 
