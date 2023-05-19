@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <TimeLib.h>
 #include <typedef.h>
+#include <ADS1115.h>
 #include <registers-power.h>
 #include <debug_config.h>
 #include <SdFat.h>
@@ -56,20 +57,8 @@ typedef struct {
    uint8_t module_type;                //!< module type
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-
-   // 10 bit
-   float adc_voltage_offset_1;
-   float adc_voltage_offset_2;
-   float adc_voltage_min;
-   float adc_voltage_max;
-
-  /*
-   // 16 bit HR
-   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
-  */
+   float adc_voltage_max_panel;
+   float adc_voltage_max_battery;
 } configuration_t;
 
 /*!
@@ -101,20 +90,9 @@ typedef struct {
 typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
+   float adc_voltage_max_panel;
+   float adc_voltage_max_battery;
 
-   // 10 bit
-   float adc_voltage_offset_1;
-   float adc_voltage_offset_2;
-   float adc_voltage_min;
-   float adc_voltage_max;
-
-  /*
-   // 16 bit hr
-   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
-  */
 } writable_data_t;
 
 /*********************************************************************
@@ -139,7 +117,8 @@ typedef enum {
 */
 typedef enum {
   POWER_INIT,
-  POWER_READING,
+  POWER_READING_PANEL,
+  POWER_READING_BATTERY,
   POWER_ELABORATE,
   POWER_END,             //!< performs end operations and deactivate task
   POWER_WAIT_STATE       //!< non-blocking waiting time
@@ -325,6 +304,7 @@ int16_t sample_battery;
 int16_t average_panel;
 int16_t average_battery;
 
+ADS1115 adc1(ADC_I2C_ADDRESS);
 
 /*!
 \var samples_count_panel

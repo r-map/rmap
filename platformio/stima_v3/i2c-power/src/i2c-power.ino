@@ -247,8 +247,8 @@ void init_tasks() {
 void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
   pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
-  pinMode(POWER_ANALOG_PIN1, INPUT);
-  pinMode(POWER_ANALOG_PIN2, INPUT);
+  //  pinMode(POWER_ANALOG_PIN1, INPUT);
+  //  pinMode(POWER_ANALOG_PIN2, INPUT);
 }
 
 void init_wire() {
@@ -355,10 +355,8 @@ void print_configuration() {
   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
 
-  LOGN(F("--> adc voltage offset +: %0"), configuration.adc_voltage_offset_1);
-  LOGN(F("--> adc voltage offset *: %3"), configuration.adc_voltage_offset_2);
-  LOGN(F("--> adc voltage min: %0 mV"), configuration.adc_voltage_min);
-  LOGN(F("--> adc voltage max: %0 mV"), configuration.adc_voltage_max);
+  LOGN(F("--> adc panel   voltage max: %0 mV"), configuration.adc_voltage_max_panel);
+  LOGN(F("--> adc battery voltage max: %0 mV"), configuration.adc_voltage_max_battery);
 
 }
 
@@ -371,10 +369,8 @@ void save_configuration(bool is_default) {
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
     configuration.is_oneshot = CONFIGURATION_DEFAULT_ONESHOT;
 
-    configuration.adc_voltage_offset_1 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1;
-    configuration.adc_voltage_offset_2 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2;
-    configuration.adc_voltage_min = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN;
-    configuration.adc_voltage_max = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX;
+    configuration.adc_voltage_max_panel = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_PANEL;
+    configuration.adc_voltage_max_battery = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_BATTERY;
 
     /*
     //warning: large integer implicitly truncated to unsigned type [-Woverflow]
@@ -387,10 +383,8 @@ void save_configuration(bool is_default) {
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
 
-    configuration.adc_voltage_offset_1 = writable_data.adc_voltage_offset_1;
-    configuration.adc_voltage_offset_2 = writable_data.adc_voltage_offset_2;
-    configuration.adc_voltage_min = writable_data.adc_voltage_min;
-    configuration.adc_voltage_max = writable_data.adc_voltage_max;
+    configuration.adc_voltage_max_panel = writable_data.adc_voltage_max_panel;
+    configuration.adc_voltage_max_battery = writable_data.adc_voltage_max_battery;
 
   }
 
@@ -416,10 +410,8 @@ void load_configuration() {
   // set configuration value to writable register
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
-  writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;
-  writable_data.adc_voltage_offset_2 = configuration.adc_voltage_offset_2;
-  writable_data.adc_voltage_min = configuration.adc_voltage_min;
-  writable_data.adc_voltage_max = configuration.adc_voltage_max;
+  writable_data.adc_voltage_max_panel = configuration.adc_voltage_max_panel;
+  writable_data.adc_voltage_max_battery = configuration.adc_voltage_max_battery;
 }
 
 void init_sensors () {
@@ -542,12 +534,13 @@ void make_report (bool init) {
   LOGN("battery samples_count: %d; error_count: %d; sample: %d; average: %d",samples_count_battery,samples_error_count_battery,sample_battery,average_battery);
 }
 
+/*
 uint16_t powerRead(uint8_t analog){
   if (analog == 1){
     return analogRead(POWER_ANALOG_PIN1);
   }else{
     return analogRead(POWER_ANALOG_PIN2);
-  }    
+  }
 }
 
 uint16_t powerMean(uint8_t analog, uint8_t count, uint8_t delay_ms) {
@@ -563,25 +556,78 @@ uint16_t getPowerVoltage (uint8_t analog, uint16_t voltage_max) {
   // Convert the analog reading (which goes from 0 – 1023) to a voltage:
   return round( float(powerMean(analog)) * (float(voltage_max) / 1023.0));
 }
+*/
 
 void power_task () {
   static power_state_t state_after_wait;
   static uint32_t delay_ms;
   static uint32_t start_time_ms;
+  adc_result_t adc_result;
 
   switch (power_state) {
     case POWER_INIT:
-      power_state = POWER_READING;
-      LOGV(F("POWER_INIT --> POWER_READING"));
+      power_state = POWER_READING_PANEL;
+      LOGV(F("POWER_INIT --> POWER_READING_PANEL"));
     break;
 
-    case POWER_READING:
+    /*   use ADC internal to atmega MCU
+  case POWER_READING:
       sample_panel = getPowerVoltage(1,30000);
       sample_battery = getPowerVoltage(2,15000);
       power_state = POWER_ELABORATE;
       LOGV(F("POWER_READING --> POWER_ELABORATE"));
-
     break;
+    */
+
+    case POWER_READING_PANEL:
+
+      adc_result = adc1.readSingleChannel(POWER_ADC_CHANNEL_INPUT_PANEL, &sample_panel);
+      
+      if (adc_result == ADC_OK) {
+	sample_panel = round( float(sample_panel) * (float(writable_data.adc_voltage_max_panel) / float(0X7FFF)));	
+	LOGN("panel adc_value: %d",sample_panel);	
+
+	power_state = POWER_READING_BATTERY;
+	LOGV(F("POWER_READING --> POWER_READING_PANEL"));
+      }
+      else if (adc_result == ADC_ERROR) {
+	LOGE("ADC readSingleChannel panel error");
+        i2c_error++;
+        sample_panel = INT16_MAX;
+
+	power_state = POWER_READING_BATTERY;
+	LOGV(F("POWER_READING --> POWER_READING_PANEL"));
+
+      } else if (adc_result == ADC_BUSY) {
+	LOGV("ADC PANEL readSingleChannel busy");
+      }
+     
+    break;
+
+    case POWER_READING_BATTERY:
+
+      adc_result = adc1.readSingleChannel(POWER_ADC_CHANNEL_INPUT_BATTERY, &sample_battery);
+      
+      if (adc_result == ADC_OK) {
+	sample_panel = round( float(sample_panel) * (float(writable_data.adc_voltage_max_panel) / float(0X7FFF)));
+	LOGN("battery adc_value: %d",sample_battery);	
+
+	power_state = POWER_ELABORATE;
+	LOGV(F("POWER_READING --> POWER_ELABORATE"));
+      }
+      else if (adc_result == ADC_ERROR) {
+	LOGE("ADC readSingleChannel battery error");
+        i2c_error++;
+        sample_battery = INT16_MAX;
+
+	power_state = POWER_ELABORATE;
+	LOGV(F("POWER_READING --> POWER_ELABORATE"));
+
+      } else if (adc_result == ADC_BUSY) {
+	LOGV("ADC BATTERY readSingleChannel busy");
+      }
+
+    break;    
 
     case POWER_ELABORATE:
       
@@ -598,7 +644,6 @@ void power_task () {
 	  readable_data_write_ptr->power.avg_panel = INT16_MAX;	  
 	}
       }
-
 
       if (is_start && samples_count_battery > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count_battery) / float(samples_count_battery) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 

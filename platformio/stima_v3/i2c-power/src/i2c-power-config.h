@@ -72,46 +72,53 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define CONFIGURATION_RESET_PIN                       (8)
 
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1    (0.0)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2    (1.0)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN         (POWER_VOLTAGE_MIN)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX         (POWER_VOLTAGE_MAX)
-
-
-#if (USE_SENSOR_PWR)
-/*!
-\def POWER_ANALOG_PIN1
-\brief Input pin 1 for reading panel value.
-*/
-#define POWER_ANALOG_PIN1                    (A0)
 
 /*!
-\def POWER_ANALOG_PIN2
-\brief Input pin 2 for reading battery value.
+\def POWER_ADC_CHANNEL_INPUT_PANEL
+\brief Input channel for panel
 */
-#define POWER_ANALOG_PIN2                    (A1)
+#define POWER_ADC_CHANNEL_INPUT_PANEL                         (1)
 
-#define ADC_VOLTAGE_MAX                               (5000.0)
-#define ADC_VOLTAGE_MIN                               (0.0)
-#define ADC_VOLTAGE_OFFSET                            (-20.0)
+/*!
+\def POWER_ADC_CHANNEL_INPUT_BATTERY
+\brief Input channel for battery
+*/
+#define POWER_ADC_CHANNEL_INPUT_BATTERY                       (2)
 
-#define ADC_MAX                                       (1023.0)
-#define ADC_MIN                                       (0.0)
+/*
+ ADS1115 Address Selection
 
-#define POWER_VOLTAGE_MAX                   (5000.0)
-#define POWER_VOLTAGE_MIN                   (1000.0)
+The ADS111x have one address pin, ADDR, that configures the I2C
+address of the device. This pin can be connected to GND, VDD, SDA, or
+SCL, allowing for four different addresses to be selected with one
+pin, as shown in Table 4. The state of address pin ADDR is sampled
+continuously. Use the GND, VDD and SCL addresses first. If SDA is used
+as the device address, hold the SDA line low for at least 100 ns after
+the SCL line goes low to make sure the device decodes the address
+correctly during I2C communication.
+*/
+#define ADC_GND_I2C_ADDRESS                             (0x48)  // GND
+#define ADC_VDD_I2C_ADDRESS                             (0x49)  // VDD
+#define ADC_SCL_I2C_ADDRESS                             (0x4B)  // SCL
+#define ADC_SDA_I2C_ADDRESS                             (0x4A)  // SDA
 
-#define POWER_ERROR_VOLTAGE_MAX             (POWER_VOLTAGE_MAX + 50.0)
-#define POWER_ERROR_VOLTAGE_MIN             (POWER_VOLTAGE_MIN - 50.0)
+#define ADC_I2C_ADDRESS                               ADC_VDD_I2C_ADDRESS
 
-#define POWER_MAX                           (1600.0)
-#define POWER_MIN                           (0.0)
+// max value in mV to be applied before partitor yo get max ADC input (2.048 V)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_PANEL     (30000)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_BATTERY   (15000)
 
-#define POWER_ERROR_MAX                     (1600.0)
-#define POWER_ERROR_MIN                     (8.0)
-
-#endif
-
+///*!
+//\def POWER_ANALOG_PIN1
+//\brief Input pin 1 for reading panel value.
+//*/
+//#define POWER_ANALOG_PIN1                    (A0)
+//
+///*!
+//\def POWER_ANALOG_PIN2
+//\brief Input pin 2 for reading battery value.
+//*/
+//#define POWER_ANALOG_PIN2                    (A1)
 
 /*!
 \def SDCARD_CHIP_SELECT_PIN

@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_POWER_DEFAULT_ADDRESS
 \brief Default address for i2c-radiation module.
 */
-#define I2C_POWER_DEFAULT_ADDRESS                  (0x49)
+#define I2C_POWER_DEFAULT_ADDRESS                  (0x4A)
 
 /*!
 \def I2C_POWER_COMMAND_NONE
@@ -207,25 +207,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_POWER_ONESHOT_ADDRESS                  (I2C_POWER_ADDRESS_ADDRESS + I2C_POWER_ADDRESS_LENGTH)
 
 /*!
+\def I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH
+\brief length of the max voltage input from panel variable for i2c-radiation module.
+*/
+#define I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH                   (0x02)
+
+/*!
+\def I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS
+\brief address of the max voltage input from panel variable for i2c-radiation module.
+*/
+#define I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS                  (I2C_POWER_ONESHOT_ADDRESS + I2C_POWER_ONESHOT_LENGTH)
+
+/*!
+\def I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH
+\brief length of the max voltage input from battery variable for i2c-radiation module.
+*/
+#define I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH                   (0x02)
+
+/*!
+\def I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS
+\brief address of the max voltage input from battery variable for i2c-radiation module.
+*/
+#define I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS                  (I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS + I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH)
+
+/*!
 \def I2C_POWER_WRITABLE_DATA_LENGTH
 \brief length of the writable variables for i2c-radiation module.
 */
-#define I2C_POWER_WRITABLE_DATA_LENGTH             (I2C_POWER_ONESHOT_ADDRESS + I2C_POWER_ONESHOT_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
+#define I2C_POWER_WRITABLE_DATA_LENGTH             (I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS + I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
-
-/* TO BE ADDED HERE
-   // 10 bit
-   float adc_voltage_offset_1;
-   float adc_voltage_offset_2;
-   float adc_voltage_min;
-   float adc_voltage_max;
-
-   // 16 bit hr
-   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
-*/
 
 // Readable registers errors checking
 #if I2C_POWER_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
