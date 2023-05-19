@@ -275,7 +275,7 @@ typedef struct
       bool is_online;               // Node current on line
       bool maintenance_mode;        // Maintenance mode flag
       Module_Type module_type;      // Type of remote module
-      uint16_t last_acquire;        // Last acquire data (refered to...)
+      uint8_t heartbeat_transf_id;  // Heart beat recived from run_epoch (check transfer)
       uint16_t heartbeat_rx;        // Heart beat recived from run_epoch (check expected)
       uint8_t perc_can_comm_ok;     // Percent of good comunication TX-RX-TX HeartBeat Status OK
       // Data value data chanel (istant value)

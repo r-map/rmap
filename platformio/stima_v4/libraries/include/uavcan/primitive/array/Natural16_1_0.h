@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/array/Natural16.1.0.dsdl
-// Generated at:  2023-05-18 15:44:25.370102 UTC
+// Generated at:  2023-05-19 15:30:41.685321 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.primitive.array.Natural16

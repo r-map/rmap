@@ -308,7 +308,7 @@ void SupervisorTask::Run()
 
       // ***** ONLY TEST CONNECTION *****
 
-      // ToDo: ReNew Sequence... or NOT (START REQUEST LIST...)
+      // START REQUEST LIST...
       param.systemStatusLock->Take();
       param.system_status->connection.is_ntp_synchronized = false;
       param.system_status->connection.is_http_configuration_updated = false;

@@ -18,7 +18,6 @@ uint7 perc_i2c_error
 uint8 rbt_event
 uint8 wdt_event
 
-rmap.sensors.TH.1.0 STH
 rmap.sensors.TH.1.0 ITH
 rmap.sensors.TH.1.0 NTH
 rmap.sensors.TH.1.0 MTH

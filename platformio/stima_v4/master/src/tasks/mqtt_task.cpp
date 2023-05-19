@@ -793,10 +793,6 @@ void MqttTask::Run()
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::th)
                   {
-                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_STH])
-                    {
-                      error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->STH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
-                    }
 
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
                     {

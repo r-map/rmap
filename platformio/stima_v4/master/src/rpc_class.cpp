@@ -397,9 +397,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       if(sensorId==SETUP_ID) {
         switch (currentModule) {
           case Module_Type::th:
-            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_STH) == 0) {
-              sensorId = SENSOR_METADATA_STH;
-            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_ITH) == 0) {
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_ITH) == 0) {
               sensorId = SENSOR_METADATA_ITH;
             } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_MTH) == 0) {
               sensorId = SENSOR_METADATA_MTH;
@@ -471,15 +469,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           it.value().as<JsonArray>()[1].as<unsigned int>();
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangeP2 =
           it.value().as<JsonArray>()[2].as<unsigned int>();
-        // Duplicate ITH into STH Only for TH Module (Param not send in config)
-        if((currentModule == Module_Type::th) && (sensorId ==SENSOR_METADATA_ITH)) {
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangePindicator =
-            it.value().as<JsonArray>()[0].as<unsigned int>();
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangeP1 =
-            it.value().as<JsonArray>()[1].as<unsigned int>();
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].timerangeP2 =
-            it.value().as<JsonArray>()[2].as<unsigned int>();
-        }
         param.configurationLock->Give();
       }
       else error_command = true;
@@ -533,17 +522,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
               it.value().as<JsonArray>()[3].as<unsigned int>();
         }
 
-        // Duplicate ITH into STH Only for TH Module (Param not send in config)
-        if((currentModule == Module_Type::th) && (sensorId ==SENSOR_METADATA_ITH)) {
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].levelType1 =
-              param.configuration->board_slave[slaveId].metadata[sensorId].levelType1;
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].level1 =
-              param.configuration->board_slave[slaveId].metadata[sensorId].level1;
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].levelType2 =
-              param.configuration->board_slave[slaveId].metadata[sensorId].levelType2;
-          param.configuration->board_slave[slaveId].metadata[SENSOR_METADATA_STH].level2 =
-              param.configuration->board_slave[slaveId].metadata[sensorId].level2;
-        }
         param.configurationLock->Give();
       }
       else error_command = true;

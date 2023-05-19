@@ -126,12 +126,11 @@
 #define SENSOR_METADATA_TBR             0
 #define SENSOR_METADATA_RAIN_COUNT      1
 // Th
-#define SENSOR_METADATA_STH             0
-#define SENSOR_METADATA_ITH             1
-#define SENSOR_METADATA_MTH             2
-#define SENSOR_METADATA_NTH             3
-#define SENSOR_METADATA_XTH             4
-#define SENSOR_METADATA_TH_COUNT        5
+#define SENSOR_METADATA_ITH             0
+#define SENSOR_METADATA_MTH             1
+#define SENSOR_METADATA_NTH             2
+#define SENSOR_METADATA_XTH             3
+#define SENSOR_METADATA_TH_COUNT        4
 // Wind
 #define SENSOR_METADATA_DWA             0
 #define SENSOR_METADATA_DWB             1

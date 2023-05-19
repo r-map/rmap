@@ -177,7 +177,7 @@
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_PUT_DATA_BLOCK_SIZE    (256U)
-#define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN TH = 148 Bytes
+#define RMAP_DATA_MAX_ELEMENT_SIZE  (152U)  // MAX LEN WIND = 144 Bytes
 #define LOG_PUT_DATA_ELEMENT_SIZE   (128U)
 // Backup Older Format data Type RMAP File
 #define RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE   (256U)

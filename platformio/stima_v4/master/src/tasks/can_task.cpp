@@ -1873,10 +1873,10 @@ uint32_t pippo[8];
                                 if(bStartGetData) {
                                     paramRequest.command = rmap_service_setmode_1_0_get_last;
                                     // TODO: SIstemare
-                                    // paramRequest.obs_sectime = 60;
-                                    // paramRequest.run_sectime = 900;
-                                    paramRequest.obs_sectime = param.configuration->observation_s;
-                                    paramRequest.run_sectime = param.configuration->report_s;
+                                    paramRequest.obs_sectime = 60;
+                                    paramRequest.run_sectime = 900;
+                                    // paramRequest.obs_sectime = param.configuration->observation_s;
+                                    // paramRequest.run_sectime = param.configuration->report_s;
                                 } else {
                                     paramRequest.command = rmap_service_setmode_1_0_get_istant;
                                     paramRequest.obs_sectime = 0;
@@ -1967,31 +1967,29 @@ uint32_t pippo[8];
                                     // TRACE Info data
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retTHData->state);
-                                    TRACE_VERBOSE_F(F("Value (STH) TP %d, UH: %d\r\n"), retTHData->STH.temperature.val.value, retTHData->STH.humidity.val.value);
-                                    // Put data in system_status
-                                    param.systemStatusLock->Take();
-                                    // Set data istant value
-                                    param.system_status->data_slave[queueId].data_value[0] = retTHData->STH.temperature.val.value;
-                                    param.system_status->data_slave[queueId].data_value[1] = retTHData->STH.humidity.val.value;
-                                    // Add info RMAP to system
+                                    TRACE_VERBOSE_F(F("Value (ITH) TP %d, UH: %d\r\n"), retTHData->ITH.temperature.val.value, retTHData->ITH.humidity.val.value);
+                                    // Put istant data in system_status
                                     if(retTHData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].data_value[0] = retTHData->ITH.temperature.val.value;
+                                        param.system_status->data_slave[queueId].data_value[1] = retTHData->ITH.humidity.val.value;
+                                        param.systemStatusLock->Give();
+                                    } else if(retTHData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retTHData->is_main_error) bit8Flag|=0x01;
                                         if(retTHData->is_redundant_error) bit8Flag|=0x02;
+                                        param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retTHData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retTHData->perc_i2c_error;
-                                        // Copy Data
+                                        param.systemStatusLock->Give();
+                                        // New Data avaiable for send to server
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    } else {
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                    }
-                                    param.systemStatusLock->Give();
-                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
-                                    if(retTHData->state == rmap_service_setmode_1_0_get_last) {
+                                        // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -2036,15 +2034,17 @@ uint32_t pippo[8];
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retRainData->state);
                                     TRACE_VERBOSE_F(F("Value (TBR) Rain %d\r\n"), retRainData->TBR.rain.val.value);
-                                    // Put data in system_status
-                                    param.systemStatusLock->Take();
-                                    // Set data istant value
-                                    // Rain value istant depending from request type. If request is get_istant (Rain is FullRain)
-                                    // Full Rain is Real Rain + Maintenance Rain Value, Otherwise if request is Get_Data, Rain is only
-                                    // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
-                                    param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
-                                    // Add info RMAP to system
+                                    // Put istant data in system_status
                                     if(retRainData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        // Rain value istant depending from request type. If request is get_istant (Rain is FullRain)
+                                        // Full Rain is Real Rain + Maintenance Rain Value, Otherwise if request is Get_Data, Rain is only
+                                        // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
+                                        param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
+                                        param.systemStatusLock->Give();
+                                    } else if(retRainData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retRainData->is_main_error) bit8Flag|=0x01;
@@ -2053,19 +2053,15 @@ uint32_t pippo[8];
                                         if(retRainData->is_bubble_level_error) bit8Flag|=0x08;
                                         if(retRainData->is_clogged_up) bit8Flag|=0x10;
                                         if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
+                                        param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRainData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
-                                        // Copy Data
+                                        param.systemStatusLock->Give();
+                                        // New Data avaiable for send to server
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    } else {
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                    }
-                                    param.systemStatusLock->Give();
-                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
-                                    if(retRainData->state == rmap_service_setmode_1_0_get_last) {
+                                        // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -2110,13 +2106,15 @@ uint32_t pippo[8];
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retWindData->state);
                                     TRACE_VERBOSE_F(F("Value (DWA) Speed %d, Dir: %d\r\n"), retWindData->DWA.speed.val.value, retWindData->DWA.direction.val.value);
-                                    // Put data in system_status
-                                    param.systemStatusLock->Take();
-                                    // Set data istant value (switch depends from request, istant = sample, Data = Avg on 10 min.)
-                                    param.system_status->data_slave[queueId].data_value[0] = retWindData->DWA.speed.val.value;
-                                    param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
-                                    // Add info RMAP to system
+                                    // Put istant data in system_status
                                     if(retWindData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].data_value[0] = retWindData->DWA.speed.val.value;
+                                        param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
+                                        param.systemStatusLock->Give();
+                                    } else if(retWindData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retWindData->is_windsonic_responding_error) bit8Flag|=0x01;
@@ -2124,19 +2122,15 @@ uint32_t pippo[8];
                                         if(retWindData->is_windsonic_unit_error) bit8Flag|=0x04;
                                         if(retWindData->is_windsonic_axis_error) bit8Flag|=0x08;
                                         if(retWindData->is_windsonic_crc_error) bit8Flag|=0x10;
+                                        param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retWindData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retWindData->perc_rs232_error;
-                                        // Copy Data
+                                        param.systemStatusLock->Give();
+                                        // New Data avaiable for send to server
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    } else {
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                    }
-                                    param.systemStatusLock->Give();
-                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
-                                    if(retWindData->state == rmap_service_setmode_1_0_get_last) {
+                                        // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -2181,29 +2175,28 @@ uint32_t pippo[8];
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retRadiationData->state);
                                     TRACE_VERBOSE_F(F("Value (DSA) Radiation %d\r\n"), retRadiationData->DSA.radiation.val.value);
-                                    // Put data in system_status
-                                    param.systemStatusLock->Take();
-                                    // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
-                                    param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
-                                    // Add info RMAP to system
+                                    // Put istant data in system_status
                                     if(retRadiationData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
+                                        param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
+                                        param.systemStatusLock->Give();
+                                    } else if(retRadiationData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
                                         if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
-                                        // Copy Data
+                                        param.systemStatusLock->Give();
+                                        // New Data avaiable for send to server
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    } else {
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                    }
-                                    param.systemStatusLock->Give();
-                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
-                                    if(retRadiationData->state == rmap_service_setmode_1_0_get_last) {
+                                        // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
@@ -2249,31 +2242,29 @@ uint32_t pippo[8];
                                         stimaName, clCanard.slave[queueId].get_node_id(), retPwrData->state);
                                     TRACE_VERBOSE_F(F("Value (DEP) Batt V. %d, In V. %d, In Curr. %d\r\n"),
                                         retPwrData->DEP.battery_voltage.val.value, retPwrData->DEP.input_voltage.val.value, retPwrData->DEP.input_current.val.value);
-                                    // Put data in system_status
-                                    param.systemStatusLock->Take();
-                                    // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
-                                    param.system_status->data_slave[queueId].data_value[0] = retPwrData->DEP.battery_voltage.val.value;
-                                    param.system_status->data_slave[queueId].data_value[1] = retPwrData->DEP.input_voltage.val.value;
-                                    param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
-                                    // Add info RMAP to system
+                                    // Put istant data in system_status
                                     if(retPwrData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].data_value[0] = retPwrData->DEP.battery_voltage.val.value;
+                                        param.system_status->data_slave[queueId].data_value[1] = retPwrData->DEP.input_voltage.val.value;
+                                        param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
+                                        param.systemStatusLock->Give();
+                                    } else if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
                                         if(retPwrData->is_power_critical) bit8Flag|=0x0002;
+                                        param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
-                                        // Copy Data
+                                        param.systemStatusLock->Give();
+                                        // New Data avaiable for send to server
                                         param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_istant;
-                                    } else {
-                                        param.system_status->data_slave[queueId].last_acquire = param.system_status->datetime.epoch_sensors_get_value;
-                                    }
-                                    param.systemStatusLock->Give();
-                                    // Set data into queue if data value (only for get LAST DATA VALUE!!! -> rmap_service_setmode_1_0_get_last)
-                                    if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
+                                        // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();

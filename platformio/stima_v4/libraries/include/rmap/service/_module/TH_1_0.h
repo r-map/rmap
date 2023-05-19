@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl
-// Generated at:  2023-05-18 15:44:27.370486 UTC
+// Generated at:  2023-05-19 15:30:43.894271 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.TH
@@ -249,8 +249,8 @@ static inline void rmap_service_module_TH_Request_1_0_initialize_(rmap_service_m
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_TH_Response_1_0_EXTENT_BYTES_                    96UL
-#define rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 96UL
+#define rmap_service_module_TH_Response_1_0_EXTENT_BYTES_                    78UL
+#define rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 78UL
 static_assert(rmap_service_module_TH_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -279,9 +279,6 @@ typedef struct
 
     /// saturated uint8 wdt_event
     uint8_t wdt_event;
-
-    /// rmap.sensors.TH.1.0 STH
-    rmap_sensors_TH_1_0 STH;
 
     /// rmap.sensors.TH.1.0 ITH
     rmap_sensors_TH_1_0 ITH;
@@ -322,7 +319,7 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 768UL)
+    if ((8U * (size_t) capacity_bytes) < 624UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -455,10 +452,10 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // rmap.sensors.TH.1.0 STH
+    {   // rmap.sensors.TH.1.0 ITH
         size_t _size_bytes2_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err9_ = rmap_sensors_TH_1_0_serialize_(
-            &obj->STH, &buffer[offset_bits / 8U], &_size_bytes2_);
+            &obj->ITH, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err9_ < 0)
         {
             return _err9_;
@@ -479,10 +476,10 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
         offset_bits += _pad2_;
     }
 
-    {   // rmap.sensors.TH.1.0 ITH
+    {   // rmap.sensors.TH.1.0 NTH
         size_t _size_bytes3_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err11_ = rmap_sensors_TH_1_0_serialize_(
-            &obj->ITH, &buffer[offset_bits / 8U], &_size_bytes3_);
+            &obj->NTH, &buffer[offset_bits / 8U], &_size_bytes3_);
         if (_err11_ < 0)
         {
             return _err11_;
@@ -503,10 +500,10 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
         offset_bits += _pad3_;
     }
 
-    {   // rmap.sensors.TH.1.0 NTH
+    {   // rmap.sensors.TH.1.0 MTH
         size_t _size_bytes4_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err13_ = rmap_sensors_TH_1_0_serialize_(
-            &obj->NTH, &buffer[offset_bits / 8U], &_size_bytes4_);
+            &obj->MTH, &buffer[offset_bits / 8U], &_size_bytes4_);
         if (_err13_ < 0)
         {
             return _err13_;
@@ -527,10 +524,10 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
         offset_bits += _pad4_;
     }
 
-    {   // rmap.sensors.TH.1.0 MTH
+    {   // rmap.sensors.TH.1.0 XTH
         size_t _size_bytes5_ = 18UL;  // Nested object (max) size, in bytes.
         int8_t _err15_ = rmap_sensors_TH_1_0_serialize_(
-            &obj->MTH, &buffer[offset_bits / 8U], &_size_bytes5_);
+            &obj->XTH, &buffer[offset_bits / 8U], &_size_bytes5_);
         if (_err15_ < 0)
         {
             return _err15_;
@@ -549,30 +546,6 @@ static inline int8_t rmap_service_module_TH_Response_1_0_serialize_(
             return _err16_;
         }
         offset_bits += _pad5_;
-    }
-
-    {   // rmap.sensors.TH.1.0 XTH
-        size_t _size_bytes6_ = 18UL;  // Nested object (max) size, in bytes.
-        int8_t _err17_ = rmap_sensors_TH_1_0_serialize_(
-            &obj->XTH, &buffer[offset_bits / 8U], &_size_bytes6_);
-        if (_err17_ < 0)
-        {
-            return _err17_;
-        }
-        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-        offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested object.
-    }
-
-
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad6_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err18_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad6_);  // Optimize?
-        if (_err18_ < 0)
-        {
-            return _err18_;
-        }
-        offset_bits += _pad6_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -701,31 +674,16 @@ static inline int8_t rmap_service_module_TH_Response_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // rmap.sensors.TH.1.0 STH
-    {
-        size_t _size_bytes7_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err19_ = rmap_sensors_TH_1_0_deserialize_(
-            &out_obj->STH, &buffer[offset_bits / 8U], &_size_bytes7_);
-        if (_err19_ < 0)
-        {
-            return _err19_;
-        }
-        offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
     // rmap.sensors.TH.1.0 ITH
     {
-        size_t _size_bytes8_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err20_ = rmap_sensors_TH_1_0_deserialize_(
-            &out_obj->ITH, &buffer[offset_bits / 8U], &_size_bytes8_);
-        if (_err20_ < 0)
+        size_t _size_bytes6_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err17_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->ITH, &buffer[offset_bits / 8U], &_size_bytes6_);
+        if (_err17_ < 0)
         {
-            return _err20_;
+            return _err17_;
         }
-        offset_bits += _size_bytes8_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 
@@ -733,14 +691,14 @@ static inline int8_t rmap_service_module_TH_Response_1_0_deserialize_(
 
     // rmap.sensors.TH.1.0 NTH
     {
-        size_t _size_bytes9_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err21_ = rmap_sensors_TH_1_0_deserialize_(
-            &out_obj->NTH, &buffer[offset_bits / 8U], &_size_bytes9_);
-        if (_err21_ < 0)
+        size_t _size_bytes7_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err18_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->NTH, &buffer[offset_bits / 8U], &_size_bytes7_);
+        if (_err18_ < 0)
         {
-            return _err21_;
+            return _err18_;
         }
-        offset_bits += _size_bytes9_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 
@@ -748,14 +706,14 @@ static inline int8_t rmap_service_module_TH_Response_1_0_deserialize_(
 
     // rmap.sensors.TH.1.0 MTH
     {
-        size_t _size_bytes10_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err22_ = rmap_sensors_TH_1_0_deserialize_(
-            &out_obj->MTH, &buffer[offset_bits / 8U], &_size_bytes10_);
-        if (_err22_ < 0)
+        size_t _size_bytes8_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err19_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->MTH, &buffer[offset_bits / 8U], &_size_bytes8_);
+        if (_err19_ < 0)
         {
-            return _err22_;
+            return _err19_;
         }
-        offset_bits += _size_bytes10_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes8_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 
@@ -763,14 +721,14 @@ static inline int8_t rmap_service_module_TH_Response_1_0_deserialize_(
 
     // rmap.sensors.TH.1.0 XTH
     {
-        size_t _size_bytes11_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err23_ = rmap_sensors_TH_1_0_deserialize_(
-            &out_obj->XTH, &buffer[offset_bits / 8U], &_size_bytes11_);
-        if (_err23_ < 0)
+        size_t _size_bytes9_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err20_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->XTH, &buffer[offset_bits / 8U], &_size_bytes9_);
+        if (_err20_ < 0)
         {
-            return _err23_;
+            return _err20_;
         }
-        offset_bits += _size_bytes11_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes9_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 
