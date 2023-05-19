@@ -168,17 +168,17 @@ void MpptSensorTask::Run() {
         if(edata.value > 70) is_power_full = true;
         if(edata.value > 30) is_power_critical = false;
         edata.index = POWER_BATTERY_CHARGE_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
         edata.value = param.mpptIC->get_V_BAT(&is_measure_done) * POWER_BATTERY_VOLTAGE_MULT;
         is_error_measure |= !is_measure_done;
         edata.index = POWER_BATTERY_VOLTAGE_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
         edata.value = param.mpptIC->get_I_BAT(&is_measure_done) * POWER_BATTERY_CURRENT_MULT;
         is_error_measure |= !is_measure_done;
         edata.index = POWER_BATTERY_CURRENT_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
         edata.value = param.mpptIC->get_V_IN(&is_measure_done) * POWER_INPUT_VOLTAGE_MULT;
         is_error_measure |= !is_measure_done;
@@ -188,7 +188,7 @@ void MpptSensorTask::Run() {
           is_power_critical = false;
         }
         edata.index = POWER_INPUT_VOLTAGE_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
         edata.value = param.mpptIC->get_I_IN(&is_measure_done) * POWER_INPUT_CURRENT_MULT;
         is_error_measure |= !is_measure_done;
@@ -198,7 +198,7 @@ void MpptSensorTask::Run() {
           is_power_critical = false;
         }
         edata.index = POWER_INPUT_CURRENT_INDEX;
-        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
         // Response system_status power level event flags
         param.systemStatusLock->Take();

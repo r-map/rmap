@@ -412,11 +412,11 @@ void WindSensorTask::Run() {
         edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
       }
       edata.index = WIND_SPEED_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       edata.value = (rmapdata_t)(direction);
       edata.index = WIND_DIRECTION_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       TRACE_VERBOSE_F(F("SENSOR_STATE_ELABORATE --> SENSOR_STATE_END\r\n"));
       state = SENSOR_STATE_END;

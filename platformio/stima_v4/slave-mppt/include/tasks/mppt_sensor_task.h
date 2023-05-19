@@ -30,6 +30,7 @@
 #ifndef _MPPT_SENSOR_TASK_H
 #define _MPPT_SENSOR_TASK_H
 
+#include "config.h"
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
@@ -41,8 +42,6 @@
 #define MPPT_TASK_WAIT_DELAY_MS           (50)
 #define MPPT_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define MPPT_TASK_GENERIC_RETRY           (3)
-
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"

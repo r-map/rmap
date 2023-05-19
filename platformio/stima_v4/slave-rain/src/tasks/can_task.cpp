@@ -409,12 +409,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param->requestDataQueue->Enqueue(&request_data, 0);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.tips_count, (int32_t) report.rain, (int32_t) report.rain_full, (int32_t) report.quality);
-        }
+        param->reportDataQueue->Dequeue(&report);
+        TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.tips_count, (rmapdata_t) report.rain, (rmapdata_t) report.rain_full, (rmapdata_t) report.quality);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &module_rain_msg);
@@ -688,12 +687,11 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.wdt_event = boot_state->wdt_reset;
 
           // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+          param->requestDataQueue->Enqueue(&request_data, 0);
 
           // coda di attesa dati (attesa rmap_calc_data)
-          if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.tips_count, (int32_t) report.rain, (int32_t) report.rain_full, (int32_t) report.quality);
-          }
+          param->reportDataQueue->Dequeue(&report);
+          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.tips_count, (rmapdata_t) report.rain, (rmapdata_t) report.rain_full, (rmapdata_t) report.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;

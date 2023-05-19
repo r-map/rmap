@@ -417,12 +417,11 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         clCanard.module_mppt.DEP.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+        param->requestDataQueue->Enqueue(&request_data, 0);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
-        }
+        param->reportDataQueue->Dequeue(&report);
+        TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report, &module_mppt_msg);
@@ -679,12 +678,11 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           resp.wdt_event = boot_state->wdt_reset;
 
           // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+          param->requestDataQueue->Enqueue(&request_data, 0);
 
           // coda di attesa dati (attesa rmap_calc_data)
-          if (param->reportDataQueue->Dequeue(&report, Ticks::MsToTicks(WAIT_QUEUE_RESPONSE_ELABDATA_MS))) {
-            TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
-          }
+          param->reportDataQueue->Dequeue(&report);
+          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report.avg_battery_voltage, (rmapdata_t) report.avg_battery_charge, (rmapdata_t) report.avg_input_voltage);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;

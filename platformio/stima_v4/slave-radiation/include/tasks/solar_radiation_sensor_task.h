@@ -31,6 +31,7 @@
 #ifndef _SOLAR_RADIATION_SENSOR_TASK_H
 #define _SOLAR_RADIATION_SENSOR_TASK_H
 
+#include "config.h"
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
@@ -43,7 +44,6 @@
 #define SOLAR_RADIATION_TASK_WAIT_DELAY_MS           (50)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SOLAR_RADIATION_TASK_GENERIC_RETRY           (3)
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS               (50)
 
 // POWER SENSOR SWITCHING OR FIXED MODE...
 #if (!SOLAR_RADIATION_TASK_SWITCH_POWER_ENABLED)

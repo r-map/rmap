@@ -31,6 +31,7 @@
 #ifndef _WIND_SENSOR_TASK_H
 #define _WIND_SENSOR_TASK_H
 
+#include "config.h"
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
@@ -44,8 +45,6 @@
 #define WIND_TASK_GENERIC_RETRY           (3)
 #define WIND_TASK_LOW_POWER_ENABLED       (true)
 #define WIND_TASK_ERROR_FOR_POWER_OFF     (5)
-
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS    (50)
 
 #define UART_RX_BUFFER_LENGTH             (24)
 

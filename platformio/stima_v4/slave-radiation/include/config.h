@@ -136,6 +136,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WDT_TASK_ID                 (5)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
 
+// Task waiting queue command/response
+#define WAIT_QUEUE_REQUEST_PUSHDATA_MS    (500)
+#define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
+
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)

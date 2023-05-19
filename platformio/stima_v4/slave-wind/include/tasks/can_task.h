@@ -87,11 +87,6 @@ using namespace cpp_freertos;
 #define CAN_TASK_WAIT_MAXSPEED_DELAY_MS (1)
 #define CAN_TASK_SLEEP_DELAY_MS         (850)
 
-// Task waiting queue command/response
-#define WAIT_QUEUE_REQUEST_ELABDATA_MS  (50)
-#define WAIT_QUEUE_RESPONSE_ELABDATA_MS (50)
-#define WAIT_QUEUE_REQUEST_COMMAND_MS   (500)
-
 // Task waiting Semaphore Driver access
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
 #define FLASH_SEMAPHORE_MAX_WAITING_TIME_MS (3000)

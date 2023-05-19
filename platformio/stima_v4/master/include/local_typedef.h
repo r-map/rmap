@@ -259,7 +259,6 @@ typedef struct
    struct
    {
       bool fw_upgradable;           // Fw upgrade flag
-      uint16_t heartbeat_published; // Heart beat time_epoch start to check expected heartbeat remote
       uint32_t connect_run_epoch;   // Connection start epoch (to inibit for retry start... if something wrong)
       uint8_t number_reboot;        // Total reboot
       uint8_t number_wdt;           // Total WDT
@@ -276,8 +275,9 @@ typedef struct
       bool maintenance_mode;        // Maintenance mode flag
       Module_Type module_type;      // Type of remote module
       uint8_t heartbeat_transf_id;  // Heart beat recived from run_epoch (check transfer)
-      uint16_t heartbeat_rx;        // Heart beat recived from run_epoch (check expected)
-      uint8_t perc_can_comm_ok;     // Percent of good comunication TX-RX-TX HeartBeat Status OK
+      uint16_t heartbeat_rx;        // Heart beat recived from run_epoch (check ok)
+      uint16_t heartbeat_rx_err;    // Heart beat recived from run_epoch (count error)
+      uint8_t perc_can_comm_err;    // Percent of error comunication TX-RX HeartBeat Status
       // Data value data chanel (istant value)
       rmapdata_t data_value[MAX_DATA_VALUE_MEASURE];
       uint8_t module_revision;      // Revision RMAP

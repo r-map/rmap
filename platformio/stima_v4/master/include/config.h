@@ -67,7 +67,7 @@
 #define MODULE_TYPE (STIMA_MODULE_TYPE_MASTER_GSM)
 
 // Enable control Error for Debug
-#define DEBUG_MODE            (true)
+#define DEBUG_MODE            (false)
 
 // HW device
 #define ENABLE_SPI1           (true)

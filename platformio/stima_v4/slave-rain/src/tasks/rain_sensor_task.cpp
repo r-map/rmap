@@ -166,7 +166,7 @@ void RainSensorTask::Run() {
       TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       // Waiting interrupt or External Reset (Suspend task)
-      param.rainQueue->Dequeue(&flag_event, portMAX_DELAY);
+      param.rainQueue->Dequeue(&flag_event);
       #if (USE_TIPPING_BUCKET_REDUNDANT)
       // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
       param.systemStatusLock->Take();
@@ -274,15 +274,15 @@ void RainSensorTask::Run() {
 
       edata.value = rain.tips_count;
       edata.index = RAIN_TIPS_INDEX;
-      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       edata.value = rain.rain;
       edata.index = RAIN_RAIN_INDEX;
-      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       edata.value = rain.rain_full;
       edata.index = RAIN_FULL_INDEX;
-      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_ELABDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();

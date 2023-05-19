@@ -574,7 +574,12 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     clCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
                         msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);
                     localSystemStatusLock->Take();
+                    // Controllo sequenza heartbeat con il rolling a 0
+                    if((++localSystemStatus->data_slave[queueId].heartbeat_transf_id != transfer->metadata.transfer_id) && (transfer->metadata.transfer_id)) {
+                        localSystemStatus->data_slave[queueId].heartbeat_rx_err++;
+                    }
                     localSystemStatus->data_slave[queueId].heartbeat_rx++;
+                    localSystemStatus->data_slave[queueId].heartbeat_transf_id = transfer->metadata.transfer_id;                        
                     localSystemStatusLock->Give();
                     // Controlla se il modulo è ready (configurato) Altrimenti avvio la configurazione...
                     if(!clCanard.slave[queueId].heartbeat.get_module_ready()) {
@@ -1835,13 +1840,16 @@ void CanTask::Run() {
                         // Calculate expected/recived HeartBeat sequence... and reset counter
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
-                            // Calculate % from expected Heartbeat sequence TX-RX Complete
-                            param.system_status->data_slave[iSlave].perc_can_comm_ok = (uint8_t)(((float)(param.system_status->data_slave[iSlave].heartbeat_rx) / (float)(param.system_status->data_master.heartbeat_published) + 1) * 100.0);                            
-                            if (param.system_status->data_slave[iSlave].perc_can_comm_ok > 90) param.system_status->data_slave[iSlave].perc_can_comm_ok = 100;
+                            // Calculate % from correct Heartbeat sequence TX-RX Completed (if one is executed)
+                            if(param.system_status->data_slave[iSlave].heartbeat_rx) {
+                                param.system_status->data_slave[iSlave].perc_can_comm_err = (uint8_t)((float)(param.system_status->data_slave[iSlave].heartbeat_rx_err) / (float)(param.system_status->data_slave[iSlave].heartbeat_rx) * 100.0);
+                            } else {
+                                param.system_status->data_slave[iSlave].perc_can_comm_err = 100;
+                            }                            
                             // Reset Next Counter for next acquire data
                             param.system_status->data_slave[iSlave].heartbeat_rx = 0;
+                            param.system_status->data_slave[iSlave].heartbeat_rx_err = 0;                            
                         }
-                        param.system_status->data_master.heartbeat_published = 0; // Reset Epoch for Check Slave RX Heartbeat OK from now...
                         param.systemStatusLock->Give();
                         bStartGetData = true;
                     }
@@ -1852,7 +1860,6 @@ void CanTask::Run() {
                 // ********************** RMAP GETDATA TX-> RX<- *************************
                 // ***********************************************************************
 
-uint32_t pippo[8];
                 // IS START COMMAND DATA RMAP AUTOMATIC REQUEST (From Local Syncro Activity UP...)?
                 // Get Istant Data or Archive Data Request (Need to Display, Saving Data or other Function with Istant/Archive Data)
                 if ((bStartGetIstant)||(bStartGetData)) {
@@ -1884,7 +1891,6 @@ uint32_t pippo[8];
                                 }
                                 // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
                                 // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-              pippo[queueId] = millis();
                                 clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
                                 // Avvio il server RMAP Request
                                 param.systemStatusLock->Take();
@@ -1912,11 +1918,6 @@ uint32_t pippo[8];
                             rmapServerEnd = false;
                         }
                         if (clCanard.slave[queueId].rmap_service.event_timeout()) {
-              Serial.print("TO");
-              Serial.print(queueId);
-              Serial.print(" - ");
-              Serial.println(millis() - pippo[queueId]);
-
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
                             TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
@@ -1926,10 +1927,6 @@ uint32_t pippo[8];
                     // EVENT GESTION OF RECIVED DATA AT REQUEST
                     for(uint8_t queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
                         if(clCanard.slave[queueId].rmap_service.is_executed()) {
-              Serial.print("EV");
-              Serial.print(queueId);
-              Serial.print(" - ");
-              Serial.println(millis() - pippo[queueId]);
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // Interprete del messaggio in casting dal puntatore dinamico
                             // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
@@ -3152,9 +3149,6 @@ uint32_t pippo[8];
                     // Publish HeartBeat
                     TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
-                    param.systemStatusLock->Take();
-                    param.system_status->data_master.heartbeat_published++;
-                    param.systemStatusLock->Give();
                     // Update next publisher
                     last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
                 }

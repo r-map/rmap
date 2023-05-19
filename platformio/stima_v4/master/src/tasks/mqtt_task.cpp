@@ -417,7 +417,7 @@ void MqttTask::Run()
           }
           indexPosition = 0;
           // Report inverted OK (100- for Error...)
-          byteState[indexPosition++] = 100 - param.system_status->data_slave[iNodeSlave].perc_can_comm_ok;
+          byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].perc_can_comm_err;
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[0];
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[1];
           byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
