@@ -27,55 +27,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def I2C_POWER_DEFAULT_ADDRESS
-\brief Default address for i2c-radiation module.
+\brief Default address for i2c-power module.
 */
 #define I2C_POWER_DEFAULT_ADDRESS                  (0x4A)
 
 /*!
 \def I2C_POWER_COMMAND_NONE
-\brief NO command for i2c-radiation module.
+\brief NO command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_NONE                 (0x00)
 
 /*!
 \def I2C_POWER_COMMAND_SAVE
-\brief Save command for i2c-radiation module.
+\brief Save command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_SAVE                     (0x01)
 
 /*!
 \def I2C_POWER_COMMAND_ONESHOT_START
-\brief Oneshot start command for i2c-radiation module.
+\brief Oneshot start command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_ONESHOT_START            (0x02)
 
 /*!
 \def I2C_POWER_COMMAND_ONESHOT_STOP
-\brief Oneshot stop command for i2c-radiation module.
+\brief Oneshot stop command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_ONESHOT_STOP             (0x03)
 
 /*!
 \def I2C_POWER_COMMAND_ONESHOT_START_STOP
-\brief Oneshot start-stop command for i2c-radiation module.
+\brief Oneshot start-stop command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_ONESHOT_START_STOP       (0x04)
 
 /*!
 \def I2C_POWER_COMMAND_CONTINUOUS_START
-\brief Continuous start command for i2c-radiation module.
+\brief Continuous start command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_CONTINUOUS_START         (0x05)
 
 /*!
 \def I2C_POWER_COMMAND_CONTINUOUS_STOP
-\brief Continuous stop command for i2c-radiation module.
+\brief Continuous stop command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_CONTINUOUS_STOP          (0x06)
 
 /*!
 \def I2C_POWER_COMMAND_CONTINUOUS_START_STOP
-\brief Continuous start-stop command for i2c-radiation module.
+\brief Continuous start-stop command for i2c-power module.
 */
 #define I2C_POWER_COMMAND_CONTINUOUS_START_STOP    (0x07)
 
@@ -151,31 +151,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def I2C_POWER_AVERAGE_LENGTH
-\brief length of the radiation wetness timer variable for i2c-radiation module.
+\brief length of the power average panel voltage variable for i2c-power module.
 */
 #define I2C_POWER_AVERAGE_PANEL_LENGTH                  (0x02)
 
 /*!
 \def I2C_POWER_AVERAGE_ADDRESS
-\brief address of the radiation wetness timer variable for i2c-radiation module.
+\brief address of the power wetness timer variable for i2c-power module.
 */
 #define I2C_POWER_AVERAGE_PANEL_ADDRESS                 (I2C_POWER_SAMPLE_BATTERY_ADDRESS + I2C_POWER_SAMPLE_BATTERY_LENGTH)
 
 /*!
 \def I2C_POWER_AVERAGE_LENGTH
-\brief length of the radiation wetness timer variable for i2c-radiation module.
+\brief length of the power wetness timer variable for i2c-power module.
 */
 #define I2C_POWER_AVERAGE_BATTERY_LENGTH                  (0x02)
 
 /*!
 \def I2C_POWER_AVERAGE_ADDRESS
-\brief address of the radiation wetness timer variable for i2c-radiation module.
+\brief address of the power wetness timer variable for i2c-power module.
 */
 #define I2C_POWER_AVERAGE_BATTERY_ADDRESS                 (I2C_POWER_AVERAGE_PANEL_ADDRESS + I2C_POWER_AVERAGE_PANEL_LENGTH)
 
 /*!
 \def I2C_POWER_READABLE_DATA_LENGTH
-\brief length of the readable variables for i2c-radiation module. Need to be update with with last 2 define!!!
+\brief length of the readable variables for i2c-power module. Need to be update with with last 2 define!!!
 */
 #define I2C_POWER_READABLE_DATA_LENGTH            (I2C_POWER_AVERAGE_PANEL_ADDRESS + I2C_POWER_AVERAGE_PANEL_LENGTH - I2C_READ_REGISTER_START_ADDRESS)
 
@@ -184,55 +184,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 /*!
 \def I2C_POWER_ADDRESS_LENGTH
-\brief length of the address variable for i2c-radiation module.
+\brief length of the address variable for i2c-power module.
 */
 #define I2C_POWER_ADDRESS_LENGTH                   (0x01)
 
 /*!
 \def I2C_POWER_ADDRESS_ADDRESS
-\brief address of the address variable for i2c-radiation module.
+\brief address of the address variable for i2c-power module.
 */
 #define I2C_POWER_ADDRESS_ADDRESS                  (I2C_WRITE_REGISTER_START_ADDRESS)
 
 /*!
 \def I2C_POWER_ONESHOT_LENGTH
-\brief length of the oneshot variable for i2c-radiation module.
+\brief length of the oneshot variable for i2c-power module.
 */
 #define I2C_POWER_ONESHOT_LENGTH                   (0x01)
 
 /*!
 \def I2C_POWER_ONESHOT_ADDRESS
-\brief address of the oneshot variable for i2c-radiation module.
+\brief address of the oneshot variable for i2c-power module.
 */
 #define I2C_POWER_ONESHOT_ADDRESS                  (I2C_POWER_ADDRESS_ADDRESS + I2C_POWER_ADDRESS_LENGTH)
 
 /*!
 \def I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH
-\brief length of the max voltage input from panel variable for i2c-radiation module.
+\brief length of the max voltage input from panel variable for i2c-power module.
 */
 #define I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH                   (0x02)
 
 /*!
 \def I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS
-\brief address of the max voltage input from panel variable for i2c-radiation module.
+\brief address of the max voltage input from panel variable for i2c-power module.
 */
 #define I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS                  (I2C_POWER_ONESHOT_ADDRESS + I2C_POWER_ONESHOT_LENGTH)
 
 /*!
 \def I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH
-\brief length of the max voltage input from battery variable for i2c-radiation module.
+\brief length of the max voltage input from battery variable for i2c-power module.
 */
 #define I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH                   (0x02)
 
 /*!
 \def I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS
-\brief address of the max voltage input from battery variable for i2c-radiation module.
+\brief address of the max voltage input from battery variable for i2c-power module.
 */
 #define I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS                  (I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS + I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH)
 
 /*!
 \def I2C_POWER_WRITABLE_DATA_LENGTH
-\brief length of the writable variables for i2c-radiation module.
+\brief length of the writable variables for i2c-power module.
 */
 #define I2C_POWER_WRITABLE_DATA_LENGTH             (I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS + I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
