@@ -58,7 +58,7 @@ void setup() {
   // Data queue (Request / exchange data from Data Task)
   static Queue *connectionRequestQueue;
   static Queue *connectionResponseQueue;
-  //Data MMC/SD WR/RD
+  //Data SD WR/RD
   static Queue *dataRmapPutQueue;
   static Queue *dataRmapGetRequestQueue;
   static Queue *dataRmapGetResponseQueue;
@@ -220,29 +220,6 @@ void setup() {
   wdtParam.rtcLock = rtcLock;
   wdtParam.dataLogPutQueue = dataLogPutQueue;
   wdtParam.eeprom = &memEprom;
-
-#if (ENABLE_MMC)
-  // TASK SUPERVISOR PARAM CONFIG
-  static MmcParam_t mmcParam = {0};
-  mmcParam.configuration = &configuration;
-  mmcParam.system_status = &system_status;
-  mmcParam.boot_request = &boot_check;
-  mmcParam.systemMessageQueue = systemMessageQueue;
-  mmcParam.dataRmapPutQueue = dataRmapPutQueue;
-  mmcParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
-  mmcParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
-  mmcParam.dataLogPutQueue = dataLogPutQueue;
-  mmcParam.dataFilePutRequestQueue = dataFilePutRequestQueue;
-  mmcParam.dataFilePutResponseQueue = dataFilePutResponseQueue;
-  mmcParam.dataFileGetRequestQueue = dataFileGetRequestQueue;
-  mmcParam.dataFileGetResponseQueue = dataFileGetResponseQueue;
-  mmcParam.flash = &memFlash;
-  mmcParam.eeprom = &memEprom;
-  mmcParam.qspiLock = qspiLock;  
-  mmcParam.rtcLock = rtcLock;
-  mmcParam.configurationLock = configurationLock;
-  mmcParam.systemStatusLock = systemStatusLock;
-#endif
 
 #if (ENABLE_SD)
   // TASK SUPERVISOR PARAM CONFIG
@@ -412,9 +389,6 @@ void setup() {
 
   static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
-#if (ENABLE_MMC)
-  static MmcTask mmc_task("MmcTask", 1400, OS_TASK_PRIORITY_01, mmcParam);
-#endif
 #if (ENABLE_SD)
   static SdTask sd_task("SdTask", 1400, OS_TASK_PRIORITY_01, sdParam);
 #endif

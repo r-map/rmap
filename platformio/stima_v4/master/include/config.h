@@ -76,13 +76,8 @@
 #define ENABLE_QSPI           (true)
 #define ENABLE_CAN            (true)
 #define ENABLE_LCD            (true)
-#define ENABLE_MMC            (false)
 #define ENABLE_SD             (true)
 #define ENABLE_USBSERIAL      (true)
-
-#if (ENABLE_MMC) && (ENABLE_SD)
-    #error Configuration error, you need to define only one method for TASK SD CARD: MMC or SD
-#endif
 
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
 
@@ -184,7 +179,7 @@
 
 #define MIN_INIBITH_CONNECT_RETRY_S (600)   // MIN TIME TO WAIT AFTER CONNECTION ERROR BEFORE RETRY...
 
-// Queue timeOut on FILE SD/MMC ACCESS
+// Queue timeOut on FILE SD ACCESS
 #define FILE_IO_DATA_QUEUE_TIMEOUT  (2500)  // Time out before error to R/W operartion with queue File
 
 // Task system_status and queue ID message
@@ -196,7 +191,6 @@
 #define NTP_TASK_ID                 (4)
 #define HTTP_TASK_ID                (5)
 #define MQTT_TASK_ID                (6)
-#define MMC_TASK_ID                 (7)
 #define SD_TASK_ID                  (7)
 #define USBSERIAL_TASK_ID           (8)
 #define WDT_TASK_ID                 (9)

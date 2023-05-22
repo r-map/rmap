@@ -135,15 +135,14 @@ void AccelerometerTask::Run()
         if(system_message.task_dest == ACCELEROMETER_TASK_ID)
         {
           // Pull && elaborate command, after response if...
-          param.systemMessageQueue->Dequeue(&system_message, 0);
+          param.systemMessageQueue->Dequeue(&system_message);
           if(system_message.command.do_calib) // == Calibrate && Save {
           {
             start_calibration = true;
           }
         }
-
         // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-        if(system_message.task_dest == ALL_TASK_ID)
+        else if(system_message.task_dest == ALL_TASK_ID)
         {
           // Pull && elaborate command, 
           if(system_message.command.do_sleep)

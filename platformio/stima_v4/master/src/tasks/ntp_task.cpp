@@ -137,7 +137,7 @@ void NtpTask::Run() {
         // do ntp sync
         if (connection_request.do_ntp_sync)
         {
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request);
           TRACE_VERBOSE_F(F("NTP_STATE_WAIT_NET_EVENT -> NTP_STATE_DO_NTP_SYNC\r\n"));
           state = NTP_STATE_DO_NTP_SYNC;
         }
@@ -161,9 +161,11 @@ void NtpTask::Run() {
       if (error)
       {
         is_error = true;
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_dns_failed_resolve = true;
+        param.systemStatusLock->Give();
         state = NTP_STATE_END;
         TRACE_VERBOSE_F(F("NTP_STATE_DO_NTP_SYNC -> NTP_STATE_END\r\n"));
-
         TRACE_ERROR_F(F("%s Failed to resolve ntp server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
         break;
       }
@@ -238,6 +240,7 @@ void NtpTask::Run() {
       break;
 
     case NTP_STATE_END:
+
       // ok
       if (!is_error)
       {
@@ -250,13 +253,13 @@ void NtpTask::Run() {
 
         memset(&connection_response, 0, sizeof(connection_response_t));
         connection_response.done_ntp_synchronized = true;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
+        param.connectionResponseQueue->Enqueue(&connection_response);
 
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));
       }
-      // retry
-      else if ((++retry) < NTP_TASK_GENERIC_RETRY)
+      // retry (DNS Error is connection error than required forced reset connection)
+      else if (((++retry) < NTP_TASK_GENERIC_RETRY) && (!param.system_status->connection.is_dns_failed_resolve))
       {
         TaskWatchDog(NTP_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(NTP_TASK_GENERIC_RETRY_DELAY_MS));
@@ -275,7 +278,7 @@ void NtpTask::Run() {
 
         memset(&connection_response, 0, sizeof(connection_response_t));
         connection_response.error_ntp_synchronized = true;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
+        param.connectionResponseQueue->Enqueue(&connection_response);
 
         state = NTP_STATE_INIT;
         TRACE_VERBOSE_F(F("NTP_STATE_END -> NTP_STATE_INIT\r\n"));

@@ -51,9 +51,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/supervisor_task.h"
 #include "tasks/wdt_task.h"
-#if (ENABLE_MMC)
-#include "tasks/mmc_task.h"
-#endif
 #if (ENABLE_SD)
 #include "tasks/sd_task.h"
 #endif

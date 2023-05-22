@@ -1033,9 +1033,9 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
       rmap_get_request.command.do_synch_ptr = true;
       // Optional Save Pointer in File (No need in SetPtr. Only in Get Last Data Memory OK!!!)
       rmap_get_request.command.do_save_ptr = false;
-      TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local MMC\r\n"));
-      // Push data request to queue MMC
-      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+      TRACE_VERBOSE_F(F("Starting request SET Data RMAP PTR to local SD\r\n"));
+      // Push data request to queue SD
+      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
 
       // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
       // No Task Suspended (RPC Can entre from various Task) Time Not Problem to queue
@@ -1060,9 +1060,9 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
       memset(&rmap_get_request, 0, sizeof(rmap_get_request_t));
       rmap_get_request.param = rmap_date_time_ptr;
       rmap_get_request.command.do_end_ptr = true;
-      TRACE_VERBOSE_F(F("Starting request END Data RMAP PTR to local MMC\r\n"));
-      // Push data request to queue MMC
-      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
+      TRACE_VERBOSE_F(F("Starting request END Data RMAP PTR to local SD\r\n"));
+      // Push data request to queue SD
+      param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
 
       // Seek Operation can Be Long Time Procedure. Queue can be post in waiting state without Time End
       // No Task Suspended (RPC Can entre from various Task) Time Not Problem to queue
@@ -1107,7 +1107,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
         // Satrting queue request reload structure firmware upgradable
         // And waiting response. After start update all firmware boardd on system (upgradable)
         system_message_t system_message = {0};
-        system_message.task_dest = MMC_TASK_ID;
+        system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reload_fw = true;
         param.systemMessageQueue->Enqueue(&system_message);
 

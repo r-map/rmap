@@ -69,6 +69,7 @@ class STM32LowPower {
     void idleHook(void);
     void idleHookEnable(void);
     void idleHookDisable(void);
+    bool isIdleHookEnabled(void);
 
     void idle(uint32_t ms = 0);
     void idle(int ms)

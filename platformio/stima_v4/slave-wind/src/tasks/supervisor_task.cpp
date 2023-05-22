@@ -135,7 +135,7 @@ void SupervisorTask::Run()
           if(param.systemMessageQueue->Peek(&system_message, 0)) {
             if(system_message.task_dest == SUPERVISOR_TASK_ID) {
               // Command direct for TASK remove from queue
-              param.systemMessageQueue->Dequeue(&system_message, 0);
+              param.systemMessageQueue->Dequeue(&system_message);
               if(system_message.command.do_maint) {
                 param.systemStatusLock->Take();
                 if(system_message.param != 0) {
@@ -146,34 +146,34 @@ void SupervisorTask::Run()
                 param.systemStatusLock->Give();
               }
             }
-          }
-          // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
-          if(system_message.task_dest == ALL_TASK_ID)
-          {
-            // Pull && elaborate command, 
-            // Sleep Global was called from CAN TASK When CAN Finished operation
-            // from request and comuinication with Master. Master send flag Sleep...
-            if(system_message.command.do_sleep)
+            // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+            else if(system_message.task_dest == ALL_TASK_ID)
             {
-              // Check All Module Direct Controlled Entered in Sleep and performed
-              // Local ShutDown periph, IO data ecc... IF ALL OK-> Enter LowPOWER Mode
-              // ************ SLEEP ALL MODULE OK -> SLEEP SUPERVISOR ************
-              // Sleeping or Suspend Module are same. Only normal_mode suspend Sleep Mode
-              // SLEEP SUPERVISOR -> ALL MODULE IS SLEEPING. Tickless_mode CAN Start
-              if((param.system_status->tasks[ACCELEROMETER_TASK_ID].state != task_flag::normal) &&
-                 (param.system_status->tasks[CAN_TASK_ID].state != task_flag::normal) &&
-                 (param.system_status->tasks[ELABORATE_TASK_ID].state != task_flag::normal)) {
-                // Enter to Sleep Complete (Remove before queue Message TaskSleep)
-                // Ready for Next Security Startup without Reenter Sleep
-                // Next Enter with Other QueueMessage from CAN or Other Task...
-                param.systemMessageQueue->Dequeue(&system_message, 0);
-                // Enter task sleep (enable global LowPower procedure...)
-                // Local WatchDog update
-                TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
-                TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-                // ... -> Enter LowPower on call Delay ... ->
-                Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
-                TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+              // Pull && elaborate command, 
+              // Sleep Global was called from CAN TASK When CAN Finished operation
+              // from request and comuinication with Master. Master send flag Sleep...
+              if(system_message.command.do_sleep)
+              {
+                // Check All Module Direct Controlled Entered in Sleep and performed
+                // Local ShutDown periph, IO data ecc... IF ALL OK-> Enter LowPOWER Mode
+                // ************ SLEEP ALL MODULE OK -> SLEEP SUPERVISOR ************
+                // Sleeping or Suspend Module are same. Only normal_mode suspend Sleep Mode
+                // SLEEP SUPERVISOR -> ALL MODULE IS SLEEPING. Tickless_mode CAN Start
+                if((param.system_status->tasks[ACCELEROMETER_TASK_ID].state != task_flag::normal) &&
+                  (param.system_status->tasks[CAN_TASK_ID].state != task_flag::normal) &&
+                  (param.system_status->tasks[ELABORATE_TASK_ID].state != task_flag::normal)) {
+                  // Enter to Sleep Complete (Remove before queue Message TaskSleep)
+                  // Ready for Next Security Startup without Reenter Sleep
+                  // Next Enter with Other QueueMessage from CAN or Other Task...
+                  param.systemMessageQueue->Dequeue(&system_message);
+                  // Enter task sleep (enable global LowPower procedure...)
+                  // Local WatchDog update
+                  TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
+                  TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
+                  // ... -> Enter LowPower on call Delay ... ->
+                  Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
+                  TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+                }
               }
             }
           }

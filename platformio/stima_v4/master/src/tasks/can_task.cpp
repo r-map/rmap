@@ -759,8 +759,8 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         firmwareDownloadChunck.block_id = req.offset / FILE_GET_DATA_BLOCK_SIZE;
                         firmwareDownloadChunck.board_id = queueId; // Set BOARDS Require File (Need for multiserver file request)
                         // Pushing data request to queue task sd card
-                        localDataFileGetRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-                        // Waiting response from MMC with TimeOUT
+                        localDataFileGetRequestQueue->Enqueue(&firmwareDownloadChunck);
+                        // Waiting response from SD with TimeOUT
                         memset(&sdcard_task_response, 0, sizeof(file_get_response_t));
                         LocalTaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
                         file_download_error = !localDataFileGetResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
@@ -1161,7 +1161,7 @@ void CanTask::Run() {
     CanardMicrosecond last_pub_port_list;
     CanardMicrosecond next_timesyncro_msg;
 
-    // RMAP Queue data Put to memory MMC/SD Card
+    // RMAP Queue data Put to memory SD Card
     rmap_archive_data_t rmap_archive_data;
 
     bool start_firmware_upgrade = false;        // Set when Firmware Upgrade is required
@@ -1879,7 +1879,7 @@ void CanTask::Run() {
                                 // higher priority guaranteed
                                 if(bStartGetData) {
                                     paramRequest.command = rmap_service_setmode_1_0_get_last;
-                                    // TODO: SIstemare
+                                    // TODO: Sistemare
                                     paramRequest.obs_sectime = 60;
                                     paramRequest.run_sectime = 900;
                                     // paramRequest.obs_sectime = param.configuration->observation_s;
@@ -1935,7 +1935,7 @@ void CanTask::Run() {
                                 case Module_Type::th:
                                     // Cast to th module
                                     retTHData = (rmap_service_module_TH_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
@@ -1973,37 +1973,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[1] = retTHData->ITH.humidity.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retTHData->state == rmap_service_setmode_1_0_get_last) {
-                                        bool pippo;
-                                        pippo=false;
-                                        if((retTHData->MTH.temperature.val.value == 0) || (retTHData->MTH.temperature.val.value = 0xFFFFu) || (retTHData->MTH.temperature.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if((retTHData->MTH.humidity.val.value == 0) || (retTHData->MTH.humidity.val.value = 0xFFFFu) || (retTHData->MTH.humidity.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if((retTHData->NTH.temperature.val.value == 0) || (retTHData->NTH.temperature.val.value = 0xFFFFu) || (retTHData->NTH.temperature.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if((retTHData->NTH.humidity.val.value == 0) || (retTHData->NTH.humidity.val.value = 0xFFFFu) || (retTHData->NTH.humidity.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if((retTHData->XTH.temperature.val.value == 0) || (retTHData->XTH.temperature.val.value = 0xFFFFu) || (retTHData->XTH.temperature.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if((retTHData->XTH.humidity.val.value == 0) || (retTHData->XTH.humidity.val.value = 0xFFFFu) || (retTHData->XTH.humidity.confidence.value > 100))
-                                        {
-                                            pippo = true;
-                                        }
-                                        if(pippo) {
-                                            Serial.print("Pippo2");
-                                        }
-
-                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retTHData->is_main_error) bit8Flag|=0x01;
@@ -2022,7 +1992,7 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retTHData, sizeof(*retTHData));
-                                        // Send queue to MMC/SD for direct archive data
+                                        // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                     }
@@ -2031,7 +2001,7 @@ void CanTask::Run() {
                                 case Module_Type::rain:
                                     // Cast to th module
                                     retRainData = (rmap_service_module_Rain_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
@@ -2071,7 +2041,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retRainData->state == rmap_service_setmode_1_0_get_last) {
-                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retRainData->is_main_error) bit8Flag|=0x01;
@@ -2094,7 +2064,7 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retRainData, sizeof(*retRainData));
-                                        // Send queue to MMC/SD for direct archive data
+                                        // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                     }
@@ -2103,7 +2073,7 @@ void CanTask::Run() {
                                 case Module_Type::wind:
                                     // Cast to th module
                                     retWindData = (rmap_service_module_Wind_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
@@ -2141,7 +2111,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retWindData->state == rmap_service_setmode_1_0_get_last) {
-                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retWindData->is_windsonic_responding_error) bit8Flag|=0x01;
@@ -2163,7 +2133,7 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retWindData, sizeof(*retWindData));
-                                        // Send queue to MMC/SD for direct archive data
+                                        // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                     }
@@ -2172,7 +2142,7 @@ void CanTask::Run() {
                                 case Module_Type::radiation:
                                     // Cast to th module
                                     retRadiationData = (rmap_service_module_Radiation_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
@@ -2210,7 +2180,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retRadiationData->state == rmap_service_setmode_1_0_get_last) {
-                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
@@ -2229,7 +2199,7 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retRadiationData, sizeof(*retRadiationData));
-                                        // Send queue to MMC/SD for direct archive data
+                                        // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                     }
@@ -2238,7 +2208,7 @@ void CanTask::Run() {
                                 case Module_Type::power:
                                     // Cast to th module
                                     retPwrData = (rmap_service_module_Power_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     // Get parameter data
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
@@ -2278,7 +2248,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
-                                        // data value id rmap_service_setmode_1_0_get_last into queue MMC
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
                                         if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
@@ -2297,14 +2267,14 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retPwrData, sizeof(*retPwrData));
-                                        // Send queue to MMC/SD for direct archive data
+                                        // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
                                     }
                                     break;
 
                                 default:
-                                    // data RMAP type is ready to send into queue Archive Data for Saving on MMC Memory
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     TRACE_INFO_F(F("RMAP recived response service data module from unknown module node id: [ %d ]\r\n"),
                                         clCanard.slave[queueId].get_node_id());
                                     break;
@@ -2332,7 +2302,7 @@ void CanTask::Run() {
                 // Get coda comandi da system_message... se richiesto comando da LCD o RPC Remota
                 // Da inoltrare al nodo selezionato in coda, parametro
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // Procedure can continue only without other command in pending state
                         // If command not starting, time_out remove the command and queue can be free from item
@@ -2343,7 +2313,7 @@ void CanTask::Run() {
                                 // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                                 if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    param.systemMessageQueue->Dequeue(&system_message);
                                     TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
                                     // Request start module maintenance from LCD or Remote RPC with Param 0/1
                                     char do_maint = 1;
@@ -2372,7 +2342,7 @@ void CanTask::Run() {
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                                 if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
                                     // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    param.systemMessageQueue->Dequeue(&system_message);
                                     TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
                                     // Request start module maintenance from LCD or Remote RPC with Param 0/1
                                     char undo_maint = 0;
@@ -2401,7 +2371,7 @@ void CanTask::Run() {
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                                 if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
                                     // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    param.systemMessageQueue->Dequeue(&system_message);
                                     TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
                                     // Requestcalibration accellerometer from LCD or Remote RPC without param
                                     clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
@@ -2510,7 +2480,7 @@ void CanTask::Run() {
                 // Evidentemente un nodo non ancora assegnato può essere configurato solo dopo assegnamento PNP del port_id
                 // Al termine del PnP port_id, deve essere avviata sempre la procedura di configurazione del nodo remoto
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
@@ -2518,14 +2488,14 @@ void CanTask::Run() {
                             // Queue must to be free !!!
                             if(!clCanard.slave[system_message.param].is_online()) {
                                 // Remove message from the queue (No more action possible here NOT Online)
-                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                param.systemMessageQueue->Dequeue(&system_message);
                             } else {
                                 // Start Flag Event Start when request configuration is request
                                 // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                                 if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
                                     // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
-                                    param.systemMessageQueue->Dequeue(&system_message, 0);
+                                    param.systemMessageQueue->Dequeue(&system_message);
                                     if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
                                         TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
                                     } else {
@@ -2858,11 +2828,11 @@ void CanTask::Run() {
 
                 // Get coda comandi da system_message... se richiesto aggiornamenti dei firmware completi (tutta la stazione)
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_all)) {
                             // Remove message from the queue
-                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            param.systemMessageQueue->Dequeue(&system_message);
                             // Request start update firmware from LCD or Remote RPC
                             // Start flags and state for file_server start
                             is_running_update_system = true;
@@ -2879,11 +2849,11 @@ void CanTask::Run() {
                     (!param.system_status->flags.file_server_running)) {
                     // Have reached the last boards (Master)?
                     if(index_running_update_boards == 0xFF) {
-                        // Master Boards (Update start from MMC/SD Task but mode to request is same with queue)
+                        // Master Boards (Update start from SD Task but mode to request is same with queue)
                         if(param.system_status->data_master.fw_upgradable) {
                             memset(&system_message, 0, sizeof(system_message));
                             // Starting sequence as queue command same LCD/RPC ecc...
-                            system_message.task_dest = MMC_TASK_ID;
+                            system_message.task_dest = SD_TASK_ID;
                             system_message.command.do_update_fw = true;
                             system_message.param = index_running_update_boards;
                             param.systemMessageQueue->Enqueue(&system_message);
@@ -2912,7 +2882,7 @@ void CanTask::Run() {
 
                 // Get coda comandi da system_message... se richiesto aggiornamento del firmware
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
                             // Start Flag Event Start when request configuration is request
@@ -2920,7 +2890,7 @@ void CanTask::Run() {
                             // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                             if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
                                 // Remove message from the queue
-                                param.systemMessageQueue->Dequeue(&system_message, 0);
+                                param.systemMessageQueue->Dequeue(&system_message);
                                 // Request start update firmware from LCD or Remote RPC
                                 // Start flags and state for file_server start
                                 param.systemStatusLock->Take();
@@ -3238,11 +3208,11 @@ void CanTask::Run() {
 
                 // Request Reboot from RPC in security mode
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD/MMC...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_reboot)) {
-                            param.systemMessageQueue->Dequeue(&system_message, 0);
+                            param.systemMessageQueue->Dequeue(&system_message);
                             // Start Reboot check state
                             clCanard.flag.request_system_restart();
                         }

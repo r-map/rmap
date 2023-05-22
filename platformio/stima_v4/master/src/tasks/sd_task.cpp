@@ -376,6 +376,7 @@ void SdTask::Run()
       // Check SD or Resynch after Error
       if (SD.begin(PIN_SPI_SS, SPI_SPEED)) {
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
+        message_traced = false;
 
         state = SD_STATE_CHECK_STRUCTURE;
         message_traced = false;
@@ -400,6 +401,17 @@ void SdTask::Run()
       break;
 
     case SD_STATE_CHECK_STRUCTURE:
+
+      // Waiting loading configuration complete before start application
+      if (!param.system_status->configuration.is_loaded) {
+          if(!message_traced) {
+              TRACE_INFO_F(F("SD task: Waiting configuration before START\r\n"));
+              message_traced = true;
+          }
+          break;
+      }
+      message_traced = false;
+
       // ***************************************************
       //    SD Check and create structure Directory Data
       // ***************************************************
@@ -502,11 +514,11 @@ void SdTask::Run()
       } else {
         tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
         if(tmpFile) {
-          TRACE_INFO_F(F("SD: create new data pointer at now()\r\n"));
+          TRACE_INFO_F(F("SD: create new data pointer at configured ()\r\n"));
           // Open File High LED
           digitalWrite(PIN_SD_LED, HIGH);
           rmap_pointer_seek = 0;
-          rmap_pointer_datetime = rtc.getEpoch();  // Init to Current Epoch
+          rmap_pointer_datetime = param.system_status->datetime.ptr_time_for_sensors_get_value * param.configuration->report_s;  // Init to Data Next Epoch
           // System status enter in data not ready for SENT (no data present)
           param.systemStatusLock->Take();
           param.system_status->flags.new_data_to_send = false;
@@ -636,7 +648,7 @@ void SdTask::Run()
       if(!param.systemMessageQueue->IsEmpty()) {
         system_message_t system_message;
         param.systemMessageQueue->Peek(&system_message);
-        if(system_message.task_dest == MMC_TASK_ID) {
+        if(system_message.task_dest == SD_TASK_ID) {
           param.systemMessageQueue->Dequeue(&system_message);
           // Request direct Update local firmware (Master) from SD CARD
           if((system_message.command.do_update_fw)&&(system_message.param = 0xFF)) {
@@ -709,7 +721,7 @@ void SdTask::Run()
       while(!param.dataRmapPutBackupQueue->IsEmpty()) {
         // Get message from queue
         if(param.dataRmapPutBackupQueue->Dequeue(&rmap_backup_archive_data)) {
-          // Put to MMC ( APPEND to File in Native Format. Check naming file )
+          // Put to SD ( APPEND to File in Native Format. Check naming file )
           namingFileData(rmap_backup_archive_data.date_time, "/bkp", rmap_file_bkp_check);
           // Day Name File Changed (Data is to save in New File?) or Not Open...
           if((strcmp(rmap_file_name_bkp, rmap_file_bkp_check)) || (!rmapBkpFile)) {
@@ -745,7 +757,7 @@ void SdTask::Run()
       // *********************************************************
       //       Perform RMAP Write Data append get message
       // *********************************************************
-      // If element get all element from the queue and Put to MMC
+      // If element get all element from the queue and Put to SD
       // rmap_put_archive_data.date_time is epoch_style dateTime Archive record field
       // Check if data must be added into current day_file. If Day cahnged (nameing!=)
       // File data will be closed and reopened with the new name with control
@@ -755,7 +767,7 @@ void SdTask::Run()
       while(!param.dataRmapPutQueue->IsEmpty()) {
         // Get message from queue
         if(param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data)) {
-          // Put to MMC ( APPEND to File in Native Format. Check naming file )
+          // Put to SD ( APPEND to File in Native Format. Check naming file )
           namingFileData(rmap_put_archive_data.date_time, "/data", rmap_file_name_check);
           // Day Name File Changed (Data is to save in New File?) or Not Open...
           if((strcmp(rmap_file_name_wr, rmap_file_name_check)) || (!rmapWrFile)) {
@@ -949,7 +961,7 @@ void SdTask::Run()
               param.systemStatusLock->Give();
             }
             // ***** Send response to request *****
-            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
           }
           // ******************************************************************
           //           Request is end pointer to date/time?
@@ -963,7 +975,7 @@ void SdTask::Run()
             TRACE_INFO_F(F("Data RMAP requested end pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
             rmap_get_response.result.done_synch = true;
             // ***** Send response to request *****
-            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
           }
           // ******************************************************************
           // Request next avaiable data? ( N.B. Standard Request for GET DATA )
@@ -1115,7 +1127,7 @@ void SdTask::Run()
               }
             }
             // ***** Send response to request *****
-            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response, 0);
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
             // Close File Low LED
             digitalWrite(PIN_SD_LED, LOW);
           }
@@ -1177,7 +1189,7 @@ void SdTask::Run()
             else
               file_put_response.done_operation = true;
             // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response);
           } else if(file_put_request.block_type == file_block_type::data_chunck) {
             memset(&file_put_response, 0, sizeof(file_put_response));
             if(putFile) {
@@ -1193,7 +1205,7 @@ void SdTask::Run()
               file_put_response.error_operation = true;
             }
             // Send response to caller
-            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response);
           } else if(file_put_request.block_type == file_block_type::end_of_file) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system (without integrity control)
@@ -1204,7 +1216,7 @@ void SdTask::Run()
             digitalWrite(PIN_SD_LED, LOW);
             memset(&file_put_response, 0, sizeof(file_put_response));
             file_put_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response);
           } else if(file_put_request.block_type == file_block_type::ctrl_checksum) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system
@@ -1213,7 +1225,7 @@ void SdTask::Run()
             // Send response to caller ... OK done
             memset(&file_put_response, 0, sizeof(file_put_response));
             file_put_response.done_operation = true;
-            param.dataFilePutResponseQueue->Enqueue(&file_put_response, 0);
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response);
           }
         }
         // On Exit Low LED
@@ -1260,14 +1272,14 @@ void SdTask::Run()
             // Closing automatic of file if block not completed (EOF)
             if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
               // Rapid return, before closing file
-              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response);
               getFile[file_get_request.board_id].close();
               // Close File Low LED
               digitalWrite(PIN_SD_LED, LOW);
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
             } else
-              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response);
           } else {
             // Set Seek Position or Reading Next Block (only if block_read_next not called)
             if(!file_get_request.block_read_next) 
@@ -1282,7 +1294,7 @@ void SdTask::Run()
             // Closing automatic of file if block not completed (EOF)
             if(file_get_response.block_lenght != FILE_GET_DATA_BLOCK_SIZE) {
               // Rapid return before closing file
-              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response);
               getFile[file_get_request.board_id].close();
               // Close File Low LED
               digitalWrite(PIN_SD_LED, LOW);
@@ -1290,7 +1302,7 @@ void SdTask::Run()
               memset(local_file_name, 0, sizeof(local_file_name));
             } else
               // Send response to caller
-              param.dataFileGetResponseQueue->Enqueue(&file_get_response, 0);
+              param.dataFileGetResponseQueue->Enqueue(&file_get_response);
           }
         }
         // On Exit Low LED

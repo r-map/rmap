@@ -193,7 +193,7 @@ void MqttTask::Run()
           // Start new connection sequence
           mqtt_connection_estabilished = false;
 
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request);
           TRACE_VERBOSE_F(F("MQTT_STATE_WAIT_NET_EVENT -> MQTT_STATE_CONNECT\r\n"));
           state = MQTT_STATE_CONNECT;
         }
@@ -219,9 +219,10 @@ void MqttTask::Run()
       if (error)
       {
         is_error = true;
-
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_dns_failed_resolve = true;
+        param.systemStatusLock->Give();
         TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
-
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
         break;
@@ -315,7 +316,7 @@ void MqttTask::Run()
       // Response direct when connection complete
       memset(&connection_response, 0, sizeof(connection_response_t));
       connection_response.done_mqtt_connected = true;
-      param.connectionResponseQueue->Enqueue(&connection_response, 0);
+      param.connectionResponseQueue->Enqueue(&connection_response);
 
       // Successful connection?
       state = MQTT_STATE_PUBLISH_INFO;
@@ -452,10 +453,10 @@ void MqttTask::Run()
       // **************************************
       //   GET RMAP Data, And Append to MQTT
       // **************************************
-      // MMC have to GET Ready before Push DATA
-      // EXIT from function if not MMC Ready or present into system_status
+      // SD have to GET Ready before Push DATA
+      // EXIT from function if not SD Ready or present into system_status
       if(!param.system_status->flags.sd_card_ready) {
-        TRACE_VERBOSE_F(F("MQTT: RMAP Reject request get rmap data, MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+        TRACE_VERBOSE_F(F("MQTT: RMAP Reject request get rmap data, SD was not ready [ %s ]\r\n"), ERROR_STRING);
       }
 
       // *****************************************
@@ -476,9 +477,9 @@ void MqttTask::Run()
           // Save Pointer? Optional
           // BUT is Automatic save on Get Last Data Avaiable if Normal Request (Not Recovery...)
           // rmap_get_request.command.do_save_ptr = true;
-          // Push data request to queue MMC
-          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, 0);
-          // Waiting response from MMC with TimeOUT
+          // Push data request to queue SD
+          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
+          // Waiting response from SD with TimeOUT
           memset(&rmap_get_response, 0, sizeof(rmap_get_response));
           TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
           rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
@@ -1105,8 +1106,8 @@ void MqttTask::Run()
       // Response direct (error) when connection not complete
       // Only when sequence connection is not completed (otherwise response already sended)
       if(!mqtt_connection_estabilished) {
-        // Check retry before error end connection MQTT
-        if ((++retry) < MQTT_TASK_GENERIC_RETRY)
+        // Check retry before error end connection MQTT (DNS Error is connection error than required forced reset connection)
+        if (((++retry) < MQTT_TASK_GENERIC_RETRY) && (!param.system_status->connection.is_dns_failed_resolve))
         {
           TaskWatchDog(MQTT_TASK_GENERIC_RETRY_DELAY_MS);
           Delay(Ticks::MsToTicks(MQTT_TASK_GENERIC_RETRY_DELAY_MS));
@@ -1117,7 +1118,7 @@ void MqttTask::Run()
           // Send response to request
           memset(&connection_response, 0, sizeof(connection_response_t));
           connection_response.error_mqtt_connected = true;
-          param.connectionResponseQueue->Enqueue(&connection_response, 0);
+          param.connectionResponseQueue->Enqueue(&connection_response);
         }
       }
 
@@ -1319,7 +1320,7 @@ void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *topic, char *me
   if((lenTopic + lenMessage) < RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE) {
     strcpy((char*)archive_backup_data_line.block, topic);
     strcpy((char*)(archive_backup_data_line.block + lenTopic), message);
-    // Send to queue with waiting Queue empty from SD/MMC Task if Full
+    // Send to queue with waiting Queue empty from SD Task if Full
     param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
   }
 }

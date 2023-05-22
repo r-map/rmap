@@ -404,7 +404,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         rmap_module_Power_1_0 module_mppt_msg = {0};
 
         request_data_t request_data = {0};
-        report_t report = {0};
+        report_t report_pub = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
@@ -416,15 +416,15 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         // SET Dynamic metadata (Request data from master Only Data != Sample)
         clCanard.module_mppt.DEP.metadata.timerange.P2 = request_data.report_time_s;
 
-        // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        // coda di richiesta dati
+        param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report.avg_battery_voltage, (int32_t) report.avg_battery_charge, (int32_t) report.avg_input_voltage);
+        param->reportDataQueue->Dequeue(&report_pub);
+        TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report_pub.avg_battery_voltage, (int32_t) report_pub.avg_battery_charge, (int32_t) report_pub.avg_input_voltage);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report, &module_mppt_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report_pub, &module_mppt_msg);
         // Metadata
         module_mppt_msg.DEP.metadata = clCanard.module_mppt.DEP.metadata;
 
@@ -636,7 +636,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
-    report_t report = {0};
+    report_t report_srv = {0};
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parameter.command) {
@@ -678,11 +678,11 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           resp.wdt_event = boot_state->wdt_reset;
 
           // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, 0);
+          param->requestDataQueue->Enqueue(&request_data);
 
           // coda di attesa dati (attesa rmap_calc_data)
-          param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report.avg_battery_voltage, (rmapdata_t) report.avg_battery_charge, (rmapdata_t) report.avg_input_voltage);
+          param->reportDataQueue->Dequeue(&report_srv);
+          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_battery_voltage, (rmapdata_t) report_srv.avg_battery_charge, (rmapdata_t) report_srv.avg_input_voltage);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -691,9 +691,9 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report_srv, &resp);
           } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report_srv, &resp);
           }
           break;
 

@@ -738,7 +738,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
     }
     case MASTER_COMMAND_FIRMWARE_UPGRADE: {
       // Set the queue to send
-      system_message.task_dest = MMC_TASK_ID;
+      system_message.task_dest = SD_TASK_ID;
       system_message.command.do_update_fw = true;
       system_message.param = 0xFF;
       param.systemMessageQueue->Enqueue(&system_message, 0);

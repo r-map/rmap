@@ -196,14 +196,14 @@ void ModemTask::Run() {
           strSafeCopy(password, param.configuration->gsm_password, GSM_PASSWORD_LENGTH);
           param.configurationLock->Give();
 
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
           state = MODEM_STATE_SWITCH_ON;
         }
-        // do disconnect
+        // do disconnec
         else if (connection_request.do_disconnect)
         {
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_DISCONNECT\r\n"));
           state = MODEM_STATE_DISCONNECT;
         }
@@ -334,7 +334,7 @@ void ModemTask::Run() {
 
         memset(&connection_response, 0, sizeof(connection_response_t));
         connection_response.done_connected = true;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
+        param.connectionResponseQueue->Enqueue(&connection_response);
 
         state = MODEM_STATE_WAIT_NET_EVENT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
@@ -412,7 +412,7 @@ void ModemTask::Run() {
         // If required disconnection -> done_disconnect
         connection_response.done_disconnected = true;
       }
-      param.connectionResponseQueue->Enqueue(&connection_response, 0);
+      param.connectionResponseQueue->Enqueue(&connection_response);
       
       // Exit (Retry connection is extern from Modem)
       state = MODEM_STATE_WAIT_NET_EVENT;

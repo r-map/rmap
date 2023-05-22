@@ -95,9 +95,9 @@ using namespace cpp_freertos;
 #define WAIT_QUEUE_REQUEST_COMMAND_MS   (500)
 
 // Task waiting Semaphore Driver access
-#define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
+#define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1500)
 
-#define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (1500)
+#define CAN_PUT_QUEUE_RMAP_TIMEOUT_MS     (2500)
 
 #define GENERIC_UAVCAN_MAX_RETRY          (3)
 

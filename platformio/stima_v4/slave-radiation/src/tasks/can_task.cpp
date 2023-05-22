@@ -388,7 +388,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         rmap_module_Radiation_1_0 module_solar_radiation_msg = {0};
 
         request_data_t request_data = {0};
-        report_t report = {0};
+        report_t report_pub = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
@@ -400,15 +400,15 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         // SET Dynamic metadata (Request data from master Only Data != Sample)
         clCanard.module_solar_radiation.DSA.metadata.timerange.P2 = request_data.report_time_s;
 
-        // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        // coda di richiesta dati
+        param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report.avg, (rmapdata_t) report.quality);
+        param->reportDataQueue->Dequeue(&report_pub);
+        TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg, (rmapdata_t) report_pub.quality);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &module_solar_radiation_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report_pub, &module_solar_radiation_msg);
         // Metadata
         module_solar_radiation_msg.DSA.metadata = clCanard.module_solar_radiation.DSA.metadata;
 
@@ -634,7 +634,8 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
-    report_t report = {0};
+    report_t report_srv = {0};
+    bool isRunIdleHookEnabled;
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parameter.command) {
@@ -674,12 +675,15 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           resp.rbt_event = boot_state->tot_reset;
           resp.wdt_event = boot_state->wdt_reset;
 
-          // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, 0);
-
+          // coda di richiesta dati immediata. Full power for make report
+          isRunIdleHookEnabled = LowPower.isIdleHookEnabled();
+          LowPower.idleHookDisable();
+          param->requestDataQueue->Enqueue(&request_data);
           // coda di attesa dati (attesa rmap_calc_data)
-          param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report.avg, (rmapdata_t) report.quality);
+          param->reportDataQueue->Dequeue(&report_srv);
+          if(isRunIdleHookEnabled) LowPower.idleHookEnable();
+
+          TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg, (rmapdata_t) report_srv.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -687,7 +691,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           // Esiste il solo caso ::dsa sia per get istant che archivio
-          prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report, &resp);
+          prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report_srv, &resp);
           break;
 
         /// NOT USED

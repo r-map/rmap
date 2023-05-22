@@ -128,8 +128,8 @@ void WdtTask::Run() {
         switch(id) {
           case SUPERVISOR_TASK_ID:
             strcpy (strTask, "Supervisor  "); break;
-          case MMC_TASK_ID:
-            strcpy (strTask, "MMC Card    "); break;
+          case SD_TASK_ID:
+            strcpy (strTask, "SD Card     "); break;
           case LCD_TASK_ID:
             strcpy (strTask, "Display LCD "); break;
           case CAN_TASK_ID:

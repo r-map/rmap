@@ -159,22 +159,22 @@ void HttpTask::Run() {
         if (connection_request.do_http_get_configuration)
         {
           is_get_configuration = true;
-          param.connectionRequestQueue->Dequeue(&connection_request, 0);
+          param.connectionRequestQueue->Dequeue(&connection_request);
           state = HTTP_STATE_SEND_REQUEST;
           TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST (get configuration)\r\n"));
         }
         // do http get firmware
         else if (connection_request.do_http_get_firmware)
         {
-          // MMC have to GET Ready before Push DATA (Firmware download?! Exit immediatly)
-          // EXIT from function if not MMC Ready or present into system_status
+          // SD have to GET Ready before Push DATA (Firmware download?! Exit immediatly)
+          // EXIT from function if not SD Ready or present into system_status
           if(!param.system_status->flags.sd_card_ready) {
-            TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+            TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) SD was not ready [ %s ]\r\n"), ERROR_STRING);
             state = HTTP_STATE_END;
           } else {
             is_get_firmware = true;
             module_download = 0xFF; // Starting from Master
-            param.connectionRequestQueue->Dequeue(&connection_request, 0);
+            param.connectionRequestQueue->Dequeue(&connection_request);
             state = HTTP_STATE_SEND_REQUEST;
             TRACE_VERBOSE_F(F("HTTP_STATE_WAIT_NET_EVENT -> HTTP_STATE_SEND_REQUEST (get firmware)\r\n"));
           }
@@ -201,6 +201,9 @@ void HttpTask::Run() {
       if (error)
       {
         is_error = true;
+        param.systemStatusLock->Take();
+        param.system_status->connection.is_dns_failed_resolve = true;
+        param.systemStatusLock->Give();
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
         TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
@@ -511,7 +514,7 @@ void HttpTask::Run() {
             // Read all entire buffer lenght without filter of CR/LF
             TRACE_INFO_F(F("Recived block of [ %d ] bytes, total downloaded [ %d ] bytes\r\n"), http_buffer_length, totBytesRead);
 
-            // AddBlock Firmware to Queue -> and Put do MMC/SD
+            // AddBlock Firmware to Queue -> and Put do SD
             bErrorFirmwareDownload |= do_firmware_add_block((uint8_t*)http_buffer, http_buffer_length);
 
           }
@@ -535,7 +538,7 @@ void HttpTask::Run() {
           // Error if of queue/SD no more action here, exit and signal the problem to server (SD)
           is_error = true;
           state = HTTP_STATE_END;
-          TRACE_ERROR_F(F("%s Failed to upload firmware stream to MMC/SD [ %s ]\r\n"), Thread::GetName().c_str(), ABORT_STRING);
+          TRACE_ERROR_F(F("%s Failed to upload firmware stream to SD [ %s ]\r\n"), Thread::GetName().c_str(), ABORT_STRING);
           break;
         }
       }
@@ -640,13 +643,13 @@ void HttpTask::Run() {
         connection_response.error_http_configuration_getted = false;
         connection_response.done_http_firmware_getted = is_get_firmware;
         connection_response.error_http_firmware_getted = false;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
+        param.connectionResponseQueue->Enqueue(&connection_response);
 
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
       }
-      // retry
-      else if ((++retry) < HTTP_TASK_GENERIC_RETRY)
+      // retry (DNS Error is connection error than required forced reset connection)
+      else if (((++retry) < HTTP_TASK_GENERIC_RETRY) && (!param.system_status->connection.is_dns_failed_resolve))
       {
         TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
         Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
@@ -671,7 +674,7 @@ void HttpTask::Run() {
         connection_response.error_http_configuration_getted = is_get_configuration;
         connection_response.done_http_firmware_getted = false;
         connection_response.error_http_firmware_getted = is_get_firmware;
-        param.connectionResponseQueue->Enqueue(&connection_response, 0);
+        param.connectionResponseQueue->Enqueue(&connection_response);
 
         state = HTTP_STATE_INIT;
         TRACE_VERBOSE_F(F("HTTP_STATE_END -> HTTP_STATE_INIT\r\n"));
@@ -733,7 +736,7 @@ error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsConte
   return NO_ERROR;
 }
 
-/// @brief Init queue update firmware data block to MMC/SD Card (create file name on SD/MMC)
+/// @brief Init queue update firmware data block to SD Card (create file name on SD)
 /// @param module_type module_type requested and found
 /// @param version versione requested and found
 /// @param revision revision requested and found
@@ -742,10 +745,10 @@ bool HttpTask::do_firmware_set_name(Module_Type module_type, uint8_t version, ui
 {  
   bool set_file_name_error = false;
 
-  // MMC have to GET Ready before Push DATA
-  // EXIT from function if not MMC Ready or present into system_status
+  // SD have to GET Ready before Push DATA
+  // EXIT from function if not SD Ready or present into system_status
   if(!param.system_status->flags.sd_card_ready) {
-    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) SD was not ready [ %s ]\r\n"), ERROR_STRING);
     return true;
   }
 
@@ -757,11 +760,11 @@ bool HttpTask::do_firmware_set_name(Module_Type module_type, uint8_t version, ui
   // OR FILE NAME FROM TYPE... IF HTTP Responding with Module, Version and Revision...
   // setStimaFirmwareName((char*)firmwareDownloadChunck.block, STIMA_MODULE_TYPE_TH, 4, 3);
   firmwareDownloadChunck.block_lenght = strlen((char*)firmwareDownloadChunck.block);
-  TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local MMC [ %s ]\r\n"), firmwareDownloadChunck.block);
-  // Push data request to queue MMC
-  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+  TRACE_VERBOSE_F(F("Starting upload file (Firmware) from remote HTTP to local SD [ %s ]\r\n"), firmwareDownloadChunck.block);
+  // Push data request to queue SD
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck);
 
-  // Waiting response from MMC with TimeOUT
+  // Waiting response from SD with TimeOUT
   memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
   TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
   set_file_name_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
@@ -770,17 +773,17 @@ bool HttpTask::do_firmware_set_name(Module_Type module_type, uint8_t version, ui
   return(set_file_name_error);
 }
 
-/// @brief Adda queue update firmware data block to MMC/SD Card
+/// @brief Adda queue update firmware data block to SD Card
 /// @param block_addr adrres buffer to add into SD Block data
 /// @param block_len lenght of block to ADD
 /// @return if error occurs return (true)
 bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
   bool file_upload_error = false;
 
-  // MMC have to GET Ready before Push DATA
-  // EXIT from function if not MMC Ready or present into system_status
+  // SD have to GET Ready before Push DATA
+  // EXIT from function if not SD Ready or present into system_status
   if(!param.system_status->flags.sd_card_ready) {
-    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) SD was not ready [ %s ]\r\n"), ERROR_STRING);
     return true;
   }
 
@@ -790,9 +793,9 @@ bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
   memcpy((char*)firmwareDownloadChunck.block, (char*)block_addr, block_len);
   firmwareDownloadChunck.block_lenght = block_len;
 
-  // Push data request to queue MMC
-  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
-  // Waiting response from MMC with TimeOUT
+  // Push data request to queue SD
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck);
+  // Waiting response from SD with TimeOUT
   memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
   TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
   file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
@@ -801,32 +804,32 @@ bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
   return(file_upload_error);
 }
 
-/// @brief Close queue update firmware data block to MMC/SD Card
+/// @brief Close queue update firmware data block to SD Card
 /// @param  none
 /// @return if error occurs return (true)
 bool HttpTask::do_firmware_end_data(void) {
   bool file_upload_error = false;
   memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
 
-  // MMC have to GET Ready before Push DATA
-  // EXIT from function if not MMC Ready or present into system_status
+  // SD have to GET Ready before Push DATA
+  // EXIT from function if not SD Ready or present into system_status
   if(!param.system_status->flags.sd_card_ready) {
-    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) MMC was not ready [ %s ]\r\n"), ERROR_STRING);
+    TRACE_VERBOSE_F(F("HTTP: Reject request upload file (Firmware) SD was not ready [ %s ]\r\n"), ERROR_STRING);
     return true;
   }
 
   // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
   firmwareDownloadChunck.block_type = file_block_type::end_of_file;
-  // Push data request to queue MMC
-  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck, 0);
+  // Push data request to queue SD
+  param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck);
 
-  // Waiting response from MMC with TimeOUT
+  // Waiting response from SD with TimeOUT
   memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
   TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
   file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
   file_upload_error |= !sdcard_task_response.done_operation;
 
-  // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK MMC)
+  // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK SD)
   TRACE_VERBOSE_F(F("HTTP: Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
   return(file_upload_error);
 

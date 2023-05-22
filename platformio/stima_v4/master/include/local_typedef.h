@@ -384,7 +384,7 @@ typedef struct
 
 } rmap_archive_data_t;
 
-// RMAP data archive response block from memory task (MMC/SD) to request
+// RMAP data archive response block from memory task (SD) to request
 typedef struct
 {
    struct
@@ -406,7 +406,7 @@ typedef struct
 
 } rmap_backup_data_t;
 
-// RMAP data archive request from any task to memory task (MMC/SD)
+// RMAP data archive request from any task to memory task (SD)
 typedef struct
 {
    struct

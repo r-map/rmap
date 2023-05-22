@@ -151,7 +151,7 @@ void ElaborateDataTask::Run() {
     if (!param.elaborataDataQueue->IsEmpty()) {
       if (param.elaborataDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata, 0);
+        param.elaborataDataQueue->Dequeue(&edata);
         switch (edata.index)
         {
         case WIND_SPEED_INDEX:
@@ -183,9 +183,9 @@ void ElaborateDataTask::Run() {
       if (param.requestDataQueue->Peek(&request_data, 0))
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
-        param.requestDataQueue->Dequeue(&request_data, 0);
+        param.requestDataQueue->Dequeue(&request_data);
         make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-        param.reportDataQueue->Enqueue(&report, 0);
+        param.reportDataQueue->Enqueue(&report);
       }
     }
 

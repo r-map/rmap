@@ -161,7 +161,7 @@ private:
 
   bool is_event_rpc;
 
-  // queue to Put Firmware to SD/MMC
+  // queue to Put Firmware to SD
   file_put_request_t firmwareDownloadChunck;
   file_put_response_t sdcard_task_response;
 

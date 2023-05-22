@@ -474,7 +474,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         rmap_module_Wind_1_0 module_wind_msg = {0};
 
         request_data_t request_data = {0};
-        report_t report = {0};
+        report_t report_pub = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
@@ -491,20 +491,20 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         clCanard.module_wind.DWE.metadata.timerange.P2 = request_data.report_time_s;
         clCanard.module_wind.DWF.metadata.timerange.P2 = request_data.report_time_s;
 
-        // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        // coda di richiesta dati
+        param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report.avg_speed, (rmapdata_t) report.vavg_speed, (rmapdata_t) report.vavg10_direction);
+        param->reportDataQueue->Dequeue(&report_pub);
+        TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg_speed, (rmapdata_t) report_pub.vavg_speed, (rmapdata_t) report_pub.vavg10_direction);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &module_wind_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report, &module_wind_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report, &module_wind_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report, &module_wind_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report, &module_wind_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report_pub, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report_pub, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report_pub, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report_pub, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report_pub, &module_wind_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report_pub, &module_wind_msg);
         // Metadata
         module_wind_msg.DWA.metadata = clCanard.module_wind.DWA.metadata;
         module_wind_msg.DWB.metadata = clCanard.module_wind.DWB.metadata;
@@ -735,7 +735,8 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
-    report_t report = {0};
+    report_t report_srv = {0};
+    bool isRunIdleHookEnabled;
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parameter.command) {
@@ -785,12 +786,15 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.rbt_event = boot_state->tot_reset;
           resp.wdt_event = boot_state->wdt_reset;
 
-          // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, 0);
-
+          // coda di richiesta dati immediata. Full power for make report
+          isRunIdleHookEnabled = LowPower.isIdleHookEnabled();
+          LowPower.idleHookDisable();
+          param->requestDataQueue->Enqueue(&request_data);
           // coda di attesa dati (attesa rmap_calc_data)
-          param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report.avg_speed, (rmapdata_t) report.vavg_speed, (rmapdata_t) report.vavg10_direction);
+          param->reportDataQueue->Dequeue(&report_srv);
+          if(isRunIdleHookEnabled) LowPower.idleHookEnable();
+
+          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_speed, (rmapdata_t) report_srv.vavg_speed, (rmapdata_t) report_srv.vavg10_direction);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -799,14 +803,14 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report_srv, &resp);
           } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwb, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwc, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwd, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwe, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::dwf, &report_srv, &resp);
           }
           break;
 

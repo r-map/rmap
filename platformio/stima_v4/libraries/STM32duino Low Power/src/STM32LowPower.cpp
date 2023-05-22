@@ -89,6 +89,15 @@ void STM32LowPower::idleHookDisable(void)
   _hookEnable = false;
 }
 
+/**
+  * @brief  Return state of idle low power mode (STM32 sleep IdleHook)
+  * @param  None.
+  * @retval True if function is enabled
+  */
+bool STM32LowPower::isIdleHookEnabled(void)
+{
+  return _hookEnable;
+}
 
 /**
   * @brief  Enable the idle low power mode (STM32 sleep). Exit this mode on

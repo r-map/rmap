@@ -396,7 +396,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         rmap_module_Rain_1_0 module_rain_msg = {0};
 
         request_data_t request_data = {0};
-        report_t report = {0};
+        report_t report_pub = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
@@ -408,15 +408,15 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         // SET Dynamic metadata (Request data from master Only Data != Sample)
         clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
 
-        // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        // coda di richiesta dati
+        param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.tips_count, (rmapdata_t) report.rain, (rmapdata_t) report.rain_full, (rmapdata_t) report.quality);
+        param->reportDataQueue->Dequeue(&report_pub);
+        TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.tips_count, (rmapdata_t) report_pub.rain, (rmapdata_t) report_pub.rain_full, (rmapdata_t) report_pub.quality);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &module_rain_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report_pub, &module_rain_msg);
         // Metadata
         module_rain_msg.TBR.metadata = clCanard.module_rain.TBR.metadata;
 
@@ -642,7 +642,8 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
-    report_t report = {0};
+    report_t report_srv = {0};
+    bool isRunIdleHookEnabled;
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parameter.command) {
@@ -686,12 +687,15 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.rbt_event = boot_state->tot_reset;
           resp.wdt_event = boot_state->wdt_reset;
 
-          // coda di richiesta dati
-          param->requestDataQueue->Enqueue(&request_data, 0);
-
+          // coda di richiesta dati immediata. Full power for make report
+          isRunIdleHookEnabled = LowPower.isIdleHookEnabled();
+          LowPower.idleHookDisable();
+          param->requestDataQueue->Enqueue(&request_data);
           // coda di attesa dati (attesa rmap_calc_data)
-          param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.tips_count, (rmapdata_t) report.rain, (rmapdata_t) report.rain_full, (rmapdata_t) report.quality);
+          param->reportDataQueue->Dequeue(&report_srv);
+          if(isRunIdleHookEnabled) LowPower.idleHookEnable();
+
+          TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.tips_count, (rmapdata_t) report_srv.rain, (rmapdata_t) report_srv.rain_full, (rmapdata_t) report_srv.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -701,9 +705,9 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::tbm, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tbm, &report_srv, &resp);
           } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report_srv, &resp);
           }
           break;
 
