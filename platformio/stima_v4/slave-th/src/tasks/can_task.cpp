@@ -433,7 +433,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         rmap_module_TH_1_0 module_th_msg = {0};
 
         request_data_t request_data = {0};
-        report_t report = {0};
+        report_t report_pub = {0};
 
         // preparo la struttura dati per richiedere i dati al task che li elabora
         // in publish non inizializzo coda, pibblico in funzione del'ultima riichiesta di CFG
@@ -448,18 +448,18 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         clCanard.module_th.XTH.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati (senza attesa)
-        param->requestDataQueue->Enqueue(&request_data, 0);
+        param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
-        param->reportDataQueue->Dequeue(&report);
-        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.temperature.sample, (rmapdata_t) report.temperature.ist, (rmapdata_t) report.temperature.min, (rmapdata_t) report.temperature.avg, (rmapdata_t) report.temperature.max, (rmapdata_t) report.temperature.quality);
-        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.humidity.sample, (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
+        param->reportDataQueue->Dequeue(&report_pub);
+        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.temperature.sample, (rmapdata_t) report_pub.temperature.ist, (rmapdata_t) report_pub.temperature.min, (rmapdata_t) report_pub.temperature.avg, (rmapdata_t) report_pub.temperature.max, (rmapdata_t) report_pub.temperature.quality);
+        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report_pub.humidity.sample, (rmapdata_t)report_pub.humidity.ist, (rmapdata_t)report_pub.humidity.min, (rmapdata_t)report_pub.humidity.avg, (rmapdata_t)report_pub.humidity.max, (rmapdata_t)report_pub.humidity.quality);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &module_th_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &module_th_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &module_th_msg);
-        prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report_pub, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report_pub, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report_pub, &module_th_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report_pub, &module_th_msg);
         // Metadata
         module_th_msg.ITH.metadata = clCanard.module_th.ITH.metadata;
         module_th_msg.MTH.metadata = clCanard.module_th.MTH.metadata;
@@ -688,7 +688,7 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     request_data_t request_data = {0};
-    report_t report = {0};
+    report_t report_srv = {0};
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parameter.command) {
@@ -732,12 +732,12 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           resp.wdt_event = boot_state->wdt_reset;
 
           // coda di richiesta dati immediata
-          param->requestDataQueue->Enqueue(&request_data, 0);
+          param->requestDataQueue->Enqueue(&request_data);
 
           // coda di attesa dati (attesa rmap_calc_data)
-          param->reportDataQueue->Dequeue(&report);
-          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.temperature.sample, (rmapdata_t) report.temperature.ist, (rmapdata_t) report.temperature.min, (rmapdata_t) report.temperature.avg, (rmapdata_t) report.temperature.max, (rmapdata_t) report.temperature.quality);
-          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report.humidity.sample, (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
+          param->reportDataQueue->Dequeue(&report_srv);
+          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.temperature.sample, (rmapdata_t) report_srv.temperature.ist, (rmapdata_t) report_srv.temperature.min, (rmapdata_t) report_srv.temperature.avg, (rmapdata_t) report_srv.temperature.max, (rmapdata_t) report_srv.temperature.quality);
+          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.humidity.sample, (rmapdata_t)report_srv.humidity.ist, (rmapdata_t)report_srv.humidity.min, (rmapdata_t)report_srv.humidity.avg, (rmapdata_t)report_srv.humidity.max, (rmapdata_t)report_srv.humidity.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -746,36 +746,13 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           if(req->parameter.command == rmap_service_setmode_1_0_get_istant) {
             // Solo Istantaneo (Sample display request)
-            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report_srv, &resp);
           } else {
-            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &resp);
-            prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::mth, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report_srv, &resp);
           }
-
-bool pippo;
-pippo = false;
-if(report.temperature.quality > 100) {
-pippo = true;
-}
-if(report.temperature.avg = 0xFFFFu) {
-pippo = true;
-}
-if(report.temperature.min = 0xFFFFu) {
-pippo = true;
-}
-if(report.humidity.min = 0xFFFFu) {
-pippo = true;
-}
-if(report.humidity.max = 0xFFFFu) {
-pippo = true;
-}
-
-if(pippo) {
-    Serial.print("Pippo");
-}
-
           break;
 
         /// NOT USED
@@ -1042,23 +1019,6 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
                 rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
-
-bool pluto;
-pluto = false;
-if(module_th_resp.MTH.temperature.val.value = 0xFFFF) {
-pluto = true;
-}
-if(module_th_resp.NTH.temperature.val.value = 0xFFFF) {
-pluto = true;
-}
-if(module_th_resp.MTH.temperature.confidence.value > 100) {
-pluto = true;
-}
-
-if(pluto) {
-    Serial.print("pluto");
-}
-
                 // Serialize and publish the message:
                 uint8_t serialized[rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);

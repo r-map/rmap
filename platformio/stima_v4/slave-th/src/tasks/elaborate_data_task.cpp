@@ -161,7 +161,7 @@ void ElaborateDataTask::Run() {
     if (!param.elaborateDataQueue->IsEmpty()) {
       if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborateDataQueue->Dequeue(&edata, 0);
+        param.elaborateDataQueue->Dequeue(&edata);
         switch (edata.index)
         {
         case TEMPERATURE_MAIN_INDEX:
@@ -206,12 +206,12 @@ void ElaborateDataTask::Run() {
 
     // enqueued from can task (get data, start command...)
     if (!param.requestDataQueue->IsEmpty()) {
-      if (param.requestDataQueue->Peek(&request_data, 0))
+      if (param.requestDataQueue->Peek(&request_data))
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
-        param.requestDataQueue->Dequeue(&request_data, 0);
+        param.requestDataQueue->Dequeue(&request_data);
         make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-        param.reportDataQueue->Enqueue(&report, 0);
+        param.reportDataQueue->Enqueue(&report);
       }
     }
 
@@ -616,8 +616,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // Trace report final
-    TRACE_INFO_F(F("--> temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.temperature.ist, (rmapdata_t)report.temperature.min, (rmapdata_t)report.temperature.avg, (rmapdata_t)report.temperature.max, (rmapdata_t)report.temperature.quality);
-    TRACE_INFO_F(F("--> humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
+    TRACE_INFO_F(F("--> -> temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.temperature.ist, (rmapdata_t)report.temperature.min, (rmapdata_t)report.temperature.avg, (rmapdata_t)report.temperature.max, (rmapdata_t)report.temperature.quality);
+    TRACE_INFO_F(F("--> -> humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report.humidity.ist, (rmapdata_t)report.humidity.min, (rmapdata_t)report.humidity.avg, (rmapdata_t)report.humidity.max, (rmapdata_t)report.humidity.quality);
   }
 }
 
