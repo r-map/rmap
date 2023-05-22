@@ -208,6 +208,8 @@ typedef struct
       bool is_disconnecting;
       bool is_ppp_estabilished;
 
+      bool is_dns_failed_resolve;
+
       bool is_ntp_synchronized;
       bool is_ntp_synchronizing;
 

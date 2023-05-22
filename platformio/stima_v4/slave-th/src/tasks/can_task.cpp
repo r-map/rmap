@@ -753,6 +753,29 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
             prepareSensorsDataValue(canardClass::Sensor_Type::nth, &report, &resp);
             prepareSensorsDataValue(canardClass::Sensor_Type::xth, &report, &resp);
           }
+
+bool pippo;
+pippo = false;
+if(report.temperature.quality > 100) {
+pippo = true;
+}
+if(report.temperature.avg = 0xFFFFu) {
+pippo = true;
+}
+if(report.temperature.min = 0xFFFFu) {
+pippo = true;
+}
+if(report.humidity.min = 0xFFFFu) {
+pippo = true;
+}
+if(report.humidity.max = 0xFFFFu) {
+pippo = true;
+}
+
+if(pippo) {
+    Serial.print("Pippo");
+}
+
           break;
 
         /// NOT USED
@@ -1019,6 +1042,23 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
                 rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
+
+bool pluto;
+pluto = false;
+if(module_th_resp.MTH.temperature.val.value = 0xFFFF) {
+pluto = true;
+}
+if(module_th_resp.NTH.temperature.val.value = 0xFFFF) {
+pluto = true;
+}
+if(module_th_resp.MTH.temperature.confidence.value > 100) {
+pluto = true;
+}
+
+if(pluto) {
+    Serial.print("pluto");
+}
+
                 // Serialize and publish the message:
                 uint8_t serialized[rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);

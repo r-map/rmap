@@ -120,6 +120,19 @@ void ElaborateDataTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  #ifdef USE_SIMULATOR
+  for(uint16_t iInit=0; iInit<900; iInit++)
+  {
+    edata.value = 29000 + random(300);
+    addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
+    addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
+    addValue<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+    edata.value = 50 + random(10);
+    addValue<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX, edata.value);
+    addValue<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX, edata.value);
+  }
+  #endif
+
   while (true) {
 
     // ********* SYSTEM QUEUE MESSAGE ***********

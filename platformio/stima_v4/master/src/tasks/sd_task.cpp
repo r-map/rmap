@@ -1183,6 +1183,7 @@ void SdTask::Run()
             if(putFile) {
               uint16_t writtenBytes;
               writtenBytes = putFile.write(file_put_request.block, file_put_request.block_lenght);
+              putFile.flush();
               // Bytes written is ok)
               if(writtenBytes == file_put_request.block_lenght)
                 file_put_response.done_operation = true;

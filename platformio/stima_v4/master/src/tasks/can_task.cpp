@@ -1374,7 +1374,7 @@ void CanTask::Run() {
                     param.configuration->board_slave[iIdxRst].can_publish_id = 0xFFFFu;
                     param.configuration->board_slave[iIdxRst].serial_number = 0;
                     for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
-                        param.configuration->board_slave[idxFixed].is_configured[isCfg] = false;
+                        param.configuration->board_slave[iIdxRst].is_configured[isCfg] = false;
                 }
                 #endif
 
@@ -1973,6 +1973,36 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[1] = retTHData->ITH.humidity.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retTHData->state == rmap_service_setmode_1_0_get_last) {
+                                        bool pippo;
+                                        pippo=false;
+                                        if((retTHData->MTH.temperature.val.value == 0) || (retTHData->MTH.temperature.val.value = 0xFFFFu) || (retTHData->MTH.temperature.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if((retTHData->MTH.humidity.val.value == 0) || (retTHData->MTH.humidity.val.value = 0xFFFFu) || (retTHData->MTH.humidity.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if((retTHData->NTH.temperature.val.value == 0) || (retTHData->NTH.temperature.val.value = 0xFFFFu) || (retTHData->NTH.temperature.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if((retTHData->NTH.humidity.val.value == 0) || (retTHData->NTH.humidity.val.value = 0xFFFFu) || (retTHData->NTH.humidity.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if((retTHData->XTH.temperature.val.value == 0) || (retTHData->XTH.temperature.val.value = 0xFFFFu) || (retTHData->XTH.temperature.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if((retTHData->XTH.humidity.val.value == 0) || (retTHData->XTH.humidity.val.value = 0xFFFFu) || (retTHData->XTH.humidity.confidence.value > 100))
+                                        {
+                                            pippo = true;
+                                        }
+                                        if(pippo) {
+                                            Serial.print("Pippo2");
+                                        }
+
                                         // data value id rmap_service_setmode_1_0_get_last into queue MMC
                                         // Copy Flag State
                                         bit8Flag = 0;
