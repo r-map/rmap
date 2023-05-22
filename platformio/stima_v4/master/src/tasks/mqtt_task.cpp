@@ -350,15 +350,18 @@ void MqttTask::Run()
       }
       bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
       indexPosition = 0;
-      if(!param.system_status->flags.sd_card_ready) {             // SD CARD
+      // SD CARD
+      if(!param.system_status->flags.sd_card_ready) {
          bitState[indexPosition] = '1';
       }
       indexPosition++;
-      if(!param.system_status->data_master.fw_upgradable) {       // IS FIRMWARE AVAIABLE?
+      // IS FIRMWARE AVAIABLE?
+      if(!param.system_status->data_master.fw_upgradable) {
          bitState[indexPosition] = '1';
       }
       indexPosition++;
-      if(param.system_status->flags.power_state == Power_Mode::pwr_critical) {  // CRITICAL POWER?
+      // CRITICAL POWER FLAG? Not Critical Power mode selected but FLAG from MPPT
+      if(param.system_status->flags.power_critical) {
          bitState[indexPosition] = '1';
       }
 
@@ -1319,7 +1322,8 @@ void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *topic, char *me
   // Check security Len Message before push queue message data
   if((lenTopic + lenMessage) < RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE) {
     strcpy((char*)archive_backup_data_line.block, topic);
-    strcpy((char*)(archive_backup_data_line.block + lenTopic), message);
+    archive_backup_data_line.block[lenTopic] = ' ';
+    strcpy((char*)(archive_backup_data_line.block + lenTopic + 1), message);
     // Send to queue with waiting Queue empty from SD Task if Full
     param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
   }
@@ -1357,7 +1361,10 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   }
   
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish temperature value
   do
@@ -1402,7 +1409,10 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish humidity value
   do
@@ -1615,7 +1625,10 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish rain value
   do
@@ -1718,7 +1731,10 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish radiation value
   do
@@ -1767,7 +1783,10 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish speed value
   do
@@ -1811,7 +1830,10 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish direction value
   do
@@ -1860,7 +1882,10 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish speed value
   do
@@ -1895,7 +1920,10 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish direction value
   do
@@ -1944,7 +1972,10 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish speed peak value
   do
@@ -1988,7 +2019,10 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish speed long value
   do
@@ -2037,7 +2071,10 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish speed peak value
   do
@@ -2086,7 +2123,10 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish class speed value
   do
@@ -2135,7 +2175,10 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish peak value
   do
@@ -2179,7 +2222,10 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish direction long value
   do
@@ -2706,7 +2752,10 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish soil value
   do
@@ -2809,7 +2858,10 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish input voltage value
   do
@@ -2853,7 +2905,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish input current value
   do
@@ -2897,7 +2951,12 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+  if (!error) {
+      // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
+  }
 
   // publish battery voltage value
   do
@@ -2941,7 +3000,10 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish battery current value
   do
@@ -2985,7 +3047,10 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   }
 
   // Saving Data Backup Older Data Firmat
-  putRmapBackupArchiveData(dateTime, topic, message);
+    // Saving Data Backup Older Data Firmat
+  if (!error) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
 
   // publish battery charge value
   do

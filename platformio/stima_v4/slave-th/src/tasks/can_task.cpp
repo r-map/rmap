@@ -31,7 +31,6 @@
 #define LOCAL_TASK_ID   CAN_TASK_ID
 
 #include "tasks/can_task.h"
-#include "STM32LowPower.h"
 
 using namespace cpp_freertos;
 

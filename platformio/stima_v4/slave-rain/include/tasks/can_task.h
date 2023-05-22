@@ -43,6 +43,7 @@
 #include "drivers/module_slave_hal.hpp"
 
 #include <STM32RTC.h>
+#include <STM32LowPower.h>
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"

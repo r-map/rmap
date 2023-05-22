@@ -305,6 +305,7 @@ typedef struct
       bool rmap_server_running;  // True if get rmap data from slave module procedure over CAN are running
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
       bool config_empty;         // True if configuration missed on system
+      bool power_critical;       // True if power critical mode is activated from MPPT Module
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;
 

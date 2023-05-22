@@ -2254,6 +2254,8 @@ void CanTask::Run() {
                                         if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
                                         if(retPwrData->is_power_critical) bit8Flag|=0x0002;
                                         param.systemStatusLock->Take();
+                                        // Copy critical power flag
+                                        param.system_status->flags.power_critical = retPwrData->is_power_critical;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
@@ -3122,10 +3124,13 @@ void CanTask::Run() {
                     // Comunicate to the network CAN nominal power request. All Node enable DeepSleep and exit FullPower
                     clCanard.flag.enable_sleep();
                     param.systemStatusLock->Take();
-                    // Normal POWER request for operation specific
-                    param.system_status->flags.power_state = Power_Mode::pwr_nominal;
+                    // Normal POWER request for operation specific. If critical Power... Power Critical mode is selected
                     // Depending from MPPT Level status Critical for Other Method
-                    // TODO: Search MPPT Module Type... Verify Level TBatt, Select a Method of Power
+                    if(param.system_status->flags.power_critical) {
+                        param.system_status->flags.power_state = Power_Mode::pwr_critical;
+                    } else {
+                        param.system_status->flags.power_state = Power_Mode::pwr_nominal;
+                    }
                     param.systemStatusLock->Give();
                     // Applicate command for All Network UAVCAN
                     clCanard.flag.set_local_power_mode(param.system_status->flags.power_state);
