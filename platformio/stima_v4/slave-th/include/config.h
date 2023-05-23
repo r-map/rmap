@@ -52,7 +52,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def USE_SIMULATOR
 \brief Random generator value for Local Test
 */
-#define USE_SIMULATOR
+// #define USE_SIMULATOR
 
 /*!
 \def MODULE_TYPE
@@ -140,7 +140,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
-#define SENSORS_ACQUISITION_DELAY_MS      (1000)
+#define SENSORS_ACQUISITION_DELAY_MS      (4000)
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 

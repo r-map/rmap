@@ -114,7 +114,7 @@ void TemperatureHumidtySensorTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Starting RESET
-//  powerOff();
+  // powerOff();
 
   while (true)
   {
@@ -122,9 +122,6 @@ void TemperatureHumidtySensorTask::Run() {
     switch (state)
     {
     case SENSOR_STATE_WAIT_CFG:
-
-// TODO: remove
-    param.configuration->sensor_acquisition_delay_ms = 1000;
 
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
@@ -349,7 +346,7 @@ void TemperatureHumidtySensorTask::Run() {
 
       case SENSOR_STATE_END:
         #ifdef TH_TASK_LOW_POWER_ENABLED
-        //powerOff();
+        // powerOff();
         #endif
 
         #if (ENABLE_STACK_USAGE)
@@ -365,9 +362,9 @@ void TemperatureHumidtySensorTask::Run() {
           powerOff();
         }
 
-        param.wireLock->Take();
-        param.wire->begin();
-        param.wireLock->Give();
+        // param.wireLock->Take();
+        // param.wire->begin();
+        // param.wireLock->Give();
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);

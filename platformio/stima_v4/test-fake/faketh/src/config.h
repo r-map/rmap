@@ -7,7 +7,7 @@
 #define CONFVER "confth00"
 
 // activate debug on serial port as alternative to plot graph
-//#define DEBUGONSERIAL
+#define DEBUGONSERIAL
 
 #ifdef DEBUGONSERIAL
 #define IF_SDEBUG(x) ({x;})
