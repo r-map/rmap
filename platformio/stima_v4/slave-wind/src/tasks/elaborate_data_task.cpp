@@ -121,6 +121,13 @@ void ElaborateDataTask::Run() {
   // Data Simulator
   #ifdef USE_SIMULATOR
   int simulate_dir = 0;
+  for(uint16_t initData=0; initData<900; initData++) {
+      addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, false);
+      addValue<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX, (rmapdata_t)20);
+      simulate_dir++;
+      simulate_dir%=360;
+      addValue<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX, (rmapdata_t)simulate_dir);
+  }
   #endif
 
   while (true) {
@@ -295,7 +302,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   float peak_gust_speed = -1.0;
   float peak_gust_direction = 0;
 
-  float vavg_speed_o = -1.0;
+  float vavg_speed_o = 0;
   float vavg_direction_o = 0;
 
   float long_gust_speed = -1.0;
@@ -565,7 +572,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
     if (valid_b_o_per >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
-      getSDFromUV(ub_o, vb_o, &vavg_speed_o, &vavg_direction_o);
+      getSDFromUV(ub_o, vb_o, &vavg_speed, &vavg_direction);
       report.vavg_speed = vavg_speed * WIND_CASTING_SPEED_MULT;
       report.vavg_direction = round(vavg_direction);
       report.peak_gust_speed = peak_gust_speed * WIND_CASTING_SPEED_MULT;
