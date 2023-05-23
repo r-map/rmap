@@ -387,22 +387,23 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 500, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 1400, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 1500, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_USBSERIAL)
+  // Do not less stack < 900. Overflow on RPC Command
   static UsbSerialTask usbSerial_task("UsbSerialTask", 1100, OS_TASK_PRIORITY_01, usbSerialParam);
 #endif
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 300, OS_TASK_PRIORITY_03, lcdParam);
+  static LCDTask lcd_task("LcdTask", 500, OS_TASK_PRIORITY_03, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 12000, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 12100, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
@@ -414,11 +415,13 @@ void setup() {
 #endif
 
 #if (USE_HTTP)
-  static HttpTask http_task("HttpTask", 900, OS_TASK_PRIORITY_02, httpParam);
+  // Do not less stack < 1200. Overflow on RPC Command
+  static HttpTask http_task("HttpTask", 1400, OS_TASK_PRIORITY_02, httpParam);
 #endif
 
 #if (USE_MQTT)
-  static MqttTask mqtt_task("MqttTask", 1100, OS_TASK_PRIORITY_02, mqttParam);
+  // Do not less stack < 1200. Overflow on RPC Command
+  static MqttTask mqtt_task("MqttTask", 1400, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);

@@ -117,6 +117,15 @@ void ElaborateDataTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  #if defined(USE_SIMULATOR) && defined(INIT_SIMULATOR)
+  for(uint16_t iInit=0; iInit<900; iInit++) {
+    edata.value = 500 + random(200);
+    TRACE_VERBOSE_F(F("Solar radiation: %d\r\n"), edata.value);
+    addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, false);
+    addValue<sample_t, uint16_t, rmapdata_t>(&solar_radiation_samples, SAMPLES_COUNT_MAX, edata.value);
+  }
+  #endif
+
   while (true) {
 
     // ********* SYSTEM QUEUE MESSAGE ***********
@@ -151,7 +160,7 @@ void ElaborateDataTask::Run() {
         case SOLAR_RADIATION_INDEX:
           // Data Simulator
           #ifdef USE_SIMULATOR
-          edata.value = 500 + random(100);
+          edata.value = 500 + random(200);
           #endif
           TRACE_VERBOSE_F(F("Solar radiation: %d\r\n"), edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);

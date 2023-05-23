@@ -167,7 +167,7 @@ void SupervisorTask::Run()
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
         strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
-        param.configuration->report_s = 300;
+        param.configuration->report_s = 900;
         param.configuration->observation_s = 60;
         // param.configuration->observation_s = 30;
         // param.configuration->report_s = 60;
@@ -244,10 +244,11 @@ void SupervisorTask::Run()
       }
 
       #if (!TEST_CONNECTION)
-      // Checkinng starting Connection inibition next Start... If something Wrong... (Default 10 min)
-      if((rtc.getEpoch() - param.system_status->data_master.connect_run_epoch) > MIN_INIBITH_CONNECT_RETRY_S)
-      {
-
+      // Checking starting Connection inibition next Start... If something Wrong... (Default 10 min)
+      // RPC Request Command as (configure or download firmware) will start immediatly
+      if(((rtc.getEpoch() - param.system_status->data_master.connect_run_epoch) > MIN_INIBITH_CONNECT_RETRY_S)||
+          (param.system_status->command.do_http_configuration_update)||
+          (param.system_status->command.do_http_firmware_download)) {
         // ? External or internal request command strart connection
         // New data to send are syncronized with add new data (report_s time at data acquire)...
         // If config_empty ( Start connection every hour... )

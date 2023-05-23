@@ -231,7 +231,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7400, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7300, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_WDT)

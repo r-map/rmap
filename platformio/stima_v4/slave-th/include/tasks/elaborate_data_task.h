@@ -102,6 +102,8 @@ private:
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkTemperature(rmapdata_t main_remperature, rmapdata_t redundant_remperature);
   uint8_t checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
+  rmapdata_t getBetterTemperature(rmapdata_t main_remperature, rmapdata_t redundant_remperature);
+  rmapdata_t getBetterHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity);
 
   State_t state;
   ElaborateDataParam_t param;

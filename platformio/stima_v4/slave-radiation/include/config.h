@@ -50,9 +50,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 /*!
 \def USE_SIMULATOR
-\brief Random generator value for Local Test (500 + RNDx100) AVG ->550
+\brief Random generator value for Local Test
+\def INIT_SIMULATOR
+\brief Fill buffer data wuith 900 data value init
 */
 #define USE_SIMULATOR
+#define INIT_SIMULATOR
 
 /*!
 \def MODULE_TYPE

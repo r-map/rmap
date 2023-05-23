@@ -189,7 +189,6 @@ void ElaborateDataTask::Run() {
 /// @param  None
 /// @return Quality of measure (0-100%)
 uint8_t ElaborateDataTask::checkRain(void) {
-  // TODO: Set Check (redundamt, Inclinometer pole)
   float quality = 100.0;
   if(param.system_status->events.is_clogged_up) {
     quality = 0.0;

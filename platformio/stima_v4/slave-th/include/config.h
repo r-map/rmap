@@ -51,8 +51,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /*!
 \def USE_SIMULATOR
 \brief Random generator value for Local Test
+\def INIT_SIMULATOR
+\brief Fill buffer data wuith 900 data value init
 */
 // #define USE_SIMULATOR
+// #define INIT_SIMULATOR
 
 /*!
 \def MODULE_TYPE
@@ -154,8 +157,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Limit range for module sensor
 #define MAX_VALID_TEMPERATURE             (100.0)
 #define MIN_VALID_TEMPERATURE             (-50.0)
+#define MAX_DIFF_VALUE_TEMPERATURE        (1.5)
+#define MAX_DIFF_VALUE_TEMPERATURE_POWER  (100)
 #define MAX_VALID_HUMIDITY                (100.0)
 #define MIN_VALID_HUMIDITY                (0.0)
+#define MAX_DIFF_VALUE_HUMIDITY           (6)
+#define MAX_DIFF_VALUE_HUMIDITY_POWER     (1)
 
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)

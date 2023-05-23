@@ -120,9 +120,8 @@ void ElaborateDataTask::Run() {
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-  #ifdef USE_SIMULATOR
-  for(uint16_t iInit=0; iInit<900; iInit++)
-  {
+  #if defined(USE_SIMULATOR) && defined(INIT_SIMULATOR)
+  for(uint16_t iInit=0; iInit<900; iInit++) {
     edata.value = 29000 + random(300);
     addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
     addValue<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX, edata.value);
@@ -227,7 +226,8 @@ void ElaborateDataTask::Run() {
 }
 
 /// @brief Check data in and perform calculate of Optional Quality value
-/// @param data_in real value readed from sensor
+/// @param main_temperature data in from sensor main
+/// @param redundant_temperature data in from sensor redundant
 /// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
   uint8_t quality = 0;
@@ -287,7 +287,8 @@ uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdat
 }
 
 /// @brief Check data in and perform calculate of Optional Quality value
-/// @param data_in real value readed from sensor
+/// @param main_humidity data in from sensor main
+/// @param redundant_humidity data in from sensor redundant
 /// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
   uint8_t quality = 0;
@@ -341,6 +342,91 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
   #endif
 
   return quality;
+}
+
+/// @brief Get data for redundant model and get mean value for sensor if is possible
+/// @param main_temperature data in from sensor main
+/// @param redundant_temperature data in from sensor redundant
+/// @return value of mean or single value for measurement
+rmapdata_t ElaborateDataTask::getBetterTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
+  rmapdata_t temperature;
+
+  float main = ((main_temperature - 27315.0) / 100.0);
+  float redundant = ((redundant_temperature - 27315.0) / 100.0);
+
+  // main_sensor fail?
+  if ((main > MAX_VALID_TEMPERATURE) || (main < MIN_VALID_TEMPERATURE)) {
+    // redundant_sensor fail?
+    if ((redundant > MAX_VALID_TEMPERATURE) || (redundant < MIN_VALID_TEMPERATURE)) {
+      temperature = RMAPDATA_MAX;
+    } else {
+      // Return sensor redundant
+      temperature = redundant_temperature;
+    }
+  } else {
+    // redundant_sensor fail?
+    if ((redundant > MAX_VALID_TEMPERATURE) || (redundant < MIN_VALID_TEMPERATURE)) {
+      // Return sensor main
+      temperature = main_temperature;
+    } else {
+      // Test if measurement are into valid range, otherwise return main_sensor if ok AVG from main and redundant
+      if(main_temperature >= redundant_temperature) {
+        if ((main_temperature - redundant_temperature) <= (MAX_DIFF_VALUE_TEMPERATURE * MAX_DIFF_VALUE_TEMPERATURE_POWER)) {
+          temperature = (main_temperature + redundant_temperature) / 2;
+        } else {
+          temperature = main_temperature;
+        }
+      } else {
+        if ((redundant_temperature - main_temperature) <= (MAX_DIFF_VALUE_TEMPERATURE * MAX_DIFF_VALUE_TEMPERATURE_POWER)) {
+          temperature = (main_temperature + redundant_temperature) / 2;
+        } else {
+          temperature = main_temperature;
+        }
+      }
+    }
+  }
+  return temperature;
+}
+
+/// @brief Get data for redundant model and get mean value for sensor if is possible
+/// @param main_humidity data in from sensor main
+/// @param redundant_humidity data in from sensor redundant
+/// @return value of mean or single value for measurement
+rmapdata_t ElaborateDataTask::getBetterHumidity(rmapdata_t main_humidity, rmapdata_t redundant_humidity) {
+  rmapdata_t humidity;
+
+  // main_sensor fail?
+  if ((main_humidity > MAX_VALID_HUMIDITY) || (main_humidity < MIN_VALID_HUMIDITY)) {
+    // redundant_sensor fail?
+    if ((redundant_humidity > MAX_VALID_HUMIDITY) || (redundant_humidity < MIN_VALID_HUMIDITY)) {
+      humidity = RMAPDATA_MAX;
+    } else {
+      // Return sensor redundant
+      humidity = redundant_humidity;
+    }
+  } else {
+    // redundant_sensor fail?
+    if ((redundant_humidity > MAX_VALID_HUMIDITY) || (redundant_humidity < MIN_VALID_HUMIDITY)) {
+      // Return sensor main
+      humidity = main_humidity;
+    } else {
+      // Test if measurement are into valid range, otherwise return main_sensor
+      if(main_humidity >= redundant_humidity) {
+        if ((main_humidity - redundant_humidity) <= (MAX_DIFF_VALUE_HUMIDITY * MAX_DIFF_VALUE_HUMIDITY_POWER)) {
+          humidity = (main_humidity + redundant_humidity) / 2;
+        } else {
+          humidity = main_humidity;
+        }
+      } else {
+        if ((redundant_humidity - main_humidity) <= (MAX_DIFF_VALUE_HUMIDITY * MAX_DIFF_VALUE_HUMIDITY_POWER)) {
+          humidity = (main_humidity + redundant_humidity) / 2;
+        } else {
+          humidity = main_humidity;
+        }
+      }
+    }
+  }
+  return humidity;
 }
 
 /// @brief Create a report from buffered sample
@@ -511,6 +597,10 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #endif
       total_count_main_temperature_s++;
       avg_main_temperature_quality_s += (float)(((float)checkTemperature(main_temperature_s, redundant_temperature_s) - avg_main_temperature_quality_s) / total_count_main_temperature_s);
+      #if (USE_REDUNDANT_SENSOR)
+      // Only after calculate quality... Reget data for better choiche from main and redundant value (avg if is ok...)
+      main_temperature_s = getBetterTemperature(main_temperature_s, redundant_temperature_s);
+      #endif
       if ((ISVALID_RMAPDATA(main_temperature_s)) && !measures_maintenance)
       {
         valid_count_main_temperature_s++;
@@ -526,6 +616,10 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       #endif
       total_count_main_humidity_s++;
       avg_main_humidity_quality_s += (float)(((float)checkHumidity(main_humidity_s, redundant_humidity_s) - avg_main_humidity_quality_s) / total_count_main_humidity_s);
+      #if (USE_REDUNDANT_SENSOR)
+      // Only after calculate quality... Reget data for better choiche from main and redundant value (avg if is ok...)
+      main_humidity_s = getBetterHumidity(main_humidity_s, redundant_humidity_s);
+      #endif
       if ((ISVALID_RMAPDATA(main_humidity_s)) && !measures_maintenance)
       {
         valid_count_main_humidity_s++;

@@ -224,14 +224,14 @@ void setup() {
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SOLAR_RADIATION)
   static SolarRadiationSensorTask solar_radiation_sensor_task("RadiationTask", 350, OS_TASK_PRIORITY_03, solarRadiationSensorParam);
 #endif
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 350, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
   static AccelerometerTask accelerometer_task("AccelerometerTask", 350, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7200, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7300, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_WDT)

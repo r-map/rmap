@@ -1809,8 +1809,6 @@ void CanTask::Run() {
                     // need do acquire data value for RMAP Archive?
                     // Perform an Full Power request Method SEC_WAKE_UP_MODULE_FOR_QUERY (5) second before Starting aquire data
                     // In this time we can regulate syncro_time method and perform Full Wake UP of remote Module
-            // TODO: test
-            // if (((curEpoch + SEC_WAKE_UP_MODULE_FOR_QUERY) / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                     if (((curEpoch + SEC_WAKE_UP_MODULE_FOR_QUERY) / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start full power for sending request and syncronize time\r\n"));
@@ -1826,17 +1824,12 @@ void CanTask::Run() {
                         // Normal mode (Not WakeUP)
                         bStartSetFullPower = false;
                     }
-            // TODO: test
-            // if ((curEpoch / 60) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                     if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
-                        // TODO: TEST
                         param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / param.configuration->report_s;
                         param.system_status->datetime.epoch_sensors_get_value = (curEpoch / param.configuration->report_s) * param.configuration->report_s;
-                        // param.system_status->datetime.ptr_time_for_sensors_get_value = curEpoch / 60;
-                        // param.system_status->datetime.epoch_sensors_get_value = (curEpoch / 60) * 60;
                         // Calculate expected/recived HeartBeat sequence... and reset counter
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
@@ -1879,11 +1872,8 @@ void CanTask::Run() {
                                 // higher priority guaranteed
                                 if(bStartGetData) {
                                     paramRequest.command = rmap_service_setmode_1_0_get_last;
-                                    // TODO: Sistemare
-                                    paramRequest.obs_sectime = 60;
-                                    paramRequest.run_sectime = 900;
-                                    // paramRequest.obs_sectime = param.configuration->observation_s;
-                                    // paramRequest.run_sectime = param.configuration->report_s;
+                                    paramRequest.obs_sectime = param.configuration->observation_s;
+                                    paramRequest.run_sectime = param.configuration->report_s;
                                 } else {
                                     paramRequest.command = rmap_service_setmode_1_0_get_istant;
                                     paramRequest.obs_sectime = 0;

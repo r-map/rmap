@@ -119,9 +119,9 @@ void ElaborateDataTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Data Simulator
-  #ifdef USE_SIMULATOR
+  #if defined(USE_SIMULATOR) && defined(INIT_SIMULATOR)
   int simulate_dir = 0;
-  for(uint16_t initData=0; initData<900; initData++) {
+  for(uint16_t iInit=0; iInit<900; iInit++) {
       addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, false);
       addValue<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX, (rmapdata_t)20);
       simulate_dir++;

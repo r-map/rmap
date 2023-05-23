@@ -89,10 +89,12 @@ void RegisterRPC::init(JsonRPC *streamRpc)
 /// @return execute level error or ok
 int RegisterRPC::admin(JsonObject params, JsonObject result)
 {
+  bool error_command = true;
   for (JsonPair it : params)
   {
     if (strcmp(it.key().c_str(), "fdownload") == 0)
     {
+      error_command = false;
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
@@ -103,11 +105,34 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         param.systemStatusLock->Give();
       }
     }
+    else if (strcmp(it.key().c_str(), "cdownload") == 0)
+    {
+      error_command = false;
+      // download lastes configuration from http command after configurate TLS Key from serial
+      if (it.value().as<bool>() == true)
+      {
+        TRACE_INFO_F(F("RPC: DO UPDATE CONFIGURATION\r\n"));
+        // Start command sequnce for download module firmware
+        param.systemStatusLock->Take();
+        param.system_status->command.do_http_configuration_update = true;
+        param.systemStatusLock->Give();
+      }
+    }
   }
 
-  result[F("state")] = "done";
-  // Do something
-  return E_SUCCESS;
+  // error_command = Out of command context but command request valid
+  // is_error = error command or out of limit parameter
+  if (error_command)
+  {
+    // Result an error
+    result[F("state")] = F("error");
+    return E_INVALID_REQUEST;
+  }
+  else
+  {
+    result[F("state")] = F("done");
+    return E_SUCCESS;
+  }
 }
 #endif
 
@@ -462,7 +487,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       if((sensorId<SETUP_ID)&&(isSlaveConfigure)) {
         param.configurationLock->Take();
         param.configuration->board_slave[slaveId].is_configured[sensorId] = true;
-
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangePindicator =
           it.value().as<JsonArray>()[0].as<unsigned int>();
         param.configuration->board_slave[slaveId].metadata[sensorId].timerangeP1 =
@@ -1007,6 +1031,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
 int RegisterRPC::recovery(JsonObject params, JsonObject result)
 {
   bool rmap_data_error = false;
+  bool error_command = true;
   static int tmpstate;
   rmap_get_request_t rmap_get_request = {0};
   rmap_get_response_t rmap_get_response = {0};
@@ -1017,6 +1042,7 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
     if (strcmp(it.key().c_str(), "dts") == 0)
     {
       DateTime startDate;
+      error_command = false;
       startDate.year = it.value().as<JsonArray>()[0].as<int>();
       startDate.month = it.value().as<JsonArray>()[1].as<int>();
       startDate.day = it.value().as<JsonArray>()[2].as<int>();
@@ -1046,6 +1072,7 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
     else if (strcmp(it.key().c_str(), "dte") == 0)
     {
       DateTime endDate;
+      error_command = false;
       endDate.year = it.value().as<JsonArray>()[0].as<int>();
       endDate.month = it.value().as<JsonArray>()[1].as<int>();
       endDate.day = it.value().as<JsonArray>()[2].as<int>();
@@ -1070,13 +1097,24 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
       rmap_data_error |= rmap_get_response.result.event_error;
     }
   }
+
   // ? Any Error on RMAP Set Pointer
-  if (rmap_data_error)
+  if (error_command)
+  {
+    // error_command = Out of command context but command request valid
+    // is_error = error command or out of limit parameter
+    // Result an error
+    result[F("state")] = F("error");
+    return E_INVALID_REQUEST;
+  }
+  else if (rmap_data_error)
   {
     tmpstate = E_INVALID_PARAMS;
     result[F("state")] = F("error");
     TRACE_ERROR_F(F("RPC invalid data pointer params [ %s ]"), FAIL_STRING);
-  } else {
+  }
+  else
+  {
     TRACE_INFO_F(F("RPC: Request Recovery\r\n"));
     tmpstate = E_SUCCESS;
     result[F("state")] = F("done");
@@ -1090,6 +1128,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
   bool inibith_reboot = false;
+  bool error_command = true;
 
   TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
 
@@ -1098,6 +1137,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     // do the firmware update on all of the boards
     if (strcmp(it.key().c_str(), "fupdate") == 0)
     {
+      error_command = false;
       if (it.value().as<bool>() == true)
       {
         TRACE_INFO_F(F("RPC: Starting update firmware\r\n"));
@@ -1135,8 +1175,20 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     }
   }
 
-  // Send a response...
-  result[F("state")] = "done";
+  // ? Any Error on RMAP Set Pointer
+  if (error_command)
+  {
+    // error_command = Out of command context but command request valid
+    // is_error = error command or out of limit parameter
+    // Result an error
+    result[F("state")] = F("error");
+    return E_INVALID_REQUEST;
+  }
+  else
+  {
+    // Send a response...
+    result[F("state")] = "done";
+  }
 
   #if (ENABLE_RPC_LOCAL_REBOOT)
   if(!inibith_reboot) {

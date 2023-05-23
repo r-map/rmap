@@ -141,8 +141,8 @@ void UsbSerialTask::Run()
         // On Event WakeUp
         task_usb_sleep = false;
         if(param.rpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS))) {
-          is_event_rpc = false;
-          while(!is_event_rpc) {
+          is_event_rpc = true;
+          while(is_event_rpc) {
             // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
             param.system_status->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
             param.streamRpc->parseStream(&is_event_rpc, &SerialUSB, JRPC_DEFAULT_TIMEOUT_MS, RPC_TYPE_SERIAL);

@@ -95,7 +95,7 @@
 // Generic Semaphore Time acquire RTC
 #define ENABLE_RTC            (true)
 #define RTC_WAIT_DELAY_MS     (100)
-#define RPC_WAIT_DELAY_MS     (100)
+#define RPC_WAIT_DELAY_MS     (500)
 #define TASK_WAIT_REALTIME_DELAY_MS    (1)  // Max Speed TASK Non Blocking Operation
 
 // HW Diag PIN redefine

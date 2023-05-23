@@ -224,19 +224,19 @@ void setup() {
   // *****************************************************************************
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
-  static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 250, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if ((MODULE_TYPE == STIMA_MODULE_TYPE_THR) || (MODULE_TYPE == STIMA_MODULE_TYPE_TH))
-  static TemperatureHumidtySensorTask th_sensor_task("THTask", 450, OS_TASK_PRIORITY_03, thSensorParam);
+  static TemperatureHumidtySensorTask th_sensor_task("THTask", 400, OS_TASK_PRIORITY_03, thSensorParam);
 #endif
-  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 500, OS_TASK_PRIORITY_02, elaborateDataParam);
+  static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
 #if (ENABLE_ACCELEROMETER)
   static AccelerometerTask accelerometer_task("AccelerometerTask", 350, OS_TASK_PRIORITY_01, accelerometerParam);
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 7400, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 7300, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (ENABLE_WDT)
