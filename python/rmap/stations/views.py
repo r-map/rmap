@@ -126,7 +126,7 @@ def mystationstatus_detail(request,user,slug):
     month='{:02d}'.format(showdate.month)
     day='{:02d}'.format(showdate.day)
     hour='{:02d}'.format(showdate.hour)
-    
+
     mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
     return render(request, 'stations/stationstatus_detail.html',{"object":mystation,"year":year,"month":month,"day":day,"hour":hour})
 

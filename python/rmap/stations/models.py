@@ -762,6 +762,37 @@ class StationMaintStatus(models.Model):
     firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware minor version"))
 
 
+
+statusb_explain_matrix={}
+
+statusb_explain_matrix[0]=["None","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[10]=["SD Card Error","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[11]=["SD Card Error","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[20]=["Modulo Off Line CAN","Main sensor error","Redundant sensor error","Accelerometer error","Accelerometer tilt"
+                             ,"Bicchiere pluviometro intasato","Errore tipping (rilevamento spike)"
+                             ,"None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[21]=["Modulo Off Line CAN","Main sensor error","Redundant sensor error"
+                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None"]
+#(22,"Module acquire temperature, humidity and rain"),
+statusb_explain_matrix[25]=["Modulo Off Line CAN","Windsonic hardware error","Windsonic unit measure wrong"
+                             ,"Windsonic not present or responding (RS232 continuos timeout)"
+                             ,"None","None","None","None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[26]=["Modulo Off Line CAN","ADC Overflow","ADC Error"
+                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None"]
+statusb_explain_matrix[28]=["Modulo Off Line CAN","LTC Unit error"
+                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
+
+statusv_explain_matrix={}
+statusv_explain_matrix[0] =["None","None","None","None","None"]
+statusv_explain_matrix[10]=["None","None","None","None","None"]
+statusv_explain_matrix[11]=["None","None","None","None","None"]
+statusv_explain_matrix[20]=["None","None","None","None","None"]
+statusv_explain_matrix[21]=["None","None","None","None","None"]
+statusv_explain_matrix[25]=["None","None","None","None","None"]
+statusv_explain_matrix[26]=["None","None","None","None","None"]
+statusv_explain_matrix[28]=["None","None","None","None","None"]
+
+
 class BoardMaintStatus(models.Model):
     """Board status based on maint messages over MQTT."""
 
@@ -794,6 +825,12 @@ class BoardMaintStatus(models.Model):
     statusv6 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 6 (%)"))
     statusv7 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 7 (%)"))
     statusv8 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 8 (%)"))
+
+    def statusb_explain(self):
+        return statusb_explain_matrix.get(self.board.type)
+
+    def statusv_explain(self):
+        return statusv_explain_matrix.get(self.board.type)
     
     
 class BoardFirmwareMetadata(models.Model):
@@ -908,10 +945,15 @@ class StationMetadata(models.Model):
 
     def status_vals(self):
 
+        def noneaszero(val):
+            if val is None: val = 0
+            return val
+        
         status = False
         for board in self.board_set.all():
-            status = (status or board.boardmaintstatus.statusv1 > 0 or board.boardmaintstatus.statusv2 > 0 or board.boardmaintstatus.statusv3 > 0 )
-            status = (status or board.boardmaintstatus.statusv4 > 0 or board.boardmaintstatus.statusv5 > 0 )
+            status = (status or noneaszero(board.boardmaintstatus.statusv1) > 0 or noneaszero(board.boardmaintstatus.statusv2) > 0 )
+            status = (status or noneaszero(board.boardmaintstatus.statusv3) > 0 )
+            status = (status or noneaszero(board.boardmaintstatus.statusv4) > 0 or noneaszero(board.boardmaintstatus.statusv5) > 0 )
         return status
     
     def clean(self):

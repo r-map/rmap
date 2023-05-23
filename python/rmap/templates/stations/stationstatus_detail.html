@@ -9,6 +9,53 @@
   border: 1px solid #ddd;
   border: 1px solid rgba(86,61,124,.2);
 }
+
+ /* Tooltip container */
+.tooltipp {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip text */
+.tooltipp .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltipp .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltipp:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
 </style>
 
 {% endblock %}
@@ -16,7 +63,7 @@
 {% block content %}
 
 <section id="main_content">
-
+  
 <h2>{% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
 
 <div class="table-responsive">
@@ -86,36 +133,37 @@
   
     {% for board in object.board_set.all %}
       {% if board.active  %}
-
+    
         <tr>
           <td>{{ board.name }}</td>
           <td>{{ board.boardfirmwaremetadata.swversion|default:_('Missing')}}</td>
           <td>{{ board.boardfirmwaremetadata.swlastupdate|default:_('Missing')}}</td>
 
           <td>{{ board.boardmaintstatus.lastupdate|date:"Y/m/d" }} {{ board.boardmaintstatus.lastupdate|time:"H:i:s" }}</td>
-	  
-          <td>{{ board.boardmaintstatus.statusb1|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb2|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb3|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb4|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb5|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb6|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb7|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb8|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb9|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb10|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb11|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb12|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb13|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb14|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb15|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusb16|default_if_none:'-'}}</td>
 
-          <td>{{ board.boardmaintstatus.statusv1|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusv2|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusv3|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusv4|default_if_none:'-'}}</td>
-          <td>{{ board.boardmaintstatus.statusv5|default_if_none:'-'}}</td>
+
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb1  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb1 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.0}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb2  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb2 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.1}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb3  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb3 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.2}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb4  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb4 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.3}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb5  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb5 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.4}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb6  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb6 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.5}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb7  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb7 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.6}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb8  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb8 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.7}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb9  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb9 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.8}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb10 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb10|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.9}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb11 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb11|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.10}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb12 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb12|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.11}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb13 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb13|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.12}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb14 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb14|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.13}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb15 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb15|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.14}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb16 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb16|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.15}}</span></div></td>
+
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv1 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv1|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.0}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv2 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv2|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.1}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv3 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv3|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.2}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv4 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv4|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.3}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv5 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv5|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.4}}</span></div></td>
 	  
 	</tr>
 	  
