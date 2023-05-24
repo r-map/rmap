@@ -53,9 +53,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Random generator value for Local Test
 \def INIT_SIMULATOR
 \brief Fill buffer data wuith 900 data value init
+\def VECT_MED_ON_360_SIMULATOR
+\brief Fill buffer data wuith 360 data value init complete angle 0..359 to check avg vect function
 */
-#define USE_SIMULATOR
-#define INIT_SIMULATOR
+// #define USE_SIMULATOR
+// #define INIT_SIMULATOR
+// #define VECT_MED_ON_360_SIMULATOR
 
 /*!
 \def MODULE_TYPE
@@ -204,6 +207,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_SPEED_MIN                    (0.0)
 
 #define CALM_WIND_MAX_MS                  (0.1)
+#define CALM_WIND_MAX_MED_VECT            (0.05)
 
 #define GWS_SERIAL_BAUD                   (9600)
 

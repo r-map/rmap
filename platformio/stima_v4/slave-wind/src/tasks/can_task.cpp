@@ -1610,12 +1610,12 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_wind.DWA.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWA];
-                clCanard.module_wind.DWB.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWB];
-                clCanard.module_wind.DWC.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWC];
-                clCanard.module_wind.DWD.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWD];
-                clCanard.module_wind.DWE.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWE];
-                clCanard.module_wind.DWF.metadata.timerange.Pindicator.value = val.natural16.value.elements[SENSOR_METADATA_DWF];
+                clCanard.module_wind.DWA.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWA];
+                clCanard.module_wind.DWB.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWB];
+                clCanard.module_wind.DWC.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWC];
+                clCanard.module_wind.DWD.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWD];
+                clCanard.module_wind.DWE.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWE];
+                clCanard.module_wind.DWF.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DWF];
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;

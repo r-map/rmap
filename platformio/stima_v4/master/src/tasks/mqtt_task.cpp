@@ -410,7 +410,7 @@ void MqttTask::Run()
           indexPosition++;
           // Fill With 8xBIT Hardware Flag 8 Bits
           for(uint8_t iBit=0; iBit<8; iBit++) {
-            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & 2^iBit) {
+            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & (1<<iBit)) {
                 bitState[indexPosition++] = '1';
             }
           }
@@ -428,7 +428,7 @@ void MqttTask::Run()
 
           // Fill With 8xBIT Hardware Flag 8 Bits
           for(uint8_t iBit=0; iBit<8; iBit++) {
-            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & 2^iBit) {
+            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & (1<<iBit)) {
                 bitState[indexPosition++] = '1';
             }
           }

@@ -371,13 +371,13 @@ void ModemTask::Run() {
       {
         is_error = false;
         state = MODEM_STATE_SWITCH_OFF;
-        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
+        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT [OK] -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       else if (status == SIM7600_ERROR)
       {
         is_error = false;
         state = MODEM_STATE_SWITCH_OFF;
-        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT -> MODEM_STATE_SWITCH_OFF\r\n"));
+        TRACE_VERBOSE_F(F("MODEM_STATE_DISCONNECT [ERROR] -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
       break;
 
