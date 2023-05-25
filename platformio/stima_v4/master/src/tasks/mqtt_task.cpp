@@ -187,8 +187,8 @@ void MqttTask::Run()
         // do mqtt connection
         if (connection_request.do_mqtt_connect)
         {
+          // Set local pointer MqttServer to config string
           MqttServer = param.configuration->mqtt_server;
-          // strSafeCopy(MqttServer, param.configuration->mqtt_server, MQTT_SERVER_LENGTH);
           
           // Start new connection sequence
           mqtt_connection_estabilished = false;
@@ -264,10 +264,11 @@ void MqttTask::Run()
         mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
       }
 
-      // Set Will message
+      // Set Will message ( ON ROOT TOPIC, MQTT_STATUS_TOPIC... FROM doc.rmap.cc documentation )
       if (strlen(MQTT_ON_ERROR_MESSAGE))
       {
-        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+        // Changed MQTT_CLIENT_MAX_WILL_TOPIC_LEN -> FROM 16 TO 80 BYTES
+        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
 
@@ -296,7 +297,8 @@ void MqttTask::Run()
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      // N.B. RPC Topic is with "/" final in configuration param. Different from maint and report
+      snprintf(topic, sizeof(topic), "%s%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
 
@@ -349,17 +351,17 @@ void MqttTask::Run()
         bitState[bitIdx] = '0';
       }
       bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
-      indexPosition = 0;
+      indexPosition = 15;
       // SD CARD
       if(!param.system_status->flags.sd_card_ready) {
          bitState[indexPosition] = '1';
       }
-      indexPosition++;
+      indexPosition--;
       // IS FIRMWARE AVAIABLE?
       if(!param.system_status->data_master.fw_upgradable) {
          bitState[indexPosition] = '1';
       }
-      indexPosition++;
+      indexPosition--;
       // CRITICAL POWER FLAG? Not Critical Power mode selected but FLAG from MPPT
       if(param.system_status->flags.power_critical) {
          bitState[indexPosition] = '1';
@@ -394,25 +396,26 @@ void MqttTask::Run()
             bitState[bitIdx] = '0';
           }
           bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
-          indexPosition = 0;
+          indexPosition = 15;
           // Depending from type module (Message composition)
           if(!param.system_status->data_slave[iNodeSlave].is_online) {
             bitState[indexPosition] = '1';
           }
-          indexPosition++;
+          indexPosition--;
           if(param.system_status->data_slave[iNodeSlave].fw_upgradable) {
             bitState[indexPosition] = '1';
           }
-          indexPosition++;
+          indexPosition--;
           if(param.system_status->data_slave[iNodeSlave].maintenance_mode) {
             bitState[indexPosition] = '1';
           }
-          indexPosition++;
+          indexPosition--;
           // Fill With 8xBIT Hardware Flag 8 Bits
           for(uint8_t iBit=0; iBit<8; iBit++) {
             if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & (1<<iBit)) {
-                bitState[indexPosition++] = '1';
+                bitState[indexPosition] = '1';
             }
+            indexPosition--;
           }
 
           // Prepare BYTE Type
@@ -425,13 +428,6 @@ void MqttTask::Run()
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[0];
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[1];
           byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
-
-          // Fill With 8xBIT Hardware Flag 8 Bits
-          for(uint8_t iBit=0; iBit<8; iBit++) {
-            if(param.system_status->data_slave[iNodeSlave].bit8StateFlag & (1<<iBit)) {
-                bitState[indexPosition++] = '1';
-            }
-          }
 
           // publish connection message (Conn + Version and Revision)
           sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
@@ -797,6 +793,7 @@ void MqttTask::Run()
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::th)
                   {
+                    // TODO: CONTROLLA TOPIC
 
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
                     {
@@ -1083,7 +1080,7 @@ void MqttTask::Run()
       param.systemStatusLock->Take();
       // Remove first connection FLAG (Clear queue of RPC in safety mode)
       // RPC Must ececuted only from next connection without error to remote server
-      if(!rmap_data_error) param.system_status->connection.is_mqtt_first_check_rpc = false;
+      if(!rmap_data_error) param.system_status->flags.clean_rpc = false;
       param.system_status->connection.is_mqtt_disconnecting = true;
       param.systemStatusLock->Give();
 
@@ -1167,6 +1164,9 @@ void MqttTask::Run()
  **/
 void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
 {
+  task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
+  bool is_event_rpc = true;
+ 
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
   TRACE_INFO_F(F("Dup: %u\r\n"), dup);
   TRACE_INFO_F(F("QoS: %u\r\n"), qos);
@@ -1175,24 +1175,24 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_F(F("%s %s\r\n"), topic, message);
 
-  bool is_event_rpc = true;
-  localStreamRpc->init();
-
-  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC
-  if(localSystemStatus->connection.is_mqtt_first_check_rpc)
-    is_event_rpc = false;
-
-  if (localRpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
-  {
-    while (is_event_rpc)
+  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
+  if(!localSystemStatus->flags.clean_rpc) {
+    localStreamRpc->init();
+    if (localRpcLock->Take())
     {
-      // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-      localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
-      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::normal;
-      localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+      while (is_event_rpc)
+      {
+        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+        // Return to previous state on END of RPC Call execution
+        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
+        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        // TODO: Response of RPC to path...
+      }
+      localRpcLock->Give();
     }
-    localRpcLock->Give();
   }
 }
 
@@ -1369,7 +1369,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // publish temperature value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1417,7 +1417,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // publish humidity value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1633,7 +1633,7 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   // publish rain value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1739,7 +1739,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   // publish radiation value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1791,7 +1791,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // publish speed value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1838,7 +1838,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // publish direction value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1890,7 +1890,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // publish speed value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1928,7 +1928,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // publish direction value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -1980,7 +1980,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // publish speed peak value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2027,7 +2027,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // publish speed long value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2079,7 +2079,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   // publish speed peak value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2131,7 +2131,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   // publish class speed value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2183,7 +2183,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // publish peak value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2230,7 +2230,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // publish direction long value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2760,7 +2760,7 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   // publish soil value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2866,7 +2866,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish input voltage value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2912,7 +2912,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish input current value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -2961,7 +2961,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish battery voltage value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -3008,7 +3008,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish battery current value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;
@@ -3055,7 +3055,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish battery charge value
   do
   {
-    error = mqttClientPublish(context, topic, message, message_length, qos, false, NULL);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
     if (error)
     {
       error_count++;

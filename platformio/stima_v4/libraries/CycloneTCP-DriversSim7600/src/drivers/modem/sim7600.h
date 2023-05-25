@@ -116,6 +116,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_AT_CXREG_MODE_MAX                           (SIM7600_AT_CEREG_MODE)
 
 /*!
+\def SIM7600_USE_ROAMING_REGISTER
+\brief try connection with roaming register network response as network registered OK
+*/
+#define SIM7600_USE_ROAMING_REGISTER                        (false)
+
+/*!
 \def SIM7600_AT_DEFAULT_TIMEOUT_MS
 \brief Default AT command response timeout in milliseconds.
 */

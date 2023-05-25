@@ -107,7 +107,7 @@
 
 //Maximum length of the will topic
 #ifndef MQTT_CLIENT_MAX_WILL_TOPIC_LEN
-   #define MQTT_CLIENT_MAX_WILL_TOPIC_LEN 16
+   #define MQTT_CLIENT_MAX_WILL_TOPIC_LEN 80
 #elif (MQTT_CLIENT_MAX_WILL_TOPIC_LEN < 0)
    #error MQTT_CLIENT_MAX_WILL_TOPIC_LEN parameter is not valid
 #endif

@@ -1089,7 +1089,11 @@ sim7600_status_t SIM7600::setup()
 
          if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
          {
+            #if (SIM7600_USE_ROAMING_REGISTER)
             is_error = !is_almost_one_registered;
+            #else
+            is_error = true;
+            #endif
             sim7600_setup_state = SIM7600_SETUP_END;
             delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
          }

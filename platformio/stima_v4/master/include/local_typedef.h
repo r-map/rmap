@@ -220,7 +220,6 @@ typedef struct
       bool is_mqtt_publishing_end;
       bool is_mqtt_disconnected;
       bool is_mqtt_disconnecting;
-      bool is_mqtt_first_check_rpc;
 
       bool is_http_configuration_updated;
       bool is_http_configuration_updating;
@@ -305,6 +304,7 @@ typedef struct
       bool rmap_server_running;  // True if get rmap data from slave module procedure over CAN are running
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
       bool config_empty;         // True if configuration missed on system
+      bool clean_rpc;            // True if required disable RPC (examples on MQTT First connection)
       bool power_critical;       // True if power critical mode is activated from MPPT Module
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;

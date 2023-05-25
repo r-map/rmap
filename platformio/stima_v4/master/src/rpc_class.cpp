@@ -1128,7 +1128,6 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
   bool inibith_reboot = false;
-  bool error_command = true;
 
   TRACE_INFO_F(F("RPC: Request Reboot\r\n"));
 
@@ -1137,7 +1136,6 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     // do the firmware update on all of the boards
     if (strcmp(it.key().c_str(), "fupdate") == 0)
     {
-      error_command = false;
       if (it.value().as<bool>() == true)
       {
         TRACE_INFO_F(F("RPC: Starting update firmware\r\n"));
@@ -1175,20 +1173,8 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     }
   }
 
-  // ? Any Error on RMAP Set Pointer
-  if (error_command)
-  {
-    // error_command = Out of command context but command request valid
-    // is_error = error command or out of limit parameter
-    // Result an error
-    result[F("state")] = F("error");
-    return E_INVALID_REQUEST;
-  }
-  else
-  {
-    // Send a response...
-    result[F("state")] = "done";
-  }
+  // Send a response...
+  result[F("state")] = "done";
 
   #if (ENABLE_RPC_LOCAL_REBOOT)
   if(!inibith_reboot) {

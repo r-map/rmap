@@ -172,6 +172,9 @@ void RainSensorTask::Run() {
       param.systemStatusLock->Take();
       param.system_status->events.is_clogged_up = digitalRead(CLOGGED_UP_PIN);
       param.systemStatusLock->Give();
+      if(param.system_status->events.is_clogged_up) {
+          TRACE_INFO_F(F("Sensor: receive event clogged up... [ ALERT ]\r\n"));
+      }
       #endif
       // Is Event RAIN? (false, is request Reset Counter value)
       if(!flag_event) {

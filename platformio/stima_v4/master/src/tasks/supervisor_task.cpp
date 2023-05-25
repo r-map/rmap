@@ -152,7 +152,7 @@ void SupervisorTask::Run()
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
         // Start INIT for Clear RPC Queue at first connection MQTT (Only at startup)
-        param.system_status->connection.is_mqtt_first_check_rpc = true;
+        param.system_status->flags.clean_rpc = true;
         // Check configuration remote is valid
         param.system_status->flags.config_empty = true;
         for(uint8_t iIdx=0; iIdx < BOARDS_COUNT_MAX; iIdx ++) {
@@ -163,7 +163,6 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
 
         #if (FIXED_CONFIGURATION)
-        // TODO: TEST REMOVE
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
         strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
@@ -226,15 +225,14 @@ void SupervisorTask::Run()
       rtc.getTime(&hh, &nn, &ss, &ms);
 
       // Without config try connection 1 time for hour (test config...)
-      // Or start connection at restart application... (One time while not connection established)
       if(param.system_status->flags.config_empty) {
-        if(((nn % 0) == 0) || (param.system_status->connection.is_mqtt_first_check_rpc)) {
+        if((nn % 0) == 0) {
           param.systemStatusLock->Take();
           param.system_status->command.do_http_configuration_update = true;
           param.systemStatusLock->Give();
         }
       } else {
-        // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days)
+        // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days )
         if((hh == 12) && (nn < 15)) {
           param.systemStatusLock->Take();
           param.system_status->command.do_ntp_synchronization = true;
@@ -925,10 +923,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
       #endif
 
-      // TODO: da rimuovere
-      #if (USE_MQTT)
-      // uint8_t temp_psk_key[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
-      // uint8_t temp_psk_key[] = {0x30, 0xA4, 0x45, 0xD2, 0xE6, 0x1A, 0x88, 0xD7, 0xDB, 0x7D, 0xC4, 0xF7, 0xC9, 0x6B, 0xC5, 0x27};
+      #if ((USE_MQTT)&&(FIXED_CONFIGURATION))
       uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
       osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
 
