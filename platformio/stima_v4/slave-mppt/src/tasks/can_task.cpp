@@ -674,7 +674,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
 
           // coda di attesa dati (attesa rmap_calc_data)
           param->reportDataQueue->Dequeue(&report_srv);
-          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg_battery_charge, (rmapdata_t) report_pub.avg_input_voltage, (rmapdata_t) report_pub.avg_battery_current);
+          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_battery_charge, (rmapdata_t) report_srv.avg_input_voltage, (rmapdata_t) report_srv.avg_battery_current);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
