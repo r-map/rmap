@@ -347,7 +347,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           else error_command = true;
           break;
         case Module_Type::power:
-          if(strcmp(subject, "node.pwr") == 0) {
+          if(strcmp(subject, "node.mppt") == 0) {
             param.configurationLock->Take();
             param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();

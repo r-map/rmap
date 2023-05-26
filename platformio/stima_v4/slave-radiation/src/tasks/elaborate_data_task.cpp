@@ -343,7 +343,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     }
 
     // Trace report final
-    TRACE_INFO_F(F("--> solar radiation report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t)report.avg, (int32_t)report.quality);
+    TRACE_INFO_F(F("--> solar radiation report\t%d\t%d\r\n"), (rmapdata_t)report.avg, (rmapdata_t)report.quality);
   }
 }
 
