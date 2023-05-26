@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/metatransport/udp/Endpoint.0.1.dsdl
-// Generated at:  2023-05-19 15:30:41.819264 UTC
+// Generated at:  2023-05-25 22:06:34.371377 UTC
 // Is deprecated: yes
 // Fixed port-ID: None
 // Full name:     uavcan.metatransport.udp.Endpoint

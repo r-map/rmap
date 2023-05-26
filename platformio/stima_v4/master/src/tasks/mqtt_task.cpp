@@ -297,8 +297,7 @@ void MqttTask::Run()
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
-      // N.B. RPC Topic is with "/" final in configuration param. Different from maint and report
-      snprintf(topic, sizeof(topic), "%s%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
 
@@ -366,6 +365,11 @@ void MqttTask::Run()
       if(param.system_status->flags.power_critical) {
          bitState[indexPosition] = '1';
       }
+      indexPosition--;
+      // RSSI Signal to low (<10)
+      if(param.system_status->modem.rssi < 10) {
+         bitState[indexPosition] = '1';
+      }
 
       // Prepare BYTE Type
       indexPosition=0;
@@ -376,7 +380,7 @@ void MqttTask::Run()
       byteState[indexPosition++] = 100 - param.system_status->modem.perc_modem_connection_valid;
       byteState[indexPosition++] = param.boot_request->tot_reset;
       byteState[indexPosition++] = param.boot_request->wdt_reset;
-      byteState[indexPosition] = param.system_status->modem.rssi;
+      byteState[indexPosition] = 0;
 
       // publish connection message (Conn + Version and Revision)
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
@@ -725,29 +729,29 @@ void MqttTask::Run()
 
             rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
 
-            rmapDataPower->DEP.input_voltage.val.value = 204;
-            rmapDataPower->DEP.input_voltage.confidence.value = 95;
+            rmapDataPower->MPP.input_voltage.val.value = 204;
+            rmapDataPower->MPP.input_voltage.confidence.value = 95;
 
-            rmapDataPower->DEP.input_current.val.value = 74;
-            rmapDataPower->DEP.input_current.confidence.value = 85;
+            rmapDataPower->MPP.input_current.val.value = 74;
+            rmapDataPower->MPP.input_current.confidence.value = 85;
 
-            rmapDataPower->DEP.battery_voltage.val.value = 128;
-            rmapDataPower->DEP.battery_voltage.confidence.value = 75;
+            rmapDataPower->MPP.battery_voltage.val.value = 128;
+            rmapDataPower->MPP.battery_voltage.confidence.value = 75;
 
-            rmapDataPower->DEP.battery_voltage.val.value = 15;
-            rmapDataPower->DEP.battery_voltage.confidence.value = 65;
+            rmapDataPower->MPP.battery_voltage.val.value = 15;
+            rmapDataPower->MPP.battery_voltage.confidence.value = 65;
 
-            rmapDataPower->DEP.battery_charge.val.value = 89;
-            rmapDataPower->DEP.battery_charge.confidence.value = 55;
+            rmapDataPower->MPP.battery_charge.val.value = 89;
+            rmapDataPower->MPP.battery_charge.confidence.value = 55;
 
-            rmapDataPower->DEP.metadata.level.LevelType1.value = 265;
-            rmapDataPower->DEP.metadata.level.L1.value = 1;
-            rmapDataPower->DEP.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataPower->DEP.metadata.level.L2.value = UINT16_MAX;
+            rmapDataPower->MPP.metadata.level.LevelType1.value = 265;
+            rmapDataPower->MPP.metadata.level.L1.value = 1;
+            rmapDataPower->MPP.metadata.level.LevelType2.value = UINT16_MAX;
+            rmapDataPower->MPP.metadata.level.L2.value = UINT16_MAX;
 
-            rmapDataPower->DEP.metadata.timerange.Pindicator.value = 0;
-            rmapDataPower->DEP.metadata.timerange.P1.value = 0;
-            rmapDataPower->DEP.metadata.timerange.P2 = 900;
+            rmapDataPower->MPP.metadata.timerange.Pindicator.value = 0;
+            rmapDataPower->MPP.metadata.timerange.P1.value = 0;
+            rmapDataPower->MPP.metadata.timerange.P2 = 900;
 
             rmap_get_response.rmap_data.module_type = Module_Type::power;
           }
@@ -1024,9 +1028,9 @@ void MqttTask::Run()
                 {
                   if (!error && param.configuration->board_slave[slaveId].module_type == Module_Type::power)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DEP])
+                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MPP])
                     {
-                      error = publishSensorPower(&mqttClientContext, qos, rmapDataPower->DEP, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                      error = publishSensorPower(&mqttClientContext, qos, rmapDataPower->MPP, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
 
                     if (error)
@@ -1092,8 +1096,13 @@ void MqttTask::Run()
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
       }
 
-      mqttClientClose(&mqttClientContext);
+      // Softly disconnect to MQTT Server
+      mqttClientDisconnect(&mqttClientContext);
       TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+
+      // Close connection
+      mqttClientClose(&mqttClientContext);
+      TRACE_INFO_F(F("%s Close connection\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
       state = MQTT_STATE_END;
       TRACE_VERBOSE_F(F("MQTT_STATE_DISCONNECT -> MQTT_STATE_END\r\n"));
@@ -1166,6 +1175,7 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 {
   task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
   bool is_event_rpc = true;
+  char rpc_response[MAXLEN_RPC_RESPONSE];
  
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
   TRACE_INFO_F(F("Dup: %u\r\n"), dup);
@@ -1186,7 +1196,8 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
         // Return to previous state on END of RPC Call execution
         old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
         localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
+        // localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
+        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_SERIAL);
         localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
         localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
         // TODO: Response of RPC to path...
@@ -2349,7 +2360,7 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
   {
     if (sensor.class6.val.value <= rmap_tableb_B11216_1_0_MAX)
     {
-      if (snprintf(&(message[strlen(message)]), message_length, "%ld]", sensor.class6.val.value) <= 0)
+      if (snprintf(&(message[strlen(message)]), message_length, "%ld],", sensor.class6.val.value) <= 0)
       {
         error = ERROR_FAILURE;
       }
@@ -2372,7 +2383,8 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
   {
     if (sensor.class1.confidence.value <= rmap_tableb_B33199_1_0_MAX)
     {
-      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", sensor.class1.confidence.value) <= 0)
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":[%u,%u,%u,%u,%u,%u]}",
+        sensor.class1.confidence.value, sensor.class2.confidence.value, sensor.class3.confidence.value, sensor.class4.confidence.value, sensor.class5.confidence.value, sensor.class6.confidence.value) <= 0)
       {
         error = ERROR_FAILURE;
       }
@@ -2877,101 +2889,6 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
   // ----------------------------------------------------------------------------
-  // InputCurrent
-  // ----------------------------------------------------------------------------
-  // make input current topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B25195", sensors_topic, sensors_topic_length);
-  }
-  // make input current message
-  if (!error)
-  {
-    error = makeSensorMessageInputCurrent(sensor.input_current, dateTime, message, message_length);
-  }
-  // make common topic
-  if (!error)
-  {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
-  }
-
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
-
-  // Saving Data Backup Older Data Firmat
-  if (!error) {
-    putRmapBackupArchiveData(dateTime, topic, message);
-  }
-
-  // publish input current value
-  do
-  {
-    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
-    if (error)
-    {
-      error_count++;
-    }
-    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
-    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
-  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
-
-  // ----------------------------------------------------------------------------
-  // BatteryVoltage
-  // ----------------------------------------------------------------------------
-  // make battery voltage topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B25025", sensors_topic, sensors_topic_length);
-  }
-  // make battery voltage message
-  if (!error)
-  {
-    error = makeSensorMessageBatteryVoltage(sensor.battery_voltage, dateTime, message, message_length);
-  }
-  // make common topic
-  if (!error)
-  {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
-  }
-
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
-
-  // Saving Data Backup Older Data Firmat
-  if (!error) {
-      // Saving Data Backup Older Data Firmat
-  if (!error) {
-    putRmapBackupArchiveData(dateTime, topic, message);
-  }
-  }
-
-  // publish battery voltage value
-  do
-  {
-    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
-    if (error)
-    {
-      error_count++;
-    }
-    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
-    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
-  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
-  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
-
-  // ----------------------------------------------------------------------------
   // BatteryCurrent
   // ----------------------------------------------------------------------------
   // make battery current topic
@@ -3098,114 +3015,6 @@ error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 i
     if (inputVoltage.confidence.value <= rmap_tableb_B33199_1_0_MAX)
     {
       if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputVoltage.confidence.value) <= 0)
-      {
-        error = ERROR_FAILURE;
-      }
-    }
-    else
-    {
-      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
-      {
-        error = ERROR_FAILURE;
-      }
-    }
-  }
-
-  if (!error)
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  return error;
-}
-
-error_t MqttTask::makeSensorMessageInputCurrent(rmap_measures_InputCurrent_1_0 inputCurrent, DateTime dateTime, char *message, size_t message_length)
-{
-  error_t error = NO_ERROR;
-  osMemset(message, 0, message_length);
-
-  if (inputCurrent.val.value <= rmap_tableb_B25195_1_0_MAX)
-  {
-    if (snprintf(message, message_length, "{\"v\":%ld,", inputCurrent.val.value) <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (!error)
-  {
-    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-  }
-
-  if (!error)
-  {
-    if (inputCurrent.confidence.value <= rmap_tableb_B33199_1_0_MAX)
-    {
-      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", inputCurrent.confidence.value) <= 0)
-      {
-        error = ERROR_FAILURE;
-      }
-    }
-    else
-    {
-      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
-      {
-        error = ERROR_FAILURE;
-      }
-    }
-  }
-
-  if (!error)
-  {
-    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  return error;
-}
-
-error_t MqttTask::makeSensorMessageBatteryVoltage(rmap_measures_BatteryVoltage_1_0 batteryVoltage, DateTime dateTime, char *message, size_t message_length)
-{
-  error_t error = NO_ERROR;
-  osMemset(message, 0, message_length);
-
-  if (batteryVoltage.val.value <= rmap_tableb_B25025_1_0_MAX)
-  {
-    if (snprintf(message, message_length, "{\"v\":%ld,", batteryVoltage.val.value) <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-  else
-  {
-    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
-    {
-      error = ERROR_FAILURE;
-    }
-  }
-
-  if (!error)
-  {
-    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
-  }
-
-  if (!error)
-  {
-    if (batteryVoltage.confidence.value <= rmap_tableb_B33199_1_0_MAX)
-    {
-      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", batteryVoltage.confidence.value) <= 0)
       {
         error = ERROR_FAILURE;
       }

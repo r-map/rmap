@@ -1,6 +1,0 @@
-# Corrente carica (A)
-# fattore scala x1000
-# MAX 250.0 Ampere
-uint18 MAX = 250000
-uint18 value
-@sealed

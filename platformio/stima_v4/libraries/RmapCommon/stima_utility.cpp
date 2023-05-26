@@ -176,7 +176,7 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_POWER_BATT, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_POWER_CHARGE, STIMA_LCD_DESCRIPTION_LENGTH);
       strncpy(lcd_description_B, STIMA_LCD_DESCRIPTION_POWER_INPUT, STIMA_LCD_DESCRIPTION_LENGTH);
       strncpy(lcd_description_C, STIMA_LCD_DESCRIPTION_POWER_CURRENT, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
@@ -227,7 +227,7 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, cha
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
       strncpy(lcd_unit_type_B, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
       strncpy(lcd_unit_type_C, STIMA_LCD_UNIT_TYPE_MILLI_AMPERE, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
@@ -278,7 +278,7 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_POWER_MPPT:
-      *decimals_A = STIMA_LCD_DECIMALS_ONE;
+      *decimals_A = STIMA_LCD_DECIMALS_ZERO;
       *decimals_B = STIMA_LCD_DECIMALS_ONE;
       *decimals_C = STIMA_LCD_DECIMALS_ZERO;
       break;

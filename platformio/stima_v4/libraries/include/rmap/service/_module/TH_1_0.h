@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl
-// Generated at:  2023-05-19 15:30:43.894271 UTC
+// Generated at:  2023-05-25 22:06:37.394132 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.TH

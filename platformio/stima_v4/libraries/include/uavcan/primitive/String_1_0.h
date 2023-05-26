@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/String.1.0.dsdl
-// Generated at:  2023-05-19 15:30:41.647772 UTC
+// Generated at:  2023-05-25 22:06:34.968448 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.primitive.String

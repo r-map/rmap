@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    rain_sensor_task.cpp
-  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Rain sensor source file
   ******************************************************************************
@@ -147,7 +147,7 @@ void RainSensorTask::Run() {
       {
         rain.tips_count = 0;
         rain.rain = 0;
-        TRACE_VERBOSE_F(F("Sensror: WAIT -> INIT\r\n"));
+        TRACE_VERBOSE_F(F("Sensor: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
       else
@@ -166,16 +166,7 @@ void RainSensorTask::Run() {
       TaskWatchDog(RAIN_TASK_WAIT_DELAY_MS);
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       // Waiting interrupt or External Reset (Suspend task)
-      param.rainQueue->Dequeue(&flag_event);
-      #if (USE_TIPPING_BUCKET_REDUNDANT)
-      // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
-      param.systemStatusLock->Take();
-      param.system_status->events.is_clogged_up = digitalRead(CLOGGED_UP_PIN);
-      param.systemStatusLock->Give();
-      if(param.system_status->events.is_clogged_up) {
-          TRACE_INFO_F(F("Sensor: receive event clogged up... [ ALERT ]\r\n"));
-      }
-      #endif
+      localRainQueue->Dequeue(&flag_event);
       // Is Event RAIN? (false, is request Reset Counter value)
       if(!flag_event) {
         // Reset signal event (if error persistent, event error restored)

@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/Power.1.0.dsdl
-// Generated at:  2023-05-19 15:30:43.857733 UTC
+// Generated at:  2023-05-25 22:06:37.346972 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.Power
@@ -249,8 +249,8 @@ static inline void rmap_service_module_Power_Request_1_0_initialize_(rmap_servic
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_Power_Response_1_0_EXTENT_BYTES_                    33UL
-#define rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 33UL
+#define rmap_service_module_Power_Response_1_0_EXTENT_BYTES_                    26UL
+#define rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 26UL
 static_assert(rmap_service_module_Power_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_Power_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -280,8 +280,8 @@ typedef struct
     /// saturated uint8 wdt_event
     uint8_t wdt_event;
 
-    /// rmap.sensors.Power.1.0 DEP
-    rmap_sensors_Power_1_0 DEP;
+    /// rmap.sensors.Power.1.0 MPP
+    rmap_sensors_Power_1_0 MPP;
 } rmap_service_module_Power_Response_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -310,7 +310,7 @@ static inline int8_t rmap_service_module_Power_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 264UL)
+    if ((8U * (size_t) capacity_bytes) < 208UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -441,10 +441,10 @@ static inline int8_t rmap_service_module_Power_Response_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // rmap.sensors.Power.1.0 DEP
-        size_t _size_bytes2_ = 28UL;  // Nested object (max) size, in bytes.
+    {   // rmap.sensors.Power.1.0 MPP
+        size_t _size_bytes2_ = 21UL;  // Nested object (max) size, in bytes.
         int8_t _err8_ = rmap_sensors_Power_1_0_serialize_(
-            &obj->DEP, &buffer[offset_bits / 8U], &_size_bytes2_);
+            &obj->MPP, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err8_ < 0)
         {
             return _err8_;
@@ -598,11 +598,11 @@ static inline int8_t rmap_service_module_Power_Response_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // rmap.sensors.Power.1.0 DEP
+    // rmap.sensors.Power.1.0 MPP
     {
         size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
         const int8_t _err10_ = rmap_sensors_Power_1_0_deserialize_(
-            &out_obj->DEP, &buffer[offset_bits / 8U], &_size_bytes3_);
+            &out_obj->MPP, &buffer[offset_bits / 8U], &_size_bytes3_);
         if (_err10_ < 0)
         {
             return _err10_;

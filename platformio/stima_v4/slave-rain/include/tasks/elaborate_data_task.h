@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    elaborate_data_task.h
-  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Elaborate data sensor to CAN header file
   ******************************************************************************
@@ -72,7 +72,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *elaborateDataQueue;
-  cpp_freertos::Queue *rainDataQueue;
+  cpp_freertos::Queue *rainQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;
 } ElaborateDataParam_t;
@@ -99,7 +99,7 @@ private:
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
+  void make_report(uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkRain(void);
 
   State_t state;

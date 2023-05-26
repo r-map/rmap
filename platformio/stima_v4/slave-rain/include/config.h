@@ -132,11 +132,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Global queue wait timeout
 #define WAIT_QUEUE_REQUEST_PUSHDATA_MS    (500)
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
+#define WAIT_QUEUE_REQUEST_RESET_TIP_MS   (2000)
 
 // Default value for sensor acquire task 
 #define SENSORS_TIPPING_DELAY_MS          (100)
 #define SENSORS_TIPPING_INIBITH_DELAY_MS  (500)
 #define SENSORS_TIPS_FOR_EVENT            (1)
+
+// Sensor specific value and method
+#define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)
+#define USE_CLOGGED_UP_CONTROL            (true)    // Use clogged UP system control (verify and alert)
+
+#define TIPPING_EVENT_VALUE               HIGH      // Input PIN tipping expected event value
+#define TIPPING_BUCKET_PIN                PIN_IN0   // Input PIN tipping
+#define TIPPING_BUCKET_PIN_REDUNDANT      PIN_IN1   // Redundant PIN tipping (verify and alert)
+#define CLOGGED_UP_PIN                    PIN_IN2   // Clogged Up Alert PIN
+#define CLOGGED_EVENT_VALUE               HIGH      // Input PIN clogged expected event value
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

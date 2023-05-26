@@ -140,7 +140,7 @@
 #define SENSOR_METADATA_DWF             5
 #define SENSOR_METADATA_WIND_COUNT      6
 // Power
-#define SENSOR_METADATA_DEP             0
+#define SENSOR_METADATA_MPP             0
 #define SENSOR_METADATA_POWER_COUNT     1
 // Radiation
 #define SENSOR_METADATA_DSA             0

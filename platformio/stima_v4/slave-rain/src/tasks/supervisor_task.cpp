@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    supervisor_task.cpp
-  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Supervisor module source file
   ******************************************************************************

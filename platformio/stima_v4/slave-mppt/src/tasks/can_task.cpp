@@ -360,16 +360,12 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dep:
             // Prepara i dati DEP (Valu MPPT)
-            rmap_data->DEP.battery_charge.val.value = report->avg_battery_charge;
-            rmap_data->DEP.battery_charge.confidence.value = report->avg_battery_charge_quality;
-            rmap_data->DEP.battery_current.val.value = report->avg_battery_current;
-            rmap_data->DEP.battery_current.confidence.value = report->avg_battery_current_quality;
-            rmap_data->DEP.battery_voltage.val.value = report->avg_battery_voltage;
-            rmap_data->DEP.battery_voltage.confidence.value = report->avg_battery_voltage_quality;
-            rmap_data->DEP.input_voltage.val.value = report->avg_input_voltage;
-            rmap_data->DEP.input_voltage.confidence.value = report->avg_input_voltage_quality;
-            rmap_data->DEP.input_current.val.value = report->avg_input_current;
-            rmap_data->DEP.input_current.confidence.value = report->avg_input_current_quality;
+            rmap_data->MPP.battery_charge.val.value = report->avg_battery_charge;
+            rmap_data->MPP.battery_charge.confidence.value = report->avg_battery_charge_quality;
+            rmap_data->MPP.battery_current.val.value = report->avg_battery_current;
+            rmap_data->MPP.battery_current.confidence.value = report->avg_battery_current_quality;
+            rmap_data->MPP.input_voltage.val.value = report->avg_input_voltage;
+            rmap_data->MPP.input_voltage.confidence.value = report->avg_input_voltage_quality;
             break;
     }
 }
@@ -378,16 +374,12 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::dep:
             // Prepara i dati DEP (Valu MPPT)
-            rmap_data->DEP.battery_charge.val.value = report->avg_battery_charge;
-            rmap_data->DEP.battery_charge.confidence.value = report->avg_battery_charge_quality;
-            rmap_data->DEP.battery_current.val.value = report->avg_battery_current;
-            rmap_data->DEP.battery_current.confidence.value = report->avg_battery_current_quality;
-            rmap_data->DEP.battery_voltage.val.value = report->avg_battery_voltage;
-            rmap_data->DEP.battery_voltage.confidence.value = report->avg_battery_voltage_quality;
-            rmap_data->DEP.input_voltage.val.value = report->avg_input_voltage;
-            rmap_data->DEP.input_voltage.confidence.value = report->avg_input_voltage_quality;
-            rmap_data->DEP.input_current.val.value = report->avg_input_current;
-            rmap_data->DEP.input_current.confidence.value = report->avg_input_current_quality;
+            rmap_data->MPP.battery_charge.val.value = report->avg_battery_charge;
+            rmap_data->MPP.battery_charge.confidence.value = report->avg_battery_charge_quality;
+            rmap_data->MPP.battery_current.val.value = report->avg_battery_current;
+            rmap_data->MPP.battery_current.confidence.value = report->avg_battery_current_quality;
+            rmap_data->MPP.input_voltage.val.value = report->avg_input_voltage;
+            rmap_data->MPP.input_voltage.confidence.value = report->avg_input_voltage_quality;
             break;
     }
 }
@@ -414,19 +406,19 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
         // SET Dynamic metadata (Request data from master Only Data != Sample)
-        clCanard.module_mppt.DEP.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_mppt.MPP.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati
         param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (int32_t) report_pub.avg_battery_voltage, (int32_t) report_pub.avg_battery_charge, (int32_t) report_pub.avg_input_voltage);
+        TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg_battery_charge, (rmapdata_t) report_pub.avg_input_voltage, (rmapdata_t) report_pub.avg_battery_current);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::dep, &report_pub, &module_mppt_msg);
         // Metadata
-        module_mppt_msg.DEP.metadata = clCanard.module_mppt.DEP.metadata;
+        module_mppt_msg.MPP.metadata = clCanard.module_mppt.MPP.metadata;
 
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -666,7 +658,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
             last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
-            clCanard.module_mppt.DEP.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_mppt.MPP.metadata.timerange.P2 = request_data.report_time_s;
           }
 
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
@@ -682,7 +674,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
 
           // coda di attesa dati (attesa rmap_calc_data)
           param->reportDataQueue->Dequeue(&report_srv);
-          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_battery_voltage, (rmapdata_t) report_srv.avg_battery_charge, (rmapdata_t) report_srv.avg_input_voltage);
+          TRACE_INFO_F(F("--> CAN power mppt report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg_battery_charge, (rmapdata_t) report_pub.avg_input_voltage, (rmapdata_t) report_pub.avg_battery_current);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;
@@ -717,7 +709,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
     }
 
     // Copio i metadati fissi e mobili
-    resp.DEP.metadata = clCanard.module_mppt.DEP.metadata;
+    resp.MPP.metadata = clCanard.module_mppt.MPP.metadata;
 
     return resp;
 }
@@ -1380,7 +1372,7 @@ void CanTask::Run() {
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
-                // SENSOR_METADATA_DEP                   (0)
+                // SENSOR_METADATA_MPP                   (0)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1391,7 +1383,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_MPP];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1402,7 +1394,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_MPP];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1413,7 +1405,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_MPP];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1424,7 +1416,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_MPP];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1435,20 +1427,20 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_TIME_P1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_MPP];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                clCanard.module_mppt.DEP.metadata.timerange.P2 = 0;
+                clCanard.module_mppt.MPP.metadata.timerange.P2 = 0;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural8.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
-                val.natural8.value.elements[SENSOR_METADATA_DEP] = SENSOR_METADATA_LEVEL_P_IND_DEP;
+                val.natural8.value.elements[SENSOR_METADATA_MPP] = SENSOR_METADATA_LEVEL_P_IND_MPP;
                 localRegisterAccessLock->Take();
                 localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_mppt.DEP.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DEP];
+                clCanard.module_mppt.MPP.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_MPP];
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;

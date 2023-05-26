@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/register/384.Access.1.0.dsdl
-// Generated at:  2023-05-19 15:30:41.123850 UTC
+// Generated at:  2023-05-25 22:06:34.905045 UTC
 // Is deprecated: no
 // Fixed port-ID: 384
 // Full name:     uavcan.register.Access

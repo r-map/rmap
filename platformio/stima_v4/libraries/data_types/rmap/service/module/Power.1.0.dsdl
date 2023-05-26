@@ -18,6 +18,6 @@ bool is_power_critical
 uint8 rbt_event
 uint8 wdt_event
 
-rmap.sensors.Power.1.0 DEP
+rmap.sensors.Power.1.0 MPP
 
 @sealed

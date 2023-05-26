@@ -2037,8 +2037,8 @@ void CanTask::Run() {
                                         if(retRainData->is_main_error) bit8Flag|=0x01;
                                         if(retRainData->is_redundant_error) bit8Flag|=0x02;
                                         if(retRainData->is_tipping_error) bit8Flag|=0x04;
-                                        if(retRainData->is_bubble_level_error) bit8Flag|=0x08;
-                                        if(retRainData->is_clogged_up) bit8Flag|=0x10;
+                                        if(retRainData->is_clogged_up) bit8Flag|=0x08;
+                                        if(retRainData->is_bubble_level_error) bit8Flag|=0x10;
                                         if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
@@ -2227,15 +2227,15 @@ void CanTask::Run() {
                                     // TRACE Info data
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retPwrData->state);
-                                    TRACE_VERBOSE_F(F("Value (DEP) Batt V. %d, In V. %d, In Curr. %d\r\n"),
-                                        retPwrData->DEP.battery_voltage.val.value, retPwrData->DEP.input_voltage.val.value, retPwrData->DEP.input_current.val.value);
+                                    TRACE_VERBOSE_F(F("Value (MPP) Batt Chg. %d, In V. %d, Batt Curr. %d\r\n"),
+                                        retPwrData->MPP.battery_charge.val.value, retPwrData->MPP.input_voltage.val.value, retPwrData->MPP.battery_current.val.value);
                                     // Put istant data in system_status
                                     if(retPwrData->state == rmap_service_setmode_1_0_get_istant) {
                                         // Only istant request LCD or other device
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].data_value[0] = retPwrData->DEP.battery_voltage.val.value;
-                                        param.system_status->data_slave[queueId].data_value[1] = retPwrData->DEP.input_voltage.val.value;
-                                        param.system_status->data_slave[queueId].data_value[2] = retPwrData->DEP.battery_current.val.value;
+                                        param.system_status->data_slave[queueId].data_value[0] = retPwrData->MPP.battery_charge.val.value;
+                                        param.system_status->data_slave[queueId].data_value[1] = retPwrData->MPP.input_voltage.val.value;
+                                        param.system_status->data_slave[queueId].data_value[2] = retPwrData->MPP.battery_current.val.value;
                                         param.systemStatusLock->Give();
                                     } else if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD

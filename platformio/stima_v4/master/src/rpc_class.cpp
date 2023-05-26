@@ -462,8 +462,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
             else error_command = true;
             break;
           case Module_Type::power:
-            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DEP) == 0) {
-              sensorId = SENSOR_METADATA_DEP;
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_MPP) == 0) {
+              sensorId = SENSOR_METADATA_MPP;
             }
             else error_command = true;
             break;

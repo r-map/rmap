@@ -77,9 +77,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 /*!
 \def USE_SENSOR_DEP
-\brief Enable if you want use DigitEco Power sensor.
+\brief Enable if you want use DigitEco Switching Power sensor.
 */
-#define USE_SENSOR_DEP              (true)
+#define USE_SENSOR_DEP              (false)
+
+/*!
+\def USE_SENSOR_MPP
+\brief Enable if you want use DigitEco MPPT Power sensor.
+*/
+#define USE_SENSOR_MPP              (true)
 
 /*!
 \def USE_SENSOR_DES
@@ -369,7 +375,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_RAIN_SENSORS                      (USE_SENSOR_TBR + USE_SENSOR_TBS)
 #define USE_RADIAITION_SENSORS                (USE_SENSOR_DSR + USE_SENSOR_VSR + USE_SENSOR_DSA)
 #define USE_WIND_SENSORS                      (USE_SENSOR_DWA + USE_SENSOR_DWB + USE_SENSOR_DWC + USE_SENSOR_DWD + USE_SENSOR_DWE + USE_SENSOR_DWF)
-#define USE_POWER_MPPT_SENSORS                (USE_SENSOR_DEP)
+#define USE_POWER_MPPT_SENSORS                (USE_SENSOR_DEP + USE_SENSOR_MPP)
 
 #if (USE_TH_SENSORS && (USE_RAIN_SENSORS == 0))
 #define USE_MODULE_TH                         (true)

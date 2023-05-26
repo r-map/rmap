@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    elaborate_data_task.cpp
-  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Elaborate data sensor to CAN source file
   ******************************************************************************
@@ -169,8 +169,16 @@ void ElaborateDataTask::Run() {
       {
         // send request to elaborate task (all data is present verified on elaborate_task)
         param.requestDataQueue->Dequeue(&request_data);
-        make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        make_report(request_data.report_time_s, request_data.observation_time_s);
         param.reportDataQueue->Enqueue(&report);
+        // Reset data from Queue is performed an is_init. Extern from makereport for responding
+        // calling up immediatly to sender and reset in second time from this task
+        if (request_data.is_init)
+        {
+          // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
+          bool edata = false;
+          param.rainQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
+        }
       }
     }
 
@@ -190,6 +198,21 @@ void ElaborateDataTask::Run() {
 /// @return Quality of measure (0-100%)
 uint8_t ElaborateDataTask::checkRain(void) {
   float quality = 100.0;
+
+  #if (USE_TIPPING_BUCKET_REDUNDANT)
+  // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
+  param.systemStatusLock->Take();
+  #if (CLOGGED_EVENT_VALUE)
+  param.system_status->events.is_clogged_up = digitalRead(CLOGGED_UP_PIN);
+  #else
+  param.system_status->events.is_clogged_up = !digitalRead(CLOGGED_UP_PIN);
+  #endif
+  param.systemStatusLock->Give();
+  if(param.system_status->events.is_clogged_up) {
+      TRACE_INFO_F(F("Sensor: read status of clogged up... [ ALERT ]\r\n"));
+  }
+  #endif
+
   if(param.system_status->events.is_clogged_up) {
     quality = 0.0;
   } else {
@@ -208,19 +231,12 @@ uint8_t ElaborateDataTask::checkRain(void) {
 }
 
 /// @brief Create an RMAP report value
-/// @param is_init reset param memory (if true)
 /// @param report_time_s time of report
 /// @param observation_time_s time to make an observation
-void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_t observation_time_s)
+void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_time_s)
 {
   report.tips_count = rain.tips_count;
   report.rain = rain.rain;
   report.rain_full = rain.rain_full;
   report.quality = checkRain();
-  if (is_init)
-  {
-    // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
-    bool edata = false;
-    param.rainDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_COMMAND_MS));
-  }
 }

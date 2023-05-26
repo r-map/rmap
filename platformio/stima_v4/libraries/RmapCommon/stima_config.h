@@ -115,8 +115,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_POWER_MPPT                (28)
 
 /*!
-\def STIMA_MODULE_TYPE_POWER_MPPT
-\brief This module acquire power regulator mppt.
+\def STIMA_MODULE_TYPE_VVC
+\brief This module acquire soil sensor.
 */
 #define STIMA_MODULE_TYPE_VVC                       (29)
 
@@ -234,7 +234,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_RPC_SENSOR_NAME_DWD                   ("DWD")
 #define STIMA_RPC_SENSOR_NAME_DWE                   ("DWE")
 #define STIMA_RPC_SENSOR_NAME_DWF                   ("DWF")
-#define STIMA_RPC_SENSOR_NAME_DEP                   ("DEP")
+#define STIMA_RPC_SENSOR_NAME_MPP                   ("MPP")
 #define STIMA_RPC_SENSOR_NAME_DSA                   ("DSA")
 #define STIMA_RPC_SENSOR_NAME_VWC                   ("VWC")
 
@@ -245,8 +245,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_HUMIDITY              ("Humidity")
 #define STIMA_LCD_DESCRIPTION_LEAF                  ("Leaf wetness")
 #define STIMA_LCD_DESCRIPTION_OPC                   ("Air particle")
-#define STIMA_LCD_DESCRIPTION_POWER_BATT            ("Battery voltage")
-#define STIMA_LCD_DESCRIPTION_POWER_INPUT           ("System voltage")
+#define STIMA_LCD_DESCRIPTION_POWER_CHARGE          ("Battery charge")
+#define STIMA_LCD_DESCRIPTION_POWER_INPUT           ("Input voltage")
 #define STIMA_LCD_DESCRIPTION_POWER_CURRENT         ("Battery current")
 #define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
 #define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")

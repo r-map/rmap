@@ -207,6 +207,7 @@
 
 // Disable for DEBUG
 #define ENABLE_RPC_LOCAL_REBOOT     (true)
+#define MAXLEN_RPC_RESPONSE         (64)
 
 /*!
 \def USE_CONSTANTDATA_COUNT

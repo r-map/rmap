@@ -123,14 +123,10 @@ typedef struct
 {
    rmapdata_t avg_battery_charge;
    rmapdata_t avg_battery_charge_quality;
-   rmapdata_t avg_battery_voltage;
-   rmapdata_t avg_battery_voltage_quality;
    rmapdata_t avg_battery_current;
    rmapdata_t avg_battery_current_quality;
    rmapdata_t avg_input_voltage;
    rmapdata_t avg_input_voltage_quality;
-   rmapdata_t avg_input_current;
-   rmapdata_t avg_input_current_quality;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/sensors/Power.1.0.dsdl
-// Generated at:  2023-05-19 15:30:44.077786 UTC
+// Generated at:  2023-05-25 22:06:37.425365 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.sensors.Power
@@ -38,8 +38,6 @@
 #include <nunavut/support/serialization.h>
 #include <rmap/measures/BatteryCharge_1_0.h>
 #include <rmap/measures/BatteryCurrent_1_0.h>
-#include <rmap/measures/BatteryVoltage_1_0.h>
-#include <rmap/measures/InputCurrent_1_0.h>
 #include <rmap/measures/InputVoltage_1_0.h>
 #include <rmap/metadata/Metadata_1_0.h>
 #include <stdlib.h>
@@ -77,8 +75,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_sensors_Power_1_0_EXTENT_BYTES_                    28UL
-#define rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 28UL
+#define rmap_sensors_Power_1_0_EXTENT_BYTES_                    21UL
+#define rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 21UL
 static_assert(rmap_sensors_Power_1_0_EXTENT_BYTES_ >= rmap_sensors_Power_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -87,20 +85,14 @@ typedef struct
     /// rmap.metadata.Metadata.1.0 metadata
     rmap_metadata_Metadata_1_0 metadata;
 
-    /// rmap.measures.InputVoltage.1.0 input_voltage
-    rmap_measures_InputVoltage_1_0 input_voltage;
-
-    /// rmap.measures.BatteryVoltage.1.0 battery_voltage
-    rmap_measures_BatteryVoltage_1_0 battery_voltage;
-
     /// rmap.measures.BatteryCharge.1.0 battery_charge
     rmap_measures_BatteryCharge_1_0 battery_charge;
 
     /// rmap.measures.BatteryCurrent.1.0 battery_current
     rmap_measures_BatteryCurrent_1_0 battery_current;
 
-    /// rmap.measures.InputCurrent.1.0 input_current
-    rmap_measures_InputCurrent_1_0 input_current;
+    /// rmap.measures.InputVoltage.1.0 input_voltage
+    rmap_measures_InputVoltage_1_0 input_voltage;
 } rmap_sensors_Power_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -129,7 +121,7 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 224UL)
+    if ((8U * (size_t) capacity_bytes) < 168UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -165,10 +157,10 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
         offset_bits += _pad0_;
     }
 
-    {   // rmap.measures.InputVoltage.1.0 input_voltage
-        size_t _size_bytes1_ = 3UL;  // Nested object (max) size, in bytes.
-        int8_t _err2_ = rmap_measures_InputVoltage_1_0_serialize_(
-            &obj->input_voltage, &buffer[offset_bits / 8U], &_size_bytes1_);
+    {   // rmap.measures.BatteryCharge.1.0 battery_charge
+        size_t _size_bytes1_ = 2UL;  // Nested object (max) size, in bytes.
+        int8_t _err2_ = rmap_measures_BatteryCharge_1_0_serialize_(
+            &obj->battery_charge, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
         {
             return _err2_;
@@ -189,10 +181,10 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // rmap.measures.BatteryVoltage.1.0 battery_voltage
+    {   // rmap.measures.BatteryCurrent.1.0 battery_current
         size_t _size_bytes2_ = 3UL;  // Nested object (max) size, in bytes.
-        int8_t _err4_ = rmap_measures_BatteryVoltage_1_0_serialize_(
-            &obj->battery_voltage, &buffer[offset_bits / 8U], &_size_bytes2_);
+        int8_t _err4_ = rmap_measures_BatteryCurrent_1_0_serialize_(
+            &obj->battery_current, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err4_ < 0)
         {
             return _err4_;
@@ -213,10 +205,10 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
         offset_bits += _pad2_;
     }
 
-    {   // rmap.measures.BatteryCharge.1.0 battery_charge
-        size_t _size_bytes3_ = 2UL;  // Nested object (max) size, in bytes.
-        int8_t _err6_ = rmap_measures_BatteryCharge_1_0_serialize_(
-            &obj->battery_charge, &buffer[offset_bits / 8U], &_size_bytes3_);
+    {   // rmap.measures.InputVoltage.1.0 input_voltage
+        size_t _size_bytes3_ = 3UL;  // Nested object (max) size, in bytes.
+        int8_t _err6_ = rmap_measures_InputVoltage_1_0_serialize_(
+            &obj->input_voltage, &buffer[offset_bits / 8U], &_size_bytes3_);
         if (_err6_ < 0)
         {
             return _err6_;
@@ -235,54 +227,6 @@ static inline int8_t rmap_sensors_Power_1_0_serialize_(
             return _err7_;
         }
         offset_bits += _pad3_;
-    }
-
-    {   // rmap.measures.BatteryCurrent.1.0 battery_current
-        size_t _size_bytes4_ = 3UL;  // Nested object (max) size, in bytes.
-        int8_t _err8_ = rmap_measures_BatteryCurrent_1_0_serialize_(
-            &obj->battery_current, &buffer[offset_bits / 8U], &_size_bytes4_);
-        if (_err8_ < 0)
-        {
-            return _err8_;
-        }
-        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-        offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested object.
-    }
-
-
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad4_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err9_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad4_);  // Optimize?
-        if (_err9_ < 0)
-        {
-            return _err9_;
-        }
-        offset_bits += _pad4_;
-    }
-
-    {   // rmap.measures.InputCurrent.1.0 input_current
-        size_t _size_bytes5_ = 4UL;  // Nested object (max) size, in bytes.
-        int8_t _err10_ = rmap_measures_InputCurrent_1_0_serialize_(
-            &obj->input_current, &buffer[offset_bits / 8U], &_size_bytes5_);
-        if (_err10_ < 0)
-        {
-            return _err10_;
-        }
-        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-        offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested object.
-    }
-
-
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad5_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err11_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad5_);  // Optimize?
-        if (_err11_ < 0)
-        {
-            return _err11_;
-        }
-        offset_bits += _pad5_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -336,12 +280,42 @@ static inline int8_t rmap_sensors_Power_1_0_deserialize_(
 
     // rmap.metadata.Metadata.1.0 metadata
     {
-        size_t _size_bytes6_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err12_ = rmap_metadata_Metadata_1_0_deserialize_(
-            &out_obj->metadata, &buffer[offset_bits / 8U], &_size_bytes6_);
-        if (_err12_ < 0)
+        size_t _size_bytes4_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err8_ = rmap_metadata_Metadata_1_0_deserialize_(
+            &out_obj->metadata, &buffer[offset_bits / 8U], &_size_bytes4_);
+        if (_err8_ < 0)
         {
-            return _err12_;
+            return _err8_;
+        }
+        offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.measures.BatteryCharge.1.0 battery_charge
+    {
+        size_t _size_bytes5_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err9_ = rmap_measures_BatteryCharge_1_0_deserialize_(
+            &out_obj->battery_charge, &buffer[offset_bits / 8U], &_size_bytes5_);
+        if (_err9_ < 0)
+        {
+            return _err9_;
+        }
+        offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.measures.BatteryCurrent.1.0 battery_current
+    {
+        size_t _size_bytes6_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err10_ = rmap_measures_BatteryCurrent_1_0_deserialize_(
+            &out_obj->battery_current, &buffer[offset_bits / 8U], &_size_bytes6_);
+        if (_err10_ < 0)
+        {
+            return _err10_;
         }
         offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -352,73 +326,13 @@ static inline int8_t rmap_sensors_Power_1_0_deserialize_(
     // rmap.measures.InputVoltage.1.0 input_voltage
     {
         size_t _size_bytes7_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err13_ = rmap_measures_InputVoltage_1_0_deserialize_(
+        const int8_t _err11_ = rmap_measures_InputVoltage_1_0_deserialize_(
             &out_obj->input_voltage, &buffer[offset_bits / 8U], &_size_bytes7_);
-        if (_err13_ < 0)
+        if (_err11_ < 0)
         {
-            return _err13_;
+            return _err11_;
         }
         offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // rmap.measures.BatteryVoltage.1.0 battery_voltage
-    {
-        size_t _size_bytes8_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err14_ = rmap_measures_BatteryVoltage_1_0_deserialize_(
-            &out_obj->battery_voltage, &buffer[offset_bits / 8U], &_size_bytes8_);
-        if (_err14_ < 0)
-        {
-            return _err14_;
-        }
-        offset_bits += _size_bytes8_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // rmap.measures.BatteryCharge.1.0 battery_charge
-    {
-        size_t _size_bytes9_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err15_ = rmap_measures_BatteryCharge_1_0_deserialize_(
-            &out_obj->battery_charge, &buffer[offset_bits / 8U], &_size_bytes9_);
-        if (_err15_ < 0)
-        {
-            return _err15_;
-        }
-        offset_bits += _size_bytes9_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // rmap.measures.BatteryCurrent.1.0 battery_current
-    {
-        size_t _size_bytes10_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err16_ = rmap_measures_BatteryCurrent_1_0_deserialize_(
-            &out_obj->battery_current, &buffer[offset_bits / 8U], &_size_bytes10_);
-        if (_err16_ < 0)
-        {
-            return _err16_;
-        }
-        offset_bits += _size_bytes10_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // rmap.measures.InputCurrent.1.0 input_current
-    {
-        size_t _size_bytes11_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err17_ = rmap_measures_InputCurrent_1_0_deserialize_(
-            &out_obj->input_current, &buffer[offset_bits / 8U], &_size_bytes11_);
-        if (_err17_ < 0)
-        {
-            return _err17_;
-        }
-        offset_bits += _size_bytes11_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 

@@ -208,7 +208,7 @@ void setup() {
   elaborateDataParam.systemStatusLock = systemStatusLock;
   elaborateDataParam.systemMessageQueue = systemMessageQueue;
   elaborateDataParam.elaborateDataQueue = elaborateDataQueue;
-  elaborateDataParam.rainDataQueue = rainQueue;
+  elaborateDataParam.rainQueue = rainQueue;
   elaborateDataParam.requestDataQueue = requestDataQueue;
   elaborateDataParam.reportDataQueue = reportDataQueue;
 

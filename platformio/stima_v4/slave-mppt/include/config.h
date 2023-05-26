@@ -117,7 +117,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Queue Lenght
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
-#define ELABORATE_DATA_QUEUE_LENGTH (5)
+#define ELABORATE_DATA_QUEUE_LENGTH (3)
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define REPORT_DATA_QUEUE_LENGTH    (1)
 
@@ -142,10 +142,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Index Sensor
 #define POWER_BATTERY_CHARGE_INDEX        (0)
-#define POWER_BATTERY_VOLTAGE_INDEX       (1)
-#define POWER_BATTERY_CURRENT_INDEX       (2)
-#define POWER_INPUT_VOLTAGE_INDEX         (3)
-#define POWER_INPUT_CURRENT_INDEX         (4)
+#define POWER_BATTERY_CURRENT_INDEX       (1)
+#define POWER_INPUT_VOLTAGE_INDEX         (2)
 
 // Limit range for module sensor
 #define MAX_VALID_POWER_MPPT_VBAT         (15.0)
