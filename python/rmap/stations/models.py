@@ -710,7 +710,8 @@ class Board(models.Model):
         (25,"Module acquire wind sensor"),
         (26,"Module acquire radiation sensor"),
         (27,"Module acquire gas (NO2, CO2)"),
-        (28,"Module acquire power regulator mppt")
+        (28,"Module acquire power regulator mppt"),
+        (29,"Module acquire soil humidity")
     )
 
     name = models.CharField(max_length=255,help_text=ugettext_lazy("station name"))
@@ -761,36 +762,29 @@ class StationMaintStatus(models.Model):
     firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware major version"))
     firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware minor version"))
 
-
-
+# status b
 statusb_explain_matrix={}
+statusb_explain_matrix[0]= ["None",    "None",    "None",      "None",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[10]=["SD_ERR",  "FW_READY","PWR_CRITIC","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[11]=["SD_ERR",  "FW_READY","PWR_CRITIC","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[20]=["OFF_LINE","FW_READY","MAINTEN",   "MAIN_ERR","REDUND_ERR","TIPP_ERR","CLOGGED", "BOLLA_ERR","ACCEL_ERR","None","None","None","None","None","None","None"]
+statusb_explain_matrix[21]=["OFF_LINE","FW_READY","MAINTEN",   "MAIN_ERR","REDUND_ERR","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
+statusb_explain_matrix[25]=["OFF_LINE","FW_READY","MAINTEN",   "NOT_RISP","HW_ERR",    "UDM_ERR", "AXIS_ERR","CRC_ERR",  "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[26]=["OFF_LINE","FW_READY","MAINTEN",   "ADC_ERR", "ADC_OVER",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[28]=["OFF_LINE","FW_READY","MAINTEN",   "LTC_FAIL","PWR_CRITIC","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[29]=["OFF_LINE","FW_READY","MAINTEN",   "ADC_ERR", "ADC_OVER",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 
-statusb_explain_matrix[0]=["None","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[10]=["SD Card Error","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[11]=["SD Card Error","None","None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[20]=["Modulo Off Line CAN","Main sensor error","Redundant sensor error","Accelerometer error","Accelerometer tilt"
-                             ,"Bicchiere pluviometro intasato","Errore tipping (rilevamento spike)"
-                             ,"None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[21]=["Modulo Off Line CAN","Main sensor error","Redundant sensor error"
-                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None"]
-#(22,"Module acquire temperature, humidity and rain"),
-statusb_explain_matrix[25]=["Modulo Off Line CAN","Windsonic hardware error","Windsonic unit measure wrong"
-                             ,"Windsonic not present or responding (RS232 continuos timeout)"
-                             ,"None","None","None","None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[26]=["Modulo Off Line CAN","ADC Overflow","ADC Error"
-                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None"]
-statusb_explain_matrix[28]=["Modulo Off Line CAN","LTC Unit error"
-                             ,"None","None","None","None","None","None","None","None","None","None","None","None","None","None"]
-
+# status v
 statusv_explain_matrix={}
-statusv_explain_matrix[0] =["None","None","None","None","None"]
-statusv_explain_matrix[10]=["None","None","None","None","None"]
-statusv_explain_matrix[11]=["None","None","None","None","None"]
-statusv_explain_matrix[20]=["None","None","None","None","None"]
-statusv_explain_matrix[21]=["None","None","None","None","None"]
-statusv_explain_matrix[25]=["None","None","None","None","None"]
-statusv_explain_matrix[26]=["None","None","None","None","None"]
-statusv_explain_matrix[28]=["None","None","None","None","None"]
+statusv_explain_matrix[0] = ["None",       "None",     "None",     "None",  "None"]
+statusv_explain_matrix[10]= ["ERR_CON %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
+statusv_explain_matrix[11]= ["ERR_CON %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
+statusv_explain_matrix[20]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]	 
+statusv_explain_matrix[21]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "I2C_%", "None"]
+statusv_explain_matrix[25]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "232_%", "None"]
+statusv_explain_matrix[26]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
+statusv_explain_matrix[28]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
+statusv_explain_matrix[29]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):
