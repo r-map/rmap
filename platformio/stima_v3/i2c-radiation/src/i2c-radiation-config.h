@@ -72,13 +72,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define CONFIGURATION_RESET_PIN                       (8)
 
-#define ADC_1_I2C_ADDRESS                             (0x48)  // GND
-#define ADC_2_I2C_ADDRESS                             (0x49)  // VDD
-#define ADC_3_I2C_ADDRESS                             (0x4B)  // SCL
-#define ADC_4_I2C_ADDRESS                             (0x4A)  // SDA
+/*
+ ADS1115 Address Selection
 
-#define ADC_I2C_ADDRESS                               ADC_1_I2C_ADDRESS
+The ADS111x have one address pin, ADDR, that configures the I2C
+address of the device. This pin can be connected to GND, VDD, SDA, or
+SCL, allowing for four different addresses to be selected with one
+pin, as shown in Table 4. The state of address pin ADDR is sampled
+continuously. Use the GND, VDD and SCL addresses first. If SDA is used
+as the device address, hold the SDA line low for at least 100 ns after
+the SCL line goes low to make sure the device decodes the address
+correctly during I2C communication.
+*/
+#define ADC_GND_I2C_ADDRESS                             (0x48)  // GND
+#define ADC_VDD_I2C_ADDRESS                             (0x49)  // VDD
+#define ADC_SCL_I2C_ADDRESS                             (0x4B)  // SCL
+#define ADC_SDA_I2C_ADDRESS                             (0x4A)  // SDA
 
+#define ADC_I2C_ADDRESS                               ADC_GND_I2C_ADDRESS
 
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1    (0.0)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2    (1.0)
