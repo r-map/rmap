@@ -42,14 +42,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define MAXTIMETORAIN      3000          // 300 ms
 
 // Digiteco rain gauge Stima V3
-#define MAXTIMETOBOUNCE    8            // 0.8 ms
-#define MINTIMETORAIN      400          // 40 ms
-#define MAXTIMETORAIN      600          // 60 ms
+//#define MAXTIMETOBOUNCE    8            // 0.8 ms
+//#define MINTIMETORAIN      400          // 40 ms
+//#define MAXTIMETORAIN      600          // 60 ms
 
 // Digiteco rain gauge Stima V4
 #define MAXTIMETOBOUNCE    8            // 0.8 ms
-#define MINTIMETORAIN      300          // 80 ms
-#define MAXTIMETORAIN      450          // 120 ms
+#define MINTIMETORAIN      800          // 80 ms
+#define MAXTIMETORAIN      120          // 120 ms
 
 // rain period definitions
 #define SECONDSTOPOWERON   30
