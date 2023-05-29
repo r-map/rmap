@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
-
+#ifdef ARDUINO_NUCLEO_L432KC
+#define OUTPIN  D6
+#else
 #define OUTPIN  PC13
+#endif
 
 // reverse output on OUTPIN !  usefull for simulatea switch closed on GND
 //#define MYHIGH  LOW  
