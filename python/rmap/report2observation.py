@@ -127,7 +127,7 @@ class report2observation(object):
         for bcode in bcodes:
           timeranges.append(timerange)
           levels.append(level)
-
+          
         
       except:
         try:
@@ -153,15 +153,20 @@ class report2observation(object):
       mqtt.connect()
       
       try:
+        attributearray=st.get("a",{})
         dindex=0
         for val in st["p"]:
           if ( val is not None ):
             bcode=bcodes[dindex]
             timerange=timeranges[dindex]
             level=levels[dindex]
-            datavar={bcode:{"t": dt,"v": val}}
+            attributes={}
+            for abcode in attributearray.keys():
+              attributes[abcode]=attributearray[abcode][dindex]
 
-            logging.info("timerange={} level={} bcode={} val={}".format(timerange,level,bcode,val))
+            datavar={bcode:{"t": dt,"v": val,"a":attributes}}
+            
+            logging.info("timerange={} level={} bcode={} val={} attr{}".format(timerange,level,bcode,val,attributes))
             mqtt.data(timerange=timerange,level=level,datavar=datavar)
           dindex+=1
       except:
