@@ -1,0 +1,16 @@
+[
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "Battery charge monitor, report mode",
+            "type": "MPP",
+	    "datalevel": "report",
+            "bcodes": [
+                ["B25192"],
+                ["B25193"],
+                ["B25194"]
+            ]
+        }
+    }
+]

@@ -381,7 +381,7 @@ template_choices = [
     "default",
     "none",
     "test",    "test_indirect",    "test_rf24",    "test_master",    "test_base",
-    "stima4_report_th","stima4_report_p","stima4_report_w","stima4_report_r",
+    "stima4_report_th","stima4_report_p","stima4_report_w","stima4_report_r","stima4_report_m",
     "stima_base",    "stima_t",    "stima_h",    "stima_w",    "stima_r",    "stima_p",    "stima_s",    "stima_m",
     "stima_sm",    "stima_th",    "stima_y",    "stima_ths",    "stima_thsm",    "stima_thw",    "stima_thp",    "stima_yp",
     "stima_thwr",    "stima_thwrp",
@@ -488,6 +488,13 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Radiation",driver="CAN",
                   type="DSA",timerange="0,0,{P2:d}",level="1,-,-,-")
+
+    if (template == "stima4_report_m"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Power MPPT",driver="CAN",
+                  type="MPP",timerange="0,0,{P2:d}",level="265,1,-,-")
         
     if (template == "stima_base"):
         print("setting template:", template)
@@ -1366,7 +1373,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
                     print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath))
                     print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath))
-                    print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"))
+                    print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc"))
                     print("coordinate:",rpcproxy.configure(lon=nint(mystation.lon*100000),lat=nint(mystation.lat*100000)))
                     print("coordinate:",rpcproxy.configure(network=mystation.network))
 
@@ -1379,7 +1386,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
                                                     mqttpassword=board.transportmqtt.mqttpassword))
                     try:
-                        print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
+                        print("mqtt pskkey:",rpcproxy.configure(mqttpskkey="0x"+board.transportmqtt.mqttpskkey))
                     except:
                         pass           # to be removed; here fo legacy boards
                 
