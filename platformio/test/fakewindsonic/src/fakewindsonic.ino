@@ -71,7 +71,7 @@ L'unità di musura della velocità è m/s
 // Gill, Polar, Continuous
 //  or
 // Gill, Polar, Polled
-//#define POLL_MODE true
+#define POLL_MODE true
 
 // rotation period and velocity
 #define ROTATION_MINUTES    1

@@ -146,10 +146,10 @@ void requestEvent()
   if ((millis()-regsettime) > 5000) {
 
     // missing
-    //Wire.write(0xFF);
-    //Wire.write(0xFF);
-    //Wire.write(0xFF);
-    //Wire.write(0xFF);
+    Wire.write(0xFF);
+    Wire.write(0xFF);
+    Wire.write(0xFF);
+    Wire.write(0xFF);
 
     // zero
     //Wire.write(0);
@@ -321,7 +321,7 @@ void setup() {
 
   //Start I2C communication routines
   Wire.begin(i2c_writabledataset1->i2c_address);
-  
+    
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
   // do not need this with patched Wire library
