@@ -305,8 +305,9 @@ void setup() {
   
   MYSERIAL0.println(F("end setup"));
   MYSERIAL0.flush();
+#ifndef ARDUINO_ARCH_AVR
   Tim2.resume();
-  
+#endif
 }
 
 void loop() {  
