@@ -107,7 +107,8 @@ parser.add_argument('--download_from_server',action="store_true", help="download
 parser.add_argument('--stima_version',  default="3", choices=("3","4"), help="stima version")
 parser.add_argument('--notification',action="store_true", help="use notification (no response expected) for JSRPC")
 parser.add_argument('--rpc_mqtt_admin',action="store_true", help="execute admin RPC over MQTT")
-parser.add_argument('--rpc_mqtt_admin_fdownload',action="store_true", help="execute admin RPC over MQTT with firmware download request")
+parser.add_argument('--rpc_mqtt_admin_fdownload',action="store_true", help="add firmware download request to admin RPC over MQTT")
+parser.add_argument('--rpc_mqtt_admin_cdownload',action="store_true", help="add configuration download request to admin RPC over MQTT")
 parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
 parser.add_argument('--rpc_mqtt_reboot_fupdate',action="store_true", help="execute reboot RPC over MQTT with firmware update request")
 parser.add_argument('--rpc_mqtt_pinout',action="store_true", help="execute pinout RPC over MQTT")
@@ -194,6 +195,7 @@ parser.add_argument('--tcpipactivate', action="store_true", help="activate tcp/i
 parser.add_argument('--tcpipname',  default="master", help="tcp/ip name")
 parser.add_argument('--tcpipntpserver',  default="ntpserver", help="tcp/ip ntp server")
 parser.add_argument('--tcpipgsmapn',  default="ibox.tim.it", help="apn for gsm access")
+parser.add_argument('--tcpippppnumber',  default="*99#", help="ppp number for gsm access")
 
 # ttn
 parser.add_argument('--ttn_jsrpc',action="store_true", help="execute json remote procedure call over ttn lorawan transport")
@@ -525,7 +527,7 @@ if args.addboard:
                             ,amqpactivate=args.amqpactivate, amqpusername=args.amqpuser, amqppassword=args.amqppassword
                             ,amqpserver=args.server, queue="rmap", exchange="rmap"
                             ,tcpipactivate=args.tcpipactivate, tcpipname=args.tcpipname, tcpipntpserver=args.tcpipntpserver
-                            , tcpipgsmapn=args.tcpipgsmapn)
+                            , tcpipgsmapn=args.tcpipgsmapn,tcpippppnumber=args.tcpippppnumber)
 
 
 if args.delsensor:
@@ -714,6 +716,8 @@ if args.rpc_mqtt_admin:
     params={}
     if (args.rpc_mqtt_admin_fdownload):
         params["fdownload"]=args.rpc_mqtt_admin_fdownload
+    if (args.rpc_mqtt_admin_cdownload):
+        params["cdownload"]=args.rpc_mqtt_admin_cdownload
     
     rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
                                  board_slug=args.board_slug,
