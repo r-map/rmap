@@ -109,6 +109,8 @@ void SupervisorTask::Run()
 {
   uint8_t retry, hh, nn, ss;
   uint32_t ms;
+  // bool bGetNextSecondOffsetStart = false;       // VarSet and Offset for Random connection Start
+  // int16_t bSecondOffsetStart = 0;
   connection_request_t connection_request;
   connection_response_t connection_response;
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
@@ -215,7 +217,7 @@ void SupervisorTask::Run()
         // Standard Waiting Sleeping mode
         TaskWatchDog(SUPERVISOR_TASK_SLEEP_DELAY_MS);
         TaskState(state, UNUSED_SUB_POSITION, task_flag::sleepy);
-        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_WAIT_DELAY_MS));
+        Delay(Ticks::MsToTicks(SUPERVISOR_TASK_SLEEP_DELAY_MS));
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       }
 
@@ -240,6 +242,17 @@ void SupervisorTask::Run()
         }
       }
 
+      // // Get RND(XX = 60) Second Offset Start connection for avoid overcharging RMAP Server
+      // if(!bGetNextSecondOffsetStart) {
+      //   bGetNextSecondOffsetStart = true;
+      //   bSecondOffsetStart = random(60);
+      // }
+      // // Waiting coutdown on Timing
+      // if((param.system_status->flags.new_data_to_send)&&(bSecondOffsetStart > 0)) {
+      //   bSecondOffsetStart -= (SUPERVISOR_TASK_SLEEP_DELAY_MS / 1000);
+      //   break;
+      // }
+
       #if (!TEST_CONNECTION)
       // Checking starting Connection inibition next Start... If something Wrong... (Default 10 min)
       // RPC Request Command as (configure or download firmware) will start immediatly
@@ -261,6 +274,9 @@ void SupervisorTask::Run()
             param.system_status->command.do_ntp_synchronization = true;
             param.systemStatusLock->Give();
           }
+
+          // Renew GET Random value for Start Next Connection
+          // bGetNextSecondOffsetStart = false;
 
           // START REQUEST function LIST...
           param.systemStatusLock->Take();

@@ -50,7 +50,7 @@
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)
 
 #define SUPERVISOR_TASK_DEEP_POWER_DELAY_MS     (5000)
-#define SUPERVISOR_TASK_SLEEP_DELAY_MS          (2000)
+#define SUPERVISOR_TASK_SLEEP_DELAY_MS          (1000)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
