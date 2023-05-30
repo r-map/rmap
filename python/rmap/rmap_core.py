@@ -381,7 +381,7 @@ template_choices = [
     "default",
     "none",
     "test",    "test_indirect",    "test_rf24",    "test_master",    "test_base",
-    "stima4_report_th","stima4_report_p","stima4_report_w","stima4_report_r","stima4_report_m",
+    "stima4_report_th","stima4_report_p","stima4_report_w","stima4_report_r","stima4_report_m","stima4_report_s",
     "stima_base",    "stima_t",    "stima_h",    "stima_w",    "stima_r",    "stima_p",    "stima_s",    "stima_m",
     "stima_sm",    "stima_th",    "stima_y",    "stima_ths",    "stima_thsm",    "stima_thw",    "stima_thp",    "stima_yp",
     "stima_thwr",    "stima_thwrp",
@@ -495,6 +495,19 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Power MPPT",driver="CAN",
                   type="MPP",timerange="0,0,{P2:d}",level="265,1,-,-")
+
+    if (template == "stima4_report_s"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Soil water content",driver="CAN",
+                  type="SVW",timerange="0,0,{P2:d}",level="106,250,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Soil water content",driver="CAN",
+                  type="SVW",timerange="0,0,{P2:d}",level="106,450,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Soil water content",driver="CAN",
+                  type="SVW",timerange="0,0,{P2:d}",level="106,700,-,-")
         
     if (template == "stima_base"):
         print("setting template:", template)

@@ -1,5 +1,16 @@
 [
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13227",
+            "description": "Soil volumetric water content",
+            "unit": "%",
+            "offset": 0.0,
+            "scale": 1.0,
+            "userunit": "%"
+        }
+    },
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
@@ -10,6 +21,18 @@
                 ["B25192"],
                 ["B25193"],
                 ["B25194"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "Soil volumetric water content, report mode",
+            "type": "SVW",
+	    "datalevel": "report",
+            "bcodes": [
+                ["B13227"]
             ]
         }
     }
