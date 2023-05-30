@@ -159,7 +159,7 @@ class MyMQTTClass(mqtt.Client):
             msg["stationstatus"]["minorversion"] = p.get("m")
         except:
             msg.pop("stationstatus")
-            logging.info("no conform maint message Stima V3")
+            logging.info("this is not a maint message for station status")
             logging.debug(traceback.format_exc())
         try:
             msg["boardstatus"]={}
@@ -168,7 +168,7 @@ class MyMQTTClass(mqtt.Client):
             msg["boardstatus"]["statusv"] = p.get("c")
         except:
             msg.pop("boardstatus")
-            logging.info("no conform maint message Stima V4")
+            logging.info("this is not a maint message for board status")
             logging.debug(traceback.format_exc())
                     
         if all([
@@ -181,11 +181,6 @@ class MyMQTTClass(mqtt.Client):
         else:
             msg["datetime"] = None
 
-        if "a" in p:
-            msg["attributes"] = p["a"]
-        else:
-            msg["attributes"] = {}
-            
         return msg
 
     def on_connect(self,client, userdata, flags, rc):
@@ -234,10 +229,6 @@ class MyMQTTClass(mqtt.Client):
             logging.debug(m["trange"])
             logging.debug(m["var"])
 
-            for b, v in m["attributes"].items():
-                logging.debug("ignore: {} {}".format(b, v))
-            logging.debug("-----------------------")
-
 
             if all([
                 m["level"] == (265, 0, None, None),
@@ -272,7 +263,7 @@ class MyMQTTClass(mqtt.Client):
                             mystation.stationmaintstatus.lastupdate    = m["datetime"]
                             mystation.stationmaintstatus.firmwaremajor = m["stationstatus"]["majorversion"]
                             mystation.stationmaintstatus.firmwareminor = m["stationstatus"]["minorversion"]
-                            if (m["value"] == "conn"):
+                            if (m["stationstatus"]["value"] == "conn"):
                                 mystation.stationmaintstatus.save(force_update=True)
                             else:
                                 mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
