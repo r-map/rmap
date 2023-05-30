@@ -84,7 +84,8 @@ typedef struct
    uint8_t can_publish_id;    //!< port for uavcan data publication
    uint8_t can_sampletime;    //!< Can_Sampletime if module are in publish mode, time to automatic update and send data
    uint64_t serial_number;    //!< Serial number of board (Used from slave for PnP Assign...)
-   Module_Type module_type;   //!< module type (optional also present in unique_id...)
+   Module_Type module_type;   //!< module type
+   char module_name[MAX_BOARD_NAME_LEN];              //!< module name
    board_metadata_t metadata[CAN_SENSOR_COUNT_MAX];   //!< module metadata (only used for slave board)
    bool is_configured[CAN_SENSOR_COUNT_MAX];          //!< module is configured ? (only used for slave board)
 } board_configuration_t;
@@ -416,6 +417,7 @@ typedef struct
       uint8_t do_end_ptr    : 1;  // Request synch pointer data rmap END with param (set pointer)
       uint8_t do_get_data   : 1;  // Get first data avaiable and set pointer to next data
       uint8_t do_save_ptr   : 1;  // Request to Save Pointer Data (Optional with All other Request)
+      uint8_t do_reset_ptr  : 1;  // Request to Reset Pointer Data
    } command;
    uint32_t param;  // 32 Bit for generic data or casting to pointer
 

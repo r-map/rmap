@@ -148,7 +148,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
 {
   bool is_error = false;
   bool error_command = false;
-  
+
+  Serial.print("Ciao");
+
   for (JsonPair it : params)
   {
     // ************** SHARED COMMAND CONFIGURATION LIST **************
@@ -189,7 +191,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         is_configuration_changed = true;
         // No more action here if save configuration.
         if(isMasterConfigure) {
-          initFixedConfigurationParam();
+          // Reset slaveID Index to End Master MAX Node
+          initFixedConfigurationParam(slaveId + 1);
+          slaveId = UNKNOWN_ID;
           saveConfiguration();
           is_configuration_changed = false;
         } else if(isSlaveConfigure) {
@@ -203,7 +207,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         else error_command = true;
         // Reset and deinit info current module and parameter pointer configure sequence
         currentModule = Module_Type::undefined;
-        slaveId = UNKNOWN_ID;
         sensorId = UNKNOWN_ID;
         isSlaveConfigure = false;
         isMasterConfigure = false;
@@ -222,42 +225,68 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       // otherwise refuse command. Also for module slave. Module slave have slaveId (Array Index)
       // is board stimacan (slave)
       if(!isMasterConfigure && !isSlaveConfigure) {
-        if (strstr(it.value().as<const char *>(), "stimacan")) {
-          char *str_pos;
-          str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
-          uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
-          if(requestIndex < BOARDS_COUNT_MAX) {
-            // Start configure slave module ID: slaveId
-            isSlaveConfigure = true;
-            slaveId = requestIndex;
-          }
-          else error_command = true;
-        }
-        else if (strcmp(it.value().as<const char *>(), "stimav4") == 0) {
-          // Start configure master module
-          isMasterConfigure = true;
-        }
-        else is_error = true;
+        // Copy board Name (Master slave depending after reading board_type def)
+        strcpy(boardName,(it.value().as<const char *>())); 
+        // if (strstr(it.value().as<const char *>(), "stimacan")) {
+        //   char *str_pos;
+        //   str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
+        //   uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
+        //   if(requestIndex < BOARDS_COUNT_MAX) {
+        //     // Start configure slave module ID: slaveId
+        //     isSlaveConfigure = true;
+        //     slaveId = requestIndex;
+        //   }
+        //   else error_command = true;
+        // }
+        // else if (strcmp(it.value().as<const char *>(), "stimav4") == 0) {
+        //   // Start configure master module
+        //   isMasterConfigure = true;
+        // }
+        // else is_error = true;
       }
       else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "boardtype") == 0)
     {
       // Set Module TYPE (index) for Master o Slave module
-      // Validate with sequence command
-      if(isSlaveConfigure) {
-        param.configurationLock->Take();
-        param.configuration->board_slave[slaveId].module_type = (Module_Type)it.value().as<unsigned int>();
-        currentModule = (Module_Type)it.value().as<unsigned int>();
-        param.configurationLock->Give();
+      // Validate with sequence command if not already in cfg of one module
+      if(!isMasterConfigure && !isSlaveConfigure) {
+        switch(it.value().as<unsigned int>()) {
+          case STIMA_MODULE_TYPE_MASTER_ETH:
+          case STIMA_MODULE_TYPE_MASTER_GSM:
+            param.configurationLock->Take();
+            param.configuration->board_master.module_type = (Module_Type)it.value().as<unsigned int>();
+            currentModule = (Module_Type)it.value().as<unsigned int>();
+            // Copying real name configured
+            strcpy(param.configuration->board_master.module_name, boardName);
+            param.configurationLock->Give();
+            isMasterConfigure = true;
+            break;
+
+          case STIMA_MODULE_TYPE_RAIN:
+          case STIMA_MODULE_TYPE_TH:
+          case STIMA_MODULE_TYPE_WIND:
+          case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+          case STIMA_MODULE_TYPE_POWER_MPPT:
+          case STIMA_MODULE_TYPE_VVC:
+            param.configurationLock->Take();
+            // Set module index (defualt START from 0xFF to point 0 index at start)
+            // Index valid for all parameter while next board configure... Inc to sequential value
+            slaveId++;
+            param.configuration->board_slave[slaveId].module_type = (Module_Type)it.value().as<unsigned int>();
+            currentModule = (Module_Type)it.value().as<unsigned int>();
+            // Copying real name configured
+            strcpy(param.configuration->board_slave[slaveId].module_name, boardName);
+            param.configurationLock->Give();
+            isSlaveConfigure = true;
+            break;
+
+          default:
+            error_command = true;
+        }
+      } else {
+        error_command = true;
       }
-      else if(isMasterConfigure) {
-        param.configurationLock->Take();
-        param.configuration->board_master.module_type = (Module_Type)it.value().as<unsigned int>();
-        currentModule = (Module_Type)it.value().as<unsigned int>();
-        param.configurationLock->Give();
-      }
-      else error_command = true;
     }
     else if (strcmp(it.key().c_str(), "cansampletime") == 0)
     {
@@ -1219,7 +1248,7 @@ int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 
 /// @brief Init configuration fixed param unused on RPC Connfiguration
 /// @param  None
-void RegisterRPC::initFixedConfigurationParam(void)
+void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
 {
   // Private param and Semaphore: param.configuration, param.configurationLock
   param.configurationLock->Take();
@@ -1253,6 +1282,14 @@ void RegisterRPC::initFixedConfigurationParam(void)
   #endif
 
   param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
+
+  // Reset other Slave unconfigured Module
+  for(uint8_t idTmp = lastNodeConfig; idTmp < MAX_NODE_CONNECT; idTmp++) {
+    memset(&param.configuration->board_slave[idTmp], 0, sizeof(board_configuration_t));
+    param.configuration->board_slave[idTmp].can_address = 0xFFu;
+    param.configuration->board_slave[idTmp].can_port_id = 0xFFFFu;
+    param.configuration->board_slave[idTmp].can_publish_id = 0xFFFFu;
+  }
 
   param.configurationLock->Give();
 }

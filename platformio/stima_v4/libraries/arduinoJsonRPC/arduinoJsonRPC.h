@@ -21,7 +21,6 @@
 #define RPC_TYPE_SERIAL             (0)
 #define RPC_TYPE_RADIO              (1)
 #define RPC_TYPE_HTTPS              (2)
-#define RPC_TYPE_CAN                (3)
 
 typedef enum {
    JRPC_INIT,

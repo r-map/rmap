@@ -45,6 +45,9 @@
 
 #define MQTT_PUT_QUEUE_BKP_TIMEOUT_MS     (2500)
 
+#define MQTT_NET_WAIT_TIMEOUT_SUSPEND     (120000)                    // Time out mqtt suspend operation timeout
+#define MQTT_NET_WAIT_TIMEOUT_PUBLISH     (MQTT_TIMEOUT_MS + 2500)    // Time out mqtt suspend operation timeout
+
 #define MQTT_PUB_CMD_DEBUG_PREFIX         (">")
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")
 
@@ -238,6 +241,8 @@ private:
   // Static RPC Procedure access and Semaphore
   inline static cpp_freertos::BinarySemaphore *localRpcLock;
   inline static JsonRPC *localStreamRpc;
+
+  inline static MqttClientContext *localPtrMqttClientContext;
 
   inline static system_status_t *localSystemStatus;
 

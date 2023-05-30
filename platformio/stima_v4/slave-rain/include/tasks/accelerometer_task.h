@@ -56,7 +56,7 @@ using namespace cpp_freertos;
 #define ACCELEROMETER_TASK_WAIT_DELAY_MS    (20)
 #define ACCELEROMETER_TASK_SLEEP_DELAY_MS   (850)
 
-#define BUBBLE_ANGLE_ERROR                  (0.02)
+#define BUBBLE_ANGLE_ERROR                  (0.03)
 
 typedef enum
 {

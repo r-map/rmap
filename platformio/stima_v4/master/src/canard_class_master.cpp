@@ -852,6 +852,57 @@ bool canardClass::master::file::is_pending(void)
 
 // **************          Accesso ai registri remoti UAVCAN        **************
 
+#if (REGISTER_ACESS_AUTO_RETRY)
+
+/// @brief Comando della classe per l'accesso ai registri UAVCAN Standard remoti tramite classe
+/// @param slaveIstance Istanza slave
+/// @param timeout_us deadline comando in microsecondi
+/// @param registerName Nome del registro remoto
+/// @param registerValue Valore del registro ignorato se in lettura
+/// @param write se true è un comando di scrittura altrimenti solo lettura
+/// @param num_retry numero di retry per il comando
+/// @return true se il metodo è correttamente chiamato
+bool canardClass::send_register_access_pending(uint8_t slaveIstance, uint32_t timeout_us, char *registerName,
+                        uavcan_register_Value_1_0 registerValue, bool write, uint8_t num_retry) {
+    // Retry command mode
+    slave[slaveIstance].register_access.retry = num_retry;
+    if(slave[slaveIstance].register_access.retry) {
+        slave[slaveIstance].register_access.retry--;
+    } else {
+        return false;
+    }
+    strcpy(slave[slaveIstance].register_access.register_name, registerName);
+    slave[slaveIstance].register_access.register_value = registerValue;
+    slave[slaveIstance].register_access.is_write = write;
+    // Riferimenti locali del pending
+    slave[slaveIstance].register_access.start_pending(timeout_us);
+    // Accesso al metodo generico della Classe Canard_Master
+    return send_register_access(slave[slaveIstance].get_node_id(), slave[slaveIstance].register_access.next_transfer_id(),
+                            registerName, registerValue, write);
+}
+
+/// @brief Comando della classe per l'accesso ai registri UAVCAN Standard remoti tramite classe ( in retry )
+/// @param slaveIstance Istanza slave
+/// @param timeout_us deadline comando in microsecondi
+/// @return true se il metodo è correttamente chiamato è il numero di retry lo consente
+bool canardClass::send_register_access_pending_retry(uint8_t slaveIstance, uint32_t timeout_us) {
+    // Retry command mode
+    if(slave[slaveIstance].rmap_service.retry) {
+        slave[slaveIstance].rmap_service.retry--;
+    } else {
+        return false;
+    }
+    // Riferimenti locali del pending
+    slave[slaveIstance].register_access.start_pending(timeout_us);
+    // Accesso al metodo generico della Classe Canard_Master
+    return send_register_access(slave[slaveIstance].get_node_id(), slave[slaveIstance].register_access.next_transfer_id(),
+                            slave[slaveIstance].register_access.register_name,
+                            slave[slaveIstance].register_access.register_value,
+                            slave[slaveIstance].register_access.is_write);
+}
+
+#else
+
 /// @brief Comando della classe per l'accesso ai registri UAVCAN Standard remoti tramite classe
 /// @param slaveIstance Istanza slave
 /// @param timeout_us deadline comando in microsecondi
@@ -867,6 +918,8 @@ bool canardClass::send_register_access_pending(uint8_t slaveIstance, uint32_t ti
     return send_register_access(slave[slaveIstance].get_node_id(), slave[slaveIstance].register_access.next_transfer_id(),
                             registerName, registerValue, write);
 }
+
+#endif
 
 /// @brief Comando della classe per l'accesso ai registri UAVCAN Standard remoti con ID fisico nodo
 /// @param node_id node id remoto
@@ -1000,10 +1053,56 @@ bool canardClass::send_command_file_server_pending(uint8_t slaveIstance, uint32_
 
 // **************   Invio richiesta dati diretto ad un nodo remoto UAVCAN Get   **************
 
+#if (RMAPDATA_ACESS_AUTO_RETRY)
+
 /// @brief Comando della classe per l'invio di una richiesta dati UAVCAN Privata remota tramite classe
 /// @param slaveIstance Istanza slave
 /// @param timeout_us deadline comando in microsecondi
 /// @param paramRequest rmap Request parametri UAVCAN dalla relativa DSDSL
+/// @param num_retry imposta il numero di retry (funzione in overload)
+/// @return true se il metodo è correttamente chiamato
+bool canardClass::send_rmap_data_pending(uint8_t slaveIstance, uint32_t timeout_us, 
+                                    rmap_service_setmode_1_0 paramRequest, uint8_t num_retry) {
+    // Retry command mode
+    slave[slaveIstance].rmap_service.retry = num_retry;
+    if(slave[slaveIstance].rmap_service.retry) {
+        slave[slaveIstance].rmap_service.retry--;
+    } else {
+        return false;
+    }
+    slave[slaveIstance].rmap_service.paramRequest = paramRequest;
+    // Riferimenti locali del pending
+    slave[slaveIstance].rmap_service.start_pending(timeout_us);
+    // Accesso al metodo generico della Classe Canard_Master
+    return send_rmap_data(slave[slaveIstance].get_node_id(), slave[slaveIstance].command.next_transfer_id(),
+                            slave[slaveIstance].rmap_service.get_port_id(), paramRequest);
+}
+
+/// @brief Comando della classe per l'invio di una richiesta dati UAVCAN Privata remota tramite classe ( in retry )
+/// @param slaveIstance Istanza slave
+/// @param timeout_us deadline comando in microsecondi
+/// @return true se il metodo è correttamente chiamato è il numero di retry lo consente
+bool canardClass::send_rmap_data_pending_retry(uint8_t slaveIstance, uint32_t timeout_us) {
+    // Retry command mode
+    if(slave[slaveIstance].rmap_service.retry) {
+        slave[slaveIstance].rmap_service.retry--;
+    } else {
+        return false;
+    }
+    // Riferimenti locali del pending
+    slave[slaveIstance].rmap_service.start_pending(timeout_us);
+    // Accesso al metodo generico della Classe Canard_Master
+    return send_rmap_data(slave[slaveIstance].get_node_id(), slave[slaveIstance].command.next_transfer_id(),
+                            slave[slaveIstance].rmap_service.get_port_id(), slave[slaveIstance].rmap_service.paramRequest);
+}
+
+#else
+
+/// @brief Comando della classe per l'invio di una richiesta dati UAVCAN Privata remota tramite classe
+/// @param slaveIstance Istanza slave
+/// @param timeout_us deadline comando in microsecondi
+/// @param paramRequest rmap Request parametri UAVCAN dalla relativa DSDSL
+/// @param num_retry imposta il numero di retry (funzione in overload)
 /// @return true se il metodo è correttamente chiamato
 bool canardClass::send_rmap_data_pending(uint8_t slaveIstance, uint32_t timeout_us, 
                                     rmap_service_setmode_1_0 paramRequest) {
@@ -1013,6 +1112,8 @@ bool canardClass::send_rmap_data_pending(uint8_t slaveIstance, uint32_t timeout_
     return send_rmap_data(slave[slaveIstance].get_node_id(), slave[slaveIstance].command.next_transfer_id(),
                             slave[slaveIstance].rmap_service.get_port_id(), paramRequest);
 }
+
+#endif
 
 /// @brief Comando della classe per l'invio di una richiesta dati UAVCAN Privata remota tramite ID Fisico
 /// @param node_id node id remoto
@@ -1483,6 +1584,7 @@ bool canardClass::slave::rmap_service::is_pending(void) {
 bool canardClass::slave::rmap_service::is_executed(void) {
     return _is_executed;
 }
+
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
 /// @param  None

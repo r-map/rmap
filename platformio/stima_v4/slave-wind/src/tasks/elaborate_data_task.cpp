@@ -251,7 +251,9 @@ void ElaborateDataTask::getSDFromUV(float u, float v, float *speed, float *direc
   *direction = tmp_dir % 360;
   if(*speed < CALM_WIND_MAX_MED_VECT) {
     *speed = 0;
-    *direction = WIND_DIRECTION_MAX;
+    *direction = 0;
+  } else if (*direction == 0) {
+    *direction = WIND_DIRECTION_MAX; // Translate 0 -> 360 (WIND_DIRECTION_MAX)
   }
 }
 
@@ -399,7 +401,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
     if (!ISVALID_FLOAT(direction)) direction = 0;
     // Used as sample for istant value (Only LCD for show value)
-    report.vavg10_speed = speed * WIND_CASTING_SPEED_MULT;
+    report.vavg10_speed = speed;
     report.vavg10_direction = direction;
   }
   else
@@ -461,10 +463,6 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
         // On observation
         ub_o += ((float)(-speed * sin(DEG_TO_RAD * direction)) - ub_o) / valid_count_b_o;
         vb_o += ((float)(-speed * cos(DEG_TO_RAD * direction)) - vb_o) / valid_count_b_o;
-        if (speed >= peak_gust_speed) {
-          peak_gust_speed = speed;
-          peak_gust_direction = direction;
-        }
       }
 
       #ifdef VECT_MED_ON_360_SIMULATOR
@@ -481,6 +479,17 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       if (ISVALID_FLOAT(speed) && !measures_maintenance) {
         valid_count_speed++;
         avg_speed += (speed - avg_speed) / valid_count_speed;
+
+        if (speed >= peak_gust_speed) {
+          peak_gust_speed = speed;
+          peak_gust_direction = direction;
+          if (peak_gust_speed < CALM_WIND_MAX_MS) {
+            peak_gust_speed = 0;
+            peak_gust_direction = 0;
+          } else {
+            if (peak_gust_direction == 0) peak_gust_direction = WIND_DIRECTION_MAX; // Translate 0 -> 360 (WIND_DIRECTION_MAX)
+          }
+        }
 
         if (speed < WIND_CLASS_1_MAX) {
           class_1++;
@@ -509,6 +518,12 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
           {
             long_gust_speed = vavg_speed_o;
             long_gust_direction = vavg_direction_o;
+            if (long_gust_speed < CALM_WIND_MAX_MS) {
+              long_gust_speed = 0;
+              long_gust_direction = 0;
+            } else {
+              if (long_gust_direction == 0) long_gust_direction = WIND_DIRECTION_MAX; // Translate 0 -> 360 (WIND_DIRECTION_MAX)
+            }
           }
         }
         // Reset index o

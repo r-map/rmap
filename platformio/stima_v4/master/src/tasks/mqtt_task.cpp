@@ -61,6 +61,7 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
   localRpcLock = param.rpcLock;
   localStreamRpc = param.streamRpc;
   localSystemStatus = param.system_status;
+  localPtrMqttClientContext = &mqttClientContext;
 
   state = MQTT_STATE_INIT;
   version = MQTT_VERSION_3_1_1;
@@ -213,9 +214,9 @@ void MqttTask::Run()
 
       TRACE_INFO_F(F("%s Resolving mqtt server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server);
       // Resolve MQTT server name
-      TaskState(state, 1, task_flag::suspended); // Or SET Long WDT > 120 sec.
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       error = getHostByName(NULL, param.configuration->mqtt_server, &ipAddr, 0);
-      TaskState(state, 1, task_flag::normal); // Resume
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       if (error)
       {
         is_error = true;
@@ -272,8 +273,10 @@ void MqttTask::Run()
         mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
 
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       // Establish connection with the MQTT server
       error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, false);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       // Any error to report?
       if (error)
       {
@@ -290,7 +293,9 @@ void MqttTask::Run()
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         // publish connection message (Conn + Version and Revision)
         sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
+        TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
         error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+        TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
@@ -298,7 +303,9 @@ void MqttTask::Run()
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
 
       param.systemStatusLock->Take();
@@ -383,9 +390,13 @@ void MqttTask::Run()
       byteState[indexPosition] = 0;
 
       // publish connection message (Conn + Version and Revision)
+      // sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
+      //   dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-        dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+        dtBlock, param.configuration->board_master.module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
       error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
       // ******************************************************************
@@ -434,9 +445,13 @@ void MqttTask::Run()
           byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
 
           // publish connection message (Conn + Version and Revision)
+          // sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
+          //   dtBlock, NAME_BSLUG_BOARD_PREFIX, (iNodeSlave+1), bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
           sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-            dtBlock, NAME_BSLUG_BOARD_PREFIX, (iNodeSlave+1), bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+            dtBlock, param.configuration->board_slave[iNodeSlave].module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+          TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
           error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+          TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
           TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
         }
       }
@@ -1090,18 +1105,26 @@ void MqttTask::Run()
 
       // publish disconnection message
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      // Non blocking taskMQTT_NET_WAIT_TIMEOUT_PUBLISH
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
       error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_DISCONNECT_MESSAGE, strlen(MQTT_ON_DISCONNECT_MESSAGE), qos, true, NULL);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       if (!error)
       {
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
       }
 
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       // Softly disconnect to MQTT Server
       mqttClientDisconnect(&mqttClientContext);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
 
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       // Close connection
       mqttClientClose(&mqttClientContext);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+
       TRACE_INFO_F(F("%s Close connection\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
       state = MQTT_STATE_END;
@@ -1175,7 +1198,7 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 {
   task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
   bool is_event_rpc = true;
-  char rpc_response[MAXLEN_RPC_RESPONSE];
+  char rpc_response[MAXLEN_RPC_RESPONSE] = {0};
  
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
   TRACE_INFO_F(F("Dup: %u\r\n"), dup);
@@ -1186,7 +1209,9 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("%s %s\r\n"), topic, message);
 
   // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
-  if(!localSystemStatus->flags.clean_rpc) {
+  if(localSystemStatus->flags.clean_rpc) {
+    TRACE_INFO_F(F("Excluding all RPC Message for first connection in security mode...\r\n"));
+  } else {
     localStreamRpc->init();
     if (localRpcLock->Take())
     {
@@ -1196,13 +1221,18 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
         // Return to previous state on END of RPC Call execution
         old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
         localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        // localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, NULL, 0, RPC_TYPE_SERIAL);
-        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_SERIAL);
+        // N.B. Use seial if USE "id": 0 \r\n (optional) if used
+        // localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_SERIAL);
+        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
         localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
         localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-        // TODO: Response of RPC to path...
       }
       localRpcLock->Give();
+      // Response of RPC to path...
+      // TODO: Verify Path Topic and Serial "ID: 0" Type or NOT
+      // if(strlen(rpc_response)) {
+      //   mqttClientPublish(localPtrMqttClientContext, topic, rpc_response, strlen(rpc_response), qos, true, NULL);
+      // }
     }
   }
 }
@@ -1380,7 +1410,9 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // publish temperature value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1428,7 +1460,9 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // publish humidity value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1644,7 +1678,9 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   // publish rain value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1750,7 +1786,9 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   // publish radiation value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1802,7 +1840,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // publish speed value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1849,7 +1889,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // publish direction value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1901,7 +1943,9 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // publish speed value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1939,7 +1983,9 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // publish direction value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -1991,7 +2037,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // publish speed peak value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2038,7 +2086,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // publish speed long value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2090,7 +2140,9 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   // publish speed peak value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2142,7 +2194,9 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   // publish class speed value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2194,7 +2248,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // publish peak value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2241,7 +2297,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // publish direction long value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2772,7 +2830,9 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   // publish soil value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2878,7 +2938,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish input voltage value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2925,7 +2987,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish battery current value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;
@@ -2972,7 +3036,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // publish battery charge value
   do
   {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
     error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
     if (error)
     {
       error_count++;

@@ -403,7 +403,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 12100, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 12300, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)

@@ -251,7 +251,9 @@ void setup() {
 // FreeRTOS idleHook callBack to loop
 void loop() {
   // Enable LowPower idleHock reduce power consumption without disable sysTick
+  #ifndef _EXIT_SLEEP_FOR_DEBUGGING
   LowPower.idleHook();
+  #endif
 }
 
 /// @brief Init Pin (Diag and configuration)

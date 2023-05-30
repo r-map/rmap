@@ -106,6 +106,8 @@ void TemperatureHumidtySensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
   uint8_t error_count = 0;
+  bool force_i2c_begin = false;
+  rmapdata_t data_check;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -263,10 +265,18 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ITH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
+            data_check = edata.value;
             param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
+            // Check status buffer locked (apparent true but data fail. TH != HR, in some error case is same from buffer read)
+            // In this case we need to reboot I2C with Begin. Costant Begin use amount of 40 Bytes from Heap
+            // N.B. Recall continuos of this method will cause an WDT Reset on about 1.800 reset
             edata.value = values_readed_from_sensor[1];
+            if(data_check == edata.value) {
+              edata.value = RMAPDATA_MAX;
+              force_i2c_begin = true;
+            }
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
             param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
@@ -359,12 +369,18 @@ void TemperatureHumidtySensorTask::Run() {
         if(error_count > TH_TASK_ERROR_FOR_RESET) {
           // Restart Hardware Wire (On repeted Error) Power Off Sensor and Rebegin HW I2C State
           error_count = 0;
+          force_i2c_begin = 0;
           powerOff();
         }
 
-        // param.wireLock->Take();
-        // param.wire->begin();
-        // param.wireLock->Give();
+        // Restart I2C
+        if(force_i2c_begin) {
+          TRACE_ERROR("Sensor: Need to restart I2C for buffer locking continuos\r\n");
+          param.wireLock->Take();
+          param.wire->begin();
+          param.wireLock->Give();
+          force_i2c_begin = false;
+        }
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);

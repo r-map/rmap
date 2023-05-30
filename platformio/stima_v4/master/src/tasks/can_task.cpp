@@ -349,20 +349,31 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         }
         case canardClass::Command_Private::execute_rpc:
         {
-            // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
+            // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+            // Return to previous state on END of RPC Call execution
             bool is_event_rpc = true;
             localStreamRpc->init();
-            localRpcLock->Take();
-            // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-            localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-            localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_CAN);
-            localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::normal;
-            localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-            localRpcLock->Give();
-            if(!is_event_rpc)
-                resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
-            else
+
+            // Put RPC for configuration mode
+            if (localRpcLock->Take(Ticks::MsToTicks(RPC_WAIT_DELAY_MS)))
+            {
+                while (is_event_rpc)
+                {
+                    // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+                    localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+                    localStreamRpc->parseCharpointer(&is_event_rpc, (char *)req->parameter.elements, req->parameter.count, NULL, 0, RPC_TYPE_HTTPS);
+                    localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::normal;
+                    localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+                }
+                localRpcLock->Give();
+                if(!is_event_rpc)
+                    resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+                else
+                    resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+                break;
+            } else {
                 resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+            }
             break;
         }
         // Comando di download File generico compatibile con specifice UAVCAN, (LOG/CFG altro...)
@@ -1184,6 +1195,8 @@ void CanTask::Run() {
     // Register access register rfemote configuration array
     uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
     uint8_t remote_configure_retry[MAX_NODE_CONNECT] = {0};
+    // Configure waiting Online after set Parameter
+    uint32_t remote_configure_wait_online_ms[MAX_NODE_CONNECT] = {0};
 
     // Response data PTR for type module direct data access
     rmap_service_module_TH_Response_1_0* retTHData;
@@ -1879,9 +1892,9 @@ void CanTask::Run() {
                                     paramRequest.obs_sectime = 0;
                                     paramRequest.run_sectime = 0;
                                 }
-                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut e in num retry.
                                 // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-                                clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest);
+                                clCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, paramRequest, NODE_GETDATA_MAX_RETRY);
                                 // Avvio il server RMAP Request
                                 param.systemStatusLock->Take();
                                 param.system_status->flags.rmap_server_running = true;
@@ -1908,10 +1921,18 @@ void CanTask::Run() {
                             rmapServerEnd = false;
                         }
                         if (clCanard.slave[queueId].rmap_service.event_timeout()) {
+                            // Next retry if is possible Stop and estart pending
                             clCanard.slave[queueId].rmap_service.reset_pending();
-                            // TimeOUT di un comando in attesa... gestire Retry, altri segnali al Server ecc...
-                            TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
-                                clCanard.slave[queueId].get_node_id());
+                            if(!clCanard.send_rmap_data_pending_retry(queueId, NODE_GETDATA_TIMEOUT_US)) {
+                                // TimeOUT di un comando in attesa... end Retry
+                                TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [restore pending command]\r\n"),
+                                    clCanard.slave[queueId].get_node_id());
+                            } else {
+                                rmapServerEnd = false;
+                                // TimeOUT di un comando in attesa... gestione Retry
+                                TRACE_ERROR_F(F("Timeout risposta su richiesta dati al nodo remoto: %d, Warning [retry command: %d]\r\n"),
+                                    clCanard.slave[queueId].get_node_id(), clCanard.slave[queueId].rmap_service.retry + 1);
+                            }
                         }
                     }
                     // EVENT GESTION OF RECIVED DATA AT REQUEST
@@ -1984,7 +2005,7 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retTHData, sizeof(*retTHData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
 
@@ -2056,7 +2077,7 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retRainData, sizeof(*retRainData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
 
@@ -2125,7 +2146,7 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retWindData, sizeof(*retWindData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
 
@@ -2191,7 +2212,7 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retRadiationData, sizeof(*retRadiationData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
 
@@ -2261,7 +2282,7 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retPwrData, sizeof(*retPwrData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
-                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, CAN_PUT_QUEUE_RMAP_TIMEOUT_MS);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
 
@@ -2476,17 +2497,32 @@ void CanTask::Run() {
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
+                            // Try to configure and Waiting OnLine ( If already On Line nothing todo )
+                            clCanard.slave[system_message.param].configure(
+                                param.configuration->board_slave[system_message.param].can_address,
+                                param.configuration->board_slave[system_message.param].module_type,
+                                param.configuration->board_slave[system_message.param].can_port_id,
+                                param.configuration->board_slave[system_message.param].can_publish_id,
+                                param.configuration->board_slave[system_message.param].serial_number);
                             // If node is not online, remove command from the queue... Configuration is impossible
                             // Queue must to be free !!!
                             if(!clCanard.slave[system_message.param].is_online()) {
-                                // Remove message from the queue (No more action possible here NOT Online)
-                                param.systemMessageQueue->Dequeue(&system_message);
+                                if(!remote_configure_wait_online_ms[system_message.param]) {
+                                    remote_configure_wait_online_ms[system_message.param] = millis();
+                                } else {
+                                    // Configuration impossible Module not Foun OnLine after 4 sec from New Configuration
+                                    if(millis() - remote_configure_wait_online_ms[system_message.param] > 4000) {
+                                        // Remove message from the queue (No more action possible here NOT Online)
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                    }
+                                }
                             } else {
                                 // Start Flag Event Start when request configuration is request
                                 // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
                                 if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
                                     // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
+                                    remote_configure_wait_online_ms[system_message.param] = 0;
                                     param.systemMessageQueue->Dequeue(&system_message);
                                     if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
                                         TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
@@ -2496,7 +2532,7 @@ void CanTask::Run() {
                                     if(clCanard.slave[system_message.param].is_online()) {
                                         // START Remote configuration of Node -> system_message.param
                                         remote_configure[system_message.param] = REGISTER_STARTING;
-                                        remote_configure_retry[system_message.param] = GENERIC_UAVCAN_MAX_RETRY;
+                                        remote_configure_retry[system_message.param] = NODE_REGISTER_MAX_RETRY;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.reg_serever_running = true;
                                         param.systemStatusLock->Give();
@@ -2609,7 +2645,7 @@ void CanTask::Run() {
                                         }
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_METADATA_LEVEL_L2, val, NODE_REGISTER_WRITING);
+                                            REGISTER_METADATA_LEVEL_L2, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2623,7 +2659,7 @@ void CanTask::Run() {
                                         }
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_METADATA_LEVEL_TYPE1, val, NODE_REGISTER_WRITING);
+                                            REGISTER_METADATA_LEVEL_TYPE1, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2637,7 +2673,7 @@ void CanTask::Run() {
                                         }
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_METADATA_LEVEL_TYPE2, val, NODE_REGISTER_WRITING);
+                                            REGISTER_METADATA_LEVEL_TYPE2, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2651,7 +2687,7 @@ void CanTask::Run() {
                                         }
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_METADATA_TIME_P1, val, NODE_REGISTER_WRITING);
+                                            REGISTER_METADATA_TIME_P1, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_P1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2665,7 +2701,7 @@ void CanTask::Run() {
                                         }
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_METADATA_TIME_PIND, val, NODE_REGISTER_WRITING);
+                                            REGISTER_METADATA_TIME_PIND, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_PIND, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2677,7 +2713,7 @@ void CanTask::Run() {
                                         val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_port_id;
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_UAVCAN_DATA_SERVICE, val, NODE_REGISTER_WRITING);
+                                            REGISTER_UAVCAN_DATA_SERVICE, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_SERVICE, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2689,7 +2725,7 @@ void CanTask::Run() {
                                         val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_publish_id;
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_UAVCAN_DATA_PUBLISH, val, NODE_REGISTER_WRITING);
+                                            REGISTER_UAVCAN_DATA_PUBLISH, val, NODE_REGISTER_MAX_RETRY);
                                         TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_PUBLISH, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
@@ -2702,7 +2738,7 @@ void CanTask::Run() {
                                             val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_address;
                                             // Send register value to Slave Remote with parameter to store
                                             clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                                REGISTER_UAVCAN_NODE_ID, val, NODE_REGISTER_WRITING);
+                                                REGISTER_UAVCAN_NODE_ID, val, NODE_REGISTER_MAX_RETRY);
                                             TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_NODE_ID, clCanard.slave[cfg_remote_queueId].get_node_id());
                                             // Prepare verify RESPONSE Method OK.
                                             remote_configure[cfg_remote_queueId]++;
@@ -2768,15 +2804,18 @@ void CanTask::Run() {
                             clCanard.slave[register_server_queueId].register_access.reset_pending();
                             // TimeOUT di un comando in attesa... gestisco il da farsi
                             if(remote_configure[register_server_queueId]) {
-                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Remote configuration [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                                // Abort configuration (after retry...)
+                                if(remote_configure_retry[register_server_queueId]) {
+                                    remote_configure_retry[register_server_queueId]--;
+                                    // Retry sending last command register (state proc - 1)
+                                    remote_configure[register_server_queueId]--;
+                                    TRACE_ERROR_F(F("Register server: Command Node: [ %d ] not responding to param request. Remaining retry send command: [ %d ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), remote_configure_retry[register_server_queueId]);
+                                } else {
+                                    TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Remote configuration [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                                    remote_configure[register_server_queueId] = 0;
+                                }
                             } else {
                                 TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
-                            }
-                            // Abort configuration (after retry...)
-                            if(!remote_configure_retry[system_message.param]) {
-                                remote_configure_retry[system_message.param]--;
-                            } else {
-                                remote_configure[register_server_queueId] = 0;
                             }
                         }
                         if (clCanard.slave[register_server_queueId].register_access.is_executed()) {

@@ -29,6 +29,7 @@
 
 // Configurazione modulo, definizioni ed utility generiche
 #include "canard_config.hpp"
+#include "register_class.hpp"
 #include "local_typedef.h"
 // Arduino
 #include <Arduino.h>
@@ -61,6 +62,10 @@
 
 #ifndef _CANARD_CLASS_H
 #define _CANARD_CLASS_H
+
+// Auto retry modi e comandi a livello di classe (false se gestito esternamente)
+#define REGISTER_ACESS_AUTO_RETRY (false)
+#define RMAPDATA_ACESS_AUTO_RETRY (true)
 
 class canardClass {
 
@@ -270,16 +275,28 @@ class canardClass {
         //  Comandi Server per gestione dei moduli Remoti tramite classe Slave e pending o Diretti
         // ****************************************************************************************
 
+        #if (REGISTER_ACESS_AUTO_RETRY)
+        bool send_register_access_pending(uint8_t slaveIstance, uint32_t timeout_us, char *registerName,
+                        uavcan_register_Value_1_0 registerValue, bool write, uint8_t num_retry = 1);
+        bool send_register_access_pending_retry(uint8_t slaveIstance, uint32_t timeout_us);
+        #else
         bool send_register_access_pending(uint8_t slaveIstance, uint32_t timeout_us, char *registerName,
                         uavcan_register_Value_1_0 registerValue, bool write);
+        #endif
         bool send_register_access(CanardNodeID node_id, uint8_t transfer_id, char *registerName,
                         uavcan_register_Value_1_0 registerValue, bool write);
         bool send_command_pending(uint8_t slaveIstance, uint32_t timeout_us, uint16_t cmd_request,
                                 void* ext_param, size_t ext_lenght);
         bool send_command(CanardNodeID node_id, uint8_t transfer_id, uint16_t cmd_request,
                                 void* ext_param, size_t ext_lenght);
+        #if (RMAPDATA_ACESS_AUTO_RETRY)
+        bool send_rmap_data_pending(uint8_t slaveIstance, uint32_t timeout_us,
+                                rmap_service_setmode_1_0 paramRequest, uint8_t num_retry = 1);
+        bool send_rmap_data_pending_retry(uint8_t slaveIstance, uint32_t timeout_us);
+        #else
         bool send_rmap_data_pending(uint8_t slaveIstance, uint32_t timeout_us,
                                 rmap_service_setmode_1_0 paramRequest);
+        #endif
         bool send_rmap_data(CanardNodeID node_id, uint8_t transfer_id, CanardPortID port_id,
                                 rmap_service_setmode_1_0 paramRequest);
         bool send_command_file_server_pending(uint8_t slaveIstance, uint32_t timeout_us);
@@ -377,6 +394,14 @@ class canardClass {
                 bool     is_pending(void);
                 uint8_t  next_transfer_id(void);
 
+                #if (REGISTER_ACESS_AUTO_RETRY)
+                // Request command e retry attive
+                char register_name[MEM_UAVCAN_LEN_INTEST_REG];
+                uavcan_register_Value_1_0 register_value;
+                bool is_write;
+                uint8_t retry;
+                #endif
+
                 private:
 
                 uavcan_register_Value_1_0 _response; // Valore in risposta al registro x Set (R/W)
@@ -405,6 +430,12 @@ class canardClass {
                 bool     is_executed(void);
                 bool     is_pending(void);
                 uint8_t  next_transfer_id(void);
+
+                #if (RMAPDATA_ACESS_AUTO_RETRY)
+                // Request command e retry attive
+                rmap_service_setmode_1_0 paramRequest;
+                uint8_t  retry;
+                #endif
 
                 private:
 

@@ -175,6 +175,9 @@ void ElaborateDataTask::Run() {
         // calling up immediatly to sender and reset in second time from this task
         if (request_data.is_init)
         {
+          rain.tips_count = 0;
+          rain.rain = 0;
+          rain.rain_full = 0;
           // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
           bool edata = false;
           param.rainQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
@@ -199,7 +202,7 @@ void ElaborateDataTask::Run() {
 uint8_t ElaborateDataTask::checkRain(void) {
   float quality = 100.0;
 
-  #if (USE_TIPPING_BUCKET_REDUNDANT)
+  #if (USE_CLOGGED_UP_CONTROL)
   // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
   param.systemStatusLock->Take();
   #if (CLOGGED_EVENT_VALUE)
@@ -217,7 +220,7 @@ uint8_t ElaborateDataTask::checkRain(void) {
     quality = 0.0;
   } else {
     if(param.system_status->events.is_tipping_error) {
-      quality -= (100.0 - param.system_status->events.error_count); // 1 Error = -1%
+      quality -= param.system_status->events.error_count; // 1 Error = -1%
       if(quality<0.0) quality = 0.0;
     }
     // Reduce 15% for error on one reed

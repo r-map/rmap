@@ -168,12 +168,10 @@ void AccelerometerTask::Run()
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
       state = ACCELEROMETER_STATE_CHECK_HARDWARE;
       // Signal reset error to system state
-      if(!param.system_status->events.is_accelerometer_error) {
-        param.systemStatusLock->Take();
-        param.system_status->events.is_accelerometer_error = true;
-        param.system_status->events.is_bubble_level_error = false;
-        param.systemStatusLock->Give();
-      }
+      param.systemStatusLock->Take();
+      param.system_status->events.is_accelerometer_error = true;
+      param.system_status->events.is_bubble_level_error = false;
+      param.systemStatusLock->Give();
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
       is_module_ready = false;
@@ -233,14 +231,6 @@ void AccelerometerTask::Run()
           calibrate(false, true);
           printConfiguration();
           start_calibration = false;
-        }
-      } else {
-        // Signal error to system state
-        if(!param.system_status->events.is_accelerometer_error) {
-          param.systemStatusLock->Take();
-          param.system_status->events.is_accelerometer_error = true;
-          param.system_status->events.is_bubble_level_error = false;
-          param.systemStatusLock->Give();
         }
       }
       break;

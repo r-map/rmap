@@ -299,7 +299,7 @@ void SolarRadiationSensorTask::powerOff()
 /// @param chanel_out Chanel to be getted
 uint8_t SolarRadiationSensorTask::addADCData(uint8_t chanel_out)
 {
-  uint32_t analogReadVal;
+  int32_t analogReadVal;
   adc_in_count[chanel_out]++;
   switch(chanel_out) {
     case 0:
@@ -315,9 +315,9 @@ uint8_t SolarRadiationSensorTask::addADCData(uint8_t chanel_out)
       analogReadVal = analogRead(PIN_ANALOG_04);
       break;
   }
-  // Add data only if not an error (count error)
-  if(analogReadVal) {
-    adc_in[chanel_out] += analogReadVal;
+  // Add data only if not an error (count error as uint 32 FFFFFFFF = -1, < 0)
+  if(analogReadVal >= 0) {
+    adc_in[chanel_out] += (uint32_t) analogReadVal;
   } else {
     adc_err_count[chanel_out]++;
   }

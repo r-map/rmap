@@ -306,6 +306,11 @@ void loop(void)
     if(boot_request.tot_reset != 0XFF) boot_request.tot_reset++;
     if((wdtResetEvent)&&(boot_request.wdt_reset != 0xFF)) boot_request.wdt_reset++;
 
+    #if (INIT_PARAMETER)
+    boot_request.tot_reset = 0;
+    boot_request.wdt_reset = 0;
+    #endif
+
     #if USE_SERIAL_MESSAGE
     printf("Number of Reboot: [ %d ] , WathcDog [ %d ]\r\n", boot_request.tot_reset, boot_request.wdt_reset);
     #endif

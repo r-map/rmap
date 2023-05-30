@@ -452,8 +452,8 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.temperature.sample, (rmapdata_t) report_pub.temperature.ist, (rmapdata_t) report_pub.temperature.min, (rmapdata_t) report_pub.temperature.avg, (rmapdata_t) report_pub.temperature.max, (rmapdata_t) report_pub.temperature.quality);
-        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report_pub.humidity.sample, (rmapdata_t)report_pub.humidity.ist, (rmapdata_t)report_pub.humidity.min, (rmapdata_t)report_pub.humidity.avg, (rmapdata_t)report_pub.humidity.max, (rmapdata_t)report_pub.humidity.quality);
+        TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.temperature.ist, (rmapdata_t) report_pub.temperature.min, (rmapdata_t) report_pub.temperature.avg, (rmapdata_t) report_pub.temperature.max, (rmapdata_t) report_pub.temperature.quality);
+        TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report_pub.humidity.ist, (rmapdata_t)report_pub.humidity.min, (rmapdata_t)report_pub.humidity.avg, (rmapdata_t)report_pub.humidity.max, (rmapdata_t)report_pub.humidity.quality);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::ith, &report_pub, &module_th_msg);
@@ -740,8 +740,8 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           param->reportDataQueue->Dequeue(&report_srv);
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
-          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.temperature.sample, (rmapdata_t) report_srv.temperature.ist, (rmapdata_t) report_srv.temperature.min, (rmapdata_t) report_srv.temperature.avg, (rmapdata_t) report_srv.temperature.max, (rmapdata_t) report_srv.temperature.quality);
-          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.humidity.sample, (rmapdata_t)report_srv.humidity.ist, (rmapdata_t)report_srv.humidity.min, (rmapdata_t)report_srv.humidity.avg, (rmapdata_t)report_srv.humidity.max, (rmapdata_t)report_srv.humidity.quality);
+          TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.temperature.ist, (rmapdata_t) report_srv.temperature.min, (rmapdata_t) report_srv.temperature.avg, (rmapdata_t) report_srv.temperature.max, (rmapdata_t) report_srv.temperature.quality);
+          TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report_srv.humidity.ist, (rmapdata_t)report_srv.humidity.min, (rmapdata_t)report_srv.humidity.avg, (rmapdata_t)report_srv.humidity.max, (rmapdata_t)report_srv.humidity.quality);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;

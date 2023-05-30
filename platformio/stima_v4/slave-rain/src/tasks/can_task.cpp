@@ -676,13 +676,6 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
             clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
           }
 
-          // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
-          resp.is_accelerometer_error = param->system_status->events.is_accelerometer_error;
-          resp.is_bubble_level_error = param->system_status->events.is_bubble_level_error;
-          resp.is_clogged_up = param->system_status->events.is_clogged_up;
-          resp.is_main_error = param->system_status->events.is_main_error;
-          resp.is_redundant_error = param->system_status->events.is_redundant_error;
-          resp.is_tipping_error = param->system_status->events.is_tipping_error;
           // Preparo gli event Reboot and WDT Event
           resp.rbt_event = boot_state->tot_reset;
           resp.wdt_event = boot_state->wdt_reset;
@@ -696,6 +689,14 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
           TRACE_INFO_F(F("--> CAN rain report\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.tips_count, (rmapdata_t) report_srv.rain, (rmapdata_t) report_srv.rain_full, (rmapdata_t) report_srv.quality);
+
+          // Preparo il ritorno dei flag event status del sensore (Successivo a request/reset. Init reset interno con var di appoggio)
+          resp.is_accelerometer_error = param->system_status->events.is_accelerometer_error;
+          resp.is_bubble_level_error = param->system_status->events.is_bubble_level_error;
+          resp.is_clogged_up = param->system_status->events.is_clogged_up;
+          resp.is_main_error = param->system_status->events.is_main_error;
+          resp.is_redundant_error = param->system_status->events.is_redundant_error;
+          resp.is_tipping_error = param->system_status->events.is_tipping_error;
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;

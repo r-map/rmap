@@ -468,7 +468,7 @@ void SdTask::Run()
       // **********************************************************************************
       // Open/Create File data pointer... and check if SD Starting OK (create if not exist)
       // **********************************************************************************
-      if(SD.exists("/data/pointer.dat")) {
+      if (SD.exists("/data/pointer.dat")) {
         tmpFile = SD.open("/data/pointer.dat", O_RDONLY);
         if(tmpFile) {
           // Open File High LED
@@ -502,7 +502,7 @@ void SdTask::Run()
             // Pointer file not coerent, Remove and new creation starting
             SD.remove("/data/pointer.dat");
             // SD Pointer Error, general Openon first File...
-            // Error. Send to system_stae and retry OPEN INIT SD (Exit and restart UP...)
+            // Error. Send to system_state and retry OPEN INIT SD (Exit and restart UP...)
             break;
           }
         } else {
@@ -517,7 +517,7 @@ void SdTask::Run()
           TRACE_INFO_F(F("SD: create new data pointer at configured ()\r\n"));
           // Open File High LED
           digitalWrite(PIN_SD_LED, HIGH);
-          rmap_pointer_seek = 0;
+          rmap_pointer_seek = 0xFFFFFFFFu; // Unknown position
           rmap_pointer_datetime = param.system_status->datetime.ptr_time_for_sensors_get_value * param.configuration->report_s;  // Init to Data Next Epoch
           // System status enter in data not ready for SENT (no data present)
           param.systemStatusLock->Take();
@@ -799,6 +799,15 @@ void SdTask::Run()
       //         End OF perform RMAP Write append message
       // *********************************************************
 
+      // Reset pointer?
+      if(rmap_pointer_seek == 0xFFFFFFFFu) {
+        memset(&rmap_get_request, 0, sizeof(rmap_get_request));
+        rmap_get_request.command.do_reset_ptr = true;
+        // Go to last data 
+        rmap_get_request.param = rmap_pointer_datetime - param.configuration->report_s;
+        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, Ticks::MsToTicks(FILE_IO_PTR_QUEUE_TIMEOUT));
+      }
+
       // *********************************************************
       //         Perform FILE (DATA RMAP) READ data block
       // *********************************************************
@@ -820,7 +829,7 @@ void SdTask::Run()
           // ******************************************************************
           //           Request is set pointer to date/time?
           // ******************************************************************
-          if(rmap_get_request.command.do_synch_ptr) {
+          if((rmap_get_request.command.do_synch_ptr) || (rmap_get_request.command.do_reset_ptr)) {
             bool is_found = false;
             char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
             uint32_t dateTimeSearch = rmap_get_request.param;
@@ -832,7 +841,11 @@ void SdTask::Run()
             // Trace INFO Queue Request SET Pointer TO->
             DateTime rmap_date_time_val;
             convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
-            TRACE_INFO_F(F("Data RMAP requested search pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+            if(rmap_get_request.command.do_reset_ptr) {
+              TRACE_INFO_F(F("Data RMAP reset pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+            } else {
+              TRACE_INFO_F(F("Data RMAP requested search pointer date/time at [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+            }
             // Check name File            
             namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
             // If Exist, search pointer (correct position) into file
@@ -876,7 +889,9 @@ void SdTask::Run()
                     currReadDateTimeFile = rmap_get_response.rmap_data.date_time;
                     // Check if block DateTime is found
                     convertUnixTimeToDate(currReadDateTimeFile, &rmap_date_time_val);
-                    TRACE_VERBOSE_F(F("Data RMAP current searching date/time (Readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+                    if(!rmap_get_request.command.do_reset_ptr) {
+                      TRACE_VERBOSE_F(F("Data RMAP current searching date/time (Readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+                    }
                     if(currReadDateTimeFile >= dateTimeSearch) {
                       // Found first dateTime block compilant with initial position read (peek...)
                       rmap_pointer_seek = peek_rmap_pointer;
@@ -948,7 +963,9 @@ void SdTask::Run()
               rmap_get_response.result.event_error = true;
             } else {
               // Responding data pointer Setted
-              TRACE_VERBOSE_F(F("Data RMAP current searching date/time FOUND [ %s ]\r\n"), OK_STRING);
+              if(!rmap_get_request.command.do_reset_ptr) {
+                TRACE_VERBOSE_F(F("Data RMAP current searching date/time FOUND [ %s ]\r\n"), OK_STRING);
+              }
               rmap_get_response.result.done_synch = true;
             }
             // All OK?
@@ -960,8 +977,10 @@ void SdTask::Run()
               param.system_status->flags.new_data_to_send = true;
               param.systemStatusLock->Give();
             }
-            // ***** Send response to request *****
-            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
+            // ***** Send response to request except internal request of reset *****
+            if(!rmap_get_request.command.do_reset_ptr) {
+              param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
+            }
           }
           // ******************************************************************
           //           Request is end pointer to date/time?

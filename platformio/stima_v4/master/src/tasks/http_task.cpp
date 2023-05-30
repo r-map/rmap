@@ -310,7 +310,8 @@ void HttpTask::Run() {
           // Master request
           serial_number_l = param.configuration->board_master.serial_number & 0xFFFFFFFF;
           serial_number_h = (param.configuration->board_master.serial_number >> 32) & 0xFFFFFFFF;
-          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+          // snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.configuration->module_main_version, param.configuration->module_minor_version, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->board_master.module_name);
         } else {
           // Slave request compose S.N. if not imposted on config
           if(!param.configuration->board_slave[module_download].serial_number) {
@@ -321,7 +322,8 @@ void HttpTask::Run() {
           }
           serial_number_l = param.configuration->board_slave[module_download].serial_number & 0xFFFFFFFF;
           serial_number_h = (param.configuration->board_slave[module_download].serial_number >> 32) & 0xFFFFFFFF;
-          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s%u\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, NAME_BSLUG_BOARD_PREFIX, (module_download+1));
+          // snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s%u\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, NAME_BSLUG_BOARD_PREFIX, (module_download+1));
+          snprintf(header, sizeof(header), "{\"version\": %d,\"revision\": %d,\"user\":\"%s\",\"slug\":\"%s\",\"bslug\":\"%s\"}", param.system_status->data_slave[module_download].module_version, param.system_status->data_slave[module_download].module_revision, param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->board_slave[module_download].module_name);
         }
         snprintf(serial_number_str, sizeof(serial_number_str), "%04X%04X", serial_number_h, serial_number_l);
         // Add header request

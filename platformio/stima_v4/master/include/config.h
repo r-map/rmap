@@ -101,15 +101,15 @@
 // HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (true)
 
-// Address EEProm for reserved bootloader flag param (and future used 1Kb)
+// Address EEProm for reserved bootloader flag param (and future used 2000 Bytes)
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (1728)                           // Must be > CONFIGURATION_EEPROM_END
+#define SIZE_EEPROM_RESERVED           (1980)                           // Must be > CONFIGURATION_EEPROM_END
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
 #define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
 // Private configuration board direct
 #define CONFIGURATION_EEPROM_ADDRESS   (20)
-#define CONFIGURATION_EEPROM_LENGHT    (sizeof(configuration_t))
+#define CONFIGURATION_EEPROM_LENGHT    (sizeof(configuration_t))        // Must be < SIZE_EEPROM_RESERVED
 #define CONFIGURATION_EEPROM_END       (CONFIGURATION_EEPROM_ADDRESS + CONFIGURATION_EEPROM_LENGHT)
 // Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
@@ -180,7 +180,8 @@
 #define MIN_INIBITH_CONNECT_RETRY_S (600)   // MIN TIME TO WAIT AFTER CONNECTION ERROR BEFORE RETRY...
 
 // Queue timeOut on FILE SD ACCESS
-#define FILE_IO_DATA_QUEUE_TIMEOUT  (2500)  // Time out before error to R/W operartion with queue File
+#define FILE_IO_DATA_QUEUE_TIMEOUT  (2500)  // Time out before error to R/W operartion with queue File data
+#define FILE_IO_PTR_QUEUE_TIMEOUT   (250)   // Time out before error to R/W operartion with queue File pointer
 
 // Task system_status and queue ID message
 #define ALL_TASK_ID                 (99)      // Send message to ALL Task
@@ -207,7 +208,7 @@
 
 // Disable for DEBUG
 #define ENABLE_RPC_LOCAL_REBOOT     (true)
-#define MAXLEN_RPC_RESPONSE         (64)
+#define MAXLEN_RPC_RESPONSE         (80)
 
 /*!
 \def USE_CONSTANTDATA_COUNT

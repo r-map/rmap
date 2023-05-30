@@ -31,6 +31,8 @@
 #ifndef _RPC_H
 #define _RPC_H
 
+#include "config.h"
+
 #include "debug_config.h"
 #include "local_typedef.h"
 #include "stima_utility.h"
@@ -127,12 +129,13 @@ class RegisterRPC {
     private:
 
       static bool saveConfiguration(void);
-      static void initFixedConfigurationParam(void);
+      static void initFixedConfigurationParam(uint8_t lasNodeConfig);
 
       static bool ASCIIHexToDecimal(char** str, uint8_t *value_out);
 
       inline static RpcParam_t param;
 
+      inline static char boardName[MAX_BOARD_NAME_LEN] = {0};             // Name board pre loaded for saving in config param
       inline static bool isSlaveConfigure = false;                        // is module actual in reconfiguration
       inline static bool isMasterConfigure = false;                       // is master actual in reconfiguration
       inline static bool is_configuration_changed = false;                // configuration was changed (Need reset PNP Slave?)
