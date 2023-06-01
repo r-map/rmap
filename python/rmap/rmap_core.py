@@ -1247,7 +1247,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         return
 
 
-    for board in mystation.board_set.all():
+    for board in mystation.board_set.all().order_by("-type"):
 
         if board_slug is not None and board.slug != board_slug:
             continue
