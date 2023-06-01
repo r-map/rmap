@@ -67,8 +67,8 @@ typedef struct {
    // 16 bit HR
    float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
    float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
+   float sensor_rad_max[ADS1115_CHANNEL_COUNT];
+   float sensor_voltage_max[ADS1115_CHANNEL_COUNT];
 } configuration_t;
 
 /*!
@@ -108,8 +108,8 @@ typedef struct {
    // 16 bit hr
    float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
    float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
+   float sensor_rad_max[ADS1115_CHANNEL_COUNT];
+   float sensor_voltage_max[ADS1115_CHANNEL_COUNT];
 } writable_data_t;
 
 /*********************************************************************

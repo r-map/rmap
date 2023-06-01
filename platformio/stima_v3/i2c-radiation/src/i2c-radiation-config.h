@@ -92,9 +92,18 @@ correctly during I2C communication.
 #define ADC_I2C_ADDRESS                               ADC_GND_I2C_ADDRESS
 
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1    (0.0)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2    (1.0)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN         (SOLAR_RADIATION_VOLTAGE_MIN)
-#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX         (SOLAR_RADIATION_VOLTAGE_MAX)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2    (0.0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_GAIN_1      (1.0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_GAIN_2      (1.0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN         (SOLAR_RADIATION_SENSOR_VOLTAGE_MIN)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX         (SOLAR_RADIATION_SENSOR_VOLTAGE_MAX)
+
+
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET      (0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_GAIN        (1.0)
+#define CONFIGURATION_DEFAULT_SENSOR_VOLTAGE_MAX      (SOLAR_RADIATION_SENSOR_VOLTAGE_MAX)
+#define CONFIGURATION_DEFAULT_SENSOR_RADIATION_MAX    (SOLAR_RADIATION_SENSOR_RADIATION_MAX)
+
 
 #define ACQUISITION_COUNT_FOR_POWER_RESET             (100)
 
@@ -143,26 +152,25 @@ correctly during I2C communication.
 \def SOLAR_RADIATION_ANALOG_PIN
 \brief Input pin for reading radiation direction sensor value.
 */
-#define ADC_VOLTAGE_MAX                               (6144.0)
-#define ADC_VOLTAGE_MIN                               (-6144.0)
+#define ADC_VOLTAGE_MAX                               (2148.0)
+#define ADC_VOLTAGE_MIN                               (-2148.0)
 #define ADC_VOLTAGE_OFFSET                            (0.0)
 
+/*
+Single-ended signal measurements, where VAINN = 0 V and VAINP = 0 V to +FS, only use
+the positive code range from 0000h to 7FFFh. However, because of device offset, the
+ADS111x can still output negative codes in case VAINP is close to 0 V
+*/
 #define ADC_MAX                                       (32767)
-#define ADC_MIN                                       (-32767)
+#define ADC_MIN                                       (-32768)
 
-#define SOLAR_RADIATION_VOLTAGE_MAX                   (5000.0)
-#define SOLAR_RADIATION_VOLTAGE_MIN                   (0.0)
+#define SOLAR_RADIATION_SENSOR_VOLTAGE_MAX            (2000.0)
+#define SOLAR_RADIATION_SENSOR_VOLTAGE_MIN            (0.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             ((SOLAR_RADIATION_SENSOR_VOLTAGE_MAX/100.))
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             ((SOLAR_RADIATION_SENSOR_VOLTAGE_MAX/100.))
 
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 50.0)
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             (SOLAR_RADIATION_VOLTAGE_MIN - 10.0)
-
-#define SOLAR_RADIATION_MAX                           (2000.0)
-#define SOLAR_RADIATION_MIN                           (0.0)
-
-#define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
-#define SOLAR_RADIATION_ERROR_MIN                     (1.0)
-
-
+#define SOLAR_RADIATION_SENSOR_RADIATION_MIN          (0.0)
+#define SOLAR_RADIATION_SENSOR_RADIATION_MAX          (2000.0)
 #define SOLAR_RADIATION_ADC_CHANNEL_INPUT             (1)
 
 #endif

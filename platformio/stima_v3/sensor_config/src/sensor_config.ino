@@ -673,6 +673,13 @@ void loop() {
 	buffer[I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_SOLAR_RADIATION_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	// TODO
+	// add calibration and sensor parameters registers
+	// I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET
+	// I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN
+	// I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX
+	// I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX	  
 	
 	delay(1000);
 	Serial.println("save configuration");

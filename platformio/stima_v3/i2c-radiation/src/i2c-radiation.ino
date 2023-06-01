@@ -250,7 +250,7 @@ void init_tasks() {
   #if (USE_SENSOR_VSR)
   solar_radiation_hr_state = SOLAR_RADIATION_HR_INIT;
   #endif
-  
+
   lastcommand=I2C_SOLAR_RADIATION_COMMAND_NONE;
   is_start = false;
   is_stop = false;
@@ -390,10 +390,10 @@ void print_configuration() {
   #endif
 
   #if (USE_SENSOR_VSR)
-  LOGN(F("--> AINx\toffset\tgain\tmin\tmax"));
+  LOGN(F("--> AINx\toffset\tgain\tradmax\tvoltagemax"));
 
   for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.adc_analog_min[i], configuration.adc_analog_max[i]);
+    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.sensor_rad_max[i], configuration.sensor_voltage_max[i]);
   }
   #endif
 }
@@ -424,17 +424,10 @@ void save_configuration(bool is_default) {
     
     #if (USE_SENSOR_VSR)
     for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-      // if ((j == 0) && (i == 0)) {
-      //   configuration.adc_calibration_offset[j][i] = -1750.0;
-      //   configuration.adc_calibration_gain[j][i] = 4.6300;
-      //   configuration.adc_analog_min[j][i] = 4.0;
-      //   configuration.adc_analog_max[j][i] = 20.0;
-      // }
-      // else {
-      configuration.adc_calibration_offset[i] = -1.0;
-      configuration.adc_calibration_gain[i] = 1.2355;
-      configuration.adc_analog_min[i] = 0.0;
-      configuration.adc_analog_max[i] = 5000.0;
+      configuration.adc_calibration_offset[i] = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET;
+      configuration.adc_calibration_gain[i] =   CONFIGURATION_DEFAULT_ADC_VOLTAGE_GAIN;
+      configuration.sensor_rad_max[i] = CONFIGURATION_DEFAULT_SENSOR_RADIATION_MAX;
+      configuration.sensor_voltage_max[i] = CONFIGURATION_DEFAULT_SENSOR_VOLTAGE_MAX;
       // }
     }
     #endif
@@ -455,16 +448,16 @@ void save_configuration(bool is_default) {
     for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
       configuration.adc_calibration_offset[i] = writable_data.adc_calibration_offset[i];
       configuration.adc_calibration_gain[i] = writable_data.adc_calibration_gain[i];
-      configuration.adc_analog_min[i] = writable_data.adc_analog_min[i];
-      configuration.adc_analog_max[i] = writable_data.adc_analog_max[i];
+      configuration.sensor_rad_max[i] = writable_data.sensor_rad_max[i];
+      configuration.sensor_voltage_max[i] = writable_data.sensor_voltage_max[i];
     }
     #endif
   }
 
-   // write configuration to eeprom
+  // write configuration to eeprom
   ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-   print_configuration();
+  
+  print_configuration();
 }
 
 void load_configuration() {
@@ -483,10 +476,23 @@ void load_configuration() {
   // set configuration value to writable register
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
+
+  #if (USE_SENSOR_DSR)
   writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;
   writable_data.adc_voltage_offset_2 = configuration.adc_voltage_offset_2;
-  writable_data.adc_voltage_min = configuration.adc_voltage_min;
-  writable_data.adc_voltage_max = configuration.adc_voltage_max;
+  writable_data.adc_voltage_min      = configuration.adc_voltage_min;
+  writable_data.adc_voltage_max      = configuration.adc_voltage_max;
+  #endif
+
+  #if (USE_SENSOR_VSR)
+  for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+    writable_data.adc_calibration_offset[i] = configuration.adc_calibration_offset[i];
+    writable_data.adc_calibration_gain[i]   = configuration.adc_calibration_gain[i];
+    writable_data.sensor_rad_max[i]         = configuration.sensor_rad_max[i];
+    writable_data.sensor_voltage_max[i]     = configuration.sensor_voltage_max[i];
+  }
+  #endif
+  
 }
 
 void init_sensors () {
@@ -623,7 +629,7 @@ float getSolarRadiationMv (float adc_value, float offset_mv) {
 
   if ((adc_value >= ADC_MIN) && (adc_value <= ADC_MAX)) {
     value = ADC_VOLTAGE_MAX / ADC_MAX * adc_value;
-    value = round(value / 10.0) * 10.0;
+    //value = round(value / 10.0) * 10.0;                    // perchè arrotondare alle decine?
     value += offset_mv;
   }
 
@@ -640,7 +646,7 @@ float getSolarRadiation (float adc_value) {
   value = ((value - configuration.adc_voltage_min) / (configuration.adc_voltage_max - configuration.adc_voltage_min) * SOLAR_RADIATION_MAX);
   }
 
-  return round(value);
+  return value;
 }
 
 void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal) {
@@ -736,26 +742,24 @@ float getAdcCalibratedValue (float adc_value, float offset, float gain) {
 float getAdcAnalogValue (float adc_value, float min, float max) {
   float value = (float) INT16_MAX;
 
-  if (!isnan(adc_value)) {
-    value = adc_value;
-    value *= (((max - min) / (float)(ADC_MAX)));
-    value += min;
-  }
+  value = adc_value;
+  value *= (ADC_VOLTAGE_MAX - ADC_VOLTAGE_MIN) / (float(ADC_MAX)-float(ADC_MIN));
+  value += ADC_VOLTAGE_OFFSET;
 
   return value;
 }
 
-float getSolarRadiation (float adc_value, float adc_voltage_min, float adc_voltage_max) {
+float getSolarRadiation (float adc_value, float sensor_voltage_max, float sensor_radiation_max) {
   float value = adc_value;
 
-  if ((value < (adc_voltage_min + SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
+  if ((value < (SOLAR_RADIATION_SENSOR_VOLTAGE_MIN - SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (SOLAR_RADIATION_SENSOR_VOLTAGE_MAX + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
     value = (float) INT16_MAX;
   }
   else {
-  value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * SOLAR_RADIATION_MAX);
+    value = ((value - SOLAR_RADIATION_SENSOR_VOLTAGE_MIN) / ( sensor_voltage_max - SOLAR_RADIATION_SENSOR_VOLTAGE_MIN)) * (sensor_radiation_max-SOLAR_RADIATION_SENSOR_RADIATION_MIN);
   }
 
-  return round(value);
+  return value;
 }
 
 void solar_radiation_task_hr () {
@@ -803,7 +807,7 @@ void solar_radiation_task_hr () {
     break;
 
     case SOLAR_RADIATION_HR_EVALUATE:
-      LOGN(F("AIN%d ==> (%D + %D) * %D = "), SOLAR_RADIATION_ADC_CHANNEL_INPUT, value
+      LOGN(F("Calibrated channel %d ==> (%D + %D) * %D = "), SOLAR_RADIATION_ADC_CHANNEL_INPUT, value
 	   , configuration.adc_calibration_offset[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
 	   , configuration.adc_calibration_gain[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 
@@ -811,13 +815,19 @@ void solar_radiation_task_hr () {
         value = getAdcCalibratedValue(value
 				  , configuration.adc_calibration_offset[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
 				  , configuration.adc_calibration_gain[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
-        value = getAdcAnalogValue(value
-				  , configuration.adc_analog_min[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
-				  , configuration.adc_analog_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
-        value = getSolarRadiation(value
-				  , configuration.adc_analog_min[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
-				  , configuration.adc_analog_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+	LOGN(F("%D"), value);
 
+	if (value != float(INT16_MAX)){
+	  value = getAdcAnalogValue(value, ADC_VOLTAGE_MIN, ADC_VOLTAGE_MAX);
+	  LOGN(F("voltage: %D"), value);
+	  
+	  if (value != float(INT16_MAX)){
+	    value = getSolarRadiation(value
+				      , configuration.sensor_rad_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+				      , configuration.sensor_voltage_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+	    LOGN(F("radiation: %D w/m^2"), value);
+	  }
+	}
 	sample=round(value);
 
       } else {

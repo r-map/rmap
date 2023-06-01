@@ -206,26 +206,69 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_SOLAR_RADIATION_ONESHOT_ADDRESS                  (I2C_SOLAR_RADIATION_ADDRESS_ADDRESS + I2C_SOLAR_RADIATION_ADDRESS_LENGTH)
 
-/*!
-\def I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH
-\brief length of the writable variables for i2c-radiation module.
-*/
-#define I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH             (I2C_SOLAR_RADIATION_ONESHOT_ADDRESS + I2C_SOLAR_RADIATION_ONESHOT_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
-
-
 /* TO BE ADDED HERE
    // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
-
-   // 16 bit hr
-   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADS1115_CHANNEL_COUNT];
 */
+
+#define CHANNEL_COUNT (4)
+
+/*!
+\def I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH
+\brief length of the adc calibration offset variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH                   (0x04*CHANNEL_COUNT)
+
+/*!
+\def I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS
+\brief address of the adc calibration offset variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS                  (I2C_SOLAR_RADIATION_ONESHOT_ADDRESS + I2C_SOLAR_RADIATION_ONESHOT_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH
+\brief length of the adc calibration gain variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH                   (0x04*CHANNEL_COUNT)
+
+/*!
+\def I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS
+\brief address of the adc calibration gain variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS                  (I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS + I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH
+\brief length of the sensor voltage max variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH                   (0x04*CHANNEL_COUNT)
+
+/*!
+\def I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS
+\brief address of the sensor voltage max variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS                  (I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS + I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH
+\brief length of the sensor radiation max variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH                   (0x04*CHANNEL_COUNT)
+
+/*!
+\def I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS
+\brief address of the sensor radiation max variable for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS                  (I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS + I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH
+\brief length of the writable variables for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH             (I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS + I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
 // Readable registers errors checking
 #if I2C_SOLAR_RADIATION_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
