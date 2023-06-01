@@ -916,43 +916,46 @@ void SdTask::Run()
                 error_sd_card = true;
               }
             } else {
-              // Request Name File NOT EXIST (Search another file in date sequence)
-              // Reading Current epoch to STOP Searching (No data avaiable in the future)
-              // Stop on first data found over requested date pointer
-              uint32_t currEpochLimitCheck;
-              if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
-                currEpochLimitCheck = rtc.getEpoch();
-                param.rtcLock->Give();
-              }
-              char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
-              dateTimeSearch = (dateTimeSearch / SECS_DAY) * SECS_DAY; // Around to DataeTime Hour 00:00:00
-              while(true) {
-                // Operation perform non blocking TASK
-                TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
-                Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
-                #if (ENABLE_STACK_USAGE)
-                TaskMonitorStack();
-                #endif
-                // Add time second day -> set Next Epoch Day
-                // If found, seek pointer are set to first block of data
-                // because the requested date is necessarily higher
-                dateTimeSearch += SECS_DAY;                
-                convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
-                TRACE_DEBUG_F(F("Data RMAP current searching date/time (Not readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
-                namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
-                // Exist?
-                if(SD.exists(rmap_file_name_new)) {
-                  // FOUND FILE NEXT DATE
-                  is_found = true;
-                  // Real DateTime Pointer will be set on First GetData. DataPtr is setted to Day_00:00:00
-                  rmap_pointer_datetime = dateTimeSearch;
-                  rmap_pointer_seek = 0;
-                  break;
-                } else {
-                  // Exit when date_time is > now()
-                  // No data found...
-                  // No modify date_time pointer RMAP
-                  if(dateTimeSearch >= currEpochLimitCheck) break;
+              // New created pointer file and not existing file, search abort...
+              if(!rmap_get_request.command.do_reset_ptr) {
+                // Request Name File NOT EXIST (Search another file in date sequence)
+                // Reading Current epoch to STOP Searching (No data avaiable in the future)
+                // Stop on first data found over requested date pointer
+                uint32_t currEpochLimitCheck;
+                if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+                  currEpochLimitCheck = rtc.getEpoch();
+                  param.rtcLock->Give();
+                }
+                char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
+                dateTimeSearch = (dateTimeSearch / SECS_DAY) * SECS_DAY; // Around to DataeTime Hour 00:00:00
+                while(true) {
+                  // Operation perform non blocking TASK
+                  TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+                  Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+                  #if (ENABLE_STACK_USAGE)
+                  TaskMonitorStack();
+                  #endif
+                  // Add time second day -> set Next Epoch Day
+                  // If found, seek pointer are set to first block of data
+                  // because the requested date is necessarily higher
+                  dateTimeSearch += SECS_DAY;                
+                  convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
+                  TRACE_DEBUG_F(F("Data RMAP current searching date/time (Not readed) [ %s ]\r\n"), formatDate(&rmap_date_time_val, NULL));
+                  namingFileData(dateTimeSearch, "/data", rmap_file_name_new);
+                  // Exist?
+                  if(SD.exists(rmap_file_name_new)) {
+                    // FOUND FILE NEXT DATE
+                    is_found = true;
+                    // Real DateTime Pointer will be set on First GetData. DataPtr is setted to Day_00:00:00
+                    rmap_pointer_datetime = dateTimeSearch;
+                    rmap_pointer_seek = 0;
+                    break;
+                  } else {
+                    // Exit when date_time is > now()
+                    // No data found...
+                    // No modify date_time pointer RMAP
+                    if(dateTimeSearch >= currEpochLimitCheck) break;
+                  }
                 }
               }
             }

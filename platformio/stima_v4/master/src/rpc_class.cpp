@@ -149,8 +149,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
   bool is_error = false;
   bool error_command = false;
 
-  Serial.print("Ciao");
-
   for (JsonPair it : params)
   {
     // ************** SHARED COMMAND CONFIGURATION LIST **************
@@ -162,11 +160,12 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         TRACE_INFO_F(F("RPC: DO RESET CONFIGURATION\r\n"));
         if(isSlaveConfigure) {
           // Parameter from slave also getted (serial number, to be copied before reset all node param)
-          uint64_t remote_sn = param.configuration->board_slave[slaveId].serial_number;
           param.configurationLock->Take();
           memset(&param.configuration->board_slave[slaveId], 0, sizeof(param.configuration->board_slave[slaveId]));
-          param.configuration->board_slave[slaveId].serial_number = remote_sn;
+          // Reassign old valid parameter
+          param.configuration->board_slave[slaveId].serial_number = boardSN;
           param.configuration->board_slave[slaveId].module_type = currentModule;
+          strcpy(param.configuration->board_slave[slaveId].module_name, boardName);
           param.configurationLock->Give();
         }
         else if(isMasterConfigure)
@@ -175,6 +174,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           // Default base parameter will be add at end of configuration sequence
           param.configurationLock->Take();
           memset(&param.configuration->board_master, 0, sizeof(param.configuration->board_master));
+          strcpy(param.configuration->board_master.module_name, boardName);
           param.configurationLock->Give();
         }
         else error_command = true;
@@ -226,23 +226,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       // is board stimacan (slave)
       if(!isMasterConfigure && !isSlaveConfigure) {
         // Copy board Name (Master slave depending after reading board_type def)
+        memset(boardName, 0, sizeof(boardName));
         strcpy(boardName,(it.value().as<const char *>())); 
-        // if (strstr(it.value().as<const char *>(), "stimacan")) {
-        //   char *str_pos;
-        //   str_pos = strstr(it.value().as<const char *>(), "stimacan") + 8;
-        //   uint8_t requestIndex = (uint8_t)atoi(str_pos) - 1;
-        //   if(requestIndex < BOARDS_COUNT_MAX) {
-        //     // Start configure slave module ID: slaveId
-        //     isSlaveConfigure = true;
-        //     slaveId = requestIndex;
-        //   }
-        //   else error_command = true;
-        // }
-        // else if (strcmp(it.value().as<const char *>(), "stimav4") == 0) {
-        //   // Start configure master module
-        //   isMasterConfigure = true;
-        // }
-        // else is_error = true;
       }
       else error_command = true;
     }
@@ -254,12 +239,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         switch(it.value().as<unsigned int>()) {
           case STIMA_MODULE_TYPE_MASTER_ETH:
           case STIMA_MODULE_TYPE_MASTER_GSM:
-            param.configurationLock->Take();
-            param.configuration->board_master.module_type = (Module_Type)it.value().as<unsigned int>();
+            // Saving param after command ..."reset"
             currentModule = (Module_Type)it.value().as<unsigned int>();
-            // Copying real name configured
-            strcpy(param.configuration->board_master.module_name, boardName);
-            param.configurationLock->Give();
             isMasterConfigure = true;
             break;
 
@@ -269,15 +250,11 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           case STIMA_MODULE_TYPE_SOLAR_RADIATION:
           case STIMA_MODULE_TYPE_POWER_MPPT:
           case STIMA_MODULE_TYPE_VVC:
-            param.configurationLock->Take();
             // Set module index (defualt START from 0xFF to point 0 index at start)
             // Index valid for all parameter while next board configure... Inc to sequential value
+            // Saving param after command ..."reset"
             slaveId++;
-            param.configuration->board_slave[slaveId].module_type = (Module_Type)it.value().as<unsigned int>();
             currentModule = (Module_Type)it.value().as<unsigned int>();
-            // Copying real name configured
-            strcpy(param.configuration->board_slave[slaveId].module_name, boardName);
-            param.configurationLock->Give();
             isSlaveConfigure = true;
             break;
 
@@ -311,15 +288,19 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         param.configuration->board_slave[slaveId].can_address = it.value().as<unsigned int>();
         if(param.configuration->board_slave[slaveId].can_address >= 127) {
           // Fix Error configure from Address invalid
-          param.configuration->board_slave[slaveId].can_address = 60 + slaveId;
+          param.configuration->board_slave[slaveId].can_address = 80 + slaveId;
         }
+        param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
         param.configurationLock->Take();
         #ifndef USE_NODE_MASTER_ID_FIXED
         param.configuration->board_master.can_address = it.value().as<unsigned int>();
+        #else
+        param.configuration->board_master.can_address = NODE_MASTER_ID;
         #endif
+        param.configuration->board_master.can_port_id = NODE_PORT_ID;
         param.configurationLock->Give();
       }
       else error_command = true;
@@ -342,7 +323,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::th:
           if(strcmp(subject, "node.th") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -351,7 +331,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::rain:
           if(strcmp(subject, "node.p") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -360,7 +339,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::wind:
           if(strcmp(subject, "node.wind") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -369,7 +347,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::radiation:
           if(strcmp(subject, "node.rad") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -378,16 +355,14 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::power:
           if(strcmp(subject, "node.mppt") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
           else error_command = true;
           break;
         case Module_Type::vwc:
-          if(strcmp(subject, "node.vwc") == 0) {
+          if(strcmp(subject, "node.svwc") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
@@ -397,8 +372,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         case Module_Type::server_eth:
           if(strcmp(subject, "node.master") == 0) {
             param.configurationLock->Take();
-            param.configuration->board_slave[slaveId].can_port_id = 100;
-            param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
+            param.configuration->board_master.can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
           }
           else error_command = true;
@@ -414,7 +388,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       // Validate with sequence command
       if(isSlaveConfigure) {
         const char *ptr_read = it.value().as<const char *>() + 2; // Point to SN String 0x->
-        uint64_t sn_read = 0;
         bool end_conversion = false;
         uint8_t byte_pos = 7;
         uint8_t data_read;
@@ -422,13 +395,11 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
         // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
         // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
+        boardSN = 0;
         while(byte_pos && !end_conversion) {
           end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
-          sn_read |= ((uint64_t)data_read)<<(8*byte_pos--);
+          boardSN |= ((uint64_t)data_read)<<(8*byte_pos--);
         }
-        param.configurationLock->Take();
-        param.configuration->board_slave[slaveId].serial_number = sn_read;
-        param.configurationLock->Give();
       }
       else error_command = true;
     }

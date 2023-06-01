@@ -159,17 +159,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ADC_MAX                                       (4096)
 #define ADC_MIN                                       (0)
 
-#define SOLAR_RADIATION_VOLTAGE_MAX                   (3000.0)
+#define SOLAR_RADIATION_VOLTAGE_MAX                   (3300.0)
 #define SOLAR_RADIATION_VOLTAGE_MIN                   (0.0)
 
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 50.0)
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             (SOLAR_RADIATION_VOLTAGE_MIN - 10.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 30.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             (SOLAR_RADIATION_VOLTAGE_MIN - 30.0)
 
-#define SOLAR_RADIATION_MAX                           (1500.0)
+#define SOLAR_RADIATION_MAX                           (1320.0)
 #define SOLAR_RADIATION_MIN                           (0.0)
 
-#define SOLAR_RADIATION_ERROR_MAX                     (1500.0)
-#define SOLAR_RADIATION_ERROR_MIN                     (1.0)
+#define SOLAR_RADIATION_ERROR_MAX                     (1320.0)
+#define SOLAR_RADIATION_ERROR_MIN                     (0.0)
 
 #define ADC_ERROR_PERCENTAGE_MIN                      (70)
 

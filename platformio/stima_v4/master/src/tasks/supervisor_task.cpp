@@ -227,12 +227,14 @@ void SupervisorTask::Run()
       rtc.getTime(&hh, &nn, &ss, &ms);
 
       // Without config try connection 1 time for hour (test config...)
-      if(param.system_status->flags.config_empty) {
-        if((nn % 0) == 0) {
-          param.systemStatusLock->Take();
-          param.system_status->command.do_http_configuration_update = true;
-          param.systemStatusLock->Give();
-        }
+      if((param.system_status->flags.config_empty)||(!param.system_status->flags.new_data_to_send)) {
+        uint8_t nn_start = param.configuration->report_s / 60;
+        // nn_start %= 60;
+        // if(!(nn % nn_start)) {
+        //   param.systemStatusLock->Take();
+        //   param.system_status->flags.new_data_to_send = true;
+        //   param.systemStatusLock->Give();
+        // }
       } else {
         // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days )
         if((hh == 12) && (nn < 15)) {

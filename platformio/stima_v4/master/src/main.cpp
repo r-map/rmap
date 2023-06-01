@@ -420,8 +420,8 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  // Do not less stack < 1200. Overflow on RPC Command
-  static MqttTask mqtt_task("MqttTask", 1400, OS_TASK_PRIORITY_02, mqttParam);
+  // Do not less stack < 1200. Overflow on RPC Command // 1400
+  static MqttTask mqtt_task("MqttTask", 1900, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 
   static WdtTask wdt_task("WdtTask", 400, OS_TASK_PRIORITY_04, wdtParam);

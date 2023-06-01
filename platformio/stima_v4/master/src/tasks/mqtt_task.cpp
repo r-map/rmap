@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    can_task.cpp
+  * @file    mqtt_task.cpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Mqtt RMAP over Cyclone TCP Source files
@@ -151,6 +151,9 @@ void MqttTask::Run()
   rmap_service_module_VWC_Response_1_0 *rmapDataVWC;
   rmap_service_module_Power_Response_1_0 *rmapDataPower;
 
+  // TODO: remove
+  uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
+
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -231,6 +234,9 @@ void MqttTask::Run()
 
       // Set the MQTT version to be used
       mqttClientSetVersion(&mqttClientContext, version);
+
+      // TODO: remove
+      memcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
 
       if (transportProtocol == MQTT_TRANSPORT_PROTOCOL_TLS)
       {
@@ -364,7 +370,7 @@ void MqttTask::Run()
       }
       indexPosition--;
       // IS FIRMWARE AVAIABLE?
-      if(!param.system_status->data_master.fw_upgradable) {
+      if(param.system_status->data_master.fw_upgradable) {
          bitState[indexPosition] = '1';
       }
       indexPosition--;
@@ -391,9 +397,9 @@ void MqttTask::Run()
 
       // publish connection message (Conn + Version and Revision)
       // sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-      //   dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+      //   dtBlock, param.configuration->board_master.module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-        dtBlock, param.configuration->board_master.module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+        dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
       error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
@@ -445,9 +451,7 @@ void MqttTask::Run()
           byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
 
           // publish connection message (Conn + Version and Revision)
-          // sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-          //   dtBlock, NAME_BSLUG_BOARD_PREFIX, (iNodeSlave+1), bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
-          sprintf(message, "{%s \"bs\":\"%s%u\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
+          sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
             dtBlock, param.configuration->board_slave[iNodeSlave].module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
           TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
           error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
@@ -812,8 +816,6 @@ void MqttTask::Run()
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::th)
                   {
-                    // TODO: CONTROLLA TOPIC
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_ITH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->ITH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));

@@ -56,6 +56,7 @@
 // Nodi Fissi per Moduli Master e Yakut
 #define NODE_YAKUT_ID   127
 #define NODE_MASTER_ID  100
+#define NODE_PORT_ID    100
 
 // Parametri default per Modulo Master (INIT_PARAMETER)
 #define NODE_VALUE_UNSET  255

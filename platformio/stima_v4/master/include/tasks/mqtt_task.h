@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    can_task.cpp
+  * @file    mqtt_task.cpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Mqtt RMAP over Cyclone TCP Header files

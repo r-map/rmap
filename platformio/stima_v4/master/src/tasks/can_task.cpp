@@ -1194,8 +1194,11 @@ void CanTask::Run() {
     uint8_t bStartupCount = CONFIGURATION_DEFAULT_UPDATE_IST_S + 1;
     // Register access register rfemote configuration array
     uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
+    bool remote_configure_reboot[MAX_NODE_CONNECT] = {0};
+    uint32_t remote_configure_end_ms;   // Time wait after end configure one node (from 2 different Node Not Restart Config)
     uint8_t remote_configure_retry[MAX_NODE_CONNECT] = {0};
-    // Configure waiting Online after set Parameter
+    // Configure waiting Online after set Parameter (remove request from queue for leak error if external request for configure)
+    // If Node not get onLine in expected time, command removed from queue in security mode
     uint32_t remote_configure_wait_online_ms[MAX_NODE_CONNECT] = {0};
 
     // Response data PTR for type module direct data access
@@ -1395,7 +1398,13 @@ void CanTask::Run() {
                 for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
                     #ifdef USE_SUB_PUBLISH_SLAVE_DATA
                     // If valid address, configure node
-                    if(param.configuration->board_slave[iCnt].can_address <= CANARD_NODE_ID_MAX) {
+                    if((param.configuration->board_slave[iCnt].module_type)&&(param.configuration->board_slave[iCnt].can_address <= CANARD_NODE_ID_MAX)) {
+                        // Configure istance in a class
+                        char description_board[STIMA_MODULE_DESCRIPTION_LENGTH];
+                        getStimaDescriptionByType(description_board, param.configuration->board_slave[iCnt].module_type);
+                        TRACE_INFO_F(F("Configure module slave: [ %s ], Address: %u, Port Id: %u, Publish Id: %u\n\r"),
+                            description_board, param.configuration->board_slave[iCnt].can_address,
+                            param.configuration->board_slave[iCnt].can_port_id, param.configuration->board_slave[iCnt].can_publish_id);
                         // Configure istance in a class
                         clCanard.slave[iCnt].configure(
                             param.configuration->board_slave[iCnt].can_address,
@@ -2194,8 +2203,8 @@ void CanTask::Run() {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
-                                        if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
-                                        if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        // if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
+                                        // if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
@@ -2465,14 +2474,19 @@ void CanTask::Run() {
                 // La procedura parte solo senza register_server in funzione (un solo avvio ammesso)
                 // Si avvia generalmente dopo il PnP o su un modulo parzialmente configurato con solo il node_id
                 if((param.system_status->flags.run_module_configure)&&
-                    (!param.system_status->flags.reg_serever_running)) {
+                    (!param.system_status->flags.reg_server_running)) {
                     for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
                         // Check Configurazione non attiva su un nodo configurato e online
                         // FALSE se il nodo non è configurato nei reglistri Metadati e Porte RMAP
                         // Determino se avviare la configfurazione di un nodo apprena programmato con PnP...
                         // O comunque di un nodo preventivamente programmato con node_id ma senza metadati
                         if(clCanard.slave[cfg_remote_queueId].is_online()) {
-                            if(!clCanard.slave[cfg_remote_queueId].heartbeat.get_module_ready()) {
+                            // N.B: Se ho appena terminato la procedura HeratBeat potrebbe essere arrivato con Status Update request,
+                            // Quindi non eseguo la configurazione, e attendo l'eleimnazione del flag e la rilettura dello stato remoto cfg
+                            // Anche nel caso di configurazione già in corso non processo il comando. Esco e attendo la fine del PNP/CFG
+                            if((!clCanard.slave[cfg_remote_queueId].heartbeat.get_module_ready()) &&
+                                (!remote_configure_reboot[cfg_remote_queueId]) &&
+                                (!remote_configure[cfg_remote_queueId])) {
                                 // Module not configured.
                                 // Starting configuration procedure with push command to queue
                                 // Queue gestion power UP, starting command ecc... is performed
@@ -2510,7 +2524,7 @@ void CanTask::Run() {
                                 if(!remote_configure_wait_online_ms[system_message.param]) {
                                     remote_configure_wait_online_ms[system_message.param] = millis();
                                 } else {
-                                    // Configuration impossible Module not Foun OnLine after 4 sec from New Configuration
+                                    // Configuration impossible Module not Found OnLine after 4 sec from New Configuration
                                     if(millis() - remote_configure_wait_online_ms[system_message.param] > 4000) {
                                         // Remove message from the queue (No more action possible here NOT Online)
                                         param.systemMessageQueue->Dequeue(&system_message);
@@ -2534,7 +2548,7 @@ void CanTask::Run() {
                                         remote_configure[system_message.param] = REGISTER_STARTING;
                                         remote_configure_retry[system_message.param] = NODE_REGISTER_MAX_RETRY;
                                         param.systemStatusLock->Take();
-                                        param.system_status->flags.reg_serever_running = true;
+                                        param.system_status->flags.reg_server_running = true;
                                         param.systemStatusLock->Give();
                                     } else {
                                         if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
@@ -2560,7 +2574,7 @@ void CanTask::Run() {
                 }
 
                 // Are configuration remote node in execution?
-                if(param.system_status->flags.reg_serever_running) {
+                if(param.system_status->flags.reg_server_running) {
                     // Check end of configure remote module
                     bool cfgConfigureEnd = true;
                     uint8_t sensorCount = 0;
@@ -2752,6 +2766,10 @@ void CanTask::Run() {
                                         // L2..LType ecc... Node, Service, PortId, ServernodeId NodeId (LAST!!!) END!!!
                                         // END PROGRAMMING REGISTER REMOTE LIST OK !!!!
                                         remote_configure[cfg_remote_queueId] = 0;
+                                        // Ricordo di avere riavviato. Non riconfiguro fino a rx nuovo HeartBeat con stato valido
+                                        remote_configure_reboot[cfg_remote_queueId] = true;
+                                        // Attendo fino a 10 secondi per nuvo controllo stato da OFF Server Register End
+                                        remote_configure_end_ms = millis() + 10000;
                                         // Try end of all event recheck control
                                         reCheckEndEvent = true;
                                         TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
@@ -2762,6 +2780,18 @@ void CanTask::Run() {
                                         clCanard.send_command(clCanard.slave[cfg_remote_queueId].get_node_id(), NODE_COMMAND_TIMEOUT_US,                            
                                             uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
                                     default:
+                                        // Riparto dal comando precedente precedente se nell'area di validità
+                                        // Il comando in stato di attesa non ha avuto esito positivo
+                                        if(clCanard.slave[cfg_remote_queueId].register_access.event_timeout()) {
+                                            clCanard.slave[cfg_remote_queueId].register_access.reset_pending();
+                                            if((remote_configure[cfg_remote_queueId]>REGISTER_01_SEND)&&
+                                                (remote_configure[cfg_remote_queueId]<REGISTER_09_SEND)) {
+                                                remote_configure[cfg_remote_queueId]--;
+                                            }
+                                            else {
+                                                remote_configure[cfg_remote_queueId] = 0;
+                                            }
+                                        }
                                         break;
                                     }
                                 }
@@ -2787,7 +2817,7 @@ void CanTask::Run() {
                     // End of configure procedure complete request
                     if(cfgConfigureEnd) {
                         param.systemStatusLock->Take();
-                        param.system_status->flags.reg_serever_running = false;
+                        param.system_status->flags.reg_server_running = false;
                         param.systemStatusLock->Give();
                     }
                 }
@@ -2795,7 +2825,7 @@ void CanTask::Run() {
                 // Register SERVER Gestion Pending, Response and TimeOut
                 // NB. To Set parameter Register with value remote create a register and call send method
                 // To read a register create register and set to unstructured and call send method. (Rx is performed)
-                if(param.system_status->flags.reg_serever_running) {
+                if(param.system_status->flags.reg_server_running) {
                     // loop for all Node and switching from list command sequence.
                     // Create and send register command and wait progression in server command procedure
                     for(uint8_t register_server_queueId=0; register_server_queueId<MAX_NODE_CONNECT; register_server_queueId++) {
@@ -2837,6 +2867,16 @@ void CanTask::Run() {
                                 TRACE_ERROR_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
                                 // Abort configuration without Retry (Command refused)
                                 remote_configure[register_server_queueId] = 0;
+                            }
+                        }
+                    }
+                } else {
+                    // Mantengo off il segnale di reboot inviato (sempre pronto ad una nuova configurazione...)
+                    for(uint8_t register_server_queueId=0; register_server_queueId<MAX_NODE_CONNECT; register_server_queueId++) {
+                        if(remote_configure_reboot[register_server_queueId]) {
+                            // Se passo il timeOut di fine configurazione e riavvio Nodo posso eliminare il segnale di WaitReboot
+                            if(millis() > remote_configure_end_ms) {
+                                remote_configure_reboot[register_server_queueId] = false;
                             }
                         }
                     }
@@ -3089,7 +3129,7 @@ void CanTask::Run() {
                 // Inibith Reboot Module and GET Full Power for all Module in this case
                 // *********************************************************************
                 if((param.system_status->flags.full_wakeup_request)&&
-                    ((param.system_status->flags.reg_serever_running)||
+                    ((param.system_status->flags.reg_server_running)||
                     (param.system_status->flags.cmd_server_running)||
                     (param.system_status->flags.file_server_running))) {
                     // Reset request full_wakeup_request is needed and valid while any server mode is started
@@ -3100,7 +3140,7 @@ void CanTask::Run() {
                     param.systemStatusLock->Give();
                 }
                 // *** INIBITH REBOOT LOCAL AND REMOTE RPC ***
-                if(((param.system_status->flags.reg_serever_running)||
+                if(((param.system_status->flags.reg_server_running)||
                     (param.system_status->flags.cmd_server_running)||
                     (param.system_status->flags.file_server_running)||
                     (param.system_status->flags.full_wakeup_request)) &&
@@ -3110,7 +3150,7 @@ void CanTask::Run() {
                     param.systemStatusLock->Give();
                 }
                 // *** RESTORE REBOOT LOCAL AND REMOTE RPC ***
-                if(((!param.system_status->flags.reg_serever_running)&&
+                if(((!param.system_status->flags.reg_server_running)&&
                     (!param.system_status->flags.cmd_server_running)&&
                     (!param.system_status->flags.file_server_running) &&
                     (!param.system_status->flags.full_wakeup_request)) &&
@@ -3122,7 +3162,7 @@ void CanTask::Run() {
                 // *** FULL POWER Operation Request (RPC, Remote config, command, display) ***
                 if(((param.system_status->flags.full_wakeup_forced)||
                     (param.system_status->flags.full_wakeup_request)||
-                    (param.system_status->flags.reg_serever_running)||
+                    (param.system_status->flags.reg_server_running)||
                     (param.system_status->flags.cmd_server_running)||
                     (param.system_status->flags.file_server_running)||
                     (param.system_status->flags.rmap_server_running)||
@@ -3142,7 +3182,7 @@ void CanTask::Run() {
                 // *** NORMAL POWER Operation Request (End of RPC, Remote config, command, display) ***
                 if(((!param.system_status->flags.full_wakeup_forced)&&
                     (!param.system_status->flags.full_wakeup_request)&&
-                    (!param.system_status->flags.reg_serever_running)&&
+                    (!param.system_status->flags.reg_server_running)&&
                     (!param.system_status->flags.cmd_server_running)&&
                     (!param.system_status->flags.file_server_running)&&
                     (!param.system_status->flags.rmap_server_running)&&

@@ -1231,6 +1231,13 @@ bool canardClass::slave::is_online(void) {
     return heartbeat.is_online();
 }
 
+/// @brief Controlla se il modulo slave è online
+/// @param  None
+/// @return Tempo di ultima comunicazione valida
+CanardMicrosecond canardClass::slave::last_online(void) {
+    return heartbeat.last_online();
+}
+
 /// @brief Controlla l'entrata di un nodo slave in On Line
 /// @param  None
 /// @return true se il nodo è appena entrato in OnLine, solo la prima chiamata alla funzione
@@ -1252,6 +1259,13 @@ bool canardClass::slave::is_entered_offline(void) {
 /// @return true se il modulo slave è correttamente onLine (ha comunicato) nel limite di tempo valido
 bool canardClass::slave::heartbeat::is_online(void) {
     return _syncMicros < _timeout_us;
+}
+
+/// @brief Controlla se il modulo slave è online
+/// @param  None
+/// @return Tempo di ultima comunicazione valida
+CanardMicrosecond canardClass::slave::heartbeat::last_online(void) {
+    return _syncMicros - _timeout_us;
 }
 
 /// @brief Controlla l'entrata di un nodo slave in On Line
@@ -1497,7 +1511,8 @@ CanardPortID canardClass::slave::rmap_service::get_port_id(void) {
 /// @brief Imposta il tipo di modulo e prepara RAM Allocata per le risposte Modulo Slave
 /// @param module_type Tipo di modulo RMAP di CanarcClass
 void canardClass::slave::rmap_service::set_module_type(Module_Type module_type) {
-    // Assegno la memoria in funzione del modulo
+    // Assegno la memoria in funzione del modulo (eliminando la precedente definizione se assegnata)
+    if(_response) free(_response);
     switch(module_type) {
         case Module_Type::th:
             _response = malloc(sizeof(rmap_service_module_TH_Response_1_0));

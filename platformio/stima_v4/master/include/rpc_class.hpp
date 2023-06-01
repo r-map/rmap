@@ -136,6 +136,7 @@ class RegisterRPC {
       inline static RpcParam_t param;
 
       inline static char boardName[MAX_BOARD_NAME_LEN] = {0};             // Name board pre loaded for saving in config param
+      inline static u_int64_t boardSN = {0};                              // S.N. board pre loaded for saving in config param
       inline static bool isSlaveConfigure = false;                        // is module actual in reconfiguration
       inline static bool isMasterConfigure = false;                       // is master actual in reconfiguration
       inline static bool is_configuration_changed = false;                // configuration was changed (Need reset PNP Slave?)

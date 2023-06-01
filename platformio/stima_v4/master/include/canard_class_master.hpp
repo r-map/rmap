@@ -310,6 +310,7 @@ class canardClass {
             public:
 
             bool is_online(void);
+            CanardMicrosecond last_online(void);
             bool is_entered_online(void);
             bool is_entered_offline(void);
             void set_node_id(CanardNodeID node_id);
@@ -332,6 +333,7 @@ class canardClass {
                 public:
 
                 bool is_online(void);
+                CanardMicrosecond last_online(void);
                 bool is_entered_online(void);
                 bool is_entered_offline(void);
                 void set_online(uint32_t dead_line_us, uint8_t status, uint8_t healt,
