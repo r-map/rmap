@@ -1394,7 +1394,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                    mqttserver=board.transportmqtt.mqttserver))
 
                 if (without_password):
-                    print("mqtt user:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser))
+                    try:
+                        print("board_slug:",rpcproxy.configure(boardslug=board.slug))
+                    except:
+                        pass
                 else:
                     print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
                                                     mqttpassword=board.transportmqtt.mqttpassword))
@@ -1403,11 +1406,12 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     except:
                         pass           # to be removed; here fo legacy boards
                 
-                try:
-                    print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))
-                except:
-                    pass           # to be removed; here fo legacy boards
-
+                    try:
+                        print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))
+                    except:
+                        pass
+                    
+                    
         except ObjectDoesNotExist:
             print("transport mqtt not present")
 
