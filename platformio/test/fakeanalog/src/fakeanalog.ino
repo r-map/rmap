@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*
  Il test si svolge in questo modo:
  1) avvio con output a 0V per 1000 secondi
- 2) inizio semi-sinusoide con valori tra 0V e 3V con semiperiodo di 12h
+ 2) inizio semi-sinusoide con valori tra 0V e MAX V con semiperiodo di 12h
  3) inizio periodo con valori costanti a 0V per 12h
  4) si ripete dal punto 2)
  
@@ -31,12 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  the entire output range.
 */
 
-// Stima V4  = 1500 w/m^2
-#define PEAK_VOLTAGE 2250.D
+// Stima V4  = 1200 w/m^2   ( 5V =2000 w/m^2)
+#define PEAK_VOLTAGE 3000.D
 
 
-// Stima V3  = 1500 w/m^2
-//#define PEAK_VOLTAGE 1500.D
+// Stima V3  = 1200 w/m^2   (2V = 2000 w/m^2)
+//#define PEAK_VOLTAGE 1200.D
 
 #define CS_AD5791                D10
 #define START_SECONDI           1000    // delay to start output tension
