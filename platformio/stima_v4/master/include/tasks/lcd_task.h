@@ -73,7 +73,9 @@ typedef enum LCDState {
 
 typedef enum LCDMasterCommands {
   MASTER_COMMAND_SDCARD,
-  MASTER_COMMAND_UPDATE_NAME_STATION,
+  MASTER_COMMAND_UPDATE_STATION_SLUG,
+  MASTER_COMMAND_UPDATE_MQTT_USERNAME,
+  MASTER_COMMAND_UPDATE_MQTT_PASSWORD,
   MASTER_COMMAND_FIRMWARE_UPGRADE,
   MASTER_COMMAND_EXIT  // Always the latest element
 } stima4_master_commands_t;
@@ -89,7 +91,9 @@ typedef enum LCDMenu {
   MAIN,
   CHANNEL,
   CONFIGURATION,
-  UPDATE_NAME_STATION
+  UPDATE_STATION_SLUG,
+  UPDATE_MQTT_USERNAME,
+  UPDATE_MQTT_PASSWORD
 } stima4_menu_ui_t;
 
 typedef union Encoder {
@@ -141,7 +145,9 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
   void display_print_main_interface(void);
-  void display_print_update_name_station_interface(void);
+  void display_print_update_mqtt_password_interface(void);
+  void display_print_update_mqtt_username_interface(void);
+  void display_print_update_station_slug_interface(void);
   void display_setup(void);
   void elaborate_master_command(stima4_master_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
@@ -151,8 +157,12 @@ class LCDTask : public cpp_freertos::Thread {
   char alphabet[ALPHABET_LENGTH] = {
       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<', '>', '#'};
-  // It contains the new name of station inserted from user
-  char new_station_name[STATIONSLUG_LENGTH] = {0};
+  // It contains the new mqtt password of station inserted from user
+  char new_mqtt_password[MQTT_PASSWORD_LENGTH] = {0};
+  // It contains the new mqtt username of station inserted from user
+  char new_mqtt_username[MQTT_USERNAME_LENGTH] = {0};
+  // It contains the new slug of station inserted from user
+  char new_station_slug[STATIONSLUG_LENGTH] = {0};
   // Indicates whether the display has printed the updates or not
   bool data_printed;
   // Indicates whether the display is off or not
