@@ -31,12 +31,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  the entire output range.
 */
 
-#include "ad57X1.h"
-#include <ArduinoLog.h>
+// Stima V4  = 1500 w/m^2
+#define PEAK_VOLTAGE 2250.D
+
+
+// Stima V3  = 1500 w/m^2
+//#define PEAK_VOLTAGE 1500.D
 
 #define CS_AD5791                D10
 #define START_SECONDI           1000    // delay to start output tension
 #define PERIOD_SECONDI         43200    // 12h emiperiod (daily sun cicle)
+
+#include "ad57X1.h"
+#include <ArduinoLog.h>
 
 AD5791 ad5791(CS_AD5791, &SPI, 1*1000*1000,-1,0);  // If you experience trasmit errors, this might be due to your board layout.
 
@@ -68,7 +75,7 @@ void time_management(void){
 
 void sun_movement(void){
 
-  int32_t millivolt = round(sin((sun_secondi/float(PERIOD_SECONDI))*PI)*3000.D);
+  int32_t millivolt = round(sin((sun_secondi/float(PERIOD_SECONDI))*PI)*PEAK_VOLTAGE);
   if (millivolt <0) millivolt =0;
   Log.notice(F("sun time:%ls ; millivolt: %l"),sun_secondi,millivolt);
   ad5791.setTension(millivolt);
