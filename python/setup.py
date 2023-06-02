@@ -407,7 +407,7 @@ setup(name='rmap',
       ],
 
       package_data={
-          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/*.txt','templates/stations/*']+rmap_package_data,
+          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/*.txt','templates/stations/*','templatetags/*']+rmap_package_data,
           'rmap.stations': ['fixtures/*.json'],
           'rmap.network': ['fixtures/*.json','templates/network/*'],
           'kivy_garden.mapview': ['icons/*.png'],          

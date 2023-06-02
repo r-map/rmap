@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load status_manager %}
 
 {% block extra_assets %}
 
@@ -58,6 +59,8 @@
 
 </style>
 
+<link rel="stylesheet" type="text/css" href="/static/rmap/libs/bootstrap-icons-1.10.5/font/bootstrap-icons.min.css" >
+
 {% endblock %}
 
 {% block content %}
@@ -106,28 +109,28 @@
       <th>{% trans 'Firmware version' %}</th>
       <th>{% trans 'Last firmware update' %}</th>
       <th>{% trans 'Last status update' %}</th>
-      <th>{% trans 'Bit 1' %}</th>
-      <th>{% trans 'Bit 2' %}</th>
-      <th>{% trans 'Bit 3' %}</th>
-      <th>{% trans 'Bit 4' %}</th>
-      <th>{% trans 'Bit 5' %}</th>
-      <th>{% trans 'Bit 6' %}</th>
-      <th>{% trans 'Bit 7' %}</th>
-      <th>{% trans 'Bit 8' %}</th>
-      <th>{% trans 'Bit 9' %}</th>
-      <th>{% trans 'Bit 10' %}</th>
-      <th>{% trans 'Bit 11' %}</th>
-      <th>{% trans 'Bit 12' %}</th>
-      <th>{% trans 'Bit 13' %}</th>
-      <th>{% trans 'Bit 14' %}</th>
-      <th>{% trans 'Bit 15' %}</th>
-      <th>{% trans 'Bit 16' %}</th>
+      <th>{% trans 'B1' %}</th>
+      <th>{% trans 'B2' %}</th>
+      <th>{% trans 'B3' %}</th>
+      <th>{% trans 'B4' %}</th>
+      <th>{% trans 'B5' %}</th>
+      <th>{% trans 'B6' %}</th>
+      <th>{% trans 'B7' %}</th>
+      <th>{% trans 'B8' %}</th>
+      <th>{% trans 'B9' %}</th>
+      <th>{% trans 'B10' %}</th>
+      <th>{% trans 'B11' %}</th>
+      <th>{% trans 'B12' %}</th>
+      <th>{% trans 'B13' %}</th>
+      <th>{% trans 'B14' %}</th>
+      <th>{% trans 'B15' %}</th>
+      <th>{% trans 'B16' %}</th>
 
-      <th>{% trans 'Val 1' %}</th>
-      <th>{% trans 'Val 2' %}</th>
-      <th>{% trans 'Val 3' %}</th>
-      <th>{% trans 'Val 4' %}</th>
-      <th>{% trans 'Val 5' %}</th>
+      <th>{% trans 'V1' %}</th>
+      <th>{% trans 'V2' %}</th>
+      <th>{% trans 'V3' %}</th>
+      <th>{% trans 'V4' %}</th>
+      <th>{% trans 'V5' %}</th>
 
     </tr>
   
@@ -142,28 +145,28 @@
           <td>{{ board.boardmaintstatus.lastupdate|date:"Y/m/d" }} {{ board.boardmaintstatus.lastupdate|time:"H:i:s" }}</td>
 
 
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb1  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb1 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.0}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb2  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb2 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.1}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb3  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb3 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.2}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb4  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb4 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.3}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb5  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb5 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.4}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb6  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb6 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.5}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb7  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb7 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.6}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb8  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb8 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.7}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb9  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb9 |default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.8}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb10 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb10|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.9}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb11 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb11|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.10}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb12 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb12|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.11}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb13 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb13|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.12}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb14 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb14|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.13}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb15 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb15|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.14}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb16 %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusb16|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.15}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb1  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb1 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.0}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb2  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb2 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.1}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb3  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb3 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.2}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb4  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb4 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.3}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb5  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb5 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.4}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb6  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb6 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.5}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb7  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb7 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.6}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb8  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb8 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.7}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb9  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb9 |statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.8}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb10 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb10|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.9}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb11 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb11|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.10}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb12 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb12|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.11}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb13 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb13|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.12}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb14 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb14|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.13}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb15 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb15|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.14}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusb16 %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusb16|statusb}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusb_explain.15}}</span></div></td>
 
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv1 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv1|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.0}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv2 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv2|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.1}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv3 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv3|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.2}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv4 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv4|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.3}}</span></div></td>
-          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv5 > 0  %}style="background-color:Tomato;"{% endif %} >{{ board.boardmaintstatus.statusv5|default_if_none:'-'}}<span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.4}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv1 > 0  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusv1|default_if_none:'-'}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.0}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv2 > 0  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusv2|default_if_none:'-'}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.1}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv3 > 0  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusv3|default_if_none:'-'}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.2}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv4 > 0  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusv4|default_if_none:'-'}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.3}}</span></div></td>
+          <td><div class="tooltipp" {% if board.boardmaintstatus.statusv5 > 0  %}style="background-color:Tomato;"{% endif %} ><span>{{ board.boardmaintstatus.statusv5|default_if_none:'-'}}</span><span class="tooltiptext">{{board.boardmaintstatus.statusv_explain.4}}</span></div></td>
 	  
 	</tr>
 	  
