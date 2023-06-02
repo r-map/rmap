@@ -1999,6 +1999,7 @@ void CanTask::Run() {
                                         if(retTHData->is_main_error) bit8Flag|=0x01;
                                         if(retTHData->is_redundant_error) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retTHData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
@@ -2071,6 +2072,7 @@ void CanTask::Run() {
                                         if(retRainData->is_bubble_level_error) bit8Flag|=0x10;
                                         if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
                                         param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRainData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
@@ -2140,6 +2142,7 @@ void CanTask::Run() {
                                         if(retWindData->is_windsonic_axis_error) bit8Flag|=0x08;
                                         if(retWindData->is_windsonic_crc_error) bit8Flag|=0x10;
                                         param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retWindData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
@@ -2203,9 +2206,10 @@ void CanTask::Run() {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
                                         // Copy Flag State
                                         bit8Flag = 0;
-                                        // if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
-                                        // if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        if(retRadiationData->is_adc_unit_error) bit8Flag|=0x01;
+                                        if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
@@ -2274,6 +2278,7 @@ void CanTask::Run() {
                                         if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
                                         if(retPwrData->is_power_critical) bit8Flag|=0x0002;
                                         param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
                                         // Copy critical power flag
                                         param.system_status->flags.power_critical = retPwrData->is_power_critical;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;

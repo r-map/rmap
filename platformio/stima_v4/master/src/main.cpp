@@ -374,6 +374,7 @@ void setup() {
   mqttParam.systemMessageQueue = systemMessageQueue;
   mqttParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   mqttParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
+  mqttParam.dataRmapPutQueue = dataRmapPutQueue;
   mqttParam.dataRmapPutBackupQueue = dataRmapPutBackupQueue;
   mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;

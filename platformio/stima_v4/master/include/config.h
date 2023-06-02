@@ -162,12 +162,12 @@
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (BOARDS_COUNT_MAX + 2) // Max usage on rapid configuration command MAX_BOARD message
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define RESPONSE_DATA_QUEUE_LENGTH  (1)
-#define RMAP_PUT_DATA_QUEUE_LENGTH  (BOARDS_COUNT_MAX)
+#define RMAP_PUT_DATA_QUEUE_LENGTH  (12) // Fully Using only when data if on RAM with SD Fail (3 Record Data x Complex station)
 #define RMAP_GET_DATA_QUEUE_LENGTH  (1)
 #define RMAP_BKP_DATA_QUEUE_LENGTH  (5)
 #define FILE_GET_DATA_QUEUE_LENGTH  (1)
 #define FILE_PUT_DATA_QUEUE_LENGTH  (1)
-#define LOG_PUT_DATA_QUEUE_LENGTH   (16)
+#define LOG_PUT_DATA_QUEUE_LENGTH   (8)
 #define DISPLAY_EVENT_QUEUE_LENGTH  (1)
 // Queue Size block MAX
 #define FILE_GET_DATA_BLOCK_SIZE    (256U)  // SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_

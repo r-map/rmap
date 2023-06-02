@@ -472,14 +472,6 @@ void MqttTask::Run()
       #if (ENABLE_STACK_USAGE)
       TaskMonitorStack();
       #endif
-      // **************************************
-      //   GET RMAP Data, And Append to MQTT
-      // **************************************
-      // SD have to GET Ready before Push DATA
-      // EXIT from function if not SD Ready or present into system_status
-      if(!param.system_status->flags.sd_card_ready) {
-        TRACE_VERBOSE_F(F("MQTT: RMAP Reject request get rmap data, SD was not ready [ %s ]\r\n"), ERROR_STRING);
-      }
 
       // *****************************************
       //  RUN GET RMAP Data Queue and Append MQTT
@@ -493,19 +485,45 @@ void MqttTask::Run()
 
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
-          memset(&rmap_get_request, 0, sizeof(rmap_get_request));
-          // Get Next data... Stop at EOF
-          rmap_get_request.command.do_get_data = true;
-          // Save Pointer? Optional
-          // BUT is Automatic save on Get Last Data Avaiable if Normal Request (Not Recovery...)
-          // rmap_get_request.command.do_save_ptr = true;
-          // Push data request to queue SD
-          param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
-          // Waiting response from SD with TimeOUT
-          memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-          rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-          rmap_data_error |= rmap_get_response.result.event_error;
+
+          // SD have to GET Ready before Push DATA alert if not SD Ready or present into system_status
+          if(!param.system_status->flags.sd_card_ready) {
+            // Direct mode, get data from queue on RAM DATA queue
+            TRACE_INFO_F(F("MQTT: RMAP SD was not ready, pulling last data directly from RAM queue\r\n"));
+            // *********************************************************
+            //      Perform RMAP Write Data direct RAM get message
+            // *********************************************************
+            // Fixed no error on GET from SD (not ready SD)
+            rmap_data_error = false;
+            if(!param.dataRmapPutQueue->IsEmpty()) {
+              memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+              // Test message from queue ( Only if SD Trasnsaction complete, remove from Queue )
+              param.dataRmapPutQueue->Dequeue(&rmap_get_response.rmap_data);
+              // Simulate data Getted from SD Queue and direct check End of Data
+              rmap_get_response.result.done_get_data = true;
+              rmap_get_response.result.end_of_data = param.dataRmapPutQueue->IsEmpty();
+            } else {
+              // End of DATA...
+              memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+              rmap_get_response.result.done_get_data = false;
+              rmap_get_response.result.end_of_data = true;
+            }
+          } else {
+            // Normal mode, get data from queue on SD CARD
+            memset(&rmap_get_request, 0, sizeof(rmap_get_request));
+            // Get Next data... Stop at EOF
+            rmap_get_request.command.do_get_data = true;
+            // Save Pointer? Optional
+            // BUT is Automatic save on Get Last Data Avaiable if Normal Request (Not Recovery...)
+            // rmap_get_request.command.do_save_ptr = true;
+            // Push data request to queue SD
+            param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
+            // Waiting response from SD with TimeOUT
+            memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+            TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+            rmap_data_error = !param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+            rmap_data_error |= rmap_get_response.result.event_error;
+          }
 
           #if (TEST_MQTT_FIXED_DATA)
 
@@ -1402,10 +1420,9 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   {
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
-  
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1453,9 +1470,8 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1671,9 +1687,8 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1779,9 +1794,8 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1833,9 +1847,8 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1882,9 +1895,8 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1936,9 +1948,8 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -1976,9 +1987,8 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2030,9 +2040,8 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2079,9 +2088,8 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2133,9 +2141,8 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2187,9 +2194,8 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2241,9 +2247,8 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2290,9 +2295,8 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2823,9 +2827,8 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2931,9 +2934,8 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -2980,9 +2982,8 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 
@@ -3029,9 +3030,8 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error_count = MQTT_TASK_PUBLISH_RETRY;
   }
 
-  // Saving Data Backup Older Data Firmat
-    // Saving Data Backup Older Data Firmat
-  if (!error) {
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, topic, message);
   }
 

@@ -163,6 +163,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MIN_VALID_HUMIDITY                (0.0)
 #define MAX_DIFF_VALUE_HUMIDITY           (6)
 #define MAX_DIFF_VALUE_HUMIDITY_POWER     (1)
+#define MIN_PERC_SEND_ERR                 (5)
 
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)

@@ -153,10 +153,11 @@ typedef struct
   system_status_t *system_status;
   bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
+  cpp_freertos::BinarySemaphore *systemStatusLock;  
   cpp_freertos::Queue *systemMessageQueue;
   cpp_freertos::Queue *dataRmapGetRequestQueue;
   cpp_freertos::Queue *dataRmapGetResponseQueue;
+  cpp_freertos::Queue *dataRmapPutQueue;
   cpp_freertos::Queue *dataRmapPutBackupQueue;
   cpp_freertos::Queue *dataLogPutQueue;
   cpp_freertos::Queue *connectionRequestQueue;

@@ -300,6 +300,8 @@ void SdTask::Run()
   // Diagnostic LED
   bool bLedLevel;
   uint8_t led_counter;
+  // Security verify write flag
+  bool bWriteErr;
   // Generic retry
   uint8_t retry;
   bool message_traced = false;
@@ -523,11 +525,18 @@ void SdTask::Run()
           param.systemStatusLock->Take();
           param.system_status->flags.new_data_to_send = false;
           param.systemStatusLock->Give();
-          tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
-          tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+          bWriteErr = false;
+          bWriteErr |= !tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+          bWriteErr |= !tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
           tmpFile.close();
           // Close File Low LED
           digitalWrite(PIN_SD_LED, LOW);
+          if(bWriteErr) {
+            // SD Pointer Error, general Openon first File...
+            // Error. Send to system_stae and retry OPEN INIT SD
+            state = SD_STATE_INIT;
+            break;
+          }
         } else {
           // SD Pointer Error, general Openon first File...
           // Error. Send to system_stae and retry OPEN INIT SD
@@ -679,6 +688,9 @@ void SdTask::Run()
       // File can be opened simultaneously also readonly mode by another function es.Read/Print/Send INFO LOG
       is_getted_rtc = false;
       while(!param.dataLogPutQueue->IsEmpty()) {
+        // Exit while on Error
+        if(error_sd_card) break;
+        // Set Intest RTC LOG
         if(!is_getted_rtc) {
           // Get date time to Intest string to PUT (for this message session)
           is_getted_rtc = true;
@@ -692,15 +704,17 @@ void SdTask::Run()
         if(param.dataLogPutQueue->Dequeue(logBuffer)) {
           // Put to SD ( APPEND File Always Opened with Flush Data )
           if(!logFile) logFile = SD.open("/log/log.txt", O_RDWR | O_CREAT | O_AT_END);
-          if(logFile) {          
+          if(logFile) {
             // Open File High LED
             digitalWrite(PIN_SD_LED, HIGH);
-            logFile.print(logIntest);
-            logFile.write(logBuffer, strlen(logBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
-            logFile.println();
+            bWriteErr = false;
+            bWriteErr |= !logFile.print(logIntest);
+            bWriteErr |= !logFile.write(logBuffer, strlen(logBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
+            bWriteErr |= !logFile.println();
             logFile.flush();
             // Close File Low LED
             digitalWrite(PIN_SD_LED, LOW);
+            if(bWriteErr) error_sd_card = true;
           } else {
             // Generic open file Error
             error_sd_card = true;
@@ -719,6 +733,8 @@ void SdTask::Run()
       // Older File is Fixed lenght Type. DateTime Name is also used.
       // File are always opened if Append for fast Access Operation
       while(!param.dataRmapPutBackupQueue->IsEmpty()) {
+        // Exit while on Error
+        if(error_sd_card) break;
         // Get message from queue
         if(param.dataRmapPutBackupQueue->Dequeue(&rmap_backup_archive_data)) {
           // Put to SD ( APPEND to File in Native Format. Check naming file )
@@ -740,10 +756,12 @@ void SdTask::Run()
             // Open File High LED
             digitalWrite(PIN_SD_LED, HIGH);
             // Fixed Lenght File type
-            rmapBkpFile.write((char*)rmap_backup_archive_data.block, RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE);
+            bWriteErr = false;
+            bWriteErr |= !rmapBkpFile.write((char*)rmap_backup_archive_data.block, RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE);
             rmapBkpFile.flush();
             // Close File Low LED
             digitalWrite(PIN_SD_LED, LOW);
+            if(bWriteErr) error_sd_card = true;
           } else {
             // Generic open file Error
             error_sd_card = true;
@@ -765,8 +783,10 @@ void SdTask::Run()
       // Reading file ReadOnly can work simultaneously with opendFile.
       // Pointer Read from other TASK (Read Archive Data) work reading file when is WR/Open
       while(!param.dataRmapPutQueue->IsEmpty()) {
-        // Get message from queue
-        if(param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data)) {
+        // Exit while on Error
+        if(error_sd_card) break;
+        // Test message from queue ( Only if SD Trasnsaction complete, remove from Queue )
+        if(param.dataRmapPutQueue->Peek(&rmap_put_archive_data)) {
           // Put to SD ( APPEND to File in Native Format. Check naming file )
           namingFileData(rmap_put_archive_data.date_time, "/data", rmap_file_name_check);
           // Day Name File Changed (Data is to save in New File?) or Not Open...
@@ -781,12 +801,18 @@ void SdTask::Run()
           }
           // All correct... Write Block of data
           if(rmapWrFile) {
-            rmapWrFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
-            rmapWrFile.flush();
-            // System status enter in data ready for SENT (new data present)
-            param.systemStatusLock->Take();
-            param.system_status->flags.new_data_to_send = true;
-            param.systemStatusLock->Give();
+            bWriteErr = false;
+            bWriteErr |= !rmapWrFile.write(&rmap_put_archive_data, sizeof(rmap_put_archive_data));
+            if (!bWriteErr) {
+              rmapWrFile.flush();
+              // Now we can remove data from queue
+              param.dataRmapPutQueue->Dequeue(&rmap_put_archive_data);
+              // System status enter in data ready for SENT Not required
+              // (new data present is set into CAN Receive data when queue become not empty)
+            } else {
+              // Generic open file Error
+              error_sd_card = true;
+            }
           } else {
             // Generic open file Error
             error_sd_card = true;
@@ -817,6 +843,8 @@ void SdTask::Run()
       // Option 2 do_synch_ptr, search file_name and pointer from request to now()
       // Each operation modify current pointer stored in a file for prepare standard do_get_data
       while(!param.dataRmapGetRequestQueue->IsEmpty()) {
+        // Exit while on Error
+        if(error_sd_card) break;
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         // Request Pointer SET Modify rmap_file_name_rd and current Opened File for Reading Data from External QUEUE Request
@@ -1165,11 +1193,13 @@ void SdTask::Run()
             if(tmpFile) {
               // Open File High LED
               digitalWrite(PIN_SD_LED, HIGH);
-              tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
-              tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
+              bWriteErr = false;
+              bWriteErr |= !tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
+              bWriteErr |= !tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
               tmpFile.close();
               // Close File Low LED
               digitalWrite(PIN_SD_LED, LOW);
+              if (bWriteErr) error_sd_card = true;
             } else {
               // Generic open file Error
               error_sd_card = true;
@@ -1188,6 +1218,8 @@ void SdTask::Run()
       // If remote_file_name != NULL remote_file_name is not ready to system (Put firmware into module local and remote)
       // Any request for file (es. Cypal Request firmware are blocked)
       while(!param.dataFilePutRequestQueue->IsEmpty()) {
+        // Exit while on Error
+        if(error_sd_card) break;
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         if(param.dataFilePutRequestQueue->Dequeue(&file_put_request)) {
@@ -1215,12 +1247,14 @@ void SdTask::Run()
           } else if(file_put_request.block_type == file_block_type::data_chunck) {
             memset(&file_put_response, 0, sizeof(file_put_response));
             if(putFile) {
-              uint16_t writtenBytes;
-              writtenBytes = putFile.write(file_put_request.block, file_put_request.block_lenght);
+              bWriteErr = false;
+              bWriteErr |= !putFile.write(file_put_request.block, file_put_request.block_lenght);
               putFile.flush();
               // Bytes written is ok)
-              if(writtenBytes == file_put_request.block_lenght)
-                file_put_response.done_operation = true;
+              if(bWriteErr) {
+                file_put_response.done_operation = false;
+                error_sd_card = true;
+              }
               else
                 file_put_response.error_operation = true;
             } else {
@@ -1264,6 +1298,8 @@ void SdTask::Run()
       // Get Block and send with queue to CAN and CAN Upload remote module... FW/File Update command
       // Flag Firmware (Receive from Network) toBe Completed before request to upload can start
       while(!param.dataFileGetRequestQueue->IsEmpty()) {
+        // Exit while on Error
+        if(error_sd_card) break;
         // Try Get message from queue (Start, progress session download fron NETWORK TASK and push to SD CARD)
         // Send response -> system_reesponse generic mode to request
         if(param.dataFileGetRequestQueue->Dequeue(&file_get_request)) {
@@ -1403,7 +1439,7 @@ void SdTask::Run()
               if(entry) {
                 int len_block;
                 // Put firmware in correct Flash Location
-                while(1) {
+                while(true) {
                   // *************  PREPARE FLASHING *************
                   // Read block data from file
                   // Read File High LED

@@ -727,7 +727,10 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
           resp.is_main_error = param->system_status->events.is_main_error;
           resp.is_redundant_error = param->system_status->events.is_redundant_error;
-          resp.perc_i2c_error = param->system_status->events.perc_i2c_error;
+          if(param->system_status->events.perc_i2c_error > MIN_PERC_SEND_ERR) {
+            resp.perc_i2c_error = param->system_status->events.perc_i2c_error;
+          }
+
           // Preparo gli event Reboot and WDT Event
           resp.rbt_event = boot_state->tot_reset;
           resp.wdt_event = boot_state->wdt_reset;
