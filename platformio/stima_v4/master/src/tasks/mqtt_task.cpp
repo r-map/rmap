@@ -38,14 +38,6 @@
 using namespace cpp_freertos;
 
 /* 
-  TEST VALUE FIXED PSK KEY
-  
-  //Client's PSK identity
-  #define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
-
-  //Client's PSK
-  const uint8_t MqttClientPSKKey[] = {0x4F, 0x3E, 0x7E, 0x10, 0xD2, 0xD1, 0x6A, 0xE2, 0xC5, 0xAC, 0x60, 0x12, 0x0F, 0x07, 0xEF, 0xAF};
-
   List of preferred ciphersuites
   https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
   defined in tasks/mqtt_task.h -> const uint16_t cipherSuites[] = TYPE_VALUE
@@ -151,9 +143,6 @@ void MqttTask::Run()
   rmap_service_module_VWC_Response_1_0 *rmapDataVWC;
   rmap_service_module_Power_Response_1_0 *rmapDataPower;
 
-  // TODO: remove
-  uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
-
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -234,9 +223,6 @@ void MqttTask::Run()
 
       // Set the MQTT version to be used
       mqttClientSetVersion(&mqttClientContext, version);
-
-      // TODO: remove
-      memcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
 
       if (transportProtocol == MQTT_TRANSPORT_PROTOCOL_TLS)
       {
@@ -421,6 +407,8 @@ void MqttTask::Run()
           // Depending from type module (Message composition)
           if(!param.system_status->data_slave[iNodeSlave].is_online) {
             bitState[indexPosition] = '1';
+            // Auto set 100 % Error CAN data if OffLine
+            byteState[0] = 100;
           }
           indexPosition--;
           if(param.system_status->data_slave[iNodeSlave].fw_upgradable) {

@@ -985,12 +985,17 @@ void SdTask::Run()
                     if(dateTimeSearch >= currEpochLimitCheck) break;
                   }
                 }
+              } else {
+                // Need to save resetted pointer
+                rmap_get_request.command.do_save_ptr = true;
               }
             }
             // Found file and position correct?...
             if((!is_found)||(rmap_get_response.result.event_error)) {
               // Error procedure... or Not Found
               TRACE_VERBOSE_F(F("Data RMAP current searching date/time FOUND [ %s ]\r\n"), ERROR_STRING);
+              // Need to save resetted pointer
+              rmap_get_request.command.do_save_ptr = true;
               rmap_get_response.result.event_error = true;
             } else {
               // Responding data pointer Setted
@@ -1191,6 +1196,7 @@ void SdTask::Run()
             // Rewrite Pointer Data File (Open only at startup for Set Position)
             tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
             if(tmpFile) {
+              if(rmap_pointer_seek == 0xFFFFFFFFu) rmap_pointer_seek = 0;
               // Open File High LED
               digitalWrite(PIN_SD_LED, HIGH);
               bWriteErr = false;

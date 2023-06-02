@@ -714,7 +714,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
         param.configurationLock->Take();
         // Reset PSK_KEY
-        memcpy(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
+        memset(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
         while((byte_pos!=CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
           end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
           param.configuration->client_psk_key[byte_pos++] = data_read;

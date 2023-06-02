@@ -103,6 +103,9 @@ using namespace cpp_freertos;
 
 #define SEC_WAKE_UP_MODULE_FOR_QUERY      (5)   // Time to WakeUP Node for FullPower Request
 
+#define MIN_TRANSACTION_HEARTBEAT_RX      (SEC_WAKE_UP_MODULE_FOR_QUERY)
+#define MIN_VALID_HEARTBEAT_RX            (20)
+
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 

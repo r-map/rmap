@@ -212,9 +212,6 @@ void HttpTask::Run() {
         break;
       }
 
-      // TODO: remove
-      memcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
-
       // Shared Pointer
       HttpYarrowContext = param.yarrowContext;
       HttpClientPSKKey = param.configuration->client_psk_key;

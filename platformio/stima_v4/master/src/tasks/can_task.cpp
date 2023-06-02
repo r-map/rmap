@@ -1855,16 +1855,22 @@ void CanTask::Run() {
                         // Calculate expected/recived HeartBeat sequence... and reset counter
                         // Only At first data % can be < 100%, depending of acquire time but isn't a real error
                         for(uint8_t iSlave = 0; iSlave < BOARDS_COUNT_MAX; iSlave++) {
-                            // Calculate % from correct Heartbeat sequence TX-RX Completed (if one is executed)
-                            if(param.system_status->data_slave[iSlave].heartbeat_rx) {
-                                param.system_status->data_slave[iSlave].perc_can_comm_err = (uint8_t)((float)(param.system_status->data_slave[iSlave].heartbeat_rx_err) / (float)(param.system_status->data_slave[iSlave].heartbeat_rx) * 100.0);
+                            // Calculate % from correct Heartbeat sequence TX-RX Transaction Completed (if one is executed)
+                            if(param.system_status->data_slave[iSlave].heartbeat_rx > MIN_VALID_HEARTBEAT_RX) {
+                                if(param.system_status->data_slave[iSlave].heartbeat_rx > MIN_TRANSACTION_HEARTBEAT_RX) {
+                                    param.system_status->data_slave[iSlave].perc_can_comm_err = (uint8_t)((float)(param.system_status->data_slave[iSlave].heartbeat_rx_err - MIN_TRANSACTION_HEARTBEAT_RX) / (float)(param.system_status->data_slave[iSlave].heartbeat_rx) * 100.0);
+                                } else {
+                                    param.system_status->data_slave[iSlave].perc_can_comm_err = 0;
+                                }
                             } else {
                                 param.system_status->data_slave[iSlave].perc_can_comm_err = 100;
-                            }                            
+                            }
                             // Reset Next Counter for next acquire data
                             param.system_status->data_slave[iSlave].heartbeat_rx = 0;
                             param.system_status->data_slave[iSlave].heartbeat_rx_err = 0;                            
                         }
+                        // Require new connection at time (report time is passed)
+                        param.system_status->flags.new_start_connect = true;
                         param.systemStatusLock->Give();
                         bStartGetData = true;
                     }
@@ -2367,7 +2373,7 @@ void CanTask::Run() {
                                 // Start Flag Event Start when request configuration is request
                                 // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
                                 // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
                                     // Remove message from the queue
                                     param.systemMessageQueue->Dequeue(&system_message);
                                     TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());

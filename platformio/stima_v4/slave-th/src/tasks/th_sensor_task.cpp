@@ -206,7 +206,7 @@ void TemperatureHumidtySensorTask::Run() {
           error_count=0;
         }
         param.system_status->events.perc_i2c_error = (uint8_t)
-          (100.0 - ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
+          (((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
         param.systemStatusLock->Give();
       }
 
@@ -256,7 +256,7 @@ void TemperatureHumidtySensorTask::Run() {
               param.system_status->events.is_main_error = false;
           }
           param.system_status->events.perc_i2c_error = (uint8_t)
-            (100.0 - ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
+            (((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0);
           param.systemStatusLock->Give();
 
           if (false) {}

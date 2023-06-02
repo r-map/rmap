@@ -109,8 +109,8 @@ void SupervisorTask::Run()
 {
   uint8_t retry, hh, nn, ss;
   uint32_t ms;
-  // bool bGetNextSecondOffsetStart = false;       // VarSet and Offset for Random connection Start
-  // int16_t bSecondOffsetStart = 0;
+  bool bGetNextSecondOffsetStart = false;       // VarSet and Offset for Random connection Start
+  int16_t bSecondOffsetStart = 0;
   connection_request_t connection_request;
   connection_response_t connection_response;
   SupervisorConnection_t state_check_connection; // Local state (operation) when module connected
@@ -223,37 +223,27 @@ void SupervisorTask::Run()
 
       #if (!DISABLE_CONNECTION)
 
+      // Get RND(XX = 60) Second Offset Start connection for avoid overcharging RMAP Server
+      if(!bGetNextSecondOffsetStart) {
+        bGetNextSecondOffsetStart = true;
+        bSecondOffsetStart = random(60);
+      }
+      // Waiting coutdown on Timing
+      if((param.system_status->flags.new_start_connect)&&(bSecondOffsetStart > 0)) {
+        bSecondOffsetStart -= (SUPERVISOR_TASK_SLEEP_DELAY_MS / 1000);
+        break;
+      }
+
       // Check date RTime for syncro operation (if required)
       rtc.getTime(&hh, &nn, &ss, &ms);
 
-      // Without config try connection 1 time for hour (test config...)
-      if((param.system_status->flags.config_empty)||(!param.system_status->flags.new_data_to_send)) {
-        uint8_t nn_start = param.configuration->report_s / 60;
-        // nn_start %= 60;
-        // if(!(nn % nn_start)) {
-        //   param.systemStatusLock->Take();
-        //   param.system_status->flags.new_data_to_send = true;
-        //   param.systemStatusLock->Give();
-        // }
-      } else {
-        // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days )
-        if((hh == 12) && (nn < 15)) {
-          param.systemStatusLock->Take();
-          param.system_status->command.do_ntp_synchronization = true;
-          param.systemStatusLock->Give();
-        }
+      // With configuration active Time 12.00 - 12.14.59 ( Update NTP 1 x Days ) With connection request start
+      if((param.system_status->flags.new_start_connect) &&
+        ((hh == 12) && (nn < 15))) {
+        param.systemStatusLock->Take();
+        param.system_status->command.do_ntp_synchronization = true;
+        param.systemStatusLock->Give();
       }
-
-      // // Get RND(XX = 60) Second Offset Start connection for avoid overcharging RMAP Server
-      // if(!bGetNextSecondOffsetStart) {
-      //   bGetNextSecondOffsetStart = true;
-      //   bSecondOffsetStart = random(60);
-      // }
-      // // Waiting coutdown on Timing
-      // if((param.system_status->flags.new_data_to_send)&&(bSecondOffsetStart > 0)) {
-      //   bSecondOffsetStart -= (SUPERVISOR_TASK_SLEEP_DELAY_MS / 1000);
-      //   break;
-      // }
 
       #if (!TEST_CONNECTION)
       // Checking starting Connection inibition next Start... If something Wrong... (Default 10 min)
@@ -264,7 +254,7 @@ void SupervisorTask::Run()
         // ? External or internal request command strart connection
         // New data to send are syncronized with add new data (report_s time at data acquire)...
         // If config_empty ( Start connection every hour... )
-        if((param.system_status->flags.new_data_to_send) ||
+        if((param.system_status->flags.new_start_connect) ||
             (param.system_status->command.do_ntp_synchronization) ||
             (param.system_status->command.do_http_configuration_update) ||
             (param.system_status->command.do_http_firmware_download) ||
@@ -277,17 +267,18 @@ void SupervisorTask::Run()
             param.systemStatusLock->Give();
           }
 
+          // Remove request connect. Now Started.
+          param.system_status->flags.new_start_connect = false;
           // Renew GET Random value for Start Next Connection
-          // bGetNextSecondOffsetStart = false;
+          bGetNextSecondOffsetStart = false;
 
           // START REQUEST function LIST...
           param.systemStatusLock->Take();
           param.system_status->connection.is_ntp_synchronized = !param.system_status->command.do_ntp_synchronization;
           param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
           param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_download;
-          // is_mqtt_connected, generic set to false to start mqtt_connection. If true excluding Mqtt Procedure for this session
-          param.system_status->connection.is_mqtt_connected = !param.system_status->command.do_mqtt_connect;
-          param.system_status->connection.is_mqtt_connected &= !param.system_status->flags.new_data_to_send;
+          // is_mqtt_connected, Always enabled MQTT Connection
+          param.system_status->connection.is_mqtt_connected = false;
           // Saving starting Connection to inibith next Connection... If something Wrong...
           param.system_status->data_master.connect_run_epoch = rtc.getEpoch();
           // Resetting command request (Not event setted but external request)
@@ -898,7 +889,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
 
       strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
       strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
-      // strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
+      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
 
       param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
       param.configuration->longitude = CONFIGURATION_DEFAULT_LONGITUDE;
@@ -941,6 +932,8 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
       #endif
 
+      param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
+
       #if ((USE_MQTT)&&(FIXED_CONFIGURATION))
       uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
       osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
@@ -965,7 +958,6 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
       strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);
 
-      param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
       #endif
     }
 

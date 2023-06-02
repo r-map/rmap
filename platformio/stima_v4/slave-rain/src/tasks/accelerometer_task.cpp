@@ -209,9 +209,9 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_CHECK_OPERATION:
       if(readModule()) {
         // Controllo bolla (Send to system status if != from old state with Semaphore)
-        if((value_x < -BUBBLE_ANGLE_ERROR) || (value_x > BUBBLE_ANGLE_ERROR) ||
-           (value_y < -BUBBLE_ANGLE_ERROR) || (value_y > BUBBLE_ANGLE_ERROR) ||
-           (value_z < -BUBBLE_ANGLE_ERROR) || (value_z > BUBBLE_ANGLE_ERROR))
+        if((abs(value_x) > BUBBLE_ANGLE_ERROR) ||
+           (abs(value_y) > BUBBLE_ANGLE_ERROR) ||
+           (abs(value_z) > BUBBLE_ANGLE_ERROR))
         {
           if(!param.system_status->events.is_bubble_level_error) {
             param.systemStatusLock->Take();
@@ -225,7 +225,7 @@ void AccelerometerTask::Run()
             param.systemStatusLock->Give();
           }
         }
-        TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
+        TRACE_INFO_F(F("X[ 0.%03d ]  |  Y[ 0.%03d ]  |  Z[ 0.%03d ]\r\n"), (int)(abs(value_x)*1000), (int)(abs(value_y)*1000), (int)(abs(value_z)*1000),  OK_STRING);
         if(start_calibration) {
           TRACE_INFO_F(F("ACCELEROMETER Start calibration\r\n"));
           calibrate(false, true);

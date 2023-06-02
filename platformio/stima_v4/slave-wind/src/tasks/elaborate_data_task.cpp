@@ -201,6 +201,10 @@ void ElaborateDataTask::Run() {
         // send request to elaborate task (all data is present verified on elaborate_task)
         param.requestDataQueue->Dequeue(&request_data);
         make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        // if((report.class_1 > 0) || (report.class_2 > 0) || (report.class_3 > 0) ||
+        //     (report.class_4 > 0) || (report.class_5 > 0) || (report.class_6 < 20)) {
+        //   make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
+        // }
         param.reportDataQueue->Enqueue(&report);
       }
     }
@@ -263,6 +267,9 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   bool measures_maintenance = false;  // Maintenance mode?
   bool is_observation = false;        // Is an observation (when calculate is requested)
   uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
+
+  bool is_valid_speed;
+  bool is_valid_direction;
 
   float speed = 0;
   float direction = 0;
@@ -397,9 +404,9 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   if (report_time_s == 0) {
     // Make last data value to Get Istant show value
     speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-    if (!ISVALID_FLOAT(speed)) speed = 0;
+    if(speed >= UINT16_MAX) speed = 0;
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-    if (!ISVALID_FLOAT(direction)) direction = 0;
+    if (direction >= UINT16_MAX) direction = 0;
     // Used as sample for istant value (Only LCD for show value)
     report.vavg10_speed = speed;
     report.vavg10_direction = direction;
@@ -423,20 +430,21 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       // ************* GET SAMPLE VALUE DATA FROM AND CREATE OBSERVATION VALUES FOR TYPE SENSOR ************
       // ***************************************************************************************************
 
+      is_valid_speed = false;
+      is_valid_direction = false;
+
+      // Casting value x10
       speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-      if (speed!=UINT16_MAX) {
+      if (speed < UINT16_MAX) {
+        is_valid_speed = true;
         speed /= WIND_CASTING_SPEED_MULT;
       }
-      if (speed < CALM_WIND_MAX_MS) speed = WIND_SPEED_MIN;
+      if (speed < CALM_WIND_MAX_MS) speed = MIN_VALID_WIND_SPEED;
 
+      // No casting value (real data)
       direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-      // direction /= WIND_CASTING_SPEED_MULT;
-      if (speed < CALM_WIND_MAX_MS) direction = WIND_DIRECTION_MAX;
-
-      // last sample
-      if (n_sample == 1) {
-        TRACE_DEBUG_F(F("Elaborate: last sample [count, data (spd dir)] %u\t%u\t%.2f\t%.0f\t"), wind_speed_samples.count, wind_direction_samples.count, speed, direction);
-      }
+      if(direction < UINT16_MAX) is_valid_direction = true;
+      if (speed < CALM_WIND_MAX_MS) direction = MIN_VALID_WIND_DIRECTION;
 
       // Calculate quality
       avg_quality += ((checkWindQuality(speed, direction) - avg_quality) / n_sample);
@@ -444,7 +452,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       // calc report on last 10'
       if (n_sample <= wmo_report_sample_count) {
         total_count_a++;
-        if ((ISVALID_FLOAT(speed) && ISVALID_FLOAT(direction)) && !measures_maintenance) {
+        if (is_valid_speed && is_valid_direction && !measures_maintenance) {
           valid_count_a++;
           ua += ((float)(-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count_a;
           va += ((float)(-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count_a;
@@ -454,7 +462,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       // calc report
       total_count_b++;
       total_count_b_o++;
-      if ((ISVALID_FLOAT(speed) && ISVALID_FLOAT(direction)) && !measures_maintenance) {
+      if (is_valid_speed && is_valid_direction && !measures_maintenance) {
         // Total
         valid_count_b++;
         valid_count_b_o++;
@@ -476,7 +484,8 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       #endif
 
       total_count_speed++;
-      if (ISVALID_FLOAT(speed) && !measures_maintenance) {
+      if (is_valid_speed && is_valid_direction && !measures_maintenance) {
+
         valid_count_speed++;
         avg_speed += (speed - avg_speed) / valid_count_speed;
 
@@ -549,7 +558,6 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       getSDFromUV(ua, va, &vavg10_speed, &vavg10_direction);
       report.vavg10_speed = vavg10_speed * WIND_CASTING_SPEED_MULT;
       report.vavg10_direction = round(vavg10_direction);
-      report.quality = avg_quality;
     }
 
     if (valid_b_per >= OBSERVATION_ERROR_PERCENTAGE_MIN) {
@@ -582,6 +590,24 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       report.class_5 = round(class_5);
       report.class_6 = round(class_6);
     }
+
+    TRACE_DEBUG_F(F("-> report.vavg10_speed (%d)\r\n"), (rmapdata_t) report.vavg10_speed);
+    TRACE_DEBUG_F(F("-> report.vavg10_direction (%d)\r\n"), (rmapdata_t) report.vavg10_speed);
+    TRACE_DEBUG_F(F("-> report.vavg_speed (%d)\r\n"), (rmapdata_t) report.vavg_speed);
+    TRACE_DEBUG_F(F("-> report.vavg_direction (%d)\r\n"), (rmapdata_t) report.vavg_direction);
+    TRACE_DEBUG_F(F("-> report.peak_gust_speed (%d)\r\n"), (rmapdata_t) report.peak_gust_speed);
+    TRACE_DEBUG_F(F("-> report.peak_gust_direction (%d)\r\n"), (rmapdata_t) report.peak_gust_direction);
+    TRACE_DEBUG_F(F("-> report.long_gust_speed (%d)\r\n"), (rmapdata_t) report.long_gust_speed);
+    TRACE_DEBUG_F(F("-> report.long_gust_direction (%d)\r\n"), (rmapdata_t) report.long_gust_direction);
+    TRACE_DEBUG_F(F("-> report.avg_speed (%d)\r\n"), (rmapdata_t) report.avg_speed);
+    TRACE_DEBUG_F(F("-> report.class_1 (%d)\r\n"), (rmapdata_t) report.class_1);
+    TRACE_DEBUG_F(F("-> report.class_2 (%d)\r\n"), (rmapdata_t) report.class_2);
+    TRACE_DEBUG_F(F("-> report.class_3 (%d)\r\n"), (rmapdata_t) report.class_3);
+    TRACE_DEBUG_F(F("-> report.class_4 (%d)\r\n"), (rmapdata_t) report.class_4);
+    TRACE_DEBUG_F(F("-> report.class_5 (%d)\r\n"), (rmapdata_t) report.class_5);
+    TRACE_DEBUG_F(F("-> report.class_6 (%d)\r\n"), (rmapdata_t) report.class_6);
+    TRACE_DEBUG_F(F("-> report.quality (%d)\r\n"), (rmapdata_t) report.quality);
+
   }
 }
 

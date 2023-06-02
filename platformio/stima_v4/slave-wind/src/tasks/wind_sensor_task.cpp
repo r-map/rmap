@@ -408,7 +408,7 @@ void WindSensorTask::Run() {
       param.systemStatusLock->Give();
 
       // Put data into queue to elaborate istant value
-      if(speed!=UINT16_MAX) {
+      if(speed<UINT16_MAX) {
         edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
       }
       edata.index = WIND_SPEED_INDEX;
