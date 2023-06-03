@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/file/407.Modify.1.0.dsdl
-// Generated at:  2023-05-25 22:06:34.842236 UTC
+// Generated at:  2023-06-03 00:09:38.653125 UTC
 // Is deprecated: yes
 // Fixed port-ID: 407
 // Full name:     uavcan.file.Modify

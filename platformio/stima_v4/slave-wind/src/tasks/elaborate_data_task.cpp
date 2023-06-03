@@ -361,20 +361,20 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   }
 
   // reset report buffer
-  report.vavg10_speed = FLT_MAX;
-  report.vavg10_direction = FLT_MAX;
-  report.vavg_speed = FLT_MAX;
-  report.vavg_direction = FLT_MAX;
-  report.peak_gust_speed = FLT_MAX;
-  report.long_gust_speed = FLT_MAX;
-  report.avg_speed = FLT_MAX;
-  report.class_1 = FLT_MAX;
-  report.class_2 = FLT_MAX;
-  report.class_3 = FLT_MAX;
-  report.class_4 = FLT_MAX;
-  report.class_5 = FLT_MAX;
-  report.class_6 = FLT_MAX;
-  report.quality = FLT_MAX;
+  report.vavg10_speed = UINT16_MAX;
+  report.vavg10_direction = UINT16_MAX;
+  report.vavg_speed = UINT16_MAX;
+  report.vavg_direction = UINT16_MAX;
+  report.peak_gust_speed = UINT16_MAX;
+  report.long_gust_speed = UINT16_MAX;
+  report.avg_speed = UINT16_MAX;
+  report.class_1 = UINT16_MAX;
+  report.class_2 = UINT16_MAX;
+  report.class_3 = UINT16_MAX;
+  report.class_4 = UINT16_MAX;
+  report.class_5 = UINT16_MAX;
+  report.class_6 = UINT16_MAX;
+  report.quality = UINT16_MAX;
 
   // Ptr for maintenance
   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);

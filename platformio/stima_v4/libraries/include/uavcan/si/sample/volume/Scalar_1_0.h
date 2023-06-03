@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/sample/volume/Scalar.1.0.dsdl
-// Generated at:  2023-05-25 22:06:35.502716 UTC
+// Generated at:  2023-06-03 00:09:38.966456 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.sample.volume.Scalar

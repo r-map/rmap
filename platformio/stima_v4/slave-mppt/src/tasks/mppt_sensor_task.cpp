@@ -113,6 +113,7 @@ void MpptSensorTask::Run() {
   // Measure flags
   bool is_power_full = false;
   bool is_power_critical = true;
+  bool is_power_warning = true;
   bool is_measure_done = true;
   bool is_error_measure = false;
 
@@ -157,6 +158,7 @@ void MpptSensorTask::Run() {
         // Reinit var flags
         is_power_full = false;
         is_power_critical = true;
+        is_power_warning = true;
         is_measure_done = true;
         is_error_measure = false;
 
@@ -166,7 +168,8 @@ void MpptSensorTask::Run() {
         // Power % > 70% (Full OK)
         // Power % > 30% (No Critical)
         if(edata.value > 70) is_power_full = true;
-        if(edata.value > 30) is_power_critical = false;
+        if(edata.value > 40) is_power_warning = false;
+        if(edata.value > 20) is_power_critical = false;
         edata.index = POWER_BATTERY_CHARGE_INDEX;
         param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
@@ -180,6 +183,7 @@ void MpptSensorTask::Run() {
         // VIn > 15.5 V (Full OK)
         if(edata.value > 155) {
           is_power_full = true;
+          is_power_warning = false;
           is_power_critical = false;
         }
         edata.index = POWER_INPUT_VOLTAGE_INDEX;
@@ -190,6 +194,7 @@ void MpptSensorTask::Run() {
         // IIn > 250 mA (Full OK)
         if(edata.value > 250) {
           is_power_full = true;
+          is_power_warning = false;
           is_power_critical = false;
         }
 
@@ -197,6 +202,7 @@ void MpptSensorTask::Run() {
         param.systemStatusLock->Take();
         param.system_status->events.is_ltc_unit_error = is_error_measure;
         param.system_status->events.is_power_full = is_power_full;
+        param.system_status->events.is_power_warning = is_power_warning;
         param.system_status->events.is_power_critical = is_power_critical;
         param.systemStatusLock->Give();
 

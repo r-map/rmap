@@ -1256,13 +1256,15 @@ void SdTask::Run()
               bWriteErr = false;
               bWriteErr |= !putFile.write(file_put_request.block, file_put_request.block_lenght);
               putFile.flush();
-              // Bytes written is ok)
+              // Bytes written is err or ok?
               if(bWriteErr) {
-                file_put_response.done_operation = false;
+                file_put_response.error_operation = true;
                 error_sd_card = true;
               }
               else
-                file_put_response.error_operation = true;
+              {
+                file_put_response.done_operation = true;
+              }
             } else {
               file_put_response.error_operation = true;
             }

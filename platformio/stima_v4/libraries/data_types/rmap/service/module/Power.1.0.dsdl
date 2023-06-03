@@ -14,6 +14,7 @@ uint8 revision
 #MODULE Flags state
 bool is_ltc_unit_error
 bool is_power_full
+bool is_power_warning
 bool is_power_critical
 uint8 rbt_event
 uint8 wdt_event

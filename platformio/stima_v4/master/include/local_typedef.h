@@ -307,6 +307,7 @@ typedef struct
       bool new_start_connect;    // True if passed time of report data (synch wit new_data)
       bool config_empty;         // True if configuration missed on system
       bool clean_rpc;            // True if required disable RPC (examples on MQTT First connection)
+      bool power_warning;        // True if power warning mode is activated from MPPT Module
       bool power_critical;       // True if power critical mode is activated from MPPT Module
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
    } flags;

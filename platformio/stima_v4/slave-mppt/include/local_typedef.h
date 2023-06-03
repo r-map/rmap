@@ -96,6 +96,7 @@ typedef struct
    {
      bool is_ltc_unit_error;
      bool is_power_full;
+     bool is_power_warning;
      bool is_power_critical;
    } events;
 

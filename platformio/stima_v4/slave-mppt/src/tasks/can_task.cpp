@@ -664,6 +664,7 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
           resp.is_ltc_unit_error = param->system_status->events.is_ltc_unit_error;
           resp.is_power_full = param->system_status->events.is_power_full;
+          resp.is_power_warning = param->system_status->events.is_power_warning;
           resp.is_power_critical = param->system_status->events.is_power_critical;
           // Preparo gli event Reboot and WDT Event
           resp.rbt_event = boot_state->tot_reset;

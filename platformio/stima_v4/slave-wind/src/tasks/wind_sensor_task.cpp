@@ -365,6 +365,14 @@ void WindSensorTask::Run() {
       {
         // Get Intepreter data Value from Sensor (Get an error if string not valid)        
         windCodeError = windsonicInterpreter(&speed, &direction);
+        // Limit control check
+        if(windCodeError) {
+          speed = UINT16_MAX;
+          direction = UINT16_MAX;
+        } else {
+          if((speed < MIN_VALID_WIND_SPEED) || (speed > MAX_VALID_WIND_SPEED)) speed = UINT16_MAX;
+          if((direction < MIN_VALID_WIND_DIRECTION) || (direction > MAX_VALID_WIND_DIRECTION)) direction = UINT16_MAX;
+        }
       }
 
       #if (!WINDSONIC_POLLED_MODE)
@@ -408,7 +416,7 @@ void WindSensorTask::Run() {
       param.systemStatusLock->Give();
 
       // Put data into queue to elaborate istant value
-      if(speed<UINT16_MAX) {
+      if(speed < UINT16_MAX) {
         edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
       }
       edata.index = WIND_SPEED_INDEX;

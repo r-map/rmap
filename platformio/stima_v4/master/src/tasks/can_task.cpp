@@ -2279,13 +2279,14 @@ void CanTask::Run() {
                                         param.systemStatusLock->Give();
                                     } else if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
-                                        // Copy Flag State
+                                        // Copy Flag State ( Set only Warning Power to Send at Server RMAP )
                                         bit8Flag = 0;
                                         if(retPwrData->is_ltc_unit_error) bit8Flag|=0x0001;
-                                        if(retPwrData->is_power_critical) bit8Flag|=0x0002;
+                                        if(retPwrData->is_power_warning) bit8Flag|=0x0002;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        // Copy critical power flag
+                                        // Copy critical and warning power flag (Use only critical for internal purpose)
+                                        param.system_status->flags.power_warning = retPwrData->is_power_warning;
                                         param.system_status->flags.power_critical = retPwrData->is_power_critical;
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
