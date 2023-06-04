@@ -500,13 +500,13 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Soil water content",driver="CAN",
+                  name="Soil water content 25cm",driver="CAN",
                   type="SVW",timerange="0,0,{P2:d}",level="106,250,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Soil water content",driver="CAN",
+                  name="Soil water content 45cm",driver="CAN",
                   type="SVW",timerange="0,0,{P2:d}",level="106,450,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Soil water content",driver="CAN",
+                  name="Soil water content 70cm",driver="CAN",
                   type="SVW",timerange="0,0,{P2:d}",level="106,700,-,-")
         
     if (template == "stima_base"):
