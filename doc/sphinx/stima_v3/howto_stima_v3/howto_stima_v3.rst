@@ -717,8 +717,6 @@ Modulo Stima I2C-TH
       cd platformio/stima_v3/i2c-th
       pio run -e 644pa8m -t upload
    
-4. Configurare il suddetto modulo attraverso lo sketch sensor_config
-   presente nella cartella arduino\sketchbook\stima_v3
 
 Modulo Stima I2C-Rain
 .....................
@@ -745,9 +743,6 @@ Modulo Stima I2C-Rain
       cd platformio/stima_v3/i2c-rain
       pio run -e 644pa8m -t upload
    
-   
-4. Configurare il suddetto modulo attraverso lo sketch sensor_config
-   presente nella cartella arduino\sketchbook\stima_v3
 
 Compilazione e caricamento del bootloader Digitecoboot
 ------------------------------------------------------
@@ -821,6 +816,30 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
    del modulo (senza il file FIRMWARE.BIN)
 8. Alimentare il modulo
 
+
+
+Configurazione moduli e sensori
+-------------------------------
+
+Per configurare moduli e sensori utilizzare lo sketch sensor_config
+presente nella cartella arduino\sketchbook\stima_v3
+
+Per configurare i sensori caricare il firmware sul modulo a cui il
+sensore è collegato (i2c-wind, i2c-th ...) ed eseguirlo seguendo il
+menù presentato attraverso la porta seriale over USB (comando
+pio device monitor).
+
+Per configurare i moduli caricare il firmware sul modulo master ed
+eseguirlo seguendo il menù presentato attraverso la porta seriale over
+USB (comando pio device monitor).
+
+Tramite questo tool è possibile definire gli indirizzi I2C e altri
+parametri di funzionamento dei sensori e moduli.
+
+E' sicuramente necessario se si voglio utilizzare più sensori o moduli
+dello stesso tipo.
+
+   
 Assemblaggio stazione Stima
 ---------------------------
 
