@@ -674,12 +674,78 @@ void loop() {
 	Wire.write(buffer,I2C_SOLAR_RADIATION_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
-	// TODO
-	// add calibration and sensor parameters registers
-	// I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET
-	// I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN
-	// I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX
-	// I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX	  
+	float new_value= -1;
+	while (new_value < 0. || new_value > 32767){
+	  Serial.print(F("digit new value for ADC calibration offset(0/32767) (default 0): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+
+
+
+	new_value= -32768;
+	while (new_value < -32767. || new_value > 32767.){
+	  Serial.print(F("digit new value for ADC calibration gain(-32767./32767.) (default 1.0): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+
+
+	new_value= -1;
+	while (new_value < 1. || new_value > 5000.){
+	  Serial.print(F("digit new value for sensor voltage max(1./5000.) (default 2000.): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+
+
+	new_value= -1;
+	while (new_value < 1. || new_value > 3000.){
+	  Serial.print(F("digit new value for sensor radiation max(1./3000.) (default 2000.): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+
 	
 	delay(1000);
 	Serial.println("save configuration");
