@@ -225,10 +225,6 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   uint16_t total_count_solar_radiation_s = 0;
   uint16_t valid_count_solar_radiation_o = 0;
 
-  // Var for redundant_sensor
-  rmapdata_t redundant_temperature_s = 0;
-  rmapdata_t redundant_humidity_s = 0;
-
   // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));

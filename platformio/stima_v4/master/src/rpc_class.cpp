@@ -249,7 +249,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           case STIMA_MODULE_TYPE_WIND:
           case STIMA_MODULE_TYPE_SOLAR_RADIATION:
           case STIMA_MODULE_TYPE_POWER_MPPT:
-          case STIMA_MODULE_TYPE_VVC:
+          case STIMA_MODULE_TYPE_VWC:
             // Set module index (defualt START from 0xFF to point 0 index at start)
             // Index valid for all parameter while next board configure... Inc to sequential value
             // Saving param after command ..."reset"

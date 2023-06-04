@@ -115,10 +115,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_POWER_MPPT                (28)
 
 /*!
-\def STIMA_MODULE_TYPE_VVC
+\def STIMA_MODULE_TYPE_VWC
 \brief This module acquire soil sensor.
 */
-#define STIMA_MODULE_TYPE_VVC                       (29)
+#define STIMA_MODULE_TYPE_VWC                       (29)
 
 /*!
 \def STIMA_MODULE_OFFSET_IDENT_V4
@@ -197,7 +197,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 /*!
-\def STIMA_MODULE_NAME_SOLAR_RADIATION
+\def STIMA_MODULE_NAME_SOIL_VWC
 \brief The module'name for acquiring radiation sensor.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("stima4.module_radiation")
@@ -213,11 +213,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 /*!
-\def STIMA_MODULE_NAME_VVC
-\brief The module'name for acquiring vvc.
+\def STIMA_MODULE_NAME_VWC
+\brief The module'name for acquiring VWC.
 */
-#define STIMA_MODULE_NAME_VVC                       ("stima4.module_vvc")
-#define STIMA_MODULE_DESCRIPTION_VVC                ("Slave module vvc, CAN Cyphal V1.0")
+#define STIMA_MODULE_NAME_VWC                       ("stima4.module_vwc")
+#define STIMA_MODULE_DESCRIPTION_VWC                ("Slave module vwc, CAN Cyphal V1.0")
 
 /*!
 \brief INTEST RPC Sensor identification type list
@@ -251,7 +251,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
 #define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")
 #define STIMA_LCD_DESCRIPTION_TEMPERATURE           ("Temperature")
-#define STIMA_LCD_DESCRIPTION_VVC                   ("VVC")
+#define STIMA_LCD_DESCRIPTION_VWC                   ("Soil mosture")
 #define STIMA_LCD_DESCRIPTION_WIND_DIRECTION        ("Wind direction")
 #define STIMA_LCD_DESCRIPTION_WIND_SPEED            ("Wind speed")
 

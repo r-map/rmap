@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/measures/WindClass2Speed.1.0.dsdl
-// Generated at:  2023-06-03 00:09:41.280490 UTC
+// Generated at:  2023-06-03 22:51:41.068888 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.measures.WindClass2Speed

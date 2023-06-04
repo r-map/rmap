@@ -17,6 +17,8 @@ bool is_adc_unit_overflow
 uint8 rbt_event
 uint8 wdt_event
 
-rmap.sensors.VWC.1.0 VWC
+rmap.sensors.VWC.1.0 VWC1
+rmap.sensors.VWC.1.0 VWC2
+rmap.sensors.VWC.1.0 VWC3
 
 @sealed

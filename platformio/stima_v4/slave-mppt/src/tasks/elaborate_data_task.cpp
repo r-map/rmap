@@ -144,10 +144,10 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueud from th sensors task (populate data)
-    if (!param.elaborataDataQueue->IsEmpty()) {
-      if (param.elaborataDataQueue->Peek(&edata, 0))
+    if (!param.elaborateDataQueue->IsEmpty()) {
+      if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata);
+        param.elaborateDataQueue->Dequeue(&edata);
         switch (edata.index)
         {
         case POWER_BATTERY_CHARGE_INDEX:

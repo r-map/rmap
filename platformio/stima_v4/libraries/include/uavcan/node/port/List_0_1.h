@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/node/port/7510.List.0.1.dsdl
-// Generated at:  2023-06-03 00:09:38.809986 UTC
+// Generated at:  2023-06-03 22:51:38.916143 UTC
 // Is deprecated: no
 // Fixed port-ID: 7510
 // Full name:     uavcan.node.port.List

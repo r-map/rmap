@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/si/unit/frequency/Scalar.1.0.dsdl
-// Generated at:  2023-06-03 00:09:39.216523 UTC
+// Generated at:  2023-06-03 22:51:38.380337 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.unit.frequency.Scalar

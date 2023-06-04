@@ -73,7 +73,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *elaborateDataQueue;
   cpp_freertos::Queue *requestDataQueue;
   cpp_freertos::Queue *reportDataQueue;
 } ElaborateDataParam_t;

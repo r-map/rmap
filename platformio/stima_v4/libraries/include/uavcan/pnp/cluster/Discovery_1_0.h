@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/pnp/cluster/8164.Discovery.1.0.dsdl
-// Generated at:  2023-06-03 00:09:38.512613 UTC
+// Generated at:  2023-06-03 22:51:38.994993 UTC
 // Is deprecated: no
 // Fixed port-ID: 8164
 // Full name:     uavcan.pnp.cluster.Discovery

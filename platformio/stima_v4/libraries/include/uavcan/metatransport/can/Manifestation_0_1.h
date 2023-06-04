@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/metatransport/can/Manifestation.0.1.dsdl
-// Generated at:  2023-06-03 00:09:38.449941 UTC
+// Generated at:  2023-06-03 22:51:38.270822 UTC
 // Is deprecated: yes
 // Fixed port-ID: None
 // Full name:     uavcan.metatransport.can.Manifestation

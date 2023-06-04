@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/uavcan/primitive/scalar/Real32.1.0.dsdl
-// Generated at:  2023-06-03 00:09:39.404396 UTC
+// Generated at:  2023-06-03 22:51:39.231014 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.primitive.scalar.Real32

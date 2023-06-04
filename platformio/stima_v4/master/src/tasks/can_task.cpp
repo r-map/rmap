@@ -151,7 +151,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             // Get Block Current into Flash
             canFlashBlock = canFlashPtr / AT25SF641_BLOCK_SIZE;
             // Erase First Block Block (Block OF 4KBytes)
-            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+            TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), canFlashBlock);
             if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                 localQspiLock->Give();
                 return false;
@@ -161,13 +161,13 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             memcpy(file_flash_name, file_name, strlen(file_name));
             localFlash->BSP_QSPI_Write(file_flash_name, canFlashPtr, FLASH_FILE_SIZE_LEN);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_FILE_SIZE_LEN, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, canFlashPtr, FLASH_FILE_SIZE_LEN);
             if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 localQspiLock->Give();
                 return false;
             }
@@ -184,15 +184,15 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
         if(count!=0) {
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), count, canFlashPtr);
             // Starting Write at OFFSET Required... Erase here is Done
             localFlash->BSP_QSPI_Write((uint8_t*)buf, canFlashPtr, count);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, canFlashPtr, count);
             if(memcmp(buf, check_data, count)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 localQspiLock->Give();
                 return false;
             }
@@ -202,7 +202,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             if((canFlashPtr / AT25SF641_BLOCK_SIZE) != canFlashBlock) {
                 canFlashBlock = canFlashPtr / AT25SF641_BLOCK_SIZE;
                 // Erase First Block Block (Block OF 4KBytes)
-                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+                TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), canFlashBlock);
                 if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                     localQspiLock->Give();
                     return false;
@@ -223,13 +223,13 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             }
             localFlash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_INFO_SIZE_U64, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_INFO_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check ERROR\r\n"));
             }
             #endif
         }
@@ -604,7 +604,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                     // Rientro in OnLINE da OFFLine o Init Gestino può (dovrebbe) essere esterna alla Call
                     // Inizializzo le variabili e gli stati necessari per Reset e corretta gestione
                     if(clCanard.slave[queueId].is_entered_online()) {
-                        TRACE_INFO_F(F("Node is now entered ONLINE !!!\n\r"));
+                        TRACE_INFO_F(F("Node is now entered ONLINE !!!\r\n"));
                         // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                         clCanard.slave[queueId].command.reset_pending();
                         clCanard.slave[queueId].register_access.reset_pending();
@@ -643,7 +643,7 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         if (rmap_module_TH_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
                             // msg contiene i dati di blocco pubblicati
-                            TRACE_VERBOSE_F(F("Ricevuto dato in publisher modulo_th -> ID: %d, transfer ID: %d\n\r"),
+                            TRACE_VERBOSE_F(F("Ricevuto dato in publisher modulo_th -> ID: %d, transfer ID: %d\r\n"),
                                 transfer->metadata.remote_node_id, transfer->metadata.transfer_id);
                         }
                     }
@@ -1402,7 +1402,7 @@ void CanTask::Run() {
                         // Configure istance in a class
                         char description_board[STIMA_MODULE_DESCRIPTION_LENGTH];
                         getStimaDescriptionByType(description_board, param.configuration->board_slave[iCnt].module_type);
-                        TRACE_INFO_F(F("Configure module slave: [ %s ], Address: %u, Port Id: %u, Publish Id: %u\n\r"),
+                        TRACE_INFO_F(F("Configure module slave: [ %s ], Address: %u, Port Id: %u, Publish Id: %u\r\n"),
                             description_board, param.configuration->board_slave[iCnt].can_address,
                             param.configuration->board_slave[iCnt].can_port_id, param.configuration->board_slave[iCnt].can_publish_id);
                         // Configure istance in a class
@@ -2451,14 +2451,14 @@ void CanTask::Run() {
                             // Rimupvo gli stati
                             clCanard.slave[cmd_server_queueId].command.reset_pending();
                             // TimeOUT di un comando in attesa... gestisco il da farsi Retry? Abort? Signal?
-                            TRACE_ERROR_F(F("Command server: time out command at Node: [ %d ], Warning [restore pending command]\n\r"),
+                            TRACE_ERROR_F(F("Command server: time out command at Node: [ %d ], Warning [restore pending command]\r\n"),
                                 clCanard.slave[system_message.param].get_node_id());
                         }
                         if (clCanard.slave[cmd_server_queueId].command.is_executed()) {
                             // Rimuovo gli stati
                             clCanard.slave[cmd_server_queueId].command.reset_pending();
                             // Command OK. Signal?
-                            TRACE_INFO_F(F("Command server: confirmed command at Node: [ %d ], response code value: [ %d ]\n\r"),
+                            TRACE_INFO_F(F("Command server: confirmed command at Node: [ %d ], response code value: [ %d ]\r\n"),
                                 clCanard.slave[system_message.param].get_node_id(), clCanard.slave[cmd_server_queueId].command.get_response());
                         }
                     }
@@ -2551,9 +2551,9 @@ void CanTask::Run() {
                                     remote_configure_wait_online_ms[system_message.param] = 0;
                                     param.systemMessageQueue->Dequeue(&system_message);
                                     if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
-                                        TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
+                                        TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
                                     } else {
-                                        TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\n\r"), system_message.param + 1);
+                                        TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\r\n"), system_message.param + 1);
                                     }
                                     if(clCanard.slave[system_message.param].is_online()) {
                                         // START Remote configuration of Node -> system_message.param
@@ -2565,10 +2565,10 @@ void CanTask::Run() {
                                     } else {
                                         if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
                                             // Off line ... Not configure?
-                                            TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\n\r"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
+                                            TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
                                         } else {
                                             // not configured yet (waitinq request PNP) ?
-                                            TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\n\r"),system_message.param + 1);
+                                            TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\r\n"),system_message.param + 1);
                                         }
                                     }
                                 } else {
@@ -2658,7 +2658,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_LEVEL_L1, val, NODE_REGISTER_WRITING);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L1, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_LEVEL_L1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2672,7 +2672,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_LEVEL_L2, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_L2, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_LEVEL_L2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2686,7 +2686,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_LEVEL_TYPE1, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE1, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_LEVEL_TYPE1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2700,7 +2700,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_LEVEL_TYPE2, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_LEVEL_TYPE2, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_LEVEL_TYPE2, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2714,7 +2714,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_TIME_P1, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_P1, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_TIME_P1, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2728,7 +2728,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_METADATA_TIME_PIND, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_METADATA_TIME_PIND, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_METADATA_TIME_PIND, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2740,7 +2740,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_UAVCAN_DATA_SERVICE, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_SERVICE, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_UAVCAN_DATA_SERVICE, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2752,7 +2752,7 @@ void CanTask::Run() {
                                         // Send register value to Slave Remote with parameter to store
                                         clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                             REGISTER_UAVCAN_DATA_PUBLISH, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_DATA_PUBLISH, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_UAVCAN_DATA_PUBLISH, clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
@@ -2765,7 +2765,7 @@ void CanTask::Run() {
                                             // Send register value to Slave Remote with parameter to store
                                             clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
                                                 REGISTER_UAVCAN_NODE_ID, val, NODE_REGISTER_MAX_RETRY);
-                                            TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\n\r"), REGISTER_UAVCAN_NODE_ID, clCanard.slave[cfg_remote_queueId].get_node_id());
+                                            TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_UAVCAN_NODE_ID, clCanard.slave[cfg_remote_queueId].get_node_id());
                                             // Prepare verify RESPONSE Method OK.
                                             remote_configure[cfg_remote_queueId]++;
                                         } else {
@@ -2784,7 +2784,7 @@ void CanTask::Run() {
                                         remote_configure_end_ms = millis() + 10000;
                                         // Try end of all event recheck control
                                         reCheckEndEvent = true;
-                                        TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id());
+                                        TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\r\n"), clCanard.slave[cfg_remote_queueId].get_node_id());
                                         // *******************************************************************************
                                         // Sending Reboot command to slave node remote CFG COMPLETE WITHOUT PENDING METHOD
                                         // *******************************************************************************
@@ -2812,7 +2812,7 @@ void CanTask::Run() {
                                 remote_configure[cfg_remote_queueId] = 0;
                                 // Try end of all event recheck control
                                 reCheckEndEvent = true;
-                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\n\r"), clCanard.slave[cfg_remote_queueId].get_node_id(), ABORT_STRING);
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] is OFF LINE. Remote configuration [ %s ]\r\n"), clCanard.slave[cfg_remote_queueId].get_node_id(), ABORT_STRING);
                             }
                         }
                     }
@@ -2851,13 +2851,13 @@ void CanTask::Run() {
                                     remote_configure_retry[register_server_queueId]--;
                                     // Retry sending last command register (state proc - 1)
                                     remote_configure[register_server_queueId]--;
-                                    TRACE_ERROR_F(F("Register server: Command Node: [ %d ] not responding to param request. Remaining retry send command: [ %d ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), remote_configure_retry[register_server_queueId]);
+                                    TRACE_ERROR_F(F("Register server: Command Node: [ %d ] not responding to param request. Remaining retry send command: [ %d ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), remote_configure_retry[register_server_queueId]);
                                 } else {
-                                    TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Remote configuration [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                                    TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Remote configuration [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
                                     remote_configure[register_server_queueId] = 0;
                                 }
                             } else {
-                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
+                                TRACE_ERROR_F(F("Register server: ALERT Node: [ %d ] not responding to param request. Command [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), ABORT_STRING);
                             }
                         }
                         if (clCanard.slave[register_server_queueId].register_access.is_executed()) {
@@ -2866,17 +2866,17 @@ void CanTask::Run() {
                             if(remote_configure[register_server_queueId]) {
                                 // Pass to NEXT REGISTER increment swotch position end to REGISTER_COMPLETE value
                                 remote_configure[register_server_queueId]++;
-                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node in configure sequence: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node in configure sequence: [ %d ]. Register access [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {
-                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node: [ %d ]. Register access [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                                TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node: [ %d ]. Register access [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             }
                             val = clCanard.slave[register_server_queueId].register_access.get_response();
                             // se risposta registr != da empty in request il registro è impostato o letto (se empty = non esiste)
                             if(val._tag_) // !=0 (!= empty)
                             {
-                                TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
+                                TRACE_VERBOSE_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {
-                                TRACE_ERROR_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\n\r"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
+                                TRACE_ERROR_F(F("Register server: check response from node: [ %d ]. Register setted [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), ERROR_STRING);
                                 // Abort configuration without Retry (Command refused)
                                 remote_configure[register_server_queueId] = 0;
                             }

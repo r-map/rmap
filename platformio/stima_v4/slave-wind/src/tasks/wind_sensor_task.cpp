@@ -357,22 +357,21 @@ void WindSensorTask::Run() {
       // Any Error (Not Readed?)
       if (is_error)
       {
-        speed = FLT_MAX;
-        direction = FLT_MAX;
         windCodeError = -10;  // Add interpreter error No message measure...
       }
       else
       {
         // Get Intepreter data Value from Sensor (Get an error if string not valid)        
         windCodeError = windsonicInterpreter(&speed, &direction);
-        // Limit control check
-        if(windCodeError) {
-          speed = UINT16_MAX;
-          direction = UINT16_MAX;
-        } else {
-          if((speed < MIN_VALID_WIND_SPEED) || (speed > MAX_VALID_WIND_SPEED)) speed = UINT16_MAX;
-          if((direction < MIN_VALID_WIND_DIRECTION) || (direction > MAX_VALID_WIND_DIRECTION)) direction = UINT16_MAX;
-        }
+      }
+
+      // Limit control check
+      if(windCodeError) {
+        speed = RMAPDATA_MAX;
+        direction = RMAPDATA_MAX;
+      } else {
+        if((speed < MIN_VALID_WIND_SPEED) || (speed > MAX_VALID_WIND_SPEED)) speed = RMAPDATA_MAX;
+        if((direction < MIN_VALID_WIND_DIRECTION) || (direction > MAX_VALID_WIND_DIRECTION)) direction = RMAPDATA_MAX;
       }
 
       #if (!WINDSONIC_POLLED_MODE)
@@ -415,16 +414,19 @@ void WindSensorTask::Run() {
         ((float)(param.system_status->events.error_count / (float)param.system_status->events.measure_count)) * 100.0;
       param.systemStatusLock->Give();
 
-      // Put data into queue to elaborate istant value
-      if(speed < UINT16_MAX) {
+      // Put speed data into queue to elaborate istant value
+      if(speed < RMAPDATA_MAX) {
         edata.value = (rmapdata_t)(speed * WIND_CASTING_SPEED_MULT);
+      } else {
+        edata.value = speed;
       }
       edata.index = WIND_SPEED_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
+      // Put direction data into queue to elaborate istant value
       edata.value = (rmapdata_t)(direction);
       edata.index = WIND_DIRECTION_INDEX;
-      param.elaborataDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       TRACE_VERBOSE_F(F("SENSOR_STATE_ELABORATE --> SENSOR_STATE_END\r\n"));
       state = SENSOR_STATE_END;
@@ -540,8 +542,8 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   int crc = 0;
   bool is_crc_ok = false;
   bool bVoidDataMessage = false;
-  *speed = UINT16_MAX;
-  *direction = UINT16_MAX;
+  *speed = RMAPDATA_MAX;
+  *direction = RMAPDATA_MAX;
 
   if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) && (uart_rx_buffer[GWS_ETX_INDEX] == ETX_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr - 1] == CR_VALUE) && (uart_rx_buffer[uart_rx_buffer_ptr] == LF_VALUE))
   {
@@ -581,7 +583,7 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
     }
     else if (*speed > WIND_SPEED_MAX)
     {
-        *speed = UINT16_MAX;
+        *speed = RMAPDATA_MAX;
     }
   }
 
@@ -639,15 +641,15 @@ uint8_t WindSensorTask::windsonicInterpreter(float *speed, float *direction)
   }
   else if (*direction > WIND_DIRECTION_MAX)
   {
-      *direction = UINT16_MAX;
+      *direction = RMAPDATA_MAX;
   }
 
   is_crc_ok = (crc == myCrc);
   if(!is_crc_ok) {
-    TRACE_ERROR_F(F("Windsonic: CRC Error\r\n"));
+    TRACE_ERROR_F(F("Windsonic: CRC Error\r\n"));    
   }
 
-  if (!ISVALID_FLOAT(*speed) || !ISVALID_FLOAT(*direction))
+  if (!ISVALID_RMAPDATA(*speed) || !ISVALID_RMAPDATA(*direction))
   {
       is_crc_ok = false;
   }

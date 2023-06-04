@@ -49,7 +49,7 @@ enum Module_Type : uint8_t {
    radiation   = STIMA_MODULE_TYPE_SOLAR_RADIATION,
    gas         = STIMA_MODULE_TYPE_GAS,
    power       = STIMA_MODULE_TYPE_POWER_MPPT,
-   vwc         = STIMA_MODULE_TYPE_VVC
+   vwc         = STIMA_MODULE_TYPE_VWC
 };
 
 /*!

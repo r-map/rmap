@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/VWC.1.0.dsdl
-// Generated at:  2023-06-03 00:09:41.077375 UTC
+// Generated at:  2023-06-03 22:51:41.367269 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.VWC
@@ -249,8 +249,8 @@ static inline void rmap_service_module_VWC_Request_1_0_initialize_(rmap_service_
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_service_module_VWC_Response_1_0_EXTENT_BYTES_                    21UL
-#define rmap_service_module_VWC_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 21UL
+#define rmap_service_module_VWC_Response_1_0_EXTENT_BYTES_                    53UL
+#define rmap_service_module_VWC_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 53UL
 static_assert(rmap_service_module_VWC_Response_1_0_EXTENT_BYTES_ >= rmap_service_module_VWC_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -277,8 +277,14 @@ typedef struct
     /// saturated uint8 wdt_event
     uint8_t wdt_event;
 
-    /// rmap.sensors.VWC.1.0 VWC
-    rmap_sensors_VWC_1_0 VWC;
+    /// rmap.sensors.VWC.1.0 VWC1
+    rmap_sensors_VWC_1_0 VWC1;
+
+    /// rmap.sensors.VWC.1.0 VWC2
+    rmap_sensors_VWC_1_0 VWC2;
+
+    /// rmap.sensors.VWC.1.0 VWC3
+    rmap_sensors_VWC_1_0 VWC3;
 } rmap_service_module_VWC_Response_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -307,7 +313,7 @@ static inline int8_t rmap_service_module_VWC_Response_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 168UL)
+    if ((8U * (size_t) capacity_bytes) < 424UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -423,10 +429,10 @@ static inline int8_t rmap_service_module_VWC_Response_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // rmap.sensors.VWC.1.0 VWC
+    {   // rmap.sensors.VWC.1.0 VWC1
         size_t _size_bytes2_ = 16UL;  // Nested object (max) size, in bytes.
         int8_t _err8_ = rmap_sensors_VWC_1_0_serialize_(
-            &obj->VWC, &buffer[offset_bits / 8U], &_size_bytes2_);
+            &obj->VWC1, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err8_ < 0)
         {
             return _err8_;
@@ -445,6 +451,54 @@ static inline int8_t rmap_service_module_VWC_Response_1_0_serialize_(
             return _err9_;
         }
         offset_bits += _pad2_;
+    }
+
+    {   // rmap.sensors.VWC.1.0 VWC2
+        size_t _size_bytes3_ = 16UL;  // Nested object (max) size, in bytes.
+        int8_t _err10_ = rmap_sensors_VWC_1_0_serialize_(
+            &obj->VWC2, &buffer[offset_bits / 8U], &_size_bytes3_);
+        if (_err10_ < 0)
+        {
+            return _err10_;
+        }
+        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
+        offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested object.
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad3_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err11_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad3_);  // Optimize?
+        if (_err11_ < 0)
+        {
+            return _err11_;
+        }
+        offset_bits += _pad3_;
+    }
+
+    {   // rmap.sensors.VWC.1.0 VWC3
+        size_t _size_bytes4_ = 16UL;  // Nested object (max) size, in bytes.
+        int8_t _err12_ = rmap_sensors_VWC_1_0_serialize_(
+            &obj->VWC3, &buffer[offset_bits / 8U], &_size_bytes4_);
+        if (_err12_ < 0)
+        {
+            return _err12_;
+        }
+        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
+        offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested object.
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad4_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err13_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad4_);  // Optimize?
+        if (_err13_ < 0)
+        {
+            return _err13_;
+        }
+        offset_bits += _pad4_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -566,16 +620,46 @@ static inline int8_t rmap_service_module_VWC_Response_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // rmap.sensors.VWC.1.0 VWC
+    // rmap.sensors.VWC.1.0 VWC1
     {
-        size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err10_ = rmap_sensors_VWC_1_0_deserialize_(
-            &out_obj->VWC, &buffer[offset_bits / 8U], &_size_bytes3_);
-        if (_err10_ < 0)
+        size_t _size_bytes5_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err14_ = rmap_sensors_VWC_1_0_deserialize_(
+            &out_obj->VWC1, &buffer[offset_bits / 8U], &_size_bytes5_);
+        if (_err14_ < 0)
         {
-            return _err10_;
+            return _err14_;
         }
-        offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.sensors.VWC.1.0 VWC2
+    {
+        size_t _size_bytes6_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err15_ = rmap_sensors_VWC_1_0_deserialize_(
+            &out_obj->VWC2, &buffer[offset_bits / 8U], &_size_bytes6_);
+        if (_err15_ < 0)
+        {
+            return _err15_;
+        }
+        offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.sensors.VWC.1.0 VWC3
+    {
+        size_t _size_bytes7_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err16_ = rmap_sensors_VWC_1_0_deserialize_(
+            &out_obj->VWC3, &buffer[offset_bits / 8U], &_size_bytes7_);
+        if (_err16_ < 0)
+        {
+            return _err16_;
+        }
+        offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 

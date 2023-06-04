@@ -65,7 +65,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborataDataQueue;
+  cpp_freertos::Queue *elaborateDataQueue;
   Mppt *mpptIC;
 } MpptSensorParam_t;
 

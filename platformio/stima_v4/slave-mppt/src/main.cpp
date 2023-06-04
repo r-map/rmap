@@ -26,7 +26,7 @@ void setup() {
   // System Queue (Generic Message from/to Task)
   static Queue *systemMessageQueue;
   // Data queue (Request / exchange data from Can to Sensor and Elaborate Task)
-  static Queue *elaborataDataQueue;
+  static Queue *elaborateDataQueue;
   static Queue *requestDataQueue;
   static Queue *reportDataQueue;
 
@@ -94,7 +94,7 @@ void setup() {
 
   // Creating queue
   systemMessageQueue = new Queue(SYSTEM_MESSAGE_QUEUE_LENGTH, sizeof(system_message_t));
-  elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
+  elaborateDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
@@ -180,7 +180,7 @@ void setup() {
   mpptSensorParam.configurationLock = configurationLock;
   mpptSensorParam.systemStatusLock = systemStatusLock;
   mpptSensorParam.systemMessageQueue = systemMessageQueue;
-  mpptSensorParam.elaborataDataQueue = elaborataDataQueue;
+  mpptSensorParam.elaborateDataQueue = elaborateDataQueue;
   mpptSensorParam.mpptIC = &mpptIC;
 #endif
 
@@ -191,7 +191,7 @@ void setup() {
   elaborateDataParam.configurationLock = configurationLock;
   elaborateDataParam.systemStatusLock = systemStatusLock;
   elaborateDataParam.systemMessageQueue = systemMessageQueue;
-  elaborateDataParam.elaborataDataQueue = elaborataDataQueue;
+  elaborateDataParam.elaborateDataQueue = elaborateDataQueue;
   elaborateDataParam.requestDataQueue = requestDataQueue;
   elaborateDataParam.reportDataQueue = reportDataQueue;
 

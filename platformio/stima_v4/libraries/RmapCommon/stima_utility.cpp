@@ -73,8 +73,8 @@ void getStimaNameByType(char *name, uint8_t type, uint8_t offset) {
       strncpy(name, STIMA_MODULE_NAME_POWER_MPPT + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
-    case STIMA_MODULE_TYPE_VVC:
-      strncpy(name, STIMA_MODULE_NAME_VVC + offset, STIMA_MODULE_NAME_LENGTH);
+    case STIMA_MODULE_TYPE_VWC:
+      strncpy(name, STIMA_MODULE_NAME_VWC + offset, STIMA_MODULE_NAME_LENGTH);
       break;
 
     default:
@@ -129,8 +129,8 @@ void getStimaDescriptionByType(char *description, uint8_t type) {
       strncpy(description, STIMA_MODULE_DESCRIPTION_POWER_MPPT, STIMA_MODULE_DESCRIPTION_LENGTH);
       break;
 
-    case STIMA_MODULE_TYPE_VVC:
-      strncpy(description, STIMA_MODULE_DESCRIPTION_VVC, STIMA_MODULE_DESCRIPTION_LENGTH);
+    case STIMA_MODULE_TYPE_VWC:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_VWC, STIMA_MODULE_DESCRIPTION_LENGTH);
       break;
 
     default:
@@ -181,8 +181,8 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
       strncpy(lcd_description_C, STIMA_LCD_DESCRIPTION_POWER_CURRENT, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
-    case STIMA_MODULE_TYPE_VVC:
-      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_VVC, STIMA_LCD_DESCRIPTION_LENGTH);
+    case STIMA_MODULE_TYPE_VWC:
+      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_VWC, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
     default:
@@ -232,7 +232,7 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, cha
       strncpy(lcd_unit_type_C, STIMA_LCD_UNIT_TYPE_MILLI_AMPERE, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
 
-    case STIMA_MODULE_TYPE_VVC:
+    case STIMA_MODULE_TYPE_VWC:
       strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
 
@@ -283,7 +283,7 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       *decimals_C = STIMA_LCD_DECIMALS_ZERO;
       break;
 
-    case STIMA_MODULE_TYPE_VVC:
+    case STIMA_MODULE_TYPE_VWC:
       *decimals_A = STIMA_LCD_DECIMALS_TWO;
       break;
 

@@ -164,10 +164,10 @@ void ElaborateDataTask::Run() {
     }
 
     // enqueud from th sensors task (populate data)
-    if (!param.elaborataDataQueue->IsEmpty()) {
-      if (param.elaborataDataQueue->Peek(&edata, 0))
+    if (!param.elaborateDataQueue->IsEmpty()) {
+      if (param.elaborateDataQueue->Peek(&edata, 0))
       {
-        param.elaborataDataQueue->Dequeue(&edata);
+        param.elaborateDataQueue->Dequeue(&edata);
         switch (edata.index)
         {
         case WIND_SPEED_INDEX:
@@ -201,10 +201,6 @@ void ElaborateDataTask::Run() {
         // send request to elaborate task (all data is present verified on elaborate_task)
         param.requestDataQueue->Dequeue(&request_data);
         make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-        // if((report.class_1 > 0) || (report.class_2 > 0) || (report.class_3 > 0) ||
-        //     (report.class_4 > 0) || (report.class_5 > 0) || (report.class_6 < 20)) {
-        //   make_report(request_data.is_init, request_data.report_time_s, request_data.observation_time_s);
-        // }
         param.reportDataQueue->Enqueue(&report);
       }
     }
@@ -361,20 +357,20 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   }
 
   // reset report buffer
-  report.vavg10_speed = UINT16_MAX;
-  report.vavg10_direction = UINT16_MAX;
-  report.vavg_speed = UINT16_MAX;
-  report.vavg_direction = UINT16_MAX;
-  report.peak_gust_speed = UINT16_MAX;
-  report.long_gust_speed = UINT16_MAX;
-  report.avg_speed = UINT16_MAX;
-  report.class_1 = UINT16_MAX;
-  report.class_2 = UINT16_MAX;
-  report.class_3 = UINT16_MAX;
-  report.class_4 = UINT16_MAX;
-  report.class_5 = UINT16_MAX;
-  report.class_6 = UINT16_MAX;
-  report.quality = UINT16_MAX;
+  report.vavg10_speed = RMAPDATA_MAX;
+  report.vavg10_direction = RMAPDATA_MAX;
+  report.vavg_speed = RMAPDATA_MAX;
+  report.vavg_direction = RMAPDATA_MAX;
+  report.peak_gust_speed = RMAPDATA_MAX;
+  report.long_gust_speed = RMAPDATA_MAX;
+  report.avg_speed = RMAPDATA_MAX;
+  report.class_1 = RMAPDATA_MAX;
+  report.class_2 = RMAPDATA_MAX;
+  report.class_3 = RMAPDATA_MAX;
+  report.class_4 = RMAPDATA_MAX;
+  report.class_5 = RMAPDATA_MAX;
+  report.class_6 = RMAPDATA_MAX;
+  report.quality = RMAPDATA_MAX;
 
   // Ptr for maintenance
   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
@@ -404,9 +400,9 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   if (report_time_s == 0) {
     // Make last data value to Get Istant show value
     speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-    if(speed >= UINT16_MAX) speed = 0;
+    if(speed >= RMAPDATA_MAX) speed = 0;
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-    if (direction >= UINT16_MAX) direction = 0;
+    if (direction >= RMAPDATA_MAX) direction = 0;
     // Used as sample for istant value (Only LCD for show value)
     report.vavg10_speed = speed;
     report.vavg10_direction = direction;
@@ -435,7 +431,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
       // Casting value x10
       speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-      if (speed < UINT16_MAX) {
+      if (speed < RMAPDATA_MAX) {
         is_valid_speed = true;
         speed /= WIND_CASTING_SPEED_MULT;
       }
@@ -443,7 +439,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
       // No casting value (real data)
       direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-      if(direction < UINT16_MAX) is_valid_direction = true;
+      if(direction < RMAPDATA_MAX) is_valid_direction = true;
       if (speed < CALM_WIND_MAX_MS) direction = MIN_VALID_WIND_DIRECTION;
 
       // Calculate quality

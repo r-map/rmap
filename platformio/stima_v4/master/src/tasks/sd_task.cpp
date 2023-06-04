@@ -169,7 +169,7 @@ bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, c
             // Get Block Current into Flash
             sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
             // Erase First Block Block (Block OF 4KBytes)
-            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+            TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), sdFlashBlock);
             if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
                 param.qspiLock->Give();
                 return false;
@@ -179,13 +179,13 @@ bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, c
             memcpy(file_flash_name, file_name, strlen(file_name));
             param.flash->BSP_QSPI_Write(file_flash_name, sdFlashPtr, FLASH_FILE_SIZE_LEN);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, sdFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_FILE_SIZE_LEN, sdFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, FLASH_FILE_SIZE_LEN);
             if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 param.qspiLock->Give();
                 return false;
             }
@@ -202,15 +202,15 @@ bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, c
         // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
         if(count!=0) {
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, sdFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), count, sdFlashPtr);
             // Starting Write at OFFSET Required... Erase here is Done
             param.flash->BSP_QSPI_Write((uint8_t*)buf, sdFlashPtr, count);
             #ifdef CHECK_FLASH_WRITE
             param.flash->BSP_QSPI_Read(check_data, sdFlashPtr, count);
             if(memcmp(buf, check_data, count)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 param.qspiLock->Give();
                 return false;
             }
@@ -220,7 +220,7 @@ bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, c
             if((sdFlashPtr / AT25SF641_BLOCK_SIZE) != sdFlashBlock) {
                 sdFlashBlock = sdFlashPtr / AT25SF641_BLOCK_SIZE;
                 // Erase First Block Block (Block OF 4KBytes)
-                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), sdFlashBlock);
+                TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), sdFlashBlock);
                 if (param.flash->BSP_QSPI_Erase_Block(sdFlashBlock)) {
                     param.qspiLock->Give();
                     return false;
@@ -241,13 +241,13 @@ bool SdTask::putFlashFile(const char* const file_name, const bool is_firmware, c
             }
             param.flash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, sdFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_INFO_SIZE_U64, sdFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             param.flash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(sdFlashPtr), FLASH_INFO_SIZE_U64);
             if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_INFO_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check ERROR\r\n"));
             }
             #endif
         }
@@ -1439,7 +1439,7 @@ void SdTask::Run()
               // Get full name for local operation
               entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
               TRACE_INFO_F(F("SD: found firmware upgradable type: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
-              TRACE_INFO_F(F("SD: starting firmware upgrade...\n\r"));
+              TRACE_INFO_F(F("SD: starting firmware upgrade...\r\n"));
               // Flag
               bool bFirstBlock = true;
               bool is_error = false;
@@ -1481,7 +1481,7 @@ void SdTask::Run()
                   SD.remove(local_file_name);
                   // Optional send SIGTerm to all task
                   // WDT non blocking task (Delay basic operation)
-                  TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\n\r"));
+                  TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\r\n"));
                   // Preparo la struttua per informare il Boot Loader
                   param.boot_request->app_executed_ok = false;
                   param.boot_request->backup_executed = false;
@@ -1500,7 +1500,7 @@ void SdTask::Run()
               // !is_error (open_file error)
               if(++retry>SD_TASK_GENERIC_RETRY) {
                 // Abort MAX Retry
-                TRACE_INFO_F(F("SD: firmware upgrading error, Max retry reached up. Abort flashing!!!\n\r"));
+                TRACE_INFO_F(F("SD: firmware upgrading error, Max retry reached up. Abort flashing!!!\r\n"));
                 if(!is_error) {
                   // ReSynch SD Card... Error when opening file
                   TRACE_VERBOSE_F(F("SD_UPLOAD_FIRMWARE_TO_FLASH -> SD_STATE_ERROR\r\n"));
@@ -1512,7 +1512,7 @@ void SdTask::Run()
                 }
               } else {
                 // Error, next Retry
-                TRACE_INFO_F(F("SD: firmware upgrading error waiting retry\n\r"));
+                TRACE_INFO_F(F("SD: firmware upgrading error waiting retry\r\n"));
                 TaskWatchDog(SD_TASK_GENERIC_RETRY_DELAY_MS);
                 Delay(Ticks::MsToTicks(SD_TASK_GENERIC_RETRY_DELAY_MS));
               }

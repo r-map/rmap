@@ -216,7 +216,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             // Get Block Current into Flash
             canFlashBlock = canFlashPtr / AT25SF161_BLOCK_SIZE;
             // Erase First Block Block (Block OF 4KBytes)
-            TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+            TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), canFlashBlock);
             if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                 localQspiLock->Give();
                 return false;
@@ -226,13 +226,13 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             memcpy(file_flash_name, file_name, strlen(file_name));
             localFlash->BSP_QSPI_Write(file_flash_name, canFlashPtr, FLASH_FILE_SIZE_LEN);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_FILE_SIZE_LEN, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_FILE_SIZE_LEN, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, canFlashPtr, FLASH_FILE_SIZE_LEN);
             if(memcmp(file_flash_name, check_data, FLASH_FILE_SIZE_LEN)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 localQspiLock->Give();
                 return false;
             }
@@ -249,15 +249,15 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
         // If Value Count is 0 no need to Write Flash Data (Only close Fule Info)
         if(count!=0) {
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), count, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), count, canFlashPtr);
             // Starting Write at OFFSET Required... Erase here is Done
             localFlash->BSP_QSPI_Write((uint8_t*)buf, canFlashPtr, count);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, canFlashPtr, count);
             if(memcmp(buf, check_data, count)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_ERROR_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_ERROR_F(F("FLASH: Reading check ERROR\r\n"));
                 localQspiLock->Give();
                 return false;
             }
@@ -267,7 +267,7 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             if((canFlashPtr / AT25SF161_BLOCK_SIZE) != canFlashBlock) {
                 canFlashBlock = canFlashPtr / AT25SF161_BLOCK_SIZE;
                 // Erase First Block Block (Block OF 4KBytes)
-                TRACE_INFO_F(F("FLASH: Erase block: %d\n\r"), canFlashBlock);
+                TRACE_INFO_F(F("FLASH: Erase block: %d\r\n"), canFlashBlock);
                 if (localFlash->BSP_QSPI_Erase_Block(canFlashBlock)) {
                     localQspiLock->Give();
                     return false;
@@ -288,13 +288,13 @@ bool CanTask::putFlashFile(const char* const file_name, const bool is_firmware, 
             }
             localFlash->BSP_QSPI_Write((uint8_t*)&lenghtFile, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             // Write into Flash
-            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\n\r"), FLASH_INFO_SIZE_U64, canFlashPtr);
+            TRACE_INFO_F(F("FLASH: Write [ %d ] bytes at addr: %d\r\n"), FLASH_INFO_SIZE_U64, canFlashPtr);
             #ifdef CHECK_FLASH_WRITE
             localFlash->BSP_QSPI_Read(check_data, FLASH_SIZE_ADDR(canFlashPtr), FLASH_INFO_SIZE_U64);
             if(memcmp(&lenghtFile, check_data, FLASH_INFO_SIZE_U64)==0) {
-                TRACE_INFO_F(F("FLASH: Reading check OK\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check OK\r\n"));
             } else {
-                TRACE_INFO_F(F("FLASH: Reading check ERROR\n\r"));
+                TRACE_INFO_F(F("FLASH: Reading check ERROR\r\n"));
             }
             #endif
         }
