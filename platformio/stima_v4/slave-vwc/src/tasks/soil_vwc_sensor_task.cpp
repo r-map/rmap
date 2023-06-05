@@ -112,11 +112,14 @@ void SoilVWCSensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
 
-  bool is_adc_overflow;
-  bool is_adc_error;
-  uint8_t perc_error_adc;
-  uint8_t adc_channel;
-  float value;
+  bool is_adc_overflow[MAX_ADC_CHANELS];
+  bool is_adc_error[MAX_ADC_CHANELS];
+  uint8_t perc_error_adc[MAX_ADC_CHANELS];
+  uint8_t adc_channel[MAX_ADC_CHANELS];
+  uint8_t adc_channel_idx;
+  uint8_t adc_channel_run;
+  bool end_acquire;
+  float value[MAX_ADC_CHANELS];
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -153,14 +156,16 @@ void SoilVWCSensorTask::Run() {
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
+        adc_channel_idx = 0;
         // Select read chanel first from config
         for(uint8_t idx=0; idx<MAX_ADC_CHANELS; idx++) {
           if(param.configuration->sensors[idx].is_active) {
-            // Select first active chanel selected (only one is used on this module)
-            adc_channel = idx;
-            break;
+            // Select alla active chanel selected
+            adc_channel[adc_channel_idx++] = idx++;
           }
         }
+        // Number of chanel/sensor used
+        adc_channel_run = adc_channel_idx;
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -170,60 +175,65 @@ void SoilVWCSensorTask::Run() {
       break;
 
     case SENSOR_STATE_INIT:
-      TRACE_INFO_F(F("Initializing sensors...\r\n"));
-      #if (SOIL_VWC_TASK_LOW_POWER_ENABLED) // Auto power chanel with switching mode and power time waiting...
-      powerOn(adc_channel);
-      #endif
-      resetADCData(adc_channel);
+      for(uint8_t idx=0; idx<adc_channel_run; idx++) {
+        TRACE_INFO_F(F("Initializing sensors id: %d\r\n"), adc_channel[idx]);
+        #if (SOIL_VWC_TASK_LOW_POWER_ENABLED) // Auto power chanel with switching mode and power time waiting...
+        powerOn(adc_channel[idx]);
+        #endif
+        resetADCData(adc_channel[idx]);
+      }
       state = SENSOR_STATE_SET;
       TRACE_INFO_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_SET\r\n"));
       break;
 
     case SENSOR_STATE_SET:
-
-      // Add sample ADC value to data
-      if(addADCData(adc_channel) >= SAMPLES_REPETED_ADC) {
-        // Read real value
-        value = getADCData(adc_channel, &perc_error_adc);
-        // ?Error ADC reading < MIN_PERRCENT_READING_VALUE_OK
-        is_adc_error = (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN);
-        state = SENSOR_STATE_EVALUATE;
-        break;
+      end_acquire = true;
+      for(uint8_t idx=0; idx<adc_channel_run; idx++) {
+        // Add sample ADC value to data if not end cycle for active chanel complete acquire
+        if(addADCData(adc_channel[idx]) >= SAMPLES_REPETED_ADC) {
+          // Read real value
+          value[idx] = getADCData(adc_channel[idx], &perc_error_adc[idx]);
+          // ?Error ADC reading < MIN_PERRCENT_READING_VALUE_OK
+          is_adc_error[idx] = (perc_error_adc[idx] < ADC_ERROR_PERCENTAGE_MIN);
+        } else {
+          end_acquire = false;
+        }
       }
+      if(end_acquire) state = SENSOR_STATE_EVALUATE;
       break;
 
     case SENSOR_STATE_EVALUATE:
 
-      // With ADC Error nothing to do...
-      if(is_adc_error) {
-        // Error code data
-        TRACE_ERROR_F(F("Sensor analog: Error reading ADC\r\n"));
-        value = (float)UINT16_MAX;
-      } else {
-        // Gain - offset to ADC to real value, anc d connvert to scale used (mV for SOIL_VWC)
-        value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
-        value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
-        // Removed K
-        // value *= 100.4016064;
-        // value /= 100;
-        // value += 1;
-        TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value));
-        // Read value into U.M. Real Soil moisture (Sample value)
-        value = getSoilVWC(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
+      bool is_adc_unit_overflow_flag;
+      bool is_adc_unit_error_flag;
+
+      is_adc_unit_overflow_flag = false;
+      is_adc_unit_error_flag = false;
+
+      for(uint8_t idx=0; idx<adc_channel_run; idx++) {
+        // With ADC Error nothing to do...
+        if(is_adc_error[idx]) {
+          // Error code data
+          TRACE_ERROR_F(F("Sensor analog: Error reading ADC\r\n"));
+          value[idx] = (float)UINT16_MAX;
+        } else {
+          // Gain - offset to ADC to real value, anc d connvert to scale used (mV for SOIL_VWC)
+          value[idx] = getAdcCalibratedValue(value[idx], param.configuration->sensors[adc_channel[idx]].adc_offset, param.configuration->sensors[adc_channel[idx]].adc_gain);
+          value[idx] = getAdcAnalogValue(value[idx], param.configuration->sensors[adc_channel[idx]].adc_type);
+          TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value[idx]));
+          // Read value into U.M. Real Soil moisture (Sample value)
+          value[idx] = getSoilVWC(value[idx], param.configuration->sensors[adc_channel[idx]].analog_min, param.configuration->sensors[adc_channel[idx]].analog_max, &is_adc_overflow[idx]);
+          is_adc_unit_overflow_flag |= is_adc_overflow[idx];
+        }
+        is_adc_unit_error_flag |= is_adc_error[idx];
       }
 
-      // Inform system state if ADC error event ( reading measure % error < MIN_VALID_PERCENTAGE )
-      if(param.system_status->events.is_adc_unit_error != (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN)) {
+      // Inform system state if ADC oveflow analog sensor limits or ADC Error
+      if((param.system_status->events.is_adc_unit_overflow != is_adc_unit_overflow_flag) ||
+         (param.system_status->events.is_adc_unit_error != is_adc_unit_error_flag)) {
         param.systemStatusLock->Take();
-        param.system_status->events.is_adc_unit_error = (perc_error_adc < ADC_ERROR_PERCENTAGE_MIN);
-        param.systemStatusLock->Give();
-      }
-      // Inform system state if ADC oveflow analog sensor limits      
-      if((param.system_status->events.is_adc_unit_overflow != is_adc_overflow) ||
-         (param.system_status->events.is_adc_unit_error != is_adc_error)) {
-        param.systemStatusLock->Take();
-        param.system_status->events.is_adc_unit_overflow = is_adc_overflow;
-        param.system_status->events.is_adc_unit_error = is_adc_error;
+        param.system_status->events.is_adc_unit_overflow = is_adc_unit_overflow_flag;
+        param.system_status->events.is_adc_unit_error = is_adc_unit_error_flag;
         param.systemStatusLock->Give();
       }
 
@@ -232,11 +242,15 @@ void SoilVWCSensorTask::Run() {
       break;
 
     case SENSOR_STATE_READ:
-      edata.value = value;
-      edata.index = SOIL_VWC_INDEX;
-      
-      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
-      TRACE_INFO_F(F("SENSOR_STATE_READ --> SENSOR_STATE_END\r\n"));
+
+      // Send all data to queue in INDEX continuos queue
+      for(uint8_t idx=0; idx<adc_channel_run; idx++) {
+        edata.value = value[idx];
+        edata.index = idx;        
+        param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
+        TRACE_INFO_F(F("SENSOR_STATE_READ --> SENSOR_STATE_END\r\n"));
+      }
+
       state = SENSOR_STATE_END;
       break;
 
@@ -287,7 +301,7 @@ void SoilVWCSensorTask::powerOn(uint8_t chanel_out)
 void SoilVWCSensorTask::powerOff()
 {
   digitalWrite(PIN_EN_5VA, LOW);  // Disable Analog Comparator (xIAN)
-  #if(SOIL_VWC_TASK_SWITCH_POWER_ALIM_SENS)
+  #if(SOIL_VWC_TASK_SWITCH_POWER_ENABLED)
   digitalWrite(PIN_OUT0, LOW);   // Disable Output Chanel alim
   digitalWrite(PIN_OUT1, LOW);   // Disable Output Chanel alim
   digitalWrite(PIN_OUT2, LOW);   // Disable Output Chanel alim

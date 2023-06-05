@@ -143,6 +143,7 @@ class RegisterRPC {
       inline static Module_Type currentModule = Module_Type::undefined;   // Current type module of Master or Slave actual in reconfiguration
       inline static uint8_t slaveId = UNKNOWN_ID;                         // Index of slave in reconfiguration stimacan"X"
       inline static uint8_t sensorId = UNKNOWN_ID;                        // Sensor index in actual reconfiguration (ITH/MTH...)
+      inline static uint8_t sensorMultyId = UNKNOWN_ID;                   // Sensor index in actual reconfiguration (with same index type sequence, multi sensor as soil vwc)
       inline static uint8_t id_constant_data = 0;                         // Constant data pointer in reconfiguration of master
       inline static char subject[SUBJECT_ID_LEN_MAX];                     // subject string for module check in reconfiguration
 

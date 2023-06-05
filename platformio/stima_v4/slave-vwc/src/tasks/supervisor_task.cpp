@@ -284,10 +284,10 @@ void SupervisorTask::loadConfiguration()
     // Select type register (uint_8)
     uavcan_register_Value_1_0_select_natural8_(&val);
     val.natural8.value.count       = MAX_ADC_CHANELS;
-    // Loading Default ( Active first chanel )
+    // Loading Default ( Active chanel 1, 2, 3 )
     val.natural8.value.elements[0] = 1;
-    val.natural8.value.elements[1] = 0;
-    val.natural8.value.elements[2] = 0;
+    val.natural8.value.elements[1] = 1;
+    val.natural8.value.elements[2] = 1;
     val.natural8.value.elements[3] = 0;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.adc.active", &val);

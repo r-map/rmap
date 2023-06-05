@@ -149,5 +149,7 @@
 #define SENSOR_METADATA_DSA             0
 #define SENSOR_METADATA_RADIATION_COUNT 1
 // VWC
-#define SENSOR_METADATA_VWC             0
-#define SENSOR_METADATA_VWC_COUNT       1
+#define SENSOR_METADATA_VWC1            0
+#define SENSOR_METADATA_VWC2            1
+#define SENSOR_METADATA_VWC3            2
+#define SENSOR_METADATA_VWC_COUNT       3

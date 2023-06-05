@@ -197,7 +197,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 /*!
-\def STIMA_MODULE_NAME_SOIL_VWC
+\def STIMA_MODULE_NAME_SOLAR_RADIATION
 \brief The module'name for acquiring radiation sensor.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("stima4.module_radiation")

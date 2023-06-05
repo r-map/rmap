@@ -360,8 +360,8 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::vwc1:
             // Prepara i dati SMP (Sample)
-            rmap_data->VWC.vwc.val.value = report->avg;
-            rmap_data->VWC.vwc.confidence.value = report->quality;
+            rmap_data->VWC.vwc.val.value = report->avg1;
+            rmap_data->VWC.vwc.confidence.value = report->quality1;
             break;
     }
 }
@@ -370,18 +370,18 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::vwc1:
             // Prepara i dati SMP (Sample)
-            rmap_data->VWC1.vwc.val.value = report->avg;
-            rmap_data->VWC1.vwc.confidence.value = report->quality;
+            rmap_data->VWC1.vwc.val.value = report->avg1;
+            rmap_data->VWC1.vwc.confidence.value = report->quality1;
             break;
         case canardClass::Sensor_Type::vwc2:
             // Prepara i dati SMP (Sample)
-            rmap_data->VWC2.vwc.val.value = report->avg;
-            rmap_data->VWC2.vwc.confidence.value = report->quality;
+            rmap_data->VWC2.vwc.val.value = report->avg2;
+            rmap_data->VWC2.vwc.confidence.value = report->quality2;
             break;
         case canardClass::Sensor_Type::vwc3:
             // Prepara i dati SMP (Sample)
-            rmap_data->VWC3.vwc.val.value = report->avg;
-            rmap_data->VWC3.vwc.confidence.value = report->quality;
+            rmap_data->VWC3.vwc.val.value = report->avg3;
+            rmap_data->VWC3.vwc.confidence.value = report->quality3;
             break;
     }
 }
@@ -415,7 +415,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN soil moisture report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg, (rmapdata_t) report_pub.quality);
+        TRACE_INFO_F(F("--> CAN soil moisture report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg1, (rmapdata_t) report_pub.quality1);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::vwc1, &report_pub, &module_soil_vwc_msg);
@@ -695,7 +695,9 @@ rmap_service_module_VWC_Response_1_0 CanTask::processRequestGetModuleData(canard
           param->reportDataQueue->Dequeue(&report_srv);
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
-          TRACE_INFO_F(F("--> CAN soil moisture report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg, (rmapdata_t) report_srv.quality);
+          TRACE_INFO_F(F("--> CAN soil moisture [1] report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg1, (rmapdata_t) report_srv.quality1);
+          TRACE_INFO_F(F("--> CAN soil moisture [2] report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg2, (rmapdata_t) report_srv.quality2);
+          TRACE_INFO_F(F("--> CAN soil moisture [3] report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg3, (rmapdata_t) report_srv.quality3);
 
           // Ritorno lo stato (Copia dal comando... e versione modulo)
           resp.state = req->parameter.command;

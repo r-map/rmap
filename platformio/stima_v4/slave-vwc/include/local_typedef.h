@@ -142,8 +142,12 @@ typedef struct
 // Report module
 typedef struct
 {
-   rmapdata_t avg;
-   rmapdata_t quality;
+   rmapdata_t avg1;
+   rmapdata_t quality1;
+   rmapdata_t avg2;
+   rmapdata_t quality2;
+   rmapdata_t avg3;
+   rmapdata_t quality3;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

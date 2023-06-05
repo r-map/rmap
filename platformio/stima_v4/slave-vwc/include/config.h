@@ -152,7 +152,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REPORTS_TIME_S                    (900)
 
 // Index Sensor
-#define SOIL_VWC_INDEX                    (0)
+#define SOIL_VWC1_INDEX                   (0)
+#define SOIL_VWC2_INDEX                   (1)
+#define SOIL_VWC3_INDEX                   (2)
 
 #define ADC_VOLTAGE_MAX                   (3300.0)
 #define ADC_VOLTAGE_MIN                   (0.0)

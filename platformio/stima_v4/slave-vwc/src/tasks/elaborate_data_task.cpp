@@ -109,7 +109,9 @@ void ElaborateDataTask::Run() {
   system_message_t system_message;
 
   bufferReset<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
-  bufferReset<sample_t, uint16_t, rmapdata_t>(&soil_vwc_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX);
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX);
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -157,15 +159,34 @@ void ElaborateDataTask::Run() {
         param.elaborateDataQueue->Dequeue(&edata);
         switch (edata.index)
         {
-        case SOIL_VWC_INDEX:
+        case SOIL_VWC1_INDEX:
           // Data Simulator
           #ifdef USE_SIMULATOR
           edata.value = 500 + random(200);
           #endif
           TRACE_VERBOSE_F(F("Soil moisture: %d\r\n"), edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
-          addValue<sample_t, uint16_t, rmapdata_t>(&soil_vwc_samples, SAMPLES_COUNT_MAX, edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX, edata.value);
           break;
+
+        case SOIL_VWC2_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 500 + random(200);
+          #endif
+          TRACE_VERBOSE_F(F("Soil moisture: %d\r\n"), edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX, edata.value);
+          break;
+
+        case SOIL_VWC3_INDEX:
+          // Data Simulator
+          #ifdef USE_SIMULATOR
+          edata.value = 500 + random(200);
+          #endif
+          TRACE_VERBOSE_F(F("Soil moisture: %d\r\n"), edata.value);
+          addValue<sample_t, uint16_t, rmapdata_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX, edata.value);
+          break;
+
         }
       }
     }
@@ -211,19 +232,49 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   // Elaborate suffix description: _s(sample) _o(observation) _t(total) [Optional for debug]
 
   // Elaboration SOIL_VWC
-  rmapdata_t soil_vwc_sample_s = 0;
-  float avg_soil_vwc_sample_s = 0;
-  float avg_soil_vwc_sample_o = 0;
-  float min_soil_vwc_sample_o = FLT_MAX;
-  float max_soil_vwc_sample_o = FLT_MIN;
-  float avg_soil_vwc_samples_quality_s = 0;
-  float avg_soil_vwc_samples_quality_o = 0;
+  rmapdata_t soil_vwc1_sample_s = 0;
+  float avg_soil_vwc1_sample_s = 0;
+  float avg_soil_vwc1_sample_o = 0;
+  float min_soil_vwc1_sample_o = FLT_MAX;
+  float max_soil_vwc1_sample_o = FLT_MIN;
+  float avg_soil_vwc1_samples_quality_s = 0;
+  float avg_soil_vwc1_samples_quality_o = 0;
   #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
-  uint16_t valid_count_soil_vwc_sample_st = 0;
+  uint16_t valid_count_soil_vwc1_sample_st = 0;
   #endif
-  uint16_t valid_count_soil_vwc_sample_s = 0;
-  uint16_t total_count_soil_vwc_sample_s = 0;
-  uint16_t valid_count_soil_vwc_sample_o = 0;
+  uint16_t valid_count_soil_vwc1_sample_s = 0;
+  uint16_t total_count_soil_vwc1_sample_s = 0;
+  uint16_t valid_count_soil_vwc1_sample_o = 0;
+
+  // Elaboration SOIL_VWC
+  rmapdata_t soil_vwc2_sample_s = 0;
+  float avg_soil_vwc2_sample_s = 0;
+  float avg_soil_vwc2_sample_o = 0;
+  float min_soil_vwc2_sample_o = FLT_MAX;
+  float max_soil_vwc2_sample_o = FLT_MIN;
+  float avg_soil_vwc2_samples_quality_s = 0;
+  float avg_soil_vwc2_samples_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_soil_vwc2_sample_st = 0;
+  #endif
+  uint16_t valid_count_soil_vwc2_sample_s = 0;
+  uint16_t total_count_soil_vwc2_sample_s = 0;
+  uint16_t valid_count_soil_vwc2_sample_o = 0;
+
+  // Elaboration SOIL_VWC
+  rmapdata_t soil_vwc3_sample_s = 0;
+  float avg_soil_vwc3_sample_s = 0;
+  float avg_soil_vwc3_sample_o = 0;
+  float min_soil_vwc3_sample_o = FLT_MAX;
+  float max_soil_vwc3_sample_o = FLT_MIN;
+  float avg_soil_vwc3_samples_quality_s = 0;
+  float avg_soil_vwc3_samples_quality_o = 0;
+  #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+  uint16_t valid_count_soil_vwc3_sample_st = 0;
+  #endif
+  uint16_t valid_count_soil_vwc3_sample_s = 0;
+  uint16_t total_count_soil_vwc3_sample_s = 0;
+  uint16_t valid_count_soil_vwc3_sample_o = 0;
 
   // Elaboration timings calculation
   uint16_t report_sample_count = round((report_time_s * 1.0) / (param.configuration->sensor_acquisition_delay_ms / 1000.0));
@@ -243,26 +294,59 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
     TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_observations_count);
-    TRACE_DEBUG_F(F("-> %d available soil moisture samples count\r\n"), soil_vwc_samples.count);
+    TRACE_DEBUG_F(F("-> %d available soil moisture [1] samples count\r\n"), soil_vwc1_samples.count);
+    TRACE_DEBUG_F(F("-> %d available soil moisture [2] samples count\r\n"), soil_vwc2_samples.count);
+    TRACE_DEBUG_F(F("-> %d available soil moisture [3] samples count\r\n"), soil_vwc3_samples.count);
   }
 
   // Default value to RMAP Limit error value
-  report.avg = RMAPDATA_MAX;
-  report.quality = RMAPDATA_MAX;
+  report.avg1 = RMAPDATA_MAX;
+  report.quality1 = RMAPDATA_MAX;
+  report.avg2 = RMAPDATA_MAX;
+  report.quality2 = RMAPDATA_MAX;
+  report.avg3 = RMAPDATA_MAX;
+  report.quality3 = RMAPDATA_MAX;
 
   // Ptr for maintenance
   bufferPtrResetBack<maintenance_t, uint16_t>(&maintenance_samples, SAMPLES_COUNT_MAX);
   // Ptr for value sample
-  bufferPtrResetBack<sample_t, uint16_t>(&soil_vwc_samples, SAMPLES_COUNT_MAX);
+  bufferPtrResetBack<sample_t, uint16_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX);
+  bufferPtrResetBack<sample_t, uint16_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX);
+  bufferPtrResetBack<sample_t, uint16_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX);
 
   // align all sensor's data to last common acquired sample
-  uint16_t samples_count = soil_vwc_samples.count;
+  uint16_t samples_count = soil_vwc1_samples.count;
+  if (soil_vwc2_samples.count < samples_count)
+  {
+    samples_count = soil_vwc2_samples.count;
+  }
+  if (soil_vwc3_samples.count < samples_count)
+  {
+    samples_count = soil_vwc3_samples.count;
+  }
+
+  // flush all data that is not aligned
+  for (uint16_t i = samples_count; i < soil_vwc1_samples.count; i++)
+  {
+    bufferReadBack<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX);
+    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX);
+  }
+  for (uint16_t i = samples_count; i < soil_vwc2_samples.count; i++)
+  {
+    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX);
+  }
+  for (uint16_t i = samples_count; i < soil_vwc3_samples.count; i++)
+  {
+    bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX);
+  }
 
   // it's a simple istant or report request?
   if (report_time_s == 0)
   {
     // Make last data value to Get Istant show value
-    report.avg = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc_samples, SAMPLES_COUNT_MAX);
+    report.avg1 = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX);
+    report.avg2 = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX);
+    report.avg3 = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX);
   }
   else
   {
@@ -282,19 +366,49 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       // ************* GET SAMPLE VALUE DATA FROM AND CREATE OBSERVATION VALUES FOR TYPE SENSOR ************
       // ***************************************************************************************************
 
-      soil_vwc_sample_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc_samples, SAMPLES_COUNT_MAX);
+      soil_vwc1_sample_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc1_samples, SAMPLES_COUNT_MAX);
       #if (USE_REDUNDANT_SENSOR)
       redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
       #endif
-      total_count_soil_vwc_sample_s++;
-      avg_soil_vwc_samples_quality_s += (float)(((float)checkSoilVWC(soil_vwc_sample_s) - avg_soil_vwc_samples_quality_s) / total_count_soil_vwc_sample_s);
-      if ((ISVALID_RMAPDATA(soil_vwc_sample_s)) && !measures_maintenance)
+      total_count_soil_vwc1_sample_s++;
+      avg_soil_vwc1_samples_quality_s += (float)(((float)checkSoilVWC(soil_vwc1_sample_s) - avg_soil_vwc1_samples_quality_s) / total_count_soil_vwc1_sample_s);
+      if ((ISVALID_RMAPDATA(soil_vwc1_sample_s)) && !measures_maintenance)
       {
-        valid_count_soil_vwc_sample_s++;
+        valid_count_soil_vwc1_sample_s++;
         #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
-        valid_count_soil_vwc_sample_st++;
+        valid_count_soil_vwc1_sample_st++;
         #endif
-        avg_soil_vwc_sample_s += (float)(((float)soil_vwc_sample_s - avg_soil_vwc_sample_s) / valid_count_soil_vwc_sample_s);
+        avg_soil_vwc1_sample_s += (float)(((float)soil_vwc1_sample_s - avg_soil_vwc1_sample_s) / valid_count_soil_vwc1_sample_s);
+      }
+
+      soil_vwc2_sample_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc2_samples, SAMPLES_COUNT_MAX);
+      #if (USE_REDUNDANT_SENSOR)
+      redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+      #endif
+      total_count_soil_vwc2_sample_s++;
+      avg_soil_vwc2_samples_quality_s += (float)(((float)checkSoilVWC(soil_vwc2_sample_s) - avg_soil_vwc2_samples_quality_s) / total_count_soil_vwc2_sample_s);
+      if ((ISVALID_RMAPDATA(soil_vwc2_sample_s)) && !measures_maintenance)
+      {
+        valid_count_soil_vwc2_sample_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_soil_vwc2_sample_st++;
+        #endif
+        avg_soil_vwc2_sample_s += (float)(((float)soil_vwc2_sample_s - avg_soil_vwc2_sample_s) / valid_count_soil_vwc2_sample_s);
+      }
+
+      soil_vwc3_sample_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&soil_vwc3_samples, SAMPLES_COUNT_MAX);
+      #if (USE_REDUNDANT_SENSOR)
+      redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+      #endif
+      total_count_soil_vwc3_sample_s++;
+      avg_soil_vwc3_samples_quality_s += (float)(((float)checkSoilVWC(soil_vwc3_sample_s) - avg_soil_vwc3_samples_quality_s) / total_count_soil_vwc3_sample_s);
+      if ((ISVALID_RMAPDATA(soil_vwc3_sample_s)) && !measures_maintenance)
+      {
+        valid_count_soil_vwc3_sample_s++;
+        #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
+        valid_count_soil_vwc3_sample_st++;
+        #endif
+        avg_soil_vwc3_sample_s += (float)(((float)soil_vwc3_sample_s - avg_soil_vwc3_sample_s) / valid_count_soil_vwc3_sample_s);
       }
 
       // ***************************************************************************************************
@@ -302,44 +416,108 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
       // ***************************************************************************************************
       if(is_observation) {
 
-        // SOIL_VWC, sufficient number of valid samples?
-        valid_data_calc_perc = (float)(valid_count_soil_vwc_sample_s) / (float)(total_count_soil_vwc_sample_s) * 100.0;
+        // SOIL_VWC1, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_soil_vwc1_sample_s) / (float)(total_count_soil_vwc1_sample_s) * 100.0;
         if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
         {
-          valid_count_soil_vwc_sample_o++;
-          avg_soil_vwc_sample_o += (avg_soil_vwc_sample_s - avg_soil_vwc_sample_o) / valid_count_soil_vwc_sample_o;
-          avg_soil_vwc_samples_quality_o += (avg_soil_vwc_samples_quality_s - avg_soil_vwc_samples_quality_o) / valid_count_soil_vwc_sample_o;
+          valid_count_soil_vwc1_sample_o++;
+          avg_soil_vwc1_sample_o += (avg_soil_vwc1_sample_s - avg_soil_vwc1_sample_o) / valid_count_soil_vwc1_sample_o;
+          avg_soil_vwc1_samples_quality_o += (avg_soil_vwc1_samples_quality_s - avg_soil_vwc1_samples_quality_o) / valid_count_soil_vwc1_sample_o;
           // Elaboration MIN and MAX for observation
-          if(avg_soil_vwc_sample_o < min_soil_vwc_sample_o) min_soil_vwc_sample_o = avg_soil_vwc_sample_o;
-          if(avg_soil_vwc_sample_o > max_soil_vwc_sample_o) max_soil_vwc_sample_o = avg_soil_vwc_sample_o;
+          if(avg_soil_vwc1_sample_o < min_soil_vwc1_sample_o) min_soil_vwc1_sample_o = avg_soil_vwc1_sample_o;
+          if(avg_soil_vwc1_sample_o > max_soil_vwc1_sample_o) max_soil_vwc1_sample_o = avg_soil_vwc1_sample_o;
         }
         // Reset Buffer sample for calculate next observation
-        avg_soil_vwc_samples_quality_s = 0;
-        avg_soil_vwc_sample_s = 0;
-        valid_count_soil_vwc_sample_s = 0;
-        total_count_soil_vwc_sample_s = 0;
+        avg_soil_vwc1_samples_quality_s = 0;
+        avg_soil_vwc1_sample_s = 0;
+        valid_count_soil_vwc1_sample_s = 0;
+        total_count_soil_vwc1_sample_s = 0;
+ 
+        // SOIL_VWC2, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_soil_vwc2_sample_s) / (float)(total_count_soil_vwc2_sample_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_soil_vwc2_sample_o++;
+          avg_soil_vwc2_sample_o += (avg_soil_vwc2_sample_s - avg_soil_vwc2_sample_o) / valid_count_soil_vwc2_sample_o;
+          avg_soil_vwc2_samples_quality_o += (avg_soil_vwc2_samples_quality_s - avg_soil_vwc2_samples_quality_o) / valid_count_soil_vwc2_sample_o;
+          // Elaboration MIN and MAX for observation
+          if(avg_soil_vwc2_sample_o < min_soil_vwc2_sample_o) min_soil_vwc2_sample_o = avg_soil_vwc2_sample_o;
+          if(avg_soil_vwc2_sample_o > max_soil_vwc2_sample_o) max_soil_vwc2_sample_o = avg_soil_vwc2_sample_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_soil_vwc2_samples_quality_s = 0;
+        avg_soil_vwc2_sample_s = 0;
+        valid_count_soil_vwc2_sample_s = 0;
+        total_count_soil_vwc2_sample_s = 0;
+
+        // SOIL_VWC3, sufficient number of valid samples?
+        valid_data_calc_perc = (float)(valid_count_soil_vwc3_sample_s) / (float)(total_count_soil_vwc3_sample_s) * 100.0;
+        if (valid_data_calc_perc >= SAMPLE_ERROR_PERCENTAGE_MIN)
+        {
+          valid_count_soil_vwc3_sample_o++;
+          avg_soil_vwc3_sample_o += (avg_soil_vwc3_sample_s - avg_soil_vwc3_sample_o) / valid_count_soil_vwc3_sample_o;
+          avg_soil_vwc3_samples_quality_o += (avg_soil_vwc3_samples_quality_s - avg_soil_vwc3_samples_quality_o) / valid_count_soil_vwc3_sample_o;
+          // Elaboration MIN and MAX for observation
+          if(avg_soil_vwc3_sample_o < min_soil_vwc3_sample_o) min_soil_vwc3_sample_o = avg_soil_vwc3_sample_o;
+          if(avg_soil_vwc3_sample_o > max_soil_vwc3_sample_o) max_soil_vwc3_sample_o = avg_soil_vwc3_sample_o;
+        }
+        // Reset Buffer sample for calculate next observation
+        avg_soil_vwc3_samples_quality_s = 0;
+        avg_soil_vwc3_sample_s = 0;
+        valid_count_soil_vwc3_sample_s = 0;
+        total_count_soil_vwc3_sample_s = 0;
+
       }
+
     }
 
     // ***************************************************************************************************
     // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
     // ***************************************************************************************************
 
-    // temperature, elaboration final
-    valid_data_calc_perc = (float)(valid_count_soil_vwc_sample_o) / (float)(report_observations_count) * 100.0;
-    TRACE_DEBUG_F(F("-> %d soil moisture sample error (%d%%)\r\n"), (n_sample - valid_count_soil_vwc_sample_st), (uint8_t)(((float)n_sample - (float)valid_count_soil_vwc_sample_st)/(float)n_sample * 100.0));
-    TRACE_DEBUG_F(F("-> %d soil moisture observation avaiable (%d%%)\r\n"), valid_count_soil_vwc_sample_o, (uint8_t)valid_data_calc_perc);
+    // Data elaboration final
+    valid_data_calc_perc = (float)(valid_count_soil_vwc1_sample_o) / (float)(report_observations_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d soil moisture sample error (%d%%)\r\n"), (n_sample - valid_count_soil_vwc1_sample_st), (uint8_t)(((float)n_sample - (float)valid_count_soil_vwc1_sample_st)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d soil moisture observation avaiable (%d%%)\r\n"), valid_count_soil_vwc1_sample_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
-      // report.temperature.ist (already assigned)
-      report.avg = (rmapdata_t)avg_soil_vwc_sample_o;
+      // Data ist (already assigned)
+      report.avg1 = (rmapdata_t)avg_soil_vwc1_sample_o;
       // report.min = (rmapdata_t)min_soil_vwc_sample_o;
       // report.max = (rmapdata_t)max_soil_vwc_sample_o;
-      report.quality = (rmapdata_t)avg_soil_vwc_samples_quality_o;
+      report.quality1 = (rmapdata_t)avg_soil_vwc1_samples_quality_o;
+    }
+
+    // Data elaboration final
+    valid_data_calc_perc = (float)(valid_count_soil_vwc2_sample_o) / (float)(report_observations_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d soil moisture sample error (%d%%)\r\n"), (n_sample - valid_count_soil_vwc2_sample_st), (uint8_t)(((float)n_sample - (float)valid_count_soil_vwc2_sample_st)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d soil moisture observation avaiable (%d%%)\r\n"), valid_count_soil_vwc2_sample_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      // Data ist (already assigned)
+      report.avg2 = (rmapdata_t)avg_soil_vwc1_sample_o;
+      // report.min = (rmapdata_t)min_soil_vwc_sample_o;
+      // report.max = (rmapdata_t)max_soil_vwc_sample_o;
+      report.quality2 = (rmapdata_t)avg_soil_vwc1_samples_quality_o;
+    }
+
+    // Data elaboration final
+    valid_data_calc_perc = (float)(valid_count_soil_vwc3_sample_o) / (float)(report_observations_count) * 100.0;
+    TRACE_DEBUG_F(F("-> %d soil moisture sample error (%d%%)\r\n"), (n_sample - valid_count_soil_vwc3_sample_st), (uint8_t)(((float)n_sample - (float)valid_count_soil_vwc3_sample_st)/(float)n_sample * 100.0));
+    TRACE_DEBUG_F(F("-> %d soil moisture observation avaiable (%d%%)\r\n"), valid_count_soil_vwc3_sample_o, (uint8_t)valid_data_calc_perc);
+    if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+    {
+      // Data ist (already assigned)
+      report.avg3 = (rmapdata_t)avg_soil_vwc1_sample_o;
+      // report.min = (rmapdata_t)min_soil_vwc_sample_o;
+      // report.max = (rmapdata_t)max_soil_vwc_sample_o;
+      report.quality3 = (rmapdata_t)avg_soil_vwc1_samples_quality_o;
     }
 
     // Trace report final
-    TRACE_INFO_F(F("--> Soil moisture report\t%d\t%d\r\n"), (rmapdata_t)report.avg, (rmapdata_t)report.quality);
+    TRACE_INFO_F(F("--> Soil moisture [1] report\t%d\t%d\r\n"), (rmapdata_t)report.avg1, (rmapdata_t)report.quality1);
+    TRACE_INFO_F(F("--> Soil moisture [2] report\t%d\t%d\r\n"), (rmapdata_t)report.avg2, (rmapdata_t)report.quality2);
+    TRACE_INFO_F(F("--> Soil moisture [3] report\t%d\t%d\r\n"), (rmapdata_t)report.avg3, (rmapdata_t)report.quality3);
   }
 }
 

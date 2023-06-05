@@ -208,6 +208,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         // Reset and deinit info current module and parameter pointer configure sequence
         currentModule = Module_Type::undefined;
         sensorId = UNKNOWN_ID;
+        sensorMultyId = UNKNOWN_ID;
         isSlaveConfigure = false;
         isMasterConfigure = false;
         id_constant_data = 0;
@@ -410,6 +411,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       if(isSlaveConfigure) {
         if (strcmp(it.value().as<const char *>(), "CAN") == 0) {
           sensorId = SETUP_ID;
+          sensorMultyId = SETUP_ID;
         }
         else error_command = true;
       }
@@ -469,7 +471,12 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
             break;
           case Module_Type::vwc:
             if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_VWC) == 0) {
-              sensorId = SENSOR_METADATA_VWC;
+              if(sensorMultyId == SETUP_ID) {
+                sensorMultyId = 0;
+              } else {
+                sensorMultyId++;
+              }
+              sensorId = sensorMultyId;
             }
             else error_command = true;
             break;
@@ -766,6 +773,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     currentModule = Module_Type::undefined;
     slaveId = UNKNOWN_ID;
     sensorId = UNKNOWN_ID;
+    sensorMultyId = UNKNOWN_ID;
     isSlaveConfigure = false;
     isMasterConfigure = false;
     id_constant_data = 0;

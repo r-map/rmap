@@ -105,7 +105,9 @@ private:
   State_t state;
   ElaborateDataParam_t param;
 
-  sample_t soil_vwc_samples;
+  sample_t soil_vwc1_samples;
+  sample_t soil_vwc2_samples;
+  sample_t soil_vwc3_samples;
 
   maintenance_t maintenance_samples;
   report_t report;

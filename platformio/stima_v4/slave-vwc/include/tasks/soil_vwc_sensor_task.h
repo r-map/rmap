@@ -40,7 +40,7 @@
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_VWC)
 
 #define SOIL_VWC_TASK_LOW_POWER_ENABLED       (true)
-#define SOIL_VWC_TASK_SWITCH_POWER_ENABLED    (false)
+#define SOIL_VWC_TASK_SWITCH_POWER_ENABLED    (true)
 #define SOIL_VWC_TASK_WAIT_DELAY_MS           (50)
 #define SOIL_VWC_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SOIL_VWC_TASK_GENERIC_RETRY           (3)
@@ -49,7 +49,7 @@
 #if (!SOIL_VWC_TASK_SWITCH_POWER_ENABLED)
 // Timing to wakeUP only internal comparator ADC
 #define SOIL_VWC_TASK_POWER_ON_WAIT_DELAY_MS  (5)
-#define SOIL_VWC_FIXED_POWER_CHANEL_0         (true)
+#define SOIL_VWC_FIXED_POWER_CHANEL_0         (false)
 #define SOIL_VWC_FIXED_POWER_CHANEL_1         (false)
 #define SOIL_VWC_FIXED_POWER_CHANEL_2         (false)
 #define SOIL_VWC_FIXED_POWER_CHANEL_3         (false)

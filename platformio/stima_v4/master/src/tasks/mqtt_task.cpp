@@ -1013,9 +1013,19 @@ void MqttTask::Run()
                 {
                   if (param.configuration->board_slave[slaveId].module_type == Module_Type::vwc)
                   {
-                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC1])
                     {
-                      error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                      error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC1, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC2])
+                    {
+                      error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC2, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC3])
+                    {
+                      error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC3, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
 
                     if (error)
