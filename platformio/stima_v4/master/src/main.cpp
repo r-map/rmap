@@ -388,10 +388,10 @@ void setup() {
   // Startup Task, Supervisor as first for Loading parameter generic configuration
   // *****************************************************************************
 
-  static SupervisorTask supervisor_task("SupervisorTask", 500, OS_TASK_PRIORITY_02, supervisorParam);
+  static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 1500, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 1700, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_USBSERIAL)
@@ -404,7 +404,7 @@ void setup() {
 #endif
 
 #if (ENABLE_CAN)
-  static CanTask can_task("CanTask", 12300, OS_TASK_PRIORITY_02, canParam);
+  static CanTask can_task("CanTask", 13000, OS_TASK_PRIORITY_02, canParam);
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)

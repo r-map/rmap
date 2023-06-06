@@ -245,12 +245,15 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
             isMasterConfigure = true;
             break;
 
+          // First configure sensor with multi sensor on same module (sensorMultyId => SETUP_ID Mode)
+          // N.B. Don't use break!!!
+          case STIMA_MODULE_TYPE_VWC:
+            sensorMultyId = SETUP_ID;
           case STIMA_MODULE_TYPE_RAIN:
           case STIMA_MODULE_TYPE_TH:
           case STIMA_MODULE_TYPE_WIND:
           case STIMA_MODULE_TYPE_SOLAR_RADIATION:
           case STIMA_MODULE_TYPE_POWER_MPPT:
-          case STIMA_MODULE_TYPE_VWC:
             // Set module index (defualt START from 0xFF to point 0 index at start)
             // Index valid for all parameter while next board configure... Inc to sequential value
             // Saving param after command ..."reset"
@@ -291,7 +294,26 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           // Fix Error configure from Address invalid
           param.configuration->board_slave[slaveId].can_address = 80 + slaveId;
         }
-        param.configuration->board_slave[slaveId].can_port_id = 50 + slaveId;
+        switch(currentModule) {
+          case STIMA_MODULE_TYPE_TH:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_TH;
+            break;
+          case STIMA_MODULE_TYPE_RAIN:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_RAIN;
+            break;
+          case STIMA_MODULE_TYPE_WIND:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_WIND;
+            break;
+          case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_RADIATION;
+            break;
+          case STIMA_MODULE_TYPE_POWER_MPPT:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_MPPT;
+            break;
+          case STIMA_MODULE_TYPE_VWC:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_VWC;
+            break;
+        }
         param.configurationLock->Give();
       }
       else if(isMasterConfigure) {
@@ -301,7 +323,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
         #else
         param.configuration->board_master.can_address = NODE_MASTER_ID;
         #endif
-        param.configuration->board_master.can_port_id = NODE_PORT_ID;
+        param.configuration->board_master.can_port_id = PORT_SERVICE_RMAP;
         param.configurationLock->Give();
       }
       else error_command = true;
@@ -411,7 +433,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       if(isSlaveConfigure) {
         if (strcmp(it.value().as<const char *>(), "CAN") == 0) {
           sensorId = SETUP_ID;
-          sensorMultyId = SETUP_ID;
         }
         else error_command = true;
       }

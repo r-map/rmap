@@ -1326,8 +1326,8 @@ void CanTask::Run() {
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 60;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::th;
-                param.configuration->board_slave[idxFixed].can_port_id = 50;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_TH;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_TH;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -1336,8 +1336,8 @@ void CanTask::Run() {
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 61;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::rain;
-                param.configuration->board_slave[idxFixed].can_port_id = 51;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_RAIN;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_RAIN;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -1346,8 +1346,8 @@ void CanTask::Run() {
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 62;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::wind;
-                param.configuration->board_slave[idxFixed].can_port_id = 52;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_WIND;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_WIND;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -1356,28 +1356,28 @@ void CanTask::Run() {
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 63;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::radiation;
-                param.configuration->board_slave[idxFixed].can_port_id = 53;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
-                param.configuration->board_slave[idxFixed].serial_number = 0;
-                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
-                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
-                #endif
-                #ifdef USE_MODULE_FIXED_VWC
-                idxFixed++;
-                param.configuration->board_slave[idxFixed].can_address = 64;
-                param.configuration->board_slave[idxFixed].module_type = Module_Type::vwc;
-                param.configuration->board_slave[idxFixed].can_port_id = 54;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_RADIATION;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_RADIATION;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
                 #ifdef USE_MODULE_FIXED_POWER
                 idxFixed++;
-                param.configuration->board_slave[idxFixed].can_address = 65;
+                param.configuration->board_slave[idxFixed].can_address = 64;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::power;
-                param.configuration->board_slave[idxFixed].can_port_id = 55;
-                param.configuration->board_slave[idxFixed].can_publish_id = 100;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_MPPT;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_MPP;
+                param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
+                #endif
+                #ifdef USE_MODULE_FIXED_VWC
+                idxFixed++;
+                param.configuration->board_slave[idxFixed].can_address = 65;
+                param.configuration->board_slave[idxFixed].module_type = Module_Type::vwc;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_VWC;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_VWC;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -2733,19 +2733,7 @@ void CanTask::Run() {
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
                                     case REGISTER_07_SEND:
-                                        // Register-07 ( Configure Can PORT ID Rmap Service )
-                                        uavcan_register_Value_1_0_select_natural16_(&val);
-                                        val.natural16.value.count = 1;
-                                        val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_port_id;
-                                        // Send register value to Slave Remote with parameter to store
-                                        clCanard.send_register_access_pending(cfg_remote_queueId, NODE_REGISTER_TIMEOUT_US,
-                                            REGISTER_UAVCAN_DATA_SERVICE, val, NODE_REGISTER_MAX_RETRY);
-                                        TRACE_VERBOSE_F(F("Register server: Send %s at Node: [ %d ]\r\n"), REGISTER_UAVCAN_DATA_SERVICE, clCanard.slave[cfg_remote_queueId].get_node_id());
-                                        // Prepare verify RESPONSE Method OK.
-                                        remote_configure[cfg_remote_queueId]++;
-                                        break;
-                                    case REGISTER_08_SEND:
-                                        // Register-08 ( Configure Can SUBJECT ID Rmap Publish )
+                                        // Register-07 ( Configure Can SUBJECT ID Rmap Publish )
                                         uavcan_register_Value_1_0_select_natural16_(&val);
                                         val.natural16.value.count = 1;
                                         val.natural16.value.elements[0] = param.configuration->board_slave[cfg_remote_queueId].can_publish_id;
@@ -2756,8 +2744,8 @@ void CanTask::Run() {
                                         // Prepare verify RESPONSE Method OK.
                                         remote_configure[cfg_remote_queueId]++;
                                         break;
-                                    case REGISTER_09_SEND:
-                                        // Register-09 ( Configure Can Address if rquired != old value )
+                                    case REGISTER_08_SEND:
+                                        // Register-08 ( Configure Can Address if rquired != old value )
                                         if(clCanard.slave[cfg_remote_queueId].get_node_id() != param.configuration->board_slave[cfg_remote_queueId].can_address) {
                                             uavcan_register_Value_1_0_select_natural16_(&val);
                                             val.natural16.value.count = 1;
@@ -2797,7 +2785,7 @@ void CanTask::Run() {
                                         if(clCanard.slave[cfg_remote_queueId].register_access.event_timeout()) {
                                             clCanard.slave[cfg_remote_queueId].register_access.reset_pending();
                                             if((remote_configure[cfg_remote_queueId]>REGISTER_01_SEND)&&
-                                                (remote_configure[cfg_remote_queueId]<REGISTER_09_SEND)) {
+                                                (remote_configure[cfg_remote_queueId]<REGISTER_08_SEND)) {
                                                 remote_configure[cfg_remote_queueId]--;
                                             }
                                             else {

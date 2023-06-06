@@ -54,14 +54,23 @@
 #define CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC     2500000UL
 
 // Nodi Fissi per Moduli Master e Yakut
-#define NODE_YAKUT_ID   127
-#define NODE_MASTER_ID  100
-#define NODE_PORT_ID    100
+#define NODE_YAKUT_ID     127
+#define NODE_MASTER_ID    100
 
 // Parametri default per Modulo Master (INIT_PARAMETER)
+#define PORT_RMAP_TH         50
+#define PORT_RMAP_RAIN       51
+#define PORT_RMAP_WIND       52
+#define PORT_RMAP_RADIATION  53
+#define PORT_RMAP_MPPT       54
+#define PORT_RMAP_VWC        55
+#define PORT_RMAP_MASTER     100
+
+// Parametri default per Modulo Slave (INIT_PARAMETER)
 #define NODE_VALUE_UNSET  255
-// #define PORT_SERVICE_RMAP 100
-// #define SUBJECTID_PUBLISH_RMAP 2100
+#define PORT_SERVICE_RMAP (PORT_RMAP_MASTER)
+#define SUBJECTID_PUBLISH_RMAP (PORT_RMAP_MASTER)
+
 
 // Maschera Check S.N. messaggio Hash Canard per PnP
 #define HASH_SERNUMB_MASK   0x0000FFFFFFFFFF00u
@@ -76,7 +85,7 @@
 #define USE_MODULE_FIXED_RAIN
 #define USE_MODULE_FIXED_WIND
 #define USE_MODULE_FIXED_RADIATION
-// #define USE_MODULE_FIXED_VWC
+#define USE_MODULE_FIXED_VWC
 #define USE_MODULE_FIXED_POWER
 #endif
 

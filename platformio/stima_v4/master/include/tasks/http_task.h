@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HTTP_TASK_FAST_DELAY_MS (5)
 #define HTTP_TASK_GENERIC_RETRY_DELAY_MS (5000)
 #define HTTP_TASK_GENERIC_RETRY (3)
+#define HTTP_TASK_RPC_WAIT_DELAY_MS      (500)
 
 #include <STM32FreeRTOS.h>
 #include <arduinoJsonRPC.h>

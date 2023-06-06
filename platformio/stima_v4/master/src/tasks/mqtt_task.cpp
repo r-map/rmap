@@ -295,6 +295,7 @@ void MqttTask::Run()
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      snprintf(topic_rpc_response, sizeof(topic_rpc_response), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_RES_TOPIC);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
@@ -1247,10 +1248,9 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
       }
       localRpcLock->Give();
       // Response of RPC to path...
-      // TODO: Verify Path Topic and Serial "ID: 0" Type or NOT
-      // if(strlen(rpc_response)) {
-      //   mqttClientPublish(localPtrMqttClientContext, topic, rpc_response, strlen(rpc_response), qos, true, NULL);
-      // }
+      if(strlen(rpc_response)) {
+         mqttClientPublish(localPtrMqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, true, NULL);
+      }
     }
   }
 }

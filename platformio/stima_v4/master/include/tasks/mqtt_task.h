@@ -240,6 +240,7 @@ private:
   char clientIdentifier[MQTT_CLIENT_ID_LENGTH];
   
   // Static RPC Procedure access and Semaphore
+  inline static char topic_rpc_response[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
   inline static cpp_freertos::BinarySemaphore *localRpcLock;
   inline static JsonRPC *localStreamRpc;
 

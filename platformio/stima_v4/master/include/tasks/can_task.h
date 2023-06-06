@@ -119,8 +119,7 @@ using namespace cpp_freertos;
 #define REGISTER_06_SEND    11u
 #define REGISTER_07_SEND    13u
 #define REGISTER_08_SEND    15u
-#define REGISTER_09_SEND    17u
-#define REGISTER_COMPLETE   19u
+#define REGISTER_COMPLETE   17u
 
 // Mode Power HW CanBus Controller
 enum CAN_ModePower

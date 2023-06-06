@@ -500,6 +500,10 @@ void HttpTask::Run() {
             }
             param.rpcLock->Give();
           }
+          // Delay for command accept...
+          TaskWatchDog(HTTP_TASK_RPC_WAIT_DELAY_MS);
+          Delay(Ticks::MsToTicks(HTTP_TASK_RPC_WAIT_DELAY_MS));
+          
         }
         else if (is_get_firmware)
         {

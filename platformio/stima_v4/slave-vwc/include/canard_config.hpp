@@ -57,11 +57,19 @@
 #define NODE_YAKUT_ID   127
 #define NODE_MASTER_ID  100
 
+#define PORT_RMAP_TH         50
+#define PORT_RMAP_RAIN       51
+#define PORT_RMAP_WIND       52
+#define PORT_RMAP_RADIATION  53
+#define PORT_RMAP_MPPT       54
+#define PORT_RMAP_VWC        55
+#define PORT_RMAP_MASTER     100
+
 // Parametri default per Modulo Slave (INIT_PARAMETER)
-#define NODE_VALUE_UNSET  255 
+#define NODE_VALUE_UNSET  255
 #define NODE_SLAVE_ID     65
-#define PORT_SERVICE_RMAP 55
-#define SUBJECTID_PUBLISH_RMAP 100
+#define PORT_SERVICE_RMAP (PORT_RMAP_VWC)
+#define SUBJECTID_PUBLISH_RMAP (PORT_RMAP_VWC)
 
 // Maschera Check S.N. messaggio Hash Canard per PnP
 #define HASH_SERNUMB_MASK   0x0000FFFFFFFFFF00u
