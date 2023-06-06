@@ -60,7 +60,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_MESSAGE_LENGTH
 \brief Length in bytes for mqtt message.
 */
-#define MQTT_MESSAGE_LENGTH (100)
+#define MQTT_MESSAGE_LENGTH (110)
 
 #define MQTT_WILL_MSG_LENGTH (MQTT_MESSAGE_LENGTH)
 /*!

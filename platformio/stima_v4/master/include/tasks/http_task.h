@@ -31,11 +31,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if (USE_HTTP)
 
-#define HTTP_TASK_WAIT_DELAY_MS (100)
-#define HTTP_TASK_FAST_DELAY_MS (5)
-#define HTTP_TASK_GENERIC_RETRY_DELAY_MS (5000)
-#define HTTP_TASK_GENERIC_RETRY (3)
-#define HTTP_TASK_RPC_WAIT_DELAY_MS      (500)
+#define HTTP_TASK_WAIT_DELAY_MS           (100)
+#define HTTP_TASK_FAST_DELAY_MS           (5)
+#define HTTP_TASK_GENERIC_RETRY_DELAY_MS  (5000)
+#define HTTP_TASK_GENERIC_RETRY           (3)
+#define HTTP_TASK_RPC_WAIT_DELAY_MS       (400)
 
 #include <STM32FreeRTOS.h>
 #include <arduinoJsonRPC.h>

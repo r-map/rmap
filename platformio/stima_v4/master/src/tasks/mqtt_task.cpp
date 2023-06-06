@@ -1379,13 +1379,10 @@ void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *topic, char *me
   // Prepare message
   archive_backup_data_line.date_time = convertDateToUnixTime(&dateTime);
   // Check security Len Message before push queue message data
-  if((lenTopic + lenMessage) < RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE) {
-    strcpy((char*)archive_backup_data_line.block, topic);
-    archive_backup_data_line.block[lenTopic] = ' ';
-    strcpy((char*)(archive_backup_data_line.block + lenTopic + 1), message);
-    // Send to queue with waiting Queue empty from SD Task if Full
-    param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
-  }
+  strcpy((char*)archive_backup_data_line.block, topic);
+  strcpy((char*)(archive_backup_data_line.block + RMAP_BACKUP_DATA_LEN_TOPIC_SIZE), message);
+  // Send to queue with waiting Queue empty from SD Task if Full
+  param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
 }
 
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
