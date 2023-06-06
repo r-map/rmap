@@ -1171,8 +1171,8 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 
         inibith_reboot = true;
 
-        // Satrting queue request reload structure firmware upgradable
-        // And waiting response. After start update all firmware boardd on system (upgradable)
+        // Starting queue request reload structure firmware upgradable
+        // And waiting response. After start update all firmware board on system (upgradable)
         system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reload_fw = true;
@@ -1182,6 +1182,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
         while(true) {
           // Continuos Switching context non blocking
           taskYIELD();
+          vTaskDelay(100);
           // Check response done
           if(!param.systemMessageQueue->IsEmpty()) {
             param.systemMessageQueue->Peek(&system_message);

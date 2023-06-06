@@ -1174,6 +1174,7 @@ void CanTask::Run() {
 
     // RMAP Queue data Put to memory SD Card
     rmap_archive_data_t rmap_archive_data;
+    rmap_archive_data_t rmap_archive_empty;     // Set for clear queue if is full (used normally without SD_CARD queue in RAM)
 
     bool start_firmware_upgrade = false;        // Set when Firmware Upgrade is required
     bool is_running_update_system = false;      // Multi update firmware running proc from RPC
@@ -2021,6 +2022,8 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retTHData, sizeof(*retTHData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2094,6 +2097,8 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retRainData, sizeof(*retRainData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2164,6 +2169,8 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retWindData, sizeof(*retWindData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2231,6 +2238,8 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retRadiationData, sizeof(*retRadiationData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2303,6 +2312,8 @@ void CanTask::Run() {
                                         memcpy(rmap_archive_data.block, retPwrData, sizeof(*retPwrData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;

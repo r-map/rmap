@@ -194,6 +194,10 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_CONNECT:
+
+      // Reset rpc_response
+      memset(rpc_response, 0, sizeof(rpc_response));
+
       error = mqttClientInit(&mqttClientContext);
       if (error)
       {
@@ -252,10 +256,11 @@ void MqttTask::Run()
       mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
 
       // Set username and password
-      if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
-      {
-        mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
-      }
+      // TODO: remove or test
+      // if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
+      // {
+      //   mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
+      // }
 
       // Set Will message ( ON ROOT TOPIC, MQTT_STATUS_TOPIC... FROM doc.rmap.cc documentation )
       if (strlen(MQTT_ON_ERROR_MESSAGE))
@@ -388,7 +393,7 @@ void MqttTask::Run()
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
         dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
-      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
@@ -443,7 +448,7 @@ void MqttTask::Run()
           sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
             dtBlock, param.configuration->board_slave[iNodeSlave].module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
           TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
-          error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+          error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
           TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
           TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
         }
@@ -474,6 +479,14 @@ void MqttTask::Run()
 
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
+
+          // Loop publish response
+          if(strlen(rpc_response)) {
+            TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+            mqttClientPublish(&mqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, false, NULL);
+            TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+            memset(rpc_response, 0, sizeof(rpc_response));
+          }
 
           // SD have to GET Ready before Push DATA alert if not SD Ready or present into system_status
           if(!param.system_status->flags.sd_card_ready) {
@@ -1217,7 +1230,9 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 {
   task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
   bool is_event_rpc = true;
-  char rpc_response[MAXLEN_RPC_RESPONSE] = {0};
+  char rpc_message[255] = {0};
+
+  memcpy(rpc_message, (void*)message, length);
  
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
   TRACE_INFO_F(F("Dup: %u\r\n"), dup);
@@ -1225,7 +1240,12 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("Retain: %u\r\n"), retain);
   TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
-  TRACE_INFO_F(F("%s %s\r\n"), topic, message);
+  TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
+
+  // TODO: rmove
+  localSystemStatus->flags.clean_rpc = false;
+
+  memset(rpc_response, 0, sizeof(rpc_response));
 
   // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
   if(localSystemStatus->flags.clean_rpc) {
@@ -1242,15 +1262,16 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
         localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
         // N.B. Use seial if USE "id": 0 \r\n (optional) if used
         // localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_SERIAL);
-        localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
+        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
         localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
         localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        vTaskDelay(100);
       }
       localRpcLock->Give();
       // Response of RPC to path...
-      if(strlen(rpc_response)) {
-         mqttClientPublish(localPtrMqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, true, NULL);
-      }
+      // if(strlen(rpc_response)) {
+      //    mqttClientPublish(localPtrMqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, false, NULL);
+      // }
     }
   }
 }
@@ -2440,6 +2461,9 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
 
   if (!error)
   {
+    if ((sensor.class1.confidence.value > rmap_tableb_B33199_1_0_MAX) && (sensor.class1.confidence.value < rmap_tableb_B33199_1_0_MAX + 20)) {
+      sensor.class1.confidence.value = rmap_tableb_B33199_1_0_MAX;
+    }
     if (sensor.class1.confidence.value <= rmap_tableb_B33199_1_0_MAX)
     {
       if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":[%u,%u,%u,%u,%u,%u]}",
