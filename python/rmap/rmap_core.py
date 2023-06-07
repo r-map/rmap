@@ -459,6 +459,9 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="CAN",
                   type="TBR",timerange="1,0,{P2:d}",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="CAN",
+                  type="TPR",timerange="2,0,{P2:d}",level="1,-,-,-")
 
     if (template == "stima4_report_w"):
         print("setting template:", template)
@@ -1204,18 +1207,20 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
                                                  rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2,
                                                  pskkey=mymqttpskkey)
 
+
+                rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+                if (rpcproxy is None): return
+
+                for myrpc in kwargs.keys():
+                    if (isinstance(kwargs[myrpc],dict)):
+                        print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
+                    else:
+                        print(myrpc,getattr(rpcproxy, myrpc)(*kwargs[myrpc] ))
+
+                
         except ObjectDoesNotExist:
-            print("transport MQTT not present for this board")
-            return
+            print("transport MQTT not present for board:",board.slug)
 
-        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
-        if (rpcproxy is None): return
-
-        for myrpc in kwargs.keys():
-            if (isinstance(kwargs[myrpc],dict)):
-                print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
-            else:
-                print(myrpc,getattr(rpcproxy, myrpc)(*kwargs[myrpc] ))
                 
 
 def find_report_time(station):

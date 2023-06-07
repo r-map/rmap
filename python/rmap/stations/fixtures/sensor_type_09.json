@@ -11,6 +11,41 @@
         }
     },
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13208",
+            "description": "Total precipitation rate over 1'",
+            "unit": "Kg/m**2/s",
+            "offset": 0.0,
+            "scale": 3600.0,
+            "userunit": "Kg/m**2/h"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13209",
+            "description": "Total precipitation rate over 5'",
+            "unit": "Kg/m**2/s",
+            "offset": 0.0,
+            "scale": 3600.0,
+            "userunit": "Kg/m**2/h"
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "Rain module precipitation rate, report mode",
+            "type": "TPR",
+	    "datalevel": "report",
+            "bcodes": [
+                ["B13208"],
+                ["B13209"]
+            ]
+        }
+    },
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
