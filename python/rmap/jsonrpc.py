@@ -975,6 +975,11 @@ class TransportMQTT(Transport):
         #self.mqttc.loop_forever()
         self.mqttc.loop_start()
 
+        # flush received messages
+        time.sleep(5)
+        self.mqtt_lastmessage=""
+        
+        
     def cleanup(self,signum, frame):
         '''Disconnect cleanly on SIGTERM or SIGINT'''
 
