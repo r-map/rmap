@@ -1,0 +1,6 @@
+# Precipitazione (Kg/m2)
+# fattore scala x10
+# MAX 400.0 mm
+uint12 MAX = 4000
+uint12 value
+@sealed

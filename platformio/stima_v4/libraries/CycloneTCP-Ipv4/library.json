@@ -1,0 +1,15 @@
+{
+    "name": "CycloneTCP-Ipv4",
+    "version": "2.4.1",
+    "keywords": "",
+    "description": "Ipv4 module for Cyclone TCP/IP stack modified in order to work with rmap project",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rmap/CycloneTCP"
+    },
+    "frameworks": "arduino",
+    "platforms": "ststm32",
+    "build": {
+        "libArchive": false
+    }
+}

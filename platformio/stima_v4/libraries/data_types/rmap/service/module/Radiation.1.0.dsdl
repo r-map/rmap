@@ -1,0 +1,22 @@
+rmap.service.setmode.1.0 parameter
+
+@sealed
+
+---
+
+#RMAP Response state
+uint4 state
+
+#RMAP version and revision
+uint8 version
+uint8 revision
+
+#MODULE Flags state
+bool is_adc_unit_error
+bool is_adc_unit_overflow
+uint8 rbt_event
+uint8 wdt_event
+
+rmap.sensors.Radiation.1.0 DSA
+
+@sealed

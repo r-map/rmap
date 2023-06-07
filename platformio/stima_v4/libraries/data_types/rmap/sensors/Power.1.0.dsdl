@@ -1,0 +1,5 @@
+rmap.metadata.Metadata.1.0 metadata
+rmap.measures.BatteryCharge.1.0 battery_charge
+rmap.measures.BatteryCurrent.1.0 battery_current
+rmap.measures.InputVoltage.1.0 input_voltage
+@sealed

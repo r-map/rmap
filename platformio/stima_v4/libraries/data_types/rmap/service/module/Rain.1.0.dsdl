@@ -1,0 +1,26 @@
+rmap.service.setmode.1.0 parameter
+
+@sealed
+
+---
+
+#RMAP Response state
+uint4 state
+
+#RMAP version and revision
+uint8 version
+uint8 revision
+
+#MODULE Flags state
+bool is_accelerometer_error
+bool is_bubble_level_error
+bool is_clogged_up
+bool is_main_error
+bool is_redundant_error
+bool is_tipping_error
+uint8 rbt_event
+uint8 wdt_event
+
+rmap.sensors.Rain.1.0 TBR
+
+@sealed

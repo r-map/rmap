@@ -1,0 +1,6 @@
+# Volumetric water content (%)
+# fattore scala x10
+# MAX 100.0 %
+uint10 MAX = 1000
+uint10 value
+@sealed

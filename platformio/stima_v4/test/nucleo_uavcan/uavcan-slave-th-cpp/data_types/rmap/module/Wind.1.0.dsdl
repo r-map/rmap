@@ -1,0 +1,7 @@
+rmap.sensors.WindAvgVect10.1.0 DWA
+rmap.sensors.WindAvgVect.1.0 DWB
+rmap.sensors.WindGustSpeed.1.0 DWC
+rmap.sensors.WindAvgSpeed.1.0 DWD
+rmap.sensors.WindClassSpeed.1.0 DWE
+rmap.sensors.WindGustDirection.1.0 DWF
+@sealed

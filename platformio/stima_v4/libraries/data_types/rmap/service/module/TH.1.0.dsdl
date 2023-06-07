@@ -1,0 +1,26 @@
+rmap.service.setmode.1.0 parameter
+
+@sealed
+
+---
+
+#RMAP Response state
+uint4 state
+
+#RMAP version and revision
+uint8 version
+uint8 revision
+
+#MODULE Flags state
+bool is_main_error
+bool is_redundant_error
+uint7 perc_i2c_error
+uint8 rbt_event
+uint8 wdt_event
+
+rmap.sensors.TH.1.0 ITH
+rmap.sensors.TH.1.0 NTH
+rmap.sensors.TH.1.0 MTH
+rmap.sensors.TH.1.0 XTH
+
+@sealed

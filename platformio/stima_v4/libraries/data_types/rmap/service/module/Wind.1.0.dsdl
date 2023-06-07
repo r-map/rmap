@@ -1,0 +1,31 @@
+rmap.service.setmode.1.0 parameter
+
+@sealed
+
+---
+
+#RMAP Response state
+uint4 state
+
+#RMAP version and revision
+uint8 version
+uint8 revision
+
+#MODULE Flags state
+bool is_windsonic_unit_error
+bool is_windsonic_hardware_error
+bool is_windsonic_responding_error
+bool is_windsonic_axis_error
+bool is_windsonic_crc_error
+uint7 perc_rs232_error
+uint8 rbt_event
+uint8 wdt_event
+
+rmap.sensors.WindAvgVect10.1.0 DWA
+rmap.sensors.WindAvgVect.1.0 DWB
+rmap.sensors.WindGustSpeed.1.0 DWC
+rmap.sensors.WindAvgSpeed.1.0 DWD
+rmap.sensors.WindClassSpeed.1.0 DWE
+rmap.sensors.WindGustDirection.1.0 DWF
+
+@sealed
