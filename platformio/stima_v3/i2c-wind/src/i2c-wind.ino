@@ -642,13 +642,13 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 
 void getSDFromUV (float u, float v, uint16_t *speed, uint16_t *direction) {
 
-  if (u < CALM_WIND_MAX_MS && v < CALM_WIND_MAX_MS){
+  if (abs(u) < CALM_WIND_MAX_MS*100 && abs(v) < CALM_WIND_MAX_MS*100){
     *speed = 0;
     *direction = 0;
   } else{
-    *speed = round(sqrt(u*u + v*v));
-    *direction = round(RAD_TO_DEG * atan2(-u, -v));
-    *direction = *direction % 360;
+  *speed = round(sqrt(u*u + v*v));
+  *direction = round(RAD_TO_DEG * atan2(-u, -v));
+  *direction = *direction % 360;
   }
   
   if (*speed < CALM_WIND_MAX_MS*100.) {
@@ -1857,7 +1857,7 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
     above applies at 0.1m/s.
   */
   
-  if (*speed == CALM_WIND_MAX_MS*100.) {
+  if (*speed < CALM_WIND_MAX_MS*100.) {
     *speed = 0;
     *direction=0;        // wind calm
   }else if (*direction == 0) *direction = 360;  // traslate 0 -> 360
