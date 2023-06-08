@@ -56,8 +56,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // rain period definitions
 #define SECONDSTOPOWERON   30
-#define SECONDSTOPOWEROFF  300
-#define MAXPRECIPITATION   100
+#define SECONDSTOPOWEROFF  3600*24
+#define MAXPRECIPITATION   5000
 
 
 
@@ -480,8 +480,8 @@ void power_callback(void)
   if (secondi == SECONDSTOPOWERON +1)  poweron();
   if (secondi == SECONDSTOPOWEROFF +1) poweroff();
 
-  if (secondi == SECONDSTOPOWERONSPIKE +1)  poweronspike();
-  if (secondi == SECONDSTOPOWEROFFSPIKE +1) poweroffspike();
+  //if (secondi == SECONDSTOPOWERONSPIKE +1)  poweronspike();
+  //if (secondi == SECONDSTOPOWEROFFSPIKE +1) poweroffspike();
 }
 
 

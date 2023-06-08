@@ -74,19 +74,19 @@ L'unità di musura della velocità è m/s
 #define POLL_MODE true
 
 // rotation period and velocity
-#define ROTATION_MINUTES    1
+#define ROTATION_MINUTES    10
 #define ROTATION_VELOCITY   20.D
 
 // constant u component
 //#define CONSTANT_U_VELOCITY 5.D
-#define CONSTANT_U_VELOCITY 0.D
+#define CONSTANT_U_VELOCITY 10.D
 // random u component
 //#define RANDOM_U_VELOCITY   random(-1000,1001)*0.01D
 #define RANDOM_U_VELOCITY   0.0D
 
 // constant v component
 //#define CONSTANT_V_VELOCITY 5.D
-#define CONSTANT_V_VELOCITY 0.D
+#define CONSTANT_V_VELOCITY 10.D
 // random v component
 //#define RANDOM_V_VELOCITY   random(-1000,1001)*0.01D
 #define RANDOM_V_VELOCITY   0.0D
