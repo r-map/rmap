@@ -647,8 +647,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
           avg_main_temperature_o += (avg_main_temperature_s - avg_main_temperature_o) / valid_count_main_temperature_o;
           avg_main_temperature_quality_o += (avg_main_temperature_quality_s - avg_main_temperature_quality_o) / valid_count_main_temperature_o;
           // Elaboration MIN and MAX for observation
-          if(avg_main_temperature_o < min_main_temperature_o) min_main_temperature_o = avg_main_temperature_o;
-          if(avg_main_temperature_o > max_main_temperature_o) max_main_temperature_o = avg_main_temperature_o;
+          if(avg_main_temperature_s < min_main_temperature_o) min_main_temperature_o = avg_main_temperature_s;
+          if(avg_main_temperature_s > max_main_temperature_o) max_main_temperature_o = avg_main_temperature_s;
         }
         // Reset Buffer sample for calculate next observation
         avg_main_temperature_quality_s = 0;
@@ -667,8 +667,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
           avg_main_humidity_o += (avg_main_humidity_s - avg_main_humidity_o) / valid_count_main_humidity_o;
           avg_main_humidity_quality_o += (avg_main_humidity_quality_s - avg_main_humidity_quality_o) / valid_count_main_humidity_o;
           // Elaboration MIN and MAX for observation
-          if(avg_main_humidity_o < min_main_humidity_o) min_main_humidity_o = avg_main_humidity_o;
-          if(avg_main_humidity_o > max_main_humidity_o) max_main_humidity_o = avg_main_humidity_o;
+          if(avg_main_humidity_s < min_main_humidity_o) min_main_humidity_o = avg_main_humidity_s;
+          if(avg_main_humidity_s > max_main_humidity_o) max_main_humidity_o = avg_main_humidity_s;
         }
         // Reset Buffer sample for calculate next observation
         avg_main_humidity_quality_s = 0;
@@ -691,8 +691,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     {
       // report.temperature.ist (already assigned)
       report.temperature.avg = (rmapdata_t)avg_main_temperature_o;
-      report.temperature.min = (rmapdata_t)min_main_temperature_o;
-      report.temperature.max = (rmapdata_t)max_main_temperature_o;
+      if(min_main_temperature_o > FLT_MIN) report.temperature.min = (rmapdata_t)min_main_temperature_o;
+      if(max_main_temperature_o < FLT_MAX) report.temperature.max = (rmapdata_t)max_main_temperature_o;
       report.temperature.quality = (rmapdata_t)avg_main_temperature_quality_o;
     }
 
@@ -704,8 +704,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     {
       // report.humidity.ist (already assigned)
       report.humidity.avg = (rmapdata_t)avg_main_humidity_o;
-      report.humidity.min = (rmapdata_t)min_main_humidity_o;
-      report.humidity.max = (rmapdata_t)max_main_humidity_o;
+      if(min_main_humidity_o > FLT_MIN) report.humidity.min = (rmapdata_t)min_main_humidity_o;
+      if(max_main_humidity_o < FLT_MAX) report.humidity.max = (rmapdata_t)max_main_humidity_o;
       report.humidity.quality = (rmapdata_t)avg_main_humidity_quality_o;
     }
 
