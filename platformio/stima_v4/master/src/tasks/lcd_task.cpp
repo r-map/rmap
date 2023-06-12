@@ -231,7 +231,7 @@ void LCDTask::Run() {
         data_printed = false;
         encoder_state = DIR_NONE;
         selected_char_index = 0;
-        stima4_master_command = MASTER_COMMAND_SDCARD;
+        stima4_master_command = MASTER_COMMAND_DOWNLOAD_CFG;
         stima4_menu_ui = MAIN;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
 
@@ -416,6 +416,45 @@ void LCDTask::display_off() {
   state = LCD_STATE_STANDBY;
 }
 
+/// @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
+/// @param str pointer to string (will be incremented if hex char are found and converted)
+/// @param value_out pointer to data return value converted
+/// @return true if error occurs, false if conversion is ready
+bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t *value_out) {
+  bool is_error = false;
+
+  if(isxdigit(**str)) {
+    if(isdigit(**str)) {
+      *value_out = **str - 48;
+    } else {
+      if(isupper(**str)) {
+        *value_out = **str - 55;
+      } else {
+        *value_out = **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    *value_out<<=4;
+    (*str)++;
+  } else is_error=true;
+
+  if(!is_error && isxdigit(**str)) {
+    if(isdigit(**str)) {
+      *value_out += **str - 48;
+    } else {
+      if(isupper(**str)) {
+        *value_out += **str - 55;
+      } else {
+        *value_out += **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    (*str)++;
+  } else is_error = true;
+
+	return is_error;
+}
+
 /**
  * @brief Put on display
  *
@@ -484,7 +523,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / 10.0;
         value_display_B = (float)param.system_status->data_slave[channel].data_value[1];
         if ((value_display_A < 0) || (value_display_A > 60)) bMeasValid_A = false;
-        if ((value_display_B < 0) || (value_display_B > 359.9)) bMeasValid_B = false;
+        if ((value_display_B < 0) || (value_display_B > 360.0)) bMeasValid_B = false;
         break;
       case Module_Type::radiation:
         value_display_A = param.system_status->data_slave[channel].data_value[0];
@@ -1097,7 +1136,11 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   TRACE_INFO_F(F("LCD: Command to elaborate \"[ %s ]\"\r\n"), get_master_command_name_from_enum(command));
 
   switch (command) {
-    case MASTER_COMMAND_SDCARD: {
+    case MASTER_COMMAND_DOWNLOAD_CFG: {
+      // Set the request on system status to force connection request
+      param.systemStatusLock->Take();
+      param.system_status->command.do_http_configuration_update = true;
+      param.systemStatusLock->Give();
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1146,11 +1189,21 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       break;
     }
     case MASTER_COMMAND_UPDATE_PSK_KEY: {
-      uint8_t client_psk_key[CLIENT_PSK_KEY_LENGTH];
-      // Update the mqtt password of the station
+      uint8_t byte_pos = 0;
+      const char *ptr_read = new_client_psk_key; // Point to PSK_KEY String NOT 0x-> but Direct
+      bool end_conversion = false;
+      uint8_t data_read;
+      // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
+      // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
+      // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
+      // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
       param.configurationLock->Take();
-      // Conversion char TO uint8_t
-
+      // Reset PSK_KEY
+      memset(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
+      while((byte_pos!=CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
+        end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
+        param.configuration->client_psk_key[byte_pos++] = data_read;
+      }
       // Update value on configuration
 
       param.configurationLock->Give();
@@ -1273,8 +1326,8 @@ void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
 const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
   const char* command_name;
   switch (command) {
-    case MASTER_COMMAND_SDCARD: {
-      command_name = "Replacement SD card";
+    case MASTER_COMMAND_DOWNLOAD_CFG: {
+      command_name = "Download configuration";
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1505,8 +1558,8 @@ void LCDTask::switch_interface() {
           // **************************************************************************
 
           if (stima4_menu_ui_last == MAIN) {
-            command_selector_pos = stima4_master_command == MASTER_COMMAND_SDCARD ? 0 : command_selector_pos - 1;
-            stima4_master_command = stima4_master_command == MASTER_COMMAND_SDCARD ? MASTER_COMMAND_SDCARD : (stima4_master_commands_t)(stima4_master_command - 1);
+            command_selector_pos = stima4_master_command == MASTER_COMMAND_DOWNLOAD_CFG ? 0 : command_selector_pos - 1;
+            stima4_master_command = stima4_master_command == MASTER_COMMAND_DOWNLOAD_CFG ? MASTER_COMMAND_DOWNLOAD_CFG : (stima4_master_commands_t)(stima4_master_command - 1);
             if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
               stima4_master_command = (stima4_master_commands_t)(stima4_master_command - 1);
             }
@@ -1611,7 +1664,7 @@ void LCDTask::switch_interface() {
 
         // Updating flags and states
         command_selector_pos = 0;
-        stima4_master_command = MASTER_COMMAND_SDCARD;
+        stima4_master_command = MASTER_COMMAND_DOWNLOAD_CFG;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
         break;
       }

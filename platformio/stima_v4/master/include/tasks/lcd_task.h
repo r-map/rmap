@@ -72,7 +72,7 @@ typedef enum LCDState {
 } LCDState_t;
 
 typedef enum LCDMasterCommands {
-  MASTER_COMMAND_SDCARD,
+  MASTER_COMMAND_DOWNLOAD_CFG,
   MASTER_COMMAND_UPDATE_STATION_SLUG,
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,
   MASTER_COMMAND_UPDATE_MQTT_PASSWORD,
@@ -145,6 +145,7 @@ class LCDTask : public cpp_freertos::Thread {
   static void encoder_process(uint8_t new_value, uint8_t old_value);
   static void ISR_input_pression_pin_encoder(void);
   static void ISR_input_rotation_pin_encoder(void);
+  bool ASCIIHexToDecimal(char** str, uint8_t *value_out);
   void display_off(void);
   void display_on(void);
   void display_print_channel_interface(uint8_t module_type);
