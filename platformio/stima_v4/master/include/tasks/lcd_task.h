@@ -42,8 +42,8 @@
 
 #include "STM32FreeRTOS.h"
 #include "display_config.hpp"
-#include "drivers/module_master_hal.hpp"
 #include "drivers/eeprom.h"
+#include "drivers/module_master_hal.hpp"
 #include "queue.hpp"
 #include "thread.hpp"
 #include "ticks.hpp"
@@ -76,6 +76,9 @@ typedef enum LCDMasterCommands {
   MASTER_COMMAND_UPDATE_STATION_SLUG,
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,
   MASTER_COMMAND_UPDATE_MQTT_PASSWORD,
+  MASTER_COMMAND_UPDATE_GSM_APN,
+  MASTER_COMMAND_UPDATE_GSM_NUMBER,
+  MASTER_COMMAND_UPDATE_PSK_KEY,
   MASTER_COMMAND_FIRMWARE_UPGRADE,
   MASTER_COMMAND_EXIT  // Always the latest element
 } stima4_master_commands_t;
@@ -93,7 +96,10 @@ typedef enum LCDMenu {
   CONFIGURATION,
   UPDATE_STATION_SLUG,
   UPDATE_MQTT_USERNAME,
-  UPDATE_MQTT_PASSWORD
+  UPDATE_MQTT_PASSWORD,
+  UPDATE_GSM_APN,
+  UPDATE_GSM_NUMBER,
+  UPDATE_PSK_KEY
 } stima4_menu_ui_t;
 
 typedef union Encoder {
@@ -145,70 +151,115 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
   void display_print_main_interface(void);
+  void display_print_update_gsm_apn_interface(void);
+  void display_print_update_gsm_number_interface(void);
   void display_print_update_mqtt_password_interface(void);
   void display_print_update_mqtt_username_interface(void);
+  void display_print_update_psk_key_interface(void);
   void display_print_update_station_slug_interface(void);
   void display_setup(void);
   void elaborate_master_command(stima4_master_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
 
-  // Chars list for user input
+  // Default char list for user input
   char alphabet[ALPHABET_LENGTH] = {
       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<', '>', '#'};
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '<', '>', '!'};
+
+  // GSM number char list for user input
+  char alphabet_gsm_number[ALPHABET_GSM_NUMBER_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '#', '*', '<', '>', '!'};
+
+  // PSK KEY char list for user input
+  char alphabet_psk_key[ALPHABET_PSK_KEY_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '<', '>', '!'};
+
+  // It contains the new psk key in char format inserted from user
+  char new_client_psk_key[2 * CLIENT_PSK_KEY_LENGTH];
+
+  // It contains the new gsm apn inserted from user
+  char new_gsm_apn[GSM_APN_LENGTH] = {0};
+
+  // It contains the new gsm number inserted from user
+  char new_gsm_number[GSM_NUMBER_LENGTH] = {0};
+
   // It contains the new mqtt password of station inserted from user
   char new_mqtt_password[MQTT_PASSWORD_LENGTH] = {0};
+
   // It contains the new mqtt username of station inserted from user
   char new_mqtt_username[MQTT_USERNAME_LENGTH] = {0};
+
   // It contains the new slug of station inserted from user
   char new_station_slug[STATIONSLUG_LENGTH] = {0};
+
   // Indicates whether the display has printed the updates or not
   bool data_printed;
+
   // Indicates whether the display is off or not
   bool display_is_off;
+
   // Indicates if the pressure event has occurred or not
   inline static bool pression_event;
+
   // Indicates if the rotation event has occurred or not
   inline static bool rotation_event;
+
   // It contains the current logic state of the encoder
   inline static encoder_t encoder;
+
   // It contains the old logic state of the encoder
   inline static encoder_t encoder_old;
+
   // The time in milliseconds for debounce management
   inline static uint32_t debounce_millis;
+
   // The last time in milliseconds from any interactions with encoder for power display management
   inline static uint32_t last_display_timeout;
+
   // It contains the final result of the encoder state
   inline static uint8_t encoder_state;
+
   // Index used for read the data from array of slave boards
   int8_t channel;
+
   // Used for master configuration menu management of commands
   stima4_master_commands_t stima4_master_command;
+
   // Used for slave configuration menu management of commands
   stima4_slave_commands_t stima4_slave_command;
+
   // Current menu state
   stima4_menu_ui_t stima4_menu_ui;
+
   // Last menu state before configuration state
   stima4_menu_ui_t stima4_menu_ui_last;
+
   // Display instance
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
+
   // Contains the stack size allocated by LCD task
   uint16_t stackSize;
+
   // It contains the current time in milliseconds
   uint32_t read_millis;
+
   // Number of configurated boards
   uint8_t board_count;
+
   // Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
+
   // Contains the number of commands available for master board
   uint8_t commands_master_number;
+
   // Contains the number of commands available for each slave board
   uint8_t commands_slave_number;
+
   // Used to calculate the y-axis position of cursor to enter the new char of new station name
   uint8_t cursor_pos;
+
   // Contains the priority assigned to LCD task
   uint8_t priority;
+
   // Index used to determine the char selected from user in update name station interface
   uint8_t selected_char_index;
 
