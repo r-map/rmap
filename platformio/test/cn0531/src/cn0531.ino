@@ -35,21 +35,24 @@ void setup() {
 
 void loop() {
 
-  Serial.println("full");
-  ad5791.setTension(5000L); // Set to full scale output
-  //ad5791.setValue(0xFFFFF); // Set to full scale output
+  Serial.println("zero");
+  ad5791.setTension(0L);
+  Serial.println(ad5791.readValue(),HEX); // re-read value
+  delay(1000L*60*4);
+
+  Serial.println("1V");
+  ad5791.setTension(1000L);
+  Serial.println(ad5791.readValue(),HEX); // re-read value
+  delay(1000L*60*4);
+ 
+  Serial.println("2V");
+  ad5791.setTension(2000L);
+  Serial.println(ad5791.readValue(),HEX); // re-read value
+  delay(1000L*60*4);
+
+  Serial.println("3V");
+  ad5791.setTension(3000L);
   Serial.println(ad5791.readValue(),HEX); // re-read value
   delay(3000);
 
-  Serial.println("half");
-  ad5791.setTension(0L); // Set to full scale output
-  //ad5791.setValue(0x7FFFF); // Set the output
-  Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(3000);
- 
-  Serial.println("zero");
-  ad5791.setTension(-5000L);
-  //ad5791.setValue(0x0); // Set the output
-  Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(3000);
 }
