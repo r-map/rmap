@@ -1133,7 +1133,10 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_DISCONNECT:
+
       param.systemStatusLock->Take();
+      // Saving error connection INFO
+      param.system_status->flags.mqtt_error = is_error;
       // Remove first connection FLAG (Clear queue of RPC in safety mode)
       // RPC Must ececuted only from next connection without error to remote server
       if(!rmap_data_error) param.system_status->flags.clean_rpc = false;

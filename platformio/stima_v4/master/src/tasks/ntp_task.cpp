@@ -252,6 +252,7 @@ void NtpTask::Run() {
         param.systemStatusLock->Take();
         param.system_status->connection.is_ntp_synchronizing = false;
         param.system_status->connection.is_ntp_synchronized = true;
+        param.system_status->flags.ntp_error = false;
         param.systemStatusLock->Give();
 
         sntpClientDeinit(&sntpClientContext);
@@ -277,6 +278,7 @@ void NtpTask::Run() {
         param.systemStatusLock->Take();
         param.system_status->connection.is_ntp_synchronizing = false;
         param.system_status->connection.is_ntp_synchronized = false;
+        param.system_status->flags.ntp_error = true;
         param.systemStatusLock->Give();
 
         sntpClientDeinit(&sntpClientContext);
