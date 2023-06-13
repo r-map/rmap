@@ -163,11 +163,16 @@ void NtpTask::Run() {
         is_error = true;
         param.systemStatusLock->Take();
         param.system_status->connection.is_dns_failed_resolve = true;
+        param.system_status->flags.dns_error = true;
         param.systemStatusLock->Give();
         state = NTP_STATE_END;
         TRACE_VERBOSE_F(F("NTP_STATE_DO_NTP_SYNC -> NTP_STATE_END\r\n"));
         TRACE_ERROR_F(F("%s Failed to resolve ntp server name of %s\r\n"), Thread::GetName().c_str(), param.configuration->ntp_server);
         break;
+      } else {
+        param.systemStatusLock->Take();
+        param.system_status->flags.dns_error = false;
+        param.systemStatusLock->Give();
       }
 
       TaskWatchDog(SNTP_CLIENT_TIMEOUT_MS);

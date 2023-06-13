@@ -205,11 +205,16 @@ void HttpTask::Run() {
         is_error = true;
         param.systemStatusLock->Take();
         param.system_status->connection.is_dns_failed_resolve = true;
+        param.system_status->flags.dns_error = true;
         param.systemStatusLock->Give();
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_SEND_REQUEST -> HTTP_STATE_END\r\n"));
         TRACE_ERROR_F(F("%s Failed to resolve http server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), HttpServer, ERROR_STRING);
         break;
+      } else {
+        param.systemStatusLock->Take();
+        param.system_status->flags.dns_error = false;
+        param.systemStatusLock->Give();
       }
 
       // Shared Pointer

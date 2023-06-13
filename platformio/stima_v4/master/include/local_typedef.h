@@ -200,9 +200,9 @@ typedef struct
       uint8_t revision;
    } boards_update_avaiable[STIMA_MODULE_TYPE_MAX_AVAIABLE];
 
-  // Connection NET Flag
-  struct
-  {
+   // Connection NET Flag
+   struct
+   {
       bool is_connected;
       bool is_connecting;
       bool is_disconnected;
@@ -230,9 +230,9 @@ typedef struct
       uint32_t mqtt_data_published;
    } connection;
 
-  // Command Flag
-  struct
-  {
+   // Command Flag
+   struct
+   {
       bool do_ntp_synchronization;
       bool do_http_configuration_update;
       bool do_http_firmware_download;
@@ -310,6 +310,14 @@ typedef struct
       bool power_warning;        // True if power warning mode is activated from MPPT Module
       bool power_critical;       // True if power critical mode is activated from MPPT Module
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
+      // Flags error state for LCD Display
+      bool ppp_error;
+      bool dns_error;
+      bool ntp_error;
+      bool mqtt_error;
+      bool http_error;
+      bool http_wait_cfg;
+      bool http_wait_fw;
    } flags;
 
 } system_status_t;

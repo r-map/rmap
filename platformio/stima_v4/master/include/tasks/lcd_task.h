@@ -73,6 +73,7 @@ typedef enum LCDState {
 
 typedef enum LCDMasterCommands {
   MASTER_COMMAND_DOWNLOAD_CFG,
+  MASTER_COMMAND_RESET_FLAGS,
   MASTER_COMMAND_UPDATE_STATION_SLUG,
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,
   MASTER_COMMAND_UPDATE_GSM_APN,
@@ -113,6 +114,7 @@ typedef union Encoder {
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
+  bootloader_t *boot_request;
   cpp_freertos::BinarySemaphore *configurationLock;
   cpp_freertos::BinarySemaphore *systemStatusLock;
   cpp_freertos::BinarySemaphore *rtcLock;

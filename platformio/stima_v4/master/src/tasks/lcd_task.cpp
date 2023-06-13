@@ -1076,6 +1076,20 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.systemStatusLock->Give();
       break;
     }
+    case MASTER_COMMAND_RESET_FLAGS: {
+      // Set the request on system status to reset flags
+      param.systemStatusLock->Take();
+      param.system_status->modem.connection_attempted = 0;
+      param.system_status->modem.connection_completed = 0;
+      param.system_status->modem.perc_modem_connection_valid = 0;
+      param.systemStatusLock->Give();
+      // Reset counter on new or restored firmware
+      param.boot_request->tot_reset = 0;
+      param.boot_request->wdt_reset = 0;
+      // Save info bootloader block
+      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
+      break;
+    }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
       // Update the slug of the station
       param.configurationLock->Take();
@@ -1256,38 +1270,33 @@ void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
 const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
   const char* command_name;
   switch (command) {
-    case MASTER_COMMAND_DOWNLOAD_CFG: {
+    case MASTER_COMMAND_DOWNLOAD_CFG:
       command_name = "Download configuration";
       break;
-    }
-    case MASTER_COMMAND_UPDATE_STATION_SLUG: {
+    case MASTER_COMMAND_RESET_FLAGS:
+      command_name = "Reset flags";
+      break;
+    case MASTER_COMMAND_UPDATE_STATION_SLUG:
       command_name = "Update station slug";
       break;
-    }
-    case MASTER_COMMAND_UPDATE_MQTT_USERNAME: {
+    case MASTER_COMMAND_UPDATE_MQTT_USERNAME:
       command_name = "Update mqtt username";
       break;
-    }
-    case MASTER_COMMAND_UPDATE_GSM_APN: {
+    case MASTER_COMMAND_UPDATE_GSM_APN:
       command_name = "Update GSM APN";
       break;
-    }
-    case MASTER_COMMAND_UPDATE_GSM_NUMBER: {
+    case MASTER_COMMAND_UPDATE_GSM_NUMBER:
       command_name = "Update GSM number";
       break;
-    }
-    case MASTER_COMMAND_UPDATE_PSK_KEY: {
+    case MASTER_COMMAND_UPDATE_PSK_KEY:
       command_name = "Update PSK key";
       break;
-    }
-    case MASTER_COMMAND_FIRMWARE_UPGRADE: {
+    case MASTER_COMMAND_FIRMWARE_UPGRADE:
       command_name = "Upgrade firmware";
       break;
-    }
-    case MASTER_COMMAND_EXIT: {
+    case MASTER_COMMAND_EXIT:
       command_name = "Exit";
       break;
-    }
   }
   return command_name;
 }

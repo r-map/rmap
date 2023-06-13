@@ -218,11 +218,16 @@ void MqttTask::Run()
         is_error = true;
         param.systemStatusLock->Take();
         param.system_status->connection.is_dns_failed_resolve = true;
+        param.system_status->flags.dns_error = true;
         param.systemStatusLock->Give();
         TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
         break;
+      } else {
+        param.systemStatusLock->Take();
+        param.system_status->flags.dns_error = false;
+        param.systemStatusLock->Give();
       }
 
       // Set the MQTT version to be used
