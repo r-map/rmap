@@ -1172,6 +1172,14 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
+    case SLAVE_COMMAND_RESET_FLAGS: {
+      // Set the queue to send
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_reset_flags = true;
+      system_message.param = channel;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
+      break;
+    }
     case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
@@ -1295,6 +1303,10 @@ const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t co
   switch (command) {
     case SLAVE_COMMAND_MAINTENANCE: {
       command_name = "Maintenance";
+      break;
+    }
+    case SLAVE_COMMAND_RESET_FLAGS: {
+      command_name = "Reset flags";
       break;
     }
     case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {

@@ -167,6 +167,7 @@ private:
 
   // Acces static memeber parameter of class
   inline static bootloader_t *boot_state;
+  inline static EEprom *localEeprom;
   inline static cpp_freertos::Queue *localSystemMessageQueue;
   inline static uint16_t last_req_rpt_time = (REPORTS_TIME_S);
   inline static uint16_t last_req_obs_time = (OBSERVATIONS_TIME_S);

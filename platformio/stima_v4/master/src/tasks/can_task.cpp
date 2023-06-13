@@ -1998,6 +1998,7 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].data_value[0] = retTHData->ITH.temperature.val.value;
                                         param.system_status->data_slave[queueId].data_value[1] = retTHData->ITH.humidity.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.systemStatusLock->Give();
                                     } else if(retTHData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
@@ -2012,8 +2013,6 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retTHData->perc_i2c_error;
                                         param.systemStatusLock->Give();
-                                        // New Data avaiable for send to server
-                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
@@ -2069,6 +2068,7 @@ void CanTask::Run() {
                                         // Full Rain is Real Rain + Maintenance Rain Value, Otherwise if request is Get_Data, Rain is only
                                         // Real Rain data (without maintenece value). Master can set via CAN (...LCD Command) Maintenance Mode
                                         param.system_status->data_slave[queueId].data_value[0] = retRainData->TBR.rain.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.systemStatusLock->Give();
                                     } else if(retRainData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
@@ -2087,8 +2087,6 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
                                         param.systemStatusLock->Give();
-                                        // New Data avaiable for send to server
-                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
@@ -2142,6 +2140,7 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].data_value[0] = retWindData->DWA.speed.val.value;
                                         param.system_status->data_slave[queueId].data_value[1] = retWindData->DWA.direction.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.systemStatusLock->Give();
                                     } else if(retWindData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
@@ -2159,8 +2158,6 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retWindData->perc_rs232_error;
                                         param.systemStatusLock->Give();
-                                        // New Data avaiable for send to server
-                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
@@ -2214,6 +2211,7 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
                                         param.system_status->data_slave[queueId].data_value[0] = retRadiationData->DSA.radiation.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.systemStatusLock->Give();
                                     } else if(retRadiationData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
@@ -2228,8 +2226,6 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
                                         param.systemStatusLock->Give();
-                                        // New Data avaiable for send to server
-                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
@@ -2285,6 +2281,7 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].data_value[0] = retPwrData->MPP.battery_charge.val.value;
                                         param.system_status->data_slave[queueId].data_value[1] = retPwrData->MPP.input_voltage.val.value;
                                         param.system_status->data_slave[queueId].data_value[2] = retPwrData->MPP.battery_current.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         param.systemStatusLock->Give();
                                     } else if(retPwrData->state == rmap_service_setmode_1_0_get_last) {
                                         // data value id rmap_service_setmode_1_0_get_last into queue SD
@@ -2302,8 +2299,6 @@ void CanTask::Run() {
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
                                         param.systemStatusLock->Give();
-                                        // New Data avaiable for send to server
-                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
                                         // Copy Data
                                         memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
                                         // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
@@ -2409,7 +2404,7 @@ void CanTask::Run() {
                                     }
                                 }
                             }
-                            // STARTING CALIBRATION (Accellerometer)
+                            // STARTING CALIBRATION (Accelerometer)
                             if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_calib_acc)) {
                                 // Start Flag Event Start when request configuration is request
                                 // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
@@ -2421,6 +2416,34 @@ void CanTask::Run() {
                                     // Requestcalibration accellerometer from LCD or Remote RPC without param
                                     clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
                                         canardClass::Command_Private::calibrate_accelerometer, NULL, 0);
+                                    // Starting message server
+                                    param.systemStatusLock->Take();
+                                    param.system_status->flags.cmd_server_running = true;
+                                    param.systemStatusLock->Give();
+                                    message_traced = false;
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command
+                                    if(!message_traced) {
+                                        message_traced = true;
+                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
+                                }
+                            }
+                            // RESET FLAGS (All module slave)
+                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_reset_flags)) {
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                    // Remove message from the queue
+                                    param.systemMessageQueue->Dequeue(&system_message);
+                                    TRACE_INFO_F(F("Command server: Send request init flags at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                    // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                        canardClass::Command_Private::reset_flags, NULL, 0);
                                     // Starting message server
                                     param.systemStatusLock->Take();
                                     param.system_status->flags.cmd_server_running = true;
