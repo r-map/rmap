@@ -138,7 +138,7 @@ class LCDTask : public cpp_freertos::Thread {
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
 
-  bool ASCIIHexToDecimal(char** str, uint8_t *value_out);
+  bool ASCIIHexToDecimal(char **str, uint8_t *value_out);
   bool saveConfiguration(void);
   const char *get_master_command_name_from_enum(stima4_master_commands_t command);
   const char *get_slave_command_name_from_enum(stima4_slave_commands_t command);

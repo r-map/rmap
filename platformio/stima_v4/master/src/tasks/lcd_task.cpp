@@ -709,6 +709,36 @@ void LCDTask::display_print_main_interface() {
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
   param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
 
+  // Print signal status
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
+  display.print(F("Signal status: "));
+  display.drawFrame(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  if (param.system_status->modem.rssi <= 5) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 5 && param.system_status->modem.rssi <= 10) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 10 && param.system_status->modem.rssi <= 15) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 15 && param.system_status->modem.rssi <= 20) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi >= 20) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  }
+
   // Print serial number
   display.drawFrame(X_RECT_SERIAL_NUMBER, Y_RECT_SERIAL_NUMBER, display.getWidth() - X_RECT_SERIAL_NUMBER_MARGIN, HEIGHT_RECT_SERIAL_NUMBER);
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
@@ -733,7 +763,7 @@ void LCDTask::display_print_main_interface() {
  *
  */
 void LCDTask::display_print_update_gsm_apn_interface(void) {
-  char buffer[GSM_APN_LENGTH] = {0};
+  char buffer[sizeof(new_gsm_apn)] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -741,7 +771,7 @@ void LCDTask::display_print_update_gsm_apn_interface(void) {
 
   // Print Title
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a GSM APN "));
+  display.print(F("Enter GSM APN"));
 
   // Print the buffer of parameter
   display.setFont(u8g2_font_helvR10_tf);
@@ -749,8 +779,8 @@ void LCDTask::display_print_update_gsm_apn_interface(void) {
   for (uint8_t i = 0; i < 16; i++) {
     display.print(buffer[i]);
   }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < GSM_APN_LENGTH; i++) {
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+  for (uint8_t i = 16; i < sizeof(new_gsm_apn); i++) {
     display.print(buffer[i]);
   }
 
@@ -797,7 +827,7 @@ void LCDTask::display_print_update_gsm_apn_interface(void) {
  *
  */
 void LCDTask::display_print_update_gsm_number_interface(void) {
-  char buffer[GSM_NUMBER_LENGTH] = {0};
+  char buffer[sizeof(new_gsm_number)] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -805,7 +835,7 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
 
   // Print Title
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a GSM number "));
+  display.print(F("Enter GSM number"));
 
   // Print the buffer of parameter
   display.setFont(u8g2_font_helvR10_tf);
@@ -813,8 +843,8 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
   for (uint8_t i = 0; i < 16; i++) {
     display.print(buffer[i]);
   }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < GSM_NUMBER_LENGTH; i++) {
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+  for (uint8_t i = 16; i < sizeof(new_gsm_number); i++) {
     display.print(buffer[i]);
   }
 
@@ -861,7 +891,7 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
  *
  */
 void LCDTask::display_print_update_mqtt_username_interface(void) {
-  char buffer[MQTT_USERNAME_LENGTH] = {0};
+  char buffer[sizeof(new_mqtt_username)] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -869,7 +899,7 @@ void LCDTask::display_print_update_mqtt_username_interface(void) {
 
   // Print title
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a mqtt username "));
+  display.print(F("Enter mqtt username"));
 
   // Print the buffer of parameter
   display.setFont(u8g2_font_helvR10_tf);
@@ -877,8 +907,8 @@ void LCDTask::display_print_update_mqtt_username_interface(void) {
   for (uint8_t i = 0; i < 16; i++) {
     display.print(buffer[i]);
   }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < MQTT_USERNAME_LENGTH; i++) {
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+  for (uint8_t i = 16; i < sizeof(new_mqtt_username); i++) {
     display.print(buffer[i]);
   }
 
@@ -925,7 +955,7 @@ void LCDTask::display_print_update_mqtt_username_interface(void) {
  *
  */
 void LCDTask::display_print_update_psk_key_interface(void) {
-  char buffer[(2 * CLIENT_PSK_KEY_LENGTH)+1] = {0};
+  char buffer[sizeof(new_client_psk_key)] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -933,7 +963,7 @@ void LCDTask::display_print_update_psk_key_interface(void) {
 
   // Print Title
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a PSK KEY "));
+  display.print(F("Enter PSK KEY"));
 
   // Print the buffer of parameter
   display.setFont(u8g2_font_helvR10_tf);
@@ -942,7 +972,7 @@ void LCDTask::display_print_update_psk_key_interface(void) {
     display.print(buffer[i]);
   }
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
-  for (uint8_t i = 16; i < (2 * CLIENT_PSK_KEY_LENGTH) + 1; i++) {
+  for (uint8_t i = 16; i < sizeof(new_client_psk_key); i++) {
     display.print(buffer[i]);
   }
 
@@ -989,7 +1019,7 @@ void LCDTask::display_print_update_psk_key_interface(void) {
  *
  */
 void LCDTask::display_print_update_station_slug_interface(void) {
-  char buffer[STATIONSLUG_LENGTH] = {0};
+  char buffer[sizeof(new_station_slug)] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -997,7 +1027,7 @@ void LCDTask::display_print_update_station_slug_interface(void) {
 
   // Print Title
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a slug for the station "));
+  display.print(F("Enter slug of the station"));
 
   // Print the buffer of parameter
   display.setFont(u8g2_font_helvR10_tf);
@@ -1005,8 +1035,8 @@ void LCDTask::display_print_update_station_slug_interface(void) {
   for (uint8_t i = 0; i < 16; i++) {
     display.print(buffer[i]);
   }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < STATIONSLUG_LENGTH; i++) {
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+  for (uint8_t i = 16; i < sizeof(new_station_slug); i++) {
     display.print(buffer[i]);
   }
 
@@ -1559,7 +1589,7 @@ void LCDTask::switch_interface() {
         // ************************************************************************
         // ************************* ELABORATE COMMAND ****************************
         // ************************************************************************
-        cursor_pos = 0;
+
         selected_char_index = 0;
 
         if (stima4_menu_ui_last == MAIN) {
@@ -1568,8 +1598,9 @@ void LCDTask::switch_interface() {
             // ************************* STATION SLUG INIT ****************************
             // ************************************************************************
 
-            // Set input buffer
+            // Reset input buffer
             memset(new_station_slug, 0, sizeof(new_station_slug));
+            // Set input buffer
             strcpy(new_station_slug, param.configuration->stationslug);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->stationslug);
@@ -1580,8 +1611,9 @@ void LCDTask::switch_interface() {
             // ************************* MQTT USERNAME INIT ***************************
             // ************************************************************************
 
-            // Set input buffer
+            // Reset input buffer
             memset(new_mqtt_username, 0, sizeof(new_mqtt_username));
+            // Set input buffer
             strcpy(new_mqtt_username, param.configuration->mqtt_username);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->mqtt_username);
@@ -1592,8 +1624,9 @@ void LCDTask::switch_interface() {
             // *************************** GSM APN INIT *******************************
             // ************************************************************************
 
-            // Set input buffer
+            // Reset input buffer
             memset(new_gsm_apn, 0, sizeof(new_gsm_apn));
+            // Set input buffer
             strcpy(new_gsm_apn, param.configuration->gsm_apn);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->gsm_apn);
@@ -1604,8 +1637,9 @@ void LCDTask::switch_interface() {
             // ************************* GSM NUMBER INIT ******************************
             // ************************************************************************
 
-            // Set input buffer
+            // Reset input buffer
             memset(new_gsm_number, 0, sizeof(new_gsm_number));
+            // Set input buffer
             strcpy(new_gsm_number, param.configuration->gsm_number);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->gsm_number);
@@ -1615,17 +1649,25 @@ void LCDTask::switch_interface() {
             // ************************************************************************
             // *************************** PSK KEY INIT *******************************
             // ************************************************************************
-            // Copy psk_key into buffer in HEX value mode
-            for(int8_t id=0; id<CLIENT_PSK_KEY_LENGTH; id++) {
+
+            // Reset input buffer
+            memset(new_client_psk_key, 0, sizeof(new_client_psk_key));
+            // Set input buffer
+            for (int8_t id = 0; id < CLIENT_PSK_KEY_LENGTH; id++) {
               char tmp_data[2];
-              sprintf(&new_client_psk_key[id*2], "%02X", param.configuration->client_psk_key[id]);
+              sprintf(&new_client_psk_key[id * 2], "%02X", param.configuration->client_psk_key[id]);
             }
             // Cursor position to last character of parameter
             cursor_pos = (CLIENT_PSK_KEY_LENGTH * 2);
             // Update current menu state
             stima4_menu_ui = UPDATE_PSK_KEY;
           } else {
+            // ************************************************************************
+            // ************************* ELABORATE COMMAND ****************************
+            // ************************************************************************
+
             elaborate_master_command(stima4_master_command);
+
             // Update current menu state
             stima4_menu_ui = stima4_menu_ui_last;
           }
@@ -1654,9 +1696,6 @@ void LCDTask::switch_interface() {
             break;
           }
           case '>': {
-            // Add \0 character to the end of the string
-            new_station_slug[cursor_pos] = '\0';
-
             elaborate_master_command(MASTER_COMMAND_UPDATE_STATION_SLUG);
 
             stima4_menu_ui = stima4_menu_ui_last;
@@ -1670,9 +1709,6 @@ void LCDTask::switch_interface() {
             new_station_slug[cursor_pos++] = alphabet[selected_char_index];
 
             if (cursor_pos == STATIONSLUG_LENGTH - 1) {
-              // Add \0 character to the end of the string
-              new_station_slug[cursor_pos] = '\0';
-
               elaborate_master_command(MASTER_COMMAND_UPDATE_STATION_SLUG);
 
               stima4_menu_ui = stima4_menu_ui_last;
@@ -1695,9 +1731,6 @@ void LCDTask::switch_interface() {
             break;
           }
           case '>': {
-            // Add \0 character to the end of the string
-            new_mqtt_username[cursor_pos] = '\0';
-
             elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_USERNAME);
 
             stima4_menu_ui = stima4_menu_ui_last;
@@ -1711,9 +1744,6 @@ void LCDTask::switch_interface() {
             new_mqtt_username[cursor_pos++] = alphabet[selected_char_index];
 
             if (cursor_pos == MQTT_USERNAME_LENGTH - 1) {
-              // Add \0 character to the end of the string
-              new_mqtt_username[cursor_pos] = '\0';
-
               elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_USERNAME);
 
               stima4_menu_ui = stima4_menu_ui_last;
@@ -1736,9 +1766,6 @@ void LCDTask::switch_interface() {
             break;
           }
           case '>': {
-            // Add \0 character to the end of the string
-            new_gsm_apn[cursor_pos] = '\0';
-
             elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
 
             stima4_menu_ui = stima4_menu_ui_last;
@@ -1752,9 +1779,6 @@ void LCDTask::switch_interface() {
             new_gsm_apn[cursor_pos++] = alphabet[selected_char_index];
 
             if (cursor_pos == GSM_APN_LENGTH - 1) {
-              // Add \0 character to the end of the string
-              new_gsm_apn[cursor_pos] = '\0';
-
               elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
 
               stima4_menu_ui = stima4_menu_ui_last;
@@ -1777,9 +1801,6 @@ void LCDTask::switch_interface() {
             break;
           }
           case '>': {
-            // Add \0 character to the end of the string
-            new_gsm_number[cursor_pos] = '\0';
-
             elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_NUMBER);
 
             stima4_menu_ui = stima4_menu_ui_last;
@@ -1793,9 +1814,6 @@ void LCDTask::switch_interface() {
             new_gsm_number[cursor_pos++] = alphabet_gsm_number[selected_char_index];
 
             if (cursor_pos == GSM_NUMBER_LENGTH - 1) {
-              // Add \0 character to the end of the string
-              new_gsm_number[cursor_pos] = '\0';
-
               elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_NUMBER);
 
               stima4_menu_ui = stima4_menu_ui_last;
@@ -1818,9 +1836,6 @@ void LCDTask::switch_interface() {
             break;
           }
           case '>': {
-            // Add \0 character to the end of the string
-            new_client_psk_key[cursor_pos] = '\0';
-
             elaborate_master_command(MASTER_COMMAND_UPDATE_PSK_KEY);
 
             stima4_menu_ui = stima4_menu_ui_last;
@@ -1834,9 +1849,6 @@ void LCDTask::switch_interface() {
             new_client_psk_key[cursor_pos++] = alphabet_psk_key[selected_char_index];
 
             if (cursor_pos == (2 * CLIENT_PSK_KEY_LENGTH) - 1) {
-              // Add \0 character to the end of the string
-              new_client_psk_key[cursor_pos] = '\0';
-
               elaborate_master_command(MASTER_COMMAND_UPDATE_PSK_KEY);
 
               stima4_menu_ui = stima4_menu_ui_last;
