@@ -676,7 +676,9 @@ void LCDTask::display_print_default_interface() {
  *
  */
 void LCDTask::display_print_main_interface() {
+  char buffer_errors[30] = {0};
   char dtIntest[18] = {0};
+  char errors[25] = {0};
   char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
   char station[STATION_LCD_LENGTH];
 
@@ -705,38 +707,73 @@ void LCDTask::display_print_main_interface() {
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
   display.print(firmware_version);
 
-  // Print SD card status
+  // Print signal status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
+  display.print(F("Signal status: "));
+  display.drawFrame(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  if (param.system_status->modem.rssi <= 5) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 5 && param.system_status->modem.rssi <= 10) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 10 && param.system_status->modem.rssi <= 15) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi > 15 && param.system_status->modem.rssi <= 20) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  } else if (param.system_status->modem.rssi >= 20) {
+    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  }
+
+  // Print SD card status
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
   param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
 
-  // Print signal status
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
-  display.print(F("Signal status: "));
-  display.drawFrame(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  if (param.system_status->modem.rssi <= 5) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 5 && param.system_status->modem.rssi <= 10) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 10 && param.system_status->modem.rssi <= 15) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 15 && param.system_status->modem.rssi <= 20) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi >= 20) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 3.4 * LINE_BREAK, 6, 6);
+  // Print system status
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
+  display.print(F("System status: "));
+  if (!param.system_status->flags.ppp_error &&
+      !param.system_status->flags.dns_error &&
+      !param.system_status->flags.ntp_error &&
+      !param.system_status->flags.mqtt_error &&
+      !param.system_status->flags.http_error) {
+    display.print(F(" OK"));
+  } else {
+    // Add type of error to buffer
+    if (param.system_status->flags.ppp_error) strcat(errors, "ppp ");
+    if (param.system_status->flags.dns_error) strcat(errors, "dns ");
+    if (param.system_status->flags.ntp_error) strcat(errors, "ntp ");
+    if (param.system_status->flags.mqtt_error) strcat(errors, "mqtt ");
+    if (param.system_status->flags.http_error) strcat(errors, "http");
+
+    display.print(F("ERR"));
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+    snprintf(buffer_errors, sizeof(buffer_errors), "> %s", errors);
+    display.print(buffer_errors);
+  }
+
+  // Print Wait configuration information
+  if (param.system_status->flags.http_wait_cfg) {
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7 * LINE_BREAK);
+    display.print(F("Waiting configuration..."));
+  }
+
+  // Print Wait download firmware information
+  if (param.system_status->flags.http_wait_fw) {
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8 * LINE_BREAK);
+    display.print(F("Waiting download firmware..."));
   }
 
   // Print serial number
@@ -1107,17 +1144,6 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       break;
     }
     case MASTER_COMMAND_RESET_FLAGS: {
-      // Set the request on system status to reset flags
-      param.systemStatusLock->Take();
-      param.system_status->modem.connection_attempted = 0;
-      param.system_status->modem.connection_completed = 0;
-      param.system_status->modem.perc_modem_connection_valid = 0;
-      param.systemStatusLock->Give();
-      // Reset counter on new or restored firmware
-      param.boot_request->tot_reset = 0;
-      param.boot_request->wdt_reset = 0;
-      // Save info bootloader block
-      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1300,33 +1326,42 @@ void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
 const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
   const char* command_name;
   switch (command) {
-    case MASTER_COMMAND_DOWNLOAD_CFG:
+    case MASTER_COMMAND_DOWNLOAD_CFG: {
       command_name = "Download configuration";
       break;
-    case MASTER_COMMAND_RESET_FLAGS:
+    }
+    case MASTER_COMMAND_RESET_FLAGS: {
       command_name = "Reset flags";
       break;
-    case MASTER_COMMAND_UPDATE_STATION_SLUG:
+    }
+    case MASTER_COMMAND_UPDATE_STATION_SLUG: {
       command_name = "Update station slug";
       break;
-    case MASTER_COMMAND_UPDATE_MQTT_USERNAME:
+    }
+    case MASTER_COMMAND_UPDATE_MQTT_USERNAME: {
       command_name = "Update mqtt username";
       break;
-    case MASTER_COMMAND_UPDATE_GSM_APN:
+    }
+    case MASTER_COMMAND_UPDATE_GSM_APN: {
       command_name = "Update GSM APN";
       break;
-    case MASTER_COMMAND_UPDATE_GSM_NUMBER:
+    }
+    case MASTER_COMMAND_UPDATE_GSM_NUMBER: {
       command_name = "Update GSM number";
       break;
-    case MASTER_COMMAND_UPDATE_PSK_KEY:
+    }
+    case MASTER_COMMAND_UPDATE_PSK_KEY: {
       command_name = "Update PSK key";
       break;
-    case MASTER_COMMAND_FIRMWARE_UPGRADE:
+    }
+    case MASTER_COMMAND_FIRMWARE_UPGRADE: {
       command_name = "Upgrade firmware";
       break;
-    case MASTER_COMMAND_EXIT:
+    }
+    case MASTER_COMMAND_EXIT: {
       command_name = "Exit";
       break;
+    }
   }
   return command_name;
 }
