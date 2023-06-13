@@ -529,10 +529,10 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
       case Module_Type::power:
         printMeasB = true;
         printMeasC = true;
-        value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / 10.0;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value[0];
         value_display_B = (float)param.system_status->data_slave[channel].data_value[1] / 10.0;
         value_display_C = (float)param.system_status->data_slave[channel].data_value[2];
-        if ((value_display_A < 5) || (value_display_A > 20)) bMeasValid_A = false;
+        if ((value_display_A < 0) || (value_display_A > 100)) bMeasValid_A = false;
         if ((value_display_B < 0) || (value_display_B > 30)) bMeasValid_B = false;
         if ((value_display_C < -350) || (value_display_C > 5000)) bMeasValid_C = false;
         break;
@@ -715,26 +715,29 @@ void LCDTask::display_print_main_interface() {
   display.drawFrame(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
   display.drawFrame(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
   display.drawFrame(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  if (param.system_status->modem.rssi <= 5) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 5 && param.system_status->modem.rssi <= 10) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 10 && param.system_status->modem.rssi <= 15) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi > 15 && param.system_status->modem.rssi <= 20) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  } else if (param.system_status->modem.rssi >= 20) {
-    display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  // With regular signal (>0)
+  if (param.system_status->flags.gsm_rssi > 0) {
+    if (param.system_status->flags.gsm_rssi <= 5) {
+      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->flags.gsm_rssi <= 10) {
+      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->flags.gsm_rssi <= 15) {
+      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->modem.rssi <= 20) {
+      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else {
+      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    }
   }
 
   // Print SD card status
@@ -1140,10 +1143,22 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       // Set the request on system status to force connection request
       param.systemStatusLock->Take();
       param.system_status->command.do_http_configuration_update = true;
+      param.system_status->flags.http_wait_cfg = true;
       param.systemStatusLock->Give();
       break;
     }
     case MASTER_COMMAND_RESET_FLAGS: {
+      // Set the request on system status to reset flags
+      param.systemStatusLock->Take();
+      param.system_status->modem.connection_attempted = 0;
+      param.system_status->modem.connection_completed = 0;
+      param.system_status->modem.perc_modem_connection_valid = 0;
+      param.systemStatusLock->Give();
+      // Reset counter on new or restored firmware
+      param.boot_request->tot_reset = 0;
+      param.boot_request->wdt_reset = 0;
+      // Save info bootloader block
+      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {

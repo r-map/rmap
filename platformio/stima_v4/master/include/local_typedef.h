@@ -318,6 +318,7 @@ typedef struct
       bool http_error;
       bool http_wait_cfg;
       bool http_wait_fw;
+      uint8_t gsm_rssi;
    } flags;
 
 } system_status_t;

@@ -12,6 +12,8 @@ void setup() {
   Serial.begin(115200);
 
   Serial.println("Started");
+
+  pinMode(USER_BTN, INPUT);
   
   ad5791.begin(true);   // Set the pin modes
   //SPI.begin(); //enabled by true in previous begin
@@ -38,21 +40,29 @@ void loop() {
   Serial.println("zero");
   ad5791.setTension(0L);
   Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(1000L*60*5);
+  while(digitalRead(USER_BTN));
+  delay(500);
+//  delay(1000L*60*5);
 
   Serial.println("1V");
   ad5791.setTension(1000L);
   Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(1000L*60*5);
+  while(digitalRead(USER_BTN));
+  delay(500);
+//  delay(1000L*60*5);
  
   Serial.println("2V");
   ad5791.setTension(2000L);
   Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(1000L*60*5);
+  while(digitalRead(USER_BTN));
+  delay(500);
+//  delay(1000L*60*5);
 
   Serial.println("3V");
   ad5791.setTension(3000L);
   Serial.println(ad5791.readValue(),HEX); // re-read value
-  delay(1000L*60*5);
+  while(digitalRead(USER_BTN));
+  delay(500);
+//  delay(1000L*60*5);
 
 }

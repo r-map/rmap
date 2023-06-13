@@ -377,6 +377,8 @@ void MqttTask::Run()
       }
       indexPosition--;
       // RSSI Signal to low (<10)
+      // Copy connection RSSI flag value of last (current) connection
+      param.system_status->flags.gsm_rssi = param.system_status->modem.rssi;
       if(param.system_status->modem.rssi < 10) {
          bitState[indexPosition] = '1';
       }
