@@ -925,7 +925,7 @@ void LCDTask::display_print_update_mqtt_username_interface(void) {
  *
  */
 void LCDTask::display_print_update_psk_key_interface(void) {
-  char buffer[2 * CLIENT_PSK_KEY_LENGTH] = {0};
+  char buffer[(2 * CLIENT_PSK_KEY_LENGTH)+1] = {0};
   char status_message[20] = {0};
 
   // Get parameter
@@ -941,8 +941,8 @@ void LCDTask::display_print_update_psk_key_interface(void) {
   for (uint8_t i = 0; i < 16; i++) {
     display.print(buffer[i]);
   }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < 2 * CLIENT_PSK_KEY_LENGTH; i++) {
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
+  for (uint8_t i = 16; i < (2 * CLIENT_PSK_KEY_LENGTH) + 1; i++) {
     display.print(buffer[i]);
   }
 
@@ -1569,7 +1569,8 @@ void LCDTask::switch_interface() {
             // ************************************************************************
 
             // Set input buffer
-            memcpy(new_station_slug, param.configuration->stationslug, strlen(param.configuration->stationslug));
+            memset(new_station_slug, 0, sizeof(new_station_slug));
+            strcpy(new_station_slug, param.configuration->stationslug);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->stationslug);
             // Update current menu state
@@ -1580,7 +1581,8 @@ void LCDTask::switch_interface() {
             // ************************************************************************
 
             // Set input buffer
-            memcpy(new_mqtt_username, param.configuration->mqtt_username, strlen(param.configuration->mqtt_username));
+            memset(new_mqtt_username, 0, sizeof(new_mqtt_username));
+            strcpy(new_mqtt_username, param.configuration->mqtt_username);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->mqtt_username);
             // Update current menu state
@@ -1591,7 +1593,8 @@ void LCDTask::switch_interface() {
             // ************************************************************************
 
             // Set input buffer
-            memcpy(new_gsm_apn, param.configuration->gsm_apn, strlen(param.configuration->gsm_apn));
+            memset(new_gsm_apn, 0, sizeof(new_gsm_apn));
+            strcpy(new_gsm_apn, param.configuration->gsm_apn);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->gsm_apn);
             // Update current menu state
@@ -1602,7 +1605,8 @@ void LCDTask::switch_interface() {
             // ************************************************************************
 
             // Set input buffer
-            memcpy(new_gsm_number, param.configuration->gsm_number, strlen(param.configuration->gsm_number));
+            memset(new_gsm_number, 0, sizeof(new_gsm_number));
+            strcpy(new_gsm_number, param.configuration->gsm_number);
             // Cursor position to last character of parameter
             cursor_pos = strlen(param.configuration->gsm_number);
             // Update current menu state
@@ -1611,9 +1615,13 @@ void LCDTask::switch_interface() {
             // ************************************************************************
             // *************************** PSK KEY INIT *******************************
             // ************************************************************************
-
-            // Reset input buffer
-            memset(new_client_psk_key, 0, 2 * CLIENT_PSK_KEY_LENGTH);
+            // Copy psk_key into buffer in HEX value mode
+            for(int8_t id=0; id<CLIENT_PSK_KEY_LENGTH; id++) {
+              char tmp_data[2];
+              sprintf(&new_client_psk_key[id*2], "%02X", param.configuration->client_psk_key[id]);
+            }
+            // Cursor position to last character of parameter
+            cursor_pos = (CLIENT_PSK_KEY_LENGTH * 2);
             // Update current menu state
             stima4_menu_ui = UPDATE_PSK_KEY;
           } else {

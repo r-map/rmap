@@ -173,7 +173,7 @@ class LCDTask : public cpp_freertos::Thread {
   char alphabet_psk_key[ALPHABET_PSK_KEY_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '<', '>', '!'};
 
   // It contains the new psk key in char format inserted from user
-  char new_client_psk_key[2 * CLIENT_PSK_KEY_LENGTH];
+  char new_client_psk_key[2 * CLIENT_PSK_KEY_LENGTH + 1];
 
   // It contains the new gsm apn inserted from user
   char new_gsm_apn[GSM_APN_LENGTH] = {0};
