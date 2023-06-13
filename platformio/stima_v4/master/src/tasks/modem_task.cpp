@@ -145,6 +145,10 @@ void ModemTask::Run() {
       {
         is_error = true;
 
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
+
         TRACE_ERROR_F(F("%s Failed to initialize PPP... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         Delay(Ticks::MsToTicks(MODEM_TASK_GENERIC_RETRY_DELAY_MS));
         break;
@@ -161,6 +165,10 @@ void ModemTask::Run() {
       if (error)
       {
         is_error = true;
+
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
 
         TRACE_ERROR_F(F("%s Failed to configure interface %s [ %s ]\r\n"), Thread::GetName().c_str(), interface->name, ERROR_STRING);
         TaskWatchDog(MODEM_TASK_GENERIC_RETRY_DELAY_MS);
@@ -227,6 +235,10 @@ void ModemTask::Run() {
       {
         is_error = true;
 
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
+
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_SWITCH_ON -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
@@ -251,6 +263,10 @@ void ModemTask::Run() {
       {
         is_error = true;
 
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
+
         state = MODEM_STATE_SWITCH_OFF;
         TRACE_VERBOSE_F(F("MODEM_STATE_SETUP -> MODEM_STATE_SWITCH_OFF\r\n"));
       }
@@ -272,6 +288,10 @@ void ModemTask::Run() {
       else if (status == SIM7600_ERROR)
       {
         is_error = true;
+
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
 
         state = MODEM_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECT -> MODEM_STATE_DISCONNECT\r\n"));
@@ -309,6 +329,10 @@ void ModemTask::Run() {
       {
         is_error = true;
 
+        param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = true;
+        param.systemStatusLock->Give();
+
         TRACE_ERROR_F(F("%s Failed to established PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
         state = MODEM_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MODEM_STATE_CONNECTED -> MODEM_STATE_DISCONNECT\r\n"));
@@ -319,6 +343,7 @@ void ModemTask::Run() {
         try_connection = false;
         // Saving last state of modemParam signal state
         param.systemStatusLock->Take();
+        param.system_status->flags.ppp_error = false;
         param.system_status->connection.is_ppp_estabilished = true;
         param.system_status->modem.ber = sim7600.getBer();
         param.system_status->modem.rssi = sim7600.getRssi();

@@ -485,8 +485,16 @@ void HttpTask::Run() {
 
           if (!error)
           {
+            // Security Remove flag config wait... Start success download 
+            if(param.system_status->flags.http_wait_cfg) {
+              param.systemStatusLock->Take();
+              param.system_status->flags.http_wait_cfg = false;
+              param.systemStatusLock->Give();
+            }
+
             http_buffer[http_buffer_length] = '\0';
             TRACE_INFO_F(F("%s"), http_buffer);
+
           }
 
           // Put RPC for configuration mode
@@ -516,6 +524,13 @@ void HttpTask::Run() {
 
           if (!error)
           {
+
+            // Security Remove flag firmware wait... Start success download 
+            if(param.system_status->flags.http_wait_fw) {
+              param.systemStatusLock->Take();
+              param.system_status->flags.http_wait_fw = false;
+              param.systemStatusLock->Give();
+            }
 
             #if (ENABLE_STACK_USAGE)
             TaskMonitorStack();
@@ -642,6 +657,7 @@ void HttpTask::Run() {
       if (!is_error)
       {
         param.systemStatusLock->Take();
+        param.system_status->flags.http_error = false;
         param.system_status->connection.is_http_configuration_updating = false;
         param.system_status->connection.is_http_configuration_updated = is_get_configuration;
         param.system_status->connection.is_http_firmware_upgrading = false;
@@ -673,6 +689,7 @@ void HttpTask::Run() {
       else
       {
         param.systemStatusLock->Take();
+        param.system_status->flags.http_error = true;
         param.system_status->connection.is_http_configuration_updating = false;
         param.system_status->connection.is_http_configuration_updated = false;
         param.system_status->connection.is_http_firmware_upgrading = false;
