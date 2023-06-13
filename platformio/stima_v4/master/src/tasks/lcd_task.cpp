@@ -333,15 +333,6 @@ void LCDTask::Run() {
               break;
             }
 
-            case UPDATE_MQTT_PASSWORD: {
-              TRACE_INFO_F(F("LCD: UPDATE MQTT PASSWORD STATION\r\n"));
-
-              // Display CONFIGURATION MENU interface for UPDATE_MQTT_PASSWORD
-              display_print_update_mqtt_password_interface();
-
-              break;
-            }
-
             case UPDATE_GSM_APN: {
               TRACE_INFO_F(F("LCD: UPDATE GSM APN\r\n"));
 
@@ -386,6 +377,51 @@ void LCDTask::Run() {
 }
 
 /**
+ * @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
+ *
+ * @param str pointer to string (will be incremented if hex char are found and converted)
+ * @param value_out pointer to data return value converted
+ * @return true if error occurs
+ * @return false if conversion is ready
+ */
+bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t* value_out) {
+  bool is_error = false;
+
+  if (isxdigit(**str)) {
+    if (isdigit(**str)) {
+      *value_out = **str - 48;
+    } else {
+      if (isupper(**str)) {
+        *value_out = **str - 55;
+      } else {
+        *value_out = **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    *value_out <<= 4;
+    (*str)++;
+  } else
+    is_error = true;
+
+  if (!is_error && isxdigit(**str)) {
+    if (isdigit(**str)) {
+      *value_out += **str - 48;
+    } else {
+      if (isupper(**str)) {
+        *value_out += **str - 55;
+      } else {
+        *value_out += **str - 87;
+      }
+    }
+    // Valid OK, Increment Char pointer
+    (*str)++;
+  } else
+    is_error = true;
+
+  return is_error;
+}
+
+/**
  * @brief Put off display
  *
  */
@@ -414,45 +450,6 @@ void LCDTask::display_off() {
   param.systemStatusLock->Give();
   selected_char_index = 0;
   state = LCD_STATE_STANDBY;
-}
-
-/// @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
-/// @param str pointer to string (will be incremented if hex char are found and converted)
-/// @param value_out pointer to data return value converted
-/// @return true if error occurs, false if conversion is ready
-bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t *value_out) {
-  bool is_error = false;
-
-  if(isxdigit(**str)) {
-    if(isdigit(**str)) {
-      *value_out = **str - 48;
-    } else {
-      if(isupper(**str)) {
-        *value_out = **str - 55;
-      } else {
-        *value_out = **str - 87;
-      }
-    }
-    // Valid OK, Increment Char pointer
-    *value_out<<=4;
-    (*str)++;
-  } else is_error=true;
-
-  if(!is_error && isxdigit(**str)) {
-    if(isdigit(**str)) {
-      *value_out += **str - 48;
-    } else {
-      if(isupper(**str)) {
-        *value_out += **str - 55;
-      } else {
-        *value_out += **str - 87;
-      }
-    }
-    // Valid OK, Increment Char pointer
-    (*str)++;
-  } else is_error = true;
-
-	return is_error;
 }
 
 /**
@@ -860,70 +857,6 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
 }
 
 /**
- * @brief Display the interface for update the mqtt password of station
- *
- */
-void LCDTask::display_print_update_mqtt_password_interface(void) {
-  char buffer[MQTT_PASSWORD_LENGTH] = {0};
-  char status_message[20] = {0};
-
-  // Get parameter
-  snprintf(buffer, sizeof(buffer), "%s", new_mqtt_password);
-
-  // Print title
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter a mqtt password "));
-
-  // Print the buffer of parameter
-  display.setFont(u8g2_font_helvR10_tf);
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
-  for (uint8_t i = 0; i < 16; i++) {
-    display.print(buffer[i]);
-  }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
-  for (uint8_t i = 16; i < MQTT_PASSWORD_LENGTH; i++) {
-    display.print(buffer[i]);
-  }
-
-  // Print char selected
-  switch (alphabet[selected_char_index]) {
-    case '<': {
-      strcpy(status_message, "Undo changes");
-      display.setFont(u8g2_font_open_iconic_gui_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_UNDO);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
-      break;
-    }
-    case '>': {
-      strcpy(status_message, "Apply changes");
-      display.setFont(u8g2_font_open_iconic_gui_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_APPLY);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
-      break;
-    }
-    case '!': {
-      strcpy(status_message, "Return to main");
-      display.setFont(u8g2_font_open_iconic_arrow_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_EXIT);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
-      break;
-    }
-    default: {
-      status_message[0] = alphabet[selected_char_index];
-      display.drawFrame(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8 * LINE_BREAK, 16, 16);
-      display.setCursor(11, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
-      break;
-    }
-  }
-  display.setFont(u8g2_font_helvR08_tf);
-  display.print(status_message);
-
-  // Apply the updates to display
-  display.sendBuffer();
-  display.clearBuffer();
-}
-
-/**
  * @brief Display the interface for update the mqtt username of station
  *
  */
@@ -1161,15 +1094,6 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       saveConfiguration();
       break;
     }
-    case MASTER_COMMAND_UPDATE_MQTT_PASSWORD: {
-      // Update the mqtt password of the station
-      param.configurationLock->Take();
-      strcpy(param.configuration->mqtt_password, new_mqtt_password);
-      param.configurationLock->Give();
-      // Apply the updates to eeprom
-      saveConfiguration();
-      break;
-    }
     case MASTER_COMMAND_UPDATE_GSM_APN: {
       // Update the mqtt password of the station
       param.configurationLock->Take();
@@ -1189,9 +1113,9 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       break;
     }
     case MASTER_COMMAND_UPDATE_PSK_KEY: {
-      uint8_t byte_pos = 0;
-      const char *ptr_read = new_client_psk_key; // Point to PSK_KEY String NOT 0x-> but Direct
       bool end_conversion = false;
+      const char* ptr_read = new_client_psk_key;  // Point to PSK_KEY String NOT 0x-> but Direct
+      uint8_t byte_pos = 0;
       uint8_t data_read;
       // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
       // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
@@ -1200,12 +1124,10 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.configurationLock->Take();
       // Reset PSK_KEY
       memset(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
-      while((byte_pos!=CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
+      while ((byte_pos != CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
         end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
         param.configuration->client_psk_key[byte_pos++] = data_read;
       }
-      // Update value on configuration
-
       param.configurationLock->Give();
       // Apply the updates to eeprom
       saveConfiguration();
@@ -1336,10 +1258,6 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
     }
     case MASTER_COMMAND_UPDATE_MQTT_USERNAME: {
       command_name = "Update mqtt username";
-      break;
-    }
-    case MASTER_COMMAND_UPDATE_MQTT_PASSWORD: {
-      command_name = "Update mqtt password";
       break;
     }
     case MASTER_COMMAND_UPDATE_GSM_APN: {
@@ -1511,11 +1429,6 @@ void LCDTask::switch_interface() {
           break;
         }
 
-        case UPDATE_MQTT_PASSWORD: {
-          selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
-          break;
-        }
-
         case UPDATE_GSM_APN: {
           selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
           break;
@@ -1591,11 +1504,6 @@ void LCDTask::switch_interface() {
           break;
         }
 
-        case UPDATE_MQTT_PASSWORD: {
-          selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
-          break;
-        }
-
         case UPDATE_GSM_APN: {
           selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
           break;
@@ -1639,26 +1547,71 @@ void LCDTask::switch_interface() {
         // ************************************************************************
         // ************************* ELABORATE COMMAND ****************************
         // ************************************************************************
+        cursor_pos = 0;
+        selected_char_index = 0;
 
         if (stima4_menu_ui_last == MAIN) {
-          if (stima4_master_command == MASTER_COMMAND_UPDATE_STATION_SLUG)
+          if (stima4_master_command == MASTER_COMMAND_UPDATE_STATION_SLUG) {
+            // ************************************************************************
+            // ************************* STATION SLUG INIT ****************************
+            // ************************************************************************
+
+            // Set input buffer
+            memcpy(new_station_slug, param.configuration->stationslug, strlen(param.configuration->stationslug));
+            // Cursor position to last character of parameter
+            cursor_pos = strlen(param.configuration->stationslug);
+            // Update current menu state
             stima4_menu_ui = UPDATE_STATION_SLUG;
-          else if (stima4_master_command == MASTER_COMMAND_UPDATE_MQTT_USERNAME)
+          } else if (stima4_master_command == MASTER_COMMAND_UPDATE_MQTT_USERNAME) {
+            // ************************************************************************
+            // ************************* MQTT USERNAME INIT ***************************
+            // ************************************************************************
+
+            // Set input buffer
+            memcpy(new_mqtt_username, param.configuration->mqtt_username, strlen(param.configuration->mqtt_username));
+            // Cursor position to last character of parameter
+            cursor_pos = strlen(param.configuration->mqtt_username);
+            // Update current menu state
             stima4_menu_ui = UPDATE_MQTT_USERNAME;
-          else if (stima4_master_command == MASTER_COMMAND_UPDATE_MQTT_PASSWORD)
-            stima4_menu_ui = UPDATE_MQTT_PASSWORD;
-          else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_APN)
+          } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_APN) {
+            // ************************************************************************
+            // *************************** GSM APN INIT *******************************
+            // ************************************************************************
+
+            // Set input buffer
+            memcpy(new_gsm_apn, param.configuration->gsm_apn, strlen(param.configuration->gsm_apn));
+            // Cursor position to last character of parameter
+            cursor_pos = strlen(param.configuration->gsm_apn);
+            // Update current menu state
             stima4_menu_ui = UPDATE_GSM_APN;
-          else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_NUMBER)
+          } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_NUMBER) {
+            // ************************************************************************
+            // ************************* GSM NUMBER INIT ******************************
+            // ************************************************************************
+
+            // Set input buffer
+            memcpy(new_gsm_number, param.configuration->gsm_number, strlen(param.configuration->gsm_number));
+            // Cursor position to last character of parameter
+            cursor_pos = strlen(param.configuration->gsm_number);
+            // Update current menu state
             stima4_menu_ui = UPDATE_GSM_NUMBER;
-          else if (stima4_master_command == MASTER_COMMAND_UPDATE_PSK_KEY)
+          } else if (stima4_master_command == MASTER_COMMAND_UPDATE_PSK_KEY) {
+            // ************************************************************************
+            // *************************** PSK KEY INIT *******************************
+            // ************************************************************************
+
+            // Reset input buffer
+            memset(new_client_psk_key, 0, 2 * CLIENT_PSK_KEY_LENGTH);
+            // Update current menu state
             stima4_menu_ui = UPDATE_PSK_KEY;
-          else {
+          } else {
             elaborate_master_command(stima4_master_command);
+            // Update current menu state
             stima4_menu_ui = stima4_menu_ui_last;
           }
         } else {
           elaborate_slave_command(stima4_slave_command);
+          // Update current menu state
           stima4_menu_ui = stima4_menu_ui_last;
         }
 
@@ -1677,7 +1630,7 @@ void LCDTask::switch_interface() {
         switch (alphabet[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_station_slug[cursor_pos] = ' ';
+            new_station_slug[cursor_pos] = 0;
             break;
           }
           case '>': {
@@ -1686,22 +1639,10 @@ void LCDTask::switch_interface() {
 
             elaborate_master_command(MASTER_COMMAND_UPDATE_STATION_SLUG);
 
-            // Updating flags and states
-            for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
-              new_station_slug[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
           case '!': {
-            // Updating flags and states
-            for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
-              new_station_slug[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
@@ -1714,12 +1655,6 @@ void LCDTask::switch_interface() {
 
               elaborate_master_command(MASTER_COMMAND_UPDATE_STATION_SLUG);
 
-              // Updating flags and states
-              for (int i = 0; i < STATIONSLUG_LENGTH; i++) {
-                new_station_slug[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
               stima4_menu_ui = stima4_menu_ui_last;
             }
             break;
@@ -1736,7 +1671,7 @@ void LCDTask::switch_interface() {
         switch (alphabet[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_mqtt_username[cursor_pos] = ' ';
+            new_mqtt_username[cursor_pos] = 0;
             break;
           }
           case '>': {
@@ -1745,22 +1680,10 @@ void LCDTask::switch_interface() {
 
             elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_USERNAME);
 
-            // Updating flags and states
-            for (int i = 0; i < MQTT_USERNAME_LENGTH; i++) {
-              new_mqtt_username[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
           case '!': {
-            // Updating flags and states
-            for (int i = 0; i < MQTT_USERNAME_LENGTH; i++) {
-              new_mqtt_username[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
@@ -1773,71 +1696,6 @@ void LCDTask::switch_interface() {
 
               elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_USERNAME);
 
-              // Updating flags and states
-              for (int i = 0; i < MQTT_USERNAME_LENGTH; i++) {
-                new_mqtt_username[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
-              stima4_menu_ui = stima4_menu_ui_last;
-            }
-            break;
-          }
-        }
-        break;
-      }
-
-      case UPDATE_MQTT_PASSWORD: {
-        // ************************************************************************
-        // ************************* ELABORATE COMMAND ****************************
-        // ************************************************************************
-
-        switch (alphabet[selected_char_index]) {
-          case '<': {
-            cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_mqtt_password[cursor_pos] = ' ';
-            break;
-          }
-          case '>': {
-            // Add \0 character to the end of the string
-            new_mqtt_password[cursor_pos] = '\0';
-
-            elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_PASSWORD);
-
-            // Updating flags and states
-            for (int i = 0; i < MQTT_PASSWORD_LENGTH; i++) {
-              new_mqtt_password[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
-            stima4_menu_ui = stima4_menu_ui_last;
-            break;
-          }
-          case '!': {
-            // Updating flags and states
-            for (int i = 0; i < MQTT_PASSWORD_LENGTH; i++) {
-              new_mqtt_password[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
-            stima4_menu_ui = stima4_menu_ui_last;
-            break;
-          }
-          default: {
-            new_mqtt_password[cursor_pos++] = alphabet[selected_char_index];
-
-            if (cursor_pos == MQTT_PASSWORD_LENGTH - 1) {
-              // Add \0 character to the end of the string
-              new_mqtt_password[cursor_pos] = '\0';
-
-              elaborate_master_command(MASTER_COMMAND_UPDATE_MQTT_PASSWORD);
-
-              // Updating flags and states
-              for (int i = 0; i < MQTT_PASSWORD_LENGTH; i++) {
-                new_mqtt_password[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
               stima4_menu_ui = stima4_menu_ui_last;
             }
             break;
@@ -1854,7 +1712,7 @@ void LCDTask::switch_interface() {
         switch (alphabet[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_gsm_apn[cursor_pos] = ' ';
+            new_gsm_apn[cursor_pos] = 0;
             break;
           }
           case '>': {
@@ -1863,22 +1721,10 @@ void LCDTask::switch_interface() {
 
             elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
 
-            // Updating flags and states
-            for (int i = 0; i < GSM_APN_LENGTH; i++) {
-              new_gsm_apn[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
           case '!': {
-            // Updating flags and states
-            for (int i = 0; i < GSM_APN_LENGTH; i++) {
-              new_gsm_apn[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
@@ -1891,12 +1737,6 @@ void LCDTask::switch_interface() {
 
               elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
 
-              // Updating flags and states
-              for (int i = 0; i < GSM_APN_LENGTH; i++) {
-                new_gsm_apn[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
               stima4_menu_ui = stima4_menu_ui_last;
             }
             break;
@@ -1913,7 +1753,7 @@ void LCDTask::switch_interface() {
         switch (alphabet_gsm_number[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_gsm_number[cursor_pos] = ' ';
+            new_gsm_number[cursor_pos] = 0;
             break;
           }
           case '>': {
@@ -1922,22 +1762,10 @@ void LCDTask::switch_interface() {
 
             elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_NUMBER);
 
-            // Updating flags and states
-            for (int i = 0; i < GSM_NUMBER_LENGTH; i++) {
-              new_gsm_number[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
           case '!': {
-            // Updating flags and states
-            for (int i = 0; i < GSM_NUMBER_LENGTH; i++) {
-              new_gsm_number[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
@@ -1950,12 +1778,6 @@ void LCDTask::switch_interface() {
 
               elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_NUMBER);
 
-              // Updating flags and states
-              for (int i = 0; i < GSM_NUMBER_LENGTH; i++) {
-                new_gsm_number[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
               stima4_menu_ui = stima4_menu_ui_last;
             }
             break;
@@ -1972,7 +1794,7 @@ void LCDTask::switch_interface() {
         switch (alphabet_psk_key[selected_char_index]) {
           case '<': {
             cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_client_psk_key[cursor_pos] = ' ';
+            new_client_psk_key[cursor_pos] = 0;
             break;
           }
           case '>': {
@@ -1981,22 +1803,10 @@ void LCDTask::switch_interface() {
 
             elaborate_master_command(MASTER_COMMAND_UPDATE_PSK_KEY);
 
-            // Updating flags and states
-            for (int i = 0; i < (2 * CLIENT_PSK_KEY_LENGTH); i++) {
-              new_client_psk_key[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
           case '!': {
-            // Updating flags and states
-            for (int i = 0; i < (2 * CLIENT_PSK_KEY_LENGTH); i++) {
-              new_client_psk_key[i] = ' ';
-            }
-            cursor_pos = 0;
-            selected_char_index = 0;
             stima4_menu_ui = stima4_menu_ui_last;
             break;
           }
@@ -2009,12 +1819,6 @@ void LCDTask::switch_interface() {
 
               elaborate_master_command(MASTER_COMMAND_UPDATE_PSK_KEY);
 
-              // Updating flags and states
-              for (int i = 0; i < (2 * CLIENT_PSK_KEY_LENGTH); i++) {
-                new_client_psk_key[i] = ' ';
-              }
-              cursor_pos = 0;
-              selected_char_index = 0;
               stima4_menu_ui = stima4_menu_ui_last;
             }
             break;
