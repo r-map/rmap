@@ -335,11 +335,11 @@ for dirpath, dirnames, filenames in os.walk('insertdata/static'):
 for dirpath, dirnames, filenames in os.walk('rmap/registration/locale'):
     if filenames:
         for file in filenames:
-            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
+            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap/registration'))
 for dirpath, dirnames, filenames in os.walk('rmap/registration/static'):
     if filenames:
         for file in filenames:
-            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
+            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap/registration'))
 
 for dirpath, dirnames, filenames in os.walk('showdata/static'):
     if filenames:
