@@ -218,11 +218,16 @@ void MqttTask::Run()
         is_error = true;
         param.systemStatusLock->Take();
         param.system_status->connection.is_dns_failed_resolve = true;
+        param.system_status->flags.dns_error = true;
         param.systemStatusLock->Give();
         TRACE_ERROR_F(F("%s Failed to resolve mqtt server name of %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
         break;
+      } else {
+        param.systemStatusLock->Take();
+        param.system_status->flags.dns_error = false;
+        param.systemStatusLock->Give();
       }
 
       // Set the MQTT version to be used
@@ -372,6 +377,8 @@ void MqttTask::Run()
       }
       indexPosition--;
       // RSSI Signal to low (<10)
+      // Copy connection RSSI flag value of last (current) connection
+      param.system_status->flags.gsm_rssi = param.system_status->modem.rssi;
       if(param.system_status->modem.rssi < 10) {
          bitState[indexPosition] = '1';
       }
@@ -1128,7 +1135,10 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_DISCONNECT:
+
       param.systemStatusLock->Take();
+      // Saving error connection INFO
+      param.system_status->flags.mqtt_error = is_error;
       // Remove first connection FLAG (Clear queue of RPC in safety mode)
       // RPC Must ececuted only from next connection without error to remote server
       if(!rmap_data_error) param.system_status->flags.clean_rpc = false;

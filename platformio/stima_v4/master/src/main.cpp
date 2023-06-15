@@ -266,7 +266,8 @@ void setup() {
   // TASK LCD DISPLAY PARAM CONFIG
   static LCDParam_t lcdParam = {0};
   lcdParam.configuration = &configuration;
-  lcdParam.system_status = &system_status;  
+  lcdParam.system_status = &system_status;
+  lcdParam.boot_request = &boot_check;
   lcdParam.configurationLock = configurationLock;
   lcdParam.systemStatusLock = systemStatusLock;
   lcdParam.systemMessageQueue = systemMessageQueue;

@@ -600,7 +600,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case canardClass::Command_Private::calibrate_accelerometer:
         {
             // Avvia calibrazione accelerometro (reset bolla elettroniuca)
-            TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri"));
+            TRACE_INFO_F(F("AVVIA Calibrazione accelerometro e salvataggio parametri\r\n"));
             // Send queue command to TASK
             system_message.task_dest = ACCELEROMETER_TASK_ID;
             system_message.command.do_calib = true;
@@ -615,9 +615,9 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         {
             // Avvia/Arresta modalità di manutenzione come comando sul system status
             if(req->parameter.elements[0]) {
-                TRACE_INFO_F(F("AVVIA modalità di manutenzione modulo"));
+                TRACE_INFO_F(F("AVVIA modalità di manutenzione modulo\r\n"));
             } else {
-                TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo"));
+                TRACE_INFO_F(F("ARRESTA modalità di manutenzione modulo\r\n"));
             }
             // Send queue command to TASK
             system_message.task_dest = SUPERVISOR_TASK_ID;
@@ -630,11 +630,23 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
             }
             break;
         }
+        case canardClass::Command_Private::reset_flags:
+        {
+            // Avvia calibrazione accelerometro (reset bolla elettroniuca)
+            TRACE_INFO_F(F("RESET flags di sistema e salvataggio stati\r\n"));
+            // Reset counter on new or restored firmware
+            boot_state->tot_reset = 0;
+            boot_state->wdt_reset = 0;
+            // Save info bootloader block
+            localEeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) boot_state, sizeof(bootloader_t));
+            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+            break;
+        }
         case canardClass::Command_Private::enable_publish_rmap:
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clCanard.publisher_enabled.module_th = true;
-            TRACE_INFO_F(F("ATTIVO Trasmissione dati in publish"));
+            TRACE_INFO_F(F("ATTIVO Trasmissione dati in publish\r\n"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -642,7 +654,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clCanard.publisher_enabled.module_th = false;
-            TRACE_INFO_F(F("DISATTIVO Trasmissione dati in publish"));
+            TRACE_INFO_F(F("DISATTIVO Trasmissione dati in publish\r\n"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
@@ -1163,6 +1175,7 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   localRegisterAccessLock = param.registerAccessLock;
 
   boot_state = param.boot_request;
+  localEeprom = param.eeprom;
 
   // FullChip Power Mode after Startup
   // Resume from LowPower or reset the controller TJA1443ATK

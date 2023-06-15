@@ -310,8 +310,8 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
           avg_solar_radiation_o += (avg_solar_radiation_s - avg_solar_radiation_o) / valid_count_solar_radiation_o;
           avg_solar_radiation_quality_o += (avg_solar_radiation_quality_s - avg_solar_radiation_quality_o) / valid_count_solar_radiation_o;
           // Elaboration MIN and MAX for observation
-          if(avg_solar_radiation_o < min_solar_radiation_o) min_solar_radiation_o = avg_solar_radiation_o;
-          if(avg_solar_radiation_o > max_solar_radiation_o) max_solar_radiation_o = avg_solar_radiation_o;
+          if(avg_solar_radiation_s < min_solar_radiation_o) min_solar_radiation_o = avg_solar_radiation_s;
+          if(avg_solar_radiation_s > max_solar_radiation_o) max_solar_radiation_o = avg_solar_radiation_s;
         }
         // Reset Buffer sample for calculate next observation
         avg_solar_radiation_quality_s = 0;
