@@ -730,7 +730,7 @@ def insertNewStation(request):
                         sensors.append(sensor)
                     try:
                         board.transportmqtt.mqttserver=get_current_site(request).domain.split(":")[0]
-                        board.transportmqtt.user=username
+                        board.transportmqtt.mqttuser=username
                         board.transportmqtt.mqttpassword=TransportMqtt.genpassword()
                         board.transportmqtt.mqttpskkey=TransportMqtt.genpskkey()
                         #board.transportmqtt.mqttsampletime=
