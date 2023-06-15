@@ -835,7 +835,7 @@ if args.dump_station:
         print(" selected dump station without username or station_slug")
         raise SystemExit(1)
 
-    print(rmap.rmap_core.dumpstation(station=args.station_slug,user=args.username))
+    print(rmap.rmap_core.dumpstation(station_slug=args.station_slug,user=args.username))
 
 
 if args.upload_to_server:
