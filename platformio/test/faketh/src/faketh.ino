@@ -41,6 +41,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define VERSION 01             //Software version for cross checking
 
+#include <random>
 #include "Wire.h"
 #include "registers-th_v2.h"      //Register definitions
 #include "config.h"
@@ -135,6 +136,11 @@ Plotter plot; // create plotter
 // global required by plot lib
 uint16_t t;
 uint16_t h;
+
+
+std::default_random_engine generator;
+std::normal_distribution<double> distribution(0.0,200.0);
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -415,7 +421,8 @@ void loop() {
       
       if (millis() > (inittime + MAXWAITTIME) ) {
 	int baset = 27315;
-	int rndt = random(-300,301);
+	//int rndt = random(-300,301);
+	double rndt = distribution(generator);
 	int dailyt = round(sin((float(millis()-starttime)/(60.*60.*24.*1000.))*2.*PI)*2000.);
 	t = baset + rndt + dailyt;
 
