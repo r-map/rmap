@@ -417,6 +417,13 @@ class TransportMqtt(models.Model):
             return "".join(random.sample(s,length))
 
         return randomchars(32)
+
+    def genpassword():
+        def randomchars(length):
+            s = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!%&?*+*-_@"*10
+            return "".join(random.sample(s,length))
+        
+        return randomchars(10)
     
     objects = TransportMqttManager()
 
@@ -425,7 +432,7 @@ class TransportMqtt(models.Model):
     mqttsampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=ugettext_lazy("interval in seconds for publish"))
     mqttserver = models.CharField(max_length=50,default="mqttserver",null=False,blank=False,help_text=ugettext_lazy("MQTT server"))
     mqttuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT user"))
-    mqttpassword= models.CharField(max_length=50,default="",null=True,blank=True,help_text=ugettext_lazy("MQTT password"))
+    mqttpassword= models.CharField(max_length=50,default=genpassword,null=True,blank=True,help_text=ugettext_lazy("MQTT password"))
     mqttpskkey= models.CharField(max_length=254,default=genpskkey,null=True,blank=True,help_text=ugettext_lazy("MQTT PSK Key"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
@@ -765,26 +772,26 @@ class StationMaintStatus(models.Model):
 # status b
 statusb_explain_matrix={}
 statusb_explain_matrix[0]= ["None",    "None",    "None",      "None",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[10]=["SD_ERR",  "FW_READY","PWR_CRITIC","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[11]=["SD_ERR",  "FW_READY","PWR_CRITIC","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[20]=["OFF_LINE","FW_READY","MAINTEN",   "MAIN_ERR","REDUND_ERR","TIPP_ERR","CLOGGED", "BOLLA_ERR","ACCEL_ERR","None","None","None","None","None","None","None"]
-statusb_explain_matrix[21]=["OFF_LINE","FW_READY","MAINTEN",   "MAIN_ERR","REDUND_ERR","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
-statusb_explain_matrix[25]=["OFF_LINE","FW_READY","MAINTEN",   "NOT_RISP","HW_ERR",    "UDM_ERR", "AXIS_ERR","CRC_ERR",  "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[26]=["OFF_LINE","FW_READY","MAINTEN",   "ADC_ERR", "ADC_OVER",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[28]=["OFF_LINE","FW_READY","MAINTEN",   "LTC_FAIL","PWR_CRITIC","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[29]=["OFF_LINE","FW_READY","MAINTEN",   "ADC_ERR", "ADC_OVER",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[10]=["SD card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[11]=["SD_card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[20]=["OFF LINE","Firmware ready","Manutenzione",   "Main sensor error","Reduntant sensor error","Tipping error","Clogged error", "Bolla error","Accell error","None","None","None","None","None","None","None"]
+statusb_explain_matrix[21]=["OFF LINE","Firmware ready","Manutenzione",   "Main sensor error","Reduntant sensor error","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
+statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Manutenzione",   "NOT_RISP","HW Error",    "UDM_ERR", "AXIS_ERR","CRC_ERR",  "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Manutenzione",   "ADC error", "ADC Over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Manutenzione",   "LTC_fail","Power critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Manutenzione",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 
 # status v
 statusv_explain_matrix={}
 statusv_explain_matrix[0] = ["None",       "None",     "None",     "None",  "None"]
-statusv_explain_matrix[10]= ["ERR_CON %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
-statusv_explain_matrix[11]= ["ERR_CON %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
-statusv_explain_matrix[20]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]	 
-statusv_explain_matrix[21]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "I2C_%", "None"]
-statusv_explain_matrix[25]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "232_%", "None"]
-statusv_explain_matrix[26]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
-statusv_explain_matrix[28]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
-statusv_explain_matrix[29]= ["ERR_CAN %",  "TOT_RBT",  "TOT_WDT",  "None",  "None"]
+statusv_explain_matrix[10]= ["ERR_CON %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[11]= ["ERR_CON %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[20]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]	 
+statusv_explain_matrix[21]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "I2C error %", "None"]
+statusv_explain_matrix[25]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "RS 232 error %", "None"]
+statusv_explain_matrix[26]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[28]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[29]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):
@@ -895,6 +902,7 @@ class StationMetadata(models.Model):
         ('good','Beautifull & Good'),
         ('bad', 'Bad & Wrong'),
         ('test','Test & Bugs'),
+        ('template','Used to generate new stations'),
         ('unknown','Unknown & Missing'),
     )
 
@@ -914,7 +922,7 @@ class StationMetadata(models.Model):
 
     mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
     mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
-    category = models.CharField(max_length=50, choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
+    category = models.CharField(max_length=50,default="unknown",choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
 
     def lon_lat(self):
         if self.lon is None:
@@ -931,10 +939,11 @@ class StationMetadata(models.Model):
 
         status = False
         for board in self.board_set.all():
-            status = (status or board.boardmaintstatus.statusb1 or board.boardmaintstatus.statusb2 or board.boardmaintstatus.statusb3 or board.boardmaintstatus.statusb4)
-            status = (status or board.boardmaintstatus.statusb5 or board.boardmaintstatus.statusb6 or board.boardmaintstatus.statusb7 or board.boardmaintstatus.statusb8)
-            status = (status or board.boardmaintstatus.statusb9 or board.boardmaintstatus.statusb10 or board.boardmaintstatus.statusb11 or board.boardmaintstatus.statusb12)
-            status = (status or board.boardmaintstatus.statusb13 or board.boardmaintstatus.statusb14 or board.boardmaintstatus.statusb15 or board.boardmaintstatus.statusb16)
+            if (board.active):
+                status = (status or board.boardmaintstatus.statusb1 or board.boardmaintstatus.statusb2 or board.boardmaintstatus.statusb3 or board.boardmaintstatus.statusb4)
+                status = (status or board.boardmaintstatus.statusb5 or board.boardmaintstatus.statusb6 or board.boardmaintstatus.statusb7 or board.boardmaintstatus.statusb8)
+                status = (status or board.boardmaintstatus.statusb9 or board.boardmaintstatus.statusb10 or board.boardmaintstatus.statusb11 or board.boardmaintstatus.statusb12)
+                status = (status or board.boardmaintstatus.statusb13 or board.boardmaintstatus.statusb14 or board.boardmaintstatus.statusb15 or board.boardmaintstatus.statusb16)
         return status
 
     def status_vals(self):
@@ -945,9 +954,10 @@ class StationMetadata(models.Model):
         
         status = False
         for board in self.board_set.all():
-            status = (status or noneaszero(board.boardmaintstatus.statusv1) > 0 or noneaszero(board.boardmaintstatus.statusv2) > 0 )
-            status = (status or noneaszero(board.boardmaintstatus.statusv3) > 0 )
-            status = (status or noneaszero(board.boardmaintstatus.statusv4) > 0 or noneaszero(board.boardmaintstatus.statusv5) > 0 )
+            if (board.active):
+                status = (status or noneaszero(board.boardmaintstatus.statusv1) > 0 or noneaszero(board.boardmaintstatus.statusv2) > 0 )
+                status = (status or noneaszero(board.boardmaintstatus.statusv3) > 0 )
+                status = (status or noneaszero(board.boardmaintstatus.statusv4) > 0 or noneaszero(board.boardmaintstatus.statusv5) > 0 )
         return status
     
     def clean(self):
