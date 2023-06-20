@@ -683,7 +683,7 @@ void SensorDriverHyt::resetPrepared(bool is_test) {
 }
 
 void SensorDriverHyt::setup() {
-  hyt = Hyt(_wire, _address);
+  hyt = Hyt(_sdr_wire, _address);
 
   SensorDriver::printInfo();
 
@@ -887,7 +887,7 @@ void SensorDriverSht::resetPrepared(bool is_test) {
 }
 
 void SensorDriverSht::setup() {
-  sht = Sht(_wire, _address);
+  sht = Sht(_sdr_wire, _address);
 
   SensorDriver::printInfo();
 
@@ -983,7 +983,7 @@ void SensorDriverSht::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
       if (length >= 2) {
         if (_is_success  && ISVALID_FLOAT(temperature)) {
-          values[1] = SENSOR_DRIVER_C_TO_K + (rmapdata_t)(temperature * 100.0);
+          values[1] = (rmapdata_t) (SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0));
         }
         else {
           values[1] = INT32_MAX;

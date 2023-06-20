@@ -241,38 +241,35 @@ uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdat
     quality = 0;
   }
   else if (redundant != RMAPDATA_MAX) {
-    if ((abs(main - redundant) <= 0.1)) {
+    if ((abs(main - redundant) <= 0.35)) {
       quality = 100;
     }
-    else if ((abs(main - redundant) <= 0.2)) {
+    else if ((abs(main - redundant) <= 0.45)) {
       quality = 95;
     }
-    else if ((abs(main - redundant) <= 0.5)) {
+    else if ((abs(main - redundant) <= 0.6)) {
       quality = 90;
     }
-    else if ((abs(main - redundant) <= 0.6)) {
+    else if ((abs(main - redundant) <= 0.75)) {
       quality = 80;
     }
-    else if ((abs(main - redundant) <= 0.7)) {
+    else if ((abs(main - redundant) <= 0.9)) {
       quality = 70;
     }
-    else if ((abs(main - redundant) <= 0.8)) {
-      quality = 60;
+    else if ((abs(main - redundant) <= 1.1)) {
+      quality = 55;
     }
-    else if ((abs(main - redundant) <= 0.9)) {
-      quality = 50;
-    }
-    else if ((abs(main - redundant) <= 1.0)) {
+    else if ((abs(main - redundant) <= 1.4)) {
       quality = 40;
     }
-    else if ((abs(main - redundant) <= 1.1)) {
-      quality = 30;
-    }
-    else if ((abs(main - redundant) <= 1.5)) {
-      quality = 20;
+    else if ((abs(main - redundant) <= 1.7)) {
+      quality = 25;
     }
     else if ((abs(main - redundant) <= 2.0)) {
       quality = 10;
+    }
+    else {
+      quality = 0;
     }
   }
   else {
@@ -299,38 +296,38 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
     quality = 0;
   }
   else if (redundant_humidity != RMAPDATA_MAX) {
-    if ((abs(main_humidity - redundant_humidity) <= 1)) {
+    if ((abs(main_humidity - redundant_humidity) <= 5)) {
       quality = 100;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 2)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 6)) {
       quality = 95;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 3)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 7)) {
       quality = 90;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 4)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 8)) {
       quality = 80;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 5)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 9)) {
       quality = 70;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 6)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 11)) {
       quality = 60;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 7)) {
-      quality = 50;
+    else if ((abs(main_humidity - redundant_humidity) <= 13)) {
+      quality = 45;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 8)) {
-      quality = 40;
-    }
-    else if ((abs(main_humidity - redundant_humidity) <= 9)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 15)) {
       quality = 30;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 10)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 18)) {
       quality = 20;
     }
-    else if ((abs(main_humidity - redundant_humidity) <= 11)) {
+    else if ((abs(main_humidity - redundant_humidity) <= 21)) {
       quality = 10;
+    }
+    else {
+      quality = 0;
     }
   }
   else {
