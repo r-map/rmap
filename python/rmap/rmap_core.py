@@ -460,7 +460,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Precipitation report",driver="CAN",
                   type="TBR",timerange="1,0,{P2:d}",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Precipitation report",driver="CAN",
+                  name="Precipitation rate report",driver="CAN",
                   type="TPR",timerange="2,0,{P2:d}",level="1,-,-,-")
 
     if (template == "stima4_report_w"):

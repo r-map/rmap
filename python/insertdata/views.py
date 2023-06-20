@@ -28,6 +28,9 @@ import rmap.rmap_core
 import decimal
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
+from django.core import serializers
+from django.forms import BoundField, Field
+from rmap.stations.models import TransportMqtt
 
 class scelta_present_weather(object):
     '''
@@ -166,25 +169,41 @@ class NominatimForm(forms.Form):
 
 
 
-class NewStationForm(forms.ModelForm):
-
-    #geom = PointField()
-
-    CHOICES = []
-    for tem in rmap.rmap_core.template_choices: 
-        CHOICES.append((tem,tem))
+class StationOnMapForm(forms.ModelForm):
     
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
-    template=forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
-    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
-    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
-    
+
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
         widgets = {'geom': LeafletWidget()}
 
+    
+class NewStationForm(forms.Form):
+
+    #geom = PointField()
+
+    # we use station in category "template" as template to create new stations
+    CHOICES = []
+    for sta in StationMetadata.objects.filter(category="template"): 
+    #for sta in StationMetadata.objects.all(): 
+        print (sta)
+        CHOICES.append((sta.slug,sta.slug))
+    
+    #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
+    name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
+    #coordinate = coordinateField(required=True,label=_('longitude,Latitude'),help_text=_('Longitude,Latitude'))
+    latitude = forms.DecimalField(required=True,label=_('Latitude'),help_text=_('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
+    longitude = forms.DecimalField(required=True,label=_('Longitude'),help_text=_('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    height = forms.DecimalField(required=True,label=_('Station height (m.)'),help_text=_('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
+    template=forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
+
+#class transportMQTTForm(forms.Form):
+#    
+#    mqttsamplerate=forms.IntegerField(required=True,label=__("report period (secondi)"),help_text='Time elapsed from two reports',min_value=0,max_value=3600*12,initial=900)
+#    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
+#    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
+    
 
 class NewStationDetailForm(forms.Form):
 
@@ -617,10 +636,11 @@ def insertNewStation(request):
     if request.method == 'POST': # If the form has been submitted...
 
         nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        stationonmapform = StationOnMapForm(request.POST) # A form bound to the POST data
         newstationform = NewStationForm(request.POST) # A form bound to the POST data
 
         if nominatimform.is_valid(): # All validation rules pass
-
+            print ("nominatinform is valid")
             address=nominatimform.cleaned_data['address']
             if address:
                 nom = Nominatim(base_url="https://nominatim.openstreetmap.org",referer=get_current_site(request).domain)
@@ -631,91 +651,205 @@ def insertNewStation(request):
                     address= result[0]["display_name"]
                     POST=request.POST.copy()
                     POST['geom']= str(Point(float(lon),float(lat)))
+                    POST['longitude']= rmap.rmap_core.truncate(lon,5)
+                    POST['latitude']= rmap.rmap_core.truncate(lat,5)
                     POST['address']= address
                     newstationform = NewStationForm(POST) # A form bound to the new data
+                    stationonmapform = StationOnMapForm(POST) # A form bound to the new data
                     nominatimform = NominatimForm(POST) # A form bound to the new data
 
-                return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
+                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                             ,'stationonmapform':stationonmapform
+                                                                             ,'newstationform':newstationform})
         else:
+            print("invalid NominatimForm ")
             nominatimform = NominatimForm()
-            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"invalid":True})
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                     ,'stationonmapform':stationonmapform
+                                                                     ,'newstationform':newstationform,"invalid":True})
+
+
+        if stationonmapform.is_valid(): # All validation rules pass
+            print ("stationonmapform is valid")
+            geom=stationonmapform.cleaned_data['geom']
+            lon=geom['coordinates'][0]
+            lat=geom['coordinates'][1]
+            
+            POST=request.POST.copy()
+            POST['longitude']= rmap.rmap_core.truncate(lon,5)
+            POST['latitude']= rmap.rmap_core.truncate(lat,5)            
+
+            nominatimform = NominatimForm(POST)
+            stationonmapform = StationOnMapForm(POST) # A form bound to the new data
+            newstationform = NewStationForm(POST) # A form bound to the new data
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                     ,'stationonmapform':stationonmapform                                                                     
+                                                                     ,'newstationform':newstationform})
+        #else:
+        #    print("invalid StationOnMapForm ")            
+        #    stationonmapform = StationOnMapForm()
+        #    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+        #                                                             ,'stationonmapform':stationonmapform                                                                     
+        #                                                             ,'newstationform':newstationform,"invalid":True})
 
 
         if newstationform.is_valid(): # All validation rules pass
+            print ("newstationform is valid")
             
-            geom=newstationform.cleaned_data['geom']
-            lon=geom['coordinates'][0]
-            lat=geom['coordinates'][1]
-            username=request.user.username
+            lon=newstationform.cleaned_data['longitude']
+            lat=newstationform.cleaned_data['latitude']
             name=newstationform.cleaned_data['name']
-            password=newstationform.cleaned_data['password']
-            passwordrepeat=newstationform.cleaned_data['passwordrepeat']
+            height=str(int(newstationform.cleaned_data['height']*10))
+            constantdata={}
+            constantdata["B01019"]=name
+            constantdata["B07030"]=height
+
+            username=request.user.username
             slug=slugify(name)
-            board_slug="default"
             template=newstationform.cleaned_data['template']
-            host = get_current_site(request).domain.split(":")[0]
-            
-            if name and (password == passwordrepeat):
-                try:
+
+            try:
+                #try:
+                #    print("del station:", username,slug)
+                #    mystation=StationMetadata.objects.get(slug__exact=slug,user__username=username)
+                #    mystation.delete()
+                #except Exception as e:
+                #    print(e)
+
+                # here we use serialize and deserialize with natural keys to clone template station
+
+                print("new station:", name,username,lon,lat)
+                print("template",template)
+                boards=[]
+                sensors=[]
+                transports=[]
+                mystation=StationMetadata.objects.get(slug__exact=template,category__exact="template")                    
+                for board in mystation.board_set.all():
+                    boards.append(board)
+                    for sensor in board.sensor_set.all():
+                        sensors.append(sensor)
                     try:
-                        print("del station:", username,slug)
-                        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=username)
-                        mystation.delete()
-                    except Exception as e:
-                        print(e)
+                        board.transportmqtt.mqttserver=get_current_site(request).domain.split(":")[0]
+                        board.transportmqtt.mqttuser=username
+                        board.transportmqtt.mqttpassword=TransportMqtt.genpassword()
+                        board.transportmqtt.mqttpskkey=TransportMqtt.genpskkey()
+                        #board.transportmqtt.mqttsampletime=
+
+                        transports.append(board.transportmqtt)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
+                        transports.append(board.transportbluetooth)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
+                        transports.append(board.transportamqp)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
+                        transports.append(board.transportserial)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
+                        transports.append(board.transporttcpip)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
+                        transports.append(board.transportcan)
+                    except ObjectDoesNotExist:
+                        pass
+       
+                mystation.name=name
+                user=User.objects.get(username=username)
+                mystation.user=user
+                mystation.lat=rmap.rmap_core.truncate(lat,5)
+                mystation.lon=rmap.rmap_core.truncate(lon,5)
+                mystation.active=True
+                mystation.category="good"
+                mystation.slug=slug
                     
-                    print("new station:", name,username,lon,lat)
+                # this in not very good ! we need to specify better in template the type (report/sample)
+                #if ("_report_" in template):
+                #    mystation.mqttrootpath="report"
+                #mystation.mqttrootpath="sample"
+    
+                mystation.clean()
 
-                    mystation=StationMetadata(slug=slug,name=name)
-                    user=User.objects.get(username=username)
-                    mystation.user=user
-                    mystation.lat=rmap.rmap_core.truncate(lat,5)
-                    mystation.lon=rmap.rmap_core.truncate(lon,5)
-                    mystation.active=True
-
-                    # this in not very good ! we need to specify better in template the type (report/sample)
-                    if ("_report_" in template):
-                        mystation.mqttrootpath="report"
+                obj=[]
+                obj.append(mystation)
+                for board in boards:
+                    obj.append(board)
+                for sensor in sensors:
+                    obj.append(sensor)
+                for transport in transports:
+                    obj.append(transport)
+                        
+                data = serializers.serialize("json", obj
+                                             ,use_natural_foreign_keys=True
+                                             ,use_natural_primary_keys=True)
+                print ("data:",data)
+                for obj in serializers.deserialize("json", data):
+                    print (obj)
+                    obj.save()
                     
-                    mystation.clean()
-                    mystation.save()
-
-                    rmap.rmap_core.addboard(station_slug=slug,username=username,board_slug=board_slug,activate=True
-                                 ,serialactivate=False
-                                 ,mqttactivate=True, mqttserver=host, mqttusername=username, mqttpassword=password, mqttsamplerate=30
-                                 ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername=username, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
-                                 ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
+                mystation=StationMetadata.objects.get(slug__exact=slug,user__username=user.username)
+                for btable,value in constantdata.items():
+                    mystation.stationconstantdata_set.create(
+                        active=True,
+                        btable=btable,
+                        value=value
                     )
-                    
-                    rmap.rmap_core.addsensors_by_template(
-                        station_slug=slug
-                        ,username=username
-                        ,board_slug=board_slug
-                        ,template=template)
 
-                except IntegrityError as e:
-                    print(e)
-                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True,"duplicated":True})
+                
+            except IntegrityError as e:
+                print(e)
+                return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                             ,'stationonmapform':stationonmapform
+                                                                             ,'newstationform':newstationform
+                                                                             ,"error":True,"duplicated":True})
                     
-                except Exception as e:
-                    print(e)
-                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True})
+            except Exception as e:
+                print(e)
+                return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                             ,'stationonmapform':stationonmapform
+                                                                             ,'newstationform':newstationform,"error":True})
 
-            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"station":mystation})
+            nominatimform = NominatimForm()
+            stationonmapform = StationOnMapForm()
+            newstationform = NewStationForm()
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                     ,'stationonmapform':stationonmapform
+                                                                     ,'newstationform':newstationform
+                                                                     ,"station":mystation})
 
         else:
-
-            print("invalid form")
+            print("invalid NewStationForm ")
             nominatimform = NominatimForm() # An unbound form
+            stationonmapform = StationOnMapForm() # An unbound form
             newstationform = NewStationForm() # An unbound form
-            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"invalid":True})
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                     ,'stationonmapform':stationonmapform
+                                                                     ,'newstationform':newstationform
+                                                                     ,"invalid":True})
 
     else:
         nominatimform = NominatimForm() # An unbound form
+        stationonmapform = StationOnMapForm() # An unbound form
         newstationform = NewStationForm() # An unbound form
-        return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,})
+        return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                 ,'stationonmapform':stationonmapform
+                                                                 ,'newstationform':newstationform})
 
+
+
+
+    #password=newstationform.cleaned_data['password']
+    #passwordrepeat=newstationform.cleaned_data['passwordrepeat']
+    #host = get_current_site(request).domain.split(":")[0]
+
+    #if name and (password == passwordrepeat):
+
+    
 
 @login_required
 def insertNewStationDetail(request,slug=None):

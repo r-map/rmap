@@ -136,6 +136,13 @@ Plotter plot; // create plotter
 uint16_t t;
 uint16_t h;
 
+
+#ifdef ARDUINO_ARCH_STM32
+#include <random>
+std::default_random_engine generator;
+std::normal_distribution<double> distribution(0.0,200.0);
+#endif
+
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
 // Handler for requesting data
@@ -414,8 +421,24 @@ void loop() {
       
       
       if (millis() > (inittime + MAXWAITTIME) ) {
+
 	int baset = 27315;
-	int rndt = random(-300,301);
+	// int rndt = random(-300,301);
+
+        #ifdef ARDUINO_ARCH_STM32
+	  double rndt = distribution(generator);
+        #else
+	  static bool even=false;
+	  static int rndt=0;
+	  if (even) {
+	    even = false;
+	    rndt=abs(rndt);
+	  } else {
+	    rndt  = random(-300,0);
+	    even = true;
+	  }	   
+        #endif
+	
 	int dailyt = round(sin((float(millis()-starttime)/(60.*60.*24.*1000.))*2.*PI)*2000.);
 	t = baset + rndt + dailyt;
 
