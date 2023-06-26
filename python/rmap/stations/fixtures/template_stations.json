@@ -138,7 +138,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "265,1,-,-",
     "board": [
       "module_mppt",
@@ -199,7 +199,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_radiation",
@@ -260,7 +260,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "1,0,180",
+    "timerange": "1,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -285,7 +285,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -346,7 +346,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "106,250,-,-",
     "board": [
       "module_svwc",
@@ -371,7 +371,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "106,450,-,-",
     "board": [
       "module_svwc",
@@ -396,7 +396,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "106,700,-,-",
     "board": [
       "module_svwc",
@@ -482,7 +482,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "3,0,180",
+    "timerange": "3,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -507,7 +507,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -532,7 +532,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -618,7 +618,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "200,0,180",
+    "timerange": "200,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -643,7 +643,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -668,7 +668,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -693,7 +693,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "9,0,180",
+    "timerange": "9,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -718,7 +718,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "205,0,180",
+    "timerange": "205,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -889,7 +889,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "265,1,-,-",
     "board": [
       "module_mppt",
@@ -950,7 +950,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_radiation",
@@ -1011,7 +1011,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "1,0,180",
+    "timerange": "1,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -1036,7 +1036,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -1122,7 +1122,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "3,0,180",
+    "timerange": "3,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -1147,7 +1147,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -1172,7 +1172,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -1258,7 +1258,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "200,0,180",
+    "timerange": "200,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -1283,7 +1283,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -1308,7 +1308,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -1333,7 +1333,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "9,0,180",
+    "timerange": "9,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -1358,7 +1358,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "205,0,180",
+    "timerange": "205,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "module_wind",
@@ -1529,7 +1529,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "265,1,-,-",
     "board": [
       "module_mppt",
@@ -1590,7 +1590,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "1,0,180",
+    "timerange": "1,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -1615,7 +1615,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "module_rain",
@@ -1701,7 +1701,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "3,0,180",
+    "timerange": "3,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -1726,7 +1726,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "0,0,180",
+    "timerange": "0,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -1751,7 +1751,7 @@
     "i2cbus": null,
     "address": null,
     "node": null,
-    "timerange": "2,0,180",
+    "timerange": "2,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "module_th",
@@ -2059,7 +2059,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "3,0,900",
+    "timerange": "3,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2084,7 +2084,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "0,0,900",
+    "timerange": "0,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2109,7 +2109,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "2,0,900",
+    "timerange": "2,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2134,7 +2134,7 @@
     "i2cbus": null,
     "address": 33,
     "node": null,
-    "timerange": "1,0,900",
+    "timerange": "1,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "stima3",
@@ -2209,7 +2209,7 @@
     "i2cbus": null,
     "address": 69,
     "node": null,
-    "timerange": "200,0,900",
+    "timerange": "200,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "stima3",
@@ -2234,7 +2234,7 @@
     "i2cbus": null,
     "address": 69,
     "node": null,
-    "timerange": "2,0,900",
+    "timerange": "2,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "stima3",
@@ -2259,7 +2259,7 @@
     "i2cbus": null,
     "address": 69,
     "node": null,
-    "timerange": "0,0,900",
+    "timerange": "0,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "stima3",
@@ -2284,7 +2284,7 @@
     "i2cbus": null,
     "address": 69,
     "node": null,
-    "timerange": "9,0,900",
+    "timerange": "9,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "stima3",
@@ -2309,7 +2309,7 @@
     "i2cbus": null,
     "address": 69,
     "node": null,
-    "timerange": "205,0,900",
+    "timerange": "205,0,{P2:d}",
     "level": "103,10000,-,-",
     "board": [
       "stima3",
@@ -2334,7 +2334,7 @@
     "i2cbus": null,
     "address": 71,
     "node": null,
-    "timerange": "0,0,900",
+    "timerange": "0,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "stima3",
@@ -2475,7 +2475,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "3,0,900",
+    "timerange": "3,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2500,7 +2500,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "0,0,900",
+    "timerange": "0,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2525,7 +2525,7 @@
     "i2cbus": null,
     "address": 35,
     "node": null,
-    "timerange": "2,0,900",
+    "timerange": "2,0,{P2:d}",
     "level": "103,2000,-,-",
     "board": [
       "stima3",
@@ -2550,7 +2550,7 @@
     "i2cbus": null,
     "address": 33,
     "node": null,
-    "timerange": "1,0,900",
+    "timerange": "1,0,{P2:d}",
     "level": "1,-,-,-",
     "board": [
       "stima3",
