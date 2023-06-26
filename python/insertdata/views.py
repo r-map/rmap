@@ -31,7 +31,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.core import serializers
 from django.forms import BoundField, Field
-from rmap.stations.models import TransportMqtt
+from rmap.stations.models import TransportMqtt,TransportTcpip,TransportCan,TransportAmqp,Sensor
 
 class scelta_present_weather(object):
     '''
@@ -205,21 +205,6 @@ class NewStationForm(forms.Form):
 #    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
 #    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
     
-
-class NewStationDetailForm(forms.Form):
-
-    CHOICES = []
-    for tem in rmap.rmap_core.template_choices: 
-        CHOICES.append((tem,tem))
-    
-    stationname = forms.CharField(required=True,label=_('Station name'),help_text=_('Station name'))
-    latitude = forms.DecimalField(required=True,label=_('Latitude'),help_text=_('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
-    longitude = forms.DecimalField(required=True,label=_('Longitude'),help_text=_('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
-    height = forms.DecimalField(required=True,label=_('Station height (m.)'),help_text=_('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
-    template = forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
-    mqttsamplerate=forms.IntegerField(required=True,label=__("report period (secondi)"),help_text='Time elapsed from two reports',min_value=0,max_value=3600*12,initial=900)
-    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
-    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
 
         
 from django.contrib.auth.decorators import login_required
@@ -903,26 +888,43 @@ def boardModify(request,slug,bslug):
     from django.forms import inlineformset_factory
     from django.forms import modelform_factory
     BoardForm=modelform_factory(Board, fields = ["name","active","slug"])
+    SensorFormSet = inlineformset_factory(Board,Sensor, fields=["active","name","driver","type","i2cbus","address","node","timerange","level"],extra=1)
     TransportMqttFormSet = inlineformset_factory(Board,TransportMqtt, fields=["active", "mqttsampletime","mqttserver","mqttuser","mqttpassword","mqttpskkey"])
+    TransportTcpipFormSet = inlineformset_factory(Board,TransportTcpip, fields=["active","name","ntpserver","gsmapn","pppnumber"])
+    TransportCanFormSet = inlineformset_factory(Board,TransportCan, fields=["active","cansampletime","node_id","subject","subject_id"])
+    TransportAmqpFormSet = inlineformset_factory(Board,TransportAmqp, fields=["active","amqpserver","exchange","queue","amqpuser","amqppassword"])
+    
     try:
         
         if request.method == 'POST': # If the form has been submitted...
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
             boardform = BoardForm(request.POST,instance=myboard)
-            transportmqttformset = TransportMqttFormSet(request.POST, request.FILES,instance=myboard)
+            sensorformset         = SensorFormSet    (request.POST, request.FILES,instance=myboard)
+            transportmqttformset  = TransportMqttFormSet (request.POST, request.FILES,instance=myboard)
+            transporttcpipformset = TransportTcpipFormSet(request.POST, request.FILES,instance=myboard)
+            transportcanformset   = TransportCanFormSet  (request.POST, request.FILES,instance=myboard)
+            transportamqpformset  = TransportAmqpFormSet (request.POST, request.FILES,instance=myboard)
             
             if boardform.is_valid() and transportmqttformset.is_valid() :
                 boardform.save()
                 transportmqttformset.save()
                 return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                          "sensorformset":sensorformset,
                                                                           "transportmqttformset":transportmqttformset,
+                                                                          "transporttcpipformset":transporttcpipformset,
+                                                                          "transportcanformset":transportcanformset,
+                                                                          "transportamqpformset":transportamqpformset,
                                                                           "station":mystation,
                                                                           "board":myboard,
                                                                           "saved":True})
             
             return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                      "sensorformset":sensorformset,
                                                                       "transportmqttformset":transportmqttformset,
+                                                                      "transporttcpipformset":transporttcpipformset,
+                                                                      "transportcanformset":transportcanformset,
+                                                                      "transportamqpformset":transportamqpformset,
                                                                       "station":mystation,
                                                                       "board":myboard,
                                                                       "invalid":True})
@@ -930,12 +932,19 @@ def boardModify(request,slug,bslug):
         else:
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
-
-
+            
             boardform = BoardForm(instance=myboard)
-            transportmqttformset = TransportMqttFormSet(instance=myboard)
+            sensorformset         = SensorFormSet        (instance=myboard)            
+            transportmqttformset  = TransportMqttFormSet (instance=myboard)
+            transporttcpipformset = TransportTcpipFormSet(instance=myboard)
+            transportcanformset   = TransportCanFormSet  (instance=myboard)
+            transportamqpformset  = TransportAmqpFormSet (instance=myboard)
             return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                      "sensorformset":sensorformset,
                                                                       "transportmqttformset":transportmqttformset,
+                                                                      "transporttcpipformset":transporttcpipformset,
+                                                                      "transportcanformset":transportcanformset,
+                                                                      "transportamqpformset":transportamqpformset,
                                                                       "station":mystation,
                                                                       "board":myboard,
                                                                       })
@@ -943,4 +952,19 @@ def boardModify(request,slug,bslug):
     except Exception as e:
         print(e)
         #stationmetadataform = StationMetadataForm() # An unbound form            
-        return render(request, 'insertdata/boardmodifyform.html',{"error":True})
+        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+        myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
+
+        boardform             = BoardForm            (instance=myboard)
+        sensorformset         = SensorFormSet        (instance=myboard)
+        transportmqttformset  = TransportMqttFormSet (instance=myboard)
+        transporttcpipformset = TransportTcpipFormSet(instance=myboard)
+        transportcanformset   = TransportCanFormSet  (instance=myboard)
+        transportamqpformset  = TransportAmqpFormSet (instance=myboard)
+        return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                  "sensorformset":sensorformset,
+                                                                  "transportmqttformset":transportmqttformset,
+                                                                  "transporttcpipformset":transporttcpipformset,
+                                                                  "transportcanformset":transportcanformset,
+                                                                  "transportamqpformset":transportamqpformset,"station":mystation,
+                                                                  "board":myboard,"error":True})
