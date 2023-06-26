@@ -721,7 +721,7 @@ class Board(models.Model):
         (29,"Module acquire soil humidity")
     )
 
-    name = models.CharField(max_length=255,help_text=ugettext_lazy("station name"))
+    name = models.CharField(max_length=255,help_text=ugettext_lazy("board name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate the board for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
     category = models.CharField(max_length=50, null= True, blank=True,choices=BOARD_CATEGORY_CHOICES,help_text=ugettext_lazy("General standard category"))

@@ -42,7 +42,7 @@
     "mqttserver": "test.rmap.cc",
     "mqttuser": "rmap",
     "mqttpassword": "none",
-    "mqttpskkey": "none",
+    "mqttpskkey": null,
     "board": [
       "masterv4",
       [
@@ -585,7 +585,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor vectorial average 10'",
+    "name": "Wind sensor vectorial average 10'",
     "driver": "CAN",
     "type": [
       "DWA"
@@ -610,7 +610,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind vect. average, gust direction",
+    "name": "Wind vect. average, gust direction",
     "driver": "CAN",
     "type": [
       "DWB"
@@ -635,7 +635,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor gust speeds",
+    "name": "Wind sensor gust speeds",
     "driver": "CAN",
     "type": [
       "DWC"
@@ -660,7 +660,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor scalar average",
+    "name": "Wind sensor scalar average",
     "driver": "CAN",
     "type": [
       "DWD"
@@ -685,7 +685,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor frequency",
+    "name": "Wind sensor frequency",
     "driver": "CAN",
     "type": [
       "DWE"
@@ -710,7 +710,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor gust directions",
+    "name": "Wind sensor gust directions",
     "driver": "CAN",
     "type": [
       "DWF"
@@ -793,7 +793,7 @@
     "mqttserver": "test.rmap.cc",
     "mqttuser": "rmap",
     "mqttpassword": "none",
-    "mqttpskkey": "none",
+    "mqttpskkey": null,
     "board": [
       "masterv4",
       [
@@ -1225,7 +1225,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor vectorial average 10'",
+    "name": "Wind sensor vectorial average 10'",
     "driver": "CAN",
     "type": [
       "DWA"
@@ -1250,7 +1250,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind vect. average, gust direction",
+    "name": "Wind vect. average, gust direction",
     "driver": "CAN",
     "type": [
       "DWB"
@@ -1275,7 +1275,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor gust speeds",
+    "name": "Wind sensor gust speeds",
     "driver": "CAN",
     "type": [
       "DWC"
@@ -1300,7 +1300,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor scalar average",
+    "name": "Wind sensor scalar average",
     "driver": "CAN",
     "type": [
       "DWD"
@@ -1325,7 +1325,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor frequency",
+    "name": "Wind sensor frequency",
     "driver": "CAN",
     "type": [
       "DWE"
@@ -1350,7 +1350,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Windsonic wind sensor gust directions",
+    "name": "Wind sensor gust directions",
     "driver": "CAN",
     "type": [
       "DWF"
@@ -1433,7 +1433,7 @@
     "mqttserver": "test.rmap.cc",
     "mqttuser": "rmap",
     "mqttpassword": "none",
-    "mqttpskkey": "none",
+    "mqttpskkey": null,
     "board": [
       "masterv4",
       [
@@ -1931,6 +1931,717 @@
       ]
     ]
   }
-}    
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Observer",
+    "active": false,
+    "slug": "observer",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 10e-05,
+    "lon": 10e-05,
+    "network": "fixed",
+    "mqttrootpath": "sample",
+    "mqttmaintpath": "maint",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "default",
+    "active": true,
+    "slug": "default",
+    "category": "template",
+    "type": 0,
+    "sn": null,
+    "stationmetadata": [
+      "observer",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 3600,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "default",
+      [
+        "observer",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V3 complessa",
+    "active": false,
+    "slug": "stima-v3-complessa",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 11e-05,
+    "lon": 11e-05,
+    "network": "locali",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "stima3",
+    "active": true,
+    "slug": "stima3",
+    "category": null,
+    "type": 0,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v3-complessa",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+    "model": "stations.sensor",
+    "fields": {
+	"active": true,
+	"name": "Temperature/Humidity report inst. values",
+	"driver": "I2C",
+	"type": [
+	    "ITH"
+	],
+	"i2cbus": null,
+	"address": 35,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	    "stima3",
+	    [
+		"stima-v3-complessa",
+		[
+		    "rmap"
+		]
+	    ]
+	]
+    }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "I2C",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "3,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "I2C",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "0,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "I2C",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "2,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "I2C",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": 33,
+    "node": null,
+    "timerange": "1,0,900",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Battery charge monitor",
+    "driver": "I2C",
+    "type": [
+      "DEP"
+    ],
+    "i2cbus": null,
+    "address": 48,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "265,1,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor vectorial average 10'",
+    "driver": "I2C",
+    "type": [
+      "DWA"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind vect. average, gust direction",
+    "driver": "I2C",
+    "type": [
+      "DWB"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "200,0,900",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust speeds",
+    "driver": "I2C",
+    "type": [
+      "DWC"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "2,0,900",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor scalar average",
+    "driver": "I2C",
+    "type": [
+      "DWD"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "0,0,900",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor frequency",
+    "driver": "I2C",
+    "type": [
+      "DWE"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "9,0,900",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust directions",
+    "driver": "I2C",
+    "type": [
+      "DWF"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "205,0,900",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Radiation",
+    "driver": "I2C",
+    "type": [
+      "DSA"
+    ],
+    "i2cbus": null,
+    "address": 71,
+    "node": null,
+    "timerange": "0,0,900",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V3 semplice",
+    "active": false,
+    "slug": "stima-v3-semplice",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 12e-05,
+    "lon": 12e-05,
+    "network": "claster",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "stima3",
+    "active": true,
+    "slug": "stima3",
+    "category": null,
+    "type": 0,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v3-semplice",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report inst. values",
+    "driver": "I2C",
+    "type": [
+      "ITH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+	"stima3",
+	[
+            "stima-v3-semplice",
+            [
+		"rmap"
+            ]
+	]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "I2C",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "3,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "I2C",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "0,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "I2C",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "2,0,900",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "I2C",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": 33,
+    "node": null,
+    "timerange": "1,0,900",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Battery charge monitor",
+    "driver": "I2C",
+    "type": [
+      "DEP"
+    ],
+    "i2cbus": null,
+    "address": 48,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "265,1,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "stima3",
+      [
+        "stima-v3-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+}
 ]
-

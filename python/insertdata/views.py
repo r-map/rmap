@@ -17,7 +17,8 @@ from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
 from rmap.rmapmqtt import rmapmqtt
-from rmap.stations.models import StationMetadata
+from rmap.stations.models import StationMetadata,Board,StationConstantData
+
 from django.contrib.gis.geos import Point
 import rmap.settings
 from nominatim import Nominatim
@@ -849,147 +850,97 @@ def insertNewStation(request):
 
     #if name and (password == passwordrepeat):
 
-    
-
-@login_required
-def insertNewStationDetail(request,slug=None):
-
-    if request.method == 'POST': # If the form has been submitted...
-
-        newstationdetailform = NewStationDetailForm(request.POST) # A form bound to the POST data
-        if newstationdetailform.is_valid(): # All validation rules pass
-            
-            lat=newstationdetailform.cleaned_data['latitude']
-            lon=newstationdetailform.cleaned_data['longitude']
-            username=request.user.username
-            mqttsamplerate=newstationdetailform.cleaned_data['mqttsamplerate']
-            password=newstationdetailform.cleaned_data['password']
-            passwordrepeat=newstationdetailform.cleaned_data['passwordrepeat']
-            name=newstationdetailform.cleaned_data['stationname']
-            height=str(int(newstationdetailform.cleaned_data['height']*10))
-            constantdata={}
-            constantdata["B01019"]=name
-            constantdata["B07030"]=height
-
-            #slug=newstationdetailform.cleaned_data.get('slug')
-            if (not slug): slug=slugify(name)
-            
-            board_slug="default"
-            template=newstationdetailform.cleaned_data['template']
-            
-            if name and (password == passwordrepeat):
-                try:
-                    try:
-                        print("del station:", username,slug)
-                        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=username)
-                        mystation.delete()
-                    except Exception as e:
-                        print(e)
-                    
-                    print("new station:", name,username,lon,lat)
-
-                    mystation=StationMetadata(slug=slug,name=name)
-                    user=User.objects.get(username=username)
-                    mystation.user=user
-                    mystation.lat=rmap.rmap_core.truncate(lat,5)
-                    mystation.lon=rmap.rmap_core.truncate(lon,5)
-                    mystation.active=True
-                    host = get_current_site(request).domain.split(":")[0]
-
-                    # this in not very good ! we need to specify better in template the type (report/sample)
-                    if ("_report_" in template):
-                        mystation.mqttrootpath="report"
-                    
-                    mystation.clean()
-                    mystation.save()
-
-
-                    # remove all StationConstantData
-                    try:
-                        StationConstantData.objects.filter(stationmetadata=mystation).delete()
-                    except:
-                        pass
-
-                    for btable,value in constantdata.items():
-
-                        # remove only StationConstantData in constantdata
-                        #try:
-                        #    StationConstantData.objects.filter(stationmetadata=mystation,btable=btable).delete()
-                        #except:
-                        #    pass
-
-                        try:
-                            mystation.stationconstantdata_set.create(
-                                active=True,
-                                btable=btable,
-                                value=value
-                            )
-
-                        except:
-                            pass
-
-                    rmap.rmap_core.addboard(station_slug=slug,username=username,board_slug=board_slug,activate=True
-                                ,serialactivate=True
-                                ,mqttactivate=True, mqttserver=host, mqttusername=username, mqttpassword=password, mqttsamplerate=mqttsamplerate
-                                ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername=username, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
-                                ,tcpipactivate=True, tcpipname="master", tcpipntpserver="it.pool.ntp.org", tcpipgsmapn="ibox.tim.it"
-                    )
-
-                    rmap.rmap_core.addsensors_by_template(
-                        station_slug=slug
-                        ,username=username
-                        ,board_slug=board_slug
-                        ,template=template)
-
-                except IntegrityError as e:
-                    print(e)
-                    return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"error":True,"duplicated":True})
-                    
-                except Exception as e:
-                    print(e)
-                    return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"error":True})
-
-                newstationdetailform = NewStationDetailForm() # An unbound form
-                return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"station":mystation})
-
-                
-            else:
-                return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"invalid":True})
-
-
-        else:
-            print("invalid form")
-            newstationdetailform = NewStationDetailForm() # An unbound form
-            return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"invalid":True})
-            
-    newstationdetailform = NewStationDetailForm() # An unbound form            
-    return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform})
-
-
-
 @login_required
 def stationModify(request,slug):
 
-    if request.method == 'POST': # If the form has been submitted...
-        return insertNewStationDetail(request,slug=slug)
-    
+    from django.forms import inlineformset_factory
+    from django.forms import modelform_factory
+    StationMetadataForm=modelform_factory(StationMetadata, fields = ["name","active","slug","ident","lat","lon","network"])
+    StationConstantDataFormSet = inlineformset_factory(StationMetadata,StationConstantData, fields=["active", "btable","value"],extra=1)
+    BoardFormSet = inlineformset_factory(StationMetadata,Board, fields=["name", "slug"])
+
     try:
-        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+        
+        if request.method == 'POST': # If the form has been submitted...
+            mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+            stationmetadataform = StationMetadataForm(request.POST,instance=mystation)
+            constantformset = StationConstantDataFormSet(request.POST, request.FILES,instance=mystation)
+            #boardformset = BoardFormSet(request.POST, request.FILES,instance=mystation)
+            
+            if stationmetadataform.is_valid() and constantformset.is_valid():
+                stationmetadataform.save()
+                constantformset.save()
+                return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                            "constantformset":constantformset,
+                                                                            "station":mystation,
+                                                                            "saved":True})
+            
+            return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                        "constantformset":constantformset,
+                                                                        "station":mystation,
+                                                                        "invalid":True})
 
-        mystation_dict= {
-            "slug":  mystation.slug
-            ,"latitude":    mystation.lat
-            ,"longitude":  mystation.lon
-            ,"stationname":  mystation.name
-        }
-
+        else:
+            mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+            stationmetadataform = StationMetadataForm(instance=mystation)
+            #queryset=Board.objects.filter(stationmetadata=mystation)
+            #boardformset = BoardFormSet(queryset=queryset)
+            constantformset = StationConstantDataFormSet(instance=mystation)
+            #boardformset = BoardFormSet(instance=mystation)
+            return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                        "constantformset":constantformset,
+                                                                        "station":mystation,
+                                                                        })
+            
     except Exception as e:
         print(e)
-        newstationdetailform = NewStationDetailForm() # An unbound form            
-        return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"error":True})
+        #stationmetadataform = StationMetadataForm() # An unbound form
+        return render(request, 'insertdata/stationmodifyform.html',{"error":True})
 
-    newstationdetailform=NewStationDetailForm(initial = mystation_dict)    
-    return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform})
+@login_required
+def boardModify(request,slug,bslug):
 
-    
+    from django.forms import inlineformset_factory
+    from django.forms import modelform_factory
+    BoardForm=modelform_factory(Board, fields = ["name","active","slug"])
+    TransportMqttFormSet = inlineformset_factory(Board,TransportMqtt, fields=["active", "mqttsampletime","mqttserver","mqttuser","mqttpassword","mqttpskkey"])
+    try:
+        
+        if request.method == 'POST': # If the form has been submitted...
+            mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+            myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
+            boardform = BoardForm(request.POST,instance=myboard)
+            transportmqttformset = TransportMqttFormSet(request.POST, request.FILES,instance=myboard)
+            
+            if boardform.is_valid() and transportmqttformset.is_valid() :
+                boardform.save()
+                transportmqttformset.save()
+                return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                          "transportmqttformset":transportmqttformset,
+                                                                          "station":mystation,
+                                                                          "board":myboard,
+                                                                          "saved":True})
+            
+            return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                      "transportmqttformset":transportmqttformset,
+                                                                      "station":mystation,
+                                                                      "board":myboard,
+                                                                      "invalid":True})
+
+        else:
+            mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+            myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
+
+
+            boardform = BoardForm(instance=myboard)
+            transportmqttformset = TransportMqttFormSet(instance=myboard)
+            return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+                                                                      "transportmqttformset":transportmqttformset,
+                                                                      "station":mystation,
+                                                                      "board":myboard,
+                                                                      })
+            
+    except Exception as e:
+        print(e)
+        #stationmetadataform = StationMetadataForm() # An unbound form            
+        return render(request, 'insertdata/boardmodifyform.html',{"error":True})

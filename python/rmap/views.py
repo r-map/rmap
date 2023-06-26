@@ -662,7 +662,22 @@ def profile_details(request,mystation_slug):
 
     form = StationImageForm() # An unbound form
     mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
-    return render(request, 'profile_details.html',{"user":request.user.get_username(),"mystation":mystation,'form': form})
+
+    reserved={}
+    for myboard in mystation.board_set.all():
+        if ( myboard.active ):
+            try:
+                if ( myboard.transportmqtt.active):
+                    reserved["Board slug"]=myboard.slug
+                    reserved["Password"]=myboard.transportmqtt.mqttpassword
+                    reserved["PSKkey"]=myboard.transportmqtt.mqttpskkey
+
+            except ObjectDoesNotExist:
+                pass
+
+
+
+    return render(request, 'profile_details.html',{"user":request.user.get_username(),"mystation":mystation,"reserved":reserved,'form': form})
 
 
 @login_required

@@ -19,6 +19,19 @@
 
 <p><h3> <a href="{% url 'mystationmetadata-del' mystation.user mystation.slug %}">{% trans 'Delete' %} {{ mystation.slug }}</a></h3></p>
 <p><h3> <a href="{% url 'insertdata-stationmodify' mystation.slug %}">{% trans 'Modify' %} {{ mystation.slug }}</a></h3></p>
+<p><h3>{% trans 'Reserved information' %}:</h3></p>
+
+
+<ul>
+  {% for key, value in reserved.items %} 
+    <details>
+      <summary>
+	<li>{% trans key %}</li>
+      </summary>
+      {{ value }}
+    </details>
+  {% endfor %}
+</ul>
 
 <div class="table-responsive">
 <table class="table">

@@ -49,7 +49,7 @@
             "active": true,
             "name": "I2C Battery charge monitor, report mode",
             "type": "DEP",
-	    "datalevel": "sample",
+	    "datalevel": "report",
             "bcodes": [
                 ["B25025"],
                 ["B25192"],

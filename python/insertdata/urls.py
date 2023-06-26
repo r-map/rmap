@@ -8,8 +8,8 @@ urlpatterns = [
         views.insertDataManualData,name="insertdata-manualdata"),
     url(r'^newstation$',
         views.insertNewStation,name="insertdata-newstation"),
-    url(r'^newstationdetail$',
-        views.insertNewStationDetail,name="insertdata-newstationdetail"),
     url(r'^stationmodify/(?P<slug>[-_\w]+)/$',
         views.stationModify,name="insertdata-stationmodify"),
+    url(r'^stationmodify/(?P<slug>[-_\w]+)/(?P<bslug>[-_\w]+)/$',
+        views.boardModify,name="insertdata-boardmodify"),
 ]

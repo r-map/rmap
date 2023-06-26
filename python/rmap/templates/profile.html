@@ -28,7 +28,7 @@
       </thead>
       {% for station in  stations %}
         <tr>
-	  <td><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></td>
+	  <td><a href=/accounts/profile/{{ station.slug }}>{{ station.name }}</a></td>
 	  <td> 
 	  {% if station.active %}
 		<i class="fa fa-check "></i>

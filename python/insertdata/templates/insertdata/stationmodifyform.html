@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+{% if invalid  %}
+<div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
+{% endif %}
+
+{% if error  %}
+<div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
+{% endif %}
+
+{% if saved  %}
+<div class="alert alert-warning" role="alert">
+  {% trans 'Station chage completed successfully' %}:<br>
+</div>
+
+
+{% endif %}
+
+
+<h3 id="striped-rows">{% trans 'Modify station' %} <a href=  {% url 'profile-details' station.slug  %} >{{ station.name }}</a></h3>
+<div class="table-responsive">
+    <h3 id="striped-rows"><a href={% url 'profile' %}>{% trans 'Cancel' %}</a> </h3>
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      {{ stationmetadataform.as_p }}
+      {{ constantformset.as_p }}      
+     <input type="submit" value={%trans "Submit" %} class="btn">
+    </form>
+</div>
+
+<div class="table-responsive">
+  {% for board in station.board_set.all %}
+    <a class="btn btn-default" href=  {% url 'insertdata-boardmodify' station.slug board.slug %} role="button">{{board.name}} &raquo;</a>
+  {% endfor %}
+</div>
+
+{% endblock %}
