@@ -2670,14 +2670,14 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1)==0;
 	       lcd_error |= lcd.print(F("C "))==0;
 	     }
-
+	     
 	     value = doc["B13003"] | INT32_MAX;
 	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
 	       lcd_error |= lcd.setCursor(9, 1);
 	       lcd_error |= lcd.print(value)==0;
 	       lcd_error |= lcd.print(F("% "))==0;
 	     }
-
+	     
 	     value = doc["B13011"] | INT32_MAX;
 	     if (ISVALID_INT32(value)){
 	       if  (strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,180/1,-,-,-/")==0  ||
@@ -2691,27 +2691,60 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 		 lcd_error |= lcd.print(F("mm "))==0;
 	       }
 	     }
-
-	     // line 2	     
-	     value = doc["B25025"] | INT32_MAX;
-	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
-	       lcd_error |= lcd.setCursor(0, 2);
-	       lcd_error |= lcd.print((value/10.),1)==0;
-	       lcd_error |= lcd.print(F("Vb "))==0;
-	     }
-
-	     value = doc["B25192"] | INT32_MAX;
-	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
-	       lcd_error |= lcd.setCursor(7, 2);
-	       lcd_error |= lcd.print(value)==0;
-	       lcd_error |= lcd.print(F("% "))==0;
-	     }
 	     
-	     value = doc["B25194"] | INT32_MAX;
-	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
-	       lcd_error |= lcd.setCursor(12, 2);
-	       lcd_error |= lcd.print((value/10.),1)==0;
-	       lcd_error |= lcd.print(F("Vp "))==0;
+	     if (sensors_count < 7 ){
+	       // line 2	     
+	       value = doc["B25025"] | INT32_MAX;
+	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+		 lcd_error |= lcd.setCursor(0, 2);
+		 lcd_error |= lcd.print((value/10.),1)==0;
+		 lcd_error |= lcd.print(F("Vb "))==0;
+	       }
+	       
+	       value = doc["B25192"] | INT32_MAX;
+	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+		 lcd_error |= lcd.setCursor(7, 2);
+		 lcd_error |= lcd.print(value)==0;
+		 lcd_error |= lcd.print(F("% "))==0;
+	       }
+	       
+	       value = doc["B25194"] | INT32_MAX;
+	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+		 lcd_error |= lcd.setCursor(12, 2);
+		 lcd_error |= lcd.print((value/10.),1)==0;
+		 lcd_error |= lcd.print(F("Vp "))==0;
+	       }
+	     }else{
+	       // line 2	     
+	       value = doc["B11002"] | INT32_MAX;
+	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,10000,-,-/")==0){
+		 lcd_error |= lcd.setCursor(0, 2);
+		 lcd_error |= lcd.print((value/10.),1)==0;
+		 lcd_error |= lcd.print(F("ms "))==0;
+	       }
+	       
+	       value = doc["B11001"] | INT32_MAX;
+	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,10000,-,-/")==0){
+		 lcd_error |= lcd.setCursor(7, 2);
+		 lcd_error |= lcd.print(value)==0;
+		 lcd_error |= lcd.print(F("^ "))==0;
+	       }
+	       
+	       value = doc["B14198"] | INT32_MAX;
+	       if (ISVALID_INT32(value)){
+
+		 if  (strcmp(readable_configuration.sensors[i].mqtt_topic,"0,0,180/1,-,-,-/")==0  ||
+		      strcmp(readable_configuration.sensors[i].mqtt_topic,"0,0,300/1,-,-,-/")==0  ||
+		      strcmp(readable_configuration.sensors[i].mqtt_topic,"0,0,900/1,-,-,-/")==0  ||
+		      strcmp(readable_configuration.sensors[i].mqtt_topic,"0,0,1800/1,-,-,-/")==0 ||
+		      strcmp(readable_configuration.sensors[i].mqtt_topic,"0,0,3600/1,-,-,-/")==0
+		      ){
+		   
+		   lcd_error |= lcd.setCursor(12, 2);
+		   lcd_error |= lcd.print(value)==0;
+		   lcd_error |= lcd.print(F("wm2"))==0;
+		 }
+	       }
 	     }
 	   }
 	   // line 3

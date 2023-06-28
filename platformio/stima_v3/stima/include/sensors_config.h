@@ -130,6 +130,12 @@ Max value here is 10
 #define USE_SENSOR_DWE              (true)
 
 /*!
+\def USE_SENSOR_DWF
+\brief Enable if you want maximum wind gust speed and direction over report time.
+*/
+#define USE_SENSOR_DWF              (true)
+
+/*!
 \def USE_SENSOR_OA2
 \brief Enable if you want use OPC PM1, PM2.5, PM10 continuous average value.
 */
