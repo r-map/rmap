@@ -2666,12 +2666,12 @@ void SensorDriverWind::setup() {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
-	LOGN("scritto %d, %d",_address,i+1);      
+	LOGV("wind setup I2C %d, %d",_address,i+1);      
 	_error_count = 0;
         _is_success = true;
         *_is_setted = true;
       }else{
-	LOGE("scritto errore");
+	LOGE("wind setup error writing I2C");
 	_error_count++;
       }	
     }
@@ -2689,6 +2689,7 @@ void SensorDriverWind::prepare(bool is_test) {
   uint8_t i;
   _is_success = false;
   _is_test = is_test;
+  _delay_ms = 0;
 
   if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
@@ -2703,13 +2704,13 @@ void SensorDriverWind::prepare(bool is_test) {
 	_buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START_STOP;
     }
     _buffer[i] = crc8(_buffer, i);
-    _delay_ms = 100;   // no less then 32 ms
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_delay_ms = 500;   // no less then 400 ms
 	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
@@ -2720,7 +2721,6 @@ void SensorDriverWind::prepare(bool is_test) {
   }
   else {
     _is_success = true;
-    _delay_ms = 0;
   }
 
   if(!is_test)_is_current_prepared = *_is_prepared;  
@@ -2731,13 +2731,10 @@ void SensorDriverWind::prepare(bool is_test) {
 void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
-  uint8_t i;
-  
-  #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
+  uint8_t i;  
   uint16_t val16;
   uint8_t  val8;
   uint8_t *val_ptr;
-  #endif
 
   switch (_get_state) {
     case INIT:
@@ -2951,7 +2948,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
             *(val_ptr + i) = _buffer[offset + i];
           }
           offset += 2;
-	  
+
 	  if (_is_success && ISVALID(val16)) {
 	    // speed or direction
 	    values[variable_count] = (int32_t) val16;
@@ -2983,9 +2980,9 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
       if ((variable_count >= length) || (variable_count >= variable_length)) {
         _get_state = END;
       }
-      else if (variable_count == 7) {
-        _get_state = SET_ADDRESS;
-      }
+      //      else if (variable_count == 7) {
+      //  _get_state = SET_ADDRESS;
+      //}
       break;
       
     case END:

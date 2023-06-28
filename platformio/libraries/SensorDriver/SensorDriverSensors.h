@@ -127,7 +127,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def SENSOR_TYPE_DWF
-\brief Sensor driver's DWF sensor type for class Wind Speed over report time.
+\brief Sensor driver's DWF sensor type for maximum wind gust speed and direction over report time.
 */
 #define SENSOR_TYPE_DWF           ("DWF")
 
