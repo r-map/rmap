@@ -265,31 +265,6 @@ volatile bool inside_transaction;
 volatile uint16_t transaction_time;
 
 
-/*!
-\var is_start
-\brief Execute start command.
-*/
-bool is_start;
-
-/*!
-\var is_stop
-\brief Execute stop command.
-*/
-bool is_stop;
-
-/*!
-\var is_oneshot
-\brief Received command is in oneshot mode.
-*/
-bool is_oneshot;
-
-
-/*!
-\var is_test
-\brief Received command is in test mode.
-*/
-bool is_test;
-
 #if (USE_SENSOR_DES)
 CircularBuffer<unsigned int, WMO_REPORT_SAMPLES_COUNT> cb_speed;
 #endif

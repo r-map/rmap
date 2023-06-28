@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (10)
+#define MODULE_MINOR_VERSION                          (11)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -132,7 +132,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GWS_SERIAL_BAUD                                 (9600)
 #define GWS_SERIAL_TIMEOUT_MS                           (0)
 
-#define UART_RX_BUFFER_LENGTH                           (40)
+#define UART_RX_BUFFER_LENGTH                           (41)
 #endif
 
 /*!
@@ -339,8 +339,12 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*!
 \def WIND_POWER_RESPONSE_DELAY_MS
 \brief windsonic poll mode delay for response (millisec).
+\from User Manual:
+\When in polled mode the system will respond to the data command within 130mS 
+\with the last valid data sample as calculated by the Output rate (P Mode Setting).
+\ is not TRUE !
 */
-#define WIND_POWER_RESPONSE_DELAY_MS                    (150)
+#define WIND_POWER_RESPONSE_DELAY_MS                    (200)
 
 /*!
 \def WIND_READ_DELAY_MS

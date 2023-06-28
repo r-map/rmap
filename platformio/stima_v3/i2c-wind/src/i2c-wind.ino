@@ -243,9 +243,6 @@ void init_tasks() {
   wind_state = WIND_INIT;
 
   lastcommand=I2C_WIND_COMMAND_NONE;
-  is_start = false;
-  is_stop = false;
-  is_test = false;
   transaction_time = 0;
   inside_transaction = false;
 }
@@ -536,6 +533,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
       //noInterrupts();
       // enable Command task
+      //LOGV(F("received command: %d"),i2c_rx_data[1]);
       if (!is_event_command_task) {
 	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
 	lastcommand=i2c_rx_data[1];    // record command to be executed
@@ -552,9 +550,6 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_WIND_ONESHOT_ADDRESS && rx_data_length == I2C_WIND_ONESHOT_LENGTH) {
-        is_i2c_data_ok = true;
-      }
-      else if (i2c_rx_data[0] == I2C_WIND_CONTINUOUS_ADDRESS && rx_data_length == I2C_WIND_CONTINUOUS_LENGTH) {
         is_i2c_data_ok = true;
       }
 
@@ -921,7 +916,7 @@ void elaborate_circular_buffer(void){
   uint16_t valid_count=0;
   uint16_t cb_error_count=max((int16_t)WMO_REPORT_SAMPLES_COUNT-cb_speed.size(),0);
   
-for (uint16_t i = 0; i < cb_speed.size(); i++) {  
+  for (uint16_t i = 0; i < cb_speed.size(); i++) {  
     speed = cb_speed[i];
     direction = cb_direction[i];
     LOGV("%d, wmo speed:%d    direction:%d",i,speed,direction);
@@ -958,15 +953,11 @@ void windsonicSerialReset() {
 
 void windsonicReceiveTerminatedMessage(const char terminator){
   // receive message on serial until terminator is found and terminate message
-  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
+  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH-1);
   uart_rx_buffer[uart_rx_buffer_length] = '\0';
   uart_rx_buffer_length++;
   //Serial.print(F("receive:"));
   //Serial.println(uart_rx_buffer);
-}
-
-void windsonicReceiveMessage(const char terminator){
-  uart_rx_buffer_length=Serial1.readBytesUntil(terminator, uart_rx_buffer, UART_RX_BUFFER_LENGTH);
 }
 
 void windsonicFlush(void){
@@ -1350,7 +1341,7 @@ void windsonicConfigure(void){
   
   //Serial.println(F("send: P2"));
   Serial1.print("P2\r\n");   // 2 per second;  required by i2c-wind setted for 1 measure by sec.
-  windsonicReceiveMessage('\r');
+  windsonicReceiveTerminatedMessage('\r');
   delay(500);
   windsonicFlush();
 
@@ -1591,9 +1582,14 @@ void wind_task () {
 
       uart_rx_buffer_length = Serial1.readBytesUntil('\n',uart_rx_buffer, UART_RX_BUFFER_LENGTH);
 
-      if (uart_rx_buffer_length > 0 && uart_rx_buffer_length < UART_RX_BUFFER_LENGTH ){
+      if (uart_rx_buffer_length > 0 && uart_rx_buffer_length < (UART_RX_BUFFER_LENGTH-1) ){
 	uart_rx_buffer[uart_rx_buffer_length]='\n';
 	uart_rx_buffer_length++;	
+
+	uart_rx_buffer[uart_rx_buffer_length]=NULL;
+	//uart_rx_buffer_length++;
+	LOGV(F("windsonic message:%s"),uart_rx_buffer);
+
 	for (uint8_t i = 0; i < uart_rx_buffer_length; i++) {
 	  LOGV(F("windsonic data:%c"),uart_rx_buffer[i]);
 	}
@@ -1618,7 +1614,7 @@ void wind_task () {
 	}
       }
 
-      LOGV(F("windsonic data: %d , %d"),speed,direction);
+      LOGV(F("wind data: %d , %d"),speed,direction);
       
       cb_speed.unshift(speed);      
       cb_direction.unshift(direction);      
@@ -1692,7 +1688,7 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
      Q,349,000.05,M,00,15
      Q,031,000.06,M,00,1A
      Q,103,000.06,M,00,1A
-     
+     Q,,,M,04,^C34
 
      Gill format Polar, Continuous (Default format)
      
@@ -1725,6 +1721,7 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
   #define GWS_ETX_INDEX                                   (19)
 
   #define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
+  #define GWS_WITHOUT_DIRECTIONANDVELOCITY_OFFSET         (9)
 
   #define GWS_DIRECTION_INDEX                             (3)
   #define GWS_DIRECTION_LENGTH                            (3)
@@ -1767,8 +1764,20 @@ bool windsonic_interpreter (uint16_t *speed, uint16_t *direction) {
     LOGV(F("windsonic message without direction"));    
     offset = GWS_WITHOUT_DIRECTION_OFFSET;
 
+  } else if ((uart_rx_buffer[GWS_STX_INDEX] == STX_VALUE) &&
+	     (uart_rx_buffer[GWS_ETX_INDEX - GWS_WITHOUT_DIRECTIONANDVELOCITY_OFFSET] == ETX_VALUE) &&
+	     (uart_rx_buffer[uart_rx_buffer_length-2] == CR_VALUE) &&
+	     (uart_rx_buffer[uart_rx_buffer_length-1] == LF_VALUE)) {
+
+    LOGE(F("windsonic message without direction and velocity"));    
+    offset = GWS_WITHOUT_DIRECTIONANDVELOCITY_OFFSET;
+    //return false; // without return check status and if 00 set direction=0 and velocity=0
+  
   }else{
     LOGE(F("error in windsonic message"));
+    for (uint8_t i = 0; i < uart_rx_buffer_length; i++) {
+      LOGE(F("windsonic data:%c"),uart_rx_buffer[i]);
+    }
     return false;
   }
 
@@ -1878,9 +1887,7 @@ void exchange_buffers() {
 void reset_samples_buffer() {
   #if (USE_SENSOR_DES)
   cb_speed.clear();
-
-
-#endif
+  #endif
 
   #if (USE_SENSOR_DED)
   cb_direction.clear();
@@ -1917,74 +1924,78 @@ void command_task() {
   switch(lastcommand) {
   case I2C_WIND_COMMAND_ONESHOT_START:
     LOGN(F("Execute [ ONESHOT START ]"));
-    is_start = true;
-    is_stop = false;
-    is_test = false;
-    commands();
+    if (!inside_transaction) {
+      reset_samples_buffer();
+      is_event_activate_wind_task = true;
+    } else { LOGE(F("Transaction error"));};
     break;
     
   case I2C_WIND_COMMAND_ONESHOT_STOP:
     LOGN(F("Execute [ ONESHOT STOP ]"));
-    is_start = false;
-    is_stop = true;
-    is_test = false;
-    commands();
-    inside_transaction = true;
+    if (!inside_transaction) {
+      transaction_time = 0;
+      inside_transaction = true;
+      is_event_activate_wind_task = false;
+      exchange_buffers();
+    } else { LOGE(F("Transaction error"));};
     break;
     
-  case I2C_WIND_COMMAND_ONESHOT_START_STOP:
-    LOGN(F("Execute [ ONESHOT START-STOP ]"));
-    is_start = true;
-    is_stop = true;
-    is_test = false;
-    commands();
-    inside_transaction = true;
-    break;
+    //  case I2C_WIND_COMMAND_ONESHOT_START_STOP:
+    //LOGN(F("Execute [ ONESHOT START-STOP ]"));
+    //inside_transaction = true;
+    //break;
     
   case I2C_WIND_COMMAND_CONTINUOUS_START:
     LOGN(F("Execute [ CONTINUOUS START ]"));
-    is_start = true;
-    is_stop = false;
-    is_test = false;
-    commands();
+
+    if (!inside_transaction) {
+      is_event_activate_wind_task = false;
+      make_report(true);
+      is_event_activate_wind_task = true;
+    } else { LOGE(F("Transaction error"));};
     break;
     
   case I2C_WIND_COMMAND_CONTINUOUS_STOP:
     LOGN(F("Execute [ CONTINUOUS STOP ]"));
-    is_start = false;
-    is_stop = true;
-    is_test = false;
-    commands();
-    inside_transaction = true;
+    if (!inside_transaction) {
+      transaction_time = 0;      
+      inside_transaction = true;
+      is_event_activate_wind_task = false;
+      elaborate_circular_buffer();
+      //copy_buffers();
+      exchange_buffers();
+    } else { LOGE(F("Transaction error"));};
     break;
 	 
   case I2C_WIND_COMMAND_CONTINUOUS_START_STOP:
     LOGN(F("Execute [ CONTINUOUS START-STOP ]"));
-    is_start = true;
-    is_stop = true;
-    is_test = false;
-    commands();
-    inside_transaction = true;
+    if (!inside_transaction) {
+      transaction_time = 0;
+      inside_transaction = true;
+      is_event_activate_wind_task = false;     // from here
+      elaborate_circular_buffer();
+      exchange_buffers();             // to here require 32 ms with 16Mhz avr mcu and SENSORS_SAMPLE_TIME_MS 1000
+      make_report(true);
+      is_event_activate_wind_task = true;
+    } else { LOGE(F("Transaction error"));};
     break;
     
   case I2C_WIND_COMMAND_TEST_READ:
     LOGN(F("Execute [ TEST READ ]"));
-    //is_start = true;
-    is_stop = false;
-    is_test = true;
-    commands();
+    if (!inside_transaction) {
+      copy_buffers();
+      //exchange_buffers();
+    } else { LOGE(F("Transaction error"));};
     break;
     
   case I2C_WIND_COMMAND_SAVE:
-    is_start = false;
-    is_stop = false;
     LOGN(F("Execute command [ SAVE ]"));
     save_configuration(CONFIGURATION_CURRENT);
     init_wire();
     break;
     
   default:
-    LOGN(F("Ignore unknow command"));
+    LOGW(F("Ignore unknow command"));
     
   }
 
@@ -2000,44 +2011,5 @@ void copy_buffers() {
    noInterrupts();
    memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
    interrupts();
-}
-
-void commands() {
-  if (inside_transaction) return;
-  
-  //! CONTINUOUS TEST
-  if (!configuration.is_oneshot && is_start && !is_stop && is_test) {
-    copy_buffers();
-    //exchange_buffers();
-  }
-  //! CONTINUOUS START
-  else if (!configuration.is_oneshot && is_start && !is_stop && !is_test) {
-    is_event_activate_wind_task = false;
-    reset_samples_buffer();
-    make_report(true);
-    is_event_activate_wind_task = true;
-  }
-  //! CONTINUOUS STOP
-  else if (!configuration.is_oneshot && !is_start && is_stop) {
-    is_event_activate_wind_task = false;
-    elaborate_circular_buffer();
-    copy_buffers();
-    //exchange_buffers();
-  }
-  //! CONTINUOUS START-STOP
-  else if (!configuration.is_oneshot && is_start && is_stop) {
-    is_event_activate_wind_task = false;     // from here
-    elaborate_circular_buffer();
-    exchange_buffers();             // to here require 32 ms with 16Mhz avr mcu and SENSORS_SAMPLE_TIME_MS 1000
-    reset_samples_buffer();
-    make_report(true);
-    is_event_activate_wind_task = true;
-  }
-  //! ONESHOT START
-  else if (configuration.is_oneshot && is_start && !is_stop) {
-    reset_samples_buffer();
-    //! ONESHOT STOP
-    is_event_activate_wind_task = true;
-  }
 }
   
