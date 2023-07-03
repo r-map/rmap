@@ -87,6 +87,9 @@ def main (self):
             "report/+/+/+","report/+/+/+/+/+"
             ,"1/report/+/+/+/+","1/sample/+/+/+/+"
             ,"1/report/+/+/+/+/+/+","1/sample/+/+/+/+/+/+"
+            ,"report/+/+/+/","report/+/+/+/+/+/"
+            ,"1/report/+/+/+/+/","1/sample/+/+/+/+/"
+            ,"1/report/+/+/+/+/+/+/","1/sample/+/+/+/+/+/+/"
         ]
         
         r2o=report2observation(rmap.settings.mqtthost,rmap.settings.mqttuser, rmap.settings.mqttpassword
