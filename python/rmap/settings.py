@@ -1458,4 +1458,3 @@ USERNAME_ARKIWEB = config['cosudo']['username_arkiweb']
 PASSWORD_ARKIWEB = config['cosudo']['password_arkiweb']
 REPOSITORY_DIR = config['cosudo']['repository_dir']
 DBALLE_DB_DYNAMIC = dsnreport_fixed
-

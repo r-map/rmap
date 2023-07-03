@@ -241,7 +241,6 @@ def addboard(station_slug=None,username=None,board_slug=None,type=0,sn=None,acti
     except ObjectDoesNotExist :
         transportcan=TransportCan()
 
-    print(canactivate,cannodeid,cansubject,cansubjectid,cansamplerate)
     
     transportcan.active=canactivate
     transportcan.node_id=cannodeid

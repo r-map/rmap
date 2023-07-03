@@ -33,6 +33,11 @@ from django.core import serializers
 from django.forms import BoundField, Field
 from rmap.stations.models import TransportMqtt,TransportTcpip,TransportCan,TransportAmqp,Sensor
 
+#from crispy_forms.helper import FormHelper
+#from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit
+#from crispy_forms.bootstrap import TabHolder,Tab, Div
+
+
 class scelta_present_weather(object):
     '''
     build choices for build 
@@ -884,7 +889,7 @@ def stationModify(request,slug):
 
 @login_required
 def boardModify(request,slug,bslug):
-
+    
     from django.forms import inlineformset_factory
     from django.forms import modelform_factory
     BoardForm=modelform_factory(Board, fields = ["name","active","slug"])
@@ -899,16 +904,21 @@ def boardModify(request,slug,bslug):
         if request.method == 'POST': # If the form has been submitted...
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
-            boardform = BoardForm(request.POST,instance=myboard)
-            sensorformset         = SensorFormSet    (request.POST, request.FILES,instance=myboard)
-            transportmqttformset  = TransportMqttFormSet (request.POST, request.FILES,instance=myboard)
-            transporttcpipformset = TransportTcpipFormSet(request.POST, request.FILES,instance=myboard)
-            transportcanformset   = TransportCanFormSet  (request.POST, request.FILES,instance=myboard)
-            transportamqpformset  = TransportAmqpFormSet (request.POST, request.FILES,instance=myboard)
+            boardform             = BoardForm            (request.POST, instance=myboard)
+            sensorformset         = SensorFormSet        (request.POST, instance=myboard)
+            transportmqttformset  = TransportMqttFormSet (request.POST, instance=myboard)
+            transporttcpipformset = TransportTcpipFormSet(request.POST, instance=myboard)
+            transportcanformset   = TransportCanFormSet  (request.POST, instance=myboard)
+            transportamqpformset  = TransportAmqpFormSet (request.POST, instance=myboard)
             
             if boardform.is_valid() and transportmqttformset.is_valid() :
                 boardform.save()
+                sensorformset.save()
                 transportmqttformset.save()
+                transporttcpipformset.save()
+                transportcanformset.save()
+                transportamqpformset.save()
+
                 return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
                                                                           "sensorformset":sensorformset,
                                                                           "transportmqttformset":transportmqttformset,

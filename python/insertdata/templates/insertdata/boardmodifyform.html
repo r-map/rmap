@@ -15,42 +15,93 @@
 <div class="alert alert-warning" role="alert">
   {% trans 'Board chage completed successfully' %}:<br>
 </div>
-
-
 {% endif %}
 
 
 <h3 id="striped-rows">{% trans 'Station' %} <a href=  {% url 'insertdata-stationmodify' station.slug  %} >{{ station.name }}</a></h3>
+<h3 id="striped-rows"><a href={% url 'profile' %}>{% trans 'Cancel' %}</a> </h3>
+
+
 <div class="table-responsive">
-    <h3 id="striped-rows"><a href={% url 'profile' %}>{% trans 'Cancel' %}</a> </h3>
-    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
-      <div class="form-group">      
-	<h3 class="blockquote text-left">{% trans 'Board' %} {{ board.name }}</h3>
-	{{ boardform.as_p }}
+  <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+    <div class="tab-content">
+
+      <ul class="nav nav-tabs">
+	<li class="active"><a data-toggle="tab" href="#boardform">Board</a></li>
+	<li><a data-toggle="tab" href="#sensorformset">Sensors</a></li>
+	<li><a data-toggle="tab" href="#transportmqttformset">Transport MQTT</a></li>
+	<li><a data-toggle="tab" href="#transporttcpipformset">Transport TCP/IP</a></li>
+	<li><a data-toggle="tab" href="#transportcanformset">Transport CAN</a></li>
+	<li><a data-toggle="tab" href="#transportamqpformset">Transport AMQP</a></li>
+      </ul>
+
+      <div id="boardform" class="tab-pane fade in active">      	
+	<div class="form-group">      
+	  <h3 class="blockquote text-left">{% trans 'Modify board' %} {{ board.name }}</h3>
+	  <table class="table table-bordered">
+	    {{ boardform.as_table }}
+	  </table>
+	</div>
       </div>
-      <div class="form-group">
-	<h3 class="blockquote text-left">{% trans 'Sensor' %}</h3>      
-	{{ sensorformset.as_p }}
+
+      <div id="sensorformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify sensors' %}</h3>      
+	  {{ sensorformset.management_form }}
+	  {% for form in sensorformset %}
+	    <table class="table table-bordered">
+	      <thead>
+		<tr>
+		  <th>{% trans 'Modify sensor'%}</th>
+		</tr>
+	      </thead>
+	      <tbody>
+		{{form.as_table}}
+	      </tbody>
+	    </table>
+	  {% endfor %}
+	</div>
       </div>
-      <div class="form-group">
-	<h3 class="blockquote text-left">{% trans 'Transport MQTT' %}</h3>      
-	{{ transportmqttformset.as_p }}
+      
+      <div id="transportmqttformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify transport MQTT' %}</h3>      
+	  <table class="table table-bordered">
+	    {{ transportmqttformset.as_table }}
+	  </table>
+	</div>
       </div>
-      <div class="form-group">
-	<h3 class="blockquote text-left">{% trans 'Transport TCPIP' %}</h3>      
-	{{ transporttcpipformset.as_p }}
+      
+      <div id="transporttcpipformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify transport TCPIP' %}</h3>      
+	  <table class="table table-bordered">
+	    {{ transporttcpipformset.as_table }}
+	  </table>
+	</div>
       </div>
-      <div class="form-group">
-	<h3 class="blockquote text-left">{% trans 'Transport CAN' %}</h3>      
-	{{ transportcanformset.as_p }}
+	
+      <div id="transportcanformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify transport CAN' %}</h3>      
+	  <table class="table table-bordered">
+	    {{ transportcanformset.as_table }}
+	  </table>
+	</div>
       </div>
-      <div class="form-group">
-	<h3 class="blockquote text-left">{% trans 'Transport AMQP' %}</h3>      
-	{{ transportamqpformset.as_p }}
+	
+      <div id="transportamqpformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify transport AMQP' %}</h3>      
+	  <table class="table table-bordered">
+	    {{ transportamqpformset.as_table }}
+	  </table>
+	</div>
       </div>
       <p class="blockquote text-center">
 	<input type="submit" value={%trans "Submit" %} class="btn">
       </p>
-    </form>
+    </div>
+  </form>
 </div>
 {% endblock %}
