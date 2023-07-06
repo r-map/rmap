@@ -414,7 +414,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
     readable_data_length = 0;
-    LOGN(F("No CRC: size %d"),rx_data_length);
+    //LOGN(F("No CRC: size %d"),rx_data_length);
   } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
     //! check crc: ok
     rx_data_length--;
@@ -508,7 +508,7 @@ void tipping_bucket_task () {
 	   }
 	 }
 	 else {
-	   LOGN(F("SKIP rain tips! (not started or continous mode)"));
+	   LOGN(F("SKIP rain tips! (not started or oneshot mode)"));
 	 }
 
          //tipping_bucket_state = TIPPING_BUCKET_END;
@@ -534,10 +534,9 @@ void tipping_bucket_task () {
 	 noInterrupts();
          is_event_tipping_bucket = false;
          ready_tasks_count--;
+	 attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
          interrupts();
          tipping_bucket_state = TIPPING_BUCKET_INIT;
-
-	 attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
 
       break;
 
