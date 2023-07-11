@@ -9,6 +9,16 @@
 <h4>{% trans 'Ticket' %}: {{ myticket.ticket }}     {% trans 'Active:' %} {{ myticket.active }}</h4>
 <h4>{% trans 'Date' %}: {{ myticket.date }}     {% trans 'User:' %} <a href="{% url 'tickets-list' myticket.stationmetadata.user.username %}">{{ myticket.stationmetadata.user.username }}</a>    {% trans 'Station:' %} <a href="{% url 'tickets-list' myticket.stationmetadata.user.username myticket.stationmetadata.slug %}">{{ myticket.stationmetadata.slug }}</a></h4>
 <h4>{% trans 'Priority' %}: {{ myticket.get_priority_display }} </h4>
+<h4>
+  {% trans 'Assigned to' %}: 
+  {% for user in myticket.assigned_to.all %}
+    {{user.username}}; 
+  {% endfor %}
+  {% trans 'Subscribed by' %}: 
+  {% for user in myticket.subscribed_by.all %}
+    {{user.username}}; 
+  {% endfor %}
+</h4>
 <p>{% trans 'Abstract' %}: {{ myticket.abstract }} </p>
 <p>{% trans 'Description' %}: {{ myticket.description }} </p>
 
