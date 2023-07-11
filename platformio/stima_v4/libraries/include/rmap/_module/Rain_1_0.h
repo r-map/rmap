@@ -8,8 +8,8 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl
-// Generated at:  2023-06-03 22:51:40.974740 UTC
+// Source file:   C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl
+// Generated at:  2023-07-11 16:47:51.430311 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.module.Rain
@@ -36,23 +36,24 @@
 #define RMAP_MODULE_RAIN_1_0_INCLUDED_
 
 #include <nunavut/support/serialization.h>
+#include <rmap/sensors/RainRate_1_0.h>
 #include <rmap/sensors/Rain_1_0.h>
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/module/Rain.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -72,8 +73,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_module_Rain_1_0_EXTENT_BYTES_                    16UL
-#define rmap_module_Rain_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 16UL
+#define rmap_module_Rain_1_0_EXTENT_BYTES_                    35UL
+#define rmap_module_Rain_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 35UL
 static_assert(rmap_module_Rain_1_0_EXTENT_BYTES_ >= rmap_module_Rain_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -81,6 +82,9 @@ typedef struct
 {
     /// rmap.sensors.Rain.1.0 TBR
     rmap_sensors_Rain_1_0 TBR;
+
+    /// rmap.sensors.RainRate.1.0 TPR
+    rmap_sensors_RainRate_1_0 TPR;
 } rmap_module_Rain_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -109,7 +113,7 @@ static inline int8_t rmap_module_Rain_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 128UL)
+    if ((8U * (size_t) capacity_bytes) < 280UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -143,6 +147,30 @@ static inline int8_t rmap_module_Rain_1_0_serialize_(
             return _err1_;
         }
         offset_bits += _pad0_;
+    }
+
+    {   // rmap.sensors.RainRate.1.0 TPR
+        size_t _size_bytes1_ = 19UL;  // Nested object (max) size, in bytes.
+        int8_t _err2_ = rmap_sensors_RainRate_1_0_serialize_(
+            &obj->TPR, &buffer[offset_bits / 8U], &_size_bytes1_);
+        if (_err2_ < 0)
+        {
+            return _err2_;
+        }
+        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
+        offset_bits += _size_bytes1_ * 8U;  // Advance by the size of the nested object.
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err3_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad1_);  // Optimize?
+        if (_err3_ < 0)
+        {
+            return _err3_;
+        }
+        offset_bits += _pad1_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -196,14 +224,29 @@ static inline int8_t rmap_module_Rain_1_0_deserialize_(
 
     // rmap.sensors.Rain.1.0 TBR
     {
-        size_t _size_bytes1_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err2_ = rmap_sensors_Rain_1_0_deserialize_(
-            &out_obj->TBR, &buffer[offset_bits / 8U], &_size_bytes1_);
-        if (_err2_ < 0)
+        size_t _size_bytes2_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err4_ = rmap_sensors_Rain_1_0_deserialize_(
+            &out_obj->TBR, &buffer[offset_bits / 8U], &_size_bytes2_);
+        if (_err4_ < 0)
         {
-            return _err2_;
+            return _err4_;
         }
-        offset_bits += _size_bytes1_ * 8U;  // Advance by the size of the nested serialized representation.
+        offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.sensors.RainRate.1.0 TPR
+    {
+        size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err5_ = rmap_sensors_RainRate_1_0_deserialize_(
+            &out_obj->TPR, &buffer[offset_bits / 8U], &_size_bytes3_);
+        if (_err5_ < 0)
+        {
+            return _err5_;
+        }
+        offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 

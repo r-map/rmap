@@ -8,8 +8,8 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl
-// Generated at:  2023-06-03 22:51:41.351657 UTC
+// Source file:   C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl
+// Generated at:  2023-07-11 16:47:51.665750 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.module.TH
@@ -43,19 +43,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-rmap/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/rmap_orig/rmap/platformio/stima_v4/libraries/data_types/rmap/service/module/TH.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus

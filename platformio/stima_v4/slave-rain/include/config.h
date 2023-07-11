@@ -114,7 +114,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Queue Lenght
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
-#define ELABORATE_DATA_QUEUE_LENGTH (4)
+#define ELABORATE_DATA_QUEUE_LENGTH (6)
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
 #define REPORT_DATA_QUEUE_LENGTH    (1)
 #define RAIN_QUEUE_LENGTH           (1)
@@ -154,11 +154,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 
+// TPR Elaboration scrolling data timings
+#define SAMPLES_SCROLL_MS                 (10000)
+#define SAMPLES_SCROLL_NEED_TPR_60_S      (60000 / SAMPLES_SCROLL_MS)
+#define SAMPLES_SCROLL_NEED_TPR_05_M      (300000 / SAMPLES_SCROLL_MS)
+
 // Index Sensor
 #define RAIN_TIPS_INDEX                   (0)
 #define RAIN_RAIN_INDEX                   (1)
 #define RAIN_FULL_INDEX                   (2)
-#define RAIN_RESET_INDEX                  (3)
+#define RAIN_TIPS_RESET                   (3)
+#define RAIN_SCROLL_INDEX                 (4)
+#define RAIN_SCROLL_RESET                 (5)
 
 // Limit range for module sensor
 #define MAX_VALID_RAIN                    (1000.0)

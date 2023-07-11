@@ -63,6 +63,7 @@ class canardClass {
         // tbr (Standard rain), tbm (Rain with full maintenance data value)
         enum Sensor_Type : u_int8_t {
             tbr,
+            tpr,
             tbm
         };
 

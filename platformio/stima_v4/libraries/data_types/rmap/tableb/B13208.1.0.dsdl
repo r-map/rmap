@@ -1,0 +1,6 @@
+# Rain Rate over 60 sec. (Kg/m**2/s)
+# fattore scala x100000
+# MAX 49.0 mm
+uint14 MAX = 16333
+uint14 value
+@sealed

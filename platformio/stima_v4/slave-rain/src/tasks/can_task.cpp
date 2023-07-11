@@ -357,12 +357,19 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::tbr:
-            // Prepara i dati SMP (Sample)
+            // Prepara i dati TBR (Accumulate)
             rmap_data->TBR.rain.val.value = report->rain;
             rmap_data->TBR.rain.confidence.value = report->quality;
             break;
+        case canardClass::Sensor_Type::tpr:
+            // Prepara i dati TPR (Rate)
+            rmap_data->TPR.shortRate.val.value = report->rain_tpr_60s_avg;
+            rmap_data->TPR.shortRate.confidence.value = report->quality;
+            rmap_data->TPR.longRate.val.value = report->rain_tpr_05m_avg;
+            rmap_data->TPR.longRate.confidence.value = report->quality;
+            break;
         case canardClass::Sensor_Type::tbm:
-            // Prepara i dati SMP (Sample)
+            // Prepara i dati TBM (Sample)
             rmap_data->TBR.rain.val.value = report->rain_full;
             rmap_data->TBR.rain.confidence.value = report->quality;
             break;
@@ -372,12 +379,19 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     // Inserisco i dati reali
     switch (sensore) {
         case canardClass::Sensor_Type::tbr:
-            // Prepara i dati SMP (Sample)
+            // Prepara i dati TBR (Accumulate)
             rmap_data->TBR.rain.val.value = report->rain;
             rmap_data->TBR.rain.confidence.value = report->quality;
             break;
+        case canardClass::Sensor_Type::tpr:
+            // Prepara i dati TPR (Rate)
+            rmap_data->TPR.shortRate.val.value = report->rain_tpr_60s_avg;
+            rmap_data->TPR.shortRate.confidence.value = report->quality;
+            rmap_data->TPR.longRate.val.value = report->rain_tpr_05m_avg;
+            rmap_data->TPR.longRate.confidence.value = report->quality;
+            break;
         case canardClass::Sensor_Type::tbm:
-            // Prepara i dati SMP (Sample)
+            // Prepara i dati TBM (Sample)
             rmap_data->TBR.rain.val.value = report->rain_full;
             rmap_data->TBR.rain.confidence.value = report->quality;
             break;
@@ -407,6 +421,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // SET Dynamic metadata (Request data from master Only Data != Sample)
         clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_rain.TPR.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati
         param->requestDataQueue->Enqueue(&request_data);
@@ -417,8 +432,10 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report_pub, &module_rain_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::tpr, &report_pub, &module_rain_msg);
         // Metadata
         module_rain_msg.TBR.metadata = clCanard.module_rain.TBR.metadata;
+        module_rain_msg.TPR.metadata = clCanard.module_rain.TPR.metadata;
 
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_Rain_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -686,6 +703,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
             clCanard.module_rain.TBR.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_rain.TPR.metadata.timerange.P2 = request_data.report_time_s;
           }
 
           // Preparo gli event Reboot and WDT Event
@@ -721,6 +739,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
             prepareSensorsDataValue(canardClass::Sensor_Type::tbm, &report_srv, &resp);
           } else {
             prepareSensorsDataValue(canardClass::Sensor_Type::tbr, &report_srv, &resp);
+            prepareSensorsDataValue(canardClass::Sensor_Type::tpr, &report_srv, &resp);
           }
           break;
 
@@ -745,6 +764,7 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
 
     // Copio i metadati fissi e mobili
     resp.TBR.metadata = clCanard.module_rain.TBR.metadata;
+    resp.TPR.metadata = clCanard.module_rain.TPR.metadata;
 
     return resp;
 }
@@ -1409,6 +1429,7 @@ void CanTask::Run() {
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
                 // SENSOR_METADATA_TBR                   (0)
+                // SENSOR_METADATA_TPR                   (1)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1420,6 +1441,7 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_TPR];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1431,6 +1453,7 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_TPR];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1442,6 +1465,7 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_TPR];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1453,6 +1477,7 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_TPR];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1464,19 +1489,23 @@ void CanTask::Run() {
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_TPR];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
                 clCanard.module_rain.TBR.metadata.timerange.P2 = 0;
+                clCanard.module_rain.TPR.metadata.timerange.P2 = 0;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural8.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
                 val.natural8.value.elements[SENSOR_METADATA_TBR] = SENSOR_METADATA_LEVEL_P_IND_TBR;
+                val.natural8.value.elements[SENSOR_METADATA_TPR] = SENSOR_METADATA_LEVEL_P_IND_TPR;
                 localRegisterAccessLock->Take();
                 localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
                 clCanard.module_rain.TBR.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_TBR];
+                clCanard.module_rain.TPR.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_TPR];
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;

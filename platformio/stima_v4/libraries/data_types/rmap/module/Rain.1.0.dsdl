@@ -1,2 +1,3 @@
 rmap.sensors.Rain.1.0 TBR
+rmap.sensors.RainRate.1.0 TPR
 @sealed
