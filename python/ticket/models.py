@@ -119,6 +119,13 @@ class Ticket(models.Model):
     def __unicode__(self):
         return self.nome + " " + self.date.__str__() + " " + self.active_txt()
 
+
+    class Meta:
+        ordering = ('-date',)
+        verbose_name = _('Ticket')
+        verbose_name_plural = _('Tickets')
+
+    
 ACTIONTICKET_CATEGORY_CHOICES = (
     ('onsite', 'Action on site'),
     ('remote', 'Action fron remote'),
@@ -139,6 +146,10 @@ class TicketAction(models.Model):
     def __unicode__(self):
         return self.date.isoformat()
 
+    class Meta:
+        ordering = ('-date',)
+        verbose_name = _('Action')
+        verbose_name_plural = _('Actions')
 
 PHOTOTICKET_CATEGORY_CHOICES = (
     ('station','Station description'),
@@ -164,6 +175,10 @@ class TicketImage(models.Model):
         options = {'quality': 60}
     )
 
+    class Meta:
+        ordering = ('-date',)
+        verbose_name = _('Image')
+        verbose_name_plural = _('Images')
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
@@ -243,7 +258,7 @@ class TicketAttachment(models.Model):
         return self.file.file.size
 
     class Meta:
-        ordering = ('filename',)
+        ordering = ('-date','filename',)
         verbose_name = _('Attachment')
         verbose_name_plural = _('Attachments')
 
