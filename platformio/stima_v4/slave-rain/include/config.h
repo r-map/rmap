@@ -155,9 +155,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define REPORTS_TIME_S                    (900)
 
 // TPR Elaboration scrolling data timings
-#define SAMPLES_SCROLL_MS                 (10000)
-#define SAMPLES_SCROLL_NEED_TPR_60_S      (60000 / SAMPLES_SCROLL_MS)
-#define SAMPLES_SCROLL_NEED_TPR_05_M      (300000 / SAMPLES_SCROLL_MS)
+#define USE_MOBILE_TPR_60_S_AVG_MODE      (false)   // Using mobile scrolling max -> avg value by 60 sec. on all data buffered consecutive
+#define SAMPLES_ACQUIRE_MS                (10000)
+#define SAMPLES_NEED_TPR_60_S             (60000 / SAMPLES_ACQUIRE_MS)
+#define SAMPLES_NEED_TPR_05_M             (300000 / SAMPLES_ACQUIRE_MS)
 
 // Index Sensor
 #define RAIN_TIPS_INDEX                   (0)

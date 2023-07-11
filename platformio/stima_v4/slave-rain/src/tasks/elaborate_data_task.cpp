@@ -120,16 +120,16 @@ void ElaborateDataTask::Run() {
   // Maintenance not performed (automatic checked in rain_task)
   rain.rain_scroll = 0;
   bufferReset<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
-  uint32_t next_ms_buffer_check = millis() + SAMPLES_SCROLL_MS;
+  uint32_t next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
 
   while (true) {
 
     // Elaborate scrolling XX required defined msec.
     if(millis() >= next_ms_buffer_check) {
-      next_ms_buffer_check += SAMPLES_SCROLL_MS;
+      next_ms_buffer_check += SAMPLES_ACQUIRE_MS;
       // ? over roll and security check timer area into reset check ms expected
-      if (labs(millis() - next_ms_buffer_check) > SAMPLES_SCROLL_MS) {
-        next_ms_buffer_check = millis() + SAMPLES_SCROLL_MS;
+      if (labs(millis() - next_ms_buffer_check) > SAMPLES_ACQUIRE_MS) {
+        next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
       }
       // Add current scrolling data to buffer
       addValue<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX, rain.rain_scroll);
@@ -267,7 +267,9 @@ uint8_t ElaborateDataTask::checkRain(void) {
 /// @param observation_time_s time to make an observation
 void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_time_s)
 {
-  uint16_t rain_buf_60s[SAMPLES_SCROLL_NEED_TPR_60_S] = {0};  // Scroll buffer for max on 60 sec
+  #if (USE_MOBILE_TPR_60_S_AVG_MODE)
+  uint16_t rain_buf_60s[SAMPLES_NEED_TPR_60_S] = {0};  // Scroll buffer for max on 60 sec
+  #endif
   uint16_t rain_ist;              // Istant buffered data on 10 sec
   uint16_t rain_sum_60s = 0;      // current sum on 60 sec
   uint16_t rain_sum_60s_max = 0;  // max sum on mobile window of 60 sec.
@@ -278,9 +280,8 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
   uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
 
   // Elaboration timings calculation (fix 5Min to TPR 5 Min, Fix 60 Sec to TPR 60 Sec)
-  uint16_t report_sample_count = round((report_time_s * 1.0) / (SAMPLES_SCROLL_MS / 1000.0));
-  uint16_t rain_05m_sample_count = round(300.0 / (SAMPLES_SCROLL_MS / 1000.0));
-  uint16_t observation_sample_count = round((observation_time_s * 1.0) / (SAMPLES_SCROLL_MS / 1000.0));
+  uint16_t report_sample_count = round((report_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
+  uint16_t observation_sample_count = round((observation_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
   uint16_t report_observations_count = report_sample_count / observation_sample_count;
 
   // Request to calculate is correct? Trace request
@@ -315,23 +316,36 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
     // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
     if(n_sample >= report_sample_count) break;
 
-    // Scrolling older value on timing observation value area
-    for(uint8_t rr_idx = (SAMPLES_SCROLL_NEED_TPR_60_S - 1); rr_idx > 0; rr_idx--) {
-      rain_buf_60s[rr_idx] = rain_buf_60s[rr_idx-1];
-    }
+    // Reading data ist from buffered value
     rain_ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
-    rain_buf_60s[0] = rain_ist;
     n_sample++;
 
-    // Calculate SUM on timing obeservation
+    #if (USE_MOBILE_TPR_60_S_AVG_MODE)
+    // Scrolling older value on timing observation value area
+    for(uint8_t rr_idx = (SAMPLES_NEED_TPR_60_S - 1); rr_idx > 0; rr_idx--) {
+      rain_buf_60s[rr_idx] = rain_buf_60s[rr_idx-1];
+    }
+    rain_buf_60s[0] = rain_ist;
+    // Calculate SUM on timing obeservation in mobile mode
     rain_sum_60s = 0;
-    for(uint8_t rr_idx = 0; rr_idx < SAMPLES_SCROLL_NEED_TPR_60_S; rr_idx++) {
+    for(uint8_t rr_idx = 0; rr_idx < SAMPLES_NEED_TPR_60_S; rr_idx++) {
       rain_sum_60s += rain_buf_60s[rr_idx];
     }
     if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
+    #else
+    // Fixed Calculate MAX on 60 SEC
+    if(n_sample % SAMPLES_NEED_TPR_60_S) {
+      // Populate buffer SUM on 60 sec
+      rain_sum_60s += rain_ist;
+    } else {
+      // Calculate MAX of SUM of 5 min and reinit for next timing check
+      if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
+      rain_sum_05m = 0;
+    }
+    #endif
 
-    // Calculate MAX on 5 MIN
-    if(n_sample % rain_05m_sample_count) {
+    // Fixed Calculate MAX on 5 MIN
+    if(n_sample % SAMPLES_NEED_TPR_05_M) {
       // Populate buffer SUM on 5 min
       rain_sum_05m += rain_ist;
     } else {
