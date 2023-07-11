@@ -2,15 +2,10 @@ from imagekit.models import ImageSpecField
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill, Transpose, SmartResize, ResizeToFit
 from  django import VERSION as djversion
-
+from django.utils.translation import ugettext_lazy as _
 #from django.core import urlresolvers
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy
-
-from django.db.models import Q
-
-from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.core.exceptions import ValidationError
@@ -62,7 +57,7 @@ if ((djversion[0] == 1 and djversion[1] >= 3) or
             elif file:
                 # Otherwise, just close the file, so it doesn't tie up resources.
                 file.close()
-
+                
 else:
     DeletingImageField=ProcessedImageField
 
@@ -132,19 +127,19 @@ class Sensor(models.Model):
         ('JRPC',  'INDIRECT jsonrpc over some transport'),
     )
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
-    name = models.CharField(max_length=50,default="my sensor",blank=False,help_text=ugettext_lazy("Descriptive text"))
+    active = models.BooleanField(_("Active"),default=False,null=False,blank=False,help_text=_("Activate this sensor to take measurements"))
+    name = models.CharField(max_length=50,default="my sensor",blank=False,help_text=_("Descriptive text"))
 
-    driver = models.CharField(max_length=4,default="I2C",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
+    driver = models.CharField(max_length=4,default="I2C",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=_("Driver to use"))
 
-    type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"),on_delete=models.CASCADE)
+    type = models.ForeignKey('SensorType',null=False,blank=False,help_text=_("Type of sensor"),on_delete=models.CASCADE)
 
-    i2cbus=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
-    address=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("I2C address (decimal)"))
-    node=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("RF24Network node ddress"))
+    i2cbus=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("I2C bus number (for raspberry only)"))
+    address=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("I2C address (decimal)"))
+    node=models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("RF24Network node ddress"))
 
-    timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
-    level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
+    timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=_("Sensor metadata from rmap RFC"))
+    level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=_("Sensor metadata from rmap RFC"))
     
     board = models.ForeignKey('Board',on_delete=models.CASCADE)
 
@@ -156,7 +151,7 @@ class Sensor(models.Model):
         if not self.board.stationmetadata.active: return
 
         if self.board.stationmetadata.mqttrootpath != self.type.datalevel:
-            raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
+            raise ValidationError(_('Station and sensor have different data level; change mqttrootpath or active sensors.'))
 
     def dynamic_timerange(self):
 
@@ -262,14 +257,14 @@ class SensorType(models.Model):
     )
 
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
-    name = models.CharField(max_length=100,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
+    active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Activate this sensor to take measurements"))
+    name = models.CharField(max_length=100,default="my sensor type",blank=False,help_text=_("Descriptive text"))
 
-    type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
+    type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,help_text=_("Type of sensor"))
 
-    datalevel = models.CharField(max_length=10,unique=False,default="sample",null=False,choices=SENSOR_DATA_LEVEL,blank=False,help_text=ugettext_lazy("Data Level as defined by WMO (Sensor metadata from rmap RFC)"))
+    datalevel = models.CharField(max_length=10,unique=False,default="sample",null=False,choices=SENSOR_DATA_LEVEL,blank=False,help_text=_("Data Level as defined by WMO (Sensor metadata from rmap RFC)"))
     
-    bcodes = models.ManyToManyField('Bcode',blank=False,help_text=ugettext_lazy("Bcode variable definition"))
+    bcodes = models.ManyToManyField('Bcode',blank=False,help_text=_("Bcode variable definition"))
     
     def natural_key(self):
         #print "natural key sensor type"
@@ -299,12 +294,12 @@ class Bcode(models.Model):
 
     objects = BcodeManager()
 
-    bcode = models.CharField(unique=True,max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
-    description = models.CharField(max_length=100,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
-    unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("Units of measure"))
-    offset=models.FloatField(default=0.,null=False,blank=False,help_text=ugettext_lazy("Offset coeficent to convert units"))
-    scale=models.FloatField(default=1.,null=False,blank=False,help_text=ugettext_lazy("Scale coeficent to convert units"))
-    userunit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
+    bcode = models.CharField(unique=True,max_length=6,default="B00000",blank=False,help_text=_("Bcode as defined in dballe btable"))
+    description = models.CharField(max_length=100,default="Undefined",blank=False,help_text=_("Descriptive text"))
+    unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=_("Units of measure"))
+    offset=models.FloatField(default=0.,null=False,blank=False,help_text=_("Offset coeficent to convert units"))
+    scale=models.FloatField(default=1.,null=False,blank=False,help_text=_("Scale coeficent to convert units"))
+    userunit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=_("units of measure"))
     
     def natural_key(self):
         #print "natural key bcode"
@@ -376,13 +371,13 @@ class TransportRF24Network(models.Model):
         ("0,1,2,3,4,5,6,7,8,1,10,11,12,13,14,15",  'preset 9'),
     )
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    node = models.PositiveIntegerField(unique=False,default=0, choices=RF24_NODE_CHOICES,help_text=ugettext_lazy("Node ID for RF24 Network"))
-    channel=models.PositiveIntegerField(default=93,null=False,blank=False, choices=RF24_CHANNEL_CHOICES,help_text=ugettext_lazy("Channel number for RF24"))
+    active = models.BooleanField(_("Active"),default=False,null=False,blank=False,help_text=_("Activate this transport for measurements"))
+    node = models.PositiveIntegerField(unique=False,default=0, choices=RF24_NODE_CHOICES,help_text=_("Node ID for RF24 Network"))
+    channel=models.PositiveIntegerField(default=93,null=False,blank=False, choices=RF24_CHANNEL_CHOICES,help_text=_("Channel number for RF24"))
 
     #  TODO integer field to be converted to 0X
-    key=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES key"))
-    iv=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES cbc iv"))
+    key=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=_("AES key"))
+    iv=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=_("AES cbc iv"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -427,13 +422,13 @@ class TransportMqtt(models.Model):
     
     objects = TransportMqttManager()
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
 
-    mqttsampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=ugettext_lazy("interval in seconds for publish"))
-    mqttserver = models.CharField(max_length=50,default="mqttserver",null=False,blank=False,help_text=ugettext_lazy("MQTT server"))
-    mqttuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT user"))
-    mqttpassword= models.CharField(max_length=50,default=genpassword,null=True,blank=True,help_text=ugettext_lazy("MQTT password"))
-    mqttpskkey= models.CharField(max_length=254,default=genpskkey,null=True,blank=True,help_text=ugettext_lazy("MQTT PSK Key"))
+    mqttsampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=_("interval in seconds for publish"))
+    mqttserver = models.CharField(max_length=50,default="mqttserver",null=False,blank=False,help_text=_("MQTT server"))
+    mqttuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=_("MQTT user"))
+    mqttpassword= models.CharField(max_length=50,default=genpassword,null=True,blank=True,help_text=_("MQTT password"))
+    mqttpskkey= models.CharField(max_length=254,default=genpskkey,null=True,blank=True,help_text=_("MQTT PSK Key"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -464,11 +459,11 @@ class TransportCan(models.Model):
 
     objects = TransportCanManager()
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    cansampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=ugettext_lazy("interval in seconds for publish"))
-    node_id = models.PositiveIntegerField(default=100,null=False,blank=False,help_text=ugettext_lazy("Cyphal node_id"))
-    subject = models.CharField(max_length=100,default="",null=True,blank=False,help_text=ugettext_lazy("Cyphal subject"))    
-    subject_id=models.PositiveIntegerField(default=100,null=False,blank=False,help_text=ugettext_lazy("Cyphal subject-ID (decimal)"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
+    cansampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=_("interval in seconds for publish"))
+    node_id = models.PositiveIntegerField(default=100,null=False,blank=False,help_text=_("Cyphal node_id"))
+    subject = models.CharField(max_length=100,default="",null=True,blank=False,help_text=_("Cyphal subject"))    
+    subject_id=models.PositiveIntegerField(default=100,null=False,blank=False,help_text=_("Cyphal subject-ID (decimal)"))
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
@@ -520,13 +515,13 @@ class TransportTcpip(models.Model):
         'stima4':(0xC2,0x84,0x73,0xC8,0x3C,0xDF),
     }
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    name = models.CharField(max_length=50, default="master",blank=False,choices=TCPIP_NAME_CHOICES,help_text=ugettext_lazy("Name DSN solved (for master board only)"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
+    name = models.CharField(max_length=50, default="master",blank=False,choices=TCPIP_NAME_CHOICES,help_text=_("Name DSN solved (for master board only)"))
 
-    ntpserver = models.CharField(max_length=50,default="ntpserver",null=False,blank=False,help_text=ugettext_lazy("Network time server (NTP)"))
+    ntpserver = models.CharField(max_length=50,default="ntpserver",null=False,blank=False,help_text=_("Network time server (NTP)"))
 
-    gsmapn = models.CharField(max_length=50,default="ibox.tim.it",null=False,blank=False,help_text=ugettext_lazy("APN for gsm access"))
-    pppnumber = models.CharField(max_length=30,default="*99#",null=True,blank=True,help_text=ugettext_lazy("number for LTE PPP access"))
+    gsmapn = models.CharField(max_length=50,default="ibox.tim.it",null=False,blank=False,help_text=_("APN for gsm access"))
+    pppnumber = models.CharField(max_length=30,default="*99#",null=True,blank=True,help_text=_("number for LTE PPP access"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -599,9 +594,9 @@ class TransportSerial(models.Model):
         ('/dev/tty.usbserial', 'OSX tty.usbserial'),
     )
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    baudrate = models.PositiveIntegerField(default=115200,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=ugettext_lazy("Baud rate"))
-    device = models.CharField(max_length=30,unique=False,default="/dev/ttyUSB0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=ugettext_lazy("Serial device"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
+    baudrate = models.PositiveIntegerField(default=115200,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=_("Baud rate"))
+    device = models.CharField(max_length=30,unique=False,default="/dev/ttyUSB0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=_("Serial device"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -631,8 +626,8 @@ class TransportBluetooth(models.Model):
 
     objects = TransportBluetoothManager()
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    name = models.CharField(max_length=80,help_text=ugettext_lazy("bluetooth name"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
+    name = models.CharField(max_length=80,help_text=_("bluetooth name"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -662,13 +657,13 @@ class TransportAmqp(models.Model):
 
     objects = TransportAmqpManager()
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate this transport for measurements"))
 
-    amqpserver = models.CharField(max_length=50,default="rmap.cc",null=False,blank=False,help_text=ugettext_lazy("AMQP server"))
-    exchange = models.CharField(max_length=50,default="rmap",null=False,blank=False,help_text=ugettext_lazy("AMQP remote exchange name"))
-    queue = models.CharField(max_length=50,default="rmap",null=False,blank=False,help_text=ugettext_lazy("AMQP local queue name"))
-    amqpuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("AMQP user"))
-    amqppassword= models.CharField(max_length=50,default="",null=False,blank=True,help_text=ugettext_lazy("AMQP password"))
+    amqpserver = models.CharField(max_length=50,default="rmap.cc",null=False,blank=False,help_text=_("AMQP server"))
+    exchange = models.CharField(max_length=50,default="rmap",null=False,blank=False,help_text=_("AMQP remote exchange name"))
+    queue = models.CharField(max_length=50,default="rmap",null=False,blank=False,help_text=_("AMQP local queue name"))
+    amqpuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=_("AMQP user"))
+    amqppassword= models.CharField(max_length=50,default="",null=False,blank=True,help_text=_("AMQP password"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
@@ -721,12 +716,12 @@ class Board(models.Model):
         (29,"Module acquire soil humidity")
     )
 
-    name = models.CharField(max_length=255,help_text=ugettext_lazy("board name"))
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate the board for measurements"))
-    slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
-    category = models.CharField(max_length=50, null= True, blank=True,choices=BOARD_CATEGORY_CHOICES,help_text=ugettext_lazy("General standard category"))
-    type = models.PositiveIntegerField(default=0,null=False, blank=False,choices=STIMAV4_MODULE_TYPE_CHOICES,help_text=ugettext_lazy("Stima V4 standard type"))
-    sn = models.PositiveIntegerField(default=None,null=True, blank=True,help_text=ugettext_lazy("Serial number"))
+    name = models.CharField(max_length=255,help_text=_("board name"))
+    active = models.BooleanField(_("Active"),default=False,help_text=_("Activate the board for measurements"))
+    slug = models.SlugField(unique=False, help_text=_('Auto-generated from name.'))
+    category = models.CharField(max_length=50, null= True, blank=True,choices=BOARD_CATEGORY_CHOICES,help_text=_("General standard category"))
+    type = models.PositiveIntegerField(default=0,null=False, blank=False,choices=STIMAV4_MODULE_TYPE_CHOICES,help_text=_("Stima V4 standard type"))
+    sn = models.PositiveIntegerField(default=None,null=True, blank=True,help_text=_("Serial number"))
     stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
     
 #    def changeform_link(self):
@@ -764,34 +759,34 @@ class StationMaintStatus(models.Model):
 
     station = models.OneToOneField("StationMetadata",on_delete=models.CASCADE)
     
-    laststatus = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("Last status"))
-    lastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Last status update date"))
-    firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware major version"))
-    firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware minor version"))
+    laststatus = models.CharField(max_length=128, blank=True,default="",help_text=_("Last status"))
+    lastupdate = models.DateTimeField(null=True,blank=True,help_text=_("Last status update date"))
+    firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware major version"))
+    firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware minor version"))
 
 # status b
 statusb_explain_matrix={}
 statusb_explain_matrix[0]= ["None",    "None",    "None",      "None",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[10]=["SD card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[11]=["SD_card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[20]=["OFF LINE","Firmware ready","Manutenzione",   "Main sensor error","Reduntant sensor error","Tipping error","Clogged error", "Bolla error","Accell error","None","None","None","None","None","None","None"]
-statusb_explain_matrix[21]=["OFF LINE","Firmware ready","Manutenzione",   "Main sensor error","Reduntant sensor error","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
-statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Manutenzione",   "NOT_RISP","HW Error",    "UDM_ERR", "AXIS_ERR","CRC_ERR",  "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Manutenzione",   "ADC error", "ADC Over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Manutenzione",   "LTC_fail","Power critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Manutenzione",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[20]=["OFF LINE","Firmware ready","Maintenance",   "Main sensor error","Reduntant sensor error","Tipping error","Clogged error", "Inclination error","Accelerometer error","None","None","None","None","None","None","None"]
+statusb_explain_matrix[21]=["OFF LINE","Firmware ready","Maintenance",   "Main sensor error","Reduntant sensor error","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
+statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Maintenance",   "NOT_RISP","HW Error",    "UDM_ERR", "AXIS_ERR","CRC error",  "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC Over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "LTC_fail","Power critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 
 # status v
 statusv_explain_matrix={}
 statusv_explain_matrix[0] = ["None",       "None",     "None",     "None",  "None"]
-statusv_explain_matrix[10]= ["ERR_CON %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
-statusv_explain_matrix[11]= ["ERR_CON %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
-statusv_explain_matrix[20]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]	 
-statusv_explain_matrix[21]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "I2C error %", "None"]
-statusv_explain_matrix[25]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "RS 232 error %", "None"]
-statusv_explain_matrix[26]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
-statusv_explain_matrix[28]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
-statusv_explain_matrix[29]= ["ERR_CAN %",  "Numero reboot",  "Numero reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[10]= ["ERR_CON %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[11]= ["ERR_CON %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[20]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]	 
+statusv_explain_matrix[21]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "I2C error %", "None"]
+statusv_explain_matrix[25]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "RS 232 error %", "None"]
+statusv_explain_matrix[26]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[28]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[29]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):
@@ -799,33 +794,33 @@ class BoardMaintStatus(models.Model):
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
-    lastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Last status update date"))
+    lastupdate = models.DateTimeField(null=True,blank=True,help_text=_("Last status update date"))
     
-    statusb1  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 1"))
-    statusb2  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 2"))
-    statusb3  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 3"))
-    statusb4  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 4"))
-    statusb5  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 5"))
-    statusb6  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 6"))
-    statusb7  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 7"))
-    statusb8  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 8"))
-    statusb9  = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 9"))
-    statusb10 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 10"))
-    statusb11 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 11"))
-    statusb12 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 12"))
-    statusb13 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 13"))
-    statusb14 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 14"))
-    statusb15 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 15"))
-    statusb16 = models.BooleanField(null=True,help_text=ugettext_lazy("Last status bit 16"))
+    statusb1  = models.BooleanField(null=True,help_text=_("Last status bit 1"))
+    statusb2  = models.BooleanField(null=True,help_text=_("Last status bit 2"))
+    statusb3  = models.BooleanField(null=True,help_text=_("Last status bit 3"))
+    statusb4  = models.BooleanField(null=True,help_text=_("Last status bit 4"))
+    statusb5  = models.BooleanField(null=True,help_text=_("Last status bit 5"))
+    statusb6  = models.BooleanField(null=True,help_text=_("Last status bit 6"))
+    statusb7  = models.BooleanField(null=True,help_text=_("Last status bit 7"))
+    statusb8  = models.BooleanField(null=True,help_text=_("Last status bit 8"))
+    statusb9  = models.BooleanField(null=True,help_text=_("Last status bit 9"))
+    statusb10 = models.BooleanField(null=True,help_text=_("Last status bit 10"))
+    statusb11 = models.BooleanField(null=True,help_text=_("Last status bit 11"))
+    statusb12 = models.BooleanField(null=True,help_text=_("Last status bit 12"))
+    statusb13 = models.BooleanField(null=True,help_text=_("Last status bit 13"))
+    statusb14 = models.BooleanField(null=True,help_text=_("Last status bit 14"))
+    statusb15 = models.BooleanField(null=True,help_text=_("Last status bit 15"))
+    statusb16 = models.BooleanField(null=True,help_text=_("Last status bit 16"))
 
-    statusv1 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 1 (%)"))
-    statusv2 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 2 (%)"))
-    statusv3 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 3 (%)"))
-    statusv4 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 4 (%)"))
-    statusv5 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 5 (%)"))
-    statusv6 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 6 (%)"))
-    statusv7 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 7 (%)"))
-    statusv8 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("Last status value 8 (%)"))
+    statusv1 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 1 (%)"))
+    statusv2 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 2 (%)"))
+    statusv3 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 3 (%)"))
+    statusv4 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 4 (%)"))
+    statusv5 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 5 (%)"))
+    statusv6 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 6 (%)"))
+    statusv7 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 7 (%)"))
+    statusv8 = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("Last status value 8 (%)"))
 
     def statusb_explain(self):
         return statusb_explain_matrix.get(self.board.type)
@@ -839,9 +834,9 @@ class BoardFirmwareMetadata(models.Model):
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
     
-    mac = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("MAC address"))
-    swversion = models.CharField(max_length=255, blank=True,default="",help_text=ugettext_lazy("Software version"))
-    swlastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Software last update date"))
+    mac = models.CharField(max_length=128, blank=True,default="",help_text=_("MAC address"))
+    swversion = models.CharField(max_length=255, blank=True,default="",help_text=_("Software version"))
+    swlastupdate = models.DateTimeField(null=True,blank=True,help_text=_("Software last update date"))
 
     
 class StationConstantDataManager(models.Manager):
@@ -867,9 +862,9 @@ class StationConstantData(models.Model):
         ("B07031","HEIGHT OF BAROMETER ABOVE MEAN SEA LEVEL (SEE NOTE 4)            (m*10)"),
     )
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate this metadata"))
-    btable = models.CharField(max_length=6,unique=False,blank=False,choices=BTABLE_CHOICES,help_text=ugettext_lazy("A code to define the metadata. See rmap RFC"))
-    value=models.CharField(max_length=32,null=False,blank=False,help_text=ugettext_lazy("value for associated B table"))
+    active = models.BooleanField(_("Active"),default=True,help_text=_("Activate this metadata"))
+    btable = models.CharField(max_length=6,unique=False,blank=False,choices=BTABLE_CHOICES,help_text=_("A code to define the metadata. See rmap RFC"))
+    value=models.CharField(max_length=32,null=False,blank=False,help_text=_("value for associated B table"))
     stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
 
     def natural_key(self):
@@ -906,23 +901,23 @@ class StationMetadata(models.Model):
         ('unknown','Unknown & Missing'),
     )
 
-    name = models.CharField(max_length=255,default="My station",help_text=ugettext_lazy("station name"))
-    active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
-    slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
+    name = models.CharField(max_length=255,default="My station",help_text=_("station name"))
+    active = models.BooleanField(_("Active"),default=True,help_text=_("Activate the station for measurements"))
+    slug = models.SlugField(unique=False, help_text=_('Auto-generated from name.'))
 
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     #ident = models.ForeignKey(User, limit_choices_to={'is_staff': True})
 
-    ident = models.CharField(max_length=9,null=False,blank=True,default="", help_text=ugettext_lazy("identifier for mobile station (should be equal to your username)"))
+    ident = models.CharField(max_length=9,null=False,blank=True,default="", help_text=_("identifier for mobile station (should be equal to your username)"))
 
-    lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Latitude of the fixed station'))
-    lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Longitude of the fixed station'))
+    lat = models.FloatField(_("Latitude"),default=None,null=True,blank=True, help_text=_('Precise Latitude of the fixed station'))
+    lon = models.FloatField(_("Longitude"),default=None,null=True,blank=True, help_text=_('Precise Longitude of the fixed station'))
 
-    network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, help_text=ugettext_lazy("station network ( mobile for station with mobile coordinate)"))
+    network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, help_text=_("station network ( mobile for station with mobile coordinate)"))
 
-    mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
-    mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
-    category = models.CharField(max_length=50,default="unknown",choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
+    mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=_("root mqtt path for publish"))
+    mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=_("maint mqtt path for publish"))
+    category = models.CharField(max_length=50,default="unknown",choices=STATION_CATEGORY_CHOICES,help_text=_("Category of the station"))
 
     def lon_lat(self):
         if self.lon is None:
@@ -971,19 +966,19 @@ class StationMetadata(models.Model):
                 if not sensor.active: continue
 
                 if self.mqttrootpath != sensor.type.datalevel:
-                    raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
+                    raise ValidationError(_('Station and sensor have different data level; change mqttrootpath or active sensors.'))
 
         if (self.lat is None and not self.lon is None) or (not self.lat is None and self.lon is None):
-            raise ValidationError(ugettext_lazy('Station have only one coordinate defined (lat/lon).'))
+            raise ValidationError(_('Station have only one coordinate defined (lat/lon).'))
             
         if (self.network != "mobile" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
-            raise ValidationError(ugettext_lazy('Station network have inconsistent definition of coordinate (lat/lon).'))
+            raise ValidationError(_('Station network have inconsistent definition of coordinate (lat/lon).'))
 
         if (self.ident == "" and self.lat is None):
-            raise ValidationError(ugettext_lazy('Station without ident need coordinate (lat/lon).'))
+            raise ValidationError(_('Station without ident need coordinate (lat/lon).'))
 
         if (not self.ident == "" and not self.lat is None):
-            raise ValidationError(ugettext_lazy('Station with ident cannot have coordinate (lat/lon).'))
+            raise ValidationError(_('Station with ident cannot have coordinate (lat/lon).'))
         
                 
     @property
@@ -1032,7 +1027,7 @@ class StationMetadata(models.Model):
         unique_together = (('slug', 'user'),('ident', 'lat','lon','network'))
 
     def __str__(self):
-        return '%s/%s' % (self.slug,self.user)
+        return '%s/%s' % (self.user,self.slug)
 
 
 from django.contrib.auth.models import User
@@ -1051,7 +1046,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
 
     # Other fields here
-    accepted_license = models.BooleanField(ugettext_lazy("I accept CC BY 4.0 license"),default=False,null=False,blank=False,help_text=ugettext_lazy("You need to accept CC BY 4.0 license to provide your data"))
+    accepted_license = models.BooleanField(_("I accept CC BY 4.0 license"),default=False,null=False,blank=False,help_text=_("You need to accept CC BY 4.0 license to provide your data"))
     certification = models.CharField(max_length=20, default="ARPA-ER")
 
     def natural_key(self):
@@ -1093,7 +1088,7 @@ PHOTO_CATEGORY_CHOICES = (
 
 class StationImage(models.Model):
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this station image"))
+    active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Activate this station image"))
     comment = models.TextField()
     stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
     date=models.DateTimeField(auto_now=True, auto_now_add=False)

@@ -193,7 +193,7 @@ class NewStationForm(forms.Form):
     CHOICES = []
     for sta in StationMetadata.objects.filter(category="template"): 
     #for sta in StationMetadata.objects.all(): 
-        print (sta)
+        #print (sta)
         CHOICES.append((sta.slug,sta.slug))
     
     #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
@@ -374,7 +374,7 @@ def insertDataRainboImpactData(request):
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
 
-                    print("<",slug,">","prefix:",prefix)
+                    #print("<",slug,">","prefix:",prefix)
 
                     mqtt=rmapmqtt(user=username,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=mqttusername,password=mqttpassword)
                     mqtt.connect()
@@ -531,13 +531,13 @@ def insertDataManualData(request):
                 value=int(value/10)
                 datavar["B20001"]={"t": dt,"v": str(value)}
 
-            print("datavar:",datavar)
+            #print("datavar:",datavar)
 
             if (len(datavar)>0):
                 try:
                     prefix=rmap.settings.topicreport
                     maintprefix=rmap.settings.topicmaint
-                    print(prefix,maintprefix)
+                    #print(prefix,maintprefix)
                     station_slug=form.cleaned_data['coordinate_slug']
                     if (station_slug):
                         # if we have station slug from other form we get it from DB
@@ -591,7 +591,7 @@ def insertDataManualData(request):
                                                     ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                                                     )
 
-                    print(host, username, ident,lon,lat,network,prefix,prefix, mqttusername+"/"+station_slug+"/"+board_slug,mqttpassword)
+                    #print(host, username, ident,lon,lat,network,prefix,prefix, mqttusername+"/"+station_slug+"/"+board_slug,mqttpassword)
                     mqtt=rmapmqtt(user=username,ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=maintprefix,
                                   username=mqttusername+"/"+station_slug+"/"+board_slug,password=mqttpassword,version=1)
                     mqtt.connect()
@@ -631,7 +631,7 @@ def insertNewStation(request):
         newstationform = NewStationForm(request.POST) # A form bound to the POST data
 
         if nominatimform.is_valid(): # All validation rules pass
-            print ("nominatinform is valid")
+            #print ("nominatinform is valid")
             address=nominatimform.cleaned_data['address']
             if address:
                 nom = Nominatim(base_url="https://nominatim.openstreetmap.org",referer=get_current_site(request).domain)
@@ -661,7 +661,7 @@ def insertNewStation(request):
 
 
         if stationonmapform.is_valid(): # All validation rules pass
-            print ("stationonmapform is valid")
+            #print ("stationonmapform is valid")
             geom=stationonmapform.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
@@ -685,7 +685,7 @@ def insertNewStation(request):
 
 
         if newstationform.is_valid(): # All validation rules pass
-            print ("newstationform is valid")
+            #print ("newstationform is valid")
             
             lon=newstationform.cleaned_data['longitude']
             lat=newstationform.cleaned_data['latitude']
@@ -709,8 +709,8 @@ def insertNewStation(request):
 
                 # here we use serialize and deserialize with natural keys to clone template station
 
-                print("new station:", name,username,lon,lat)
-                print("template",template)
+                #print("new station:", name,username,lon,lat)
+                #print("template",template)
                 boards=[]
                 sensors=[]
                 transports=[]
@@ -778,9 +778,9 @@ def insertNewStation(request):
                 data = serializers.serialize("json", obj
                                              ,use_natural_foreign_keys=True
                                              ,use_natural_primary_keys=True)
-                print ("data:",data)
+                #print ("data:",data)
                 for obj in serializers.deserialize("json", data):
-                    print (obj)
+                    #print (obj)
                     obj.save()
                     
                 mystation=StationMetadata.objects.get(slug__exact=slug,user__username=user.username)
