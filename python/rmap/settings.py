@@ -1381,6 +1381,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
         {"import": 'firmware_updater_stima',         "apps": ('firmware_updater_stima',)},
         {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
+        {"import": 'ticket',                         "apps": ('ticket'   ,)},
     )
 
     # Set up each optional app if available.

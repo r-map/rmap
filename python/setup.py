@@ -229,6 +229,7 @@ registration_package_data = []
 showdata_package_data = []
 rainbo_package_data = []
 contacts_package_data = []
+ticket_package_data = []
 firmware_updater = []
 firmware_updater_stima = []
 
@@ -355,6 +356,11 @@ for dirpath, dirnames, filenames in os.walk('contacts/static'):
     if filenames:
         for file in filenames:
             contacts_package_data.append( os.path.relpath(os.path.join(dirpath, file),'contacts'))
+
+for dirpath, dirnames, filenames in os.walk('ticket/static'):
+    if filenames:
+        for file in filenames:
+            ticket_package_data.append( os.path.relpath(os.path.join(dirpath, file),'ticket'))
             
 
 #package_data.append('rmap_config')
@@ -403,6 +409,7 @@ setup(name='rmap',
                 'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
                 'firmware_updater_stima','firmware_updater_stima.migrations',
+                'ticket','ticket.migrations',
                 'oscpy',
       ],
 
@@ -422,6 +429,7 @@ setup(name='rmap',
           'rainbo':['templates/rainbo/*.html','templates/rainbo/base_service/*.html']+rainbo_package_data,          
           'contacts':['templates/contacts/*']+contacts_package_data,          
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
+          'ticket':['templates/ticket/*.html']+ticket_package_data,          
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2amqpd','mqtt2stationmaintd','ttn2dballed','toamqp'

@@ -129,6 +129,12 @@ if not android  :
         print("Warning: firmware_updater_stima disabled")
         print(e)
         print(traceback.format_exc())
+    try:
+        urlpatterns.append(url(r'^', include('ticket.urls')))
+    except Exception as e:
+        print("Warning: ticket disabled")
+        print(e)
+        print(traceback.format_exc())
         
 if ( settings.SERVE_STATIC ):
 #serve local static files

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block content %}
+
+<section id="main_content">
+
+<h4>{% trans 'Ticket' %}: {{ myticket.ticket }}     {% trans 'Active:' %} {{ myticket.active }}</h4>
+<h4>{% trans 'Date' %}: {{ myticket.date }}     {% trans 'User:' %} <a href="{% url 'tickets-list' myticket.stationmetadata.user.username %}">{{ myticket.stationmetadata.user.username }}</a>    {% trans 'Station:' %} <a href="{% url 'tickets-list' myticket.stationmetadata.user.username myticket.stationmetadata.slug %}">{{ myticket.stationmetadata.slug }}</a></h4>
+<h4>{% trans 'Priority' %}: {{ myticket.get_priority_display }} </h4>
+<p>{% trans 'Abstract' %}: {{ myticket.abstract }} </p>
+<p>{% trans 'Description' %}: {{ myticket.description }} </p>
+
+<h2>{% trans 'Actions' %}</h2>
+
+<div class="table-responsive">
+<table class="table">
+  <tr>
+    <th> {% trans 'Active' %}         </th>
+    <th> {% trans 'Date' %}           </th>
+    <th> {% trans 'Category' %}       </th>
+    <th> {% trans 'Description' %}    </th>
+  </tr>
+
+  <div class="row">
+    {% for action in myticket.ticketaction_set.all %}
+      <tr>
+        <td>
+	  {% if action.active %}
+	    <i class="fa fa-check "></i>
+	  {% else %}
+	    <i class="fa fa-times "></i>
+	  {% endif %}
+	</td>  
+        <td> {{ action.date }}                 </td>
+        <td> {{ action.get_category_display }} </td>
+        <td> {{ action.description }}          </td>
+      </tr>
+    {% endfor %}
+  </div>  
+</table>
+</div>
+
+
+<h2>{% trans 'Images' %}</h2>
+
+<div class="table-responsive">
+<table class="table">
+  <tr>
+    <th> {% trans 'Active' %}         </th>
+    <th> {% trans 'Date' %}           </th>
+    <th> {% trans 'Category' %}       </th>
+    <th> {% trans 'Description' %}    </th>
+    <th> {% trans 'Image' %}    </th>
+  </tr>
+
+  <div class="row">
+    {% for image in myticket.ticketimage_set.all %}
+      <tr>
+        <td>
+	  {% if image.active %}
+	    <i class="fa fa-check "></i>
+	  {% else %}
+	    <i class="fa fa-times "></i>
+	  {% endif %}
+	</td>  
+        <td> {{ image.date }}                 </td>
+        <td> {{ image.get_category_display }} </td>
+        <td> {{ image.description }}          </td>
+	<td>
+	  <a href="#" onclick="window.open('{% url 'ticket-details-image' image.id %}','ticketimage', 'width=800, height=620').focus(); return false;">
+	    <img src="/{{ image.image_thumbnail.url }}" />
+	  </a>
+	</td>
+      </tr>
+    {% endfor %}
+  </div>  
+</table>
+</div>
+
+
+<h2>{% trans 'Attachments' %}</h2>
+
+<div class="table-responsive">
+<table class="table">
+  <tr>
+    <th> {% trans 'Active' %}           </th>
+    <th> {% trans 'Date' %}           </th>
+    <th> {% trans 'Mime type' %}       </th>
+    <th> {% trans 'Size' %}       </th>
+    <th> {% trans 'File name' %}    </th>
+  </tr>
+
+  <div class="row">
+    {% for attachment in myticket.ticketattachment_set.all %}
+      <tr>
+        <td>
+	  {% if attachment.active %}
+	    <i class="fa fa-check "></i>
+	  {% else %}
+	    <i class="fa fa-times "></i>
+	  {% endif %}
+	</td>  
+        <td> {{ attachment.date }}              </td>
+        <td> {{ attachment.mime_type }}         </td>
+        <td> {{ attachment.get_size }}          </td>
+        <td> <a href="{% url 'ticket-details-attachment' attachment.id %}">{{ attachment.get_filename }}</a></td>
+      </tr>
+    {% endfor %}
+  </div>  
+</table>
+</div>
+
+
+</section>
+
+{% endblock %}
