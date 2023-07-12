@@ -33,7 +33,7 @@ def tickets_list(request,user=None,slug=None):
 
     query = query & query_user & query_slug
                          
-    mytickets = Ticket.objects.filter(query)
+    mytickets = Ticket.objects.filter(query).distinct()
 
     paginator = Paginator(mytickets, 25) # Show 25 contacts per page.
     page_number = request.GET.get('page')
@@ -81,7 +81,7 @@ def tickets_ass_sub(request,user_ass=None, user_sub=None):
 
     query = query & query_user_ass & query_user_sub
                          
-    mytickets = Ticket.objects.filter(query)
+    mytickets = Ticket.objects.filter(query).distinct()
 
     paginator = Paginator(mytickets, 25) # Show 25 contacts per page.
     page_number = request.GET.get('page')
