@@ -105,8 +105,19 @@ private:
   State_t state;
   ElaborateDataParam_t param;
 
+  sample_t rain_samples;
+
   rain_t rain;
   report_t report;
 };
+
+template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length);
+template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length);
+template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value);
+template<typename buffer_g> void bufferPtrReset(buffer_g *buffer);
+template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length);
+template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
+template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
+template<typename buffer_g, typename length_v, typename value_v>void addValue(buffer_g *buffer, length_v length, value_v value);
 
 #endif

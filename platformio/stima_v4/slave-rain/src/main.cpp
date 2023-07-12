@@ -100,7 +100,7 @@ void setup() {
   requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
   reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 
-  rainQueue = new Queue(RAIN_QUEUE_LENGTH, sizeof(bool));
+  rainQueue = new Queue(RAIN_QUEUE_LENGTH, sizeof(uint8_t));
 
   TRACE_INFO_F(F("Initialization HW Base done\r\n"));
 

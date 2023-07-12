@@ -1,0 +1,4 @@
+rmap.metadata.Metadata.1.0 metadata
+rmap.measures.RainShortRate.1.0 shortRate
+rmap.measures.RainLongRate.1.0 longRate
+@sealed

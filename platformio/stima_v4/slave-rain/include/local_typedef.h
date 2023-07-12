@@ -133,18 +133,23 @@ typedef struct
 // Rain measure
 typedef struct
 {
-   uint16_t tips_count;    // Number of tips readed
-   uint16_t rain_full;     // Rain unofficial (With Maintenance value, for Display LCD)
-   uint16_t rain;          // Rain official (without Maintenance value)
+   rmapdata_t tips_count;    // Number of tips readed (without Maintenance value)
+   rmapdata_t tips_full;     // Number of tips readed (With Maintenance value, for Display LCD)
+   rmapdata_t tips_scroll;   // Number of tips readed for scrolling TPR calulation (without Maintenance value)
+   rmapdata_t rain;          // Rain official (without Maintenance value)
+   rmapdata_t rain_full;     // Rain unofficial (With Maintenance value, for Display LCD)
+   rmapdata_t rain_scroll;   // Rain scrolling for step TPR calculation (without Maintenance value)
 } rain_t;
 
 // Report module
 typedef struct
 {
-   uint16_t tips_count;
-   uint16_t rain;
-   uint16_t rain_full;
-   uint16_t quality;
+   rmapdata_t tips_count;
+   rmapdata_t rain;
+   rmapdata_t rain_full;
+   rmapdata_t rain_tpr_60s_avg;
+   rmapdata_t rain_tpr_05m_avg;
+   rmapdata_t quality;   
 } report_t;
 
 // Backup && Upload Firmware TypeDef

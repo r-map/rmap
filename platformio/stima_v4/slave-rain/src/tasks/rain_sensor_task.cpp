@@ -123,7 +123,7 @@ void RainSensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
 
-  bool flag_event;
+  uint8_t flag_event;
 
   bool bMainError, bRedundantError, bTippingError;
   bool bEventMain, bEventRedundant;
@@ -167,17 +167,29 @@ void RainSensorTask::Run() {
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
       // Waiting interrupt or External Reset (Suspend task)
       localRainQueue->Dequeue(&flag_event);
-      // Is Event RAIN? (false, is request Reset Counter value)
-      if(!flag_event) {
+      // Is RESET RAIN? (param enqueued...)
+      if(flag_event == RAIN_TIPS_RESET) {
         // Reset signal event (if error persistent, event error restored)
         bMainError = false;
         bRedundantError = false;
         bTippingError = false;
         error_count = 0;
-        // Reset counter and exit
+        // Reset standard counter and exit
+        rain.rain = 0;
+        rain.rain_full = 0;
+        rain.tips_count = 0;
+        rain.tips_full = 0;
         memset(&rain, 0, sizeof(rain));
         break;
       }
+      // Is RESET SCROLL? (false, is request Reset Counter value)
+      if(flag_event == RAIN_SCROLL_RESET) {
+        // Reset only scroll counter and exit
+        rain.rain_scroll = 0;
+        rain.tips_scroll = 0;
+        break;
+      }
+      // ... and HERE is EVENT RAIN... check if OK!!!
       // ********************************************
       // Starting Event Rain Counter check operartion
       // ********************************************
@@ -248,14 +260,17 @@ void RainSensorTask::Run() {
           (digitalRead(TIPPING_BUCKET_PIN_REDUNDANT) != TIPPING_EVENT_VALUE))
       #endif
       {
-        rain.tips_count++;
-        // !!! Add Value if system is not in maintenance mode
-        if(!param.system_status->flags.is_maintenance) {
-          rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
-        }
-        // Full rain excluding maintenance_mode ( to see into display... )
+        // Always add full data
+        rain.tips_full++;
         rain.rain_full = rain.tips_count * param.configuration->sensors.rain_for_tip;
-        TRACE_INFO_F(F("Sensor: Rain tips count: %d\r\n"), rain.tips_count);
+        // Add this Value only if system is not in maintenance mode
+        if(!param.system_status->flags.is_maintenance) {
+          rain.tips_count++;
+          rain.tips_scroll++;
+          rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
+          rain.rain_scroll = rain.tips_count * param.configuration->sensors.rain_for_tip;
+        }
+        TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain.tips_count, rain.tips_full);
       }
       else
       {
@@ -276,6 +291,10 @@ void RainSensorTask::Run() {
 
       edata.value = rain.rain_full;
       edata.index = RAIN_FULL_INDEX;
+      param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
+
+      edata.value = rain.rain_scroll;
+      edata.index = RAIN_SCROLL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
       #if (ENABLE_STACK_USAGE)
@@ -328,7 +347,7 @@ void RainSensorTask::Run() {
 /// @brief ISR Waiting event (restore task)
 void RainSensorTask::ISR_tipping_bucket() {
   // Event TIPPING_BUCKET_PIN start when interrupt has occurred (security check on reading state)
-  bool flags = true;
+  uint8_t flags = RAIN_TIPS_INDEX;
   BaseType_t pxHigherPTW = true;
   // Event is also in execution... Exit, else Calling Queue from ISR
   if(!is_isr_event_running) {

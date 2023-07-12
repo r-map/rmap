@@ -108,13 +108,36 @@ void ElaborateDataTask::Run() {
   // System message data queue structured
   system_message_t system_message;
 
+  uint8_t edata_cmd; // command function to elaborate data queue
+
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
+  // Init scrolling TPR timings and buffer data
+  // Maintenance not performed (automatic checked in rain_task)
+  rain.rain_scroll = 0;
+  bufferReset<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
+  uint32_t next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
+
   while (true) {
+
+    // Elaborate scrolling XX required defined msec.
+    if(millis() >= next_ms_buffer_check) {
+      next_ms_buffer_check += SAMPLES_ACQUIRE_MS;
+      // ? over roll and security check timer area into reset check ms expected
+      if (labs(millis() - next_ms_buffer_check) > SAMPLES_ACQUIRE_MS) {
+        next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
+      }
+      // Add current scrolling data to buffer
+      addValue<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX, rain.rain_scroll);
+      // Perform reset on rain task. Security local new ungetted data rain.rain_scroll to 0
+      rain.rain_scroll = 0;
+      edata_cmd = RAIN_SCROLL_RESET;
+      param.rainQueue->Enqueue(&edata_cmd, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
+    }
 
     // ********* SYSTEM QUEUE MESSAGE ***********
     // enqueud system message from caller task
@@ -122,7 +145,7 @@ void ElaborateDataTask::Run() {
         // Read queue in test mode
         if (param.systemMessageQueue->Peek(&system_message, 0))
         {
-            // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+            // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or external gestor)
             if(system_message.task_dest == ALL_TASK_ID)
             {
                 // Pull && elaborate command, 
@@ -147,7 +170,7 @@ void ElaborateDataTask::Run() {
         {
         case RAIN_TIPS_INDEX:
           TRACE_VERBOSE_F(F("Rain tips: %d\r\n"), edata.value);
-          rain.tips_count = (uint16_t) edata.value;
+          rain.tips_count = (uint16_t)edata.value;
           break;
 
         case RAIN_RAIN_INDEX:
@@ -158,6 +181,11 @@ void ElaborateDataTask::Run() {
         case RAIN_FULL_INDEX:
           TRACE_VERBOSE_F(F("Rain full: %d\r\n"), edata.value);
           rain.rain_full = (uint16_t)edata.value;
+          break;
+
+        case RAIN_SCROLL_INDEX:
+          TRACE_VERBOSE_F(F("Rain scroll: %d\r\n"), edata.value);
+          rain.rain_scroll = (uint16_t)edata.value;
           break;
         }
       }
@@ -176,11 +204,12 @@ void ElaborateDataTask::Run() {
         if (request_data.is_init)
         {
           rain.tips_count = 0;
+          rain.tips_full = 0;
           rain.rain = 0;
           rain.rain_full = 0;
           // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
-          bool edata = false;
-          param.rainQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
+          edata_cmd = RAIN_TIPS_RESET;
+          param.rainQueue->Enqueue(&edata_cmd, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
         }
       }
     }
@@ -238,8 +267,185 @@ uint8_t ElaborateDataTask::checkRain(void) {
 /// @param observation_time_s time to make an observation
 void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_time_s)
 {
+  #if (USE_MOBILE_TPR_60_S_AVG_MODE)
+  uint16_t rain_buf_60s[SAMPLES_NEED_TPR_60_S] = {0};  // Scroll buffer for max on 60 sec
+  #endif
+  uint16_t rain_ist;              // Istant buffered data on 10 sec
+  uint16_t rain_sum_60s = 0;      // current sum on 60 sec
+  uint16_t rain_sum_60s_max = 0;  // max sum on mobile window of 60 sec.
+  uint16_t rain_sum_05m = 0;      // current sum on 5 min
+  uint16_t rain_sum_05m_max = 0;  // max sum on fixed window of 5 min.
+
+  float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
+  uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
+
+  // Elaboration timings calculation (fix 5Min to TPR 5 Min, Fix 60 Sec to TPR 60 Sec)
+  uint16_t report_sample_count = round((report_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
+  uint16_t observation_sample_count = round((observation_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
+  uint16_t report_observations_count = report_sample_count / observation_sample_count;
+
+  // Request to calculate is correct? Trace request
+  if (report_time_s == 0)
+  {
+    // Request an direct sample value for istant measure
+    TRACE_INFO_F(F("Elaborate: Requested an istant value\r\n"));
+  }
+  else
+  {
+    TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
+    TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
+    TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
+    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_observations_count);
+    TRACE_DEBUG_F(F("-> %d available rain samples count\r\n"), rain_samples.count);
+  }
+
+  // Default value to RMAP Limit error value
+  report.rain_tpr_60s_avg = RMAPDATA_MAX;
+  report.rain_tpr_05m_avg = RMAPDATA_MAX;
+
+  // Ptr for value sample
+  bufferPtrResetBack<sample_t, uint16_t>(&rain_samples, SAMPLES_COUNT_MAX);
+
+  // align all sensor's data to last common acquired sample
+  uint16_t samples_count = rain_samples.count;
+
+  // No need ... it's a simple istant or report request?
+  for (uint16_t i = 0; i < samples_count; i++)
+  {
+    // Calculate rain rate on 60" mobile to report timing area
+    // End of Sample in calculation (Completed with the request... Exit on Full Buffer ReadBack executed)
+    if(n_sample >= report_sample_count) break;
+
+    // Reading data ist from buffered value
+    rain_ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
+    n_sample++;
+
+    #if (USE_MOBILE_TPR_60_S_AVG_MODE)
+    // Scrolling older value on timing observation value area
+    for(uint8_t rr_idx = (SAMPLES_NEED_TPR_60_S - 1); rr_idx > 0; rr_idx--) {
+      rain_buf_60s[rr_idx] = rain_buf_60s[rr_idx-1];
+    }
+    rain_buf_60s[0] = rain_ist;
+    // Calculate SUM on timing obeservation in mobile mode
+    rain_sum_60s = 0;
+    for(uint8_t rr_idx = 0; rr_idx < SAMPLES_NEED_TPR_60_S; rr_idx++) {
+      rain_sum_60s += rain_buf_60s[rr_idx];
+    }
+    if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
+    #else
+    // Fixed Calculate MAX on 60 SEC
+    if(n_sample % SAMPLES_NEED_TPR_60_S) {
+      // Populate buffer SUM on 60 sec
+      rain_sum_60s += rain_ist;
+    } else {
+      // Calculate MAX of SUM of 5 min and reinit for next timing check
+      if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
+      rain_sum_05m = 0;
+    }
+    #endif
+
+    // Fixed Calculate MAX on 5 MIN
+    if(n_sample % SAMPLES_NEED_TPR_05_M) {
+      // Populate buffer SUM on 5 min
+      rain_sum_05m += rain_ist;
+    } else {
+      // Calculate MAX of SUM of 5 min and reinit for next timing check
+      if(rain_sum_05m > rain_sum_05m_max) rain_sum_05m_max = rain_sum_05m;
+      rain_sum_05m = 0;
+    }
+  }
+  // ***************************************************************************************************
+  // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
+  // ***************************************************************************************************
+
   report.tips_count = rain.tips_count;
   report.rain = rain.rain;
   report.rain_full = rain.rain_full;
-  report.quality = checkRain();
+  report.quality = (rmapdata_t)checkRain();
+
+  // rain TPR, elaboration final (if over number min sample)
+  valid_data_calc_perc = (float)(n_sample) / (float)(report_observations_count) * 100.0;
+  if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
+  {
+    // Use 10^5 rappresentation with 5 decimal
+    report.rain_tpr_60s_avg = (rmapdata_t)(((float)rain_sum_60s_max * 100000.0) / 60.0);
+    report.rain_tpr_05m_avg = (rmapdata_t)(((float)rain_sum_05m_max * 100000.0) / 300.0);
+  }
+}
+
+template <typename buffer_g, typename length_v, typename value_v>
+value_v bufferRead(buffer_g *buffer, length_v length)
+{
+  value_v value = *buffer->read_ptr;
+
+  if (buffer->read_ptr == buffer->values+length-1) {
+    buffer->read_ptr = buffer->values;
+  }
+  else buffer->read_ptr++;
+
+  return value;
+}
+
+template <typename buffer_g, typename length_v, typename value_v>
+value_v bufferReadBack(buffer_g *buffer, length_v length)
+{
+  value_v value = *buffer->read_ptr;
+
+  if (buffer->read_ptr == buffer->values) {
+    buffer->read_ptr = buffer->values+length-1;
+  }
+  else buffer->read_ptr--;
+
+  return value;
+}
+
+template <typename buffer_g, typename value_v>
+void bufferWrite(buffer_g *buffer, value_v value)
+{
+  *buffer->write_ptr = value;
+}
+
+template <typename buffer_g>
+void bufferPtrReset(buffer_g *buffer)
+{
+  buffer->read_ptr = buffer->values;
+}
+
+template <typename buffer_g, typename length_v>
+void bufferPtrResetBack(buffer_g *buffer, length_v length)
+{
+  if (buffer->write_ptr == buffer->values)
+  {
+    buffer->read_ptr = buffer->values+length-1;
+  }
+  else buffer->read_ptr = buffer->write_ptr-1;
+}
+
+template <typename buffer_g, typename length_v>
+void incrementBuffer(buffer_g *buffer, length_v length)
+{
+  if (buffer->count < length)
+  {
+    buffer->count++;
+  }
+
+  if (buffer->write_ptr+1 < buffer->values + length) {
+    buffer->write_ptr++;
+  } else buffer->write_ptr = buffer->values;
+}
+
+template <typename buffer_g, typename length_v, typename value_v>
+void bufferReset(buffer_g *buffer, length_v length)
+{
+  memset(buffer->values, 0xFF, length * sizeof(value_v));
+  buffer->count = 0;
+  buffer->read_ptr = buffer->values;
+  buffer->write_ptr = buffer->values;
+}
+
+template <typename buffer_g, typename length_v, typename value_v>
+void addValue(buffer_g *buffer, length_v length, value_v value)
+{
+  *buffer->write_ptr = (value_v)value;
+  incrementBuffer<buffer_g, length_v>(buffer, length);
 }
