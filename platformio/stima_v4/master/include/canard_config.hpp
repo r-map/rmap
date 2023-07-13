@@ -136,7 +136,8 @@
 // Elaboration Sensor to index Register Class Uavcan (for sensor)
 // Rain
 #define SENSOR_METADATA_TBR             0
-#define SENSOR_METADATA_RAIN_COUNT      1
+#define SENSOR_METADATA_TPR             1
+#define SENSOR_METADATA_RAIN_COUNT      2
 // Th
 #define SENSOR_METADATA_ITH             0
 #define SENSOR_METADATA_MTH             1

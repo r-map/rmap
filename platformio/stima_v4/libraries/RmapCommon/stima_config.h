@@ -223,6 +223,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief INTEST RPC Sensor identification type list
 */
 #define STIMA_RPC_SENSOR_NAME_TBR                   ("TBR")
+#define STIMA_RPC_SENSOR_NAME_TPR                   ("TPR")
 #define STIMA_RPC_SENSOR_NAME_STH                   ("STH")
 #define STIMA_RPC_SENSOR_NAME_ITH                   ("ITH")
 #define STIMA_RPC_SENSOR_NAME_MTH                   ("MTH")

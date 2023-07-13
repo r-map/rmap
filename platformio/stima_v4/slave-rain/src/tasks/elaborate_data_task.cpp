@@ -278,11 +278,11 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
 
   float valid_data_calc_perc;         // Shared calculate valid % of measure (Data Valid or not?)
   uint16_t n_sample = 0;              // Sample elaboration number... (incremented on calc development)
+  bool is_05m_sample_valid = false;   // True if sample 05 min is valid (1 sample complete min)
 
   // Elaboration timings calculation (fix 5Min to TPR 5 Min, Fix 60 Sec to TPR 60 Sec)
   uint16_t report_sample_count = round((report_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
   uint16_t observation_sample_count = round((observation_time_s * 1.0) / (SAMPLES_ACQUIRE_MS / 1000.0));
-  uint16_t report_observations_count = report_sample_count / observation_sample_count;
 
   // Request to calculate is correct? Trace request
   if (report_time_s == 0)
@@ -295,7 +295,6 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
     TRACE_INFO_F(F("Elaborate: Requested an report on %d seconds\r\n"), report_time_s);
     TRACE_DEBUG_F(F("-> %d samples counts need for report\r\n"), report_sample_count);
     TRACE_DEBUG_F(F("-> %d samples counts need for observation\r\n"), observation_sample_count);
-    TRACE_DEBUG_F(F("-> %d observation counts need for report\r\n"), report_observations_count);
     TRACE_DEBUG_F(F("-> %d available rain samples count\r\n"), rain_samples.count);
   }
 
@@ -333,23 +332,20 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
     }
     if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
     #else
-    // Fixed Calculate MAX on 60 SEC
-    if(n_sample % SAMPLES_NEED_TPR_60_S) {
-      // Populate buffer SUM on 60 sec
-      rain_sum_60s += rain_ist;
-    } else {
-      // Calculate MAX of SUM of 5 min and reinit for next timing check
+    // Populate buffer SUM on 60 sec - Fixed Calculate MAX on 60 SEC
+    rain_sum_60s += rain_ist;
+    if((n_sample % SAMPLES_NEED_TPR_60_S)==0) {
+      // Calculate MAX of SUM and reinit for next timing check
       if(rain_sum_60s > rain_sum_60s_max) rain_sum_60s_max = rain_sum_60s;
-      rain_sum_05m = 0;
+      rain_sum_60s = 0;
     }
     #endif
 
-    // Fixed Calculate MAX on 5 MIN
-    if(n_sample % SAMPLES_NEED_TPR_05_M) {
-      // Populate buffer SUM on 5 min
-      rain_sum_05m += rain_ist;
-    } else {
-      // Calculate MAX of SUM of 5 min and reinit for next timing check
+    // Populate buffer SUM on 5 MIN - Fixed Calculate MAX on 5 MIN
+    rain_sum_05m += rain_ist;
+    if((n_sample % SAMPLES_NEED_TPR_05_M)==0) {
+      is_05m_sample_valid = true;
+      // Calculate MAX of SUM and reinit for next timing check
       if(rain_sum_05m > rain_sum_05m_max) rain_sum_05m_max = rain_sum_05m;
       rain_sum_05m = 0;
     }
@@ -364,12 +360,14 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
   report.quality = (rmapdata_t)checkRain();
 
   // rain TPR, elaboration final (if over number min sample)
-  valid_data_calc_perc = (float)(n_sample) / (float)(report_observations_count) * 100.0;
+  valid_data_calc_perc = (float)(n_sample) / (float)(report_sample_count) * 100.0;
   if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
   {
-    // Use 10^5 rappresentation with 5 decimal
-    report.rain_tpr_60s_avg = (rmapdata_t)(((float)rain_sum_60s_max * 100000.0) / 60.0);
-    report.rain_tpr_05m_avg = (rmapdata_t)(((float)rain_sum_05m_max * 100000.0) / 300.0);
+    // Use 10^4 rappresentation with 4 decimal
+    report.rain_tpr_60s_avg = (rmapdata_t)(((float)rain_sum_60s_max * (float)RAIN_RATE_MULTIPLY) / 60.0);
+    if(is_05m_sample_valid) {
+      report.rain_tpr_05m_avg = (rmapdata_t)(((float)rain_sum_05m_max * (float)RAIN_RATE_MULTIPLY) / 300.0);
+    }
   }
 }
 

@@ -459,6 +459,8 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           case Module_Type::rain:
             if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_TBR) == 0) {
               sensorId = SENSOR_METADATA_TBR;
+            } else if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_TPR) == 0) {
+              sensorId = SENSOR_METADATA_TPR;
             }
             else error_command = true;
             break;

@@ -147,6 +147,10 @@ void RainSensorTask::Run() {
       {
         rain.tips_count = 0;
         rain.rain = 0;
+        rain.tips_full = 0;
+        rain.rain_full = 0;
+        rain.tips_scroll = 0;
+        rain.rain_scroll = 0;
         TRACE_VERBOSE_F(F("Sensor: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -262,13 +266,13 @@ void RainSensorTask::Run() {
       {
         // Always add full data
         rain.tips_full++;
-        rain.rain_full = rain.tips_count * param.configuration->sensors.rain_for_tip;
+        rain.rain_full = rain.tips_full * param.configuration->sensors.rain_for_tip;
         // Add this Value only if system is not in maintenance mode
         if(!param.system_status->flags.is_maintenance) {
           rain.tips_count++;
           rain.tips_scroll++;
           rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
-          rain.rain_scroll = rain.tips_count * param.configuration->sensors.rain_for_tip;
+          rain.rain_scroll = rain.tips_scroll * param.configuration->sensors.rain_for_tip;
         }
         TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain.tips_count, rain.tips_full);
       }

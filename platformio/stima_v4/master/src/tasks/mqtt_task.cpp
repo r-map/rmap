@@ -900,6 +900,11 @@ void MqttTask::Run()
                       error = publishSensorRain(&mqttClientContext, qos, rmapDataRain->TBR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
 
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_TPR])
+                    {
+                      error = publishSensorRainRate(&mqttClientContext, qos, rmapDataRain->TPR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
                     if (error)
                     {
                       // Connection to MQTT server lost?
@@ -1683,6 +1688,114 @@ error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime da
   return error;
 }
 
+error_t MqttTask::makeSensorMessageRainShortRate(rmap_measures_RainShortRate_1_0 rainShortRate, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (rainShortRate.val.value <= rmap_tableb_B13208_1_0_MAX)
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", rainShortRate.val.value) <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (!error)
+  {
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (rainShortRate.confidence.value <= rmap_tableb_B33199_1_0_MAX)
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", rainShortRate.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  return error;
+}
+
+error_t MqttTask::makeSensorMessageRainLongRate(rmap_measures_RainLongRate_1_0 rainLongRate, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (rainLongRate.val.value <= rmap_tableb_B13209_1_0_MAX)
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", rainLongRate.val.value) <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (!error)
+  {
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (rainLongRate.confidence.value <= rmap_tableb_B33199_1_0_MAX)
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", rainLongRate.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  return error;
+}
+
 error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count = 0;
@@ -1697,6 +1810,104 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   if (!error)
   {
     error = makeSensorMessageRain(sensor.rain, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+  }
+
+  if (!error)
+  {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
+
+  // publish rain value
+  do
+  {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+    if (error)
+    {
+      error_count++;
+    }
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_RainRate_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  uint8_t error_count = 0;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Rain Rate 60" shortRate
+  // ----------------------------------------------------------------------------
+  // make rain topic
+  error = makeSensorTopic(sensor.metadata, "B13208", sensors_topic, sensors_topic_length);
+  // make rain message
+  if (!error)
+  {
+    error = makeSensorMessageRainShortRate(sensor.shortRate, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+  }
+
+  if (!error)
+  {
+    error_count = 0;
+  }
+  else
+  {
+    error_count = MQTT_TASK_PUBLISH_RETRY;
+  }
+
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
+    putRmapBackupArchiveData(dateTime, topic, message);
+  }
+
+  // publish rain value
+  do
+  {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+    if (error)
+    {
+      error_count++;
+    }
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  // ----------------------------------------------------------------------------
+  // Rain Rate 5' longRate
+  // ----------------------------------------------------------------------------
+  // make rain topic
+  error = makeSensorTopic(sensor.metadata, "B13209", sensors_topic, sensors_topic_length);
+  // make rain message
+  if (!error)
+  {
+    error = makeSensorMessageRainLongRate(sensor.longRate, dateTime, message, message_length);
   }
   // make common topic
   if (!error)
