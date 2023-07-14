@@ -2313,6 +2313,76 @@ void CanTask::Run() {
                                     }
                                     break;
 
+                                case Module_Type::vwc:
+                                    // Cast to th module
+                                    retVwcData = (rmap_service_module_VWC_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
+                                    // Get parameter data
+                                    #if TRACE_LEVEL >= TRACE_INFO
+                                    getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
+                                    #endif
+                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
+                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].module_version = retVwcData->version;
+                                        param.system_status->data_slave[queueId].module_revision = retVwcData->revision;
+                                        // Module type also setted on load config module CAN
+                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                        // Check if module can be updated
+                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
+                                                if((param.system_status->boards_update_avaiable[checkId].version > retVwcData->version) ||
+                                                    ((param.system_status->boards_update_avaiable[checkId].version == retVwcData->version) && 
+                                                    (param.system_status->boards_update_avaiable[checkId].revision > retVwcData->revision))) {
+                                                    // Found an upgradable boards
+                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        param.systemStatusLock->Give();
+                                    }
+                                    // TRACE Info data
+                                    TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
+                                        stimaName, clCanard.slave[queueId].get_node_id(), retVwcData->state);
+                                    TRACE_VERBOSE_F(F("Value (VWC) Soil moisture 1,2,3 [ %d, %d, %d ]\r\n"), retVwcData->VWC1.vwc.val.value, retVwcData->VWC2.vwc.val.value, retVwcData->VWC3.vwc.val.value);
+                                    // Put istant data in system_status
+                                    if(retVwcData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
+                                        param.system_status->data_slave[queueId].data_value[0] = retVwcData->VWC1.vwc.val.value;
+                                        param.system_status->data_slave[queueId].data_value[1] = retVwcData->VWC2.vwc.val.value;
+                                        param.system_status->data_slave[queueId].data_value[2] = retVwcData->VWC3.vwc.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
+                                        param.systemStatusLock->Give();
+                                    } else if(retVwcData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retVwcData->is_adc_unit_error) bit8Flag|=0x01;
+                                        if(retVwcData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retVwcData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retVwcData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
+                                        param.systemStatusLock->Give();
+                                        // Copy Data
+                                        memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
+                                        // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
+                                        rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
+                                        rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
+                                        memcpy(rmap_archive_data.block, retVwcData, sizeof(*retVwcData));
+                                        // Send queue to SD for direct archive data
+                                        // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
+                                    }
+                                    break;
+
                                 default:
                                     // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
                                     TRACE_INFO_F(F("RMAP recived response service data module from unknown module node id: [ %d ]\r\n"),

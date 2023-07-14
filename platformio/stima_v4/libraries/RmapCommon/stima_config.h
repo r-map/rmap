@@ -252,7 +252,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
 #define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")
 #define STIMA_LCD_DESCRIPTION_TEMPERATURE           ("Temperature")
-#define STIMA_LCD_DESCRIPTION_VWC                   ("Soil mosture")
+#define STIMA_LCD_DESCRIPTION_VWC1                  ("Soil mosture 1")
+#define STIMA_LCD_DESCRIPTION_VWC2                  ("Soil mosture 2")
+#define STIMA_LCD_DESCRIPTION_VWC3                  ("Soil mosture 3")
 #define STIMA_LCD_DESCRIPTION_WIND_DIRECTION        ("Wind direction")
 #define STIMA_LCD_DESCRIPTION_WIND_SPEED            ("Wind speed")
 

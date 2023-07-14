@@ -307,7 +307,7 @@ void SupervisorTask::loadConfiguration()
     // Select type register (uint_8)
     uavcan_register_Value_1_0_select_natural8_(&val);
     val.natural8.value.count       = MAX_ADC_CHANELS;
-    // Loading Default ( Active low Voltave 0-3 Volt Input )
+    // Loading Default ( Active low Voltage 0-3 Volt Input )
     for(idx=0; idx<MAX_ADC_CHANELS; idx++)
       val.natural8.value.elements[idx] = Adc_Mode::mVolt;
     param.registerAccessLock->Take();

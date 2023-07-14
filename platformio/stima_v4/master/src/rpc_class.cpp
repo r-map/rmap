@@ -1186,6 +1186,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
         // Waiting a response done before continue (reload firmware OK!!!)
         while(true) {
           // Continuos Switching context non blocking
+          // Need Waiting Task for start command on All used TASK
           taskYIELD();
           vTaskDelay(100);
           // Check response done

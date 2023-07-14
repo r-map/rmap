@@ -158,10 +158,10 @@ void SoilVWCSensorTask::Run() {
       {
         adc_channel_idx = 0;
         // Select read chanel first from config
-        for(uint8_t idx=0; idx<MAX_ADC_CHANELS; idx++) {
-          if(param.configuration->sensors[idx].is_active) {
+        for(uint8_t hw_chanel=0; hw_chanel<MAX_ADC_CHANELS; hw_chanel++) {
+          if(param.configuration->sensors[hw_chanel].is_active) {
             // Select alla active chanel selected
-            adc_channel[adc_channel_idx++] = idx++;
+            adc_channel[adc_channel_idx++] = hw_chanel;
           }
         }
         // Number of chanel/sensor used
@@ -182,6 +182,11 @@ void SoilVWCSensorTask::Run() {
         #endif
         resetADCData(adc_channel[idx]);
       }
+      #if (SOIL_VWC_TASK_LOW_POWER_ENABLED)
+      // POWER ON WAIT CUMULATIVE FOR ALL CHANEL
+      TaskWatchDog(SOIL_VWC_TASK_POWER_ON_WAIT_DELAY_MS);
+      Delay(Ticks::MsToTicks(SOIL_VWC_TASK_POWER_ON_WAIT_DELAY_MS));
+      #endif
       state = SENSOR_STATE_SET;
       TRACE_INFO_F(F("SENSOR_STATE_INIT --> SENSOR_STATE_SET\r\n"));
       break;
@@ -281,7 +286,7 @@ void SoilVWCSensorTask::Run() {
 /// @param chanel_out chanel To be powered (Fixed or switching depending from define into header_file) 
 void SoilVWCSensorTask::powerOn(uint8_t chanel_out)
 {
-  if (!is_power_on) {
+  if (!is_power_on[chanel_out]) {
     digitalWrite(PIN_EN_5VA, HIGH);  // Enable Analog Comparator (xIAN)
     // Switching powered chanel mode
     #if(SOIL_VWC_TASK_SWITCH_POWER_ENABLED)
@@ -290,10 +295,7 @@ void SoilVWCSensorTask::powerOn(uint8_t chanel_out)
     if(chanel_out == 2) digitalWrite(PIN_OUT2, HIGH);  // Enable relative Output Chanel alim
     if(chanel_out == 3) digitalWrite(PIN_OUT3, HIGH);  // Enable relative Output Chanel alim
     #endif
-    // WDT
-    TaskWatchDog(SOIL_VWC_TASK_POWER_ON_WAIT_DELAY_MS);
-    Delay(Ticks::MsToTicks(SOIL_VWC_TASK_POWER_ON_WAIT_DELAY_MS));
-    is_power_on = true;
+    is_power_on[chanel_out] = true;
   }
 }
 
@@ -307,7 +309,8 @@ void SoilVWCSensorTask::powerOff()
   digitalWrite(PIN_OUT2, LOW);   // Disable Output Chanel alim
   digitalWrite(PIN_OUT3, LOW);   // Disable Output Chanel alim
   #endif
-  is_power_on = false;
+  for(uint8_t hw_chanel=0; hw_chanel<MAX_ADC_CHANELS; hw_chanel++)
+    is_power_on[hw_chanel] = false;
 }
 
 /// @brief Add Data ADC to counter

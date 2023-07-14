@@ -545,6 +545,16 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         if ((value_display_B < 0) || (value_display_B > 30)) bMeasValid_B = false;
         if ((value_display_C < -350) || (value_display_C > 5000)) bMeasValid_C = false;
         break;
+      case Module_Type::vwc:
+        printMeasB = true;
+        printMeasC = true;
+        value_display_A = (float)param.system_status->data_slave[channel].data_value[0];
+        value_display_B = (float)param.system_status->data_slave[channel].data_value[1];
+        value_display_C = (float)param.system_status->data_slave[channel].data_value[2];
+        if ((value_display_A < MIN_VALID_SOIL_MOISTURE) || (value_display_A > MAX_VALID_SOIL_MOISTURE)) bMeasValid_A = false;
+        if ((value_display_B < MIN_VALID_SOIL_MOISTURE) || (value_display_B > MAX_VALID_SOIL_MOISTURE)) bMeasValid_B = false;
+        if ((value_display_C < MIN_VALID_SOIL_MOISTURE) || (value_display_C > MAX_VALID_SOIL_MOISTURE)) bMeasValid_C = false;
+        break;
       default:
         value_display_A = param.system_status->data_slave[channel].data_value[0];
         value_display_B = param.system_status->data_slave[channel].data_value[1];

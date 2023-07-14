@@ -163,11 +163,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ADC_MAX                           (4096)
 #define ADC_MIN                           (0)
 
-#define SOIL_VWC_VOLTAGE_MAX              (2500.0)
+#define SOIL_VWC_VOLTAGE_MAX              (2000.0)
 #define SOIL_VWC_VOLTAGE_MIN              (1000.0)
 
-#define SOIL_VWC_ERROR_VOLTAGE_MAX        (SOIL_VWC_VOLTAGE_MAX + 30.0)
-#define SOIL_VWC_ERROR_VOLTAGE_MIN        (SOIL_VWC_VOLTAGE_MIN - 30.0)
+#define SOIL_VWC_ERROR_VOLTAGE_MAX        (500.0)
+#define SOIL_VWC_ERROR_VOLTAGE_MIN        (-50.0)
 
 #define SOIL_VWC_MAX                      (100.0)
 #define SOIL_VWC_MIN                      (0.0)
@@ -179,7 +179,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
-
-#define ACQUISITION_COUNT_FOR_POWER_RESET (100)
 
 #endif

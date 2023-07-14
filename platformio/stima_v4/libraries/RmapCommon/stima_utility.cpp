@@ -182,7 +182,9 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
       break;
 
     case STIMA_MODULE_TYPE_VWC:
-      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_VWC, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_VWC1, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_B, STIMA_LCD_DESCRIPTION_VWC2, STIMA_LCD_DESCRIPTION_LENGTH);
+      strncpy(lcd_description_C, STIMA_LCD_DESCRIPTION_VWC3, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
     default:
@@ -233,7 +235,9 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, cha
       break;
 
     case STIMA_MODULE_TYPE_VWC:
-      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_VOLTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_B, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      strncpy(lcd_unit_type_C, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
 
     default:
@@ -284,7 +288,9 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_VWC:
-      *decimals_A = STIMA_LCD_DECIMALS_TWO;
+      *decimals_A = STIMA_LCD_DECIMALS_ZERO;
+      *decimals_B = STIMA_LCD_DECIMALS_ZERO;
+      *decimals_C = STIMA_LCD_DECIMALS_ZERO;
       break;
 
     default:

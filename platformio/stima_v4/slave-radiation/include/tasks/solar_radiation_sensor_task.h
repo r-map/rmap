@@ -61,7 +61,7 @@
 /* Analog read resolution */
 #define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
 #define ADC_RANGE ADC_MAX
-#define SAMPLES_REPETED_ADC 64
+#define SAMPLES_REPETED_ADC 16
 
 #include "stm32yyxx_ll_adc.h"
 

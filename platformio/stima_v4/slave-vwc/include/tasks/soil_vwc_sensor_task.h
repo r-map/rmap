@@ -61,7 +61,7 @@
 /* Analog read resolution */
 #define LL_ADC_RESOLUTION LL_ADC_RESOLUTION_12B
 #define ADC_RANGE ADC_MAX
-#define SAMPLES_REPETED_ADC 64
+#define SAMPLES_REPETED_ADC 16
 
 #include "stm32yyxx_ll_adc.h"
 
@@ -128,7 +128,7 @@ private:
   float getSoilVWC(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow);
 
   // Global flag powered
-  bool is_power_on;
+  bool is_power_on[MAX_ADC_CHANELS];
 
   // Value of chanel ADC
   uint8_t adc_in_count[MAX_ADC_CHANELS];
