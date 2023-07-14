@@ -261,11 +261,12 @@ void MqttTask::Run()
       mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
 
       // Set username and password
-      // TODO: remove or test
-      // if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
-      // {
-      //   mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
-      // }
+      #if(USE_MQTT_PASSWORD)
+      if (strlen(param.configuration->mqtt_username) && strlen(param.configuration->mqtt_password))
+      {
+        mqttClientSetAuthInfo(&mqttClientContext, param.configuration->mqtt_username, param.configuration->mqtt_password);
+      }
+      #endif
 
       // Set Will message ( ON ROOT TOPIC, MQTT_STATUS_TOPIC... FROM doc.rmap.cc documentation )
       if (strlen(MQTT_ON_ERROR_MESSAGE))

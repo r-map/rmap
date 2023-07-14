@@ -25,6 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define _MQTT_CONFIG_H
 
 /*!
+\def USE_MQTT_PASSWORD
+\brief Use MQTT Set Authorization command (password). Normal used without TLS Connection
+*/
+#define USE_MQTT_PASSWORD (false)
+
+/*!
 \def MQTT_ROOT_TOPIC_LENGTH
 \brief Length in bytes for mqtt root topic.
 */
