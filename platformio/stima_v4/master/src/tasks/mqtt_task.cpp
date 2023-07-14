@@ -195,7 +195,7 @@ void MqttTask::Run()
 
     case MQTT_STATE_CONNECT:
 
-      // Reset rpc_response
+      // Reset rpc_response buffer
       memset(rpc_response, 0, sizeof(rpc_response));
 
       error = mqttClientInit(&mqttClientContext);
@@ -396,8 +396,6 @@ void MqttTask::Run()
       byteState[indexPosition] = 0;
 
       // publish connection message (Conn + Version and Revision)
-      // sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-      //   dtBlock, param.configuration->board_master.module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
         dtBlock, param.configuration->board_master.boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -488,11 +486,12 @@ void MqttTask::Run()
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
 
-          // Loop publish response
+          // Loop publish response to MQTT RPC (if request->response executed)
           if(strlen(rpc_response)) {
             TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
             mqttClientPublish(&mqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, false, NULL);
             TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+            // Reset response. Ready for next request
             memset(rpc_response, 0, sizeof(rpc_response));
           }
 
@@ -1258,9 +1257,6 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
 
-  // TODO: rmove
-  localSystemStatus->flags.clean_rpc = false;
-
   memset(rpc_response, 0, sizeof(rpc_response));
 
   // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
@@ -1276,18 +1272,14 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
         // Return to previous state on END of RPC Call execution
         old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
         localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        // N.B. Use seial if USE "id": 0 \r\n (optional) if used
-        // localStreamRpc->parseCharpointer(&is_event_rpc, (char *)message, length, rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_SERIAL);
+        // Charge message of Response. Need to externalize sending Message
         localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
         localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
         localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
         vTaskDelay(100);
       }
       localRpcLock->Give();
-      // Response of RPC to path...
-      // if(strlen(rpc_response)) {
-      //    mqttClientPublish(localPtrMqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, false, NULL);
-      // }
     }
   }
 }
