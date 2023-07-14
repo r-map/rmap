@@ -208,6 +208,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define CALM_WIND_MAX_MS                  (0.1)
 #define CALM_WIND_MAX_MED_VECT            (0.05)
+#define ATAN2_CHECK_LIMIT                 (0.001)
 
 #define GWS_SERIAL_BAUD                   (9600)
 

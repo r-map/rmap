@@ -244,16 +244,22 @@ uint8_t ElaborateDataTask::checkWindQuality(float speed, float direction) {
 
 void ElaborateDataTask::getSDFromUV(float u, float v, float *speed, float *direction)
 {
-  *speed = sqrt(u * u + v * v);
-  *direction = RAD_TO_DEG * atan2(-u, -v);
-  int16_t tmp_dir = round(*direction);
-  if(tmp_dir < 0) tmp_dir += 360;
-  *direction = tmp_dir % 360;
-  if(*speed < CALM_WIND_MAX_MED_VECT) {
+  // Check limit for ATAN2 function near 0. Undefined result on 0
+  if ((abs(u) < ATAN2_CHECK_LIMIT) && (abs(v) < ATAN2_CHECK_LIMIT)) {
     *speed = 0;
     *direction = 0;
-  } else if (*direction == 0) {
-    *direction = WIND_DIRECTION_MAX; // Translate 0 -> 360 (WIND_DIRECTION_MAX)
+  } else {
+    *speed = sqrt(u * u + v * v);
+    *direction = RAD_TO_DEG * atan2(-u, -v);
+    int16_t tmp_dir = round(*direction);
+    if(tmp_dir < 0) tmp_dir += 360;
+    *direction = tmp_dir % 360;
+    if(*speed < CALM_WIND_MAX_MED_VECT) {
+      *speed = 0;
+      *direction = 0;
+    } else if (*direction == 0) {
+      *direction = WIND_DIRECTION_MAX; // Translate 0 -> 360 (WIND_DIRECTION_MAX)
+    }
   }
 }
 
