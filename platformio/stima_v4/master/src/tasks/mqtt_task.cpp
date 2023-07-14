@@ -240,7 +240,7 @@ void MqttTask::Run()
         MqttClientPSKKey = param.configuration->client_psk_key;
 
         // Set PSK identity
-        snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+        snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->board_master.boardslug);
 
         // MQTT over TLS
         mqttClientSetTransportProtocol(&mqttClientContext, MQTT_TRANSPORT_PROTOCOL_TLS);
@@ -257,7 +257,7 @@ void MqttTask::Run()
       mqttClientSetKeepAlive(&mqttClientContext, MQTT_KEEP_ALIVE_S);
 
       // Set client identifier
-      snprintf(clientIdentifier, sizeof(clientIdentifier), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->boardslug);
+      snprintf(clientIdentifier, sizeof(clientIdentifier), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->board_master.boardslug);
       mqttClientSetIdentifier(&mqttClientContext, clientIdentifier);
 
       // Set username and password
@@ -399,7 +399,7 @@ void MqttTask::Run()
       // sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
       //   dtBlock, param.configuration->board_master.module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-        dtBlock, param.configuration->boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+        dtBlock, param.configuration->board_master.boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
       error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
@@ -454,7 +454,7 @@ void MqttTask::Run()
 
           // publish connection message (Conn + Version and Revision)
           sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
-            dtBlock, param.configuration->board_slave[iNodeSlave].module_name, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
+            dtBlock, param.configuration->board_slave[iNodeSlave].boardslug, bitState, byteState[0], byteState[1], byteState[2], byteState[3]);
           TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
           error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, false, NULL);
           TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);

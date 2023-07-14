@@ -848,7 +848,7 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> mqtt username: %s\r\n"), param.configuration->mqtt_username);
     TRACE_INFO_F(F("-> mqtt password: %s\r\n"), param.configuration->mqtt_password);
     TRACE_INFO_F(F("-> station slug: %s\r\n"), param.configuration->stationslug);
-    TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->boardslug);
+    TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->board_master.boardslug);
     TRACE_INFO_F(F("-> client psk key "));
     TRACE_INFO_ARRAY("", param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
     TRACE_INFO_F(F("-> mqtt root topic: %s/%s/%s/%07d,%07d/%s/\r\n"), 
@@ -929,7 +929,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC, MQTT_MAINT_TOPIC_LENGTH);
       strSafeCopy(param.configuration->mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC, MQTT_RPC_TOPIC_LENGTH);
       strSafeCopy(param.configuration->stationslug, CONFIGURATION_DEFAULT_STATIONSLUG, STATIONSLUG_LENGTH);
-      strSafeCopy(param.configuration->boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_master.boardslug, CONFIGURATION_DEFAULT_BOARDSLUG, BOARDSLUG_LENGTH);
       #endif
 
       param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
@@ -945,15 +945,15 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       param.configuration->latitude = 4512345;
       param.configuration->longitude = 1212345;
 
-      strSafeCopy(param.configuration->board_master.module_name, "stimav4", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[0].module_name, "stimacan1", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[1].module_name, "stimacan2", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[2].module_name, "stimacan3", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[3].module_name, "stimacan4", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[4].module_name, "stimacan5", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[5].module_name, "stimacan6", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[6].module_name, "stimacan7", MAX_BOARD_NAME_LEN);
-      strSafeCopy(param.configuration->board_slave[7].module_name, "stimacan8", MAX_BOARD_NAME_LEN);
+      strSafeCopy(param.configuration->board_master.boardslug, "stimav4", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[0].boardslug, "stimacan1", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[1].boardslug, "stimacan2", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[2].boardslug, "stimacan3", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[3].boardslug, "stimacan4", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[4].boardslug, "stimacan5", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[5].boardslug, "stimacan6", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[6].boardslug, "stimacan7", BOARDSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_slave[7].boardslug, "stimacan8", BOARDSLUG_LENGTH);
 
       strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
       strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);

@@ -1246,7 +1246,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
     case MASTER_COMMAND_UPDATE_BOARD_SLUG: {
       // Update the board slug of the station
       param.configurationLock->Take();
-      strcpy(param.configuration->boardslug, new_board_slug);
+      strcpy(param.configuration->board_master.boardslug, new_board_slug);
       param.configurationLock->Give();
       // Apply the updates to eeprom
       saveConfiguration();
@@ -1769,9 +1769,9 @@ void LCDTask::switch_interface() {
             // Reset input buffer
             memset(new_board_slug, 0, sizeof(new_board_slug));
             // Set input buffer
-            strcpy(new_board_slug, param.configuration->boardslug);
+            strcpy(new_board_slug, param.configuration->board_master.boardslug);
             // Cursor position to last character of parameter
-            cursor_pos = strlen(param.configuration->boardslug);
+            cursor_pos = strlen(param.configuration->board_master.boardslug);
             // Update current menu state
             stima4_menu_ui = UPDATE_BOARD_SLUG;
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_MQTT_USERNAME) {

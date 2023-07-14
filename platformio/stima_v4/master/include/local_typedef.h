@@ -85,7 +85,7 @@ typedef struct
    uint8_t can_sampletime;    //!< Can_Sampletime if module are in publish mode, time to automatic update and send data
    uint64_t serial_number;    //!< Serial number of board (Used from slave for PnP Assign...)
    Module_Type module_type;   //!< module type
-   char module_name[MAX_BOARD_NAME_LEN];              //!< module name
+   char boardslug[BOARDSLUG_LENGTH];                  //!< boardslug (module name)boardslug
    board_metadata_t metadata[CAN_SENSOR_COUNT_MAX];   //!< module metadata (only used for slave board)
    bool is_configured[CAN_SENSOR_COUNT_MAX];          //!< module is configured ? (only used for slave board)
 } board_configuration_t;
@@ -116,7 +116,6 @@ typedef struct
    char mqtt_username[MQTT_USERNAME_LENGTH];        //!< username to compose mqtt username (username/stationslug/boardslug)
    char mqtt_password[MQTT_PASSWORD_LENGTH];        //!< mqtt password
    char stationslug[STATIONSLUG_LENGTH];            //!< station slug to compose mqtt username (username/stationslug/boardslug)
-   char boardslug[BOARDSLUG_LENGTH];                //!< board slug to compose mqtt username (username/stationslug/boardslug)
    uint8_t client_psk_key[CLIENT_PSK_KEY_LENGTH];
 #endif
 

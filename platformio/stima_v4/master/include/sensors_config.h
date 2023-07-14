@@ -411,11 +411,4 @@ boards are module CAN UAVCAN that have sensor on board
 */
 #define BOARDS_COUNT_MAX                      (8)
 
-/*!
-\def MAX_BOARD_NAME_LEN
-\brief Max lenght of board name.
-boards name are intended for module CAN UAVCAN (master and slave)
-*/
-#define MAX_BOARD_NAME_LEN                    (20)
-
 #endif

@@ -165,16 +165,19 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           // Reassign old valid parameter
           param.configuration->board_slave[slaveId].serial_number = boardSN;
           param.configuration->board_slave[slaveId].module_type = currentModule;
-          strcpy(param.configuration->board_slave[slaveId].module_name, boardName);
+          strcpy(param.configuration->board_slave[slaveId].boardslug, boardName);
           param.configurationLock->Give();
         }
+        // For Master board (boardname) is same of boardslug parameter IN with config.
+        // BoardSlug (entered after this parameter) is prioritary. Oterwise boardname become boardslug
         else if(isMasterConfigure)
         {
           // Reset board parameter only (parameter was enetered and modified from new config line)
           // Default base parameter will be add at end of configuration sequence
+          // Init param size is necessary
           param.configurationLock->Take();
           memset(&param.configuration->board_master, 0, sizeof(param.configuration->board_master));
-          strcpy(param.configuration->board_master.module_name, boardName);
+          strcpy(param.configuration->board_master.boardslug, boardName);
           param.configurationLock->Give();
         }
         else error_command = true;
@@ -616,7 +619,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     {
       if(isMasterConfigure) {
         param.configurationLock->Take();
-        strcpy(param.configuration->boardslug, it.value().as<const char *>()); 
+        strcpy(param.configuration->board_master.boardslug, it.value().as<const char *>()); 
         param.configurationLock->Give();
       }
       else error_command = true;
