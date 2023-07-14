@@ -2682,9 +2682,6 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
 
   if (!error)
   {
-    if ((sensor.class1.confidence.value > rmap_tableb_B33199_1_0_MAX) && (sensor.class1.confidence.value < rmap_tableb_B33199_1_0_MAX + 20)) {
-      sensor.class1.confidence.value = rmap_tableb_B33199_1_0_MAX;
-    }
     if (sensor.class1.confidence.value <= rmap_tableb_B33199_1_0_MAX)
     {
       if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":[%u,%u,%u,%u,%u,%u]}",

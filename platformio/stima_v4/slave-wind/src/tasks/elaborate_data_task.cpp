@@ -235,6 +235,10 @@ uint8_t ElaborateDataTask::checkWindQuality(float speed, float direction) {
   if(check_direction < 90) quality += 50;
   else quality += (0.55556 * (check_direction - 90.0));
 
+  // Limit control
+  if(quality < 0) quality = 0;
+  if(quality > 100) quality = 100;
+
   // Backup value
   speed_last = speed;
   direction_last = direction;
@@ -326,6 +330,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   float class_6 = 0;
 
   float avg_quality = 0;
+  uint16_t n_sample_quality = 0;
 
   // Request to init counter parameter (checking error)
   if(is_init) {
@@ -449,7 +454,10 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       if (speed < CALM_WIND_MAX_MS) direction = MIN_VALID_WIND_DIRECTION;
 
       // Calculate quality
-      avg_quality += ((checkWindQuality(speed, direction) - avg_quality) / n_sample);
+      if(is_valid_speed && is_valid_direction) {
+        n_sample_quality++;
+        avg_quality += ((checkWindQuality(speed, direction) - avg_quality) / n_sample_quality);
+      }
 
       // calc report on last 10'
       if (n_sample <= wmo_report_sample_count) {
