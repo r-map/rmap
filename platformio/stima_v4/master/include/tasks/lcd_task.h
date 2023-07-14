@@ -75,6 +75,7 @@ typedef enum LCDMasterCommands {
   MASTER_COMMAND_DOWNLOAD_CFG,
   MASTER_COMMAND_RESET_FLAGS,
   MASTER_COMMAND_UPDATE_STATION_SLUG,
+  MASTER_COMMAND_UPDATE_BOARD_SLUG,
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,
   MASTER_COMMAND_UPDATE_GSM_APN,
   MASTER_COMMAND_UPDATE_GSM_NUMBER,
@@ -96,6 +97,7 @@ typedef enum LCDMenu {
   CHANNEL,
   CONFIGURATION,
   UPDATE_STATION_SLUG,
+  UPDATE_BOARD_SLUG,
   UPDATE_MQTT_USERNAME,
   UPDATE_GSM_APN,
   UPDATE_GSM_NUMBER,
@@ -153,6 +155,7 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
   void display_print_main_interface(void);
+  void display_print_update_board_slug_interface(void);
   void display_print_update_gsm_apn_interface(void);
   void display_print_update_gsm_number_interface(void);
   void display_print_update_mqtt_username_interface(void);
@@ -188,6 +191,9 @@ class LCDTask : public cpp_freertos::Thread {
 
   // It contains the new slug of station inserted from user
   char new_station_slug[STATIONSLUG_LENGTH] = {0};
+  
+  // It contains the new board slug of station inserted from user
+  char new_board_slug[BOARDSLUG_LENGTH] = {0};
 
   // Indicates whether the display has printed the updates or not
   bool data_printed;
