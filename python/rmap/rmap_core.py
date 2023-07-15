@@ -1256,6 +1256,9 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         if board_slug is not None and board.slug != board_slug:
             continue
 
+        if not board.active:
+            continue
+
         if transport_name == "amqp":
             try:
                 if ( board.transportamqp.active):
