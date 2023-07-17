@@ -174,6 +174,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define SOIL_VWC_ERROR_MAX                (100.0)
 #define SOIL_VWC_ERROR_MIN                (0.0)
+#define SOIL_VWC_SCALE_MULTIPLY           (10.0)
 
 #define ADC_ERROR_PERCENTAGE_MIN          (70)
 
