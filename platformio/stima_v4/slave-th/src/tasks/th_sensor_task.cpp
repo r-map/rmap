@@ -1,25 +1,32 @@
-/**@file th_sensor_task.cpp */
-
-/*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
-authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    th_sensor_task.cpp
+  * @author  Marco Baldinett <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Driver Sensor acquire data, source file
+    ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
+  * All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #define TRACE_LEVEL     TH_SENSOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SENSOR_TASK_ID
@@ -106,8 +113,6 @@ void TemperatureHumidtySensorTask::Run() {
   // Request response for system queue Task controlled...
   system_message_t system_message;
   uint8_t error_count = 0;
-  bool force_i2c_begin = false;
-  rmapdata_t data_check;
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -116,7 +121,9 @@ void TemperatureHumidtySensorTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Starting RESET
-  // powerOff();
+  #if (TH_TASK_LOW_POWER_ENABLED) && (!USE_SENSOR_ITH_V2)
+  powerOff();
+  #endif
 
   while (true)
   {
@@ -129,7 +136,6 @@ void TemperatureHumidtySensorTask::Run() {
       if (param.system_status->flags.is_cfg_loaded)
       {
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
-        powerOn();
         // Local WatchDog update;
         TaskWatchDog(TH_TASK_WAIT_DELAY_MS);
         Delay(Ticks::MsToTicks(TH_TASK_WAIT_DELAY_MS));
@@ -162,6 +168,11 @@ void TemperatureHumidtySensorTask::Run() {
 
       // Turn ON ( On Power ON/OFF if Start or Reset after Error Or Always if not use LOW_POWER Method )
       if(!is_power_on) powerOn();
+
+      param.wireLock->Take();
+      param.wire->end();
+      param.wire->begin();
+      param.wireLock->Give();
 
       is_test = false;
       memset((void *)values_readed_from_sensor, RMAPDATA_MAX, (size_t)(VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(rmapdata_t)));
@@ -265,18 +276,10 @@ void TemperatureHumidtySensorTask::Run() {
           else if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ITH) == 0) {
             edata.value = values_readed_from_sensor[0];
             edata.index = param.configuration->sensors[i].is_redundant ? TEMPERATURE_REDUNDANT_INDEX : TEMPERATURE_MAIN_INDEX;
-            data_check = edata.value;
             param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_temperature_redundant = param.configuration->sensors[i].is_redundant;
 
-            // Check status buffer locked (apparent true but data fail. TH != HR, in some error case is same from buffer read)
-            // In this case we need to reboot I2C with Begin. Costant Begin use amount of 40 Bytes from Heap
-            // N.B. Recall continuos of this method will cause an WDT Reset on about 1.800 reset
             edata.value = values_readed_from_sensor[1];
-            if(data_check == edata.value) {
-              edata.value = RMAPDATA_MAX;
-              force_i2c_begin = true;
-            }
             edata.index = param.configuration->sensors[i].is_redundant ? HUMIDITY_REDUNDANT_INDEX : HUMIDITY_MAIN_INDEX;
             param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
             is_humidity_redundant = param.configuration->sensors[i].is_redundant;
@@ -355,32 +358,14 @@ void TemperatureHumidtySensorTask::Run() {
         break;
 
       case SENSOR_STATE_END:
-        #ifdef TH_TASK_LOW_POWER_ENABLED
-        // powerOff();
+
+        #if (TH_TASK_LOW_POWER_ENABLED) && (!USE_SENSOR_ITH_V2)
+        powerOff();
         #endif
 
         #if (ENABLE_STACK_USAGE)
         TaskMonitorStack();
         #endif
-
-        // ************************ GEST ERROR AND POWER RESET ****************************
-        // is_powerd_off only when in Error mode (error_count > TH_TASK_ERROR_FOR_RESET)
-        // Or Always if used (TH_TASK_LOW_POWER_ENABLED). Otherwise can be go directly to PREPARE State
-        if(error_count > TH_TASK_ERROR_FOR_RESET) {
-          // Restart Hardware Wire (On repeted Error) Power Off Sensor and Rebegin HW I2C State
-          error_count = 0;
-          force_i2c_begin = 0;
-          powerOff();
-        }
-
-        // Restart I2C
-        if(force_i2c_begin) {
-          TRACE_ERROR("Sensor: Need to restart I2C for buffer locking continuos\r\n");
-          param.wireLock->Take();
-          param.wire->begin();
-          param.wireLock->Give();
-          force_i2c_begin = false;
-        }
 
         // Local TaskWatchDog update and Sleep Activate before Next Read
         TaskWatchDog(param.configuration->sensor_acquisition_delay_ms);
@@ -406,7 +391,7 @@ void TemperatureHumidtySensorTask::powerOn()
     digitalWrite(PIN_EN_5VS, HIGH);  // Enable + 5VS / +3V3S External Connector Power Sens
     digitalWrite(PIN_EN_SPLY, HIGH); // Enable Supply + 3V3_I2C / + 5V_I2C
     digitalWrite(PIN_I2C2_EN, HIGH); // I2C External Enable PIN (LevelShitf PCA9517D)
-    // WDT
+    // POWER STARTUP TIMER
     TaskWatchDog(TH_TASK_POWER_ON_WAIT_DELAY_MS);
     Delay(Ticks::MsToTicks(TH_TASK_POWER_ON_WAIT_DELAY_MS));
     is_power_on = true;
@@ -415,9 +400,9 @@ void TemperatureHumidtySensorTask::powerOn()
 
 void TemperatureHumidtySensorTask::powerOff()
 {
-  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
-  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
   digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)
+  digitalWrite(PIN_EN_SPLY, LOW); // Enable Supply + 3V3_I2C / + 5V_I2C
+  digitalWrite(PIN_EN_5VS, LOW);  // Enable + 5VS / +3V3S External Connector Power Sens
   is_power_on = false;
 }
 
