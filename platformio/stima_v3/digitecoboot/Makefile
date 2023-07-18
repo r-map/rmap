@@ -10,7 +10,7 @@ USE_FAT32     	= 1	# Enable Fat32 support, enabled by default to allow the use o
 ISP_BAUD_RATE   = 19200
 #AVRDUDE         = sleep 5; avrdude -v -c dragon_isp -P usb -p $(MCU_AVRDUDE) # edit this line for your programmer
 #AVRDUDE         = avrdude  -v -c arduino -P /dev/ttyUSB0 -b$(ISP_BAUD_RATE) -p $(MCU_AVRDUDE) # edit this line for your programmer
-AVRDUDE         = avrdude -F -v -c stk500v1 -P /dev/ttyUSB0 -b$(ISP_BAUD_RATE) -p $(MCU_AVRDUDE) # edit this line for your programmer
+AVRDUDE          = ~/.platformio/packages/tool-avrdude/avrdude -C ~/.platformio/packages/tool-avrdude/avrdude.conf -F -v -c stk500v1 -P /dev/ttyUSB0 -b$(ISP_BAUD_RATE) -p $(MCU_AVRDUDE) # edit this line for your programmer
 #AVRDUDE         = avrdude -v -c avrisp -P /dev/ttyUSB0 -b$(ISP_BAUD_RATE) -p $(MCU_AVRDUDE) # edit this line for your programmer
 
 
