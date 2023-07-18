@@ -497,40 +497,40 @@ void tipping_bucket_task () {
          // increment rain tips if oneshot mode is on and oneshot start command It has been received
          if (configuration.is_oneshot && is_started) {
 	   // re-read pin status to filter spikes
-	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
-	     rain.tips_count++;
-	     rain.rain=rain.tips_count * configuration.rain_for_tip;
-	     LOGN(F("Rain tips count: %d"), rain.tips_count);
-	   }else{
+	   if (!digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     LOGN(F("Skip spike"));
 	     tipping_bucket_state = TIPPING_BUCKET_END;
-	     break;
-	   }
-	 }
-	 else {
-	   LOGN(F("SKIP rain tips! (not started or oneshot mode)"));
-	 }
-
-         //tipping_bucket_state = TIPPING_BUCKET_END;
-	start_time_ms=millis();
-	delay_ms=configuration.tipping_bucket_time_ms*2;
-	state_after_wait=TIPPING_BUCKET_END;
-	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
-
-     break;
-
-
-      case TIPPING_BUCKET_END:
-
-	 if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
-	     LOGE(F("wrong timing or stalled tipping bucket"));
-
+	   } else {
+	     LOGN(F("SKIP rain tips! (not started or continuos mode)"));
 	     start_time_ms=millis();
-	     delay_ms=configuration.tipping_bucket_time_ms;
+	     delay_ms=configuration.tipping_bucket_time_ms*2;
 	     state_after_wait=TIPPING_BUCKET_END;
 	     tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
+	   }
+	 }else{
+	   tipping_bucket_state = TIPPING_BUCKET_COUNT;	
 	 }
 
+	 break;
+	   
+   case TIPPING_BUCKET_COUNT:
+
+     if (!digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
+       rain.tips_count++;
+       rain.rain=rain.tips_count * configuration.rain_for_tip;
+       LOGN(F("Rain tips count: %d"), rain.tips_count);
+     }else{
+       LOGE(F("wrong timing or stalled tipping bucket"));
+       
+       start_time_ms=millis();
+       delay_ms=configuration.tipping_bucket_time_ms;
+       state_after_wait=TIPPING_BUCKET_END;
+       tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
+     }
+
+
+   case TIPPING_BUCKET_END:
+	 
 	 noInterrupts();
          is_event_tipping_bucket = false;
          ready_tasks_count--;
@@ -561,6 +561,11 @@ void reset_buffers() {
 }
 
 void command_task() {
+
+   is_start = false;
+   is_stop = false;
+   is_test = false;
+
   switch(lastcommand) {
   case I2C_RAIN_COMMAND_ONESHOT_START:
     if (configuration.is_oneshot) {

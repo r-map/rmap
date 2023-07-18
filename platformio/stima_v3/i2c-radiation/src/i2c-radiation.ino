@@ -820,6 +820,8 @@ void solar_radiation_task_hr () {
 	if (value != float(INT16_MAX)){
 	  value = getAdcAnalogValue(value, ADC_VOLTAGE_MIN, ADC_VOLTAGE_MAX);
 	  LOGN(F("voltage: %D"), value);
+	  LOGN(F("rad     max: %D"), configuration.sensor_rad_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+	  LOGN(F("voltage max: %D"), configuration.sensor_voltage_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 	  
 	  if (value != float(INT16_MAX)){
 	    value = getSolarRadiation(value
