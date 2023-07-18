@@ -495,10 +495,10 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
       // Data ist (already assigned)
-      report.avg2 = (rmapdata_t)avg_soil_vwc1_sample_o;
+      report.avg2 = (rmapdata_t)avg_soil_vwc2_sample_o;
       // report.min = (rmapdata_t)min_soil_vwc_sample_o;
       // report.max = (rmapdata_t)max_soil_vwc_sample_o;
-      report.quality2 = (rmapdata_t)avg_soil_vwc1_samples_quality_o;
+      report.quality2 = (rmapdata_t)avg_soil_vwc2_samples_quality_o;
     }
 
     // Data elaboration final
@@ -508,10 +508,10 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
       // Data ist (already assigned)
-      report.avg3 = (rmapdata_t)avg_soil_vwc1_sample_o;
+      report.avg3 = (rmapdata_t)avg_soil_vwc3_sample_o;
       // report.min = (rmapdata_t)min_soil_vwc_sample_o;
       // report.max = (rmapdata_t)max_soil_vwc_sample_o;
-      report.quality3 = (rmapdata_t)avg_soil_vwc1_samples_quality_o;
+      report.quality3 = (rmapdata_t)avg_soil_vwc3_samples_quality_o;
     }
 
     // Trace report final

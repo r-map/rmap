@@ -288,9 +288,9 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_VWC:
-      *decimals_A = STIMA_LCD_DECIMALS_ZERO;
-      *decimals_B = STIMA_LCD_DECIMALS_ZERO;
-      *decimals_C = STIMA_LCD_DECIMALS_ZERO;
+      *decimals_A = STIMA_LCD_DECIMALS_ONE;
+      *decimals_B = STIMA_LCD_DECIMALS_ONE;
+      *decimals_C = STIMA_LCD_DECIMALS_ONE;
       break;
 
     default:

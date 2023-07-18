@@ -441,10 +441,10 @@ float SoilVWCSensorTask::getSoilVWC(float adc_value, float adc_voltage_min, floa
   }
   else
   {
-    value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * SOIL_VWC_MAX);
+    value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * (SOIL_VWC_MAX * SOIL_VWC_SCALE_MULTIPLY));
 
-    if (value <= SOIL_VWC_ERROR_MIN) value = SOIL_VWC_MIN;
-    if (value >= SOIL_VWC_ERROR_MAX) value = SOIL_VWC_MAX;
+    if (value <= (SOIL_VWC_ERROR_MIN * SOIL_VWC_SCALE_MULTIPLY)) value = (SOIL_VWC_MIN * SOIL_VWC_SCALE_MULTIPLY);
+    if (value >= (SOIL_VWC_ERROR_MAX * SOIL_VWC_SCALE_MULTIPLY)) value = (SOIL_VWC_MAX * SOIL_VWC_SCALE_MULTIPLY);
   }
 
   return round(value);
