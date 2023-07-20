@@ -1,0 +1,197 @@
+#!/usr/bin/python3
+# GPL. (C) 2023 Paolo Patruno.
+
+# This program is free software; you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+
+
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
+from rmap import daemon
+import pika
+import rmap.settings
+from rpc.models import Rpc
+import threading
+import subprocess,os,time
+import tempfile,datetime
+import logging,logging.handlers
+import signal
+import traceback
+from rmap.django2rpc import django2rpc_res,django2rpc_cmd
+import paho.mqtt.publish as publish
+import json
+from rmap.utils import nint
+
+tloop=15
+
+rpcd = daemon.Daemon(
+        stdin="/dev/null",
+        stdout=rmap.settings.logfilerpcd,
+        stderr=rmap.settings.errfilerpcd,
+        pidfile=rmap.settings.lockfilerpcd,
+        user=rmap.settings.userrpcd,
+        group=rmap.settings.grouprpcd
+)
+
+
+# catch signal to terminate the process
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
+
+    def keyboard_interrupt(self):
+        self.kill_now = True
+
+    def terminate(self):
+        self.kill_now = True
+        
+def main(self):
+
+    #arm the signal handler
+    killer = GracefulKiller()
+    
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up rpcd')
+    
+    #    my_env = os.environ
+    #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
+
+    now=datetime.datetime.utcnow()
+    if (tloop >= 60):
+        newminute = now.minute - (now.minute % (tloop//60))
+    else:
+        newminute=now.minute
+    newsecond=0
+    formaltime=(now.replace(minute=newminute,second=newsecond,microsecond=0))
+    runtime=formaltime + datetime.timedelta(seconds=tloop)
+
+    if runtime > now:
+        waitsec= (runtime - now).seconds
+        logging.info( "startup wait for: %s" % waitsec)
+        time.sleep(waitsec)
+    else:
+        logging.info( "startup without waiting")
+
+
+    try:
+
+        subtopics=[
+            "1/rpc/+/+/+/+/res",
+        ]
+        
+        r2o=django2rpc_res(rmap.settings.mqtthost,rmap.settings.mqttuser, rmap.settings.mqttpassword
+                               , subtopics, rmap.settings.topicmaint, killer)
+        r2o.run()
+        
+
+        # infinite loop
+        while True:
+            logging.info("time: %s" % (runtime.isoformat(' ')))
+                
+            client_id = "django2rpc_cmd_%d" % (os.getpid())
+            auth = {"username":rmap.settings.mqttuser, "password":rmap.settings.mqttpassword}
+            msg=[]
+            
+            for myrpc in Rpc.objects.filter(active=True):
+                logging.info("RPC: %s %s %s", myrpc,myrpc.method,myrpc.params)
+
+                lonlat="%d,%d" % (nint(myrpc.stationmetadata.lon*100000.),nint(myrpc.stationmetadata.lat*100000.))
+                topic="1/rpc/"+myrpc.stationmetadata.user.username+"/"+myrpc.stationmetadata.ident+"/"+lonlat+"/"+myrpc.stationmetadata.network+"/com"
+
+                payload=json.dumps({"jsonrpc": "2.0", "method": myrpc.method, "params":myrpc.params,"id": myrpc.id})
+
+                try:
+                    logging.info("publish topic: %s payload: %s", topic,payload)
+                    publish.single(topic=topic, payload=payload, qos=1, hostname=rmap.settings.mqtthost,
+                           client_id=client_id, auth=auth)
+                    myrpc.active=False
+                    myrpc.datecmd=datetime.datetime.now()
+                    myrpc.save()
+                    
+                except:
+                    # log and retry the next time on exception 
+                    logging.error('Exception occured: ' + str(exception))
+                    logging.error(traceback.format_exc())
+                    
+
+#                msg.append({"topic":topic, "payload":payload, "qos":1, "retain":false})
+#            try:
+#                publish.multiple(msgs, hostname=rmap.settings.mqtthost, client_id=client_id,
+#                             auth=auth)
+#            except:
+#                #I do not know where things are done well
+                    
+            now=datetime.datetime.utcnow()
+            runtime=runtime+ datetime.timedelta(seconds=tloop)
+                    
+            if runtime > now:
+                waitsec= (runtime - now).seconds
+                logging.info( "wait for: %s" % waitsec)
+                time.sleep(waitsec)
+
+            else:
+                logging.warning("attention; I am late !!")
+
+            if killer.kill_now:
+                break
+
+    except Exception as exception:
+        # log and retry on exception 
+        logging.error('Exception occured: ' + str(exception))
+        logging.error(traceback.format_exc())
+        logging.error('daemon failed')
+
+    except KeyboardInterrupt:
+        # terminate on keyboard interrupt
+        sys.stdout.write("keyboard interrupt\n")
+        logging.info("keyboard interrupt\n")
+    
+    logging.info("wait for thread to terminate")
+    r2o.stop()
+
+
+if __name__ == '__main__':
+
+    import sys, os
+    rpcd.cwd=os.getcwd()
+
+    if rpcd.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+        sys.stdout.write("Daemon stdout output\n")
+        sys.stderr.write("Daemon stderr output\n")
+
+        main(rpcd)  # (this code was run as script)
+
+        for proc in rpcd.procs:
+            proc.wait()
+
+        sys.exit(0)

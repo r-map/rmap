@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+ 
+  <section id="main_content">
+
+    {% if user %}
+    <h2 id="striped-rows"><a  href="{% url 'tickets-list' user %}">{{user}}</a> <a  href="{% url 'tickets-list' %}">{% trans 'tickets' %}</a></h2>
+    {% else %}
+    <h2 id="striped-rows">{% trans 'Tickets' %}</h2>
+    {% endif %}
+
+    <div class="table-responsive">
+
+      <form action="{% if user %}{% url 'tickets-list' user %}{% else %}{% url 'tickets-list' %}{% endif %}" method="get">
+	<input name="search" type="text" placeholder="Search...">
+      </form>
+
+      <table class="table">
+	<thead  class="thead-default">
+	<tr>
+	  <th>{% trans 'Ticket' %}</th>
+	  <th>{% trans 'Priority' %}</th>
+	  <th>{% trans 'Station' %}</th>	  
+	  <th>{% trans 'Created' %}</th>
+	  <th>{% trans 'Abstract' %}</th>
+	</tr>
+	</thead>
+        {% for ticket in page_obj %}
+	  {% if ticket.active  %}
+	<tr>
+	      <td> <a  href="{% url 'ticket-details' ticket.ticket  %}">{{ ticket.ticket}}</a></td>
+	      <td> {{ ticket.get_priority_display}}</td>
+	      <td> <a  href="{% url 'tickets-list' ticket.stationmetadata.user ticket.stationmetadata.slug %}">{{ ticket.stationmetadata}}</a></td>
+	      <td> {{ ticket.date}}</td>
+	      <td> {{ ticket.abstract}}</td>
+	    </tr>
+	  {% endif %}
+	{% empty %}
+	    <li>{% trans 'No tickets.' %}</li>
+        {% endfor %}
+      </table>
+
+      <div class="pagination">
+	<span class="step-links">
+          {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
+          {% endif %}
+
+          {% if page_obj.number %}
+            <span class="current">
+              {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.
+            </span>
+          {% endif %}
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last &raquo;' %}</a>
+          {% endif %}
+	</span>
+      </div>
+      
+    </div>
+  </section>
+
+{% endblock %}

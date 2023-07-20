@@ -130,6 +130,14 @@ configspec['report2observationd']['user']     = "string(default=None)"
 configspec['report2observationd']['group']    = "string(default=None)"
 configspec['report2observationd']['mapfile'] = "string(default='ttnmap')"
 
+configspec['rpcd']={}
+
+configspec['rpcd']['logfile']  = "string(default='rpcd.log')"
+configspec['rpcd']['errfile']  = "string(default='rpcd.err')"
+configspec['rpcd']['lockfile'] = "string(default='rpcd.lock')"
+configspec['rpcd']['user']     = "string(default=None)"
+configspec['rpcd']['group']    = "string(default=None)"
+
 
 configspec['amqp2dballed']={}
 configspec['amqp2dballed']['logfile']  = "string(default='amqp2dballed.log')"
@@ -442,6 +450,12 @@ userreport2observationd                 = config['report2observationd']['user']
 groupreport2observationd                = config['report2observationd']['group']
 mapfilereport2observationd              = config['report2observationd']['mapfile']
 
+# section rpcd
+logfilerpcd              = config['rpcd']['logfile']
+errfilerpcd              = config['rpcd']['errfile']
+lockfilerpcd             = config['rpcd']['lockfile']
+userrpcd                 = config['rpcd']['user']
+grouprpcd                = config['rpcd']['group']
 
 
 #######               graphite settings
@@ -1382,6 +1396,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'firmware_updater_stima',         "apps": ('firmware_updater_stima',)},
         {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
         {"import": 'ticket',                         "apps": ('ticket'   ,)},
+        {"import": 'rpc',                            "apps": ('rpc'   ,)},
     )
 
     # Set up each optional app if available.

@@ -230,6 +230,7 @@ showdata_package_data = []
 rainbo_package_data = []
 contacts_package_data = []
 ticket_package_data = []
+rpc_package_data = []
 firmware_updater = []
 firmware_updater_stima = []
 
@@ -361,7 +362,11 @@ for dirpath, dirnames, filenames in os.walk('ticket/static'):
     if filenames:
         for file in filenames:
             ticket_package_data.append( os.path.relpath(os.path.join(dirpath, file),'ticket'))
-            
+
+for dirpath, dirnames, filenames in os.walk('rpc/static'):
+    if filenames:
+        for file in filenames:
+            ticket_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rpc'))            
 
 #package_data.append('rmap_config')
 #package_data.append('settings')
@@ -410,6 +415,7 @@ setup(name='rmap',
                 'firmware_updater','firmware_updater.migrations',
                 'firmware_updater_stima','firmware_updater_stima.migrations',
                 'ticket','ticket.migrations',
+                'rpc','rpc.migrations',
                 'oscpy',
       ],
 
@@ -430,6 +436,7 @@ setup(name='rmap',
           'contacts':['templates/contacts/*']+contacts_package_data,          
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
           'ticket':['templates/ticket/*.html']+ticket_package_data,          
+          'rpc':['templates/rpc/*.html']+rpc_package_data,          
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2amqpd','mqtt2stationmaintd','ttn2dballed','toamqp'
