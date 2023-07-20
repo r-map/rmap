@@ -2148,7 +2148,7 @@ class Message(object):
     body è il payload del messaggio
     delivery_tag il tag amqp del messaggio
     se il messaggio è usato per conferma/disconferma
-    il payload dovrà contenere rispettivamente Treue for "acked"
+    il payload dovrà contenere rispettivamente True for "acked"
     and False for "nacked"
     """
 

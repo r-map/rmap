@@ -26,7 +26,6 @@ import paho.mqtt.client as mqtt
 import pika
 import logging,traceback
 import time,queue
-import threading
 import socket
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
