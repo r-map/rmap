@@ -128,7 +128,7 @@ float Mppt::get_V_BAT(bool *is_ok) {
   if(*is_ok) {
     *is_ok = LTC4015_read_register(LTC4015_VBAT, &data);
     if(*is_ok) {
-      float vBatt = ((float)data / V_REF_LH_BAT) / V_REF_BVAL;
+      float vBatt = ((float)data / V_REF_LH_BAT) / V_REF_BVAL + V_REF_OF_BAT;
       if(iBatt>V_REF_A_RCHG) {
         vBatt-=V_REF_V_DCHG;
       } else if(iBatt>0) vBatt-=(V_REF_V_DCHG * iBatt / V_REF_A_RCHG);
