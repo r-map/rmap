@@ -64,6 +64,7 @@ void loop() {
          init_tasks();
          init_sensors();
          state = TASKS_EXECUTION;
+	 init_tipping_bucket_interrupt();
       break;
 
       #if (USE_POWER_DOWN)
@@ -234,11 +235,8 @@ void init_tasks() {
 
    is_event_command_task = false;
    is_event_tipping_bucket = false;
-
    tipping_bucket_state = TIPPING_BUCKET_INIT;
 
-   // reset tipping bucket debounce value
-   rain_tips_event_occurred_time_ms = -configuration.tipping_bucket_time_ms;
    interrupts();
 
    transaction_time = 0;
@@ -248,7 +246,6 @@ void init_tasks() {
 void init_pins() {
    pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
    pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
-   attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
    pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
@@ -322,6 +319,16 @@ void init_system() {
 }
 
 void init_sensors () {
+}
+
+
+void init_tipping_bucket_interrupt(){
+
+  //while (digitalRead(TIPPING_BUCKET_PIN) == LOW) {
+  //  delay(1);
+  //}
+  
+  attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
 }
 
 void print_configuration() {

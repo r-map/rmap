@@ -247,12 +247,6 @@ bool is_test;
 bool is_started;
 
 /*!
-\var rain_tips_event_occurred_time_ms
-\brief System time (in millisecond) when rain tips occured.
-*/
-volatile uint32_t rain_tips_event_occurred_time_ms;
-
-/*!
 \var rain
 \brief Rain data.
 */
@@ -366,6 +360,13 @@ void init_rtc(void);
 \return void.
 */
 void init_timer1(void);
+
+/*!
+\fn void init_tipping_bucket_interrupt(void)
+\brief Enable interrupt to manage rain gauge tips.
+\return void.
+*/
+void init_tipping_bucket_interrupt(void);
 
 /*!
 \fn void start_timer(void)
