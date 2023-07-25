@@ -311,13 +311,13 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   float vavg_speed = 0;
   float vavg_direction = 0;
 
-  float peak_gust_speed = -FLT_MIN;
+  float peak_gust_speed = -1;
   float peak_gust_direction = 0;
 
   float vavg_speed_o = 0;
   float vavg_direction_o = 0;
 
-  float long_gust_speed = -FLT_MIN;
+  float long_gust_speed = -1;
   float long_gust_direction = 0;
 
   float avg_speed = 0;
@@ -444,7 +444,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
       speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
       if (speed < RMAPDATA_MAX) {
         is_valid_speed = true;
-        speed /= WIND_CASTING_SPEED_MULT;
+        speed /= WIND_CASTING_SPEED_MULT_ACQUIRE;
       }
       if (speed < CALM_WIND_MAX_MS) speed = MIN_VALID_WIND_SPEED;
 
@@ -499,7 +499,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
         valid_count_speed++;
         avg_speed += (speed - avg_speed) / valid_count_speed;
 
-        if (speed >= peak_gust_speed) {
+        if (speed > peak_gust_speed) {
           peak_gust_speed = speed;
           peak_gust_direction = direction;
           if (peak_gust_speed < CALM_WIND_MAX_MS) {
@@ -533,7 +533,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
         if (valid_b_o_per >= SAMPLE_ERROR_PERCENTAGE_MIN) {
           // raffica su una osservazione, 1 minuto
           getSDFromUV(ub_o, vb_o, &vavg_speed_o, &vavg_direction_o);
-          if (vavg_speed_o >= long_gust_speed)
+          if (vavg_speed_o > long_gust_speed)
           {
             long_gust_speed = vavg_speed_o;
             long_gust_direction = vavg_direction_o;

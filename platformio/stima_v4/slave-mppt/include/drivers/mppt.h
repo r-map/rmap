@@ -54,6 +54,7 @@ using namespace cpp_freertos;
 // LTC4015 VBAT Conversion Factor
 #define V_REF_LH_BAT  1.298f
 #define V_REF_PB_BAT  0.865f
+#define V_REF_OF_BAT  0.05f
 #define V_REF_BVAL    1000.0f
 #define V_REF_V_DCHG  0.75f
 #define V_REF_A_RCHG  3.00f

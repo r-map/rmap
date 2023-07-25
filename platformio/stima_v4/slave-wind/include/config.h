@@ -169,6 +169,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WIND_POWER_ON_DELAY_MS            (5000)
 
 #define WIND_CASTING_SPEED_MULT           (10)
+#define WIND_CASTING_SPEED_MULT_ACQUIRE   (100)
 
 #define WIND_CLASS_1_MAX                  (1.0)
 #define WIND_CLASS_2_MAX                  (2.0)
