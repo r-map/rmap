@@ -5,14 +5,14 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from jsonfield import JSONField
-import datetime
+from django.utils import timezone
 
 
 class Rpc(models.Model):
     stationmetadata = models.ForeignKey(StationMetadata,on_delete=models.CASCADE)
     id = models.AutoField(editable=False, primary_key=True)
     active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Active ticket"))
-    date = models.DateTimeField(_('Date'), default=datetime.datetime.now)
+    date = models.DateTimeField(_('Date'), default=timezone.now)
     datecmd = models.DateTimeField(_('Date command'), default=None, null=True,blank=True)
     method = models.CharField(_('method'), max_length=40, null=False)
     params = JSONField(_('params'), max_length=120, null=True,blank=True)
@@ -25,7 +25,7 @@ class Rpc(models.Model):
 
 
     class Meta:
-        ordering = ('-datecmd','id')
+        ordering = ('-date','-id',)
         verbose_name = _('RPC')
         verbose_name_plural = _('RPCSs')
 

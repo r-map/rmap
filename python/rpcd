@@ -33,9 +33,7 @@ import logging,logging.handlers
 import signal
 import traceback
 from rmap.django2rpc import django2rpc_res,django2rpc_cmd
-import paho.mqtt.publish as publish
-import json
-from rmap.utils import nint
+from rpc import publish
 
 tloop=15
 
@@ -111,43 +109,17 @@ def main(self):
                                , subtopics, rmap.settings.topicmaint, killer)
         r2o.run()
         
-
         # infinite loop
         while True:
             logging.info("time: %s" % (runtime.isoformat(' ')))
                 
-            client_id = "django2rpc_cmd_%d" % (os.getpid())
-            auth = {"username":rmap.settings.mqttuser, "password":rmap.settings.mqttpassword}
-            msg=[]
-            
-            for myrpc in Rpc.objects.filter(active=True):
-                logging.info("RPC: %s %s %s", myrpc,myrpc.method,myrpc.params)
+            rpcs = Rpc.objects.filter(active=True)
 
-                lonlat="%d,%d" % (nint(myrpc.stationmetadata.lon*100000.),nint(myrpc.stationmetadata.lat*100000.))
-                topic="1/rpc/"+myrpc.stationmetadata.user.username+"/"+myrpc.stationmetadata.ident+"/"+lonlat+"/"+myrpc.stationmetadata.network+"/com"
-
-                payload=json.dumps({"jsonrpc": "2.0", "method": myrpc.method, "params":myrpc.params,"id": myrpc.id})
-
-                try:
-                    logging.info("publish topic: %s payload: %s", topic,payload)
-                    publish.single(topic=topic, payload=payload, qos=1, hostname=rmap.settings.mqtthost,
-                           client_id=client_id, auth=auth)
-                    myrpc.active=False
-                    myrpc.datecmd=datetime.datetime.now()
-                    myrpc.save()
-                    
-                except:
-                    # log and retry the next time on exception 
-                    logging.error('Exception occured: ' + str(exception))
-                    logging.error(traceback.format_exc())
-                    
-
-#                msg.append({"topic":topic, "payload":payload, "qos":1, "retain":false})
-#            try:
-#                publish.multiple(msgs, hostname=rmap.settings.mqtthost, client_id=client_id,
-#                             auth=auth)
-#            except:
-#                #I do not know where things are done well
+            if (len(rpcs) > 0):
+                client_id = "django2rpc_cmd_%d" % (os.getpid())
+                auth = {"username":rmap.settings.mqttuser, "password":rmap.settings.mqttpassword}
+                publish.queryset(rpcs,logging, hostname=rmap.settings.mqtthost, client_id=client_id,
+                                 auth=auth)
                     
             now=datetime.datetime.utcnow()
             runtime=runtime+ datetime.timedelta(seconds=tloop)

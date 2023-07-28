@@ -6,42 +6,54 @@
   <section id="main_content">
 
     {% if user %}
-    <h2 id="striped-rows"><a  href="{% url 'tickets-list' user %}">{{user}}</a> <a  href="{% url 'tickets-list' %}">{% trans 'tickets' %}</a></h2>
+    <h2 id="striped-rows"><a  href="{% url 'rpcs-list' user %}{% if search %}?search={{search}}{% endif %}">{{user}}</a> <a  href="{% url 'rpcs-list' %}{% if search %}?search={{search}}{% endif %}">{% trans 'rpcs' %}</a></h2>
     {% else %}
-    <h2 id="striped-rows">{% trans 'Tickets' %}</h2>
+    <h2 id="striped-rows">{% trans 'Remote Procedure Call' %}</h2>
     {% endif %}
 
+    <form action="{% if user %}{% url 'rpcs-list' user %}{% if search %}?search={{search}}{% endif %}{% else %}{% url 'rpcs-list' %}{% if search %}?search={{search}}{% endif %}{% endif %}" method="get">
+      <input name="search" type="text" placeholder="Search...">
+	
+      <input type="radio" id="active" name="status" value="active">Active
+      <input type="radio" id="completed" name="status" value="completed">Completed
+      <input type="radio" id="all" name="status" value="all" checked >All
+      
+      <input type="submit" value="Submit">
+      
+    </form>
+
     <div class="table-responsive">
-
-      <form action="{% if user %}{% url 'tickets-list' user %}{% else %}{% url 'tickets-list' %}{% endif %}" method="get">
-	<input name="search" type="text" placeholder="Search...">
-      </form>
-
       <table class="table">
 	<thead  class="thead-default">
-	<tr>
-	  <th>{% trans 'Ticket' %}</th>
-	  <th>{% trans 'Priority' %}</th>
-	  <th>{% trans 'Station' %}</th>	  
-	  <th>{% trans 'Created' %}</th>
-	  <th>{% trans 'Abstract' %}</th>
-	</tr>
+	  <tr>
+	    <th>{% trans 'RPC' %}</th>
+	    <th>{% trans 'Active' %}</th>
+	    <th>{% trans 'Station' %}</th>	  
+	    <th>{% trans 'Created' %}</th>
+	    <th>{% trans 'Method' %}</th>
+	    <th>{% trans 'Error' %}</th>
+	  </tr>
 	</thead>
-        {% for ticket in page_obj %}
-	  {% if ticket.active  %}
+        {% for rpc in page_obj %}
 	<tr>
-	      <td> <a  href="{% url 'ticket-details' ticket.ticket  %}">{{ ticket.ticket}}</a></td>
-	      <td> {{ ticket.get_priority_display}}</td>
-	      <td> <a  href="{% url 'tickets-list' ticket.stationmetadata.user ticket.stationmetadata.slug %}">{{ ticket.stationmetadata}}</a></td>
-	      <td> {{ ticket.date}}</td>
-	      <td> {{ ticket.abstract}}</td>
-	    </tr>
-	  {% endif %}
+	  <td> <a  href="{% url 'rpc-details'  rpc.stationmetadata.user rpc.stationmetadata.slug rpc.id  %}">{{ rpc.id}}</a></td>
+	  <td>
+	    {% if rpc.active %}
+	    <i class="fa fa-check "></i>
+	    {% else %}
+	    <i class="fa fa-times "></i>
+	    {% endif %}
+	  </td>
+	  <td> <a  href="{% url 'rpcs-list' rpc.stationmetadata.user rpc.stationmetadata.slug %}{% if search %}?search={{search}}{% endif %}">{{ rpc.stationmetadata}}</a></td>
+	  <td> {{ rpc.date}}</td>
+	  <td> {{ rpc.method}}</td>
+	  <td> {% if rpc.error %}{{ rpc.error}}{% endif %}</td>
+	</tr>
 	{% empty %}
-	    <li>{% trans 'No tickets.' %}</li>
+	<li>{% trans 'No rpcs.' %}</li>
         {% endfor %}
       </table>
-
+      
       <div class="pagination">
 	<span class="step-links">
           {% if page_obj.has_previous %}

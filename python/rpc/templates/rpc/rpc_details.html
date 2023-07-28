@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block content %}
+
+<section id="main_content">
+
+  <h4>{% trans 'Remote Procedure Call' %}: {{ myrpc.id }}</h4>
+  <h4>{% trans 'Active:' %} {{ myrpc.active }}</h4>
+  <h4>{% trans 'User:' %} <a href="{% url 'rpcs-list' myrpc.stationmetadata.user.username %}">{{ myrpc.stationmetadata.user.username }}</a></h4>
+  <h4>{% trans 'Station:' %} <a href="{% url 'rpcs-list' myrpc.stationmetadata.user.username myrpc.stationmetadata.slug %}">{{ myrpc.stationmetadata.slug }}</a></h4>
+
+
+  
+  <div class="table-responsive">
+    <table class="table">
+      <tr>
+	<th>{% trans 'Date' %}</th>
+	<th>{% trans 'Phase' %}</th>
+	<th>{% trans 'Method' %}</th>
+	<th>{% trans 'Params' %}</th>
+	<th>{% trans 'Result' %}</th>
+	<th>{% trans 'Error' %}</th>
+      </tr>
+
+      <tr>
+	<td>{{ myrpc.date }}</td>
+	<td>{% trans 'Submitted' %}</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+
+      <tr>
+	<td>{{ myrpc.datecmd }}</td>
+	<td>{% trans 'Command' %}</td>
+	<td>{{ myrpc.method }}</td>
+	<td>{{ myrpc.params }}</td>
+	<td></td>
+	<td></td>
+      </tr>
+      
+      <tr>
+	<td>{{ myrpc.dateres }}</td>
+	<td>{% trans 'Response' %}</td>
+	<td></td>
+	<td></td>
+	<td>{{ myrpc.result }}</td>
+	<td>{{ myrpc.error }}</td>
+      </tr>
+  
+    </table>
+  </div>
+
+  
+</section>
+
+{% endblock %}
