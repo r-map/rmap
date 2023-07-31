@@ -507,15 +507,18 @@ void tipping_bucket_task () {
 	   if (!digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     LOGN(F("Skip spike"));
 	     tipping_bucket_state = TIPPING_BUCKET_END;
-	   } else {
-	     LOGN(F("SKIP rain tips! (not started or continuos mode)"));
+	   }else{
 	     start_time_ms=millis();
 	     delay_ms=configuration.tipping_bucket_time_ms*2;
-	     state_after_wait=TIPPING_BUCKET_END;
+	     state_after_wait=TIPPING_BUCKET_COUNT;
 	     tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 	   }
-	 }else{
-	   tipping_bucket_state = TIPPING_BUCKET_COUNT;	
+	 } else {
+	   LOGN(F("SKIP rain tips! (not started or continuos mode)"));
+	   start_time_ms=millis();
+	   delay_ms=configuration.tipping_bucket_time_ms*2;
+	   state_after_wait=TIPPING_BUCKET_END;
+	   tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 	 }
 
 	 break;
