@@ -203,10 +203,6 @@ void SolarRadiationSensorTask::Run() {
         // Gain - offset to ADC to real value, anc d connvert to scale used (mV for solar_radiation)
         value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
         value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
-        // Removed K
-        // value *= 100.4016064;
-        // value /= 100;
-        // value += 1;
         TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value));
         // Read value into U.M. Real Solar Radiation (Sample value)
         value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
@@ -428,6 +424,10 @@ float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_vol
 
     if (value <= SOLAR_RADIATION_ERROR_MIN) value = SOLAR_RADIATION_MIN;
     if (value >= SOLAR_RADIATION_ERROR_MAX) value = SOLAR_RADIATION_MAX;
+  }
+
+  if((value >= SOLAR_RADIATION_MIN)&&(value <= SOLAR_RADIATION_SENSIBILITY)) {
+    value = SOLAR_RADIATION_MIN;
   }
 
   return round(value);

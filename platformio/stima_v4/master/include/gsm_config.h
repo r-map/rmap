@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def GSM_NUMBER_TIM
 \brief number for TIM.
 */
-#define GSM_NUMBER_TIM                    ("*99***1#")
+#define GSM_NUMBER_TIM                    ("*99#")
 
 /*!
 \def GSM_NUMBER_WIND
