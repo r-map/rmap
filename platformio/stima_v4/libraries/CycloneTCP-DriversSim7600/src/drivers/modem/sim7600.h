@@ -113,6 +113,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def SIM7600_AT_CXREG_MODE_MAX
 \brief C[X]REG mode max.
 */
+#define SIM7600_AT_CXREG_MODE_MIN                           (SIM7600_AT_CGREG_MODE)
+
+/*!
+\def SIM7600_AT_CXREG_MODE_MAX
+\brief C[X]REG mode max.
+*/
 #define SIM7600_AT_CXREG_MODE_MAX                           (SIM7600_AT_CEREG_MODE)
 
 /*!

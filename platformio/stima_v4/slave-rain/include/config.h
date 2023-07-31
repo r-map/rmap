@@ -137,7 +137,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Default value for sensor acquire task 
 #define SENSORS_TIPPING_DELAY_MS          (100)
 #define SENSORS_TIPPING_INIBITH_DELAY_MS  (500)
-#define SENSORS_TIPS_FOR_EVENT            (1)
+#define SENSORS_TIPS_FOR_EVENT            (2)
 
 // Sensor specific value and method
 #define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)
@@ -147,7 +147,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TIPPING_BUCKET_PIN                PIN_IN0   // Input PIN tipping
 #define TIPPING_BUCKET_PIN_REDUNDANT      PIN_IN1   // Redundant PIN tipping (verify and alert)
 #define CLOGGED_UP_PIN                    PIN_IN2   // Clogged Up Alert PIN
-#define CLOGGED_EVENT_VALUE               HIGH      // Input PIN clogged expected event value
+#define CLOGGED_EVENT_VALUE               LOW       // Input PIN clogged expected event value
 
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)

@@ -323,7 +323,7 @@ void LCDTask::Run() {
 
               break;
             }
-            
+
             case UPDATE_BOARD_SLUG: {
               TRACE_INFO_F(F("LCD: UPDATE SLUG BOARD\r\n"));
 
@@ -788,13 +788,13 @@ void LCDTask::display_print_main_interface() {
 
   // Print Wait configuration information
   if (param.system_status->flags.http_wait_cfg) {
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7 * LINE_BREAK);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
     display.print(F("Waiting configuration..."));
   }
 
   // Print Wait download firmware information
   if (param.system_status->flags.http_wait_fw) {
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8 * LINE_BREAK);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8.5 * LINE_BREAK);
     display.print(F("Waiting download firmware..."));
   }
 
@@ -1241,7 +1241,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.boot_request->tot_reset = 0;
       param.boot_request->wdt_reset = 0;
       // Save info bootloader block
-      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
+      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1620,7 +1620,7 @@ void LCDTask::switch_interface() {
           selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
           break;
         }
-        
+
         case UPDATE_BOARD_SLUG: {
           selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
           break;
@@ -1700,7 +1700,7 @@ void LCDTask::switch_interface() {
           selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
           break;
         }
-        
+
         case UPDATE_BOARD_SLUG: {
           selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
           break;
