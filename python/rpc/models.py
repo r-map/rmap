@@ -23,7 +23,21 @@ class Rpc(models.Model):
     def __unicode__(self):
         return self.method + " " + self.date.__str__() + " " + self.active
 
-
+    def status(self):
+        if (self.active):
+            if (self.datecmd is not None):
+                if (self.dateres is not None):
+                    return "completed"
+                else:
+                    return "running"
+            else:
+                return "submitted"
+        else:
+            if (self.datecmd is not None) and (self.datecmd is not None):
+                return "completed"
+            else:
+                return "sequence error"
+    
     class Meta:
         ordering = ('-date','-id',)
         verbose_name = _('RPC')

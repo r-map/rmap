@@ -76,6 +76,7 @@
 		      <li><a href="//{{site.domain}}/stations">{% trans "Show RMAP stations" %}</a></li>
 		      <li><a href="//{{site.domain}}/showdata/-/*/*/*/*/*/stations">{% trans "Show all stations" %}</a></li>
 		      <li><a href="{% url 'stationstatus-list' %}">{% trans "Diagnostic by station status" %}</a></li>
+		      <li><a href="{% url 'rpcs-list' %}">{% trans "Remote Procedure Call" %}</a></li>
 		      {% if request.user.is_authenticated %}
 		      <li><a href="//{{site.domain}}/stationsonmap/{{ request.user.username }}">{% trans "Your RMAP stations" %} {{ request.user.username }}</a></li>
 		      <li><a href="//{{site.domain}}/showdata/{{ request.user.username }}/*/*/*/*/*/stations">{% trans "All your stations" %} {{ request.user.username }}</a></li>

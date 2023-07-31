@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+{% if invalid  %}
+<div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
+{% endif %}
+
+{% if error  %}
+<div class="alert alert-danger" role="alert">{% trans 'Error on submit RPC; retry' %}</div>
+{% endif %}
+
+{% if success  %}
+<div class="alert alert-success" role="alert">{% trans 'OK, RPC submitted' %}</div>
+{% endif %}
+
+<h3 id="striped-rows">{% trans 'Insert your new Remote Procedure Call for user:' %}{{user}} {% trans 'and station:' %}{{slug}}</h3>
+<div class="table-responsive">
+    
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value={%trans "Submit" %} class="btn">
+    </form>
+</div>
+{% endblock %}

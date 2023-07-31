@@ -13,13 +13,17 @@
     
     <section id="main_content">
 
-      <p><h3>{{user}} {% trans 'Here your personal data details' %}</h3></p>
+      <p><h3>{{user}} {% trans 'Here your station details' %}</h3></p>
 
 <h2 id="striped-rows">{% trans 'Station name' %}: {{ mystation.name }}</h2>
 
 <p><h3> <a href="{% url 'mystationmetadata-del' mystation.user mystation.slug %}">{% trans 'Delete' %} {{ mystation.slug }}</a></h3></p>
 <p><h3> <a href="{% url 'insertdata-stationmodify' mystation.slug %}">{% trans 'Modify' %} {{ mystation.slug }}</a></h3></p>
-<p><h3>{% trans 'Reserved information' %}:</h3></p>
+<p><h3> <a href= {% url 'rpcs-list' mystation.user mystation.slug %}> {% trans "Monitor Remote Procedure Call" %}</a></h3></p>    
+<p><h3> <a href= {% url 'rpc-submit' mystation.user mystation.slug %}> {% trans "Submit Remote Procedure Call (easy mode)" %}</a></h3></p>    
+<p><h3> <a href= {% url 'rpc-submit-free' mystation.user mystation.slug %}> {% trans "Submit Remote Procedure Call" %}</a></h3></p>    
+
+      <p><h3>{% trans 'Reserved information' %}:</h3></p>
 
 
 <ul>

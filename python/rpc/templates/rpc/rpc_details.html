@@ -6,8 +6,8 @@
 
 <section id="main_content">
 
-  <h4>{% trans 'Remote Procedure Call' %}: {{ myrpc.id }}</h4>
-  <h4>{% trans 'Active:' %} {{ myrpc.active }}</h4>
+  <h4>{% trans 'Remote Procedure Call ID' %}: {{ myrpc.id }} {% trans 'Active:' %} {% if rpc.active %}<i class="fa fa-check "></i>{% else %}<i class="fa fa-times "></i>{% endif %}</h4>
+  <h4>{% trans 'Status:' %} {{ myrpc.status }}</h4>
   <h4>{% trans 'User:' %} <a href="{% url 'rpcs-list' myrpc.stationmetadata.user.username %}">{{ myrpc.stationmetadata.user.username }}</a></h4>
   <h4>{% trans 'Station:' %} <a href="{% url 'rpcs-list' myrpc.stationmetadata.user.username myrpc.stationmetadata.slug %}">{{ myrpc.stationmetadata.slug }}</a></h4>
 
