@@ -75,13 +75,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def GSM_DEFAULT_APN
 \brief Default GSM APN.
 */
-#define GSM_DEFAULT_APN                   (GSM_APN_WIND)
+#define GSM_DEFAULT_APN                   (GSM_APN_TIM)
 
 /*!
 \def GSM_DEFAULT_NUMBER
 \brief Default GSM number.
 */
-#define GSM_DEFAULT_NUMBER                (GSM_NUMBER_WIND)
+#define GSM_DEFAULT_NUMBER                (GSM_NUMBER_TIM)
 
 /*!
 \def GSM_DEFAULT_USERNAME

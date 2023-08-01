@@ -270,7 +270,7 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
       break;
 
     case STIMA_MODULE_TYPE_WIND:
-      *decimals_A = STIMA_LCD_DECIMALS_ONE;
+      *decimals_A = STIMA_LCD_DECIMALS_TWO;
       *decimals_B = STIMA_LCD_DECIMALS_ZERO;
       break;
 

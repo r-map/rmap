@@ -390,7 +390,11 @@ void MqttTask::Run()
         byteState[byteIdx] = 0;
       }
       // Invert OK with Error 100 - OK
-      byteState[indexPosition++] = 100 - param.system_status->modem.perc_modem_connection_valid;
+      if(param.system_status->modem.perc_modem_connection_valid >= MIN_ERR_REPORT_CONNECTION_VALID) {
+        byteState[indexPosition++] = 0;
+      } else {
+        byteState[indexPosition++] = 100 - param.system_status->modem.perc_modem_connection_valid;
+      }
       byteState[indexPosition++] = param.boot_request->tot_reset;
       byteState[indexPosition++] = param.boot_request->wdt_reset;
       byteState[indexPosition] = 0;
