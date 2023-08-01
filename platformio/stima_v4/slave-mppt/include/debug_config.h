@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _DEBUG_CONFIG_H
 #define _DEBUG_CONFIG_H
 
+#if USE_DEBUG
+
 #define STIMA_TRACE_LEVEL                   TRACE_LEVEL_INFO
 #define SUPERVISOR_TASK_TRACE_LEVEL         TRACE_LEVEL_INFO
 #define CAN_TASK_TRACE_LEVEL                TRACE_LEVEL_INFO
@@ -31,5 +33,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MPPT_SENSOR_TASK_TRACE_LEVEL        TRACE_LEVEL_VERBOSE
 #define ELABORATE_DATA_TASK_TRACE_LEVEL     TRACE_LEVEL_VERBOSE
 #define SENSOR_DRIVER_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+
+#else
+
+#define STIMA_TRACE_LEVEL                   TRACE_LEVEL_OFF
+#define SUPERVISOR_TASK_TRACE_LEVEL         TRACE_LEVEL_OFF
+#define CAN_TASK_TRACE_LEVEL                TRACE_LEVEL_OFF
+#define WDT_TASK_TRACE_LEVEL                TRACE_LEVEL_OFF
+#define MPPT_SENSOR_TASK_TRACE_LEVEL        TRACE_LEVEL_OFF
+#define ELABORATE_DATA_TASK_TRACE_LEVEL     TRACE_LEVEL_OFF
+#define SENSOR_DRIVER_TRACE_LEVEL           TRACE_LEVEL_OFF
+
+#endif
 
 #endif
