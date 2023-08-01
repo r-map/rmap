@@ -31,7 +31,7 @@
 // ************************************************************************************
 // ****************************** CONFIGURATIONS **************************************
 // ************************************************************************************
-#define ALPHABET_LENGTH             40
+#define ALPHABET_LENGTH             41
 #define ALPHABET_GSM_NUMBER_LENGTH  15
 #define ALPHABET_PSK_KEY_LENGTH     19
 #define FIRMWARE_VERSION_LCD_LENGTH 30
