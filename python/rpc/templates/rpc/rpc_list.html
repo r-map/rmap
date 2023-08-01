@@ -19,13 +19,12 @@
     <form action="{% if user %}{% url 'rpcs-list' user %}{% else %}{% url 'rpcs-list' %}{% endif %}" method="get">
       <input name="search" type="text" {% if search %}value="{{search}}"{% endif %} placeholder="{% if search %}{{search}}{% else %}Search...{% endif %}">
 	
-      <input type="radio" id="active" name="status" value="active" {% if status == "active" %}checked{% endif %}>Active
       <input type="radio" id="submitted" name="status" value="submitted" {% if status == "submitted" %}checked{% endif %}>Submitted
       <input type="radio" id="running" name="status" value="running" {% if status == "running" %}checked{% endif %}>Running
       <input type="radio" id="completed" name="status" value="completed" {% if status == "completed" %}checked{% endif %}>Completed
-      <input type="radio" id="all" name="status" value="all" {% if status == "all" %}checked{% endif %}>All
+      <input type="radio" id="all" name="status" value="all" {% if status == "all" or not status %}checked{% endif %}>All
       
-      <input type="submit" value="Submit">
+      <input type="submit" value="{% trans 'Filter' %}">
       
     </form>
 

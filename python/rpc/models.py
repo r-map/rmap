@@ -9,8 +9,9 @@ from django.utils import timezone
 
 
 class Rpc(models.Model):
+    dbid = models.AutoField(primary_key=True)
     stationmetadata = models.ForeignKey(StationMetadata,on_delete=models.CASCADE)
-    id = models.AutoField(editable=False, primary_key=True)
+    id = models.IntegerField(editable=False,default=0)
     active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Active ticket"))
     date = models.DateTimeField(_('Date'), default=timezone.now)
     datecmd = models.DateTimeField(_('Date command'), default=None, null=True,blank=True)
@@ -24,22 +25,33 @@ class Rpc(models.Model):
         return self.method + " " + self.date.__str__() + " " + self.active
 
     def status(self):
-        if (self.active):
-            if (self.datecmd is not None):
-                if (self.dateres is not None):
-                    return "completed"
-                else:
-                    return "running"
-            else:
-                return "submitted"
-        else:
-            if (self.datecmd is not None) and (self.datecmd is not None):
+        if (self.datecmd is not None):
+            if (self.dateres is not None):
                 return "completed"
             else:
+                return "running"
+        else:
+            if (self.active):
+                return "submitted"
+
+        if (self.active):
+            if (self.datecmd is not None) or (self.dateres is not None):
                 return "sequence error"
-    
+
+            
     class Meta:
         ordering = ('-date','-id',)
         verbose_name = _('RPC')
         verbose_name_plural = _('RPCSs')
 
+    def save(self, force_insert=False, force_update=False):
+        # Only modify number if creating for the first time (is default 0)
+        if self.id == 0:
+            # Grab the highest current index (if it exists)
+            try:
+                last = Rpc.objects.filter(stationmetadata__exact=self.stationmetadata).order_by('-id')[0]
+                self.id = last.id + 1
+            except IndexError:
+                self.id = 1
+        # Call the "real" save() method
+        super(Rpc, self).save(force_insert, force_update)

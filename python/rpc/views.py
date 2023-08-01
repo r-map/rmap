@@ -42,12 +42,10 @@ def rpc_list(request,user=None,slug=None):
     if 'status' in request.GET:
         status = request.GET['status']
 
-        if (status == "active"):
-            query_status =  (Q(active=True))
-        elif (status == "submitted"):
+        if (status == "submitted"):
             query_status =  (Q(active=True) & Q(datecmd__isnull=True) & Q(dateres__isnull=True))
         elif (status == "running"):
-            query_status =  (Q(active=True) & Q(datecmd__isnull=False) & Q(dateres__isnull=True))
+            query_status =  (Q(active=False) & Q(datecmd__isnull=False) & Q(dateres__isnull=True))
         elif (status == "completed"):
             query_status =  (Q(active=False) & Q(datecmd__isnull=False) & Q(dateres__isnull=False))
         else:
