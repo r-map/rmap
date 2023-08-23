@@ -450,6 +450,42 @@ protected:
 };
 #endif
 
+
+#if (USE_SENSOR_SHT)
+#include "SHTSensor.h"
+
+
+class SensorDriverSht : public SensorDriver {
+public:
+   SensorDriverSht(const char* driver, const char* type) : SensorDriver(driver, type) {
+     _sht = new SHTI2cSensor();
+      SensorDriver::printInfo();
+      LOGT(F("sht create... [ %s ]"), OK_STRING);
+   };
+   void setup();
+   void prepare(bool is_test = false);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
+
+   #if (USE_JSON)
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   #endif
+
+   void resetPrepared(bool is_test = false);
+
+protected:
+
+   enum {
+      INIT,
+      READ,
+      END
+   } _get_state;
+
+private:
+    SHTI2cSensor* _sht=NULL;  
+};
+
+#endif
+
 #if (USE_SENSOR_DW1)
 #include <math.h>
 #include "registers-windsonic.h"

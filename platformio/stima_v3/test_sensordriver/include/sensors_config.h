@@ -64,6 +64,18 @@ Max value here is 10
 #define USE_SENSOR_HYT              (false)
 
 /*!
+\def SENSOR_TYPE_SHT
+\brief Enable if you want use Sensirion humidity and temperature sensor support
+Supported sensors:
+- SHTC1
+- SHTW1
+- SHTW2
+- SHT3x-DIS (I2C)
+- SHT3x-ARP (ratiometric analog voltage output)
+*/
+#define USE_SENSOR_SHT              (true)
+
+/*!
 \def USE_SENSOR_DEP
 \brief Enable if you want use DigitEco Power sensor.
 */

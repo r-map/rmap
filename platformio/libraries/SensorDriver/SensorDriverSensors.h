@@ -48,6 +48,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_HYT           ("HYT")
 
 /*!
+\def SENSOR_TYPE_SHT
+\brief Sensor driver's SHT sensor type for Sensirion humidity and temperature sensor support
+Supported sensors:
+- SHTC1
+- SHTW1
+- SHTW2
+- SHT3x-DIS (I2C)
+- SHT3x-ARP (ratiometric analog voltage output)
+*/
+#define SENSOR_TYPE_SHT           ("SHT")
+
+/*!
 \def SENSOR_TYPE_DEP
 \brief Sensor driver's DEP sensor type for DigitEco Power.
 */

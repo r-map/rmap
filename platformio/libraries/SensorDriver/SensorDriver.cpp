@@ -59,6 +59,11 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   return new SensorDriverHyt2X1(driver, type);
   #endif
 
+  #if (USE_SENSOR_SHT)
+  else if (strcmp(type, SENSOR_TYPE_SHT) == 0)
+  return new SensorDriverSht(driver, type);
+  #endif
+  
   #if (USE_SENSOR_DW1)
   else if (strcmp(type, SENSOR_TYPE_DW1) == 0)
   return new SensorDriverDw1(driver, type);
@@ -832,6 +837,175 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
 #if (USE_JSON)
 void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverHyt2X1::get(values, length, is_test);
+  json_buffer[0]='\0';
+
+  if (_is_end && !_is_readed) {
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
+
+    if (length >= 1) {
+      if (ISVALID_INT32(values[0])) {
+        json["B13003"] = values[0];
+      }
+      else json["B13003"] = nullptr;
+    }
+
+    if (length >= 2) {
+      if (ISVALID_INT32(values[1])) {
+        json["B12101"] = values[1];
+      }
+      else json["B12101"] = nullptr;
+    }
+
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
+  }
+}
+#endif
+
+#endif
+
+
+//------------------------------------------------------------------------------
+// Sensor driver's SHT sensor type for Sensirion humidity and temperature sensor support
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_SHT)
+
+void SensorDriverSht::resetPrepared(bool is_test) {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverSht::setup() {
+  SensorDriver::printInfo();
+
+  _delay_ms = 0;
+
+  if (!*_is_setted) {
+
+    //  WARNING !!!!! address is not used; sensirion have only one address
+    if (_address == 0x44) {
+      _sht->softReset();
+      delay(10);
+    } else {
+      _error_count++;
+      LOGE(F("sht setup... wrong i2c address [ %s ]"), ERROR_STRING);
+    }
+
+    if(_sht->clearStatusRegister() == true) {  //Start continuous measurements
+      
+      *_is_setted = true;
+      _error_count = 0;
+      LOGT(F("sht setup... [ %s ]"), OK_STRING);
+    } else {
+      _error_count++;
+      LOGE(F("sht setup... [ %s ]"), ERROR_STRING);
+    }
+  }else{
+    LOGT(F("sht setup... [ %s ]"), YES_STRING);
+  } 
+}
+
+void SensorDriverSht::prepare(bool is_test) {
+  SensorDriver::printInfo();
+  
+  *_is_prepared = _sht->singleShotDataAcquisition();
+  if (*_is_prepared){
+    _error_count = 0;
+    LOGT(F("hyt2x1 prepare... [ %s ]"), OK_STRING);
+  }else{
+    _error_count++;    
+    LOGE(F("hyt2x1 prepare... [ %s ]"), FAIL_STRING);
+  }
+
+  _delay_ms = _sht->mDuration;
+  _start_time_ms = millis();
+}
+
+void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
+  
+  switch (_get_state) {
+  case INIT:
+    for (uint8_t i =0; i < length; i++) {
+      values[i]=INT32_MAX;
+    }
+    
+    _is_readed = false;
+    _is_end = false;
+    
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = READ;
+    }
+    else {
+      _is_success = false;
+      _get_state = END;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+    
+  case READ:
+    
+    if (_sht->getValues() && _sht->checkStatus()){
+      _is_success = true;
+      _error_count = 0;
+      _get_state = END;
+    } else {
+      LOGE(F("sht get read error"));
+      _error_count++;
+      _is_success = false;
+      _get_state = END;
+    }
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+    
+  case END:
+    
+     if (_is_success ) {
+      if (length >= 1)  values[0] = (uint32_t) round(_sht->getTemperature() * 100. + 27315.) ;
+      if (length >= 2)  values[1] = (uint32_t) round (_sht->getHumidity()) ;
+    }
+  
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("sht get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("sht get... [ %s ]"), FAIL_STRING);
+    }
+    
+    if (length >= 1) {
+      if (ISVALID_INT32(values[0])) {
+	LOGT(F("sht--> humidity: %d"), values[0]);
+      }
+      else {
+	LOGT(F("sht--> humidity: ---"));
+      }
+    }
+    
+    if (length >= 2) {
+      if (ISVALID_INT32(values[1])) {
+	LOGT(F("sht--> temperature: %d"), values[1]);
+      }
+      else {
+	LOGT(F("sht--> temperature: ---"));
+      }
+    }
+    
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
+  }
+}
+
+#if (USE_JSON)
+void SensorDriverSht::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverSht::get(values, length, is_test);
   json_buffer[0]='\0';
 
   if (_is_end && !_is_readed) {
@@ -2710,7 +2884,7 @@ void SensorDriverWind::prepare(bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
-	_delay_ms = 500;   // no less then 400 ms
+	_delay_ms = 600;   // no less then 550 ms
 	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
