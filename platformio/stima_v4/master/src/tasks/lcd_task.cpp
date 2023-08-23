@@ -2061,7 +2061,7 @@ void LCDTask::switch_interface() {
           default: {
             new_client_psk_key[cursor_pos++] = alphabet_psk_key[selected_char_index];
 
-            if (cursor_pos == (2 * CLIENT_PSK_KEY_LENGTH) - 1) {
+            if (cursor_pos == 2 * CLIENT_PSK_KEY_LENGTH) {
               elaborate_master_command(MASTER_COMMAND_UPDATE_PSK_KEY);
 
               stima4_menu_ui = stima4_menu_ui_last;

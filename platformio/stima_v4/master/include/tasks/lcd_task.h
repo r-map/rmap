@@ -66,7 +66,7 @@
 #define TEMPERATURE_SCALE       (100.0)
 #define TEMPERATURE_OFFSET      (27315.0)
 #define RAIN_GAUGE_SCALE        (10.0)
-#define WIND_SPEED_SCALE        (10.0)
+#define WIND_SPEED_SCALE        (100.0)
 #define CURRENT_CHARGE_SCALE    (10.0)
 #define SOIL_MOISTURE_SCALE     (10.0)
 
@@ -178,7 +178,7 @@ class LCDTask : public cpp_freertos::Thread {
   // Default char list for user input
   char alphabet[ALPHABET_LENGTH] = {
       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '<', '>', '!'};
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '<', '>', '!'};
 
   // GSM number char list for user input
   char alphabet_gsm_number[ALPHABET_GSM_NUMBER_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '#', '*', '<', '>', '!'};
