@@ -135,8 +135,7 @@ result save() {
 
   LOGN(F("Save config" CR));
 
-  StaticJsonBuffer<500> jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  StaticJsonDocument<500> doc;
   
   LOGN(F("umid %D" CR),umid);
   //  LOGN(F("tempmin %D" CR),tempmin);
@@ -147,21 +146,21 @@ result save() {
   LOGN(F("PID ct   %D" CR),ct);
   LOGN(F("PID tau  %D" CR),tau);
     
-  json["umid"] = umid;
-  //json["tempmin"] = tempmin;
-  json["tempmax"] = tempmax;
-  json["vent"] = vent;
-  json["ventctrl"] = ventCtrl;
-  json["gain"] = gain;
-  json["ct"] = ct;
-  json["tau"] = tau;
+  doc["umid"] = umid;
+  //doc["tempmin"] = tempmin;
+  doc["tempmax"] = tempmax;
+  doc["vent"] = vent;
+  doc["ventctrl"] = ventCtrl;
+  doc["gain"] = gain;
+  doc["ct"] = ct;
+  doc["tau"] = tau;
   
   File configFile = SPIFFS.open(FILETERMOSTATO, "w");
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }else{
     //json.printTo(Serial);
-    json.printTo(configFile);
+    serializeJson(doc,configFile);
     configFile.close();
     LOGN(F("saved parameter" CR));
   }
@@ -355,19 +354,19 @@ void setup()
     LOGN(F("station configuration not found!" CR));
   }else{
     //Serial.println(savedparams);
-    StaticJsonBuffer<500> jsonBuffer;
-    JsonObject& json =jsonBuffer.parseObject(savedparams);
-    if (!json.success()) {
+    StaticJsonDocument<500> doc;
+    auto error = deserializeJson(doc,savedparams);
+    if (error) {
       LOGE(F("reading json data" CR));
     }else{
-      if (json.containsKey("umid"))     umid=json["umid"];
-      //if (json.containsKey("tempmin"))  tempmin=json["tempmin"];
-      if (json.containsKey("tempmax"))  tempmax=json["tempmax"];
-      if (json.containsKey("vent"))     vent=json["vent"];
-      if (json.containsKey("ventctrl")) ventCtrl=json["ventctrl"];
-      if (json.containsKey("gain")) gain=json["gain"];
-      if (json.containsKey("ct")) ct=json["ct"];
-      if (json.containsKey("tau")) tau=json["tau"];
+      if (doc.containsKey("umid"))     umid=doc["umid"];
+      //if (doc.containsKey("tempmin"))  tempmin=doc["tempmin"];
+      if (doc.containsKey("tempmax"))  tempmax=doc["tempmax"];
+      if (doc.containsKey("vent"))     vent=doc["vent"];
+      if (doc.containsKey("ventctrl")) ventCtrl=doc["ventctrl"];
+      if (doc.containsKey("gain")) gain=doc["gain"];
+      if (doc.containsKey("ct")) ct=doc["ct"];
+      if (doc.containsKey("tau")) tau=doc["tau"];
       
       LOGN(F("umid     %D" CR),umid);
       //LOGN(F("tempmin %D" CR),tempmin);
