@@ -863,16 +863,18 @@ void loop() {
 
 	String new_type;	
 	Serial.println(F("digit new i2c sensor1 TYPE i2c-th (3 char uppercase)"));
-	if (Serial.available() > 0) {
+	while (new_type.length() != 4) {
 	  new_type = Serial.readStringUntil('\n');
 	}
 
+	Serial.println(new_type);
 	delay(1000);
 
 	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
 	charbuffer[0]=I2C_TH_SENSOR1_TYPE_ADDRESS;
 	new_type.toCharArray(&charbuffer[1], 4);
 	charbuffer[I2C_TH_SENSOR1_TYPE_LENGTH+1]=crc8((uint8_t*)charbuffer, I2C_TH_SENSOR1_TYPE_LENGTH+1);
+	
 	Wire.write(charbuffer,I2C_TH_SENSOR1_TYPE_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
@@ -896,13 +898,14 @@ void loop() {
 
 	delay(1000);
 
-
-
+	
 	Serial.println(F("digit new i2c sensor2 TYPE i2c-th (3 char uppercase)"));
-	if (Serial.available() > 0) {
+	new_type="";
+	while (new_type.length() != 4) {
 	  new_type = Serial.readStringUntil('\n');
 	}
 
+	Serial.println(new_type);
 	delay(1000);
 
 	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
@@ -913,7 +916,6 @@ void loop() {
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
-
 
 	new_address=-1;
 	while (new_address < 1 || new_address > 127){
