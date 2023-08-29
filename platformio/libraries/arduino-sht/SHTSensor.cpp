@@ -192,7 +192,7 @@ bool SHTI2cSensor::sendCommand(const uint8_t *i2cCommand,
     }
   }
 
-  if (Wire.endTransmission(false) != 0) {
+  if (Wire.endTransmission(true) != 0) {
     //Serial.println("error end");
     return false;
   }
