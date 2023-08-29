@@ -529,7 +529,7 @@ Modulo Stima GSM/GPRS
 1. Il progetto per platformio si trova in:
    platformio/stima_v3/stima
 
-2. Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:
+2. Aprire il file stima-config.h in platformio/stima_v3/stima/src:
 
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo
@@ -655,7 +655,7 @@ Modulo Stima Passive
 
 1. Il progetto per platformio si trova in:
    platformio/stima_v3/stima
-2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima/src:
+2. Aprire il file stima-config.h platformio/stima_v3/stima/src:
    
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_PASSIVE per definire una stazione di tipo
@@ -822,7 +822,7 @@ Configurazione moduli e sensori
 -------------------------------
 
 Per configurare moduli e sensori utilizzare lo sketch sensor_config
-presente nella cartella arduino\sketchbook\stima_v3
+presente nella cartella platformio/stima_v3
 
 Per configurare i sensori caricare il firmware sul modulo a cui il
 sensore è collegato (i2c-wind, i2c-th ...) ed eseguirlo seguendo il

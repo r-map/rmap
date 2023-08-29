@@ -442,7 +442,7 @@ Trasferire la configurazione al datalogger
 
 Ecco il comando da impartire per trasferire e salvare la configurazione nel datalogger::
   
-  rmap-configure --config_station --station_slug="myslug"  --board_slug=default --username="myuser"  --baudrate=115200 --device=/dev/ttyUSB0
+  rmap-configure --config_station --station_slug="myslug" --username="myuser"  --baudrate=115200 --device=/dev/ttyUSB0
 
 
 Aggiornamento Firmware
