@@ -453,7 +453,6 @@ protected:
 
 #if (USE_SENSOR_SHT)
 #include "SHTSensor.h"
-_sht = SHTI2cSensor();
 
 class SensorDriverSht : public SensorDriver {
 public:
@@ -479,8 +478,8 @@ protected:
       END
    } _get_state;
 
-private:
-    SHTI2cSensor* _sht=NULL;  
+  //private:
+  //SHTI2cSensor _sht;
 };
 
 #endif

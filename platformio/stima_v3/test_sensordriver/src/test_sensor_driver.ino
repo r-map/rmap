@@ -74,9 +74,9 @@ void init_sensors () {
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_STH)
+  #if (USE_SENSOR_SHT)
   address = 0x44;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_STH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensors, &sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
   

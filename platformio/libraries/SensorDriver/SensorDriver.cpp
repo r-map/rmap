@@ -870,6 +870,7 @@ void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buf
 // Sensor driver's SHT sensor type for Sensirion humidity and temperature sensor support
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_SHT)
+SHTI2cSensor _sht;
 
 void SensorDriverSht::resetPrepared(bool is_test) {
   _get_state = INIT;
@@ -890,9 +891,10 @@ void SensorDriverSht::setup() {
     } else {
       _error_count++;
       LOGE(F("sht setup... wrong i2c address [ %s ]"), ERROR_STRING);
+      return;
     }
 
-    if(_sht.clearStatusRegister() == true) {  //Start continuous measurements
+    if(_sht.clearStatusRegister() == true) {  //Start continuous measurements      
       
       *_is_setted = true;
       _error_count = 0;
@@ -965,8 +967,8 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
   case END:
     
      if (_is_success ) {
-      if (length >= 1)  values[0] = (uint32_t) round(_sht.getTemperature() * 100. + 27315.) ;
-      if (length >= 2)  values[1] = (uint32_t) round (_sht.getHumidity()) ;
+      if (length >= 1)  values[0] = (int32_t) round(_sht.getTemperature() * 100. + 27315.) ;
+      if (length >= 2)  values[1] = (int32_t) round (_sht.getHumidity()) ;
     }
   
     SensorDriver::printInfo();
