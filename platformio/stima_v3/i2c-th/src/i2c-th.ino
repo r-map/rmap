@@ -242,6 +242,8 @@ void init_wire() {
   Wire.end();
   Wire.begin(configuration.i2c_address);
   Wire.setClock(I2C_BUS_CLOCK);
+  //pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
+  //pinMode(SCL, INPUT_PULLUP);
   Wire.onRequest(i2c_request_interrupt_handler);
   Wire.onReceive(i2c_receive_interrupt_handler);
 }
@@ -473,6 +475,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
       //noInterrupts();
       // enable Command task
+      //LOGV(F("receive command"));
       if (!is_event_command_task) {
 	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
 	lastcommand=i2c_rx_data[1];    // record command to be executed
@@ -508,7 +511,10 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
           ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
+	  //LOGV(F("set writable register OK"));
         }
+      //}else{
+	//LOGE(F("writable register not conform"));
       }
     }
   } else {
