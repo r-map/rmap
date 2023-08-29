@@ -453,12 +453,11 @@ protected:
 
 #if (USE_SENSOR_SHT)
 #include "SHTSensor.h"
-
+_sht = SHTI2cSensor();
 
 class SensorDriverSht : public SensorDriver {
 public:
    SensorDriverSht(const char* driver, const char* type) : SensorDriver(driver, type) {
-     _sht = new SHTI2cSensor();
       SensorDriver::printInfo();
       LOGT(F("sht create... [ %s ]"), OK_STRING);
    };

@@ -885,14 +885,14 @@ void SensorDriverSht::setup() {
 
     //  WARNING !!!!! address is not used; sensirion have only one address
     if (_address == 0x44) {
-      _sht->softReset();
+      _sht.softReset();
       delay(10);
     } else {
       _error_count++;
       LOGE(F("sht setup... wrong i2c address [ %s ]"), ERROR_STRING);
     }
 
-    if(_sht->clearStatusRegister() == true) {  //Start continuous measurements
+    if(_sht.clearStatusRegister() == true) {  //Start continuous measurements
       
       *_is_setted = true;
       _error_count = 0;
@@ -909,7 +909,7 @@ void SensorDriverSht::setup() {
 void SensorDriverSht::prepare(bool is_test) {
   SensorDriver::printInfo();
   
-  *_is_prepared = _sht->singleShotDataAcquisition();
+  *_is_prepared = _sht.singleShotDataAcquisition();
   if (*_is_prepared){
     _error_count = 0;
     LOGT(F("hyt2x1 prepare... [ %s ]"), OK_STRING);
@@ -918,7 +918,7 @@ void SensorDriverSht::prepare(bool is_test) {
     LOGE(F("hyt2x1 prepare... [ %s ]"), FAIL_STRING);
   }
 
-  _delay_ms = _sht->mDuration;
+  _delay_ms = _sht.mDuration;
   _start_time_ms = millis();
 }
 
@@ -948,7 +948,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
     
   case READ:
     
-    if (_sht->getValues() && _sht->checkStatus()){
+    if (_sht.getValues() && _sht.checkStatus()){
       _is_success = true;
       _error_count = 0;
       _get_state = END;
@@ -965,8 +965,8 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
   case END:
     
      if (_is_success ) {
-      if (length >= 1)  values[0] = (uint32_t) round(_sht->getTemperature() * 100. + 27315.) ;
-      if (length >= 2)  values[1] = (uint32_t) round (_sht->getHumidity()) ;
+      if (length >= 1)  values[0] = (uint32_t) round(_sht.getTemperature() * 100. + 27315.) ;
+      if (length >= 2)  values[1] = (uint32_t) round (_sht.getHumidity()) ;
     }
   
     SensorDriver::printInfo();
