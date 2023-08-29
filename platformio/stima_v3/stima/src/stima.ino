@@ -645,6 +645,7 @@ void init_sensors () {
 				   readable_configuration.sensors[i].address,
 				   readable_configuration.sensors[i].node,
 				   sensors, &sensors_count);
+      wdt_reset();
     }
 
     for (uint8_t i=0; i<sensors_count; i++) {
