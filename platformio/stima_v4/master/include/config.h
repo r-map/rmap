@@ -68,6 +68,7 @@
 
 // Enable control Error for Debug
 #define DEBUG_MODE            (false)
+#define ERROR_HANDLER_CB      (false)
 
 // HW device
 #define ENABLE_SPI1           (true)
