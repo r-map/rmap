@@ -901,9 +901,7 @@ void loop() {
 	
 	Serial.println(F("digit new i2c sensor2 TYPE i2c-th (3 char uppercase)"));
 	new_type="";
-	while (new_type.length() != 4) {
-	  new_type = Serial.readStringUntil('\n');
-	}
+	new_type = Serial.readStringUntil('\n');
 
 	Serial.println(new_type);
 	delay(1000);

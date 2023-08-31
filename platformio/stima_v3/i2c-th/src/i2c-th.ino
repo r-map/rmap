@@ -297,7 +297,7 @@ void print_configuration() {
    LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   for (uint8_t i=0; i< 2; i++){
+   for (uint8_t i=0; i< SENSORS_MAX; i++){
      if (strlen(configuration.sensors[i].type) == 3){
        LOGN(F("--> sensor[%d] type: %s"), i, configuration.sensors[i].type);
        LOGN(F("--> sensor[%d] i2c address: %X (%d)"), i, configuration.sensors[i].i2c_address, configuration.sensors[i].i2c_address);
@@ -370,7 +370,7 @@ void init_sensors () {
 
   LOGN(F("Sensors..."));
   
-  for (uint8_t i=0; i < 2; i++){
+  for (uint8_t i=0; i < SENSORS_MAX; i++){
     if (strlen(configuration.sensors[i].type) == 3){
       SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, &sensors_count);
       LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, configuration.sensors[i].type, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
