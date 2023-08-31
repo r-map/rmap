@@ -155,7 +155,7 @@ def rpc_submit_choice(request,user,slug):
                 mystationmetadata = StationMetadata.objects.get(user__username=user,slug=slug)
 
                 method=RPC_CHOICES_SPLIT[form.cleaned_data['rpc']]["method"]
-                params=RPC_CHOICES_SPLIT[form.cleaned_data['rpc']]["params"]
+                params=json.loads(RPC_CHOICES_SPLIT[form.cleaned_data['rpc']]["params"])
 
                 myrpc=Rpc(stationmetadata=mystationmetadata,method=method,params=params)
                 myrpc.save()
