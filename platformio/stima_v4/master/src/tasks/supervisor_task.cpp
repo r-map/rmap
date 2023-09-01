@@ -174,6 +174,9 @@ void SupervisorTask::Run()
         param.system_status->flags.config_empty = false;
         #endif
 
+        // TODO: Rem0ve
+        param.configuration->report_s = 180;
+
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
         state = SUPERVISOR_STATE_WAITING_EVENT;
       }

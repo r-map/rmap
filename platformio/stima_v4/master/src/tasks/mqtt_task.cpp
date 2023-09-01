@@ -203,7 +203,7 @@ void MqttTask::Run()
       {
         TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
       }
-      
+
       param.systemStatusLock->Take();
       param.system_status->connection.is_mqtt_connecting = true;
       param.systemStatusLock->Give();
@@ -272,6 +272,7 @@ void MqttTask::Run()
       if (strlen(MQTT_ON_ERROR_MESSAGE))
       {
         // Changed MQTT_CLIENT_MAX_WILL_TOPIC_LEN -> FROM 16 TO 80 BYTES
+        memset(topic, 0, sizeof(topic));
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
@@ -293,6 +294,7 @@ void MqttTask::Run()
       }
       else
       {
+        memset(topic, 0, sizeof(topic));
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         // publish connection message (Conn + Version and Revision)
         sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
@@ -305,12 +307,13 @@ void MqttTask::Run()
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
       snprintf(topic_rpc_response, sizeof(topic_rpc_response), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_RES_TOPIC);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
+      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, is_subscribed ? OK_STRING : ERROR_STRING);
 
       param.systemStatusLock->Take();
       param.system_status->connection.is_mqtt_subscribed = is_subscribed;      
@@ -348,6 +351,7 @@ void MqttTask::Run()
       #endif
 
       // Restore TOPIC -> MQTT_STATUS_TOPIC
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Prepare DateTime Generic status Message
       convertUnixTimeToDate(param.system_status->datetime.epoch_sensors_get_value, &dtStatus);
@@ -1155,6 +1159,7 @@ void MqttTask::Run()
       param.systemStatusLock->Give();
 
       // publish disconnection message
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Non blocking taskMQTT_NET_WAIT_TIMEOUT_PUBLISH
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -1234,59 +1239,9 @@ void MqttTask::Run()
   }
 }
 
-/**
- * @brief Subscriber callback function
- * @param[in] context Pointer to the MQTT client context
- * @param[in] topic Topic name
- * @param[in] message Message payload
- * @param[in] length Length of the message payload
- * @param[in] dup Duplicate delivery of the PUBLISH packet
- * @param[in] qos QoS level used to publish the message
- * @param[in] retain This flag specifies if the message is to be retained
- * @param[in] packetId Packet identifier
- **/
-void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
-{
-  task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
-  bool is_event_rpc = true;
-  char rpc_message[255] = {0};
-
-  memcpy(rpc_message, (void*)message, length);
- 
-  TRACE_INFO_F(F("MQTT packet received...\r\n"));
-  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
-  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
-  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
-  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
-  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
-  TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
-
-  memset(rpc_response, 0, sizeof(rpc_response));
-
-  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
-  if(localSystemStatus->flags.clean_rpc) {
-    TRACE_INFO_F(F("Excluding all RPC Message for first connection in security mode...\r\n"));
-  } else {
-    localStreamRpc->init();
-    if (localRpcLock->Take())
-    {
-      while (is_event_rpc)
-      {
-        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-        // Return to previous state on END of RPC Call execution
-        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        // Charge message of Response. Need to externalize sending Message
-        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
-        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
-        vTaskDelay(100);
-      }
-      localRpcLock->Give();
-    }
-  }
-}
+// *************************************************************************************************
+// ***************************** Sensor publish format function ************************************
+// *************************************************************************************************
 
 error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
 {
@@ -1382,7 +1337,7 @@ error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, s
 {
   error_t error = NO_ERROR;
 
-  osMemset(topic, 0, topic_length);
+  memset(topic, 0, topic_length);
   if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) <= 0)
   {
     error = ERROR_FAILURE;
@@ -3496,6 +3451,60 @@ error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tl
 
   //Successful processing
   return NO_ERROR;
+}
+
+/**
+ * @brief Subscriber callback function
+ * @param[in] context Pointer to the MQTT client context
+ * @param[in] topic Topic name
+ * @param[in] message Message payload
+ * @param[in] length Length of the message payload
+ * @param[in] dup Duplicate delivery of the PUBLISH packet
+ * @param[in] qos QoS level used to publish the message
+ * @param[in] retain This flag specifies if the message is to be retained
+ * @param[in] packetId Packet identifier
+ **/
+void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
+{
+  task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
+  bool is_event_rpc = true;
+  char rpc_message[255] = {0};
+
+  memcpy(rpc_message, (void*)message, length);
+ 
+  TRACE_INFO_F(F("MQTT packet received...\r\n"));
+  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
+  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
+  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
+  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
+  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
+  TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
+
+  memset(rpc_response, 0, sizeof(rpc_response));
+
+  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
+  if(localSystemStatus->flags.clean_rpc) {
+    TRACE_INFO_F(F("Excluding all RPC Message for first connection in security mode...\r\n"));
+  } else {
+    localStreamRpc->init();
+    if (localRpcLock->Take())
+    {
+      while (is_event_rpc)
+      {
+        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+        // Return to previous state on END of RPC Call execution
+        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+        // Charge message of Response. Need to externalize sending Message
+        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
+        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
+        vTaskDelay(100);
+      }
+      localRpcLock->Give();
+    }
+  }
 }
 
 #endif
