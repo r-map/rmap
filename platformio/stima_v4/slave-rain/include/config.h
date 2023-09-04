@@ -146,6 +146,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Sensor specific value and method
 #define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)
 #define USE_CLOGGED_UP_CONTROL            (true)    // Use clogged UP system control (verify and alert)
+#define USE_TIPPING_CONTROL               (false)   // Use strict tipping timings mode
 
 #define TIPPING_EVENT_VALUE               HIGH      // Input PIN tipping expected event value
 #define TIPPING_BUCKET_PIN                PIN_IN0   // Input PIN tipping
