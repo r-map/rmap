@@ -151,6 +151,11 @@ void RainSensorTask::Run() {
         rain.rain_full = 0;
         rain.tips_scroll = 0;
         rain.rain_scroll = 0;
+        bMainError = false;
+        bRedundantError = false;
+        bTippingError = false;
+        bEventMain = false;
+        bEventRedundant = false;
         TRACE_VERBOSE_F(F("Sensor: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -260,7 +265,7 @@ void RainSensorTask::Run() {
       if (digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE)
       #else
       // Read Pin standard and redundant (all reed must to be !event... Error if one is event)
-      if ((digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE) &&
+      if ((digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE) ||
           (digitalRead(TIPPING_BUCKET_PIN_REDUNDANT) != TIPPING_EVENT_VALUE))
       #endif
       {
@@ -312,9 +317,13 @@ void RainSensorTask::Run() {
       // Inibith (Interrupt) next input data for event_end_time_ms and check error stall
       TaskWatchDog(param.configuration->sensors.event_end_time_ms);
       Delay(Ticks::MsToTicks(param.configuration->sensors.event_end_time_ms));
-      // Standard control with only one PIN
+
+      // Saving Signal and exit event
+      state = SENSOR_STATE_SAVE_SIGNAL;
+      break;
 
     case SENSOR_STATE_SPIKE:
+      // Standard control with only one PIN
       if (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE)
       {
         bMainError = true;
@@ -329,6 +338,9 @@ void RainSensorTask::Run() {
         // Signal an error
       }
       #endif
+      // Continuate switch, (No Break here...)
+
+    case SENSOR_STATE_SAVE_SIGNAL:
 
       // Checking signal Event and error sensor
       param.systemStatusLock->Take();

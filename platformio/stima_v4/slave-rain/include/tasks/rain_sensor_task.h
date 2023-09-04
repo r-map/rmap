@@ -76,7 +76,8 @@ class RainSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CHECK_SPIKE,
     SENSOR_STATE_READ,
     SENSOR_STATE_SPIKE,
-    SENSOR_STATE_END
+    SENSOR_STATE_END,
+    SENSOR_STATE_SAVE_SIGNAL
   } State_t;
 
 public:
