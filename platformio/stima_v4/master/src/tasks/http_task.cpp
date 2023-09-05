@@ -104,7 +104,6 @@ void HttpTask::Run() {
   IpAddr ipAddr;
   uint_t status;
   const char_t *value;
-  // std::string serial_number_str;
   char_t serial_number_str[12];
   uint32_t serial_number_l;
   uint32_t serial_number_h;
@@ -125,8 +124,6 @@ void HttpTask::Run() {
 
   connection_request_t connection_request;
   connection_response_t connection_response;
-
-  uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
