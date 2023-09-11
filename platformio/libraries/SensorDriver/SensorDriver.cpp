@@ -967,7 +967,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
   case END:
     
      if (_is_success ) {
-      if (length >= 1)  values[0] = (int32_t) round(_sht.getTemperature() * 100. + 27315.) ;
+       if (length >= 1)  values[0] = (int32_t) round(_sht.getTemperature() * 100.) + SENSOR_DRIVER_C_TO_K ;
       if (length >= 2)  values[1] = (int32_t) round (_sht.getHumidity()) ;
     }
   
