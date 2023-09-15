@@ -145,12 +145,12 @@ void RainSensorTask::Run() {
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
-        rain.tips_count = 0;
-        rain.rain = 0;
-        rain.tips_full = 0;
-        rain.rain_full = 0;
-        rain.tips_scroll = 0;
-        rain.rain_scroll = 0;
+        rain_sensor.tips_count = 0;
+        rain_sensor.rain = 0;
+        rain_sensor.tips_full = 0;
+        rain_sensor.rain_full = 0;
+        rain_sensor.tips_scroll = 0;
+        rain_sensor.rain_scroll = 0;
         bMainError = false;
         bRedundantError = false;
         bTippingError = false;
@@ -184,18 +184,18 @@ void RainSensorTask::Run() {
         bTippingError = false;
         error_count = 0;
         // Reset standard counter and exit
-        rain.rain = 0;
-        rain.rain_full = 0;
-        rain.tips_count = 0;
-        rain.tips_full = 0;
-        memset(&rain, 0, sizeof(rain));
+        rain_sensor.rain = 0;
+        rain_sensor.rain_full = 0;
+        rain_sensor.tips_count = 0;
+        rain_sensor.tips_full = 0;
+        memset(&rain_sensor, 0, sizeof(rain_sensor));
         break;
       }
       // Is RESET SCROLL? (false, is request Reset Counter value)
       if(flag_event == RAIN_SCROLL_RESET) {
         // Reset only scroll counter and exit
-        rain.rain_scroll = 0;
-        rain.tips_scroll = 0;
+        rain_sensor.rain_scroll = 0;
+        rain_sensor.tips_scroll = 0;
         break;
       }
       // ... and HERE is EVENT RAIN... check if OK!!!
@@ -279,16 +279,16 @@ void RainSensorTask::Run() {
       #endif
       {
         // Always add full data
-        rain.tips_full++;
-        rain.rain_full = rain.tips_full * param.configuration->sensors.rain_for_tip;
+        rain_sensor.tips_full++;
+        rain_sensor.rain_full = rain_sensor.tips_full * param.configuration->sensors.rain_for_tip;
         // Add this Value only if system is not in maintenance mode
         if(!param.system_status->flags.is_maintenance) {
-          rain.tips_count++;
-          rain.tips_scroll++;
-          rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
-          rain.rain_scroll = rain.tips_scroll * param.configuration->sensors.rain_for_tip;
+          rain_sensor.tips_count++;
+          rain_sensor.tips_scroll++;
+          rain_sensor.rain = rain_sensor.tips_count * param.configuration->sensors.rain_for_tip;
+          rain_sensor.rain_scroll = rain_sensor.tips_scroll * param.configuration->sensors.rain_for_tip;
         }
-        TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain.tips_count, rain.tips_full);
+        TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain_sensor.tips_count, rain_sensor.tips_full);
       }
       else
       {
@@ -300,31 +300,31 @@ void RainSensorTask::Run() {
       }
       #else
       // Always add full data
-      rain.tips_full++;
-      rain.rain_full = rain.tips_full * param.configuration->sensors.rain_for_tip;
+      rain_sensor.tips_full++;
+      rain_sensor.rain_full = rain_sensor.tips_full * param.configuration->sensors.rain_for_tip;
       // Add this Value only if system is not in maintenance mode
       if(!param.system_status->flags.is_maintenance) {
-        rain.tips_count++;
-        rain.tips_scroll++;
-        rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
-        rain.rain_scroll = rain.tips_scroll * param.configuration->sensors.rain_for_tip;
+        rain_sensor.tips_count++;
+        rain_sensor.tips_scroll++;
+        rain_sensor.rain = rain_sensor.tips_count * param.configuration->sensors.rain_for_tip;
+        rain_sensor.rain_scroll = rain_sensor.tips_scroll * param.configuration->sensors.rain_for_tip;
       }
-      TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain.tips_count, rain.tips_full);
+      TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain_sensor.tips_count, rain_sensor.tips_full);
       #endif
 
-      edata.value = rain.tips_count;
+      edata.value = rain_sensor.tips_count;
       edata.index = RAIN_TIPS_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain;
+      edata.value = rain_sensor.rain;
       edata.index = RAIN_RAIN_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain_full;
+      edata.value = rain_sensor.rain_full;
       edata.index = RAIN_FULL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain_scroll;
+      edata.value = rain_sensor.rain_scroll;
       edata.index = RAIN_SCROLL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 

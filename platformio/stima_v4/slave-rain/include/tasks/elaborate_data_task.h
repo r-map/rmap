@@ -107,7 +107,8 @@ private:
 
   sample_t rain_samples;
 
-  rain_t rain;
+  rain_t rain_elaborate;
+  report_t report_last;
   report_t report;
 };
 
