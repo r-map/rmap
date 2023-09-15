@@ -97,7 +97,7 @@ private:
 
   State_t state;
   RainSensorParam_t param;
-  rain_t rain;
+  rain_t rain_sensor;
 
   // Acces static memeber parameter of class
   inline static cpp_freertos::Queue *localRainQueue;
