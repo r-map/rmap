@@ -585,7 +585,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
     case END:
     if (length >= 1) {
       if (_is_success) {
-        values[0] = round(float(humidity) / 16382. * 100);
+        values[0] = round((float(temperature) / 16382. * 165. - 40.) * 100) + SENSOR_DRIVER_C_TO_K;
       }
       else {
         values[0] = INT32_MAX;
@@ -594,7 +594,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
 
     if (length >= 2) {
       if (_is_success) {
-        values[1] = round((float(temperature) / 16382. * 165. - 40.) * 100) + SENSOR_DRIVER_C_TO_K;
+        values[1] = round(float(humidity) / 16382. * 100);
       }
       else {
         values[1] = INT32_MAX;
@@ -610,19 +610,19 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        LOGT(F("hih6100--> humidity: %d"), values[0]);
+        LOGT(F("hih6100--> temperature: %d"), values[0]);
       }
       else {
-        LOGT(F("hih6100--> humidity: ---"));
+        LOGT(F("hih6100--> temperature: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        LOGT(F("hih6100--> temperature: %d"), values[1]);
+        LOGT(F("hih6100--> humidity: %d"), values[1]);
       }
       else {
-        LOGT(F("hih6100--> temperature: ---"));
+        LOGT(F("hih6100--> humidity: ---"));
       }
     }
 
@@ -645,16 +645,16 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        json["B13003"] = values[0];
+        json["B12101"] = values[0];
       }
-      else json["B13003"] = nullptr;
+      else json["B12101"] = nullptr;
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        json["B12101"] = values[1];
+        json["B13003"] = values[1];
       }
-      else json["B12101"] = nullptr;
+      else json["B13003"] = nullptr;
     }
 
     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
@@ -783,8 +783,8 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
 
     case END:
       if (length >= 1) {
-            if (_is_success && ISVALID_FLOAT(humidity)) {
-          values[0] = round(humidity);
+        if (_is_success  && ISVALID_FLOAT(temperature)) {
+          values[0] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
         }
         else {
           values[0] = INT32_MAX;
@@ -792,8 +792,8 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
       }
 
       if (length >= 2) {
-        if (_is_success  && ISVALID_FLOAT(temperature)) {
-          values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
+	if (_is_success && ISVALID_FLOAT(humidity)) {
+          values[1] = round(humidity);
         }
         else {
           values[1] = INT32_MAX;
@@ -809,19 +809,19 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (length >= 1) {
         if (ISVALID_INT32(values[0])) {
-          LOGT(F("hyt2x1--> humidity: %d"), values[0]);
+          LOGT(F("hyt2x1--> temperature: %d"), values[0]);
         }
         else {
-          LOGT(F("hyt2x1--> humidity: ---"));
+          LOGT(F("hyt2x1--> temperature: ---"));
         }
       }
 
       if (length >= 2) {
         if (ISVALID_INT32(values[1])) {
-          LOGT(F("hyt2x1--> temperature: %d"), values[1]);
+          LOGT(F("hyt2x1--> humidity: %d"), values[1]);
         }
         else {
-          LOGT(F("hyt2x1--> temperature: ---"));
+          LOGT(F("hyt2x1--> humidity: ---"));
         }
       }
 
@@ -844,16 +844,16 @@ void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buf
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        json["B13003"] = values[0];
+        json["B12101"] = values[0];
       }
-      else json["B13003"] = nullptr;
+      else json["B12101"] = nullptr;
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        json["B12101"] = values[1];
+        json["B13003"] = values[1];
       }
-      else json["B12101"] = nullptr;
+      else json["B13003"] = nullptr;
     }
 
     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
@@ -1015,16 +1015,16 @@ void SensorDriverSht::getJson(int32_t *values, uint8_t length, char *json_buffer
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        json["B13003"] = values[0];
+        json["B12101"] = values[0];
       }
-      else json["B13003"] = nullptr;
+      else json["B12101"] = nullptr;
     }
 
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
-        json["B12101"] = values[1];
+        json["B13003"] = values[1];
       }
-      else json["B12101"] = nullptr;
+      else json["B13003"] = nullptr;
     }
 
     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
