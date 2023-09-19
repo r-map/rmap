@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_READ_REGISTER_END_ADDRESS
 \brief Last i2c read register address.
 */
-#define I2C_READ_REGISTER_END_ADDRESS       (0xEE)
+#define I2C_READ_REGISTER_END_ADDRESS       (0xE0)
 
 /*!
 \def I2C_WRITE_REGISTER_START_ADDRESS
