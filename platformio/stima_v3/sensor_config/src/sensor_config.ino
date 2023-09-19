@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "registers-wind.h"                //Register definitions
 #include "registers-th.h"                  //Register definitions
 #include "registers-rain.h"                //Register definitions
+#include "registers-power.h"               //Register definitions
 #include <i2c_utility.h>
 
 byte start_address = 1;
@@ -575,6 +576,7 @@ void displayHelp()
   Serial.println(F("\tu = windsonic sconfigurator ! (use to broke your sensor!)"));
   Serial.println(F("\tv = windsonic setup"));
   Serial.println(F("\tz = windsonic transparent mode"));
+  Serial.println(F("\tp = i2c-power"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
   //Serial.println(F("\th = toggle header - noHeader."));
@@ -1144,6 +1146,95 @@ void loop() {
 	  Serial1.flush();
 	}
 
+	break;
+      }
+
+    case 'p':
+      {
+	
+	int new_address;
+	int oneshot;
+	
+	new_address= -1;
+	while (new_address < 1 || new_address > 127){
+	  Serial.print(F("digit new i2c address for i2c-power (1-127) default: "));
+	  Serial.println(I2C_POWER_DEFAULT_ADDRESS);
+	  new_address=Serial.parseInt();
+	  Serial.println(new_address);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+	buffer[0]=I2C_POWER_ADDRESS_ADDRESS;
+	buffer[1]=new_address;
+	buffer[I2C_POWER_ADDRESS_LENGTH+1]=crc8(buffer, I2C_POWER_ADDRESS_LENGTH+1);
+	Wire.write(buffer,I2C_POWER_ADDRESS_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+	
+	oneshot=-1;
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-radiation (1/2)"));
+	  oneshot=Serial.parseInt();
+	  Serial.println(oneshot);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+	buffer[0]=I2C_POWER_ONESHOT_ADDRESS;
+	buffer[1]=(bool)(oneshot-1);
+	buffer[I2C_POWER_ONESHOT_LENGTH+1]=crc8(buffer, I2C_POWER_ONESHOT_LENGTH+1);
+	Wire.write(buffer,I2C_POWER_ONESHOT_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	float new_value= -1;
+	while (new_value < 0. || new_value > 32767){
+	  Serial.print(F("digit new value for max voltage input from panel variable for i2c-power module (0/32767) (default 30000): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+	buffer[0]=I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1);
+	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+
+	new_value= -32768;
+	while (new_value < -32767. || new_value > 32767.){
+	  Serial.print(F("digit new value for max voltage input from panel variable for i2c-power module (0/32767) (default 15000): "));
+	  new_value=Serial.parseFloat();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+	buffer[0]=I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS;
+	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	buffer[I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1);
+	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+	
+	delay(1000);
+	Serial.println("save configuration");
+	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+	buffer[0]=I2C_COMMAND_ID;
+	buffer[1]=I2C_POWER_COMMAND_SAVE;
+	buffer[2]=crc8(buffer, 2);
+	Wire.write(buffer,3);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	Serial.println(F("Done; switch off"));
+	delay(10000);
+
+	displayHelp();
 	break;
       }
       
