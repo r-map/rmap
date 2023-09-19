@@ -73,7 +73,7 @@ Supported sensors:
 - SHT3x-DIS (I2C)
 - SHT3x-ARP (ratiometric analog voltage output)
 */
-#define USE_SENSOR_SHT              (true)
+#define USE_SENSOR_SHT              (false)
 
 /*!
 \def USE_SENSOR_DEP
@@ -121,37 +121,37 @@ Supported sensors:
 \def USE_SENSOR_DWA
 \brief Enable if you want vectorial average Wind Speed and Direction over 10' (WMO).
 */
-#define USE_SENSOR_DWA              (true)
+#define USE_SENSOR_DWA              (false)
 
 /*!
 \def USE_SENSOR_DWB
 \brief Enable if you want vectorial average Wind Speed and Direction over report time.
 */
-#define USE_SENSOR_DWB              (true)
+#define USE_SENSOR_DWB              (false)
 
 /*!
 \def USE_SENSOR_DWC
 \brief Enable if you want gust and long gust Wind Speed over report time.
 */
-#define USE_SENSOR_DWC              (true)
+#define USE_SENSOR_DWC              (false)
 
 /*!
 \def USE_SENSOR_DWD
 \brief Enable if you want average Wind Speed over report time.
 */
-#define USE_SENSOR_DWD              (true)
+#define USE_SENSOR_DWD              (false)
 
 /*!
 \def USE_SENSOR_DWE
 \brief Enable if you want frequency class Wind Speed over report time.
 */
-#define USE_SENSOR_DWE              (true)
+#define USE_SENSOR_DWE              (false)
 
 /*!
 \def USE_SENSOR_DWF
 \brief Enable if you want gust and long gust Wind Direction over report time.
 */
-#define USE_SENSOR_DWF              (true)
+#define USE_SENSOR_DWF              (false)
 
 
 /*!
