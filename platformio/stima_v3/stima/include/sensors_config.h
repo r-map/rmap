@@ -70,6 +70,12 @@ Max value here is 10
 #define USE_SENSOR_DEP              (true)
 
 /*!
+\def USE_SENSOR_POW
+\brief Enable if you want use Power panel and battery sensor.
+*/
+#define USE_SENSOR_POW              (true)
+
+/*!
 \def USE_SENSOR_DES
 \brief Enable if you want use DigitEco Wind Speed sensor.
 */
