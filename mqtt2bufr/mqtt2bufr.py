@@ -31,7 +31,8 @@ import paho.mqtt.client as mqtt
 
 PACKAGE_BUGREPORT = "@PACKAGE_BUGREPORT@"
 PACKAGE_VERSION = "@PACKAGE_VERSION@"
-TOPIC_RE = re.compile((
+
+TOPIC_RE_V0 = re.compile((
     r'^.*/'
     r'(?P<ident>[^/]+)/'
     r'(?P<lon>[0-9-]+),'
@@ -47,9 +48,30 @@ TOPIC_RE = re.compile((
     r'(?P<var>B[0-9]{5})$'
 ))
 
+TOPIC_RE_V1 = re.compile((
+    r'^1/[^/]+/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<ident>[^/]*)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
 
-def parse_topic(topic):
-    match = TOPIC_RE.match(topic)
+
+def parse_topic(topic,version):
+    if (version == 1):
+        match = TOPIC_RE_V1.match(topic)
+    else:
+        match = TOPIC_RE_V0.match(topic)
+        
     if match is None:
         return None
     else:
@@ -78,8 +100,8 @@ def parse_payload(payload):
     return json.loads(payload)
 
 
-def parse_message(topic, payload):
-    t = parse_topic(topic)
+def parse_message(topic, payload,version):
+    t = parse_topic(topic,version)
     if t is None:
         return None
 
@@ -117,7 +139,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     try:
-        m = parse_message(message.topic, message.payload.decode("utf-8"))
+        m = parse_message(message.topic, message.payload.decode("utf-8"),userdata["version"])
         if m is None:
             return
         msg = dballe.Message("generic")
@@ -159,9 +181,9 @@ def on_message(client, userdata, message):
 
 
 
-def write_message(topic,payload,outfile):
+def write_message(topic,payload,outfile,version):
     try:
-        m = parse_message(topic,payload)
+        m = parse_message(topic,payload,version)
         if m is None:
             return
         msg = dballe.Message("generic")
@@ -212,12 +234,12 @@ def handle_signals(mqttclient):
 
 def main(host, keepalive, port, topics, username, password, debug,
          overwrite_date, outfile,
-         readfromfile,fileinput,roottopic,fileinfo):
+         readfromfile,fileinput,roottopic,fileinfo,version):
     
     if (readfromfile):
 
         try:
-            with open(fileinfo) as i:
+            with fileinfo as i:
                 model=i.readline()
                 majorversion=i.readline()
                 minorversion=i.readline()
@@ -231,17 +253,15 @@ def main(host, keepalive, port, topics, username, password, debug,
         reclen=MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH
         with fileinput as f:
             while True:
-                message=f.read(reclen)
-                if not message:
+                topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8").strip('\x00')
+                if not topic:
                     break
-                message = message.decode("utf-8").split(" ",1)
-                topic=roottopic+message[0].strip()
-                #print (topic)
-                #print(parse_topic(topic))
-                payload=message[1].rstrip('\x00')
-                #print(payload)
-                #print(parse_message(topic,payload))
-                write_message(topic,payload,outfile)
+
+                payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                if not topic:
+                    break
+
+                write_message(topic,payload,outfile,version)
 
     else:
         mqttclient = mqtt.Client(userdata={
@@ -249,6 +269,7 @@ def main(host, keepalive, port, topics, username, password, debug,
             "debug": debug,
             "overwrite_date": overwrite_date,
             "outfile": outfile,
+            "version": version
         })
         
         if username:
@@ -284,7 +305,7 @@ if __name__ == '__main__':
                         default="-",type=argparse.FileType('rb'))
     parser.add_argument("-a", "--fileinfo",dest="fileinfo",
                         help="info file to read; require -i (default: default info)",
-                        default="info.dat")
+                        default="info.dat",type=argparse.FileType('r'))
     parser.add_argument("-r", "--roottopic",
                         help="root topic used when reading from file (default %(default)s)",
                         default="test/myuser/1212345,4512345/fixed/")
@@ -312,6 +333,10 @@ if __name__ == '__main__':
     parser.add_argument("--overwrite-date", action="store_true",
                         help=("date is ignored and is oveerwritten with "
                               "current date"))
+    parser.add_argument("-m", "--rmap_version",
+                        help=("RMAP version (Stimav3 0 / Stimav4 1)"
+                              "(default: %(default)s)"),
+                        type=int, default=0)
 
     args = parser.parse_args()
 
@@ -321,5 +346,5 @@ if __name__ == '__main__':
         debug=args.debug, overwrite_date=args.overwrite_date,
         outfile=sys.stdout.buffer,
         readfromfile=args.readfromfile,fileinput=args.fileinput,
-        roottopic=args.roottopic,fileinfo=args.fileinfo
+        roottopic=args.roottopic,fileinfo=args.fileinfo,version=args.rmap_version
     )
