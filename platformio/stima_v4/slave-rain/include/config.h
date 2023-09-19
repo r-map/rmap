@@ -138,10 +138,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
 #define WAIT_QUEUE_REQUEST_RESET_TIP_MS   (2000)
 
-// Default value for sensor acquire task 
-#define SENSORS_TIPPING_DELAY_MS          (100)
-#define SENSORS_TIPPING_INIBITH_DELAY_MS  (500)
-#define SENSORS_TIPS_FOR_EVENT            (2)
+// Default value for sensor acquire task delay tipping
+#define RAIN_TIPPING_DELAY_MS             (100)
+#define RAIN_TIPPING_INIBITH_DELAY_MS     (500)
+/*!
+\def RAIN_TIPS_FOR_EVENT
+\brief How much mm of rain for one tip of tipping bucket rain gauge.
+*/
+#define RAIN_TIPS_FOR_EVENT               (2)
 
 // Sensor specific value and method
 #define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)

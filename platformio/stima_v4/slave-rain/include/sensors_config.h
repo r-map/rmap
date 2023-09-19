@@ -351,12 +351,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define USE_SENSOR_RF24             (false)
 
-/*!
-\def RAIN_FOR_TIP
-\brief How much mm of rain for one tip of tipping bucket rain gauge.
-*/
-#define RAIN_FOR_TIP                (1)
-
 // OPC
 #define VALUES_TO_READ_FROM_SENSOR_COUNT      (2)
 #define JSONS_TO_READ_FROM_SENSOR_COUNT       (2)

@@ -273,7 +273,7 @@ void SupervisorTask::loadConfiguration()
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     // Loading Default
-    val.natural16.value.elements[0] = SENSORS_TIPPING_DELAY_MS;
+    val.natural16.value.elements[0] = RAIN_TIPPING_DELAY_MS;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.tipping.delay", &val);
     param.registerAccessLock->Give();
@@ -293,7 +293,7 @@ void SupervisorTask::loadConfiguration()
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     // Loading Default
-    val.natural16.value.elements[0] = SENSORS_TIPPING_INIBITH_DELAY_MS;
+    val.natural16.value.elements[0] = RAIN_TIPPING_INIBITH_DELAY_MS;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.tipping.eventend", &val);
     param.registerAccessLock->Give();
@@ -313,7 +313,7 @@ void SupervisorTask::loadConfiguration()
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     // Loading Default
-    val.natural16.value.elements[0] = SENSORS_TIPS_FOR_EVENT;
+    val.natural16.value.elements[0] = RAIN_TIPS_FOR_EVENT;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.tipping.value", &val);
     param.registerAccessLock->Give();
@@ -353,8 +353,8 @@ void SupervisorTask::saveConfiguration(bool is_default)
     param.configuration->module_type = MODULE_TYPE;
 
     // Acquisition time sensor default
-    param.configuration->sensors.tipping_bucket_time_ms = SENSORS_TIPPING_DELAY_MS;
-    param.configuration->sensors.rain_for_tip = SENSORS_TIPS_FOR_EVENT;
+    param.configuration->sensors.tipping_bucket_time_ms = RAIN_TIPPING_DELAY_MS;
+    param.configuration->sensors.rain_for_tip = RAIN_TIPS_FOR_EVENT;
 
     param.configurationLock->Give();
 
