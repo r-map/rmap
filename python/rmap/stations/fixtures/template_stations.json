@@ -1990,9 +1990,9 @@
 {
   "model": "stations.stationmetadata",
   "fields": {
-    "name": "Stima V3 complessa",
+    "name": "Stima V3.1 complessa",
     "active": false,
-    "slug": "stima-v3-complessa",
+    "slug": "stima-v31-complessa",
     "user": [
       "rmap"
     ],
@@ -2015,7 +2015,7 @@
     "type": 0,
     "sn": null,
     "stationmetadata": [
-      "stima-v3-complessa",
+      "stima-v31-complessa",
       [
         "rmap"
       ]
@@ -2039,7 +2039,7 @@
 	"board": [
 	    "stima3",
 	    [
-		"stima-v3-complessa",
+		"stima-v31-complessa",
 		[
 		    "rmap"
 		]
@@ -2064,7 +2064,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2089,7 +2089,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2114,7 +2114,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2139,7 +2139,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2164,7 +2164,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2189,7 +2189,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2214,7 +2214,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2239,7 +2239,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2264,7 +2264,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2289,7 +2289,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2314,7 +2314,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2339,7 +2339,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2359,7 +2359,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2376,7 +2376,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2395,7 +2395,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2406,9 +2406,9 @@
 {
   "model": "stations.stationmetadata",
   "fields": {
-    "name": "Stima V3 semplice",
+    "name": "Stima V3.1 semplice",
     "active": false,
-    "slug": "stima-v3-semplice",
+    "slug": "stima-v31-semplice",
     "user": [
       "rmap"
     ],
@@ -2431,7 +2431,7 @@
     "type": 0,
     "sn": null,
     "stationmetadata": [
-      "stima-v3-semplice",
+      "stima-v31-semplice",
       [
         "rmap"
       ]
@@ -2455,7 +2455,7 @@
     "board": [
 	"stima3",
 	[
-            "stima-v3-semplice",
+            "stima-v31-semplice",
             [
 		"rmap"
             ]
@@ -2480,7 +2480,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2505,7 +2505,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2530,7 +2530,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2555,7 +2555,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2580,7 +2580,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2600,7 +2600,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2617,7 +2617,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2636,12 +2636,428 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
       ]
     ]
   }
-}
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V3.2 complessa",
+    "active": false,
+    "slug": "stima-v32-complessa",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 13e-05,
+    "lon": 13e-05,
+    "network": "locali",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "stima3",
+    "active": true,
+    "slug": "stima3",
+    "category": null,
+    "type": 0,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v32-complessa",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+    "model": "stations.sensor",
+    "fields": {
+	"active": true,
+	"name": "Temperature/Humidity report inst. values",
+	"driver": "I2C",
+	"type": [
+	    "ITH"
+	],
+	"i2cbus": null,
+	"address": 35,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	    "stima3",
+	    [
+		"stima-v32-complessa",
+		[
+		    "rmap"
+		]
+	    ]
+	]
+    }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "I2C",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "3,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "I2C",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "I2C",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "I2C",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": 33,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Battery charge monitor",
+    "driver": "I2C",
+    "type": [
+      "POW"
+    ],
+    "i2cbus": null,
+    "address": 74,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "265,1,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor vectorial average 10'",
+    "driver": "I2C",
+    "type": [
+      "DWA"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind vect. average, gust direction",
+    "driver": "I2C",
+    "type": [
+      "DWB"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "200,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust speeds",
+    "driver": "I2C",
+    "type": [
+      "DWC"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor scalar average",
+    "driver": "I2C",
+    "type": [
+      "DWD"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor frequency",
+    "driver": "I2C",
+    "type": [
+      "DWE"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "9,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust directions",
+    "driver": "I2C",
+    "type": [
+      "DWF"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "205,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Radiation",
+    "driver": "I2C",
+    "type": [
+      "DSA"
+    ],
+    "i2cbus": null,
+    "address": 71,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+}    
 ]
