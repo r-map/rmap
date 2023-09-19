@@ -582,7 +582,7 @@ void power_task () {
     case POWER_READING_PANEL:
 
       adc_result = adc1.readSingleChannel(POWER_ADC_CHANNEL_INPUT_PANEL, &sample_panel);
-      
+
       if (adc_result == ADC_OK) {
 	sample_panel = round( float(sample_panel) * (float(writable_data.adc_voltage_max_panel) / float(0X7FFF)));	
 	LOGN("panel adc_value: %d",sample_panel);	
@@ -609,7 +609,7 @@ void power_task () {
       adc_result = adc1.readSingleChannel(POWER_ADC_CHANNEL_INPUT_BATTERY, &sample_battery);
       
       if (adc_result == ADC_OK) {
-	sample_panel = round( float(sample_panel) * (float(writable_data.adc_voltage_max_panel) / float(0X7FFF)));
+	sample_battery = round( float(sample_battery) * (float(writable_data.adc_voltage_max_battery) / float(0X7FFF)));
 	LOGN("battery adc_value: %d",sample_battery);	
 
 	power_state = POWER_ELABORATE;
@@ -647,10 +647,10 @@ void power_task () {
 
       if (is_start && samples_count_battery > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count_battery) / float(samples_count_battery) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
-	  readable_data_write_ptr->power.avg_panel = average_battery;
+	  readable_data_write_ptr->power.avg_battery = average_battery;
 	}else{
 	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count_battery,samples_error_count_battery);
-	  readable_data_write_ptr->power.avg_panel = INT16_MAX;	  
+	  readable_data_write_ptr->power.avg_battery = INT16_MAX;	  
 	}
       }
       

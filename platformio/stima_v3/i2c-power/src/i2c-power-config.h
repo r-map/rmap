@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (10)
+#define MODULE_MINOR_VERSION                          (11)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def MODULE_TYPE
-\brief Type of module. It is defined in registers.h.
+\brief Type of module. It is defined in stima_module.h.
 */
 #define MODULE_TYPE                                   (STIMA_MODULE_TYPE_POWER)
 

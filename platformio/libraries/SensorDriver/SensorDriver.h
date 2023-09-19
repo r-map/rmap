@@ -682,7 +682,8 @@ public:
 
 protected:
 
-  uint8_t power_data[I2C_POWER_AVERAGE_PANEL_LENGTH];
+  uint8_t power_data_p[I2C_POWER_AVERAGE_PANEL_LENGTH];
+  uint8_t power_data_b[I2C_POWER_AVERAGE_BATTERY_LENGTH];
 
   enum {
     INIT,

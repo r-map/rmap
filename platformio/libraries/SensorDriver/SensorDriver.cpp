@@ -2125,7 +2125,8 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
 	values[i]=INT32_MAX;
       }
 
-      memset(power_data, UINT8_MAX, I2C_POWER_AVERAGE_PANEL_LENGTH);
+      memset(power_data_p, UINT8_MAX, I2C_POWER_AVERAGE_PANEL_LENGTH);
+      memset(power_data_b, UINT8_MAX, I2C_POWER_AVERAGE_BATTERY_LENGTH);
 
       _is_readed = false;
       _is_end = false;
@@ -2210,10 +2211,10 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          power_data[i] = Wire.read();
+          power_data_p[i] = Wire.read();
         }
 
-        if (crc8(power_data, data_length) != Wire.read()) {
+        if (crc8(power_data_p, data_length) != Wire.read()) {
 	  LOGE(F("power get... ERROR READ PANEL CRC error"));
           _is_success = false;
         }
@@ -2296,10 +2297,10 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (_is_success) {
         for (i = 0; i < data_length; i++) {
-          power_data[i] = Wire.read();
+          power_data_b[i] = Wire.read();
         }
 
-        if (crc8(power_data, data_length) != Wire.read()) {
+        if (crc8(power_data_b, data_length) != Wire.read()) {
 	  LOGE(F("power get... ERROR READ_AVERAGE CRC error"));
           _is_success = false;
         }
@@ -2314,11 +2315,19 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
     case END:
       if ((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test)) {
 	if (length >= 1) {
-	  int16_t value= (int16_t)(power_data[1] << 8) | power_data[0];
+	  int16_t value= (int16_t)(power_data_b[1] << 8) | power_data_b[0];
 	  if ( ISVALID_INT16(value)) {	
 	    values[0] = value;
 	  }
 	}
+
+	if (length >= 2) {
+	  int16_t value= (int16_t)(power_data_p[1] << 8) | power_data_p[0];
+	  if ( ISVALID_INT16(value)) {	
+	    values[1] = value;
+	  }
+	}
+
       } else {
 	LOGE(F("power driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
       }
@@ -2333,10 +2342,18 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (length >= 1) {
 	if (ISVALID_INT32(values[0])) {
-	  LOGT(F("power--> solar radiation: %l"), values[0]);
+	  LOGT(F("power--> Battery: %l"), values[0]);
 	}
 	else {
-	  LOGT(F("power--> solar radiation: ---"));
+	  LOGT(F("power--> Battery: ---"));
+	}
+      }
+      if (length >= 2) {
+	if (ISVALID_INT32(values[1])) {
+	  LOGT(F("power--> Panel: %l"), values[1]);
+	}
+	else {
+	  LOGT(F("power--> Panel: ---"));
 	}
       }
 

@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def SDCARD_LOGGING_FILE_NAME
 \brief File name for logging on SD-Card.
 */
-#define SDCARD_LOGGING_FILE_NAME                     ("radiation.log")
+#define SDCARD_LOGGING_FILE_NAME                     ("power.log")
 
 /*!
 \def DISABLE_LOGGING
