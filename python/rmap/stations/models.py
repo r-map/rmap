@@ -767,13 +767,13 @@ class StationMaintStatus(models.Model):
 # status b
 statusb_explain_matrix={}
 statusb_explain_matrix[0]= ["None",    "None",    "None",      "None",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[10]=["SD card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[11]=["SD_card error",  "Firmware ready","Power critical","RSSI",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[10]=["SD card error",  "Firmware ready","Power critical","Low RSSI lte radio signal",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[11]=["SD_card error",  "Firmware ready","Power critical","Low RSSI lte radio signal",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[20]=["OFF LINE","Firmware ready","Maintenance",   "Main sensor error","Reduntant sensor error","Tipping error","Clogged error", "Inclination error","Accelerometer error","None","None","None","None","None","None","None"]
 statusb_explain_matrix[21]=["OFF LINE","Firmware ready","Maintenance",   "Main sensor error","Reduntant sensor error","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]       
-statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Maintenance",   "NOT_RISP","HW Error",    "UDM_ERR", "AXIS_ERR","CRC error",  "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Maintenance",   "Windsonic do not respond","Windosic hardware error",    "Windsonic unit reported error", "Windsonic one axis error","Windsonic CRC error",  "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC Over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "LTC_fail","Power critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "regulator of charge hardware error","Battery power pre-critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 
 # status v
