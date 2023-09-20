@@ -122,6 +122,7 @@ void ElaborateDataTask::Run() {
   bufferReset<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
   uint32_t next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
   uint32_t request_data_init_ms = millis();
+  uint32_t sec_from_elaborate_start = 0;
 
   // Init real and last elaborate data response variables
   memset(&report, 0, sizeof(report_t));
@@ -131,6 +132,8 @@ void ElaborateDataTask::Run() {
 
     // Elaborate scrolling XX required defined msec.
     if(millis() >= next_ms_buffer_check) {
+      // Sec from starting (check valid RMAP data response timing when minimal data acquire is ready)
+      sec_from_elaborate_start += SAMPLES_ACQUIRE_MS / 1000;
       next_ms_buffer_check += SAMPLES_ACQUIRE_MS;
       // ? over roll and security check timer area into reset check ms expected
       if (labs(millis() - next_ms_buffer_check) > SAMPLES_ACQUIRE_MS) {
@@ -209,7 +212,24 @@ void ElaborateDataTask::Run() {
         // After timing retry command, value data report is ok and newver resetted value can be sended
         if (request_data.is_init) {
           if (labs(millis() - request_data_init_ms) > REPORT_INVALID_ACQUIRE_MIN_MS) {
-            make_report(request_data.report_time_s, request_data.observation_time_s);
+            // test if minimal data acquire are valid
+            bool min_percentage_acquire = false;
+            if (sec_from_elaborate_start < request_data.report_time_s) {
+              if(((((float)sec_from_elaborate_start / (float)request_data.report_time_s)) * 100.0) < SAMPLE_ERROR_PERCENTAGE_MIN) {
+                min_percentage_acquire = true;
+              }
+            }
+            if(!min_percentage_acquire) {
+              make_report(request_data.report_time_s, request_data.observation_time_s);
+            } else {
+              // Error timing
+              report.quality = RMAPDATA_MAX;
+              report.rain = RMAPDATA_MAX;
+              report.rain_full = RMAPDATA_MAX;
+              report.rain_tpr_05m_avg = RMAPDATA_MAX;
+              report.rain_tpr_60s_avg = RMAPDATA_MAX;
+              report.tips_count = RMAPDATA_MAX;
+            }
             // Saving data before reset index and scrolling value (Need for possible retry...)
             report_last = report;
             // Response with new value (resetted ore istant value. No retry command Here)
