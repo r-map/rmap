@@ -60,7 +60,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_CLIENT_ID_LENGTH
 \brief Length in bytes for mqtt client id.
 */
-#define MQTT_CLIENT_ID_LENGTH (MQTT_ROOT_TOPIC_LENGTH)
+#define MQTT_CLIENT_ID_LENGTH (100)
 
 /*!
 \def MQTT_MESSAGE_LENGTH

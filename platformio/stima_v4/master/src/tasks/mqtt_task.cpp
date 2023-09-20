@@ -278,8 +278,8 @@ void MqttTask::Run()
       }
 
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Establish connection with the MQTT server
-      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, false);
+      // Establish connection with the MQTT server (Set clean Session if required, normally false)
+      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, param.system_status->flags.clean_session);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       // Any error to report?
       if (error)
@@ -304,6 +304,14 @@ void MqttTask::Run()
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+        
+      }
+
+      // Remove first connection FLAG (Clear queue of RPC in safety mode)
+      // RPC Must ececuted only from next connection without error to remote server
+      // error are always false here if is published at least connection message
+      if (!error) {
+        if(!rmap_data_error) param.system_status->flags.clean_session = false;
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
@@ -874,9 +882,6 @@ void MqttTask::Run()
       param.systemStatusLock->Take();
       // Saving error connection INFO
       param.system_status->flags.mqtt_error = is_error;
-      // Remove first connection FLAG (Clear queue of RPC in safety mode)
-      // RPC Must ececuted only from next connection without error to remote server
-      if(!rmap_data_error) param.system_status->flags.clean_rpc = false;
       param.system_status->connection.is_mqtt_disconnecting = true;
       param.systemStatusLock->Give();
 
@@ -3204,28 +3209,23 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 
   memset(rpc_response, 0, sizeof(rpc_response));
 
-  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
-  if(localSystemStatus->flags.clean_rpc) {
-    TRACE_INFO_F(F("Excluding all RPC Message for first connection in security mode...\r\n"));
-  } else {
-    localStreamRpc->init();
-    if (localRpcLock->Take())
+  localStreamRpc->init();
+  if (localRpcLock->Take())
+  {
+    while (is_event_rpc)
     {
-      while (is_event_rpc)
-      {
-        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-        // Return to previous state on END of RPC Call execution
-        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        // Charge message of Response. Need to externalize sending Message
-        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
-        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
-        vTaskDelay(100);
-      }
-      localRpcLock->Give();
+      // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+      // Return to previous state on END of RPC Call execution
+      old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+      // Charge message of Response. Need to externalize sending Message
+      localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
+      localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+      // Need Waiting Task for execute RPC call on Object module RPC. External TASK
+      vTaskDelay(100);
     }
+    localRpcLock->Give();
   }
 }
 

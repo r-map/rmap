@@ -98,7 +98,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
-        TRACE_INFO_F(F("RPC: DO UPDATE FIRMWARE\r\n"));
+        TRACE_INFO_F(F("RPC: DO DOWNLOAD FIRMWARE\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
         param.system_status->command.do_http_firmware_download = true;
@@ -111,7 +111,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download lastes configuration from http command after configurate TLS Key from serial
       if (it.value().as<bool>() == true)
       {
-        TRACE_INFO_F(F("RPC: DO UPDATE CONFIGURATION\r\n"));
+        TRACE_INFO_F(F("RPC: DO DOWNLOAD CONFIGURATION\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
         param.system_status->command.do_http_configuration_update = true;
