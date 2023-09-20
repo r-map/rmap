@@ -339,6 +339,7 @@ void SdTask::Run()
   char data_block[SD_FW_BLOCK_SIZE];
   char stima_name[STIMA_MODULE_NAME_LENGTH];
   char local_file_name[FILE_NAME_MAX_LENGHT];
+  char firmware_file_name[FILE_NAME_MAX_LENGHT];
   Module_Type module_type;
   uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
@@ -585,10 +586,10 @@ void SdTask::Run()
           // If Version> last file version or Version== and Revision >... Update module version/revision firmware avaiable struct
           for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
             // First occurance or Found...            
-            if( ((!fw_found)&&(param.system_status->boards_update_avaiable[brd].module_type == 0)) ||
-                (param.system_status->boards_update_avaiable[brd].module_type==module_type)) {
+            if(((!fw_found)&&(param.system_status->boards_update_avaiable[brd].module_type == 0)) ||
+              (param.system_status->boards_update_avaiable[brd].module_type == module_type)) {
               if((fw_version>param.system_status->boards_update_avaiable[brd].version) ||
-                ((fw_version==param.system_status->boards_update_avaiable[brd].version)&&(fw_revision>param.system_status->boards_update_avaiable[brd].revision)))
+                ((fw_version == param.system_status->boards_update_avaiable[brd].version)&&(fw_revision > param.system_status->boards_update_avaiable[brd].revision))) {
                 param.systemStatusLock->Take();
                 param.system_status->boards_update_avaiable[brd].module_type = module_type;
                 param.system_status->boards_update_avaiable[brd].version = fw_version;
@@ -601,6 +602,7 @@ void SdTask::Run()
                   }
                 }
                 param.systemStatusLock->Give();
+              }
               break;
             }
           }
@@ -1426,16 +1428,16 @@ void SdTask::Run()
             for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
               if(param.system_status->boards_update_avaiable[brd].module_type == module_type) {
                 if((fw_version == param.system_status->boards_update_avaiable[brd].version) &&
-                   (fw_revision == param.system_status->boards_update_avaiable[brd].revision))
-                is_last_firmware_on_sd = true;
-                break;
+                   (fw_revision == param.system_status->boards_update_avaiable[brd].revision)) {
+                  is_last_firmware_on_sd = true;
+                  break;
+                }
               }
             }
             // Is Last Firmware and Is Version i Major of Current Version?            
             if((is_last_firmware_on_sd) &&
-                ((fw_version > param.configuration->module_main_version) ||
-                ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))))
-            {
+              ((fw_version > param.configuration->module_main_version) ||
+              ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version)))) {
               fw_found = true;
               // Get full name for local operation
               entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
@@ -1478,8 +1480,10 @@ void SdTask::Run()
                 digitalWrite(PIN_SD_LED, LOW);
                 // Nothing error, starting firmware upgrade
                 if(!is_error) {
-                  // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
-                  SD.remove(local_file_name);
+                  // Remove from SD with complete structure name
+                  strcpy(firmware_file_name, "/firmware/");
+                  strcat(firmware_file_name, local_file_name);
+                  SD.remove(firmware_file_name);
                   // Optional send SIGTerm to all task
                   // WDT non blocking task (Delay basic operation)
                   TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\r\n"));
@@ -1521,11 +1525,12 @@ void SdTask::Run()
             else
             {
               entry.close();
-              // Remove from SD (NextCheck is from HTTP Connection and VersioneRevision Verify)
-              SD.remove(local_file_name);
+              // Remove from SD with complete structure name
+              strcpy(firmware_file_name, "/firmware/");
+              strcat(firmware_file_name, local_file_name);
+              SD.remove(firmware_file_name);
               TRACE_INFO_F(F("SD: found and delete firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
             }
-            break;
           }
         }
       }

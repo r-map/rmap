@@ -1716,8 +1716,12 @@ void CanTask::Run() {
                             clCanard.slave[queueId].file_server.reset_pending();
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // Set system_status (Set Node Offline)
+                            // Set module_version to unknown version to force get reload version and revision
+                            // If new firmware are updated (local or remote command) node go to offline mode...
                             param.systemStatusLock->Take();
                             param.system_status->data_slave[queueId].is_online = false;
+                            param.system_status->data_slave[queueId].module_version = 0;
+                            param.system_status->data_slave[queueId].module_revision = 0;
                             param.systemStatusLock->Give();
                         }
                     }

@@ -86,7 +86,7 @@
 
 //Maximum length of the client identifier
 #ifndef MQTT_CLIENT_MAX_ID_LEN
-   #define MQTT_CLIENT_MAX_ID_LEN 80
+   #define MQTT_CLIENT_MAX_ID_LEN 100
 #elif (MQTT_CLIENT_MAX_ID_LEN < 0)
    #error MQTT_CLIENT_MAX_ID_LEN parameter is not valid
 #endif

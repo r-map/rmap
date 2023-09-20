@@ -154,10 +154,7 @@ void SupervisorTask::Run()
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
         // Start INIT for Clear RPC Queue at first connection MQTT (Only at startup)
-
-        // TODO: remove
-        param.system_status->flags.clean_session = false;
-        ///////////////////////////param.system_status->flags.clean_session = true;
+        param.system_status->flags.clean_session = true;
         // Check configuration remote is valid
         param.system_status->flags.config_empty = true;
         for(uint8_t iIdx=0; iIdx < BOARDS_COUNT_MAX; iIdx ++) {
@@ -176,9 +173,6 @@ void SupervisorTask::Run()
         param.configuration->observation_s = 60;
         param.system_status->flags.config_empty = false;
         #endif
-
-        // TODO: Remove
-        param.configuration->report_s = 180;
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_LOAD_CONFIGURATION -> SUPERVISOR_STATE_WAITING_EVENT\r\n"));
         state = SUPERVISOR_STATE_WAITING_EVENT;
@@ -783,6 +777,11 @@ bool SupervisorTask::loadConfiguration()
     status = param.eeprom->Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
     param.configurationLock->Give();
   }
+
+  // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
+  param.configuration->module_main_version = MODULE_MAIN_VERSION;
+  param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+  param.configuration->module_type = (Module_Type)MODULE_TYPE;
 
   #if (INIT_PARAMETER)
   status = saveConfiguration(CONFIGURATION_DEFAULT);

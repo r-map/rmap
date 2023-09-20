@@ -667,13 +667,14 @@ void HttpTask::Run() {
             }
           }
           // Reset version and revision (force reload difference after download firmware to verify)
-          // If new version found, flag new_firmware_ready must be set to true on new connection...
+          // If new version found, flag new_firmware_ready must be set to true on new connection...          
+          param.systemStatusLock->Take();
           for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
             param.system_status->data_slave[i].module_version = 0;
             param.system_status->data_slave[i].module_revision = 0;
           }
+          param.systemStatusLock->Give();
         }
-
       } 
       else
       {
