@@ -231,7 +231,7 @@ void LCDTask::Run() {
         data_printed = false;
         encoder_state = DIR_NONE;
         selected_char_index = 0;
-        stima4_master_command = MASTER_COMMAND_DOWNLOAD_CFG;
+        stima4_master_command = MASTER_COMMAND_RESET_FLAGS;
         stima4_menu_ui = MAIN;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
 
@@ -1222,14 +1222,6 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   TRACE_INFO_F(F("LCD: Command to elaborate \"[ %s ]\"\r\n"), get_master_command_name_from_enum(command));
 
   switch (command) {
-    case MASTER_COMMAND_DOWNLOAD_CFG: {
-      // Set the request on system status to force connection request
-      param.systemStatusLock->Take();
-      param.system_status->command.do_http_configuration_update = true;
-      param.system_status->flags.http_wait_cfg = true;
-      param.systemStatusLock->Give();
-      break;
-    }
     case MASTER_COMMAND_RESET_FLAGS: {
       // Set the request on system status to reset flags
       param.systemStatusLock->Take();
@@ -1242,6 +1234,22 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.boot_request->wdt_reset = 0;
       // Save info bootloader block
       param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
+      break;
+    }
+    case MASTER_COMMAND_DOWNLOAD_CFG: {
+      // Set the request on system status to force connection request
+      param.systemStatusLock->Take();
+      param.system_status->command.do_http_configuration_update = true;
+      param.system_status->flags.http_wait_cfg = true;
+      param.systemStatusLock->Give();
+      break;
+    }
+    case MASTER_COMMAND_DOWNLOAD_FW: {
+      // Set the request on system status to force connection request
+      param.systemStatusLock->Take();
+      param.system_status->command.do_http_firmware_download = true;
+      param.system_status->flags.http_wait_fw = true;
+      param.systemStatusLock->Give();
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1433,12 +1441,16 @@ void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
 const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
   const char* command_name;
   switch (command) {
+    case MASTER_COMMAND_RESET_FLAGS: {
+      command_name = "Reset flags";
+      break;
+    }
     case MASTER_COMMAND_DOWNLOAD_CFG: {
       command_name = "Download configuration";
       break;
     }
-    case MASTER_COMMAND_RESET_FLAGS: {
-      command_name = "Reset flags";
+    case MASTER_COMMAND_DOWNLOAD_FW: {
+      command_name = "Download firmware";
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1673,8 +1685,8 @@ void LCDTask::switch_interface() {
           // **************************************************************************
 
           if (stima4_menu_ui_last == MAIN) {
-            command_selector_pos = stima4_master_command == MASTER_COMMAND_DOWNLOAD_CFG ? 0 : command_selector_pos - 1;
-            stima4_master_command = stima4_master_command == MASTER_COMMAND_DOWNLOAD_CFG ? MASTER_COMMAND_DOWNLOAD_CFG : (stima4_master_commands_t)(stima4_master_command - 1);
+            command_selector_pos = stima4_master_command == MASTER_COMMAND_RESET_FLAGS ? 0 : command_selector_pos - 1;
+            stima4_master_command = stima4_master_command == MASTER_COMMAND_RESET_FLAGS ? MASTER_COMMAND_RESET_FLAGS : (stima4_master_commands_t)(stima4_master_command - 1);
             if (!param.system_status->data_master.fw_upgradable && stima4_master_command == MASTER_COMMAND_FIRMWARE_UPGRADE) {
               stima4_master_command = (stima4_master_commands_t)(stima4_master_command - 1);
             }
@@ -1857,7 +1869,7 @@ void LCDTask::switch_interface() {
 
         // Updating flags and states
         command_selector_pos = 0;
-        stima4_master_command = MASTER_COMMAND_DOWNLOAD_CFG;
+        stima4_master_command = MASTER_COMMAND_RESET_FLAGS;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
         break;
       }
