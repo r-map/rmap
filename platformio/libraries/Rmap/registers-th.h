@@ -372,13 +372,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_TH_WRITABLE_DATA_LENGTH             (I2C_TH_SENSOR2_I2C_ADDRESS_ADDRESS + I2C_TH_SENSOR2_I2C_ADDRESS_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
+
 // Readable registers errors checking
-#if I2C_TH_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
+#if I2C_TH_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_LEN
 #error "ERROR! Too many readable registers found in TH module!!!"
 #endif
 
 // Writeable registers errors checking
-#if I2C_TH_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_END_ADDRESS
+#if I2C_TH_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_LEN
 #error "ERROR! Too many writable registers found in TH module!!!"
 #endif
 

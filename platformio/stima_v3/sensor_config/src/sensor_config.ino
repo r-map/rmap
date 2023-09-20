@@ -552,12 +552,16 @@ void windsonicSconfigure(void){
 
 char getCommand()
 {
-  char c = '\0';
-  if (Serial.available())
+  while (Serial.available())
   {
-    c = Serial.read();
+    Serial.read();
   }
-  return c;
+  
+  while (!Serial.available())
+  {
+    delay(1);
+  }
+  return Serial.read();
 }
 
 void displayHelp()
@@ -573,7 +577,7 @@ void displayHelp()
   Serial.println(F("\tw = i2c-wind"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
-  Serial.println(F("\tu = windsonic sconfigurator ! (use to broke your sensor!)"));
+  Serial.println(F("\tu = windsonic sconfigurator ! (use to sconfigure your sensor!)"));
   Serial.println(F("\tv = windsonic setup"));
   Serial.println(F("\tz = windsonic transparent mode"));
   Serial.println(F("\tp = i2c-power"));
@@ -599,10 +603,8 @@ void setup() {
   // do not need this with patched Wire library
   //digitalWrite( SDA, LOW);
   //digitalWrite( SCL, LOW);
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
-
-  displayHelp();
+  pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
+  pinMode(SCL, INPUT_PULLUP);
 
 }
 
@@ -611,6 +613,7 @@ void loop() {
 
   uint8_t buffer[32];
   char charbuffer[32];
+  displayHelp();
 
   char command = getCommand();
   switch (command)
@@ -632,7 +635,6 @@ void loop() {
 
 	Serial.println("\ndone");
 
-	displayHelp();
 	break;
       }
 
@@ -663,7 +665,7 @@ void loop() {
 	
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-radiation (1/2)"));
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-radiation (0/1) (default 0)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -671,7 +673,7 @@ void loop() {
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
 	buffer[0]=I2C_SOLAR_RADIATION_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot-1);
+	buffer[1]=(bool)(oneshot);
 	buffer[I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_SOLAR_RADIATION_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
@@ -686,9 +688,9 @@ void loop() {
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
 	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
-	buffer[I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+1);
-	Wire.write(buffer,I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH+2);
+	memcpy( &buffer[1],&new_value, sizeof(new_value));
+	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
+	Wire.write(buffer,sizeof(new_value)+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
@@ -705,9 +707,9 @@ void loop() {
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
 	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
-	buffer[I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+1);
-	Wire.write(buffer,I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH+2);
+	memcpy( &buffer[1],&new_value, sizeof(new_value));
+	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
+	Wire.write(buffer,sizeof(new_value)+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
@@ -723,9 +725,9 @@ void loop() {
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
 	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
-	buffer[I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+1);
-	Wire.write(buffer,I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH+2);
+	memcpy( &buffer[1],&new_value, sizeof(new_value));
+	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
+	Wire.write(buffer,sizeof(new_value)+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
@@ -741,9 +743,9 @@ void loop() {
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
 	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
-	buffer[I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+1);
-	Wire.write(buffer,I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH+2);
+	memcpy( &buffer[1],&new_value, sizeof(new_value));
+	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
+	Wire.write(buffer,sizeof(new_value)+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
@@ -761,7 +763,6 @@ void loop() {
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 
-	displayHelp();
 	break;
       }
       
@@ -809,7 +810,7 @@ void loop() {
 	
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-wind (1/2)"));
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-wind  (0/1) (default 0)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -817,7 +818,7 @@ void loop() {
 
 	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
 	buffer[0]=I2C_WIND_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot-1);
+	buffer[1]=(bool)(oneshot);
 	buffer[I2C_WIND_ONESHOT_LENGTH+1]=crc8(buffer, I2C_WIND_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_WIND_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
@@ -834,7 +835,6 @@ void loop() {
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 
-	displayHelp();
 	break;
       }
 
@@ -937,7 +937,7 @@ void loop() {
 
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-th (1/2)"));
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-th  (0/1) (default 0)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -946,7 +946,7 @@ void loop() {
 
 	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
 	buffer[0]=I2C_TH_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot-1);
+	buffer[1]=(bool)(oneshot);
 	buffer[I2C_TH_ONESHOT_LENGTH+1]=crc8(buffer, I2C_TH_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_TH_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
@@ -964,7 +964,6 @@ void loop() {
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 
-	displayHelp();
 	break;
       }
     case 'r':
@@ -993,8 +992,8 @@ void loop() {
 	delay(1000);
 	
 	oneshot=-1;
-	while (oneshot < 1 || oneshot > 2){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-rain (1/2) (1 is not supported for now)"));
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-rain  (0/1) (default 1) (0 is not supported for now)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -1003,7 +1002,7 @@ void loop() {
 
 	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	buffer[0]=I2C_RAIN_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot-1);
+	buffer[1]=(bool)(oneshot);
 	buffer[I2C_RAIN_ONESHOT_LENGTH+1]=crc8(buffer, I2C_RAIN_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_RAIN_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
@@ -1051,7 +1050,6 @@ void loop() {
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 	
-	displayHelp();
 	break;
       }
 
@@ -1175,7 +1173,7 @@ void loop() {
 	
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-radiation (1/2)"));
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-power (0/1) (default 0)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -1183,40 +1181,41 @@ void loop() {
 
 	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
 	buffer[0]=I2C_POWER_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot-1);
+	buffer[1]=(bool)(oneshot);
 	buffer[I2C_POWER_ONESHOT_LENGTH+1]=crc8(buffer, I2C_POWER_ONESHOT_LENGTH+1);
 	Wire.write(buffer,I2C_POWER_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
-	float new_value= -1;
-	while (new_value < 0. || new_value > 32767){
-	  Serial.print(F("digit new value for max voltage input from panel variable for i2c-power module (0/32767) (default 30000): "));
-	  new_value=Serial.parseFloat();
+	uint16_t new_value= 0;
+	while (new_value < 1 || new_value > 32767){
+	  Serial.print(F("digit new value for max voltage input for panel  for i2c-power module (millivolt) (0/32767) (default 30000): "));
+	  new_value=Serial.parseInt();
 	  Serial.println(new_value);
 	}
 	delay(1000);
 
 	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
 	buffer[0]=I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	memcpy( &buffer[1], &new_value,sizeof(new_value));
 	buffer[I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1);
 	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
 	delay(1000);
 
-	new_value= -32768;
-	while (new_value < -32767. || new_value > 32767.){
-	  Serial.print(F("digit new value for max voltage input from panel variable for i2c-power module (0/32767) (default 15000): "));
-	  new_value=Serial.parseFloat();
+	new_value= 0;
+	while (new_value < 1 || new_value > 32767.){
+	  Serial.print(F("digit new value for max voltage input for battery for i2c-power module (millivolt) (0/32767) (default 15000): "));
+	  new_value=Serial.parseInt();
 	  Serial.println(new_value);
 	}
 	delay(1000);
 
 	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
 	buffer[0]=I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS;
-	memcpy(&new_value, &buffer[1], sizeof(new_value));
+	memcpy( &buffer[1],&new_value, sizeof(new_value));
 	buffer[I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1);
+
 	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
@@ -1234,12 +1233,10 @@ void loop() {
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 
-	displayHelp();
 	break;
       }
       
     case '?':
-      displayHelp();
       break;
 
     case '\0':
@@ -1247,7 +1244,6 @@ void loop() {
 
     default:
       Serial.println(F("\tinvalid"));
-      displayHelp();
       break;
     }
 }

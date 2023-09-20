@@ -104,7 +104,7 @@ correctly during I2C communication.
 
 #define ADC_I2C_ADDRESS                               ADC_VDD_I2C_ADDRESS
 
-// max value in mV to be applied before partitor yo get max ADC input (2.048 V)
+// max value in mV to be applied before partitor to get max ADC input (2.048 V)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_PANEL     (30000)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_BATTERY   (15000)
 

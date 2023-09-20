@@ -355,8 +355,8 @@ void print_configuration() {
   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
 
-  LOGN(F("--> adc panel   voltage max: %0 mV"), configuration.adc_voltage_max_panel);
-  LOGN(F("--> adc battery voltage max: %0 mV"), configuration.adc_voltage_max_battery);
+  LOGN(F("--> adc panel   voltage max: %d mV"), configuration.adc_voltage_max_panel);
+  LOGN(F("--> adc battery voltage max: %d mV"), configuration.adc_voltage_max_battery);
 
 }
 
@@ -475,6 +475,12 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_POWER_ONESHOT_ADDRESS && rx_data_length == I2C_POWER_ONESHOT_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS && rx_data_length == I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS && rx_data_length == I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH) {
         is_i2c_data_ok = true;
       }
       if (is_i2c_data_ok) {

@@ -390,10 +390,10 @@ void print_configuration() {
   #endif
 
   #if (USE_SENSOR_VSR)
-  LOGN(F("--> AINx\toffset\tgain\tradmax\tvoltagemax"));
+  LOGN(F("--> AINx\toffset\tgain\tvoltagemax\tradmax"));
 
   for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.sensor_rad_max[i], configuration.sensor_voltage_max[i]);
+    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.sensor_voltage_max[i], configuration.sensor_rad_max[i]);
   }
   #endif
 }
@@ -567,6 +567,18 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ONESHOT_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_ONESHOT_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }      
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH/CHANNEL_COUNT) {
         is_i2c_data_ok = true;
       }
       if (is_i2c_data_ok) {

@@ -271,13 +271,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH             (I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS + I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
 // Readable registers errors checking
-#if I2C_SOLAR_RADIATION_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
-#error "ERROR! Too many readable registers found in TH module!!!"
+#if I2C_SOLAR_RADIATION_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_LEN
+#error "ERROR! Too many readable registers found in radiation module!!!"
 #endif
 
 // Writeable registers errors checking
-#if I2C_SOLAR_RADIATION_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_END_ADDRESS
-#error "ERROR! Too many writable registers found in TH module!!!"
+#if I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH > I2C_WRITE_REGISTER_LEN
+#error "ERROR! Too many writable registers found in radiation module!!!"
 #endif
 
 #endif

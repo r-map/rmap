@@ -84,6 +84,10 @@ void getStimaNameByType(char *name, uint8_t type) {
     strcpy(name, STIMA_MODULE_NAME_GAS);
     break;
 
+    case STIMA_MODULE_TYPE_POWER:
+    strcpy(name, STIMA_MODULE_NAME_POWER);
+    break;
+    
     default:
     strcpy(name, "ERROR");
       break;
