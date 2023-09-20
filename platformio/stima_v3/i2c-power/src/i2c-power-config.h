@@ -77,7 +77,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def POWER_ADC_CHANNEL_INPUT_PANEL
 \brief Input channel for panel
 */
-#define POWER_ADC_CHANNEL_INPUT_PANEL                         (1)
+#define POWER_ADC_CHANNEL_INPUT_PANEL                         (0)
 
 /*!
 \def POWER_ADC_CHANNEL_INPUT_BATTERY
