@@ -344,6 +344,7 @@ void SdTask::Run()
   uint8_t module_type_cast, fw_version, fw_revision;
   bool fw_found;
   bool fw_reload_struct = false;  // True if request reload structure firmware and send queue response
+  bool fw_reinit_struct = false;  // True if request reinit structure firmware and send queue response (complete clean directory)
   File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
   File rmapBkpFile;               // File (OLDER RMAP Backup Write Data Append from External Task request)
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
@@ -423,6 +424,8 @@ void SdTask::Run()
       digitalWrite(PIN_SD_LED, bLedLevel);
       // Optional Trace Type of CARD... and Size
       // Check or create directory Structure...
+
+      // Create firmware directory
       if(!SD.exists("/firmware")) {
         if(!SD.mkdir("/firmware")) {
           state = SD_STATE_INIT;
@@ -551,10 +554,73 @@ void SdTask::Run()
       state = SD_STATE_CHECK_FIRMWARE;
       break;
 
+    case SD_STATE_CLEAN_FIRMWARE:
+      // **********************************************************************************
+      // Clean entire structure firware dir (destroy all file into before new synch server)
+      // **********************************************************************************
+
+      if(SD.exists("/firmware")) {
+        dir = SD.open("/firmware");
+        if(!dir) {
+          // Exit Error and Reset
+          state = SD_STATE_INIT;
+          break;
+        }
+        // Open File High LED
+        digitalWrite(PIN_SD_LED, HIGH);
+        if(!dir.isDir()) {
+          SD.remove("/firmware");
+          // Create newver firmware directory
+          if(!SD.exists("/firmware")) {
+            if(!SD.mkdir("/firmware")) {
+              state = SD_STATE_INIT;
+              break;
+            }
+            TRACE_INFO_F(F("SD: reinit base structure dir firmware\r\n"));
+          }
+        } else {
+          // Delete all file into firmware directory (reinit...)
+          while(true) {
+            entry = dir.openNextFile();
+            if(!entry) break;
+            entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+            entry.close();
+            strcpy(firmware_file_name, "/firmware/");
+            strcat(firmware_file_name, local_file_name);
+            SD.remove(firmware_file_name);
+          }
+          dir.close();
+        }
+        // Close File Low LED
+        digitalWrite(PIN_SD_LED, LOW);
+      }
+
+      // Force init array structure SD Card firmware present (RESETTED to initial void value)
+      for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+        param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
+        param.system_status->boards_update_avaiable[brd].version = 0;
+        param.system_status->boards_update_avaiable[brd].revision = 0;
+      }
+
+      // ? Need to send response to sender (Not at startup -> fw_reinit_struct = false)
+      // Normally on request from RPC Before calling -> system_message.do_update_all (with init)
+      // fw_reinit_struct is true if must to respond queue to sender (RPC)
+      if(fw_reinit_struct) {
+        system_message_t system_message = {0};
+        system_message.task_dest = ALL_TASK_ID;
+        system_message.command.done_reinit_fw = true;
+        param.systemMessageQueue->Enqueue(&system_message);
+      }
+
+      TRACE_VERBOSE_F(F("SD_STATE_CLEAN_FIRMWARE -> SD_STATE_CHECK_FIRMWARE\r\n"));
+
+      state = SD_STATE_WAITING_EVENT;
+      break;
+
     case SD_STATE_CHECK_FIRMWARE:
       // **********************************************************************************
       // Check firmware file present Type, model and version from list file in firmware dir
-      // Full system_status inform struct with firmware present on SD CARD
+      // Full system_status inform struct with firmware present on SD (Forced at startup)
       // **********************************************************************************
       dir = SD.open("/firmware");
       if(!dir) {
@@ -586,9 +652,9 @@ void SdTask::Run()
           // If Version> last file version or Version== and Revision >... Update module version/revision firmware avaiable struct
           for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
             // First occurance or Found...            
-            if(((!fw_found)&&(param.system_status->boards_update_avaiable[brd].module_type == 0)) ||
+            if(((!fw_found) && (param.system_status->boards_update_avaiable[brd].module_type == Module_Type::undefined)) ||
               (param.system_status->boards_update_avaiable[brd].module_type == module_type)) {
-              if((fw_version>param.system_status->boards_update_avaiable[brd].version) ||
+              if((fw_version > param.system_status->boards_update_avaiable[brd].version) ||
                 ((fw_version == param.system_status->boards_update_avaiable[brd].version)&&(fw_revision > param.system_status->boards_update_avaiable[brd].revision))) {
                 param.systemStatusLock->Take();
                 param.system_status->boards_update_avaiable[brd].module_type = module_type;
@@ -672,10 +738,20 @@ void SdTask::Run()
           // And Auto start CallBack Start Upload Firmware To CAN and Local...
           if(system_message.command.do_reload_fw) {
             retry = 0;
-            fw_reload_struct = true; // Need to send a peply to sender
-            // Normally RPC Wait a response all firmware checke and loaded structure before
+            fw_reload_struct = true; // Need to send a reply to sender
+            // Normally RPC Wait a response all firmware check and loaded structure before
             // Calling systemn update all with another system message to queue
             state = SD_STATE_CHECK_FIRMWARE;
+            break;
+          }
+          // Request to clear structure File Firmware (Clean all file present to firmware archive)
+          // And Auto start CallBack Start Upload Firmware To CAN and Local...
+          if(system_message.command.do_reinit_fw) {
+            retry = 0;
+            fw_reinit_struct = true; // Need to send a reply to sender
+            // Normally RPC Wait a response all firmware check and reinit structure before
+            // Calling systemn update all with another system message to queue
+            state = SD_STATE_CLEAN_FIRMWARE;
             break;
           }
         }
@@ -1480,10 +1556,6 @@ void SdTask::Run()
                 digitalWrite(PIN_SD_LED, LOW);
                 // Nothing error, starting firmware upgrade
                 if(!is_error) {
-                  // Remove from SD with complete structure name
-                  strcpy(firmware_file_name, "/firmware/");
-                  strcat(firmware_file_name, local_file_name);
-                  SD.remove(firmware_file_name);
                   // Optional send SIGTerm to all task
                   // WDT non blocking task (Delay basic operation)
                   TRACE_INFO_F(F("SD: firmware upgrading complete waiting reboot for start flashing...\r\n"));
@@ -1525,11 +1597,6 @@ void SdTask::Run()
             else
             {
               entry.close();
-              // Remove from SD with complete structure name
-              strcpy(firmware_file_name, "/firmware/");
-              strcat(firmware_file_name, local_file_name);
-              SD.remove(firmware_file_name);
-              TRACE_INFO_F(F("SD: found and delete firmware obsolete: %s Ver %u.%u\r\n"), stima_name, fw_version, fw_revision);
             }
           }
         }

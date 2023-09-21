@@ -468,6 +468,22 @@ void SupervisorTask::Run()
             param.systemStatusLock->Take();
             param.system_status->connection.is_mqtt_publishing_end = false;
             param.systemStatusLock->Give();
+
+            if ((param.system_status->command.do_http_configuration_update)||(param.system_status->command.do_http_firmware_download)) {
+              // is_mqtt_connected, Already terminated not newver Connection here
+              param.system_status->connection.is_mqtt_connected = true;
+              // Set istant connection HTTPS if required
+              param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
+              param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_download;
+              param.system_status->command.do_http_configuration_update = false;
+              param.system_status->command.do_http_firmware_download = false;
+              TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP (FROM RPC REQUEST)\r\n"));
+
+              state_check_connection = CONNECTION_CHECK_HTTP;
+              break;
+            }
+
+            // Normal end of connnection
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_DISCONNECTION\r\n"));
             // Init retry disconnection
             retry = 0;

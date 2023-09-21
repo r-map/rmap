@@ -98,6 +98,31 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
+
+        // Starting queue request reinit structure firmware upgradable (and start download...)
+        // And waiting response. After command structure firmware are resetted (after download new check for valid firmware ready)
+        system_message_t system_message = {0};
+        system_message.task_dest = SD_TASK_ID;
+        system_message.command.do_reinit_fw = true;
+        param.systemMessageQueue->Enqueue(&system_message);
+
+        // Waiting a response done before continue (reinit firmware OK!!!)
+        while(true) {
+          // Continuos Switching context non blocking
+          // Need Waiting Task for start command on All used TASK
+          taskYIELD();
+          vTaskDelay(100);
+          // Check response done
+          if(!param.systemMessageQueue->IsEmpty()) {
+            param.systemMessageQueue->Peek(&system_message);
+            if(system_message.command.done_reinit_fw) {
+              // Remove message (Reinit Done is OK)
+              param.systemMessageQueue->Dequeue(&system_message);
+              break;
+            }
+          }
+        }
+
         TRACE_INFO_F(F("RPC: DO DOWNLOAD FIRMWARE\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
@@ -1176,8 +1201,8 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 
         inibith_reboot = true;
 
-        // Starting queue request reload structure firmware upgradable
-        // And waiting response. After start update all firmware board on system (upgradable)
+        // Starting queue request reload structure firmware upgradable (after download command is also send to TASK SD...)
+        // And waiting response. After command structure firmware are reloaded
         system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reload_fw = true;
@@ -1193,7 +1218,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
           if(!param.systemMessageQueue->IsEmpty()) {
             param.systemMessageQueue->Peek(&system_message);
             if(system_message.command.done_reload_fw) {
-              // Remove message (Reload Done is OK)
+              // Remove message (Reinit Done is OK)
               param.systemMessageQueue->Dequeue(&system_message);
               break;
             }

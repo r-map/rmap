@@ -1851,7 +1851,7 @@ void CanTask::Run() {
                         // Normal mode (Not WakeUP)
                         bStartSetFullPower = false;
                     }
-                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
