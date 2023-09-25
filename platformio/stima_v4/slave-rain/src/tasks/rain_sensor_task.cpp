@@ -188,7 +188,6 @@ void RainSensorTask::Run() {
         rain_sensor.rain_full = 0;
         rain_sensor.tips_count = 0;
         rain_sensor.tips_full = 0;
-        memset(&rain_sensor, 0, sizeof(rain_sensor));
         break;
       }
       // Is RESET SCROLL? (false, is request Reset Counter value)
