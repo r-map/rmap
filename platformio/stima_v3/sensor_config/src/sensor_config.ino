@@ -687,7 +687,7 @@ void loop() {
 	delay(1000);
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
-	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS;
+	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS+0x04;
 	memcpy( &buffer[1],&new_value, sizeof(new_value));
 	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
 	Wire.write(buffer,sizeof(new_value)+2);
@@ -695,7 +695,7 @@ void loop() {
 
 	delay(1000);
 
-
+	Serial.print(F("set AIN1 registers only !!!"));
 
 	new_value= -32768;
 	while (new_value < -32767. || new_value > 32767.){
@@ -706,7 +706,7 @@ void loop() {
 	delay(1000);
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
-	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS;
+	buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS+0x04;
 	memcpy( &buffer[1],&new_value, sizeof(new_value));
 	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
 	Wire.write(buffer,sizeof(new_value)+2);
@@ -716,15 +716,15 @@ void loop() {
 
 
 	new_value= -1;
-	while (new_value < 1. || new_value > 5000.){
-	  Serial.print(F("digit new value for sensor voltage max(1./5000.) (default 2000.): "));
+	while (new_value < 1. || new_value > 10000.){
+	  Serial.print(F("digit new value for sensor voltage max(1./10000.) (default 5000.): "));
 	  new_value=Serial.parseFloat();
 	  Serial.println(new_value);
 	}
 	delay(1000);
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
-	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS;
+	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS+0x04;
 	memcpy( &buffer[1],&new_value, sizeof(new_value));
 	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
 	Wire.write(buffer,sizeof(new_value)+2);
@@ -742,7 +742,7 @@ void loop() {
 	delay(1000);
 
 	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
-	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS;
+	buffer[0]=I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS+0x04;
 	memcpy( &buffer[1],&new_value, sizeof(new_value));
 	buffer[sizeof(new_value)+1]=crc8(buffer, sizeof(new_value)+1);
 	Wire.write(buffer,sizeof(new_value)+2);

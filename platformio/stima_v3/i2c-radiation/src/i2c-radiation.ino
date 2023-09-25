@@ -581,6 +581,47 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH/CHANNEL_COUNT) {
         is_i2c_data_ok = true;
       }
+
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS+4 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }      
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS+4 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS+4 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS+4 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS+8 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }      
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS+8 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS+8 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS+8 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_ADDRESS+12 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_OFFSET_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }      
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS+12 && rx_data_length == I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_ADDRESS+12 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_VOLTAGE_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_ADDRESS+12 && rx_data_length == I2C_SOLAR_RADIATION_SENSOR_RADIATION_MAX_LENGTH/CHANNEL_COUNT) {
+        is_i2c_data_ok = true;
+      }
+
+      
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
@@ -837,8 +878,8 @@ void solar_radiation_task_hr () {
 	  
 	  if (value != float(INT16_MAX)){
 	    value = getSolarRadiation(value
-				      , configuration.sensor_rad_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
-				      , configuration.sensor_voltage_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+				      , configuration.sensor_voltage_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+				      , configuration.sensor_rad_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 	    LOGN(F("radiation: %D w/m^2"), value);
 	  }
 	}
