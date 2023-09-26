@@ -148,12 +148,6 @@ correctly during I2C communication.
 */
 #define SOLAR_RADIATION_POWER_PIN                     (5)
 
-/*!
-\def SOLAR_RADIATION_ANALOG_PIN
-\brief Input pin for reading radiation direction sensor value.
-*/
-#define ADC_VOLTAGE_MIN                               (-6144.0)
-#define ADC_VOLTAGE_MAX                               (6144.0)
 #define ADC_VOLTAGE_OFFSET                            (0.0)
 
 /*

@@ -678,11 +678,13 @@ void loop() {
 	Wire.write(buffer,I2C_SOLAR_RADIATION_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
+	Serial.println(F("set AIN1 registers only !!!"));
+	
 	float new_value= -1;
 	while (new_value < 0. || new_value > 32767){
 	  Serial.print(F("digit new value for ADC calibration offset(0/32767) (default 0): "));
 	  new_value=Serial.parseFloat();
-	  Serial.println(new_value);
+	  Serial.println(new_value,5);
 	}
 	delay(1000);
 
@@ -695,13 +697,11 @@ void loop() {
 
 	delay(1000);
 
-	Serial.print(F("set AIN1 registers only !!!"));
-
 	new_value= -32768;
 	while (new_value < -32767. || new_value > 32767.){
 	  Serial.print(F("digit new value for ADC calibration gain(-32767./32767.) (default 1.0): "));
 	  new_value=Serial.parseFloat();
-	  Serial.println(new_value);
+	  Serial.println(new_value,5);
 	}
 	delay(1000);
 

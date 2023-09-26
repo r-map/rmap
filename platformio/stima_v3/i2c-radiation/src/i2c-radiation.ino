@@ -36,6 +36,7 @@ void setup() {
   init_buffers();
   init_wire();
   init_rtc();
+  init_adc();
   #if (USE_TIMER_1)
   init_timer1();
   #endif
@@ -290,6 +291,34 @@ void init_spi() {
 #endif
 }
 
+void init_adc() {
+#if (USE_SENSOR_VSR)
+  LOGN("set ADS gain to:");
+  switch (adsgain)
+    {
+    case GAIN_TWOTHIRDS:
+      LOGN("6.144 V.");
+      break;
+    case GAIN_ONE:
+      LOGN("4.096 V.");
+      break;
+    case GAIN_TWO:
+      LOGN("2.048 V.");
+      break;
+    case GAIN_FOUR:
+      LOGN("1.024 V.");
+      break;
+    case GAIN_EIGHT:
+      LOGN("0.512 V.");
+      break;
+    case GAIN_SIXTEEN:
+      LOGN("0.256 V.");
+      break;
+    }
+  adc1.setGain(adsgain);
+#endif
+}
+
 void init_rtc() {
 }
 
@@ -373,6 +402,47 @@ void init_system() {
   state = INIT;
 }
 
+#if (USE_SENSOR_VSR)
+void compute_adc_voltage(void){
+    float adc_voltage_max = 0;
+
+    //for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+    //  adc_voltage_max=max(adc_voltage_max,configuration.sensor_voltage_max[i]);
+    //}
+    
+    // take in account AIN1 only
+    adc_voltage_max=configuration.sensor_voltage_max[1];
+
+    if (adc_voltage_max > 6144){
+      LOGE("sensor_voltage_max TOO BIG");
+      delay(100000);
+      adc_voltage_max = 6144;
+      adsgain = GAIN_TWOTHIRDS; //         = ADS1115_REG_CONFIG_PGA_6_144V
+    } else if (adc_voltage_max > 4096){
+      adc_voltage_max = 6144;
+      adsgain = GAIN_TWOTHIRDS; //         = ADS1115_REG_CONFIG_PGA_6_144V
+    } else if (adc_voltage_max > 2048){
+      adc_voltage_max = 4096;
+      adsgain = GAIN_ONE;       //         = ADS1115_REG_CONFIG_PGA_4_096V
+    } else if (adc_voltage_max > 1024){
+      adc_voltage_max = 2048;
+      adsgain = GAIN_TWO;       //         = ADS1115_REG_CONFIG_PGA_2_048V
+    } else if (adc_voltage_max > 512){
+      adc_voltage_max = 1024;
+      adsgain = GAIN_FOUR;      //         = ADS1115_REG_CONFIG_PGA_1_024V
+    } else if (adc_voltage_max > 256){
+      adc_voltage_max = 512;
+      adsgain = GAIN_EIGHT;     //         = ADS1115_REG_CONFIG_PGA_0_512V
+    } else {
+      adc_voltage_max = 256;
+      adsgain = GAIN_SIXTEEN;   //         = ADS1115_REG_CONFIG_PGA_0_256V
+    }
+    
+    configuration.adc_voltage_min = -adc_voltage_max;
+    configuration.adc_voltage_max =  adc_voltage_max;
+}
+#endif
+
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
@@ -390,10 +460,13 @@ void print_configuration() {
   #endif
 
   #if (USE_SENSOR_VSR)
+  LOGN(F("--> adc voltage min: %0 mV"), configuration.adc_voltage_min);
+  LOGN(F("--> adc voltage max: %0 mV"), configuration.adc_voltage_max);
+  
   LOGN(F("--> AINx\toffset\tgain\tvoltagemax\tradmax"));
 
   for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.sensor_voltage_max[i], configuration.sensor_rad_max[i]);
+    LOGN(F("--> AIN%d\t%D\t%5\t%D\t\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.sensor_voltage_max[i], configuration.sensor_rad_max[i]);
   }
   #endif
 }
@@ -428,29 +501,30 @@ void save_configuration(bool is_default) {
       configuration.adc_calibration_gain[i] =   CONFIGURATION_DEFAULT_ADC_VOLTAGE_GAIN;
       configuration.sensor_rad_max[i] = CONFIGURATION_DEFAULT_SENSOR_RADIATION_MAX;
       configuration.sensor_voltage_max[i] = CONFIGURATION_DEFAULT_SENSOR_VOLTAGE_MAX;
-      // }
     }
+    compute_adc_voltage();
     #endif
   }
   else {
     LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
+    //configuration.adc_voltage_min = writable_data.adc_voltage_min;
+    //configuration.adc_voltage_max = writable_data.adc_voltage_max;
 
     #if (USE_SENSOR_DSR)
     configuration.adc_voltage_offset_1 = writable_data.adc_voltage_offset_1;
     configuration.adc_voltage_offset_2 = writable_data.adc_voltage_offset_2;
-    configuration.adc_voltage_min = writable_data.adc_voltage_min;
-    configuration.adc_voltage_max = writable_data.adc_voltage_max;
     #endif
 
-    #if (USE_SENSOR_VSR)
+    #if (USE_SENSOR_VSR)    
     for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
       configuration.adc_calibration_offset[i] = writable_data.adc_calibration_offset[i];
       configuration.adc_calibration_gain[i] = writable_data.adc_calibration_gain[i];
       configuration.sensor_rad_max[i] = writable_data.sensor_rad_max[i];
       configuration.sensor_voltage_max[i] = writable_data.sensor_voltage_max[i];
     }
+    compute_adc_voltage();
     #endif
   }
 
@@ -480,8 +554,8 @@ void load_configuration() {
   #if (USE_SENSOR_DSR)
   writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;
   writable_data.adc_voltage_offset_2 = configuration.adc_voltage_offset_2;
-  writable_data.adc_voltage_min      = configuration.adc_voltage_min;
-  writable_data.adc_voltage_max      = configuration.adc_voltage_max;
+  //writable_data.adc_voltage_min      = configuration.adc_voltage_min;
+  //writable_data.adc_voltage_max      = configuration.adc_voltage_max;
   #endif
 
   #if (USE_SENSOR_VSR)
@@ -491,6 +565,7 @@ void load_configuration() {
     writable_data.sensor_rad_max[i]         = configuration.sensor_rad_max[i];
     writable_data.sensor_voltage_max[i]     = configuration.sensor_voltage_max[i];
   }
+  compute_adc_voltage();
   #endif
   
 }
@@ -796,7 +871,7 @@ float getAdcAnalogValue (float adc_value, float min, float max) {
   float value = (float) INT16_MAX;
 
   value = adc_value;
-  value *= (ADC_VOLTAGE_MAX - ADC_VOLTAGE_MIN) / (float(ADC_MAX)-float(ADC_MIN));
+  value *= (configuration.adc_voltage_max - configuration.adc_voltage_min) / (float(ADC_MAX)-float(ADC_MIN));
   value += ADC_VOLTAGE_OFFSET;
 
   return value;
@@ -871,7 +946,7 @@ void solar_radiation_task_hr () {
 	LOGN(F("%D"), value);
 
 	if (value != float(INT16_MAX)){
-	  value = getAdcAnalogValue(value, ADC_VOLTAGE_MIN, ADC_VOLTAGE_MAX);
+	  value = getAdcAnalogValue(value, configuration.adc_voltage_min, configuration.adc_voltage_max);
 	  LOGN(F("voltage: %D"), value);
 	  LOGN(F("rad     max: %D"), configuration.sensor_rad_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 	  LOGN(F("voltage max: %D"), configuration.sensor_voltage_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
@@ -1047,6 +1122,9 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "SAVE");
       save_configuration(CONFIGURATION_CURRENT);
       init_wire();
+      #if (USE_SENSOR_VSR)
+      init_adc();
+      #endif
     break;
   
   default:
