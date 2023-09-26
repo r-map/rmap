@@ -36,6 +36,7 @@ void setup() {
   init_buffers();
   init_wire();
   init_rtc();
+  init_adc();
   #if (USE_TIMER_1)
   init_timer1();
   #endif
@@ -258,6 +259,11 @@ void init_wire() {
   Wire.setClock(I2C_BUS_CLOCK);
   Wire.onRequest(i2c_request_interrupt_handler);
   Wire.onReceive(i2c_receive_interrupt_handler);
+}
+
+void init_adc() {
+  //+/-2.048V range = Gain 2 (default)
+  adc1.setGain(GAIN_TWO);
 }
 
 void init_spi() {

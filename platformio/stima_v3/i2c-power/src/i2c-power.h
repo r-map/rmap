@@ -415,6 +415,13 @@ void init_pins(void);
 void init_wire(void);
 
 /*!
+\fn void init_adc(void)
+\brief Init ADC converter.
+\return void.
+*/
+void init_adc(void);
+
+/*!
 \fn void init_spi(void)
 \brief Init SPI library.
 \return void.
