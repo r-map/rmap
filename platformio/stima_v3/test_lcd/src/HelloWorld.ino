@@ -39,7 +39,7 @@
 // and use the constructor below that specifies the address
 
 // declare the lcd object for auto i2c address location
-//hd44780_I2Clcd lcd;
+hd44780_I2Cexp lcd;
 
 //
 // enter address of LCD.
@@ -51,8 +51,8 @@
 // - 0x3f (unknwon chip)
 
 // declare i2c address and constructor for specified i2c address
-const int i2c_addr = 0x3F;
-hd44780_I2Cexp lcd(i2c_addr); // use device at this address
+//const int i2c_addr = 0x3F;
+//hd44780_I2Cexp lcd(i2c_addr); // use device at this address
 
 
 // LCD geometry
@@ -60,24 +60,25 @@ const int LCD_COLS = 20;
 const int LCD_ROWS = 4;
 void setup()
 {
-int status;
 
-	// initialize LCD with number of columns and rows: 
-	// hd44780 returns a status from begin() that can be used
-	// to determine if initalization failed.
-	// the actual status codes are defined in <hd44780.h>
-	// See the values RV_XXXX
-	//
-	// looking at the return status from begin() is optional
-	// it is being done here to provide feedback should there be an issue
-	//
-        status = lcd.begin(LCD_COLS, LCD_ROWS);
-	if(status) // non zero status means it was unsuccesful
-	{
-		// begin() failed so blink error code using the onboard LED if possible
-		hd44780::fatalError(status); // does not return
-	}
-
+  Wire.begin();
+  
+  // initialize LCD with number of columns and rows: 
+  // hd44780 returns a status from begin() that can be used
+  // to determine if initalization failed.
+  // the actual status codes are defined in <hd44780.h>
+  // See the values RV_XXXX
+  //
+  // looking at the return status from begin() is optional
+  // it is being done here to provide feedback should there be an issue
+  //
+  int status = lcd.begin(LCD_COLS, LCD_ROWS);
+  if(status) // non zero status means it was unsuccesful
+    {
+      // begin() failed so blink error code using the onboard LED if possible
+      hd44780::fatalError(status); // does not return
+    }
+  
 }
 
 void loop() {
