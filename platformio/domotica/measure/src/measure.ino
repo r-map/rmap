@@ -49,7 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LENVALUES 4
 
-#define APName"stima-WiFi"
+#define APName "stima-WiFi"
 
 //display definition
 #define OLEDI2CADDRESS 0X3C
@@ -90,7 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // disable debug at compile time but call function anyway
 // this may significantly reduce your sketch/library size.
-#define DISABLE_LOGGING disable
+//#define DISABLE_LOGGING disable
 
 // file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
@@ -173,7 +173,6 @@ LongIntBuffer p;
 float tmean=NAN;
 float umean=NAN;
 float rrate=NAN;
-time_t sprec=NAN;
 float symmetry=NAN;
 long pm2=-999,pm10=-999,co2=-999;
 
@@ -274,7 +273,7 @@ TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,n
   ,VALUE("Off",LOW,ventOff,noEvent)
 );
 #else
-ICACHE_RAM_ATTR void button1changed()
+IRAM_ATTR void button1changed()
 {
   precBtn.read();
   if (precBtn.wasReleased()){
@@ -395,7 +394,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       //Serial.printf("[%u] Disconnected!\n", num);
       break;
     case WStype_CONNECTED: {
-        IPAddress ip = webSocket.remoteIP(num);
+        //IPAddress ip = webSocket.remoteIP(num);
         //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
         webSocket.sendTXT(num, "console.log('ArduinoMenu Connected')");
       }
@@ -404,7 +403,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         Serial.printf("[%u] get Text: %s\n", num, payload);
         // nav.async((const char*)payload);//this is slow!!!!!!!!
         __trace(Serial.printf("[%u] get Text: %s\n", num, payload));
-        char*s=(char*)payload;
+        //char*s=(char*)payload;
         _trace(Serial<<"serve websocket menu"<<std::endl);
         wsOut.response.remove(0);
         wsOut<<"{\"output\":\"";
@@ -421,7 +420,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     } break;
     case WStype_BIN: {
         Serial<<"[WSc] get binary length:"<<length<<"[";
-        for(int c=0;c<length;c++) {
+        for(size_t c=0;c<length;c++) {
           Serial.print(*(char*)(payload+c),HEX);
           Serial.write(',');
         }
@@ -430,7 +429,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 	Serial.flush();
         uint16_t id=*(uint16_t*) payload++;
         idx_t len=*((idx_t*)++payload);
-        idx_t* pathBin=(idx_t*)++payload;
+        //idx_t* pathBin=(idx_t*)++payload;
         const char* inp=(const char*)(payload+len);
         //Serial<<"id:"<<id<<std::endl;
         if (id==nav.active().hash()) {
@@ -691,7 +690,7 @@ result idle(menuOut& o,idleEvent e) {
 }
 
 // ISR for encoder management
-ICACHE_RAM_ATTR void encoderprocess (){
+IRAM_ATTR void encoderprocess (){
   encoder.process();
 }
 
@@ -900,9 +899,9 @@ String reportKeyProcessor(const String& key)
 
   if (key == "TEMP") snprintf(cvalue,20,"%.1f",tmean);
   else if (key == "HUMID") snprintf(cvalue,20,"%.0f",umean);
-  else if (key == "PM2"  ) snprintf(cvalue,20,"%d",pm2);
-  else if (key == "PM10" ) snprintf(cvalue,20,"%d",pm10);
-  else if (key == "CO2"  ) snprintf(cvalue,20,"%d",co2);
+  else if (key == "PM2"  ) snprintf(cvalue,20,"%ld",pm2);
+  else if (key == "PM10" ) snprintf(cvalue,20,"%ld",pm10);
+  else if (key == "CO2"  ) snprintf(cvalue,20,"%ld",co2);
   else if (key == "PREC" ) snprintf(cvalue,20,"%.2f",prec*resolution);
   else if (key == "RATE" ) snprintf(cvalue,20,"%.2f",rrate*resolution);
   else if (key == "RSYM" ) snprintf(cvalue,20,"%.1f",symmetry);

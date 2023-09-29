@@ -15,11 +15,11 @@
     //multiple panels
     class panelsList {
       public:
-        constMEM panel* panels;
+        const panel* panels;
         navNode** nodes;
         constMEM idx_t sz;
         idx_t cur=0;
-        inline panelsList(constMEM panel p[],navNode* nodes[],idx_t sz):panels(p),nodes(nodes),sz(sz) {
+        inline panelsList(const panel p[],navNode* nodes[],idx_t sz):panels(p),nodes(nodes),sz(sz) {
           reset();
         }
         void reset(idx_t from=0);
@@ -80,7 +80,7 @@
         idx_t level=0;
         bool showTitle=true;
         bool idleChanged=false;//does idle screen need refresh?
-        idleFunc idleTask=inaction;//to do when menu exits, menu system will set idleFunc to this on exit
+        idleFunc idleTask=inaction;//to do when menu exits, menu system will set sleepTask to this on exit
         idleFunc sleepTask=NULL;//menu suspended, call this function
         navTarget* navFocus=NULL;
         bool nav2D=false;
@@ -88,7 +88,7 @@
         bool useUpdateEvent=false;//if false, when field value is changed use enterEvent instead.
         idx_t inputBurst=1;//limit of inputs that can be processed before output
         unsigned long lastChanged=0;//last change detected (can be external activity)
-        int timeOut=0;//enter idle mode after `timeOut` seconds of inactivity
+        unsigned int timeOut=0;//enter idle mode after `timeOut` seconds of inactivity
         bool useAccel=true;//use numeric accelerators to send idxCmd
         inline navRoot(menuNode& root,navNode* path,idx_t d,menuIn& in,outputsList &o)
           :out(o),in(in),path(path),maxDepth(d-1) {

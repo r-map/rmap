@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
-  #define ISR_PREFIX ICACHE_RAM_ATTR
+  #define ISR_PREFIX IRAM_ATTR
 #else
   #define ISR_PREFIX
 #endif
