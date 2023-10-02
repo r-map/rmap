@@ -463,11 +463,13 @@ void init_lcd() {
   lcd.setAddr(LCD_I2C_ADDRESS);
   if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
     {
+      wdt_reset();
       LOGN(F(" Error initializing LCD primary addr"));
 
       lcd.setAddr(LCD_I2C_SECONDARY_ADDRESS);
       if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
 	{
+	  wdt_reset();
 	  LOGE(F(" Error initializing LCD"));
 	  return;
 	}
@@ -2460,6 +2462,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   lcd_error |= lcd.setCursor(0, 1);
 	   if (is_test){
 	     lcd_error |= lcd.print(F("T "))==0;
+	     if(sensors_count > 7) display_set++;        // change set of sensors to display for test
+	     if (display_set > DISPLAY_SET_MAX) display_set=1; 	     
 	   }else{
 	     lcd_error |= lcd.print(F("R "))==0;
 	   }
@@ -2663,6 +2667,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   DeserializationError error = deserializeJson(doc,json_sensors_data_test);
 	   if (error) {
 	     LOGE(F("deserializeJson() failed with code %s"),error.c_str());
+	     lcd_error |= lcd.setCursor(2, 1);
+	     lcd_error |= lcd.print(F("Error testing sensors "))==0;
 	   }else{
 	     // line 1
 	     int32_t value = doc["B12101"] | INT32_MAX;
@@ -2693,7 +2699,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	       }
 	     }
 	     
-	     if (sensors_count < 7 ){
+	     if (display_set == 1 ){
 	       // line 2	     
 	       value = doc["B25025"] | INT32_MAX;
 	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
@@ -2715,7 +2721,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 		 lcd_error |= lcd.print((value/10.),1)==0;
 		 lcd_error |= lcd.print(F("Vp "))==0;
 	       }
-	     }else{
+	     }else if (display_set == 2 ){
 	       // line 2	     
 	       value = doc["B11002"] | INT32_MAX;
 	       if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,10000,-,-/")==0){

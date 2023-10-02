@@ -539,6 +539,12 @@ coming from recovery json RPC.
 */
 #define LCD_TIME_FOR_REINITIALIZE_S                   (SECS_PER_DAY)
 
+/*!
+\var DISPLAY_SET_MAX
+\brief Max number of page to show on display when testing sensors.
+*/
+#define DISPLAY_SET_MAX (2)
+
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 /*!
 \def ETHERNET_RETRY_COUNT_MAX

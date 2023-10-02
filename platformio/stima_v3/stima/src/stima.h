@@ -499,6 +499,14 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client
 \return void.
 */
 hd44780_I2Cexp lcd;
+
+
+/*!
+\var display_set
+\brief Page to show on display when testing sensors.
+*/
+uint8_t display_set = 1;
+
 #endif
 
 /*!
