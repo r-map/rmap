@@ -90,6 +90,26 @@ result i2c_th_sensor_type2(eventMask e, prompt &item);
 result i2c_th_sensor_address2(eventMask e, prompt &item);
 result i2c_th_save(eventMask e, prompt &item);
 
+result i2c_rain_address(eventMask e, prompt &item);
+result i2c_rain_oneshot(eventMask e, prompt &item);
+result i2c_rain_tipping_bucket_time(eventMask e, prompt &item);
+result i2c_rain_rain_for_tip(eventMask e, prompt &item);
+result i2c_rain_save(eventMask e, prompt &item);
+
+result i2c_power_address(eventMask e, prompt &item);
+result i2c_power_oneshot(eventMask e, prompt &item);
+result i2c_power_voltage_max_panel(eventMask e, prompt &item);
+result i2c_power_voltage_max_battery(eventMask e, prompt &item);
+result i2c_power_save(eventMask e, prompt &item);
+
+
+result i2c_wind_address(eventMask e, prompt &item);
+result i2c_wind_oneshot(eventMask e, prompt &item);
+//result i2c_wind_type(eventMask e, prompt &item);
+result i2c_wind_save(eventMask e, prompt &item);
+
+result windsonic_sconfigurator(eventMask e, prompt &item);
+result windsonic_configurator(eventMask e, prompt &item);
 
 bool last_status;
 bool true_idle_status=false;
@@ -107,6 +127,20 @@ char thSensorType1[]="SHT";
 uint8_t thSensorAddress1=48;
 char thSensorType2[]="   ";
 uint8_t thSensorAddress2=0;
+
+uint8_t rainAddress=I2C_RAIN_DEFAULT_ADDRESS;
+bool rainOneshot=false;
+uint16_t rainTippingBucketTime=50;
+uint8_t rainRainForTip=1;
+
+uint8_t powerAddress=I2C_POWER_DEFAULT_ADDRESS;
+bool powerOneshot=false;
+uint16_t powerVoltageMaxPanel=30000;
+uint16_t powerVoltageMaxBattery=15000;
+
+uint8_t windAddress=I2C_WIND_DEFAULT_ADDRESS;
+bool windOneshot=false;
+uint8_t windType=1;
 
 TOGGLE(radiationOneshot,subMenuRadiationOneshot,"Oneshot: ",doNothing,noEvent,noStyle
        ,VALUE("True",true,i2c_solar_radiation_oneshot,exitEvent)
@@ -151,9 +185,75 @@ MENU(subMenuTh,"i2c_th",doNothing,noEvent,noStyle
      ,EXIT("<Back")
      );
 
+TOGGLE(rainOneshot,subMenuRainOneshot,"Oneshot: ",doNothing,noEvent,noStyle
+       ,VALUE("True",true,i2c_rain_oneshot,exitEvent)
+       ,VALUE("False",false,i2c_rain_oneshot,exitEvent)
+       )
+
+MENU(subMenuRainSave,"Save configuration",doNothing,noEvent,noStyle
+	,OP("Yes",i2c_rain_save,enterEvent)
+	,EXIT("<Back")
+	);
+
+MENU(subMenuRain,"i2c_rain",doNothing,noEvent,noStyle
+     ,FIELD(rainAddress,"I2C address","",0,127,1,0,i2c_rain_address,exitEvent,noStyle)
+     ,SUBMENU(subMenuRainOneshot)
+     ,FIELD(rainTippingBucketTime,"Tip time","ms",0,1000,10,1,i2c_rain_tipping_bucket_time,exitEvent,noStyle)
+     ,FIELD(rainRainForTip,"Tip value","mm/10",1,20,1,0,i2c_rain_rain_for_tip,exitEvent,noStyle)
+     ,SUBMENU(subMenuRainSave)
+     ,EXIT("<Back")
+     );
+
+TOGGLE(powerOneshot,subMenuPowerOneshot,"Oneshot: ",doNothing,noEvent,noStyle
+       ,VALUE("True",true,i2c_power_oneshot,exitEvent)
+       ,VALUE("False",false,i2c_power_oneshot,exitEvent)
+       )
+
+MENU(subMenuPowerSave,"Save configuration",doNothing,noEvent,noStyle
+	,OP("Yes",i2c_power_save,enterEvent)
+	,EXIT("<Back")
+	);
+
+MENU(subMenuPower,"i2c_power",doNothing,noEvent,noStyle
+     ,FIELD(powerAddress,"I2C address","",0,127,1,0,i2c_power_address,exitEvent,noStyle)
+     ,SUBMENU(subMenuPowerOneshot)
+     ,FIELD(powerVoltageMaxPanel,"Panel max","mV",1,50000,100,1,i2c_power_voltage_max_panel,exitEvent,noStyle)
+     ,FIELD(powerVoltageMaxBattery,"Battery max","mV",1,30000,100,1,i2c_power_voltage_max_battery,exitEvent,noStyle)
+     ,SUBMENU(subMenuPowerSave)
+     ,EXIT("<Back")
+     );
+
+TOGGLE(windOneshot,subMenuWindOneshot,"Oneshot: ",doNothing,noEvent,noStyle
+       ,VALUE("True",true,i2c_wind_oneshot,exitEvent)
+       ,VALUE("False",false,i2c_wind_oneshot,exitEvent)
+       )
+/*
+SELECT(windType,subMenuWindType,"Sensor: ",i2c_wind_type,exitEvent,noStyle
+       ,VALUE("Davis",1,doNothing,noEvent)
+       ,VALUE("Inspeed",2,doNothing,noEvent)
+       )
+*/
+MENU(subMenuWindSave,"Save configuration",doNothing,noEvent,noStyle
+	,OP("Yes",i2c_wind_save,enterEvent)
+	,EXIT("<Back")
+	);
+
+MENU(subMenuWind,"i2c_wind",doNothing,noEvent,noStyle
+     ,FIELD(windAddress,"I2C address","",0,127,1,0,i2c_wind_address,exitEvent,noStyle)
+     ,SUBMENU(subMenuWindOneshot)
+     //,SUBMENU(subMenuWindType)
+     ,SUBMENU(subMenuWindSave)
+     ,EXIT("<Back")
+     );
+
 MENU(mainMenu,"Configuration",doNothing,noEvent,noStyle
      ,SUBMENU(subMenuRadiation)
      ,SUBMENU(subMenuTh)
+     ,SUBMENU(subMenuRain)
+     ,SUBMENU(subMenuPower)
+     ,SUBMENU(subMenuWind)
+     ,OP("configure windsonic",windsonic_configurator,enterEvent)
+     ,OP("sconfigure windsonic",windsonic_sconfigurator,enterEvent)
      ,OP("Scan i2c bus",scan_i2c_bus,enterEvent)
      ,EXIT("<Exit go to serial port")
      );
@@ -214,6 +314,20 @@ result display_status(menuOut& o,idleEvent e) {
     }else{
       o.print("Error!");
     }
+  }
+  return proceed;
+}
+
+result display_nostatus(menuOut& o,idleEvent e) {
+  if (e==idling) {
+    o.setCursor(0,0);
+    o.print("Operation status:");
+    o.setCursor(0,1);
+    o.print("Unknown");
+    o.setCursor(0,2);
+    o.print("Check serial output");
+    o.setCursor(0,3);
+    o.print("and wait");
   }
   return proceed;
 }
@@ -1035,6 +1149,285 @@ result i2c_th_save(eventMask e, prompt &item) {
   return proceed;
 }
 
+bool do_i2c_rain_address(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
+  buffer[0]=I2C_RAIN_ADDRESS_ADDRESS;
+  buffer[1]=rainAddress;
+  buffer[I2C_RAIN_ADDRESS_LENGTH+1]=crc8(buffer, I2C_RAIN_ADDRESS_LENGTH+1);
+  Wire.write(buffer,I2C_RAIN_ADDRESS_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_rain_address(eventMask e, prompt &item) {
+  last_status=do_i2c_rain_address();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+
+bool do_i2c_rain_oneshot(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
+  buffer[0]=I2C_RAIN_ONESHOT_ADDRESS;
+  buffer[1]=(bool)(rainOneshot);
+  buffer[I2C_RAIN_ONESHOT_LENGTH+1]=crc8(buffer, I2C_RAIN_ONESHOT_LENGTH+1);
+  Wire.write(buffer,I2C_RAIN_ONESHOT_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_rain_oneshot(eventMask e, prompt &item) {
+  last_status=do_i2c_rain_oneshot();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_rain_rain_for_tip(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
+  buffer[0]=I2C_RAIN_RAINFORTIP_ADDRESS;
+  buffer[1]=rainRainForTip;
+  buffer[I2C_RAIN_RAINFORTIP_LENGTH+1]=crc8(buffer, I2C_RAIN_RAINFORTIP_LENGTH+1);
+  Wire.write(buffer,I2C_RAIN_RAINFORTIP_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_rain_rain_for_tip(eventMask e, prompt &item) {
+  last_status=do_i2c_rain_rain_for_tip();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_rain_tipping_bucket_time(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
+  buffer[0]=I2C_RAIN_TIPTIME_ADDRESS;
+  buffer[1]=(uint8_t)rainTippingBucketTime;
+  buffer[2]=(uint8_t)(rainTippingBucketTime >> 8); // Get upper byte of 16-bit var
+  buffer[I2C_RAIN_TIPTIME_LENGTH+1]=crc8(buffer, I2C_RAIN_TIPTIME_LENGTH+1);
+  Wire.write(buffer,I2C_RAIN_TIPTIME_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_rain_tipping_bucket_time(eventMask e, prompt &item) {
+  last_status=do_i2c_rain_tipping_bucket_time();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_rain_save(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
+  buffer[0]=I2C_COMMAND_ID;
+  buffer[1]=I2C_RAIN_COMMAND_SAVE;
+  buffer[2]=crc8(buffer, 2);
+  Wire.write(buffer,3);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_rain_save(eventMask e, prompt &item) {
+  last_status=do_i2c_rain_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_power_address(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_POWER_ADDRESS_ADDRESS;
+  buffer[1]=powerAddress;
+  buffer[I2C_POWER_ADDRESS_LENGTH+1]=crc8(buffer, I2C_POWER_ADDRESS_LENGTH+1);
+  Wire.write(buffer,I2C_POWER_ADDRESS_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_power_address(eventMask e, prompt &item) {
+  last_status=do_i2c_power_address();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_power_oneshot(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_POWER_ONESHOT_ADDRESS;
+  buffer[1]=(bool)(powerOneshot);
+  buffer[I2C_POWER_ONESHOT_LENGTH+1]=crc8(buffer, I2C_POWER_ONESHOT_LENGTH+1);
+  Wire.write(buffer,I2C_POWER_ONESHOT_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_power_oneshot(eventMask e, prompt &item) {
+  last_status=do_i2c_power_oneshot();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_power_voltage_max_panel(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS;
+  memcpy( &buffer[1], &powerVoltageMaxPanel,sizeof(powerVoltageMaxPanel));
+  buffer[I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1);
+  Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_power_voltage_max_panel(eventMask e, prompt &item) {
+  last_status=do_i2c_power_voltage_max_panel();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_power_voltage_max_battery(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS;
+  memcpy( &buffer[1],&powerVoltageMaxBattery, sizeof(powerVoltageMaxBattery));
+  buffer[I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1);
+  Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_power_voltage_max_battery(eventMask e, prompt &item) {
+  last_status=do_i2c_power_voltage_max_battery();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_power_save(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_COMMAND_ID;
+  buffer[1]=I2C_POWER_COMMAND_SAVE;
+  buffer[2]=crc8(buffer, 2);
+  Wire.write(buffer,3);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_power_save(eventMask e, prompt &item) {
+  last_status=do_i2c_power_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_wind_address(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+  buffer[0]=I2C_WIND_ADDRESS_ADDRESS;
+  buffer[1]=windAddress;
+  buffer[I2C_WIND_ADDRESS_LENGTH+1]=crc8(buffer, I2C_WIND_ADDRESS_LENGTH+1);
+  Wire.write(buffer,I2C_WIND_ADDRESS_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_wind_address(eventMask e, prompt &item) {
+  last_status=do_i2c_wind_address();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+bool do_i2c_wind_oneshot(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+  buffer[0]=I2C_WIND_ONESHOT_ADDRESS;
+  buffer[1]=(bool)(windOneshot);
+  buffer[I2C_WIND_ONESHOT_LENGTH+1]=crc8(buffer, I2C_WIND_ONESHOT_LENGTH+1);
+  Wire.write(buffer,I2C_WIND_ONESHOT_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_wind_oneshot(eventMask e, prompt &item) {
+  last_status=do_i2c_wind_oneshot();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+void do_windsonic_sconfigurator(void){
+  Serial1.begin(GWS_SERIAL_BAUD);
+  Serial1.setTimeout(500);
+  Serial.setTimeout(500);
+  Serial.println("Windsonic sconfiguration");
+  pinMode(WIND_POWER_PIN, OUTPUT);
+  windsonicPowerOff();
+  delay(1000);
+  windsonicPowerOn();
+  delay(WIND_POWER_ON_DELAY_MS);
+  Serial.println("windsonic ON");
+  
+  windsonicSerialReset();
+  windsonicSconfigure();
+  
+  while(true){
+    delay(1000);
+    windsonicFlush();
+    Serial1.print("?Q!\r\n");
+    windsonicReceiveMessage('\r');
+    Serial.println(uart_rx_buffer);
+  }
+}
+result windsonic_sconfigurator(eventMask e, prompt &item) {
+  nav.idleOn(display_nostatus);
+  do_windsonic_sconfigurator();
+  nav.idleOff();
+  return proceed;
+}
+
+void do_windsonic_configurator(void){	
+  
+  Serial1.begin(GWS_SERIAL_BAUD);
+  Serial1.setTimeout(500);
+  Serial.setTimeout(500);
+  Serial.println("Windsonic configuration");
+  pinMode(WIND_POWER_PIN, OUTPUT);
+  windsonicPowerOff();
+  delay(1000);
+  windsonicPowerOn();
+  delay(WIND_POWER_ON_DELAY_MS);
+  Serial.println("windsonic ON");
+  windsonicSerialReset();
+  
+  windsonicConfigure();
+  
+  while(true){
+    delay(1000);
+    windsonicFlush();
+    Serial1.print("?Q!\n");
+    windsonicReceiveMessage('\n');
+    Serial.println(uart_rx_buffer);
+  }
+}
+result windsonic_configurator(eventMask e, prompt &item) {
+  nav.idleOn(display_nostatus);
+  do_windsonic_configurator();
+  nav.idleOff();
+  return proceed;
+}
+
+
+
+
+
+/*
+//This is not defined in writable registers
+bool do_i2c_wind_type(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+  buffer[0]=I2C_WIND_SENSOR_TYPE_ADDRESS;
+  buffer[1]=(uint8_t)windType;
+  buffer[I2C_WIND_SENSOR_TYPE_LENGTH+1]=crc8(buffer, I2C_WIND_SENSOR_TYPE_LENGTH+1);
+  Wire.write(buffer,I2C_WIND_SENSOR_TYPE_LENGTH+2);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_wind_type(eventMask e, prompt &item) {
+  last_status=do_i2c_wind_type();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+
+bool do_i2c_wind_save(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+  buffer[0]=I2C_COMMAND_ID;
+  buffer[1]=I2C_WIND_COMMAND_SAVE;
+  buffer[2]=crc8(buffer, 2);
+  Wire.write(buffer,3);
+  return (Wire.endTransmission() == 0);
+}
+result i2c_wind_save(eventMask e, prompt &item) {
+  last_status=do_i2c_wind_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
 
 
 void setup() {
@@ -1067,7 +1460,7 @@ void setup() {
   
   nav.idleTask=idle;//point a function to be used when menu is suspended
   //mainMenu[1].enabled=disabledStatus;
-  nav.showTitle=false;
+  nav.showTitle=true;
   //nav.timeOut=10;
   
   lcd.setCursor(0, 0);
@@ -1111,7 +1504,6 @@ void loop_menu() {
 
 void loop_serial() {
 
-  uint8_t buffer[32];
   displayHelp();
 
   char command = getCommand();
@@ -1219,78 +1611,6 @@ void loop_serial() {
 
 	break;
       }
-      
-    case 'w':
-      {
-	
-	int new_address;
-	int oneshot;
-	int sensortype;
-	
-	new_address= -1;
-	while (new_address < 1 || new_address > 127){
-	  Serial.print(F("digit new i2c address for i2c-wind (1-127) default: "));
-	  Serial.println(I2C_WIND_DEFAULT_ADDRESS);
-	  new_address=Serial.parseInt();
-	  Serial.println(new_address);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
-	buffer[0]=I2C_WIND_ADDRESS_ADDRESS;
-	buffer[1]=new_address;
-	buffer[I2C_WIND_ADDRESS_LENGTH+1]=crc8(buffer, I2C_WIND_ADDRESS_LENGTH+1);
-	Wire.write(buffer,I2C_WIND_ADDRESS_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	
-	sensortype=-1;
-	while (sensortype < 1 || sensortype > 2){
-	  Serial.println(F("digit sensortype code for i2c-wind (1 Davis, 2 Inspeed)"));
-	  sensortype=Serial.parseInt();
-	  Serial.println(sensortype);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
-	buffer[0]=I2C_WIND_TYPE_ADDRESS;
-	buffer[1]=(uint8_t)sensortype;
-	buffer[I2C_WIND_TYPE_LENGTH+1]=crc8(buffer, I2C_WIND_TYPE_LENGTH+1);
-	Wire.write(buffer,I2C_WIND_TYPE_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	
-	oneshot=-1;
-	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-wind  (0/1) (default 0)"));
-	  oneshot=Serial.parseInt();
-	  Serial.println(oneshot);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
-	buffer[0]=I2C_WIND_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot);
-	buffer[I2C_WIND_ONESHOT_LENGTH+1]=crc8(buffer, I2C_WIND_ONESHOT_LENGTH+1);
-	Wire.write(buffer,I2C_WIND_ONESHOT_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-	
-	delay(1000);
-	Serial.println("save configuration");
-	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
-	buffer[0]=I2C_COMMAND_ID;
-	buffer[1]=I2C_WIND_COMMAND_SAVE;
-	buffer[2]=crc8(buffer, 2);
-	Wire.write(buffer,3);
-	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-	
-	Serial.println(F("Done; switch off"));
-	delay(10000);
-
-	break;
-      }
 
     case 't':
       {
@@ -1384,16 +1704,9 @@ void loop_serial() {
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
-	
 	delay(1000);
-	
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_RAIN_ADDRESS_ADDRESS;
-	buffer[1]=new_address;
-	buffer[I2C_RAIN_ADDRESS_LENGTH+1]=crc8(buffer, I2C_RAIN_ADDRESS_LENGTH+1);
-	Wire.write(buffer,I2C_RAIN_ADDRESS_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-	
+	rainAddress=new_address;
+	if (!do_i2c_rain_address()) Serial.println(F("Wire Error"));             // End Write Transmission	
 	delay(1000);
 	
 	oneshot=-1;
@@ -1403,54 +1716,31 @@ void loop_serial() {
 	  Serial.println(oneshot);
 	}
 	delay(1000);
+	rainOneshot=oneshot;
+	if (!do_i2c_rain_oneshot()) Serial.println(F("Wire Error"));             // End Write Transmission
 
-
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_RAIN_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot);
-	buffer[I2C_RAIN_ONESHOT_LENGTH+1]=crc8(buffer, I2C_RAIN_ONESHOT_LENGTH+1);
-	Wire.write(buffer,I2C_RAIN_ONESHOT_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	while (tipping_bucket_time_ms < 2 || tipping_bucket_time_ms > 1000){
 	  Serial.println(F("Tipping bucket time in milliseconds for i2c-rain (2-1000)"));
 	  tipping_bucket_time_ms=Serial.parseInt();
 	  Serial.println(tipping_bucket_time_ms);
-	}
-	
+	}	
 	delay(1000);
-
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_RAIN_TIPTIME_ADDRESS;
-	buffer[1]=(uint8_t)tipping_bucket_time_ms;
-	buffer[2]=(uint8_t)(tipping_bucket_time_ms >> 8); // Get upper byte of 16-bit var
-	buffer[I2C_RAIN_TIPTIME_LENGTH+1]=crc8(buffer, I2C_RAIN_TIPTIME_LENGTH+1);
-	Wire.write(buffer,I2C_RAIN_TIPTIME_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	rainTippingBucketTime=tipping_bucket_time_ms;
+	if (!do_i2c_rain_tipping_bucket_time()) Serial.println(F("Wire Error"));             // End Write Transmission
+	
 	while (rain_for_tip < 1 || rain_for_tip > 20){
-	  Serial.println(F("Rain for tip for i2c-rain (1-20)"));
+	  Serial.println(F("Rain for tip for i2c-rain (1-20) Hg/m^2 or Kg/m^2/10"));
 	  rain_for_tip=Serial.parseInt();
 	  Serial.println(rain_for_tip);
 	}
+	delay(1000);
+	rainRainForTip=rain_for_tip;
+	if (!do_i2c_rain_rain_for_tip()) Serial.println(F("Wire Error"));             // End Write Transmission	
+	delay(1000);
 	
-	delay(1000);
-
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_RAIN_RAINFORTIP_ADDRESS;
-	buffer[1]=rain_for_tip;
-	buffer[I2C_RAIN_RAINFORTIP_LENGTH+1]=crc8(buffer, I2C_RAIN_RAINFORTIP_LENGTH+1);
-	Wire.write(buffer,I2C_RAIN_RAINFORTIP_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
 	Serial.println("save configuration");
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_COMMAND_ID;
-	buffer[1]=I2C_RAIN_COMMAND_SAVE;
-	buffer[2]=crc8(buffer, 2);
-	Wire.write(buffer,3);
-	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
+	if (!do_i2c_rain_save())  Serial.println(F("Wire Error"));             // End Write Transmission
 	
 	Serial.println(F("Done; switch off"));
 	delay(10000);
@@ -1458,59 +1748,126 @@ void loop_serial() {
 	break;
       }
 
+    case 'p':
+      {
+	
+	int new_address;
+	int oneshot;
+	
+	new_address= -1;
+	while (new_address < 1 || new_address > 127){
+	  Serial.print(F("digit new i2c address for i2c-power (1-127) default: "));
+	  Serial.println(I2C_POWER_DEFAULT_ADDRESS);
+	  new_address=Serial.parseInt();
+	  Serial.println(new_address);
+	}
+	delay(1000);
+	powerAddress=new_address;
+	if (!do_i2c_power_address()) Serial.println(F("Wire Error"));             // End Write Transmission
+	delay(1000);
+	
+	oneshot=-1;
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-power (0/1) (default 0)"));
+	  oneshot=Serial.parseInt();
+	  Serial.println(oneshot);
+	}
+	delay(1000);
+	powerOneshot=oneshot;
+	if (!do_i2c_power_oneshot()) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	uint16_t new_value= 0;
+	while (new_value < 1 || new_value > 32767){
+	  Serial.print(F("digit new value for max voltage input for panel  for i2c-power module (millivolt) (0/32767) (default 30000): "));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+	powerVoltageMaxPanel=new_value;
+	if (!do_i2c_power_voltage_max_panel()) Serial.println(F("Wire Error"));             // End Write Transmission
+	delay(1000);
+
+	new_value= 0;
+	while (new_value < 1 || new_value > 32767.){
+	  Serial.print(F("digit new value for max voltage input for battery for i2c-power module (millivolt) (0/32767) (default 15000): "));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
+	delay(1000);
+	powerVoltageMaxBattery=new_value;
+	if (!do_i2c_power_voltage_max_battery()) Serial.println(F("Wire Error"));             // End Write Transmission
+	delay(1000);
+
+	Serial.println("save configuration");
+	if (!do_i2c_power_save())  Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	Serial.println(F("Done; switch off"));
+	delay(10000);
+
+	break;
+      }
+      
+    case 'w':
+      {
+	
+	int new_address;
+	int oneshot;
+	
+	new_address= -1;
+	while (new_address < 1 || new_address > 127){
+	  Serial.print(F("digit new i2c address for i2c-wind (1-127) default: "));
+	  Serial.println(I2C_WIND_DEFAULT_ADDRESS);
+	  new_address=Serial.parseInt();
+	  Serial.println(new_address);
+	}
+	delay(1000);
+	windAddress=new_address;
+	if (!do_i2c_wind_address()) Serial.println(F("Wire Error"));             // End Write Transmission
+	delay(1000);
+
+	oneshot=-1;
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-wind  (0/1) (default 0)"));
+	  oneshot=Serial.parseInt();
+	  Serial.println(oneshot);
+	}
+	delay(1000);
+	windOneshot=oneshot;
+	if (!do_i2c_wind_oneshot()) Serial.println(F("Wire Error"));             // End Write Transmission
+	delay(1000);
+
+	/*
+	int sensortype;
+	sensortype=-1;
+	while (sensortype < 1 || sensortype > 2){
+	  Serial.println(F("digit sensortype code for i2c-wind (1 Davis, 2 Inspeed)"));
+	  sensortype=Serial.parseInt();
+	  Serial.println(sensortype);
+	}
+	delay(1000);
+	windType=sensortype;
+	if (!do_i2c_wind_type()) Serial.println(F("Wire Error"));             // End Write 
+	delay(1000);
+	*/
+	
+	Serial.println("save configuration");
+	if (!do_i2c_wind_save())  Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	Serial.println(F("Done; switch off"));
+	delay(10000);
+
+	break;
+      }
+
     case 'u':
       {
-	Serial1.begin(GWS_SERIAL_BAUD);
-	Serial1.setTimeout(500);
-	Serial.setTimeout(500);
-	Serial.println("Windsonic sconfiguration");
-	pinMode(WIND_POWER_PIN, OUTPUT);
-	windsonicPowerOff();
-	delay(1000);
-	windsonicPowerOn();
-	delay(WIND_POWER_ON_DELAY_MS);
-	Serial.println("windsonic ON");
-
-	windsonicSerialReset();
-	windsonicSconfigure();
-
-	while(true){
-	  delay(1000);
-	  windsonicFlush();
-	  Serial1.print("?Q!\r\n");
-	  windsonicReceiveMessage('\r');
-	  Serial.println(uart_rx_buffer);
-	}
-	  
+	do_windsonic_sconfigurator();	
 	break;
       }
 
     case 'v':
       {
-
-
-	Serial1.begin(GWS_SERIAL_BAUD);
-	Serial1.setTimeout(500);
-	Serial.setTimeout(500);
-	Serial.println("Windsonic configuration");
-	pinMode(WIND_POWER_PIN, OUTPUT);
-	windsonicPowerOff();
-	delay(1000);
-	windsonicPowerOn();
-	delay(WIND_POWER_ON_DELAY_MS);
-	Serial.println("windsonic ON");
-	windsonicSerialReset();
-	
-	windsonicConfigure();
-
-	while(true){
-	  delay(1000);
-	  windsonicFlush();
-	  Serial1.print("?Q!\n");
-	  windsonicReceiveMessage('\n');
-	  Serial.println(uart_rx_buffer);
-	}
-	  
+	do_windsonic_sconfigurator();		  
 	break;
       }
       
@@ -1548,95 +1905,6 @@ void loop_serial() {
 	  }
 	  Serial1.flush();
 	}
-
-	break;
-      }
-
-    case 'p':
-      {
-	
-	int new_address;
-	int oneshot;
-	
-	new_address= -1;
-	while (new_address < 1 || new_address > 127){
-	  Serial.print(F("digit new i2c address for i2c-power (1-127) default: "));
-	  Serial.println(I2C_POWER_DEFAULT_ADDRESS);
-	  new_address=Serial.parseInt();
-	  Serial.println(new_address);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
-	buffer[0]=I2C_POWER_ADDRESS_ADDRESS;
-	buffer[1]=new_address;
-	buffer[I2C_POWER_ADDRESS_LENGTH+1]=crc8(buffer, I2C_POWER_ADDRESS_LENGTH+1);
-	Wire.write(buffer,I2C_POWER_ADDRESS_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	
-	oneshot=-1;
-	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-power (0/1) (default 0)"));
-	  oneshot=Serial.parseInt();
-	  Serial.println(oneshot);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
-	buffer[0]=I2C_POWER_ONESHOT_ADDRESS;
-	buffer[1]=(bool)(oneshot);
-	buffer[I2C_POWER_ONESHOT_LENGTH+1]=crc8(buffer, I2C_POWER_ONESHOT_LENGTH+1);
-	Wire.write(buffer,I2C_POWER_ONESHOT_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	uint16_t new_value= 0;
-	while (new_value < 1 || new_value > 32767){
-	  Serial.print(F("digit new value for max voltage input for panel  for i2c-power module (millivolt) (0/32767) (default 30000): "));
-	  new_value=Serial.parseInt();
-	  Serial.println(new_value);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
-	buffer[0]=I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS;
-	memcpy( &buffer[1], &new_value,sizeof(new_value));
-	buffer[I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+1);
-	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-
-	new_value= 0;
-	while (new_value < 1 || new_value > 32767.){
-	  Serial.print(F("digit new value for max voltage input for battery for i2c-power module (millivolt) (0/32767) (default 15000): "));
-	  new_value=Serial.parseInt();
-	  Serial.println(new_value);
-	}
-	delay(1000);
-
-	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
-	buffer[0]=I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS;
-	memcpy( &buffer[1],&new_value, sizeof(new_value));
-	buffer[I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1]=crc8(buffer, I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+1);
-
-	Wire.write(buffer,I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	
-	delay(1000);
-	Serial.println("save configuration");
-	Wire.beginTransmission(I2C_POWER_DEFAULT_ADDRESS);
-	buffer[0]=I2C_COMMAND_ID;
-	buffer[1]=I2C_POWER_COMMAND_SAVE;
-	buffer[2]=crc8(buffer, 2);
-	Wire.write(buffer,3);
-	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-	
-	Serial.println(F("Done; switch off"));
-	delay(10000);
 
 	break;
       }
