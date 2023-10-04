@@ -364,6 +364,8 @@ void save_configuration(bool is_default) {
 
    // write configuration to eeprom
    ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
+   print_configuration();
+
 }
 
 void load_configuration() {
