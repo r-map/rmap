@@ -77,10 +77,10 @@ result scan_i2c_bus();
 result i2c_solar_radiation_address(eventMask e, prompt &item);
 result i2c_solar_radiation_oneshot(eventMask e, prompt &item);
 result i2c_solar_radiation_offset(eventMask e, prompt &item);
-result i2c_solar_radiation_scale(eventMask e, prompt &item);
+result i2c_solar_radiation_gain(eventMask e, prompt &item);
 result i2c_solar_radiation_sensor_voltage(eventMask e, prompt &item);
 result i2c_solar_radiation_sensor_radiation(eventMask e, prompt &item);
-result i2c_solar_radiation_save(eventMask e, prompt &item);
+result i2c_solar_radiation_save_all(eventMask e, prompt &item);
 
 result i2c_th_address(eventMask e, prompt &item);
 result i2c_th_oneshot(eventMask e, prompt &item);
@@ -88,25 +88,25 @@ result i2c_th_sensor_type1(eventMask e, prompt &item);
 result i2c_th_sensor_address1(eventMask e, prompt &item);
 result i2c_th_sensor_type2(eventMask e, prompt &item);
 result i2c_th_sensor_address2(eventMask e, prompt &item);
-result i2c_th_save(eventMask e, prompt &item);
+result i2c_th_save_all(eventMask e, prompt &item);
 
 result i2c_rain_address(eventMask e, prompt &item);
 result i2c_rain_oneshot(eventMask e, prompt &item);
 result i2c_rain_tipping_bucket_time(eventMask e, prompt &item);
 result i2c_rain_rain_for_tip(eventMask e, prompt &item);
-result i2c_rain_save(eventMask e, prompt &item);
+result i2c_rain_save_all(eventMask e, prompt &item);
 
 result i2c_power_address(eventMask e, prompt &item);
 result i2c_power_oneshot(eventMask e, prompt &item);
 result i2c_power_voltage_max_panel(eventMask e, prompt &item);
 result i2c_power_voltage_max_battery(eventMask e, prompt &item);
-result i2c_power_save(eventMask e, prompt &item);
+result i2c_power_save_all(eventMask e, prompt &item);
 
 
 result i2c_wind_address(eventMask e, prompt &item);
 result i2c_wind_oneshot(eventMask e, prompt &item);
 //result i2c_wind_type(eventMask e, prompt &item);
-result i2c_wind_save(eventMask e, prompt &item);
+result i2c_wind_save_all(eventMask e, prompt &item);
 
 result windsonic_sconfigurator(eventMask e, prompt &item);
 result windsonic_configurator(eventMask e, prompt &item);
@@ -117,19 +117,19 @@ bool true_idle_status=false;
 uint8_t radiationAddress=I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
 bool radiationOneshot=false;
 float radiationOffset=0.0;
-float radiationScale=1.0;
+float radiationGain=1.0;
 float radiationSensorVoltage=5000.0;
 float radiationSensorRadiation=2000.0;
 
 uint8_t thAddress=I2C_TH_DEFAULT_ADDRESS;
 bool thOneshot=false;
-char thSensorType1[]="SHT";
-uint8_t thSensorAddress1=48;
+char thSensorType1[]="HYT";
+uint8_t thSensorAddress1=40;
 char thSensorType2[]="   ";
 uint8_t thSensorAddress2=0;
 
 uint8_t rainAddress=I2C_RAIN_DEFAULT_ADDRESS;
-bool rainOneshot=false;
+bool rainOneshot=true;
 uint16_t rainTippingBucketTime=50;
 uint8_t rainRainForTip=1;
 
@@ -148,7 +148,7 @@ TOGGLE(radiationOneshot,subMenuRadiationOneshot,"Oneshot: ",doNothing,noEvent,no
        )
 
 MENU(subMenuRadiationSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes",i2c_solar_radiation_save,enterEvent)
+	,OP("Yes",i2c_solar_radiation_save_all,enterEvent)
 	,EXIT("<Back")
 	);
 
@@ -156,9 +156,9 @@ MENU(subMenuRadiation,"i2c_radiation",doNothing,noEvent,noStyle
      ,FIELD(radiationAddress,"I2C address","",0,127,1,0,i2c_solar_radiation_address,exitEvent,noStyle)
      ,SUBMENU(subMenuRadiationOneshot)
      ,FIELD(radiationOffset,"ADC offset","",-127.0,127.0,1.0,0,i2c_solar_radiation_offset,exitEvent,noStyle)
-     ,altFIELD(decPlaces<3>::menuField,radiationScale,"ADC scale","",0.,2.,0.1,0.001,i2c_solar_radiation_scale,exitEvent,noStyle)
+     ,altFIELD(decPlaces<3>::menuField,radiationGain,"ADC gain","",0.,2.,0.1,0.001,i2c_solar_radiation_gain,exitEvent,noStyle)
      ,altFIELD(decPlaces<0>::menuField,radiationSensorVoltage  ,"Volt MAX"," mV",0.0,10000.0,100.0,1.0,i2c_solar_radiation_sensor_voltage,exitEvent,noStyle)
-     ,altFIELD(decPlaces<0>::menuField,radiationSensorRadiation,"Radi MAX"," w/m^2",0.0,10000.0,100.0,1.0,i2c_solar_radiation_sensor_voltage,exitEvent,noStyle)
+     ,altFIELD(decPlaces<0>::menuField,radiationSensorRadiation,"Radi MAX"," w/m^2",0.0,10000.0,100.0,1.0,i2c_solar_radiation_sensor_radiation,exitEvent,noStyle)
      ,SUBMENU(subMenuRadiationSave)
      ,EXIT("<Back")
      );
@@ -169,7 +169,7 @@ TOGGLE(thOneshot,subMenuThOneshot,"Oneshot: ",doNothing,noEvent,noStyle
        )
 
 MENU(subMenuThSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes",i2c_th_save,enterEvent)
+	,OP("Yes",i2c_th_save_all,enterEvent)
 	,EXIT("<Back")
 	);
 
@@ -191,7 +191,7 @@ TOGGLE(rainOneshot,subMenuRainOneshot,"Oneshot: ",doNothing,noEvent,noStyle
        )
 
 MENU(subMenuRainSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes",i2c_rain_save,enterEvent)
+	,OP("Yes",i2c_rain_save_all,enterEvent)
 	,EXIT("<Back")
 	);
 
@@ -210,7 +210,7 @@ TOGGLE(powerOneshot,subMenuPowerOneshot,"Oneshot: ",doNothing,noEvent,noStyle
        )
 
 MENU(subMenuPowerSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes",i2c_power_save,enterEvent)
+	,OP("Yes",i2c_power_save_all,enterEvent)
 	,EXIT("<Back")
 	);
 
@@ -234,7 +234,7 @@ SELECT(windType,subMenuWindType,"Sensor: ",i2c_wind_type,exitEvent,noStyle
        )
 */
 MENU(subMenuWindSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes",i2c_wind_save,enterEvent)
+	,OP("Yes",i2c_wind_save_all,enterEvent)
 	,EXIT("<Back")
 	);
 
@@ -953,22 +953,6 @@ result i2c_solar_radiation_address(eventMask e, prompt &item) {
   return proceed;
 }
 
-
-bool do_i2c_solar_radiation_save(void){
-  uint8_t buffer[32];
-  Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
-  buffer[0]=I2C_COMMAND_ID;
-  buffer[1]=I2C_SOLAR_RADIATION_COMMAND_SAVE;
-  buffer[2]=crc8(buffer, 2);
-  Wire.write(buffer,3);
-  return (Wire.endTransmission() == 0);
-}
-result i2c_solar_radiation_save(eventMask e, prompt &item) {
-  last_status=do_i2c_solar_radiation_save();
-  nav.idleOn(display_status);
-  return proceed;
-}
-
 bool do_i2c_solar_radiation_oneshot(void){
   uint8_t buffer[32];
   Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
@@ -999,17 +983,17 @@ result i2c_solar_radiation_offset(eventMask e, prompt &item) {
   return proceed;
 }
 
-bool do_i2c_solar_radiation_scale(void){
+bool do_i2c_solar_radiation_gain(void){
   uint8_t buffer[32];
   Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
   buffer[0]=I2C_SOLAR_RADIATION_ADC_CALIBRATION_GAIN_ADDRESS+0x04;
-  memcpy( &buffer[1],&radiationOffset, sizeof(radiationOffset));
-  buffer[sizeof(radiationOffset)+1]=crc8(buffer, sizeof(radiationOffset)+1);
-  Wire.write(buffer,sizeof(radiationOffset)+2);
+  memcpy( &buffer[1],&radiationGain, sizeof(radiationGain));
+  buffer[sizeof(radiationGain)+1]=crc8(buffer, sizeof(radiationGain)+1);
+  Wire.write(buffer,sizeof(radiationGain)+2);
   return (Wire.endTransmission() == 0);
 }
-result i2c_solar_radiation_scale(eventMask e, prompt &item) {
-  last_status=do_i2c_solar_radiation_scale();
+result i2c_solar_radiation_gain(eventMask e, prompt &item) {
+  last_status=do_i2c_solar_radiation_gain();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1040,6 +1024,35 @@ bool do_i2c_solar_radiation_sensor_radiation(void){
 }
 result i2c_solar_radiation_sensor_radiation(eventMask e, prompt &item) {
   last_status=do_i2c_solar_radiation_sensor_radiation();
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+
+bool do_i2c_solar_radiation_save(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+  buffer[0]=I2C_COMMAND_ID;
+  buffer[1]=I2C_SOLAR_RADIATION_COMMAND_SAVE;
+  buffer[2]=crc8(buffer, 2);
+  Wire.write(buffer,3);
+  return (Wire.endTransmission() == 0);
+}
+/*
+result i2c_solar_radiation_save(eventMask e, prompt &item) {
+  last_status=do_i2c_solar_radiation_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+result i2c_solar_radiation_save_all(eventMask e, prompt &item) {
+  last_status                =do_i2c_solar_radiation_address();
+  if(last_status) last_status=do_i2c_solar_radiation_oneshot();
+  if(last_status) last_status=do_i2c_solar_radiation_offset();
+  if(last_status) last_status=do_i2c_solar_radiation_gain();
+  if(last_status) last_status=do_i2c_solar_radiation_sensor_voltage();
+  if(last_status) last_status=do_i2c_solar_radiation_sensor_radiation();
+  if(last_status) last_status=do_i2c_solar_radiation_save();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1143,8 +1156,21 @@ bool do_i2c_th_save(void){
   Wire.write(buffer,3);
   return (Wire.endTransmission() == 0);
 }
+/*
 result i2c_th_save(eventMask e, prompt &item) {
   last_status=do_i2c_th_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+result i2c_th_save_all(eventMask e, prompt &item) {
+  last_status                =do_i2c_th_address();
+  if(last_status) last_status=do_i2c_th_oneshot();
+  if(last_status) last_status=do_i2c_th_sensor_type1();
+  if(last_status) last_status=do_i2c_th_sensor_address1();
+  if(last_status) last_status=do_i2c_th_sensor_type2();
+  if(last_status) last_status=do_i2c_th_sensor_address2();
+  if(last_status) last_status=do_i2c_th_save();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1220,8 +1246,19 @@ bool do_i2c_rain_save(void){
   Wire.write(buffer,3);
   return (Wire.endTransmission() == 0);
 }
+/*
 result i2c_rain_save(eventMask e, prompt &item) {
   last_status=do_i2c_rain_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+result i2c_rain_save_all(eventMask e, prompt &item) {
+  last_status                =do_i2c_rain_address();
+  if(last_status) last_status=do_i2c_rain_oneshot();
+  if(last_status) last_status=do_i2c_rain_rain_for_tip();
+  if(last_status) last_status=do_i2c_rain_tipping_bucket_time();
+  if(last_status) last_status=do_i2c_rain_save();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1295,8 +1332,19 @@ bool do_i2c_power_save(void){
   Wire.write(buffer,3);
   return (Wire.endTransmission() == 0);
 }
+/*
 result i2c_power_save(eventMask e, prompt &item) {
   last_status=do_i2c_power_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+result i2c_power_save_all(eventMask e, prompt &item) {
+  last_status                =do_i2c_power_address();
+  if(last_status) last_status=do_i2c_power_oneshot();
+  if(last_status) last_status=do_i2c_power_voltage_max_panel();
+  if(last_status) last_status=do_i2c_power_voltage_max_battery();
+  if(last_status) last_status=do_i2c_power_save();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1392,10 +1440,6 @@ result windsonic_configurator(eventMask e, prompt &item) {
   return proceed;
 }
 
-
-
-
-
 /*
 //This is not defined in writable registers
 bool do_i2c_wind_type(void){
@@ -1423,8 +1467,18 @@ bool do_i2c_wind_save(void){
   Wire.write(buffer,3);
   return (Wire.endTransmission() == 0);
 }
+/*
 result i2c_wind_save(eventMask e, prompt &item) {
   last_status=do_i2c_wind_save();
+  nav.idleOn(display_status);
+  return proceed;
+}
+*/
+result i2c_wind_save_all(eventMask e, prompt &item) {
+  last_status                =do_i2c_wind_address();
+  if(last_status) last_status=do_i2c_wind_oneshot();
+  if(last_status) last_status=do_i2c_wind_save();
+  //do_i2c_wind_type();
   nav.idleOn(display_status);
   return proceed;
 }
@@ -1577,8 +1631,8 @@ void loop_serial() {
 	  Serial.println(new_value,5);
 	}
 	delay(1000);
-	radiationScale=new_value;
-	if (!do_i2c_solar_radiation_scale()) Serial.println(F("Wire Error"));             // End Write Transmission
+	radiationGain=new_value;
+	if (!do_i2c_solar_radiation_gain()) Serial.println(F("Wire Error"));             // End Write Transmission
 	delay(1000);
 
 	new_value= -1;
@@ -1600,7 +1654,7 @@ void loop_serial() {
 	}
 	delay(1000);
 	radiationSensorRadiation=new_value;
-	if (do_i2c_solar_radiation_sensor_radiation()) Serial.println(F("Wire Error"));             // End Write Transmission
+	if (!do_i2c_solar_radiation_sensor_radiation()) Serial.println(F("Wire Error"));             // End Write Transmission
 	delay(1000);
 
 	Serial.println("save configuration");
