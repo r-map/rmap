@@ -68,7 +68,7 @@ def ctrl(cwd):
         not options.purge_rpc and\
         not options.rpc_mqtt_admin_fdownload):
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --options.rpc_mqtt_admin_fdownload --options.purge_rpc or one of the export options")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --rpc_mqtt_admin_fdownload --purge_rpc or one of the export options")
 
 
     if (options.changeuser):
