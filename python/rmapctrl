@@ -27,8 +27,7 @@ from rmap import  __version__
 from django.contrib.auth.hashers import make_password
 from rmap.utils import nint
 
-
-def initdb(cwd):
+def ctrl(cwd):
     p = optparse.OptionParser(usage="usage: %prog [options]",version="%prog "+__version__)
     p.add_option("--syncdb", action="store_true",dest="syncdb", help="initialize rmap DB (default %default)", default=False)
     p.add_option("--collectstatic", action="store_true",dest="collectstatic", help="Collect static files from multiple apps into a single path (default %default)", default=False)
@@ -41,6 +40,10 @@ def initdb(cwd):
     p.add_option("--exportmqttsha", action="store_true",dest="exportmqttsha", help="export mqtt (station) hashed password to stdout", default=False)
     p.add_option("--exportmqttpskkey", action="store_true",dest="exportmqttpskkey", help="export mqtt (station) psk key to stdout", default=False)
     p.add_option("--exportmqttacl", action="store_true",dest="exportmqttacl", help="export hashed mqtt acl (topic) to stdout", default=False)
+    p.add_option('--rpc_mqtt_admin_fdownload',action="store_true", help="firmware download request to admin RPC over MQTT")
+    p.add_option('--username',  default=None, help="work on station managed by this username")
+    p.add_option('--station_slug',  default=None, help="work on station defined by this slug")
+    p.add_option('--purge_rpc',action="store_true", help="remove non active RPC (submitted and completed")
 
     (options, args) = p.parse_args()
 
@@ -52,6 +55,7 @@ def initdb(cwd):
         os.chdir(ve+"/share/rmap")
 
     django.setup()
+    from rpc.models import Rpc
 
     if (not options.syncdb and\
         not options.collectstatic and\
@@ -60,9 +64,11 @@ def initdb(cwd):
         not options.exportsha and\
         not options.exportmqttsha and\
         not options.exportmqttpskkey and\
-        not options.exportmqttacl) :
+        not options.exportmqttacl and\
+        not options.purge_rpc and\
+        not options.rpc_mqtt_admin_fdownload):
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata or one of the export options")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --options.rpc_mqtt_admin_fdownload --options.purge_rpc or one of the export options")
 
 
     if (options.changeuser):
@@ -192,9 +198,36 @@ def initdb(cwd):
         print("loaddata",options.loaddata)
         management.call_command("loaddata",options.loaddata)
 
+        
+    if (options.rpc_mqtt_admin_fdownload):
+        from django.contrib.auth.models import User
+        from rmap.stations.models import StationMetadata
+        if (options.username):
+            users=(User.objects.get(username=options.username),)
+        else:
+            users=User.objects.all()
+        for u in users:
 
+            if (options.station_slug):
+                stationmetadatas=(StationMetadata.objects.filter(user__username=u.username,slug=options.station_slug),)
+            else:
+                stationmetadatas=StationMetadata.objects.filter(user__username=u.username)
+            
+            for mystationmetadata in stationmetadatas:
+                if mystationmetadata.active:
+                    method="admin"
+                    params="fdownload"
+                    myrpc=Rpc(stationmetadata=mystationmetadata,method=method,params=params)
+                    print (u.username,mystationmetadata.slug,"execute:",myrpc)
+                    myrpc.save()
+
+
+    if (options.purge_rpc):
+        Rpc.objects.filter(active=False).delete()
+
+        
 if __name__ == '__main__':
 
     cwd=os.getcwd()
 
-    sys.exit(initdb(cwd))  # (this code was run as script)
+    sys.exit(ctrl(cwd))  # (this code was run as script)

@@ -21,8 +21,6 @@ class Rpc(models.Model):
     result = JSONField(_('result'), max_length=120, null=True,blank=True)
     error =  JSONField(_('error'),  max_length=120, null=True,blank=True)
     
-    def __unicode__(self):
-        return self.method + " " + self.date.__str__() + " " + self.active
 
     def status(self):
         if (self.datecmd is not None):
@@ -37,6 +35,9 @@ class Rpc(models.Model):
         if (self.active):
             if (self.datecmd is not None) or (self.dateres is not None):
                 return "sequence error"
+
+    def __str__(self):
+        return str(self.method) + " " + str(self.params) + " " + str(self.active) + " " + str(self.status())
 
             
     class Meta:
