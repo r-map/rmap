@@ -43,7 +43,8 @@ def ctrl(cwd):
     p.add_option('--rpc_mqtt_admin_fdownload_v4',action="store_true", help="firmware download request to admin RPC over MQTT for Stima V4")
     p.add_option('--username',  default=None, help="work on station managed by this username")
     p.add_option('--station_slug',  default=None, help="work on station defined by this slug")
-    p.add_option('--purge_rpc',action="store_true", help="remove non active RPC (submitted and completed")
+    p.add_option('--purge_rpc',action="store_true", help="remove non active RPC (submitted, running and completed")
+    p.add_option('--purge_rpc:completed',action="store_true", help="remove non active RPC and completed")
 
     (options, args) = p.parse_args()
 
@@ -66,9 +67,10 @@ def ctrl(cwd):
         not options.exportmqttpskkey and\
         not options.exportmqttacl and\
         not options.purge_rpc and\
+        not options.purge_rpc_completed and\
         not options.rpc_mqtt_admin_fdownload_v4):
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --rpc_mqtt_admin_fdownload_v4 --purge_rpc or one of the export options")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --rpc_mqtt_admin_fdownload_v4 --purge_rpc* or one of the export options")
 
 
     if (options.changeuser):
@@ -216,7 +218,7 @@ def ctrl(cwd):
             for mystationmetadata in stationmetadatas:
                 if mystationmetadata.active:
                     method="admin"
-                    params="fdownload"
+                    params="{"fdownload":true}"
                     myrpc=Rpc(stationmetadata=mystationmetadata,method=method,params=params)
                     print (u.username,mystationmetadata.slug,"execute:",myrpc)
                     myrpc.save()
@@ -224,6 +226,8 @@ def ctrl(cwd):
 
     if (options.purge_rpc):
         Rpc.objects.filter(active=False).delete()
+    if (options.purge_rpc_completed):
+        Rpc.objects.filter(active=False,status="completed").delete()
 
         
 if __name__ == '__main__':
