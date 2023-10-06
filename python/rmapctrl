@@ -26,6 +26,7 @@ import sys, optparse, rmap.daemon
 from rmap import  __version__
 from django.contrib.auth.hashers import make_password
 from rmap.utils import nint
+import json
 
 def ctrl(cwd):
     p = optparse.OptionParser(usage="usage: %prog [options]",version="%prog "+__version__)
@@ -44,7 +45,7 @@ def ctrl(cwd):
     p.add_option('--username',  default=None, help="work on station managed by this username")
     p.add_option('--station_slug',  default=None, help="work on station defined by this slug")
     p.add_option('--purge_rpc',action="store_true", help="remove non active RPC (submitted, running and completed")
-    p.add_option('--purge_rpc:completed',action="store_true", help="remove non active RPC and completed")
+    p.add_option('--purge_rpc_completed',action="store_true", help="remove non active RPC and completed")
 
     (options, args) = p.parse_args()
 
@@ -218,7 +219,7 @@ def ctrl(cwd):
             for mystationmetadata in stationmetadatas:
                 if mystationmetadata.active:
                     method="admin"
-                    params="{"fdownload":true}"
+                    params=json.loads('{"fdownload": true}')
                     myrpc=Rpc(stationmetadata=mystationmetadata,method=method,params=params)
                     print (u.username,mystationmetadata.slug,"execute:",myrpc)
                     myrpc.save()
@@ -227,7 +228,7 @@ def ctrl(cwd):
     if (options.purge_rpc):
         Rpc.objects.filter(active=False).delete()
     if (options.purge_rpc_completed):
-        Rpc.objects.filter(active=False,status="completed").delete()
+        Rpc.objects.filter(active=False).exclude(dateres=None).delete()
 
         
 if __name__ == '__main__':
