@@ -40,7 +40,7 @@ def ctrl(cwd):
     p.add_option("--exportmqttsha", action="store_true",dest="exportmqttsha", help="export mqtt (station) hashed password to stdout", default=False)
     p.add_option("--exportmqttpskkey", action="store_true",dest="exportmqttpskkey", help="export mqtt (station) psk key to stdout", default=False)
     p.add_option("--exportmqttacl", action="store_true",dest="exportmqttacl", help="export hashed mqtt acl (topic) to stdout", default=False)
-    p.add_option('--rpc_mqtt_admin_fdownload',action="store_true", help="firmware download request to admin RPC over MQTT")
+    p.add_option('--rpc_mqtt_admin_fdownload_v4',action="store_true", help="firmware download request to admin RPC over MQTT for Stima V4")
     p.add_option('--username',  default=None, help="work on station managed by this username")
     p.add_option('--station_slug',  default=None, help="work on station defined by this slug")
     p.add_option('--purge_rpc',action="store_true", help="remove non active RPC (submitted and completed")
@@ -66,9 +66,9 @@ def ctrl(cwd):
         not options.exportmqttpskkey and\
         not options.exportmqttacl and\
         not options.purge_rpc and\
-        not options.rpc_mqtt_admin_fdownload):
+        not options.rpc_mqtt_admin_fdownload_v4):
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --rpc_mqtt_admin_fdownload --purge_rpc or one of the export options")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata --rpc_mqtt_admin_fdownload_v4 --purge_rpc or one of the export options")
 
 
     if (options.changeuser):
@@ -199,7 +199,7 @@ def ctrl(cwd):
         management.call_command("loaddata",options.loaddata)
 
         
-    if (options.rpc_mqtt_admin_fdownload):
+    if (options.rpc_mqtt_admin_fdownload_v4):
         from django.contrib.auth.models import User
         from rmap.stations.models import StationMetadata
         if (options.username):
@@ -211,7 +211,7 @@ def ctrl(cwd):
             if (options.station_slug):
                 stationmetadatas=(StationMetadata.objects.filter(user__username=u.username,slug=options.station_slug),)
             else:
-                stationmetadatas=StationMetadata.objects.filter(user__username=u.username)
+                stationmetadatas=StationMetadata.objects.filter(user__username=u.username,type="stimav4")
             
             for mystationmetadata in stationmetadatas:
                 if mystationmetadata.active:

@@ -14,6 +14,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -765,6 +766,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -1405,6 +1407,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -1798,6 +1801,7 @@
     "network": "fixed",
     "mqttrootpath": "sample",
     "mqttmaintpath": "maint",
+    "type": "stimav2",
     "category": "template"
   }
 },
@@ -1947,6 +1951,7 @@
     "network": "fixed",
     "mqttrootpath": "sample",
     "mqttmaintpath": "maint",
+    "type": "manual",
     "category": "template"
   }
 },
@@ -2002,6 +2007,7 @@
     "network": "locali",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -2418,6 +2424,7 @@
     "network": "claster",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -2659,6 +2666,7 @@
     "network": "locali",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -3075,6 +3083,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -3579,6 +3588,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -4144,6 +4154,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },

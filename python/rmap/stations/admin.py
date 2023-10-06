@@ -112,10 +112,10 @@ class BoardAdmin(admin.ModelAdmin):
     ]
 
     list_display = ('name','active','slug','category','stationmetadata')
-    list_editable = ('active',)
-    search_fields = ('name','active','slug','category','stationmetadata__name')
+    list_editable = ('active','category')
+    search_fields = ('name','active','slug','category','stationmetadata__user__username','stationmetadata__slug')
 
-    list_filter = ('active','category','stationmetadata','category')
+    list_filter = ('active','category','stationmetadata__user__username','stationmetadata')
 
 
 
@@ -154,12 +154,11 @@ class StationMetadataAdmin(admin.ModelAdmin):
 #        )
 
 
-    list_display = ('name','active','slug','user','ident','lat','lon','network','mqttrootpath','mqttmaintpath','category')
+    list_display = ('name','active','slug','user','ident','lat','lon','network','category','type')
     list_display_links = ('name', 'slug')
-    list_editable = ('active','user','ident','lat','lon')
+    list_editable = ('active','user','ident','lat','lon','category','type')
     search_fields = ['name','slug','user__username','ident','network']
-
-    list_filter = ('user','ident','network','mqttrootpath','mqttmaintpath','category')
+    list_filter = ('user','ident','network','mqttrootpath','mqttmaintpath','category','type')
 
 
 admin.site.register(StationMetadata, StationMetadataAdmin)

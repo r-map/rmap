@@ -901,6 +901,14 @@ class StationMetadata(models.Model):
         ('unknown','Unknown & Missing'),
     )
 
+    STATION_TYPE_CHOICES = (
+        ('unknown','Unknow model'),
+        ('manual', 'Human observer'),
+        ('stimav2','Stima version 2'),
+        ('stimav3','Stima version 3'),
+        ('stimav4','Stima version 4'),
+    )
+    
     name = models.CharField(max_length=255,default="My station",help_text=_("station name"))
     active = models.BooleanField(_("Active"),default=True,help_text=_("Activate the station for measurements"))
     slug = models.SlugField(unique=False, help_text=_('Auto-generated from name.'))
@@ -918,7 +926,10 @@ class StationMetadata(models.Model):
     mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=_("root mqtt path for publish"))
     mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=_("maint mqtt path for publish"))
     category = models.CharField(max_length=50,default="unknown",choices=STATION_CATEGORY_CHOICES,help_text=_("Category of the station"))
+    type = models.CharField(max_length=50,default="unknown",choices=STATION_TYPE_CHOICES,help_text=_("Type of the station"))
 
+
+    
     def lon_lat(self):
         if self.lon is None:
             return "None_None"
