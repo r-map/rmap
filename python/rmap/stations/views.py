@@ -216,7 +216,7 @@ def StationsOnMap(request,user=None,slug=None):
         query = Q(user__username=user)
         
     if not slug is None:
-        query = query & Q(user__username=user)
+        query = query & Q(slug=slug)
         
     if 'search' in request.GET:
         query = query & (Q(user__username__icontains=request.GET['search']) | Q(slug__icontains=request.GET['search']))
