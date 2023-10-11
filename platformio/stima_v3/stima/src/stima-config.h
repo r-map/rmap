@@ -357,6 +357,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SDCARD_LOGGING_FILE_NAME                     ("stima.log")
 
+/*!
+\def SDCARD_CONFIG_FILE_NAME
+\brief File name for reading configuration from SD-Card.
+*/
+#define SDCARD_CONFIG_FILE_NAME                     ("config.cfg")
+
+/*!
+\def SDCARD_CONFIG_SAVED_FILE_NAME
+\brief File name for reading configuration from SD-Card.
+*/
+#define SDCARD_CONFIG_SAVED_FILE_NAME                     ("config.sav")
+
 #endif
 
 /*********************************************************************

@@ -83,11 +83,6 @@ void setup() {
    lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
    wdt_reset();
 
-   lcd_error |= lcd.setCursor(0, 3);
-   lcd_error |= lcd.print(F("Configuration V: "))==0;
-   lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
-   wdt_reset();
-
    delay(5000);
    wdt_reset();
    
@@ -414,11 +409,81 @@ void init_pins() {
    #endif
 }
 
+void i2c_receive_interrupt_handler(int rx_data_length) {
+  //bool is_i2c_data_ok = false;
+  uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
+
+  // read rx_data_length bytes of data from i2c bus
+  for (uint8_t i = 0; i < rx_data_length; i++) {
+    i2c_rx_data[i] = Wire.read();
+  }
+
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    // attention: logging inside ISR !
+    //LOGN(F("No CRC: size %d"),rx_data_length);
+  } else   
+  //! check crc: ok
+  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
+    rx_data_length--;
+
+    /*
+    // it is a registers read?
+    if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
+      // offset in readable_data_read_ptr buffer
+      readable_data_address = i2c_rx_data[0];
+
+      // length (in bytes) of data to be read in readable_data_read_ptr
+      readable_data_length = i2c_rx_data[1];
+      // attention: logging inside ISR !
+      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
+    }
+    // it is a command?
+    else */
+    if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
+      // attention: logging inside ISR !
+      //LOGV(F("receive command"));
+      if (i2c_rx_data[1]==I2C_MASTER_COMMAND_SAVE ){    // command to be executed is save
+	save_configuration(false);
+	realreboot();
+      }
+      /* else {
+        // attention: logging inside ISR !
+	//LOGE(F("invalid command"));
+      }
+      */
+    }
+
+    /*
+    // it is a registers write?
+    else if (is_writable_register(i2c_rx_data[0])) {
+      rx_data_length -= 1;
+      if (i2c_rx_data[0] >= I2C_MASTER_ADDRESS_ADDRESS && i2c_rx_data[0] <= (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH -1) &&
+	  rx_data_length <= (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH - i2c_rx_data[0])) {
+        for (uint8_t i = 0; i < rx_data_length; i++) {
+          // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
+          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
+	  //LOGV(F("set writable register OK"));
+        }
+      //}else{
+	//LOGE(F("writable register not conform"));
+      }
+    }
+    */
+  } else {
+    //readable_data_address=0xFF;
+    //readable_data_length = 0;
+    // attention: logging inside ISR !
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+    i2c_error++;
+  }
+}
 
 void init_wire() {
    i2c_error = 0;
    Wire.begin();
    Wire.setClock(I2C_BUS_CLOCK);
+   //Wire.onReceive(i2c_receive_interrupt_handler);
 }
 
 
@@ -895,54 +960,117 @@ void set_default_configuration() {
 void save_configuration(bool is_default) {
    if (is_default) {
       set_default_configuration();
-      LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
+      LOGN(F("Set default configuration..."));
    }
-   else {
-      LOGN(F("Save configuration... [ %s ]"), OK_STRING);
+   
+   if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
+       || writable_configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION
+       ) {
+     LOGE(F("error configuration mismatch, do not save"));
+     return;
    }
 
    wdt_reset();
    EEPROM.put(CONFIGURATION_EEPROM_ADDRESS, writable_configuration);
    wdt_reset();
-   
+
+   #if (USE_SDCARD)
+   // try to open file. if ok, write configuration data.
+   if (!is_sdcard_open) {
+     if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
+       is_sdcard_open = true;
+       is_sdcard_error = false;
+     } else {
+       LOGE(F("error opening SDcard"));
+     }
+   }
+
+   if (is_sdcard_open) {
+     File configuration_ptr_file;
+     if (sdcard_open_file(&SD, &configuration_ptr_file, SDCARD_CONFIG_SAVED_FILE_NAME, O_WRONLY| O_CREAT)) {       
+       if (configuration_ptr_file.write(&writable_configuration, sizeof(writable_configuration)) == sizeof(writable_configuration)) {
+	 configuration_ptr_file.flush();
+       } else {
+	 LOGE(F("error writing config file"));
+       }
+     } else {
+       LOGE(F("error opening backup config file"));
+     }
+     configuration_ptr_file.close();
+   }
+
+   wdt_reset();
+   #endif
+   LOGN(F("Save configuration... [ %s ]"), OK_STRING);
 }
 
 void load_configuration() {
 
-   EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, writable_configuration);  
+  EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, writable_configuration);  
 
-   if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
-      LOGN(F("Wait configuration..."));
-      #if (USE_LCD)
-      lcd_error |= lcd.clear();
-      lcd_error |= lcd.print(F("Wait configuration"))==0;
-      #endif
-   }
+  if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+    #if (USE_SDCARD)
+    if (!is_sdcard_open) {
+      if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
+	is_sdcard_open = true;
+	is_sdcard_error = false;
+      } else {
+	LOGE(F("error opening SDcard"));
+      }
+    }
+     
+    if(is_sdcard_open){
+      if (SD.exists(SDCARD_CONFIG_FILE_NAME)) {
+	LOGN(F("file %s exists"),SDCARD_CONFIG_FILE_NAME );
+	// try to open file. if ok, read configuration data.
+	File configuration_ptr_file;
+	if (sdcard_open_file(&SD, &configuration_ptr_file, SDCARD_CONFIG_FILE_NAME, O_RDONLY)) {
+	  if (configuration_ptr_file.read(&writable_configuration, sizeof(writable_configuration)) == sizeof(writable_configuration)) {
+	    configuration_ptr_file.close();
+	    // rename file coming from recovery rpc if exist
+	    SD.remove(SDCARD_CONFIG_SAVED_FILE_NAME);
+	    if (SD.rename(SDCARD_CONFIG_FILE_NAME, SDCARD_CONFIG_SAVED_FILE_NAME)) {
+	    LOGN(F("configuration file read and renamed"));
+	      save_configuration(false);
+	    } 
+	  }else{
+	    LOGE(F("error reading configuration file"));
+	  }
+	  configuration_ptr_file.close();
+	} else {
+	  LOGE(F("error opening configuration file"));
+	}	 
+      } else {
+	 LOGN(F("file %s do not exists"),SDCARD_CONFIG_FILE_NAME );
+      }
+    }
+    #endif
 
-   while (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
-      streamRpc.parseStream(&is_event_rpc, &Serial);
-      wdt_reset();
-   }
+    LOGN(F("Wait configuration..."));
+    #if (USE_LCD)
+    lcd_error |= lcd.clear();
+    lcd_error |= lcd.print(F("Wait configuration"))==0;
+    #endif
+  }
 
-   LOGN(F("Configuration received... [ %s ]"), OK_STRING);
-
-   if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
-       || writable_configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION
-       ) {
-      save_configuration(CONFIGURATION_DEFAULT);
-   }
-
-   EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, readable_configuration);  
-
-   #if (USE_MQTT)
-
-   getMqttClientId(readable_configuration.mqtt_username, readable_configuration.stationslug, readable_configuration.boardslug, client_id);   
-   //getMqttClientIdFromMqttTopic(readable_configuration.mqtt_rpc_topic, client_id);
-   getFullTopic(maint_topic, readable_configuration.mqtt_maint_topic, MQTT_STATUS_TOPIC);
-   #endif
-
-   LOGN(F("Load configuration... [ %s ]"), OK_STRING);
-   print_configuration();
+  while (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+    streamRpc.parseStream(&is_event_rpc, &Serial);
+    wdt_reset();
+  }
+  
+  LOGN(F("Configuration received... [ %s ]"), OK_STRING);
+      
+  EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, readable_configuration);  
+  
+  #if (USE_MQTT)
+  
+  getMqttClientId(readable_configuration.mqtt_username, readable_configuration.stationslug, readable_configuration.boardslug, client_id);   
+  //getMqttClientIdFromMqttTopic(readable_configuration.mqtt_rpc_topic, client_id);
+  getFullTopic(maint_topic, readable_configuration.mqtt_maint_topic, MQTT_STATUS_TOPIC);
+  #endif
+  
+  LOGN(F("Load configuration... [ %s ]"), OK_STRING);
+  print_configuration();
 }
 
 #if (USE_RPC_METHOD_PREPARE || USE_RPC_METHOD_PREPANDGET || USE_RPC_METHOD_GETJSON)
@@ -1770,7 +1898,7 @@ void supervisor_task() {
 	    }
 	  }
 	  if (is_sdcard_open){
-	    if (sdcard_open_file(&SD, &test_file, SDCARD_INFO_FILE_NAME, O_RDWR | O_CREAT )) {
+	    if (sdcard_open_file(&SD, &test_file, SDCARD_INFO_FILE_NAME, O_WRONLY | O_CREAT )) {
 	      test_file.println(stima_name);
 	      test_file.println(MODULE_MAIN_VERSION);
 	      test_file.println(MODULE_MINOR_VERSION);
