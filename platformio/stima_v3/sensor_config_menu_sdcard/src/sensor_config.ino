@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stima-config.h>
 #include <sensors_config.h>
 #include <ethernet_config.h>
-#include <typedef.h>
+#include "sensor_config.h"
 #include <EEPROM.h>
 
 #define LOG_LEVEL LOG_LEVEL_VERBOSE
