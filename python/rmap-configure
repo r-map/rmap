@@ -100,6 +100,7 @@ parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete 
 parser.add_argument('--addsensor',action="store_true", help="add sensor to module of station")
 parser.add_argument('--addsensors_by_template',  default=None, choices=rmap.rmap_core.template_choices, help="configure sensor for a module of station by template")
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
+parser.add_argument('--export_config_v3',action="store_true", help="export configuration to file for Stima V3")
 parser.add_argument('--modify_station',action="store_true", help="modify station metadata")
 parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
@@ -785,6 +786,21 @@ if args.config_station:
 
     print("END of station configuration")
 
+if args.export_config_v3:
+
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected export_config_v3 without username or station_slug")
+        raise SystemExit(1)
+
+    configuration=rmap.rmap_core.configstation_to_struct_v3(station_slug=args.station_slug,board_slug=args.board_slug,
+                                 username=args.username)
+
+    with open('config.cfg', 'wb') as file:
+        file.write(configuration)
+        
+    print("END of export configuration")
+    
     
 if args.ttn_jsrpc:
 

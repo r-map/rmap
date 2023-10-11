@@ -207,6 +207,24 @@ def mystationmetadata_json(request,user,station_slug,board_slug=None,dump=False)
     else:
         return HttpResponse(jsonstation, content_type="application/json")
 
+
+def mystationmetadata_configv3(request,user,station_slug,board_slug=None):
+    if request.user.is_authenticated:
+        if request.user.username == user:
+            myconfiguration = rmap_core.configstation_to_struct_v3(station_slug,board_slug,user)
+        else:
+            response=HttpResponse("deny")
+            response.status_code=403
+            return response
+
+    if myconfiguration is None:
+        response=HttpResponse("error")
+        response.status_code=403
+        return response
+    else:
+        response= HttpResponse(bytes(myconfiguration), content_type="application/octet-stream")
+        response['Content-Disposition'] = 'attachment; filename="'+station_slug+'.cfg"'
+        return response
     
 def StationsOnMap(request,user=None,slug=None):
 
