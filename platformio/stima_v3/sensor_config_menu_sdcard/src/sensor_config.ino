@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wire.h"
 #include <Arduino.h>
 #include <ArduinoLog.h>
+#include "registers-master.h"              //Register definitions
 #include "registers-radiation.h"           //Register definitions
 #include "registers-wind.h"                //Register definitions
 #include "registers-th.h"                  //Register definitions
@@ -32,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "sensor_config.h"
 #include <EEPROM.h>
 
-#define LOG_LEVEL LOG_LEVEL_VERBOSE
+#define LOG_LEVEL LOG_LEVEL_NOTICE
 
 #define WIND_POWER_ON_DELAY_MS                          (5000)
 #define WIND_POWER_PIN                                  (4)
@@ -92,7 +93,8 @@ hd44780_I2Cexp lcd;
 void scanI2CBus(byte from_addr, byte to_addr,void(*callback)(byte address, byte result) );
 result scan_i2c_bus();
 
-result i2c_master_save_all(eventMask e, prompt &item);
+result i2c_master_save_i2c_all(eventMask e, prompt &item);
+result i2c_master_save_eeprom_all(eventMask e, prompt &item);
 
 result i2c_solar_radiation_address(eventMask e, prompt &item);
 result i2c_solar_radiation_oneshot(eventMask e, prompt &item);
@@ -185,14 +187,20 @@ result filePick(eventMask event, navNode& nav, prompt &item) {
   return proceed;
 }
 
-MENU(subMenuMasterSave,"Save configuration",doNothing,noEvent,noStyle
-	,OP("Yes write on EEPROM",i2c_master_save_all,enterEvent)
+MENU(subMenuMasterEepromSave,"EE save conf",doNothing,noEvent,noStyle
+	,OP("Yes write on EEPROM",i2c_master_save_eeprom_all,enterEvent)
+	,EXIT("<Back")
+	);
+
+MENU(subMenuMasterI2cSave,"I2C save conf",doNothing,noEvent,noStyle
+	,OP("Yes write on I2C",i2c_master_save_i2c_all,enterEvent)
 	,EXIT("<Back")
 	);
 
 MENU(subMenuMaster,"Master",doNothing,noEvent,noStyle
      ,SUBMENU(filePickMenu)
-     ,SUBMENU(subMenuMasterSave)
+     ,SUBMENU(subMenuMasterEepromSave)
+     ,SUBMENU(subMenuMasterI2cSave)
      ,EXIT("<Back")
      );
 
@@ -1034,19 +1042,36 @@ void print_configuration() {
    #endif
 }
 
+bool do_i2c_master_config(uint16_t index, uint8_t* conf, uint8_t conflength){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_MASTER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_MASTER_CONFIGURATION_INDEX_ADDRESS;
+  buffer[1]=(uint8_t)index;
+  buffer[2]=(uint8_t)(index >> 8); // Get upper byte of 16-bit var
+  memcpy(&buffer[3],conf,conflength);
+  buffer[conflength+3]=crc8(buffer, conflength+3);
+  Wire.write(buffer,conflength+4);
+  return (Wire.endTransmission() == 0);
+}
 
-result i2c_master_save_all(eventMask e, prompt &item) {
+bool do_i2c_master_save(void){
+  uint8_t buffer[32];
+  Wire.beginTransmission(I2C_MASTER_DEFAULT_ADDRESS);
+  buffer[0]=I2C_COMMAND_ID;
+  buffer[1]=I2C_MASTER_COMMAND_SAVE;
+  buffer[2]=crc8(buffer, 2);
+  Wire.write(buffer,3);
+  return (Wire.endTransmission() == 0);
+}
+
+result i2c_master_save_i2c_all(eventMask e, prompt &item) {
   
-  
-  Serial.println("");
-  Serial.println("read file");
-  Serial.println(path);
-  Serial.println(filename);
+  LOGN(F("\nread file %s %s"),path,filename);
 
   last_status = false;
   sd.chdir(path);
   if (sd.exists(filename)) {
-    Serial.println(F("file exists"));
+    LOGN(F("file exists"));
     // try to open file. if ok, read configuration data.
     File configurationFile;
     configurationFile = sd.open(filename, O_RDONLY);
@@ -1054,30 +1079,78 @@ result i2c_master_save_all(eventMask e, prompt &item) {
       if (configurationFile.read(&configuration, sizeof(configuration)) == sizeof(configuration)) {
 	configurationFile.close();
 	last_status = true;
-	Serial.println(F("configuration file read"));
+	LOGN(F("configuration file read"));
+
+	print_configuration();
+
+	LOGN(F("size of configuration %d"),sizeof(configuration));
+	
+        #define CHUNK 24
+	for (uint16_t index=0; index < sizeof(configuration); index+=CHUNK){
+	  uint8_t conflength=min(CHUNK,sizeof(configuration)-index);
+	  uint8_t* conf=&((uint8_t*)&configuration)[index];
+	  LOGV(F("i2c master config at index %d size %d"),index, conflength);
+	  if (!do_i2c_master_config(index, conf, conflength)){
+	    last_status = false;
+	    LOGE(F("Error i2c master config at index %d"),index);
+	    break;
+	  }
+	}
+
+	if (last_status){
+	  if (!do_i2c_master_save()){
+	    last_status = false; 
+	    LOGE(F("Error i2c master save command"));
+	  } else {
+	    LOGN(F("i2c master save command done"));
+	  }
+	}
+      }else{
+	LOGN(F("error reading configuration file"));
+      }
+      configurationFile.close();
+    } else {
+      LOGN(F("error opening configuration file"));
+    }	 
+  } else {
+    LOGN(F("file  do not exists"));
+  }
+  
+  nav.idleOn(display_status);
+  return proceed;
+}
+
+
+result i2c_master_save_eeprom_all(eventMask e, prompt &item) {
+  
+  LOGN(F("\nread file %s %s"),path,filename);
+
+  last_status = false;
+  sd.chdir(path);
+  if (sd.exists(filename)) {
+    LOGN(F("file exists"));
+    // try to open file. if ok, read configuration data.
+    File configurationFile;
+    configurationFile = sd.open(filename, O_RDONLY);
+    if (configurationFile) {
+      if (configurationFile.read(&configuration, sizeof(configuration)) == sizeof(configuration)) {
+	configurationFile.close();
+	last_status = true;
+	LOGN(F("configuration file read"));
 
 	print_configuration();
 	EEPROM.put(CONFIGURATION_EEPROM_ADDRESS, configuration);
 
       }else{
-	Serial.println(F("error reading configuration file"));
+	LOGN(F("error reading configuration file"));
       }
       configurationFile.close();
     } else {
-      Serial.println(F("error opening configuration file"));
+      LOGN(F("error opening configuration file"));
     }	 
   } else {
-    Serial.println(F("file  do not exists"));
+    LOGN(F("file  do not exists"));
   }
-
-  /*
-  Serial.println(sizeof(configuration));
-  uint8_t* data = (uint8_t*)&configuration;
-  for (uint16_t i=0; i < sizeof(configuration); i++){
-    Serial.println(*data);
-    data++;
-  }
-  */
   
   nav.idleOn(display_status);
   return proceed;
@@ -1652,7 +1725,7 @@ void setup() {
   //Log.setPrefix(logPrefix);
   Log.setSuffix(logSuffix);
 
-  Serial.print(F("Start sensor config"));
+  LOGN(F("Start sensor config"));
 
   //Start I2C communication routines
   Wire.begin();
@@ -1670,13 +1743,12 @@ void setup() {
   lcd.begin(20,4);
   ir.begin();
 
-  Serial.print("Initializing SD card...");
-  if (!sd.begin(SDCARD_SS)) {
+  LOGN(F("Initializing SD card..."));
+  while (!sd.begin(SDCARD_SS)) {
     Serial.println(F("Error SD card"));
-    delay(100000);
+    delay(3000);
   }
   filePickMenu.begin();//need this after sd begin
-
   delay(1000);
   
   // encoder with interrupt on the A & B pins

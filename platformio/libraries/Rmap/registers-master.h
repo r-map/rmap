@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MASTER_DEFAULT_ADDRESS
 \brief Default address for i2c-master module.
 */
-#define I2C_MASTER_DEFAULT_ADDRESS                  (0x4A)
+#define I2C_MASTER_DEFAULT_ADDRESS                  (0x20)
 
 /*!
 \def I2C_MASTER_COMMAND_NONE
@@ -63,17 +63,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_MASTER_ADDRESS_ADDRESS                  (I2C_WRITE_REGISTER_START_ADDRESS)
 
+
+
+/*!
+\def I2C_MASTER_CONFIGURATION_INDEX_LENGTH
+\brief length of the configuration index variable for i2c-master module.
+*/
+#define I2C_MASTER_CONFIGURATION_INDEX_LENGTH                   (0x02)
+
+/*!
+\def I2C_MASTER_CONFIGURATION_INDEX_ADDRESS
+\brief address of the configuration index variable for i2c-master module.
+*/
+#define I2C_MASTER_CONFIGURATION_INDEX_ADDRESS                  (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH)
+
 /*!
 \def I2C_MASTER_CONFIGURATION_LENGTH
 \brief length of the configuration variable for i2c-master module.
 */
-#define I2C_MASTER_CONFIGURATION_LENGTH                   (0x01)
+#define I2C_MASTER_CONFIGURATION_LENGTH                   (0x24)
 
 /*!
 \def I2C_MASTER_CONFIGURATION_ADDRESS
 \brief address of the oneshot variable for i2c-master module.
 */
-#define I2C_MASTER_CONFIGURATION_ADDRESS                  (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH)
+#define I2C_MASTER_CONFIGURATION_ADDRESS                  (I2C_MASTER_CONFIGURATION_INDEX_ADDRESS + I2C_MASTER_CONFIGURATION_INDEX_LENGTH)
 
 /*!
 \def I2C_MASTER_WRITABLE_DATA_LENGTH

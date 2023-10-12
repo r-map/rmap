@@ -410,9 +410,8 @@ void init_pins() {
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
-  //bool is_i2c_data_ok = false;
   uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
-
+  
   // read rx_data_length bytes of data from i2c bus
   for (uint8_t i = 0; i < rx_data_length; i++) {
     i2c_rx_data[i] = Wire.read();
@@ -422,68 +421,77 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     // no payload and CRC as for scan I2c bus
     // attention: logging inside ISR !
     //LOGN(F("No CRC: size %d"),rx_data_length);
-  } else   
-  //! check crc: ok
-  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
+    //! check crc: ok
+
+  } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
     rx_data_length--;
-
+    
     /*
-    // it is a registers read?
+    // is it a registers read?
     if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
-      // offset in readable_data_read_ptr buffer
-      readable_data_address = i2c_rx_data[0];
-
-      // length (in bytes) of data to be read in readable_data_read_ptr
-      readable_data_length = i2c_rx_data[1];
-      // attention: logging inside ISR !
-      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
-    }
-    // it is a command?
-    else */
+    // offset in readable_data_read_ptr buffer
+    readable_data_address = i2c_rx_data[0];
+    
+    // length (in bytes) of data to be read in readable_data_read_ptr
+    readable_data_length = i2c_rx_data[1];
+    // attention: logging inside ISR !
+    //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
+      } else */
+    // is it a command?
     if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
       // attention: logging inside ISR !
-      //LOGV(F("receive command"));
+      //LOGN(F("receive a command"));
       if (i2c_rx_data[1]==I2C_MASTER_COMMAND_SAVE ){    // command to be executed is save
+	LOGN(F("save command"));
 	save_configuration(false);
 	realreboot();
       }
       /* else {
-        // attention: logging inside ISR !
-	//LOGE(F("invalid command"));
+      // attention: logging inside ISR !
+      //LOGE(F("invalid command"));
       }
-      */
-    }
-
-    /*
-    // it is a registers write?
-    else if (is_writable_register(i2c_rx_data[0])) {
-      rx_data_length -= 1;
-      if (i2c_rx_data[0] >= I2C_MASTER_ADDRESS_ADDRESS && i2c_rx_data[0] <= (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH -1) &&
-	  rx_data_length <= (I2C_MASTER_ADDRESS_ADDRESS + I2C_MASTER_ADDRESS_LENGTH - i2c_rx_data[0])) {
-        for (uint8_t i = 0; i < rx_data_length; i++) {
-          // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
-	  //LOGV(F("set writable register OK"));
-        }
-      //}else{
-	//LOGE(F("writable register not conform"));
+	*/
+      
+      // it is a registers write?
+    } else if (is_writable_register(i2c_rx_data[0])) {
+      if (i2c_rx_data[0] == I2C_MASTER_CONFIGURATION_INDEX_ADDRESS &&
+	  rx_data_length <= (I2C_MASTER_CONFIGURATION_INDEX_LENGTH + I2C_MASTER_CONFIGURATION_LENGTH )) {
+	rx_data_length -= 1;
+	
+	uint16_t index;
+	((uint8_t *)&index)[0] = i2c_rx_data[1];
+	((uint8_t *)&index)[1] = i2c_rx_data[2];
+	rx_data_length -= 2;
+	
+	//LOGN(F("index %d"),index);
+	
+	for (int16_t i = 0; i <  rx_data_length; i++) {
+	  if ((i + index)< sizeof(writable_configuration)){
+	    ((uint8_t *)&writable_configuration)[i + index] = i2c_rx_data[i+3];
+	    //  LOGV(F("set writable register OK"));
+	    //}else{
+	    //LOGE(F("set writable register FAILED"));	    
+	  }
+	}
+	//}else{
+	  //LOGE(F("writable register not conform"));
       }
+      
+    } else {
+      //readable_data_address=0xFF;
+      //readable_data_length = 0;
+      // attention: logging inside ISR !
+      //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+      i2c_error++;
     }
-    */
-  } else {
-    //readable_data_address=0xFF;
-    //readable_data_length = 0;
-    // attention: logging inside ISR !
-    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
-    i2c_error++;
   }
 }
 
 void init_wire() {
    i2c_error = 0;
-   Wire.begin();
+   Wire.begin(I2C_MASTER_DEFAULT_ADDRESS); // configuration by I2C registers ignored !
    Wire.setClock(I2C_BUS_CLOCK);
-   //Wire.onReceive(i2c_receive_interrupt_handler);
+   Wire.onReceive(i2c_receive_interrupt_handler);
 }
 
 
