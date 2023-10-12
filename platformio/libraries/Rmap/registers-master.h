@@ -53,17 +53,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 /*!
 \def I2C_MASTER_ADDRESS_LENGTH
-\brief length of the address variable for i2c-master module.
+\brief length of the address variable for i2c-master module. (not managed by firmware!)
 */
 #define I2C_MASTER_ADDRESS_LENGTH                   (0x01)
 
 /*!
 \def I2C_MASTER_ADDRESS_ADDRESS
-\brief address of the address variable for i2c-master module.
+\brief address of the address variable for i2c-master module. (not managed by firmware!)
 */
 #define I2C_MASTER_ADDRESS_ADDRESS                  (I2C_WRITE_REGISTER_START_ADDRESS)
-
-
 
 /*!
 \def I2C_MASTER_CONFIGURATION_INDEX_LENGTH

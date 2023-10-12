@@ -454,6 +454,10 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       
       // it is a registers write?
     } else if (is_writable_register(i2c_rx_data[0])) {
+
+      // we have to manage others registers here (i2c address)
+      // but they are not in configuration_t
+      
       if (i2c_rx_data[0] == I2C_MASTER_CONFIGURATION_INDEX_ADDRESS &&
 	  rx_data_length <= (I2C_MASTER_CONFIGURATION_INDEX_LENGTH + I2C_MASTER_CONFIGURATION_LENGTH )) {
 	rx_data_length -= 1;
