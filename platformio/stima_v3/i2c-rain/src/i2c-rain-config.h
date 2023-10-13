@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (12)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
