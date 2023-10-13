@@ -59,10 +59,35 @@ const char version[] = "4.0";
 #include <menuIO/serialIn.h>
 #include <SPI.h>
 #include <SdFat.h>
+#include "sdios.h"
 #include <plugin/SdFatMenu.h>
 
 #define SDCARD_SS 7
-SdFat sd;
+//SdFat sd;
+SdFs sd;
+
+// SD FORMATTER ------------------------------------------------------
+// Try to select the best SD card configuration.
+#if HAS_SDIO_CLASS
+#define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif  ENABLE_DEDICATED_SPI
+#define SD_CONFIG SdSpiConfig(SDCARD_SS, DEDICATED_SPI)
+#else  // HAS_SDIO_CLASS
+#define SD_CONFIG SdSpiConfig(SDCARD_SS, SHARED_SPI)
+#endif  // HAS_SDIO_CLASS
+
+// SdCardFactory constructs and initializes the appropriate card.
+SdCardFactory cardFactory;
+// Pointer to generic SD card.
+SdCard* m_card = nullptr;
+
+cid_t m_cid;
+csd_t m_csd;
+uint32_t m_eraseSize;
+uint32_t m_ocr;
+
+// -----------------------------------------------------------------
+
 
 //function to handle file select
 // declared here and implemented bellow because we need
@@ -129,6 +154,8 @@ result i2c_wind_address(eventMask e, prompt &item);
 result i2c_wind_oneshot(eventMask e, prompt &item);
 //result i2c_wind_type(eventMask e, prompt &item);
 result i2c_wind_save_all(eventMask e, prompt &item);
+
+result sdcardFormat(eventMask e, prompt &item);
 
 result windsonic_sconfigurator(eventMask e, prompt &item);
 result windsonic_configurator(eventMask e, prompt &item);
@@ -308,6 +335,11 @@ MENU(subMenuWind,"i2c_wind",doNothing,noEvent,noStyle
      ,EXIT("<Back")
      );
 
+MENU(subMenuSdformat,"SD format",doNothing,noEvent,noStyle
+	,OP("Yes erase all data",sdcardFormat,enterEvent)
+	,EXIT("<Back")
+	);
+
 MENU(mainMenu,"Configuration",doNothing,noEvent,noStyle
      ,SUBMENU(subMenuMaster)
      ,SUBMENU(subMenuRadiation)
@@ -315,6 +347,7 @@ MENU(mainMenu,"Configuration",doNothing,noEvent,noStyle
      ,SUBMENU(subMenuRain)
      ,SUBMENU(subMenuPower)
      ,SUBMENU(subMenuWind)
+     ,SUBMENU(subMenuSdformat)     
      ,OP("configure windsonic",windsonic_configurator,enterEvent)
      ,OP("sconfigure windsonic",windsonic_sconfigurator,enterEvent)
      ,OP("Scan i2c bus",scan_i2c_bus,enterEvent)
@@ -959,6 +992,168 @@ void windsonicSconfigure(void){
   delay(1000);
   windsonicFlush();
 }
+
+// SD formatter function -------------------------------------------------------
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+bool cidDmp() {
+  Serial.print(F("\nManufacturer ID: "));
+  Serial.println(int(m_cid.mid));
+  Serial.print(F("OEM ID: "));
+  Serial.print(m_cid.oid[0]);
+  Serial.println(m_cid.oid[1]);
+  Serial.print(F("Product: "));
+  for (uint8_t i = 0; i < 5; i++) {
+    Serial.print(m_cid.pnm[i]);
+  }
+  Serial.print(F("\nVersion: "));
+  Serial.print(int(m_cid.prv_n));
+  Serial.print('.');
+  Serial.println(int(m_cid.prv_m));
+  Serial.print(F("Serial number: "));
+  Serial.println(m_cid.psn);
+  Serial.print(F("Manufacturing date: "));
+  Serial.print(int(m_cid.mdt_month));
+  Serial.print('/');
+  Serial.println(2000 + 16*m_cid.mdt_year_high + m_cid.mdt_year_low);
+  return true;
+}
+//------------------------------------------------------------------------------
+bool csdDmp() {
+  bool eraseSingleBlock;
+  if (m_csd.v1.csd_ver == 0) {
+    eraseSingleBlock = m_csd.v1.erase_blk_en;
+    m_eraseSize = (m_csd.v1.sector_size_high << 1) | m_csd.v1.sector_size_low;
+  } else if (m_csd.v2.csd_ver == 1) {
+    eraseSingleBlock = m_csd.v2.erase_blk_en;
+    m_eraseSize = (m_csd.v2.sector_size_high << 1) | m_csd.v2.sector_size_low;
+  } else {
+    Serial.print( F("m_csd version error\n"));
+    return false;
+  }
+  m_eraseSize++;
+  Serial.print(F("cardSize: "));
+  Serial.print(0.000512 * sdCardCapacity(&m_csd));
+  Serial.print(F(" MB (MB = 1,000,000 bytes)\n"));
+
+  Serial.print(F("flashEraseSize: "));
+  Serial.print(int(m_eraseSize));
+  Serial.print(F(" blocks\n"));
+  Serial.print(F("eraseSingleBlock: "));
+  if (eraseSingleBlock) {
+    Serial.print(F("true\n"));
+  } else {
+    Serial.print(F("false\n"));
+  }
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void errorPrint() {
+  if (sd.sdErrorCode()) {
+    Serial.print(F("SD errorCode: "));
+    Serial.println(sd.sdErrorCode());
+    Serial.print(F("SD errorData = "));
+    Serial.println(int(sd.sdErrorData()));
+  }
+}
+//------------------------------------------------------------------------------
+bool mbrDmp() {
+  MbrSector_t mbr;
+  bool valid = true;
+  if (!sd.card()->readSector(0, (uint8_t*)&mbr)) {
+    Serial.print(F("\nread MBR failed.\n"));
+    errorPrint();
+    return false;
+  }
+  Serial.print(F("\nSD Partition Table\n"));
+  Serial.print(F("part,boot,bgnCHS[3],type,endCHS[3],start,length\n"));
+  for (uint8_t ip = 1; ip < 5; ip++) {
+    MbrPart_t *pt = &mbr.part[ip - 1];
+    if ((pt->boot != 0 && pt->boot != 0X80) ||
+        getLe32(pt->relativeSectors) > sdCardCapacity(&m_csd)) {
+      valid = false;
+    }
+    Serial.print(int(ip));
+    Serial.print(',');
+    Serial.print(int(pt->boot));
+    Serial.print(',');
+    for (int i = 0; i < 3; i++ ) {
+      Serial.print(int(pt->beginCHS[i]));
+      Serial.print(',');
+    }
+    Serial.print(int(pt->type));
+    Serial.print(',');
+    for (int i = 0; i < 3; i++ ) {
+      Serial.print(int(pt->endCHS[i]));
+      Serial.print(',');
+    }
+    Serial.print(getLe32(pt->relativeSectors));
+    Serial.print(',');
+    Serial.print(getLe32(pt->totalSectors));
+    Serial.print("\n");
+  }
+  if (!valid) {
+    Serial.print(F("\nMBR not valid, assuming Super Floppy format.\n"));
+  }
+  return true;
+}
+//------------------------------------------------------------------------------
+void dmpVol() {
+  Serial.print(F("\nScanning FAT, please wait.\n"));
+  uint32_t freeClusterCount = sd.freeClusterCount();
+  if (sd.fatType() <= 32) {
+    Serial.print(F("\nVolume is FAT"));
+    Serial.println(int(sd.fatType()));
+  } else {
+    Serial.print(F("\nVolume is exFAT\n"));
+  }
+  Serial.print(F("sectorsPerCluster: "));
+  Serial.println(sd.sectorsPerCluster());
+  Serial.print(F("clusterCount:      "));
+  Serial.println(sd.clusterCount());
+  Serial.print(F("freeClusterCount:  "));
+  Serial.println(freeClusterCount);
+  Serial.print(F("fatStartSector:    "));
+  Serial.println(sd.fatStartSector());
+  Serial.print(F("dataStartSector:   "));
+  Serial.println(sd.dataStartSector());
+  if (sd.dataStartSector() % m_eraseSize) {
+    Serial.print(F("Data area is not aligned on flash erase boundary!\n"));
+    Serial.print(F("Download and use formatter from www.sdcard.org!\n"));
+  }
+}
+//------------------------------------------------------------------------------
+void printCardType() {
+
+  Serial.print(F("\nCard type: "));
+
+  switch (sd.card()->type()) {
+    case SD_CARD_TYPE_SD1:
+      Serial.print(F("SD1\n"));
+      break;
+
+    case SD_CARD_TYPE_SD2:
+      Serial.print(F("SD2\n"));
+      break;
+
+    case SD_CARD_TYPE_SDHC:
+      if (sdCardCapacity(&m_csd) < 70000000) {
+        Serial.print(F("SDHC\n"));
+      } else {
+        Serial.print(F("SDXC\n"));
+      }
+      break;
+
+    default:
+      Serial.print(F("Unknown\n"));
+  }
+}
+//-END -----------------------------------------------------------------------------
+// SD formatter function -------------------------------------------------------
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 char getCommand()
 {
@@ -1701,6 +1896,86 @@ result i2c_wind_save_all(eventMask e, prompt &item) {
   return proceed;
 }
 
+result sdcardFormat(eventMask e, prompt &item) {
+
+  uint32_t cardSectorCount = m_card->sectorCount();
+  if (!cardSectorCount) {
+    Serial.println("Get sector count failed.");
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+
+  Serial.print(F("\nCard size: "));
+  Serial.print(cardSectorCount*5.12e-7);
+  Serial.print(F(" GB (GB = 1E9 bytes)\n"));
+  Serial.print(F("Card size: "));
+  Serial.print(cardSectorCount/2097152.0);
+  Serial.print(F(" GiB (GiB = 2^30 bytes)\n"));
+  Serial.print(F("Card will be formated "));
+
+  if (cardSectorCount > 4194304) {
+    Serial.print(F("FAT32\n"));
+  } else {
+    Serial.print(F("FAT16\n"));
+  }
+
+  FatFormatter fatFormatter;
+  uint8_t  sectorBuffer[512];
+
+  if (!fatFormatter.format(m_card, sectorBuffer, &Serial)) {  
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+  Serial.println(F("SD card formatted."));
+
+
+  uint32_t t = millis();
+  if (!sd.cardBegin(SD_CONFIG)) {
+    Serial.print(F("\nSD initialization failed.\n"));
+    errorPrint();
+
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+  
+  if (!sd.card()->readCID(&m_cid) ||
+      !sd.card()->readCSD(&m_csd) ||
+      !sd.card()->readOCR(&m_ocr)) {
+    Serial.print(F("readInfo failed\n"));
+    errorPrint();
+    
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+  printCardType();
+  cidDmp();
+  csdDmp();
+  Serial.print(F("\nOCR: "));
+  Serial.print( m_ocr);
+  if (!mbrDmp()) {
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+  if (!sd.volumeBegin()) {
+    Serial.print(F("\nvolumeBegin failed. Is the card formatted?\n"));
+    errorPrint();
+    
+    last_status=false;
+    nav.idleOn(display_status);
+    return proceed;
+  }
+  dmpVol();
+
+  last_status=true;
+  nav.idleOn(display_status);
+  return proceed;
+}
+
 /*
 void logPrefix(Print* _logOutput) {
   char m[12];
@@ -1759,6 +2034,14 @@ void setup() {
   //mainMenu[1].enabled=disabledStatus;
   nav.showTitle=true;
   //nav.timeOut=10;
+
+  // Select and initialize proper card driver.
+  m_card = cardFactory.newCard(SD_CONFIG);
+  if (!m_card || m_card->errorCode()) {
+    Serial.println("card init failed.");
+    while (true) {}
+    return;
+  }
   
   lcd.setCursor(0, 0);
   lcd.print("Sensor Configurator ");
