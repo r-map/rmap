@@ -2018,31 +2018,7 @@ void setup() {
   lcd.begin(20,4);
   ir.begin();
 
-  LOGN(F("Initializing SD card..."));
-  while (!sd.begin(SDCARD_SS)) {
-    Serial.println(F("Error SD card"));
-    delay(3000);
-  }
-  filePickMenu.begin();//need this after sd begin
-  delay(1000);
-  
-  // encoder with interrupt on the A & B pins
-  attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
-  
-  nav.idleTask=idle;//point a function to be used when menu is suspended
-  //mainMenu[1].enabled=disabledStatus;
-  nav.showTitle=true;
-  //nav.timeOut=10;
 
-  // Select and initialize proper card driver.
-  m_card = cardFactory.newCard(SD_CONFIG);
-  if (!m_card || m_card->errorCode()) {
-    Serial.println("card init failed.");
-    while (true) {}
-    return;
-  }
-  
   lcd.setCursor(0, 0);
   lcd.print("Sensor Configurator ");
   lcd.print(version);
@@ -2056,6 +2032,47 @@ void setup() {
   Serial.println("http://rmap.cc");
   delay(2000);
 
+  
+  LOGN(F("Initializing SD card..."));
+  while (!sd.begin(SDCARD_SS)) {
+    Serial.println(F("Error SD card"));
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Error SD card");
+    lcd.setCursor(0, 1);
+    lcd.print("insert or check");
+    lcd.setCursor(0, 2);
+    lcd.print("SD card");
+    delay(3000);
+  }
+
+  // Select and initialize proper card driver.
+  m_card = cardFactory.newCard(SD_CONFIG);
+  while (!m_card || m_card->errorCode()) {
+    Serial.println("card init failed");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Card init failed");
+    lcd.setCursor(0, 1);
+    lcd.print("insert or check");
+    lcd.setCursor(0, 2);
+    lcd.print("SD card");
+    delay(3000);
+  }
+
+  filePickMenu.begin();//need this after sd begin
+  delay(1000);
+  
+  // encoder with interrupt on the A & B pins
+  attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
+  
+  nav.idleTask=idle;//point a function to be used when menu is suspended
+  //mainMenu[1].enabled=disabledStatus;
+  nav.showTitle=true;
+  //nav.timeOut=10;
+
+  
   Serial.println(version);
   Serial.println("Use keys + - * /");
   Serial.println("or arrows keys as alternative");
