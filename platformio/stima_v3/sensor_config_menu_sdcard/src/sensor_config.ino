@@ -17,6 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
+// rotary encoder pins
+#define encA 2
+#define encB 3
+
+// the encoder has a button here
+#define encBtn 9
+
+// IR remote
+#define IR_PIN 0
+
+// i2c-wind module
+#define WIND_POWER_PIN                                  (4)
+
+
 #include "Wire.h"
 #include <Arduino.h>
 #include <ArduinoLog.h>
@@ -36,7 +50,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LOG_LEVEL LOG_LEVEL_NOTICE
 
 #define WIND_POWER_ON_DELAY_MS                          (5000)
-#define WIND_POWER_PIN                                  (4)
 #define GWS_SERIAL_BAUD                                 (9600)
 #define GWS_SERIAL_TIMEOUT_MS                           (500)
 #define UART_RX_BUFFER_LENGTH                           (120)
@@ -105,15 +118,6 @@ result filePick(eventMask event, navNode& nav, prompt &item);
 
 // declare the lcd object for auto i2c address location
 hd44780_I2Cexp lcd;
-
-// Encoder /////////////////////////////////////
-// rotary encoder pins
-#define encA 2
-#define encB 3
-//this encoder has a button here
-#define encBtn 6
-
-#define IR_PIN 0
 
 void scanI2CBus(byte from_addr, byte to_addr,void(*callback)(byte address, byte result) );
 result scan_i2c_bus();
@@ -443,11 +447,15 @@ result idle(menuOut& o,idleEvent e) {
     o.setCursor(0,1);
     o.print("go to serial port");
     true_idle_status=true;
-  break;
+    detachInterrupt(digitalPinToInterrupt(encA));
+    detachInterrupt(digitalPinToInterrupt(encB));  
+    break;
   case idleEnd:
     o.setCursor(0,0);
     o.print("resuming menu.");
     true_idle_status=false;
+    attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);  
     delay(1000);
     break;    
   }
