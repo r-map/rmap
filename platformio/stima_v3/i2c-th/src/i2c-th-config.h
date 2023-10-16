@@ -67,18 +67,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIGURATION_DEFAULT_I2C_ADDRESS             (I2C_TH_DEFAULT_ADDRESS)
 
 /*!
-\def CONFIGURATION_DEFAULT_TEMPERATURE_ADDRESS
-\brief Default i2c temperature address.
-*/
-#define CONFIGURATION_DEFAULT_TEMPERATURE_ADDRESS     (I2C_TH_TEMPERATURE_DEFAULT_ADDRESS)
-
-/*!
-\def CONFIGURATION_DEFAULT_HUMIDITY_ADDRESS
-\brief Default i2c humidity address.
-*/
-#define CONFIGURATION_DEFAULT_HUMIDITY_ADDRESS        (I2C_TH_HUMIDITY_DEFAULT_ADDRESS)
-
-/*!
 \def CONFIGURATION_RESET_PIN
 \brief Input pin for reset configuration at startup.
 */
