@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sensors_config.h>
 #include <ethernet_config.h>
 #include "sensor_config.h"
+#include "lcd_config.h"
 #include <EEPROM.h>
 
 #define LOG_LEVEL LOG_LEVEL_NOTICE
@@ -378,7 +379,7 @@ serialIn serial(Serial);
 MENU_INPUTS(in,&irStream,&encStream,&encButton,&serial);
 
 
-const panel panels[] MEMMODE={{0,0,20,4}};
+const panel panels[] MEMMODE={{0,0,LCD_COLUMNS, LCD_ROWS}};
 navNode* nodes[sizeof(panels)/sizeof(panel)];
 panelsList pList(panels,nodes,1);
 
@@ -397,7 +398,7 @@ outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list control
 
 /*
 MENU_OUTPUTS(out, MAX_DEPTH
-  ,LIQUIDCRYSTAL_OUT(lcd,{0,0,20,4})
+  ,LIQUIDCRYSTAL_OUT(lcd,{0,0,LCD_COLUMNS, LCD_ROWS})
   ,NONE
 );
 */
@@ -2023,7 +2024,19 @@ void setup() {
   pinMode(encBtn,INPUT_PULLUP);
   encoder.begin();
   encButton.begin();
-  lcd.begin(20,4);
+  
+  lcd.setAddr(LCD_I2C_ADDRESS);
+  if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
+    {
+      LOGN(F(" Error initializing LCD primary addr"));
+      
+      lcd.setAddr(LCD_I2C_SECONDARY_ADDRESS);
+      if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
+	{
+	  LOGE(F(" Error initializing LCD"));
+	}
+    }
+  
   ir.begin();
 
 
