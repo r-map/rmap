@@ -290,6 +290,18 @@ state_t state;
 */
 leaf_reading_state_t leaf_reading_state;
 
+/*!
+\var inside_transaction
+\brief Status of command transaction.
+*/
+volatile bool inside_transaction;
+
+/*!
+\var transaction_time
+\brief Timer counter variable for compute command transaction timeout.
+*/
+volatile uint16_t transaction_time;
+
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
