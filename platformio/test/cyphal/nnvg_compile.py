@@ -1,7 +1,7 @@
 Import("env")
 import os
 
-if not os.path.isdir("include"):
+if not os.path.isfile("include/done"):
 
 
     # install yakut in platformio virtualenv and use generate_types shortcut
@@ -20,7 +20,8 @@ if not os.path.isdir("include"):
     generate_types("c", "data_types/reg", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
     generate_types("c", "data_types/rmap", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
 
-
+    with open('include/done','w') as donefile:
+        donefile.write("done")
 
 #  use subprocess to use system installed command nnvg
 
