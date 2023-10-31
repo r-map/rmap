@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 0)
+  (lib (name "Stima V4 Slave R1_1-altium-import")(type "KiCad")(uri "${KIPRJMOD}/Stima V4 Slave R1_1-altium-import.kicad_sym")(options "")(descr ""))
+)

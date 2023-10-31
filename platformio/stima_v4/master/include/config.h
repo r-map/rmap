@@ -52,7 +52,7 @@
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (3)
+#define MODULE_MINOR_VERSION  (4)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
