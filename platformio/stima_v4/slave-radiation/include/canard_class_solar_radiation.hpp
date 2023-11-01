@@ -46,8 +46,8 @@
 #include <uavcan/time/Synchronization_1_0.h>
 #include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
-#include <rmap/_module/RADIATION_1_0.h>
-#include <rmap/service/_module/RADIATION_1_0.h>
+#include <rmap/_module/Radiation_1_0.h>
+#include <rmap/service/_module/Radiation_1_0.h>
 
 #ifndef _CANARD_CLASS_H
 #define _CANARD_CLASS_H
