@@ -145,12 +145,17 @@ void RainSensorTask::Run() {
       // check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
-        rain.tips_count = 0;
-        rain.rain = 0;
-        rain.tips_full = 0;
-        rain.rain_full = 0;
-        rain.tips_scroll = 0;
-        rain.rain_scroll = 0;
+        rain_sensor.tips_count = 0;
+        rain_sensor.rain = 0;
+        rain_sensor.tips_full = 0;
+        rain_sensor.rain_full = 0;
+        rain_sensor.tips_scroll = 0;
+        rain_sensor.rain_scroll = 0;
+        bMainError = false;
+        bRedundantError = false;
+        bTippingError = false;
+        bEventMain = false;
+        bEventRedundant = false;
         TRACE_VERBOSE_F(F("Sensor: WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -179,18 +184,17 @@ void RainSensorTask::Run() {
         bTippingError = false;
         error_count = 0;
         // Reset standard counter and exit
-        rain.rain = 0;
-        rain.rain_full = 0;
-        rain.tips_count = 0;
-        rain.tips_full = 0;
-        memset(&rain, 0, sizeof(rain));
+        rain_sensor.rain = 0;
+        rain_sensor.rain_full = 0;
+        rain_sensor.tips_count = 0;
+        rain_sensor.tips_full = 0;
         break;
       }
       // Is RESET SCROLL? (false, is request Reset Counter value)
       if(flag_event == RAIN_SCROLL_RESET) {
         // Reset only scroll counter and exit
-        rain.rain_scroll = 0;
-        rain.tips_scroll = 0;
+        rain_sensor.rain_scroll = 0;
+        rain_sensor.tips_scroll = 0;
         break;
       }
       // ... and HERE is EVENT RAIN... check if OK!!!
@@ -199,9 +203,16 @@ void RainSensorTask::Run() {
       // ********************************************
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
       TRACE_INFO_F(F("Sensor: checking event...\r\n"));
+
+      #if(USE_TIPPING_CONTROL)
       TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms / 2);
       Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms / 2));
       state = SENSOR_STATE_CHECK_SPIKE;
+      #else
+      TaskWatchDog(param.configuration->sensors.tipping_bucket_time_ms / 2);
+      Delay(Ticks::MsToTicks(param.configuration->sensors.tipping_bucket_time_ms / 2));
+      state = SENSOR_STATE_READ;
+      #endif
       break;
 
     case SENSOR_STATE_CHECK_SPIKE:
@@ -253,6 +264,8 @@ void RainSensorTask::Run() {
       break;
 
     case SENSOR_STATE_READ:
+
+      #if(USE_TIPPING_CONTROL)
       // re-read pin status to be inverted from event before increment rain tips
       // Read time now is tipping_bucket_time_ms * 1.5 -> from event start
       #if (!USE_TIPPING_BUCKET_REDUNDANT)
@@ -260,21 +273,21 @@ void RainSensorTask::Run() {
       if (digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE)
       #else
       // Read Pin standard and redundant (all reed must to be !event... Error if one is event)
-      if ((digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE) &&
+      if ((digitalRead(TIPPING_BUCKET_PIN) != TIPPING_EVENT_VALUE) ||
           (digitalRead(TIPPING_BUCKET_PIN_REDUNDANT) != TIPPING_EVENT_VALUE))
       #endif
       {
         // Always add full data
-        rain.tips_full++;
-        rain.rain_full = rain.tips_full * param.configuration->sensors.rain_for_tip;
+        rain_sensor.tips_full++;
+        rain_sensor.rain_full = rain_sensor.tips_full * param.configuration->sensors.rain_for_tip;
         // Add this Value only if system is not in maintenance mode
         if(!param.system_status->flags.is_maintenance) {
-          rain.tips_count++;
-          rain.tips_scroll++;
-          rain.rain = rain.tips_count * param.configuration->sensors.rain_for_tip;
-          rain.rain_scroll = rain.tips_scroll * param.configuration->sensors.rain_for_tip;
+          rain_sensor.tips_count++;
+          rain_sensor.tips_scroll++;
+          rain_sensor.rain = rain_sensor.tips_count * param.configuration->sensors.rain_for_tip;
+          rain_sensor.rain_scroll = rain_sensor.tips_scroll * param.configuration->sensors.rain_for_tip;
         }
-        TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain.tips_count, rain.tips_full);
+        TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain_sensor.tips_count, rain_sensor.tips_full);
       }
       else
       {
@@ -284,20 +297,33 @@ void RainSensorTask::Run() {
         state = SENSOR_STATE_SPIKE;
         break;
       }
+      #else
+      // Always add full data
+      rain_sensor.tips_full++;
+      rain_sensor.rain_full = rain_sensor.tips_full * param.configuration->sensors.rain_for_tip;
+      // Add this Value only if system is not in maintenance mode
+      if(!param.system_status->flags.is_maintenance) {
+        rain_sensor.tips_count++;
+        rain_sensor.tips_scroll++;
+        rain_sensor.rain = rain_sensor.tips_count * param.configuration->sensors.rain_for_tip;
+        rain_sensor.rain_scroll = rain_sensor.tips_scroll * param.configuration->sensors.rain_for_tip;
+      }
+      TRACE_INFO_F(F("Sensor: Rain tips (count, full)\t%d\t%d,\r\n"), rain_sensor.tips_count, rain_sensor.tips_full);
+      #endif
 
-      edata.value = rain.tips_count;
+      edata.value = rain_sensor.tips_count;
       edata.index = RAIN_TIPS_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain;
+      edata.value = rain_sensor.rain;
       edata.index = RAIN_RAIN_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain_full;
+      edata.value = rain_sensor.rain_full;
       edata.index = RAIN_FULL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
-      edata.value = rain.rain_scroll;
+      edata.value = rain_sensor.rain_scroll;
       edata.index = RAIN_SCROLL_INDEX;
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
@@ -312,9 +338,13 @@ void RainSensorTask::Run() {
       // Inibith (Interrupt) next input data for event_end_time_ms and check error stall
       TaskWatchDog(param.configuration->sensors.event_end_time_ms);
       Delay(Ticks::MsToTicks(param.configuration->sensors.event_end_time_ms));
-      // Standard control with only one PIN
+
+      // Saving Signal and exit event
+      state = SENSOR_STATE_SAVE_SIGNAL;
+      break;
 
     case SENSOR_STATE_SPIKE:
+      // Standard control with only one PIN
       if (digitalRead(TIPPING_BUCKET_PIN) == TIPPING_EVENT_VALUE)
       {
         bMainError = true;
@@ -329,6 +359,9 @@ void RainSensorTask::Run() {
         // Signal an error
       }
       #endif
+      // Continuate switch, (No Break here...)
+
+    case SENSOR_STATE_SAVE_SIGNAL:
 
       // Checking signal Event and error sensor
       param.systemStatusLock->Take();

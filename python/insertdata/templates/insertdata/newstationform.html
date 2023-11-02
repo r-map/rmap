@@ -27,7 +27,9 @@
   {% trans 'Station insert completed successfully' %}:<br>
   {% trans 'User' %}: {{ station.user.username }}<br>
   {% trans 'Slug' %}: {{ station.slug }}<br>
-
+  <br>
+  {% trans 'Save this private information and keep it confidential' %}<br>
+  <br>
   {% for board in station.board_set.all %}
     {% if board.active %}
       {% trans 'Board' %}: {{ board }}<br>

@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (10)
+#define MODULE_MINOR_VERSION                          (12)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def MODULE_TYPE
-\brief Type of module. It is defined in registers.h.
+\brief Type of module. It is defined in stima_module.h.
 */
 #define MODULE_TYPE                                   (STIMA_MODULE_TYPE_POWER)
 
@@ -77,7 +77,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def POWER_ADC_CHANNEL_INPUT_PANEL
 \brief Input channel for panel
 */
-#define POWER_ADC_CHANNEL_INPUT_PANEL                         (1)
+#define POWER_ADC_CHANNEL_INPUT_PANEL                         (0)
 
 /*!
 \def POWER_ADC_CHANNEL_INPUT_BATTERY
@@ -104,7 +104,7 @@ correctly during I2C communication.
 
 #define ADC_I2C_ADDRESS                               ADC_VDD_I2C_ADDRESS
 
-// max value in mV to be applied before partitor yo get max ADC input (2.048 V)
+// max value in mV to be applied before partitor to get max ADC input (2.048 V)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_PANEL     (30000)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX_BATTERY   (15000)
 

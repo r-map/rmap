@@ -40,8 +40,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2023-03-31T00:00"    // date and time
-#define MAJOR_VERSION    "20230331"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2023-10-31T00:00"    // date and time
+#define MAJOR_VERSION    "20231031"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
@@ -1166,7 +1166,8 @@ void repeats() {
   u8g2.clearBuffer();
 
   digitalWrite(LED_PIN,LOW);
-  time_t tnow = time(nullptr);
+
+  time_t tnow = now();
   setTime(tnow);              // resync from sntp
   
   LOGN(F("Time: %s"),ctime(&tnow));
@@ -1674,7 +1675,7 @@ void setup() {
       u8g2.print(F("Setting time"));
       u8g2.sendBuffer();
     }
-    if(counter++>=300) {
+    if(counter++>=60) {
       if (oledpresent){
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 10); 
@@ -1686,7 +1687,10 @@ void setup() {
 	u8g2.sendBuffer();
 	delay(5000);
       }
-      reboot(); //300 seconds timeout - reset board
+      //LOGE(F("NTP time out: Time not configurated, REBOOT"));
+      //delay(1000);
+      //reboot(); //300 seconds timeout - reset board
+      break;
     }
     yield();
     delay(1000);

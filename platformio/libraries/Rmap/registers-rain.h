@@ -194,14 +194,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_RAIN_WRITABLE_DATA_LENGTH         (I2C_RAIN_CONTINUOUS_ADDRESS + I2C_RAIN_CONTINUOUS_LENGTH + I2C_RAIN_TIPTIME_LENGTH + I2C_RAIN_RAINFORTIP_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
+
 // Readable registers errors checking
-#if I2C_RAIN_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
-#error "ERROR! Too many readable registers found in RAIN module!!!"
+#if I2C_RAIN_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_LEN
+#error "ERROR! Too many readable registers found in rain module!!!"
 #endif
 
 // Writeable registers errors checking
-#if I2C_RAIN_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_END_ADDRESS
-#error "ERROR! Too many writable registers found in RAIN module!!!"
+#if I2C_RAIN_WRITABLE_DATA_LENGTH > I2C_WRITE_REGISTER_LEN
+#error "ERROR! Too many writable registers found in rain module!!!"
 #endif
 
 #endif

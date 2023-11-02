@@ -33,19 +33,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_READ_REGISTER_END_ADDRESS
 \brief Last i2c read register address.
 */
-#define I2C_READ_REGISTER_END_ADDRESS       (0xEE)
+#define I2C_READ_REGISTER_END_ADDRESS       (0xB0)
+
+/*!
+\def I2C_READ_REGISTER_LEN
+\brief Size of i2c read register.
+*/
+#define I2C_READ_REGISTER_LEN       (I2C_READ_REGISTER_END_ADDRESS - I2C_READ_REGISTER_START_ADDRESS)
 
 /*!
 \def I2C_WRITE_REGISTER_START_ADDRESS
 \brief First i2c write register address.
 */
-#define I2C_WRITE_REGISTER_START_ADDRESS    (0xEF)
+#define I2C_WRITE_REGISTER_START_ADDRESS    (0xB1)
 
 /*!
 \def I2C_WRITE_REGISTER_END_ADDRESS
 \brief Last i2c write register address.
 */
 #define I2C_WRITE_REGISTER_END_ADDRESS      (0xFE)
+
+/*!
+\def I2C_WRITE_REGISTER_LEN
+\brief Size of i2c write register.
+*/
+#define I2C_WRITE_REGISTER_LEN       (I2C_WRITE_REGISTER_END_ADDRESS - I2C_WRITE_REGISTER_START_ADDRESS)
 
 /*!
 \def CONFIGURATION_EEPROM_ADDRESS

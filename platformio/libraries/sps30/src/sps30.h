@@ -124,14 +124,14 @@
  * Softserial has been left in as an option, but as the SPS30 is only
  * working on 115K the connection will probably NOT work on any device.
  */
-typedef enum serial_port {
+enum serial_port {
 			  NONE_COMMS = 0,
 			  I2C_COMMS = 1,
 			  SERIALPORT = 2
 };
 
 /* structure to return all values */
-typedef struct sps_values
+struct sps_values
 {
     float   MassPM1;        // Mass Concentration PM1.0 [μg/m3]
     float   MassPM2;        // Mass Concentration PM2.5 [μg/m3]

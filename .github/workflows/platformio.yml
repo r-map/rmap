@@ -51,9 +51,9 @@ jobs:
         run: |
           cd platformio/stima_v3/i2c-wind
           platformio run
-      - name: Build Stima V3 sensor_config
+      - name: Build Stima V3 sensor_config_menu_sdcard
         run: |
-          cd platformio/stima_v3/sensor_config
+          cd platformio/stima_v3/sensor_config_menu_sdcard
           platformio run
       - name: Build Stima V3 stima
         run: |
@@ -94,6 +94,10 @@ jobs:
       - name: Build Stima test_logging
         run: |
           cd platformio/stima_v3/test_logging
+          platformio run
+      - name: Build Stima fakeanalog
+        run: |
+          cd platformio/test/fakeanalog
           platformio run
       - name: Build Stima fakeraingauge
         run: |

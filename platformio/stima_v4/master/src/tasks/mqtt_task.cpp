@@ -203,7 +203,7 @@ void MqttTask::Run()
       {
         TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
       }
-      
+
       param.systemStatusLock->Take();
       param.system_status->connection.is_mqtt_connecting = true;
       param.systemStatusLock->Give();
@@ -272,13 +272,14 @@ void MqttTask::Run()
       if (strlen(MQTT_ON_ERROR_MESSAGE))
       {
         // Changed MQTT_CLIENT_MAX_WILL_TOPIC_LEN -> FROM 16 TO 80 BYTES
+        memset(topic, 0, sizeof(topic));
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
 
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Establish connection with the MQTT server
-      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, false);
+      // Establish connection with the MQTT server (Set clean Session if required, normally false)
+      error = mqttClientConnect(&mqttClientContext, &ipAddr, param.configuration->mqtt_port, param.system_status->flags.clean_session);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       // Any error to report?
       if (error)
@@ -293,6 +294,7 @@ void MqttTask::Run()
       }
       else
       {
+        memset(topic, 0, sizeof(topic));
         snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         // publish connection message (Conn + Version and Revision)
         sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
@@ -302,15 +304,24 @@ void MqttTask::Run()
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
         TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+        
+      }
+
+      // Remove first connection FLAG (Clear queue of RPC in safety mode)
+      // RPC Must ececuted only from next connection without error to remote server
+      // error are always false here if is published at least connection message
+      if (!error) {
+        if(!rmap_data_error) param.system_status->flags.clean_session = false;
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
       snprintf(topic_rpc_response, sizeof(topic_rpc_response), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_RES_TOPIC);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, error ? ERROR_STRING : OK_STRING);
+      TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, is_subscribed ? OK_STRING : ERROR_STRING);
 
       param.systemStatusLock->Take();
       param.system_status->connection.is_mqtt_subscribed = is_subscribed;      
@@ -348,6 +359,7 @@ void MqttTask::Run()
       #endif
 
       // Restore TOPIC -> MQTT_STATUS_TOPIC
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Prepare DateTime Generic status Message
       convertUnixTimeToDate(param.system_status->datetime.epoch_sensors_get_value, &dtStatus);
@@ -538,285 +550,7 @@ void MqttTask::Run()
             rmap_data_error |= rmap_get_response.result.event_error;
           }
 
-          #if (TEST_MQTT_FIXED_DATA)
-
-          // INIZIO PROVA CON DATI FISSI...
-          rmap_get_response.result.event_error = 0;
-
-          if (countData == 0)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataTH = (rmap_module_TH_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataTH->ITH.humidity.val.value = 50;
-            rmapDataTH->ITH.humidity.confidence.value = 100;
-
-            rmapDataTH->ITH.temperature.val.value = 27315;
-            rmapDataTH->ITH.temperature.confidence.value = 99;
-
-            rmapDataTH->ITH.metadata.level.LevelType1.value = 103;
-            rmapDataTH->ITH.metadata.level.L1.value = 2000;
-            rmapDataTH->ITH.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataTH->ITH.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataTH->ITH.metadata.timerange.Pindicator.value = 254;
-            rmapDataTH->ITH.metadata.timerange.P1.value = 0;
-            rmapDataTH->ITH.metadata.timerange.P2 = 0;
-
-            rmapDataTH->NTH.humidity.val.value = 40;
-            rmapDataTH->NTH.humidity.confidence.value = 90;
-
-            rmapDataTH->NTH.temperature.val.value = 28315;
-            rmapDataTH->NTH.temperature.confidence.value = 89;
-
-            rmapDataTH->NTH.metadata.level.LevelType1.value = 103;
-            rmapDataTH->NTH.metadata.level.L1.value = 2000;
-            rmapDataTH->NTH.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataTH->NTH.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataTH->NTH.metadata.timerange.Pindicator.value = 3;
-            rmapDataTH->NTH.metadata.timerange.P1.value = 0;
-            rmapDataTH->NTH.metadata.timerange.P2 = 900;
-
-            rmapDataTH->MTH.humidity.val.value = 30;
-            rmapDataTH->MTH.humidity.confidence.value = 80;
-
-            rmapDataTH->MTH.temperature.val.value = 29315;
-            rmapDataTH->MTH.temperature.confidence.value = 79;
-
-            rmapDataTH->MTH.metadata.level.LevelType1.value = 103;
-            rmapDataTH->MTH.metadata.level.L1.value = 2000;
-            rmapDataTH->MTH.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataTH->MTH.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataTH->MTH.metadata.timerange.Pindicator.value = 0;
-            rmapDataTH->MTH.metadata.timerange.P1.value = 0;
-            rmapDataTH->MTH.metadata.timerange.P2 = 900;
-
-            rmapDataTH->XTH.humidity.val.value = 20;
-            rmapDataTH->XTH.humidity.confidence.value = 70;
-
-            rmapDataTH->XTH.temperature.val.value = 30315;
-            rmapDataTH->XTH.temperature.confidence.value = 69;
-
-            rmapDataTH->XTH.metadata.level.LevelType1.value = 103;
-            rmapDataTH->XTH.metadata.level.L1.value = 2000;
-            rmapDataTH->XTH.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataTH->XTH.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataTH->XTH.metadata.timerange.Pindicator.value = 2;
-            rmapDataTH->XTH.metadata.timerange.P1.value = 0;
-            rmapDataTH->XTH.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::th;
-          }
-          else if (countData == 1)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataRain = (rmap_module_Rain_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataRain->TBR.rain.val.value = 23;
-            rmapDataRain->TBR.rain.confidence.value = 56;
-
-            rmapDataRain->TBR.metadata.level.LevelType1.value = 1u;
-            rmapDataRain->TBR.metadata.level.L1.value = UINT16_MAX;
-            rmapDataRain->TBR.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataRain->TBR.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataRain->TBR.metadata.timerange.Pindicator.value = 1;
-            rmapDataRain->TBR.metadata.timerange.P1.value = 0;
-            rmapDataRain->TBR.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::rain;
-          }
-          else if (countData == 2)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataRadiation = (rmap_module_Radiation_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataRadiation->DSA.radiation.val.value = 350;
-            rmapDataRadiation->DSA.radiation.confidence.value = 49;
-
-            rmapDataRadiation->DSA.metadata.level.LevelType1.value = 1;
-            rmapDataRadiation->DSA.metadata.level.L1.value = UINT16_MAX;
-            rmapDataRadiation->DSA.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataRadiation->DSA.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataRadiation->DSA.metadata.timerange.Pindicator.value = 0;
-            rmapDataRadiation->DSA.metadata.timerange.P1.value = 0;
-            rmapDataRadiation->DSA.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::radiation;
-          }
-          else if (countData == 3)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataWind = (rmap_module_Wind_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataWind->DWA.direction.val.value = 125;
-            rmapDataWind->DWA.direction.confidence.value = 85;
-
-            rmapDataWind->DWA.speed.val.value = 15;
-            rmapDataWind->DWA.speed.confidence.value = 75;
-
-            rmapDataWind->DWA.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWA.metadata.level.L1.value = 10000;
-            rmapDataWind->DWA.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWA.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWA.metadata.timerange.Pindicator.value = 254;
-            rmapDataWind->DWA.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWA.metadata.timerange.P2 = 0;
-
-            rmapDataWind->DWB.direction.val.value = 225;
-            rmapDataWind->DWB.direction.confidence.value = 65;
-
-            rmapDataWind->DWB.speed.val.value = 22;
-            rmapDataWind->DWB.speed.confidence.value = 55;
-
-            rmapDataWind->DWB.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWB.metadata.level.L1.value = 10000;
-            rmapDataWind->DWB.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWB.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWB.metadata.timerange.Pindicator.value = 200;
-            rmapDataWind->DWB.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWB.metadata.timerange.P2 = 900;
-
-            rmapDataWind->DWC.peak.val.value = 56;
-            rmapDataWind->DWC.peak.confidence.value = 93;
-
-            rmapDataWind->DWC._long.val.value = 43;
-            rmapDataWind->DWC._long.confidence.value = 83;
-
-            rmapDataWind->DWC.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWC.metadata.level.L1.value = 10000;
-            rmapDataWind->DWC.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWC.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWC.metadata.timerange.Pindicator.value = 2;
-            rmapDataWind->DWC.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWC.metadata.timerange.P2 = 900;
-
-            rmapDataWind->DWD.speed.val.value = 34;
-            rmapDataWind->DWD.speed.confidence.value = 74;
-
-            rmapDataWind->DWD.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWD.metadata.level.L1.value = 10000;
-            rmapDataWind->DWD.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWD.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWD.metadata.timerange.Pindicator.value = 0;
-            rmapDataWind->DWD.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWD.metadata.timerange.P2 = 900;
-
-            rmapDataWind->DWE.class1.val.value = 11;
-            rmapDataWind->DWE.class1.confidence.value = 51;
-            rmapDataWind->DWE.class2.val.value = 12;
-            rmapDataWind->DWE.class2.confidence.value = 52;
-            rmapDataWind->DWE.class3.val.value = 13;
-            rmapDataWind->DWE.class3.confidence.value = 53;
-            rmapDataWind->DWE.class4.val.value = 14;
-            rmapDataWind->DWE.class4.confidence.value = 54;
-            rmapDataWind->DWE.class5.val.value = 15;
-            rmapDataWind->DWE.class5.confidence.value = 55;
-            rmapDataWind->DWE.class6.val.value = 35;
-            rmapDataWind->DWE.class6.confidence.value = 56;
-
-            rmapDataWind->DWE.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWE.metadata.level.L1.value = 10000;
-            rmapDataWind->DWE.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWE.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWE.metadata.timerange.Pindicator.value = 9;
-            rmapDataWind->DWE.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWE.metadata.timerange.P2 = 900;
-
-            rmapDataWind->DWF.peak.val.value = 342;
-            rmapDataWind->DWF.peak.confidence.value = 68;
-
-            rmapDataWind->DWF._long.val.value = 349;
-            rmapDataWind->DWF._long.confidence.value = 58;
-
-            rmapDataWind->DWF.metadata.level.LevelType1.value = 103;
-            rmapDataWind->DWF.metadata.level.L1.value = 10000;
-            rmapDataWind->DWF.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataWind->DWF.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataWind->DWF.metadata.timerange.Pindicator.value = 205;
-            rmapDataWind->DWF.metadata.timerange.P1.value = 0;
-            rmapDataWind->DWF.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::wind;
-          }
-          else if (countData == 4)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataVWC = (rmap_module_VWC_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataVWC->VWC.vwc.val.value = 153;
-            rmapDataVWC->VWC.vwc.confidence.value = 87;
-
-            rmapDataVWC->VWC.metadata.level.LevelType1.value = 103;
-            rmapDataVWC->VWC.metadata.level.L1.value = 100;
-            rmapDataVWC->VWC.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataVWC->VWC.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataVWC->VWC.metadata.timerange.Pindicator.value = 0;
-            rmapDataVWC->VWC.metadata.timerange.P1.value = 0;
-            rmapDataVWC->VWC.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::vwc;
-          }
-          else if (countData == 5)
-          {
-            rmap_get_response.result.end_of_data = 0;
-
-            rmapDataPower = (rmap_module_Power_1_0 *)&rmap_get_response.rmap_data;
-
-            rmapDataPower->MPP.input_voltage.val.value = 204;
-            rmapDataPower->MPP.input_voltage.confidence.value = 95;
-
-            rmapDataPower->MPP.input_current.val.value = 74;
-            rmapDataPower->MPP.input_current.confidence.value = 85;
-
-            rmapDataPower->MPP.battery_voltage.val.value = 128;
-            rmapDataPower->MPP.battery_voltage.confidence.value = 75;
-
-            rmapDataPower->MPP.battery_voltage.val.value = 15;
-            rmapDataPower->MPP.battery_voltage.confidence.value = 65;
-
-            rmapDataPower->MPP.battery_charge.val.value = 89;
-            rmapDataPower->MPP.battery_charge.confidence.value = 55;
-
-            rmapDataPower->MPP.metadata.level.LevelType1.value = 265;
-            rmapDataPower->MPP.metadata.level.L1.value = 1;
-            rmapDataPower->MPP.metadata.level.LevelType2.value = UINT16_MAX;
-            rmapDataPower->MPP.metadata.level.L2.value = UINT16_MAX;
-
-            rmapDataPower->MPP.metadata.timerange.Pindicator.value = 0;
-            rmapDataPower->MPP.metadata.timerange.P1.value = 0;
-            rmapDataPower->MPP.metadata.timerange.P2 = 900;
-
-            rmap_get_response.rmap_data.module_type = Module_Type::power;
-          }
-          else
-          {
-            rmap_get_response.result.end_of_data = 1;
-            rmap_get_response.result.event_error = 1;
-          }
-
-          rmap_get_response.rmap_data.date_time = 1679985000;
-          // FINE PROVA
-          #endif          
-
           error = NO_ERROR; // Init NoError MQTT Cyclone
-
           // EOF Data? (Save and Exit, after last data process)
           rmap_eof = rmap_get_response.result.end_of_data;
 
@@ -1148,13 +882,11 @@ void MqttTask::Run()
       param.systemStatusLock->Take();
       // Saving error connection INFO
       param.system_status->flags.mqtt_error = is_error;
-      // Remove first connection FLAG (Clear queue of RPC in safety mode)
-      // RPC Must ececuted only from next connection without error to remote server
-      if(!rmap_data_error) param.system_status->flags.clean_rpc = false;
       param.system_status->connection.is_mqtt_disconnecting = true;
       param.systemStatusLock->Give();
 
       // publish disconnection message
+      memset(topic, 0, sizeof(topic));
       snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Non blocking taskMQTT_NET_WAIT_TIMEOUT_PUBLISH
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -1234,59 +966,9 @@ void MqttTask::Run()
   }
 }
 
-/**
- * @brief Subscriber callback function
- * @param[in] context Pointer to the MQTT client context
- * @param[in] topic Topic name
- * @param[in] message Message payload
- * @param[in] length Length of the message payload
- * @param[in] dup Duplicate delivery of the PUBLISH packet
- * @param[in] qos QoS level used to publish the message
- * @param[in] retain This flag specifies if the message is to be retained
- * @param[in] packetId Packet identifier
- **/
-void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
-{
-  task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
-  bool is_event_rpc = true;
-  char rpc_message[255] = {0};
-
-  memcpy(rpc_message, (void*)message, length);
- 
-  TRACE_INFO_F(F("MQTT packet received...\r\n"));
-  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
-  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
-  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
-  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
-  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
-  TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
-
-  memset(rpc_response, 0, sizeof(rpc_response));
-
-  // EXCLUDE FIRST RPC CONNECTION... MQTT Clear queue of RPC with external flags
-  if(localSystemStatus->flags.clean_rpc) {
-    TRACE_INFO_F(F("Excluding all RPC Message for first connection in security mode...\r\n"));
-  } else {
-    localStreamRpc->init();
-    if (localRpcLock->Take())
-    {
-      while (is_event_rpc)
-      {
-        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-        // Return to previous state on END of RPC Call execution
-        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-        // Charge message of Response. Need to externalize sending Message
-        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
-        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
-        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
-        vTaskDelay(100);
-      }
-      localRpcLock->Give();
-    }
-  }
-}
+// *************************************************************************************************
+// ***************************** Sensor publish format function ************************************
+// *************************************************************************************************
 
 error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
 {
@@ -1382,7 +1064,7 @@ error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, s
 {
   error_t error = NO_ERROR;
 
-  osMemset(topic, 0, topic_length);
+  memset(topic, 0, topic_length);
   if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) <= 0)
   {
     error = ERROR_FAILURE;
@@ -3496,6 +3178,55 @@ error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tl
 
   //Successful processing
   return NO_ERROR;
+}
+
+/**
+ * @brief Subscriber callback function
+ * @param[in] context Pointer to the MQTT client context
+ * @param[in] topic Topic name
+ * @param[in] message Message payload
+ * @param[in] length Length of the message payload
+ * @param[in] dup Duplicate delivery of the PUBLISH packet
+ * @param[in] qos QoS level used to publish the message
+ * @param[in] retain This flag specifies if the message is to be retained
+ * @param[in] packetId Packet identifier
+ **/
+void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
+{
+  task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
+  bool is_event_rpc = true;
+  char rpc_message[255] = {0};
+
+  memcpy(rpc_message, (void*)message, length);
+ 
+  TRACE_INFO_F(F("MQTT packet received...\r\n"));
+  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
+  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
+  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
+  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
+  TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
+  TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
+
+  memset(rpc_response, 0, sizeof(rpc_response));
+
+  localStreamRpc->init();
+  if (localRpcLock->Take())
+  {
+    while (is_event_rpc)
+    {
+      // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+      // Return to previous state on END of RPC Call execution
+      old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+      // Charge message of Response. Need to externalize sending Message
+      localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
+      localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
+      localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+      // Need Waiting Task for execute RPC call on Object module RPC. External TASK
+      vTaskDelay(100);
+    }
+    localRpcLock->Give();
+  }
 }
 
 #endif

@@ -1597,8 +1597,8 @@ void CanTask::Run() {
                 // Eventuale SET Flag dopo acquisizione di configurazioni e/o parametri da Remoto
                 clCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_OPERATIONAL);
 
-                // Set PNP pseudo Random Generator
-                randomSeed(analogRead(A0));
+                // Set PNP pseudo Random Generator on enabled PinMapped Analog Input
+                randomSeed(analogRead(PA_4));
 
                 // Set START Timetable LOOP RX/TX. Set Canard microsecond start, per le sincronizzazioni
                 clCanard.getMicros(clCanard.start_syncronization);

@@ -1,0 +1,15 @@
+G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,6.0.4-1.fc34*
+G04 #@! TF.CreationDate,2023-10-23T18:29:31+02:00*
+G04 #@! TF.ProjectId,Microduino_ADC_DE,4d696372-6f64-4756-996e-6f5f4144435f,1.0*
+G04 #@! TF.SameCoordinates,Original*
+G04 #@! TF.FileFunction,Glue,Top*
+G04 #@! TF.FilePolarity,Positive*
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW 6.0.4-1.fc34) date 2023-10-23 18:29:31*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+G04 APERTURE END LIST*
+M02*

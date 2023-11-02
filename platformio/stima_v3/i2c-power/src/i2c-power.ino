@@ -36,6 +36,7 @@ void setup() {
   init_buffers();
   init_wire();
   init_rtc();
+  init_adc();
   #if (USE_TIMER_1)
   init_timer1();
   #endif
@@ -260,6 +261,11 @@ void init_wire() {
   Wire.onReceive(i2c_receive_interrupt_handler);
 }
 
+void init_adc() {
+  //+/-2.048V range = Gain 2 (default)
+  adc1.setGain(GAIN_TWO);
+}
+
 void init_spi() {
 #if (ENABLE_SDCARD_LOGGING)      
   SPI.begin();
@@ -355,8 +361,8 @@ void print_configuration() {
   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
 
-  LOGN(F("--> adc panel   voltage max: %0 mV"), configuration.adc_voltage_max_panel);
-  LOGN(F("--> adc battery voltage max: %0 mV"), configuration.adc_voltage_max_battery);
+  LOGN(F("--> adc panel   voltage max: %d mV"), configuration.adc_voltage_max_panel);
+  LOGN(F("--> adc battery voltage max: %d mV"), configuration.adc_voltage_max_battery);
 
 }
 
@@ -475,6 +481,12 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_POWER_ONESHOT_ADDRESS && rx_data_length == I2C_POWER_ONESHOT_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_POWER_VOLTAGE_MAX_PANEL_ADDRESS && rx_data_length == I2C_POWER_VOLTAGE_MAX_PANEL_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_POWER_VOLTAGE_MAX_BATTERY_ADDRESS && rx_data_length == I2C_POWER_VOLTAGE_MAX_BATTERY_LENGTH) {
         is_i2c_data_ok = true;
       }
       if (is_i2c_data_ok) {
@@ -609,7 +621,7 @@ void power_task () {
       adc_result = adc1.readSingleChannel(POWER_ADC_CHANNEL_INPUT_BATTERY, &sample_battery);
       
       if (adc_result == ADC_OK) {
-	sample_panel = round( float(sample_panel) * (float(writable_data.adc_voltage_max_panel) / float(0X7FFF)));
+	sample_battery = round( float(sample_battery) * (float(writable_data.adc_voltage_max_battery) / float(0X7FFF)));
 	LOGN("battery adc_value: %d",sample_battery);	
 
 	power_state = POWER_ELABORATE;
@@ -633,12 +645,12 @@ void power_task () {
       
       make_report();
 
-      readable_data_write_ptr->power.sample_panel = sample_panel;
-      readable_data_write_ptr->power.sample_battery = sample_battery;
+      readable_data_write_ptr->power.sample_panel = round(float(sample_panel)/100.);
+      readable_data_write_ptr->power.sample_battery = round(float(sample_battery)/100.);
 
       if (is_start && samples_count_panel > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count_panel) / float(samples_count_panel) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
-	  readable_data_write_ptr->power.avg_panel = average_panel;
+	  readable_data_write_ptr->power.avg_panel = round(float(average_panel)/100.);
 	}else{
 	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count_panel,samples_error_count_panel);
 	  readable_data_write_ptr->power.avg_panel = INT16_MAX;	  
@@ -647,10 +659,10 @@ void power_task () {
 
       if (is_start && samples_count_battery > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count_battery) / float(samples_count_battery) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
-	  readable_data_write_ptr->power.avg_panel = average_battery;
+	  readable_data_write_ptr->power.avg_battery = round(float(average_battery)/100.);
 	}else{
 	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count_battery,samples_error_count_battery);
-	  readable_data_write_ptr->power.avg_panel = INT16_MAX;	  
+	  readable_data_write_ptr->power.avg_battery = INT16_MAX;	  
 	}
       }
       

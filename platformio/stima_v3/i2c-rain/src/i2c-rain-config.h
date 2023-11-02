@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (12)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -74,7 +74,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def CONFIGURATION_DEFAULT_RAIN_FOR_TIP
-brief How much mm of rain for one tip of tipping bucket rain gauge.
+brief How much mm/10 of rain for one tip of tipping bucket rain gauge.
 */
 #define CONFIGURATION_DEFAULT_RAIN_FOR_TIP                            (1)
 

@@ -217,6 +217,9 @@ void init_tasks() {
   //! reset samples_count value
   samples_count = SENSORS_SAMPLE_COUNT_MIN;
 
+  transaction_time = 0;
+  inside_transaction = false;
+  
   interrupts();
 }
 
@@ -351,10 +354,8 @@ ISR(TIMER1_OVF_vect) {
   //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
   if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS)) {
     if (!is_event_leaf_reading) {
-      noInterrupts();
       is_event_leaf_reading = true;
       ready_tasks_count++;
-      interrupts();
     }
   }
 
@@ -362,6 +363,17 @@ ISR(TIMER1_OVF_vect) {
   if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
     timer_counter_ms = 0;
   }
+
+  if (inside_transaction) {
+    //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
+    transaction_time += TIMER1_INTERRUPT_TIME_MS;
+
+    if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
+      transaction_time = 0;
+      inside_transaction = false;
+    }
+  }
+  
 }
 
 void i2c_request_interrupt_handler() {
@@ -374,6 +386,8 @@ void i2c_request_interrupt_handler() {
   else {
     Wire.write(UINT16_MAX);
   }
+  inside_transaction = false;
+  
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
@@ -386,6 +400,11 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     i2c_rx_data[i] = Wire.read();
   }
 
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    // attention: logging inside ISR !
+    //LOGN(F("No CRC: size %d"),rx_data_length);
+  } else 
   //! check crc: ok
   if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
     rx_data_length--;
@@ -400,13 +419,11 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
         is_event_command_task = true;
         ready_tasks_count++;
       }
-      interrupts();
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
@@ -548,6 +565,7 @@ void command_task() {
     is_start = false;
     is_stop = true;
     commands();
+    inside_transaction = true;    
     break;
 
     case I2C_LEAF_COMMAND_ONESHOT_START_STOP:
@@ -559,6 +577,7 @@ void command_task() {
     is_start = true;
     is_stop = true;
     commands();
+    inside_transaction = true;
     break;
 
     case I2C_LEAF_COMMAND_TEST_READ:
@@ -602,6 +621,9 @@ void tests() {
 }
 
 void commands() {
+
+  if (inside_transaction) return;
+  
   noInterrupts();
 
   //! CONTINUOUS START

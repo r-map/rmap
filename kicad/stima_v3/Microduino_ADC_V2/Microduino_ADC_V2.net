@@ -1,0 +1,1074 @@
+(export 
+  (version D) 
+  (design 
+    (source C:\Users\Administrator\Dropbox\digiteco\Microduino\Microduino_ADC_DE\Microduino_ADC_DE.sch) 
+    (date "08/12/2020 13:00:39") 
+    (tool "Eeschema (5.1.5)-3") 
+    (sheet 
+      (number 1) 
+      (name /) 
+      (tstamps /) 
+      (title_block 
+        (title "Microduino ADC DE") 
+        (company) 
+        (rev 1) 
+        (date "07 dicembre 2019") 
+        (source Microduino_ADC_V2.sch) 
+        (comment 
+          (number 1) 
+          (value "")) 
+        (comment 
+          (number 2) 
+          (value "")) 
+        (comment 
+          (number 3) 
+          (value "")) 
+        (comment 
+          (number 4) 
+          (value ""))))) 
+  (components 
+    (comp 
+      (ref P1) 
+      (value CONN_1x27) 
+      (footprint Libreria_PCB_mia:Upin_27) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part CONN_1x27-Libreria_SCH_mia1) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 58E8C7EF)) 
+    (comp 
+      (ref J7) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5D25E1A3)) 
+    (comp 
+      (ref P2) 
+      (value CONN_01X03) 
+      (footprint Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part CONN_01X03-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5D25E20E)) 
+    (comp 
+      (ref R5) 
+      (value 82) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB67828)) 
+    (comp 
+      (ref R4) 
+      (value 110k) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB67889)) 
+    (comp 
+      (ref R6) 
+      (value 20k) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB678D8)) 
+    (comp 
+      (ref C3) 
+      (value 100nF) 
+      (footprint Capacitors_SMD:C_0805) 
+      (libsource 
+        (lib Device) 
+        (part C) 
+        (description "Unpolarized capacitor")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB67917)) 
+    (comp 
+      (ref D2) 
+      (value BZV55-B4V7,115) 
+      (footprint Diodes_SMD:D_MiniMELF) 
+      (libsource 
+        (lib Device) 
+        (part D_Zener_ALT) 
+        (description "Zener diode, filled shape")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB67958)) 
+    (comp 
+      (ref J8) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB67BEE)) 
+    (comp 
+      (ref C2) 
+      (value 100nF) 
+      (footprint Capacitors_SMD:C_0805) 
+      (libsource 
+        (lib Device) 
+        (part C) 
+        (description "Unpolarized capacitor")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB687AB)) 
+    (comp 
+      (ref J4) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DB687D8)) 
+    (comp 
+      (ref U1) 
+      (value ADS1115) 
+      (footprint Housings_SSOP:MSOP-10_3x3mm_Pitch0.5mm) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part ADS1115-Libreria_SCH_mia1) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA6D30)) 
+    (comp 
+      (ref J6) 
+      (value GS4_b) 
+      (footprint Libreria_PCB_mia:GS4) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS4_b-Libreria_SCH_mia1) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA714E)) 
+    (comp 
+      (ref J5) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA73E7)) 
+    (comp 
+      (ref J2) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79AC)) 
+    (comp 
+      (ref R2) 
+      (value 82) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79B2)) 
+    (comp 
+      (ref R1) 
+      (value 110k) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79B8)) 
+    (comp 
+      (ref R3) 
+      (value 20k) 
+      (footprint Resistors_SMD:R_0805) 
+      (libsource 
+        (lib Device) 
+        (part R) 
+        (description Resistor)) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79BE)) 
+    (comp 
+      (ref C1) 
+      (value 100nF) 
+      (footprint Capacitors_SMD:C_0805) 
+      (libsource 
+        (lib Device) 
+        (part C) 
+        (description "Unpolarized capacitor")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79C4)) 
+    (comp 
+      (ref D1) 
+      (value BZV55-B4V7,115) 
+      (footprint Diodes_SMD:D_MiniMELF) 
+      (libsource 
+        (lib Device) 
+        (part D_Zener_ALT) 
+        (description "Zener diode, filled shape")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79CA)) 
+    (comp 
+      (ref J3) 
+      (value GS3) 
+      (footprint Connectors:GS3) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS3-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA79D0)) 
+    (comp 
+      (ref P3) 
+      (value CONN_01X04) 
+      (footprint Libreria_PCB_mia:WHURT_4pin_90°_61900411021) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part CONN_01X04-conn) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DBA7F3D)) 
+    (comp 
+      (ref J1) 
+      (value GS4_b) 
+      (footprint GS4) 
+      (libsource 
+        (lib Microduino_ADC_DE-rescue) 
+        (part GS4_b-Libreria_SCH_mia1) 
+        (description "")) 
+      (sheetpath 
+        (names /) 
+        (tstamps /)) 
+      (tstamp 5DEB695C))) 
+  (libparts 
+    (libpart 
+      (lib Device) 
+      (part C) 
+      (description "Unpolarized capacitor") 
+      (docs ~) 
+      (footprints 
+        (fp C_*)) 
+      (fields 
+        (field 
+          (name Reference) C) 
+        (field 
+          (name Value) C)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name ~) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name ~) 
+          (type passive)))) 
+    (libpart 
+      (lib Device) 
+      (part D_Zener_ALT) 
+      (description "Zener diode, filled shape") 
+      (docs ~) 
+      (footprints 
+        (fp TO-???*) 
+        (fp *_Diode_*) 
+        (fp *SingleDiode*) 
+        (fp D_*)) 
+      (fields 
+        (field 
+          (name Reference) D) 
+        (field 
+          (name Value) D_Zener_ALT)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name K) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name A) 
+          (type passive)))) 
+    (libpart 
+      (lib Device) 
+      (part R) 
+      (description Resistor) 
+      (docs ~) 
+      (footprints 
+        (fp R_*)) 
+      (fields 
+        (field 
+          (name Reference) R) 
+        (field 
+          (name Value) R)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name ~) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name ~) 
+          (type passive)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part ADS1115-Libreria_SCH_mia1) 
+      (footprints 
+        (fp *QFN*2x1.5mm*Pitch0.5mm)) 
+      (fields 
+        (field 
+          (name Reference) U) 
+        (field 
+          (name Value) ADS1115-Libreria_SCH_mia1)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name ADDR) 
+          (type input)) 
+        (pin 
+          (num 2) 
+          (name ALERT/RDY) 
+          (type input)) 
+        (pin 
+          (num 3) 
+          (name GND) 
+          (type power_in)) 
+        (pin 
+          (num 4) 
+          (name AIN0) 
+          (type input)) 
+        (pin 
+          (num 5) 
+          (name AIN1) 
+          (type input)) 
+        (pin 
+          (num 6) 
+          (name AIN2) 
+          (type input)) 
+        (pin 
+          (num 7) 
+          (name AIN3) 
+          (type input)) 
+        (pin 
+          (num 8) 
+          (name VDD) 
+          (type power_in)) 
+        (pin 
+          (num 9) 
+          (name SDA) 
+          (type input)) 
+        (pin 
+          (num 10) 
+          (name SCL) 
+          (type input)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part CONN_01X03-conn) 
+      (footprints 
+        (fp Pin_Header_Straight_1X*) 
+        (fp Pin_Header_Angled_1X*) 
+        (fp Socket_Strip_Straight_1X*) 
+        (fp Socket_Strip_Angled_1X*)) 
+      (fields 
+        (field 
+          (name Reference) J) 
+        (field 
+          (name Value) CONN_01X03-conn)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name P1) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name P2) 
+          (type passive)) 
+        (pin 
+          (num 3) 
+          (name P3) 
+          (type passive)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part CONN_01X04-conn) 
+      (footprints 
+        (fp Pin_Header_Straight_1X*) 
+        (fp Pin_Header_Angled_1X*) 
+        (fp Socket_Strip_Straight_1X*) 
+        (fp Socket_Strip_Angled_1X*)) 
+      (fields 
+        (field 
+          (name Reference) J) 
+        (field 
+          (name Value) CONN_01X04-conn)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name P1) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name P2) 
+          (type passive)) 
+        (pin 
+          (num 3) 
+          (name P3) 
+          (type passive)) 
+        (pin 
+          (num 4) 
+          (name P4) 
+          (type passive)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part CONN_1x27-Libreria_SCH_mia1) 
+      (footprints 
+        (fp Upin_27)) 
+      (fields 
+        (field 
+          (name Reference) P) 
+        (field 
+          (name Value) CONN_1x27-Libreria_SCH_mia1)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name P1) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name P2) 
+          (type passive)) 
+        (pin 
+          (num 3) 
+          (name P3) 
+          (type passive)) 
+        (pin 
+          (num 4) 
+          (name P4) 
+          (type passive)) 
+        (pin 
+          (num 5) 
+          (name P5) 
+          (type passive)) 
+        (pin 
+          (num 6) 
+          (name P6) 
+          (type passive)) 
+        (pin 
+          (num 7) 
+          (name P7) 
+          (type passive)) 
+        (pin 
+          (num 8) 
+          (name P8) 
+          (type passive)) 
+        (pin 
+          (num 9) 
+          (name P9) 
+          (type passive)) 
+        (pin 
+          (num 10) 
+          (name P10) 
+          (type passive)) 
+        (pin 
+          (num 11) 
+          (name P11) 
+          (type passive)) 
+        (pin 
+          (num 12) 
+          (name P12) 
+          (type passive)) 
+        (pin 
+          (num 13) 
+          (name P13) 
+          (type passive)) 
+        (pin 
+          (num 14) 
+          (name P14) 
+          (type passive)) 
+        (pin 
+          (num 15) 
+          (name P15) 
+          (type passive)) 
+        (pin 
+          (num 16) 
+          (name P16) 
+          (type passive)) 
+        (pin 
+          (num 17) 
+          (name P17) 
+          (type passive)) 
+        (pin 
+          (num 18) 
+          (name P18) 
+          (type passive)) 
+        (pin 
+          (num 19) 
+          (name P19) 
+          (type passive)) 
+        (pin 
+          (num 20) 
+          (name P20) 
+          (type passive)) 
+        (pin 
+          (num 21) 
+          (name P21) 
+          (type passive)) 
+        (pin 
+          (num 22) 
+          (name P22) 
+          (type passive)) 
+        (pin 
+          (num 23) 
+          (name P23) 
+          (type passive)) 
+        (pin 
+          (num 24) 
+          (name P24) 
+          (type passive)) 
+        (pin 
+          (num 25) 
+          (name P25) 
+          (type passive)) 
+        (pin 
+          (num 26) 
+          (name P26) 
+          (type passive)) 
+        (pin 
+          (num 27) 
+          (name P27) 
+          (type passive)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part GS3-conn) 
+      (footprints 
+        (fp GS*)) 
+      (fields 
+        (field 
+          (name Reference) J) 
+        (field 
+          (name Value) GS3-conn) 
+        (field 
+          (name Footprint) Connectors:GS3)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name G1) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name G2) 
+          (type passive)) 
+        (pin 
+          (num 3) 
+          (name G3) 
+          (type passive)))) 
+    (libpart 
+      (lib Microduino_ADC_DE-rescue) 
+      (part GS4_b-Libreria_SCH_mia1) 
+      (footprints 
+        (fp GS*)) 
+      (fields 
+        (field 
+          (name Reference) GS) 
+        (field 
+          (name Value) GS4_b-Libreria_SCH_mia1) 
+        (field 
+          (name Footprint) GS4)) 
+      (pins 
+        (pin 
+          (num 1) 
+          (name G1) 
+          (type passive)) 
+        (pin 
+          (num 2) 
+          (name G2) 
+          (type passive)) 
+        (pin 
+          (num 3) 
+          (name G4) 
+          (type passive)) 
+        (pin 
+          (num 4) 
+          (name G3) 
+          (type passive))))) 
+  (libraries 
+    (library 
+      (logical Device) 
+      (uri "C:\\Program Files\\KiCad\\share\\kicad\\library/Device.lib")) 
+    (library 
+      (logical Microduino_ADC_DE-rescue) 
+      (uri C:\Users\Administrator\Dropbox\digiteco\Microduino\Microduino_ADC_DE/Microduino_ADC_DE-rescue.lib))) 
+  (nets 
+    (net 
+      (code 1) 
+      (name "Net-(J6-Pad2)") 
+      (node 
+        (ref J6) 
+        (pin 2)) 
+      (node 
+        (ref U1) 
+        (pin 1))) 
+    (net 
+      (code 2) 
+      (name "Net-(J5-Pad2)") 
+      (node 
+        (ref J6) 
+        (pin 3)) 
+      (node 
+        (ref J5) 
+        (pin 2))) 
+    (net 
+      (code 3) 
+      (name "Net-(C1-Pad1)") 
+      (node 
+        (ref U1) 
+        (pin 4)) 
+      (node 
+        (ref J3) 
+        (pin 2)) 
+      (node 
+        (ref D1) 
+        (pin 1)) 
+      (node 
+        (ref C1) 
+        (pin 1))) 
+    (net 
+      (code 4) 
+      (name GND) 
+      (node 
+        (ref P3) 
+        (pin 4)) 
+      (node 
+        (ref R5) 
+        (pin 2)) 
+      (node 
+        (ref R6) 
+        (pin 2)) 
+      (node 
+        (ref C3) 
+        (pin 2)) 
+      (node 
+        (ref D1) 
+        (pin 2)) 
+      (node 
+        (ref C1) 
+        (pin 2)) 
+      (node 
+        (ref R3) 
+        (pin 2)) 
+      (node 
+        (ref C2) 
+        (pin 2)) 
+      (node 
+        (ref J5) 
+        (pin 3)) 
+      (node 
+        (ref P1) 
+        (pin 27)) 
+      (node 
+        (ref R2) 
+        (pin 2)) 
+      (node 
+        (ref U1) 
+        (pin 3)) 
+      (node 
+        (ref D2) 
+        (pin 2))) 
+    (net 
+      (code 5) 
+      (name "Net-(U1-Pad2)") 
+      (node 
+        (ref U1) 
+        (pin 2))) 
+    (net 
+      (code 6) 
+      (name +5V) 
+      (node 
+        (ref P1) 
+        (pin 1)) 
+      (node 
+        (ref J4) 
+        (pin 3))) 
+    (net 
+      (code 7) 
+      (name +3V3) 
+      (node 
+        (ref J4) 
+        (pin 1)) 
+      (node 
+        (ref P1) 
+        (pin 2))) 
+    (net 
+      (code 8) 
+      (name "Net-(C2-Pad1)") 
+      (node 
+        (ref J5) 
+        (pin 1)) 
+      (node 
+        (ref C2) 
+        (pin 1)) 
+      (node 
+        (ref J4) 
+        (pin 2)) 
+      (node 
+        (ref U1) 
+        (pin 8))) 
+    (net 
+      (code 9) 
+      (name "Net-(J2-Pad1)") 
+      (node 
+        (ref J2) 
+        (pin 1)) 
+      (node 
+        (ref R1) 
+        (pin 2))) 
+    (net 
+      (code 10) 
+      (name "Net-(P3-Pad3)") 
+      (node 
+        (ref P3) 
+        (pin 3)) 
+      (node 
+        (ref U1) 
+        (pin 7))) 
+    (net 
+      (code 11) 
+      (name "Net-(J1-Pad4)") 
+      (node 
+        (ref J1) 
+        (pin 4)) 
+      (node 
+        (ref P2) 
+        (pin 2))) 
+    (net 
+      (code 12) 
+      (name "Net-(J1-Pad3)") 
+      (node 
+        (ref P2) 
+        (pin 1)) 
+      (node 
+        (ref J1) 
+        (pin 3))) 
+    (net 
+      (code 13) 
+      (name "Net-(J1-Pad2)") 
+      (node 
+        (ref J2) 
+        (pin 2)) 
+      (node 
+        (ref J1) 
+        (pin 2))) 
+    (net 
+      (code 14) 
+      (name "Net-(J1-Pad1)") 
+      (node 
+        (ref J1) 
+        (pin 1)) 
+      (node 
+        (ref P2) 
+        (pin 3))) 
+    (net 
+      (code 15) 
+      (name "Net-(J7-Pad2)") 
+      (node 
+        (ref J7) 
+        (pin 2)) 
+      (node 
+        (ref P3) 
+        (pin 2))) 
+    (net 
+      (code 16) 
+      (name "Net-(P3-Pad1)") 
+      (node 
+        (ref U1) 
+        (pin 5)) 
+      (node 
+        (ref P3) 
+        (pin 1))) 
+    (net 
+      (code 17) 
+      (name "Net-(J3-Pad1)") 
+      (node 
+        (ref R1) 
+        (pin 1)) 
+      (node 
+        (ref R3) 
+        (pin 1)) 
+      (node 
+        (ref J3) 
+        (pin 1))) 
+    (net 
+      (code 18) 
+      (name "Net-(J2-Pad3)") 
+      (node 
+        (ref J2) 
+        (pin 3)) 
+      (node 
+        (ref R2) 
+        (pin 1)) 
+      (node 
+        (ref J3) 
+        (pin 3))) 
+    (net 
+      (code 19) 
+      (name /D6) 
+      (node 
+        (ref P1) 
+        (pin 25))) 
+    (net 
+      (code 20) 
+      (name /RESET) 
+      (node 
+        (ref P1) 
+        (pin 26))) 
+    (net 
+      (code 21) 
+      (name /D4) 
+      (node 
+        (ref P1) 
+        (pin 23))) 
+    (net 
+      (code 22) 
+      (name /D3) 
+      (node 
+        (ref P1) 
+        (pin 22))) 
+    (net 
+      (code 23) 
+      (name /TX0) 
+      (node 
+        (ref P1) 
+        (pin 20))) 
+    (net 
+      (code 24) 
+      (name /RX0) 
+      (node 
+        (ref P1) 
+        (pin 19))) 
+    (net 
+      (code 25) 
+      (name /AREF) 
+      (node 
+        (ref P1) 
+        (pin 10))) 
+    (net 
+      (code 26) 
+      (name /A3) 
+      (node 
+        (ref P1) 
+        (pin 14))) 
+    (net 
+      (code 27) 
+      (name /A7) 
+      (node 
+        (ref P1) 
+        (pin 18))) 
+    (net 
+      (code 28) 
+      (name /SCL) 
+      (node 
+        (ref U1) 
+        (pin 10)) 
+      (node 
+        (ref J6) 
+        (pin 4)) 
+      (node 
+        (ref P1) 
+        (pin 16))) 
+    (net 
+      (code 29) 
+      (name /D2) 
+      (node 
+        (ref P1) 
+        (pin 21))) 
+    (net 
+      (code 30) 
+      (name /A6) 
+      (node 
+        (ref P1) 
+        (pin 17))) 
+    (net 
+      (code 31) 
+      (name /SDA) 
+      (node 
+        (ref U1) 
+        (pin 9)) 
+      (node 
+        (ref J6) 
+        (pin 1)) 
+      (node 
+        (ref P1) 
+        (pin 15))) 
+    (net 
+      (code 32) 
+      (name /D7) 
+      (node 
+        (ref P1) 
+        (pin 3))) 
+    (net 
+      (code 33) 
+      (name /D5) 
+      (node 
+        (ref P1) 
+        (pin 24))) 
+    (net 
+      (code 34) 
+      (name "Net-(J7-Pad1)") 
+      (node 
+        (ref J7) 
+        (pin 1)) 
+      (node 
+        (ref R4) 
+        (pin 2))) 
+    (net 
+      (code 35) 
+      (name "Net-(J8-Pad1)") 
+      (node 
+        (ref J8) 
+        (pin 1)) 
+      (node 
+        (ref R6) 
+        (pin 1)) 
+      (node 
+        (ref R4) 
+        (pin 1))) 
+    (net 
+      (code 36) 
+      (name "Net-(J7-Pad3)") 
+      (node 
+        (ref J8) 
+        (pin 3)) 
+      (node 
+        (ref J7) 
+        (pin 3)) 
+      (node 
+        (ref R5) 
+        (pin 1))) 
+    (net 
+      (code 37) 
+      (name /D9) 
+      (node 
+        (ref P1) 
+        (pin 5))) 
+    (net 
+      (code 38) 
+      (name "Net-(C3-Pad1)") 
+      (node 
+        (ref U1) 
+        (pin 6)) 
+      (node 
+        (ref J8) 
+        (pin 2)) 
+      (node 
+        (ref D2) 
+        (pin 1)) 
+      (node 
+        (ref C3) 
+        (pin 1))) 
+    (net 
+      (code 39) 
+      (name /A2) 
+      (node 
+        (ref P1) 
+        (pin 13))) 
+    (net 
+      (code 40) 
+      (name /A1) 
+      (node 
+        (ref P1) 
+        (pin 12))) 
+    (net 
+      (code 41) 
+      (name /A0) 
+      (node 
+        (ref P1) 
+        (pin 11))) 
+    (net 
+      (code 42) 
+      (name /D13) 
+      (node 
+        (ref P1) 
+        (pin 9))) 
+    (net 
+      (code 43) 
+      (name /D10) 
+      (node 
+        (ref P1) 
+        (pin 6))) 
+    (net 
+      (code 44) 
+      (name /D11) 
+      (node 
+        (ref P1) 
+        (pin 7))) 
+    (net 
+      (code 45) 
+      (name /D12) 
+      (node 
+        (ref P1) 
+        (pin 8))) 
+    (net 
+      (code 46) 
+      (name /D8) 
+      (node 
+        (ref P1) 
+        (pin 4)))))

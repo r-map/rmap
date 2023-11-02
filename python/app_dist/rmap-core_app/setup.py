@@ -276,7 +276,7 @@ setup(name='rmap-core',
       license = "GNU GPL v2",
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson"
                           ,"django-imagekit","django-appconf","paho-mqtt","requests"
+                          ,"paho-mqtt","sslpsk"
                           #, "dballe>=8.4"
                          ],
       )
-

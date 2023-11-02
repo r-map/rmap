@@ -454,11 +454,9 @@ protected:
 #if (USE_SENSOR_SHT)
 #include "SHTSensor.h"
 
-
 class SensorDriverSht : public SensorDriver {
 public:
    SensorDriverSht(const char* driver, const char* type) : SensorDriver(driver, type) {
-     _sht = new SHTI2cSensor();
       SensorDriver::printInfo();
       LOGT(F("sht create... [ %s ]"), OK_STRING);
    };
@@ -480,8 +478,8 @@ protected:
       END
    } _get_state;
 
-private:
-    SHTI2cSensor* _sht=NULL;  
+  //private:
+  //SHTI2cSensor _sht;
 };
 
 #endif
@@ -684,7 +682,8 @@ public:
 
 protected:
 
-  uint8_t power_data[I2C_POWER_AVERAGE_PANEL_LENGTH];
+  uint8_t power_data_p[I2C_POWER_AVERAGE_PANEL_LENGTH];
+  uint8_t power_data_b[I2C_POWER_AVERAGE_BATTERY_LENGTH];
 
   enum {
     INIT,

@@ -1,8 +1,8 @@
 Howto per Stima versione 3
 ==========================
 
-Caratteristiche hardware dei singoli moduli
--------------------------------------------
+Caratteristiche hardware delle singole board
+--------------------------------------------
 
 Stima core+644 e Stima core+1284
 ................................
@@ -352,8 +352,8 @@ retroilluminazione, evitando inutilmente il consumo della batteria.
 Configurazioni hardware dei moduli Stima
 ----------------------------------------
 
-Modulo Stima Ethernet
-.....................
+Modulo Stima Ethernet (master)
+..............................
 
 |image18|\
 
@@ -377,8 +377,8 @@ alimentazione attraverso una delle seguenti modalità:
 *  Connettore a quattro pin posto sulla board Stima I2C-Base
 *  Collegando il modulo a Stima I2C-HUB
 
-Modulo Stima GSM/GPRS
-.....................
+Modulo Stima GSM/GPRS (master)
+..............................
 
 |image19|\
 
@@ -402,8 +402,8 @@ fornire alimentazione attraverso una delle seguenti modalità:
 *  Connettore a quattro pin posto sulla board Stima I2C-Base
 *  Collegando il modulo a Stima I2C-HUB
 
-Modulo Stima Passivo
-....................
+Modulo Stima Passivo (master)
+.............................
 
 Tale modulo passivo permette di acquisire i sensori collegati su bus
 I\ :sup:`2`\ C e di esporre i dati ad un altro modulo “attivo”
@@ -483,6 +483,34 @@ I2C-Rain è perennemente posto in risparmio energetico profondo e
 risvegliato all’occorrenza da un interrupt scaturito dalla basculata del
 pluviometro.
 
+
+Modulo Stima sensor_config
+..........................
+
+questo è un modulo opzionale utilizzato una tantum per:
+
+* configurare sensori e moduli
+* configurare la stazione
+* formattare SD card
+* fare semplici operazioni di diagnostica
+
+Nello specifico, assemblare il modulo con le seguenti board
+(dal basso verso l’alto):
+
+1. Stima I2C-Base @ 5V
+2. Stima core+ 1284 @ 5V
+3. Stima FT232RL
+4. Stima SD-Card
+
+Collegare poi un encoder di tipo incrementale con pulsante (ad esempio Alps EC11B152442D)
+secondo questo schema:
+
+* D2: encoder A
+* D3: encoder B
+* D9: button A
+* GND: encoder common e button B
+
+
 Configurazioni software dei moduli Stima
 ----------------------------------------
 
@@ -490,7 +518,7 @@ Configurazioni software dei moduli Stima
 Installazione del software per la configurazione
 ................................................
 
-Installare Centos 8.
+Installare Rocky linux 8.
 
 Aggiunta repository e installazione pacchetti da utente amministratore
 ::
@@ -529,7 +557,7 @@ Modulo Stima GSM/GPRS
 1. Il progetto per platformio si trova in:
    platformio/stima_v3/stima
 
-2. Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:
+2. Aprire il file stima-config.h in platformio/stima_v3/stima/src:
 
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo
@@ -655,7 +683,7 @@ Modulo Stima Passive
 
 1. Il progetto per platformio si trova in:
    platformio/stima_v3/stima
-2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima/src:
+2. Aprire il file stima-config.h platformio/stima_v3/stima/src:
    
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_PASSIVE per definire una stazione di tipo
@@ -821,23 +849,13 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 Configurazione moduli e sensori
 -------------------------------
 
-Per configurare moduli e sensori utilizzare lo sketch sensor_config
-presente nella cartella arduino\sketchbook\stima_v3
-
-Per configurare i sensori caricare il firmware sul modulo a cui il
-sensore è collegato (i2c-wind, i2c-th ...) ed eseguirlo seguendo il
-menù presentato attraverso la porta seriale over USB (comando
-pio device monitor).
-
-Per configurare i moduli caricare il firmware sul modulo master ed
-eseguirlo seguendo il menù presentato attraverso la porta seriale over
-USB (comando pio device monitor).
-
-Tramite questo tool è possibile definire gli indirizzi I2C e altri
-parametri di funzionamento dei sensori e moduli.
+Per configurare moduli e sensori utilizzare lo sketch sensor_config_menu_sdcard
+presente nella cartella platformio/stima_v3
 
 E' sicuramente necessario se si voglio utilizzare più sensori o moduli
 dello stesso tipo.
+
+Fare riferimento al manuale utente per il suo utilizzo.
 
    
 Assemblaggio stazione Stima
@@ -911,6 +929,90 @@ e per i sensori I2C.
 |image23|
 
 |image24|
+
+
+
+
+
+
+
+
+Appendici
+---------
+
+Elenco PIN utilizzati
+.....................
+
+================================================== ============================================  ==================
+File di definizione                                Macro                                         valore  
+================================================== ============================================  ==================
+sensor_config_menu_sdcard/src/sensor_config.ino    encA                                          2
+sensor_config_menu_sdcard/src/sensor_config.ino    encB                                          3
+stima/include/gsm_config.h                         SIM800_ON_OFF_PIN                             5
+stima/src/stima-config.h                           RTC_INTERRUPT_PIN                             6
+stima/src/stima-config.h                           SDCARD_CHIP_SELECT_PIN                        7
+stima/src/stima-config.h                           CONFIGURATION_RESET_PIN                       8
+sensor_config_menu_sdcard/src/sensor_config.ino    encBtn                                        9
+stima/src/stima-config.h                           W5500_CHIP_SELECT_PIN                         10
+stima/src/stima-config.h                           GSM_ON_OFF_PIN                                SIM800_ON_OFF_PIN
+================================================== ============================================  ==================
+
+
+
+Elenco indirizzi I2C
+....................
+
+moduli:
+
+=========================================== ========================================= ==================
+File di definizione                         Macro                                     valore  
+=========================================== ========================================= ==================
+Rmap/registers-master.h                     I2C_MASTER_DEFAULT_ADDRESS                (0x20)
+Rmap/registers-rain.h                       I2C_RAIN_DEFAULT_ADDRESS                  (0x21)
+Rmap/registers-power.h                      I2C_POWER_DEFAULT_ADDRESS                 (0x4A)
+Rmap/registers-wind.h:                      I2C_WIND_DEFAULT_ADDRESS                  (0x45)
+Rmap/registers-th.h                         I2C_TH_DEFAULT_ADDRESS                    (0x23)
+Rmap/registers-radiation.h                  I2C_SOLAR_RADIATION_DEFAULT_ADDRESS       (0x47)
+=========================================== ========================================= ==================
+
+opzionali:
+
+============================ =========================================  ==================
+File di definizione          Macro                                      valore  
+============================ =========================================  ==================
+Rmap/registers-leaf.h        I2C_LEAF_DEFAULT_ADDRESS                   (0x65)
+Rmap/registers-opc.h         I2C_OPC_DEFAULT_ADDRESS                    (0x55)
+Rmap/registers-thr.h         I2C_THR_DEFAULT_ADDRESS                    (0x23)
+Rmap/registers-thr.h         I2C_THR_TEMPERATURE_DEFAULT_ADDRESS        (0x49)
+Rmap/registers-thr.h         I2C_THR_HUMIDITY_DEFAULT_ADDRESS           (0x27)
+============================ =========================================  ==================
+
+sensori:
+
+===========================================  ==================
+File di definizione                          valore  
+===========================================  ==================
+HYT                                          (0x28)
+SHT                                          (0x44)
+===========================================  ==================
+
+ADC:
+
+===========================================  ==================
+File di definizione                          valore  
+===========================================  ==================
+ADC  radiation				     (0x48)
+ADC  power				     (0x49)
+===========================================  ==================
+
+display LCD
+
+==================== =========================================  ==================
+File di definizione  Macro                                      valore  
+==================== =========================================  ==================
+include/lcd_config.h LCD_I2C_ADDRESS                            (0x3F)
+include/lcd_config.h LCD_I2C_SECONDARY_ADDRESS                  (0x27)
+==================== =========================================  ==================
 
 .. |image0| image:: Pictures/100000000000009E000000ACAE9B9D2F445B8061.jpg
    :width: 3.679cm

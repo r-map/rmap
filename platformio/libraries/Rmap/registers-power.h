@@ -238,24 +238,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 // Readable registers errors checking
-#if I2C_POWER_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS
+#if I2C_POWER_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_LEN
 #error "ERROR! Too many readable registers found in POWER module!!!"
 #endif
 
 // Writeable registers errors checking
-#if I2C_POWER_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_END_ADDRESS
+#if I2C_POWER_WRITE_REGISTERS_LENGTH > I2C_WRITE_REGISTER_LEN
 #error "ERROR! Too many writable registers found in POWER module!!!"
 #endif
 
 #endif
-/*!
-\def I2C_POWER_SAMPLE_PANEL_LENGTH
-\brief length of the sample variable for i2c-power module.
-*/
-#define I2C_POWER_SAMPLE_PANEL_LENGTH        (0x02)
-
-/*!
-\def I2C_POWER_SAMPLE_PANEL_ADDRESS
-\brief address of the sample variable for i2c-power module.
-*/
-#define I2C_POWER_SAMPLE_PANEL_ADDRESS       (I2C_POWER_MINOR_VERSION_ADDRESS + I2C_POWER_MINOR_VERSION_LENGTH)

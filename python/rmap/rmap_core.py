@@ -30,6 +30,7 @@ from .stations.models import TransportBluetooth
 from .stations.models import TransportAmqp
 from .stations.models import TransportSerial
 from .stations.models import TransportTcpip
+from .configuration_stimav3 import *
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.utils.translation import ugettext as _
@@ -1510,7 +1511,100 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         
     transport.close()
 
+            
+def configstation_to_struct_v3(station_slug=None,board_slug=None,username=None):
 
+    if (station_slug is None): return
+    if (username is None): return
+
+    myconfiguration=configuration()
+    myconfiguration.module_main_version=3
+    myconfiguration.module_configuration_version=2
+    myconfiguration.module_type=4
+    
+    mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
+
+    if not mystation.active:
+        print("disactivated station: do nothing!")
+        return None
+
+    for board in mystation.board_set.all():
+
+        if board_slug is not None and board.slug != board_slug:
+            continue
+
+        if not board.active:
+            continue
+
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name," slug="+board.slug)
+            
+        try:
+            if ( board.transportmqtt.active):
+                print("TCP/IP Transport",board.transportmqtt)
+
+                myconfiguration.constantdata_count=0                
+                for constantdata in  mystation.stationconstantdata_set.all():
+                    if ( constantdata.active):
+                        myconfiguration.constantdata[myconfiguration.constantdata_count].btable=bytes(constantdata.btable,encoding='ascii')
+                        myconfiguration.constantdata[myconfiguration.constantdata_count].value=bytes(constantdata.value,encoding='ascii')
+                        myconfiguration.constantdata_count+=1                        
+
+            myconfiguration.mqtt_port=1883
+            myconfiguration.mqtt_server=bytes(board.transportmqtt.mqttserver,encoding='ascii')
+            myconfiguration.mqtt_root_topic=bytes("1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                                                  +"/"+ mystation.ident +"/"\
+                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                  +"/"+mystation.network+"/",encoding='ascii')
+            myconfiguration.mqtt_maint_topic=bytes("1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                +"/"+ mystation.ident +"/"\
+                +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                +"/"+mystation.network+"/",encoding='ascii')
+            myconfiguration.mqtt_rpc_topic=bytes("1/rpc/"+board.transportmqtt.mqttuser\
+                +"/"+ mystation.ident +"/"\
+                +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                +"/"+mystation.network+"/",encoding='ascii')
+            myconfiguration.mqtt_username=bytes(board.transportmqtt.mqttuser,encoding='ascii')
+            myconfiguration.mqtt_password=bytes(board.transportmqtt.mqttpassword,encoding='ascii')
+
+                    
+            myconfiguration.report_seconds=board.transportmqtt.mqttsampletime
+            myconfiguration.stationslug=bytes(mystation.slug,encoding='ascii')
+            myconfiguration.boardslug=bytes(board.slug,encoding='ascii')
+                                        
+        except ObjectDoesNotExist:
+            print("transport mqtt not present")
+
+
+        try:
+            if ( board.transporttcpip.active):
+                print("TCP/IP Transport",board.transporttcpip)
+                myconfiguration.ntp_server=bytes(board.transporttcpip.ntpserver,encoding='ascii')
+                myconfiguration.gsm_apn=bytes(board.transporttcpip.gsmapn,encoding='ascii')
+                myconfiguration.gsm_username=bytes("",encoding='ascii')
+                myconfiguration.gsm_password=bytes("",encoding='ascii')
+                
+        except ObjectDoesNotExist:
+            print("transport tcpip not present")
+
+                   
+        print(">>>> sensors:")
+        myconfiguration.sensors_count=0        
+        for sensor in board.sensor_set.all():
+            if not sensor.active: continue
+
+            report_time=find_report_time(mystation)
+            timerange=sensor.timerange.format(P2=report_time)
+            
+            myconfiguration.sensors[myconfiguration.sensors_count].driver=bytes(sensor.driver,encoding='ascii')
+            myconfiguration.sensors[myconfiguration.sensors_count].type=bytes(sensor.type.type,encoding='ascii')
+            myconfiguration.sensors[myconfiguration.sensors_count].node= 0 if (sensor.node is None) else sensor.node
+            myconfiguration.sensors[myconfiguration.sensors_count].address=sensor.address
+            myconfiguration.sensors[myconfiguration.sensors_count].mqtt_topic=bytes(timerange+"/"+sensor.level+"/",encoding='ascii')
+            myconfiguration.sensors_count+=1        
+
+        return myconfiguration
+
+    
 def send2http(body="",user=None,password=None,url=None,login_url=None):
 
     print("send data to: {}".format(url))

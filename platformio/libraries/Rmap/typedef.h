@@ -73,4 +73,5 @@ typedef struct {
   uint16_t sigma;  //!< standard deviation of observations
 } value_t;
 
+
 #endif

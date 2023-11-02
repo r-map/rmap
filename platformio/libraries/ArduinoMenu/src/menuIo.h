@@ -83,7 +83,7 @@
         idx_t printText(const char* at,idx_t len);
         #if defined(MENU_DEBUG) || defined(MENU_ASYNC)
           virtual menuOut& operator<<(prompt const &p);
-          #ifdef ESP8266
+          #if defined(ESP8266) || defined(ESP32)
             template<typename T> menuOut& operator<<(T o);
           #endif
         #endif
@@ -162,7 +162,7 @@
         menuOut* constMEM* outs;
         outputsList(menuOut* constMEM o[],int n):cnt(n),outs(o) {}
         inline menuOut& operator[](idx_t i) {
-          //assert(i<cnt);
+          assert(i<cnt);
           return *(menuOut*)memPtr(outs[i]);
         }
         Used printMenu(navNode& nav) const;

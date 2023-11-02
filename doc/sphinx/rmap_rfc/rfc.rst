@@ -1,9 +1,10 @@
-RFC rmap versione 3.1
+RFC rmap versione 3.3
 =====================
 
 Storia del documento
 --------------------
 
+- 2023/05/26 v. 3.2 : aggiunta alla Remote Procedure Call admin parametro fupdate; corretto root topic per il messaggio testamento mqtt 
 - 2023/03/06 v. 3.2 : Revisionate le Remote Procedure Call
 - 2023/02/21 v. 3.1 : Migliorata documentazione RMAP web services, riassuntivo
 - 2022/06/10 v. 3.0 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
@@ -961,7 +962,7 @@ segnalazione di sconnessione gestita male con will (retained):
 
 ::
    
-   <roottopic>/USER/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
+   <mainttopic>/USER/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
 payload : **{"v": "error01"}**
 
@@ -1046,7 +1047,6 @@ comporti un risparmio sul numero di byte necessari per la trasmissione.
 Prima forma contratta tabella D
 '''''''''''''''''''''''''''''''
 
-In questa forma contratta non è previsto l'invio di attributi del dato.
 In questa forma contratta non è necessario inviare messaggi relativi
 allo stato della connessione.
 
@@ -1057,18 +1057,21 @@ Il topic e come quello della forma standard senza l'ultimo parametro
    
    <roottopic>/myuser//1131908,4449301/fixed/254,0,0/103,2000,-,-
 
-Il payload prevede due parametri:
+Il payload prevede due parametri più uno opzionale:
 
 -  "d" che descrive quale elemento della tabella D è preso in
    considerazione
 -  "p" con un array di valori corrispondenti ai "VAR" descritti
    nell'elemento in tabella D
+-  "a" attributi solitamente per controllo di qualità sono opzionali;
+   la chiave fa riferimento alla tabella B e il contenuto è un array
+   di valori che si riferiscono posizionalmente ai relativi dati
 
 Ad esempio:
 
 ::
    
-   {"d":50,"p":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]}
+   {"d":50,"p":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],"a"[100,20,100,100,50,60,70,80,90,100,100,10,30,40,50,60,70,80,90,100,10,20,30,40]}
 
 Tabella D
          
@@ -1082,6 +1085,24 @@ Tabella D
            "52":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
                  "B49205","B49206","B49207","B49208","B49209"]}
 
+Ad esempio:
+
+::
+   {"d":51,"p":[10,20,30,40,50,100],"t":"2023-05-26T20:48:00","a":{"B33199":[100,90,80,70,60,50]}}
+
+si sviluppa in:
+
+::
+
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11211 {"t": "2023-05-26T20:48:00", "v": 10, "a": {"B33199": 100}}
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11212 {"t": "2023-05-26T20:48:00", "v": 20, "a": {"B33199": 90}}
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11213 {"t": "2023-05-26T20:48:00", "v": 30, "a": {"B33199": 80}}
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11214 {"t": "2023-05-26T20:48:00", "v": 40, "a": {"B33199": 70}}
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11215 {"t": "2023-05-26T20:48:00", "v": 50, "a": {"B33199": 60}}
+   1/report/userv4//1212345,4512345/test/9,0,180/103,10000,-,-/B11216 {"t": "2023-05-26T20:48:00", "v": 100, "a": {"B33199": 50}}
+
+   
+		 
 Seconda forma contratta tabella E
 '''''''''''''''''''''''''''''''''
 
@@ -1274,6 +1295,7 @@ Comandi di amministrazione
 parametri:
 
 -  bool fdownload: true= richiede il download del nuovo firmware disponibile sul server
+-  bool cdownload: true= richiede il download della configurazione disponibile sul server
 
 esempio:
 

@@ -104,7 +104,6 @@ void HttpTask::Run() {
   IpAddr ipAddr;
   uint_t status;
   const char_t *value;
-  // std::string serial_number_str;
   char_t serial_number_str[12];
   uint32_t serial_number_l;
   uint32_t serial_number_h;
@@ -117,6 +116,7 @@ void HttpTask::Run() {
   bool is_get_firmware;
   bool bValidFirmwareRequest = false;
   bool bErrorFirmwareDownload = false;
+  bool bDownloadedFirmware = false;     // Set true if at least firmware are donloaded
   uint8_t module_download; // Module download firmware from ID Master FF 00..BOARDS_COUNT_MAX (Slave)
   uint8_t module_download_ver, module_download_rev; // firmware version and revision in download
   uint8_t module_download_type; // firmware module type in download
@@ -125,8 +125,6 @@ void HttpTask::Run() {
 
   connection_request_t connection_request;
   connection_response_t connection_response;
-
-  uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -587,6 +585,8 @@ void HttpTask::Run() {
       // Closing Queue and File data (Ready for next firmware...)
       if ((is_get_firmware)&&(bValidFirmwareRequest)) {
         bErrorFirmwareDownload |= do_firmware_end_data();
+        // At least one firmware are downloade. Need to resynch version/revision to check avaiables version into SD card...
+        bDownloadedFirmware = true;
       }
 
       // Close HTTP response body
@@ -640,6 +640,41 @@ void HttpTask::Run() {
         is_error = NO_ERROR;
         state = HTTP_STATE_END;
         TRACE_VERBOSE_F(F("HTTP_STATE_LOOP_REQUEST_FIRMWARE -> HTTP_STATE_END\r\n"));
+
+        // Resynch firmware SD with avaiables ONLY!!! if new version are downloaded from server
+        if (bDownloadedFirmware) {
+          // After all download firmware module start queue request reload structure firmware
+          // And waiting response. After start update all firmware board status info are resynch
+          system_message_t system_message = {0};
+          system_message.task_dest = SD_TASK_ID;
+          system_message.command.do_reload_fw = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+
+          // Waiting a response done before continue (reload status flag firmware OK!!!)
+          while(true) {
+            // Continuos Switching context non blocking
+            // Need Waiting Task for start command on All used TASK
+            taskYIELD();
+            vTaskDelay(100);
+            // Check response done
+            if(!param.systemMessageQueue->IsEmpty()) {
+              param.systemMessageQueue->Peek(&system_message);
+              if(system_message.command.done_reload_fw) {
+                // Remove message (Reload Done is OK)
+                param.systemMessageQueue->Dequeue(&system_message);
+                break;
+              }
+            }
+          }
+          // Reset version and revision (force reload difference after download firmware to verify)
+          // If new version found, flag new_firmware_ready must be set to true on new connection...          
+          param.systemStatusLock->Take();
+          for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
+            param.system_status->data_slave[i].module_version = 0;
+            param.system_status->data_slave[i].module_revision = 0;
+          }
+          param.systemStatusLock->Give();
+        }
       } 
       else
       {

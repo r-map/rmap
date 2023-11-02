@@ -74,9 +74,9 @@ void init_sensors () {
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
-  #if (USE_SENSOR_STH)
+  #if (USE_SENSOR_SHT)
   address = 0x44;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_STH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensors, &sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
   
@@ -124,6 +124,12 @@ void init_sensors () {
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
+  #if (USE_SENSOR_POW)
+  address = I2C_POWER_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_POW, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif
+  
   #if (USE_SENSOR_DSA)
   #include <registers-radiation.h>
   address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
@@ -448,8 +454,11 @@ void init_wire() {
   i2c_error = 0;
   Wire.begin();
   Wire.setClock(I2C_BUS_CLOCK);
-  digitalWrite(SDA, HIGH);
-  digitalWrite(SCL, HIGH);
+  //digitalWrite(SDA, HIGH);
+  //digitalWrite(SCL, HIGH);
+  pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
+  pinMode(SCL, INPUT_PULLUP);
+
 }
 
 void check_i2c_bus () {

@@ -141,7 +141,7 @@ IR receiver using IRremote library
 	// Check if the IR code has been received.
 	if (myirrecv.decode(&results)) {
 	  // Display a crude timestamp.
-	  uint32_t now = millis();
+	  //uint32_t now = millis();
 
 	  /*
 	  if (results.overflow)

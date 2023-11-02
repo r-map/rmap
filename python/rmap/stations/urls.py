@@ -11,6 +11,7 @@ from rmap.stations.views import mystationmetadata_upload_json
 from rmap.stations.views import mystationmetadata_del
 from rmap.stations.views import mystation_localdata
 from rmap.stations.views import mystationmetadata_config
+from rmap.stations.views import mystationmetadata_configv3
 
 urlpatterns = [
 
@@ -55,6 +56,9 @@ urlpatterns = [
 
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json_dump/$',
                            mystationmetadata_json, kwargs={'dump':True},name='mystationmetadata-json-dump'),
+
+                       url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/configv3/$',
+                           mystationmetadata_configv3, name='mystationmetadata-configv3'),
     
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/(?P<board_slug>[-_\w]*)/json/$',
                            mystationmetadata_json ,name='mystationmetadata-board-json'),

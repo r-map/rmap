@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (11)
+#define MODULE_MINOR_VERSION                          (12)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -357,6 +357,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SDCARD_LOGGING_FILE_NAME                     ("stima.log")
 
+/*!
+\def SDCARD_CONFIG_FILE_NAME
+\brief File name for reading configuration from SD-Card.
+*/
+#define SDCARD_CONFIG_FILE_NAME                     ("config.cfg")
+
+/*!
+\def SDCARD_CONFIG_SAVED_FILE_NAME
+\brief File name for reading configuration from SD-Card.
+*/
+#define SDCARD_CONFIG_SAVED_FILE_NAME                     ("config.sav")
+
 #endif
 
 /*********************************************************************
@@ -538,6 +550,12 @@ coming from recovery json RPC.
 \brief Maximum seconds for reinitialize LCD.
 */
 #define LCD_TIME_FOR_REINITIALIZE_S                   (SECS_PER_DAY)
+
+/*!
+\var DISPLAY_SET_MAX
+\brief Max number of page to show on display when testing sensors.
+*/
+#define DISPLAY_SET_MAX (2)
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 /*!

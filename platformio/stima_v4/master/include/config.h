@@ -52,7 +52,7 @@
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (0)
+#define MODULE_MINOR_VERSION  (4)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
@@ -68,6 +68,7 @@
 
 // Enable control Error for Debug
 #define DEBUG_MODE            (false)
+#define ERROR_HANDLER_CB      (false)
 
 // HW device
 #define ENABLE_SPI1           (true)

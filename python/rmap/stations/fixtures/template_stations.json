@@ -4,7 +4,7 @@
   "fields": {
     "name": "Stima V4 complessa con umidit\u00e0 suolo",
     "active": false,
-    "slug": "stima-v4-complessa-con-umidita-suolo",
+    "slug": "stima-v4-complessa-svwc",
     "user": [
       "rmap"
     ],
@@ -14,6 +14,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -27,7 +28,7 @@
     "type": 11,
     "sn": null,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -46,7 +47,7 @@
     "board": [
       "masterv4",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -63,7 +64,7 @@
     "board": [
       "masterv4",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -82,7 +83,7 @@
     "board": [
       "masterv4",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -101,7 +102,7 @@
     "board": [
       "masterv4",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -119,7 +120,7 @@
     "type": 28,
     "sn": 180150005,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -143,7 +144,7 @@
     "board": [
       "module_mppt",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -162,7 +163,7 @@
     "board": [
       "module_mppt",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -180,7 +181,7 @@
     "type": 26,
     "sn": 180150004,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -204,7 +205,7 @@
     "board": [
       "module_radiation",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -223,7 +224,7 @@
     "board": [
       "module_radiation",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -241,7 +242,7 @@
     "type": 20,
     "sn": 180150002,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -265,7 +266,7 @@
     "board": [
       "module_rain",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -290,7 +291,7 @@
     "board": [
       "module_rain",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -309,7 +310,7 @@
     "board": [
       "module_rain",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -327,7 +328,7 @@
     "type": 29,
     "sn": 180150006,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -351,7 +352,7 @@
     "board": [
       "module_svwc",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -376,7 +377,7 @@
     "board": [
       "module_svwc",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -401,7 +402,7 @@
     "board": [
       "module_svwc",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -420,7 +421,7 @@
     "board": [
       "module_svwc",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -438,7 +439,7 @@
     "type": 21,
     "sn": 180150001,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -462,7 +463,7 @@
     "board": [
       "module_th",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -487,7 +488,7 @@
     "board": [
       "module_th",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -512,7 +513,7 @@
     "board": [
       "module_th",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -537,7 +538,7 @@
     "board": [
       "module_th",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -556,7 +557,7 @@
     "board": [
       "module_th",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -574,7 +575,7 @@
     "type": 25,
     "sn": 180150003,
     "stationmetadata": [
-      "stima-v4-complessa-con-umidita-suolo",
+      "stima-v4-complessa-svwc",
       [
         "rmap"
       ]
@@ -598,7 +599,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -623,7 +624,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -648,7 +649,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -673,7 +674,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -698,7 +699,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -723,7 +724,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -742,7 +743,7 @@
     "board": [
       "module_wind",
       [
-        "stima-v4-complessa-con-umidita-suolo",
+        "stima-v4-complessa-svwc",
         [
           "rmap"
         ]
@@ -765,6 +766,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -1405,6 +1407,7 @@
     "network": "fixed",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav4",
     "category": "template"
   }
 },
@@ -1798,6 +1801,7 @@
     "network": "fixed",
     "mqttrootpath": "sample",
     "mqttmaintpath": "maint",
+    "type": "stimav2",
     "category": "template"
   }
 },
@@ -1947,6 +1951,7 @@
     "network": "fixed",
     "mqttrootpath": "sample",
     "mqttmaintpath": "maint",
+    "type": "manual",
     "category": "template"
   }
 },
@@ -1990,9 +1995,9 @@
 {
   "model": "stations.stationmetadata",
   "fields": {
-    "name": "Stima V3 complessa",
+    "name": "Stima V3.1 complessa",
     "active": false,
-    "slug": "stima-v3-complessa",
+    "slug": "stima-v31-complessa",
     "user": [
       "rmap"
     ],
@@ -2002,6 +2007,7 @@
     "network": "locali",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -2015,7 +2021,7 @@
     "type": 0,
     "sn": null,
     "stationmetadata": [
-      "stima-v3-complessa",
+      "stima-v31-complessa",
       [
         "rmap"
       ]
@@ -2039,7 +2045,7 @@
 	"board": [
 	    "stima3",
 	    [
-		"stima-v3-complessa",
+		"stima-v31-complessa",
 		[
 		    "rmap"
 		]
@@ -2064,7 +2070,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2089,7 +2095,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2114,7 +2120,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2139,7 +2145,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2164,7 +2170,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2189,7 +2195,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2214,7 +2220,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2239,7 +2245,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2264,7 +2270,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2289,7 +2295,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2314,7 +2320,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2339,7 +2345,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2359,7 +2365,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2376,7 +2382,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2395,7 +2401,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-complessa",
+        "stima-v31-complessa",
         [
           "rmap"
         ]
@@ -2406,9 +2412,9 @@
 {
   "model": "stations.stationmetadata",
   "fields": {
-    "name": "Stima V3 semplice",
+    "name": "Stima V3.1 semplice",
     "active": false,
-    "slug": "stima-v3-semplice",
+    "slug": "stima-v31-semplice",
     "user": [
       "rmap"
     ],
@@ -2418,6 +2424,7 @@
     "network": "claster",
     "mqttrootpath": "report",
     "mqttmaintpath": "maint",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -2431,7 +2438,7 @@
     "type": 0,
     "sn": null,
     "stationmetadata": [
-      "stima-v3-semplice",
+      "stima-v31-semplice",
       [
         "rmap"
       ]
@@ -2455,7 +2462,7 @@
     "board": [
 	"stima3",
 	[
-            "stima-v3-semplice",
+            "stima-v31-semplice",
             [
 		"rmap"
             ]
@@ -2480,7 +2487,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2505,7 +2512,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2530,7 +2537,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2555,7 +2562,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2580,7 +2587,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2600,7 +2607,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2617,7 +2624,7 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
         [
           "rmap"
         ]
@@ -2636,7 +2643,1950 @@
     "board": [
       "stima3",
       [
-        "stima-v3-semplice",
+        "stima-v31-semplice",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V3.2 complessa",
+    "active": false,
+    "slug": "stima-v32-complessa",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 13e-05,
+    "lon": 13e-05,
+    "network": "locali",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav3",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "stima3",
+    "active": true,
+    "slug": "stima3",
+    "category": null,
+    "type": 0,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v32-complessa",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+    "model": "stations.sensor",
+    "fields": {
+	"active": true,
+	"name": "Temperature/Humidity report inst. values",
+	"driver": "I2C",
+	"type": [
+	    "ITH"
+	],
+	"i2cbus": null,
+	"address": 35,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	    "stima3",
+	    [
+		"stima-v32-complessa",
+		[
+		    "rmap"
+		]
+	    ]
+	]
+    }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "I2C",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "3,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "I2C",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "I2C",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": 35,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "I2C",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": 33,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Battery charge monitor",
+    "driver": "I2C",
+    "type": [
+      "POW"
+    ],
+    "i2cbus": null,
+    "address": 74,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "265,1,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor vectorial average 10'",
+    "driver": "I2C",
+    "type": [
+      "DWA"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind vect. average, gust direction",
+    "driver": "I2C",
+    "type": [
+      "DWB"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "200,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust speeds",
+    "driver": "I2C",
+    "type": [
+      "DWC"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor scalar average",
+    "driver": "I2C",
+    "type": [
+      "DWD"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor frequency",
+    "driver": "I2C",
+    "type": [
+      "DWE"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "9,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Wind sensor gust directions",
+    "driver": "I2C",
+    "type": [
+      "DWF"
+    ],
+    "i2cbus": null,
+    "address": 69,
+    "node": null,
+    "timerange": "205,0,{P2:d}",
+    "level": "103,10000,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Radiation",
+    "driver": "I2C",
+    "type": [
+      "DSA"
+    ],
+    "i2cbus": null,
+    "address": 71,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "stima3",
+      [
+        "stima-v32-complessa",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V4 semplice con umidit\u00e0 suolo",
+    "active": false,
+    "slug": "stima-v4-semplice-svwc",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 14e-05,
+    "lon": 14e-05,
+    "network": "fixed",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav4",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "masterv4",
+    "active": true,
+    "slug": "masterv4",
+    "category": null,
+    "type": 11,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 100,
+    "subject": "node.master",
+    "subject_id": 100,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_mppt",
+    "active": true,
+    "slug": "module_mppt",
+    "category": null,
+    "type": 28,
+    "sn": 180150005,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Power MPPT",
+    "driver": "CAN",
+    "type": [
+      "MPP"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "265,1,-,-",
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 64,
+    "subject": "node.mppt",
+    "subject_id": 64,
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_rain",
+    "active": true,
+    "slug": "module_rain",
+    "category": null,
+    "type": 20,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "CAN",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation rate report",
+    "driver": "CAN",
+    "type": [
+      "TPR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 61,
+    "subject": "node.p",
+    "subject_id": 61,
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_th",
+    "active": true,
+    "slug": "module_th",
+    "category": null,
+    "type": 21,
+    "sn": 180150001,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report inst. values",
+    "driver": "CAN",
+    "type": [
+      "ITH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "CAN",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "3,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "CAN",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "CAN",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 60,
+    "subject": "node.th",
+    "subject_id": 60,
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_svwc",
+    "active": true,
+    "slug": "module_svwc",
+    "category": null,
+    "type": 29,
+    "sn": 180150006,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 25cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,250,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 45cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,450,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 70cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,700,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 65,
+    "subject": "node.svwc",
+    "subject_id": 65,
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V4 semplice con umidit\u00e0 suolo e radiazione",
+    "active": false,
+    "slug": "stima-v4-semplice-svwc-rad",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 15e-05,
+    "lon": 15e-05,
+    "network": "fixed",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav4",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "masterv4",
+    "active": true,
+    "slug": "masterv4",
+    "category": null,
+    "type": 11,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 100,
+    "subject": "node.master",
+    "subject_id": 100,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_mppt",
+    "active": true,
+    "slug": "module_mppt",
+    "category": null,
+    "type": 28,
+    "sn": 180150005,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Power MPPT",
+    "driver": "CAN",
+    "type": [
+      "MPP"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "265,1,-,-",
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 64,
+    "subject": "node.mppt",
+    "subject_id": 64,
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_rain",
+    "active": true,
+    "slug": "module_rain",
+    "category": null,
+    "type": 20,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "CAN",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation rate report",
+    "driver": "CAN",
+    "type": [
+      "TPR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 61,
+    "subject": "node.p",
+    "subject_id": 61,
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_th",
+    "active": true,
+    "slug": "module_th",
+    "category": null,
+    "type": 21,
+    "sn": 180150001,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report inst. values",
+    "driver": "CAN",
+    "type": [
+      "ITH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "CAN",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "3,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "CAN",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "CAN",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 60,
+    "subject": "node.th",
+    "subject_id": 60,
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_svwc",
+    "active": true,
+    "slug": "module_svwc",
+    "category": null,
+    "type": 29,
+    "sn": 180150006,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 25cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,250,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 45cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,450,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Soil water content 70cm",
+    "driver": "CAN",
+    "type": [
+      "SVW"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "106,700,-,-",
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 65,
+    "subject": "node.svwc",
+    "subject_id": 65,
+    "board": [
+      "module_svwc",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_radiation",
+    "active": true,
+    "slug": "module_radiation",
+    "category": null,
+    "type": 26,
+    "sn": 180150004,
+    "stationmetadata": [
+      "stima-v4-semplice-svwc-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Radiation",
+    "driver": "CAN",
+    "type": [
+      "DSA"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_radiation",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 63,
+    "subject": "node.rad",
+    "subject_id": 63,
+    "board": [
+      "module_radiation",
+      [
+        "stima-v4-semplice-svwc-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V4 semplice con radiazione",
+    "active": false,
+    "slug": "stima-v4-semplice-rad",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 16e-05,
+    "lon": 16e-05,
+    "network": "fixed",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav4",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "masterv4",
+    "active": true,
+    "slug": "masterv4",
+    "category": null,
+    "type": 11,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v4-semplice-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 100,
+    "subject": "node.master",
+    "subject_id": 100,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_mppt",
+    "active": true,
+    "slug": "module_mppt",
+    "category": null,
+    "type": 28,
+    "sn": 180150005,
+    "stationmetadata": [
+      "stima-v4-semplice-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Power MPPT",
+    "driver": "CAN",
+    "type": [
+      "MPP"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "265,1,-,-",
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 64,
+    "subject": "node.mppt",
+    "subject_id": 64,
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_rain",
+    "active": true,
+    "slug": "module_rain",
+    "category": null,
+    "type": 20,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "CAN",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation rate report",
+    "driver": "CAN",
+    "type": [
+      "TPR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 61,
+    "subject": "node.p",
+    "subject_id": 61,
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_th",
+    "active": true,
+    "slug": "module_th",
+    "category": null,
+    "type": 21,
+    "sn": 180150001,
+    "stationmetadata": [
+      "stima-v4-semplice-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report inst. values",
+    "driver": "CAN",
+    "type": [
+      "ITH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report min values",
+    "driver": "CAN",
+    "type": [
+      "NTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "3,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report mean values",
+    "driver": "CAN",
+    "type": [
+      "MTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature/Humidity report max values",
+    "driver": "CAN",
+    "type": [
+      "XTH"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "103,2000,-,-",
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 60,
+    "subject": "node.th",
+    "subject_id": 60,
+    "board": [
+      "module_th",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_radiation",
+    "active": true,
+    "slug": "module_radiation",
+    "category": null,
+    "type": 26,
+    "sn": 180150004,
+    "stationmetadata": [
+      "stima-v4-semplice-rad",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Radiation",
+    "driver": "CAN",
+    "type": [
+      "DSA"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_radiation",
+      [
+        "stima-v4-semplice-rad",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 63,
+    "subject": "node.rad",
+    "subject_id": 63,
+    "board": [
+      "module_radiation",
+      [
+        "stima-v4-semplice-rad",
         [
           "rmap"
         ]

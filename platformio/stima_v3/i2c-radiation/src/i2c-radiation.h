@@ -99,17 +99,19 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
 
+  /*
    // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
-
+  */
+  
    // 16 bit hr
    float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
    float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
-   float sensor_rad_max[ADS1115_CHANNEL_COUNT];
    float sensor_voltage_max[ADS1115_CHANNEL_COUNT];
+   float sensor_rad_max[ADS1115_CHANNEL_COUNT];
 } writable_data_t;
 
 /*********************************************************************
@@ -323,6 +325,7 @@ int16_t average;
 ADS1115 adc1(ADC_I2C_ADDRESS);
 float getAdcCalibratedValue (float adc_value, float offset, float gain);
 float getAdcAnalogValue (float adc_value, float min, float max);
+adsGain_t adsgain;
 #endif
 
 uint8_t solar_radiation_acquisition_count;
@@ -433,6 +436,13 @@ void init_wire(void);
 \return void.
 */
 void init_spi(void);
+
+/*!
+\fn void init_adc(void)
+\brief Init ADC hardware.
+\return void.
+*/
+void init_adc(void);
 
 /*!
 \fn void init_rtc(void)

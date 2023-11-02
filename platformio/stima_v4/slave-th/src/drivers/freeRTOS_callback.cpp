@@ -144,6 +144,7 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskN
 // catch exceptions
 
 // Generic Error_Handler
+#if(ERROR_HANDLER_CB)
 extern "C" void _Error_Handler(const char *msg, int val)
 {
   /* User can add his own implementation to report the HAL error return state */
@@ -159,6 +160,7 @@ extern "C" void _Error_Handler(const char *msg, int val)
   NVIC_SystemReset();
   #endif
 }
+#endif
 
 /** Hard fault - blink four short flash every two seconds */
 extern "C" void hard_fault_isr() {

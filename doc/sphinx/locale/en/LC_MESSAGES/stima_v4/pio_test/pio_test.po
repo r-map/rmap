@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-11 12:05+0200\n"
+"POT-Creation-Date: 2023-05-27 00:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,354 +19,358 @@ msgstr ""
 "Generated-By: Babel 2.9.1\n"
 
 #: ../../stima_v4/pio_test/pio_test.rst:2
+msgid "Platformio unit tests"
+msgstr ""
+
+#: ../../stima_v4/pio_test/pio_test.rst:5
 msgid "Prerequisiti per l'esecuzione dei test"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:4
+#: ../../stima_v4/pio_test/pio_test.rst:7
 msgid "I moduli Master e Slave necessitano di un'alimentazione da 9-30V."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:6
+#: ../../stima_v4/pio_test/pio_test.rst:9
 msgid ""
 "**Tutti i test elencati sono stati eseguiti nella data del 05/04/2023 "
 "presso la sede Digiteco con esito positivo.**"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:9
+#: ../../stima_v4/pio_test/pio_test.rst:12
 msgid ""
 "N.B. Per la replica dei test è necessario inserire i jumper delle schede "
 "master e slave in modalità default come di seguito descritta."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:13
+#: ../../stima_v4/pio_test/pio_test.rst:16
 msgid "Scheda Master"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:15
+#: ../../stima_v4/pio_test/pio_test.rst:18
 msgid "master-sheet"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:18
-#: ../../stima_v4/pio_test/pio_test.rst:56
+#: ../../stima_v4/pio_test/pio_test.rst:21
+#: ../../stima_v4/pio_test/pio_test.rst:59
 msgid "Identificatore"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:18
-#: ../../stima_v4/pio_test/pio_test.rst:56
+#: ../../stima_v4/pio_test/pio_test.rst:21
+#: ../../stima_v4/pio_test/pio_test.rst:59
 msgid "Descrizione"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:20
-#: ../../stima_v4/pio_test/pio_test.rst:58
+#: ../../stima_v4/pio_test/pio_test.rst:23
+#: ../../stima_v4/pio_test/pio_test.rst:61
 msgid "J1"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:20
+#: ../../stima_v4/pio_test/pio_test.rst:23
 msgid "Connettore Encoder"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:22
-#: ../../stima_v4/pio_test/pio_test.rst:60
+#: ../../stima_v4/pio_test/pio_test.rst:25
+#: ../../stima_v4/pio_test/pio_test.rst:63
 msgid "J2"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:22
-#: ../../stima_v4/pio_test/pio_test.rst:58
+#: ../../stima_v4/pio_test/pio_test.rst:25
+#: ../../stima_v4/pio_test/pio_test.rst:61
 msgid "Connettore Programmatore MCU"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:24
-#: ../../stima_v4/pio_test/pio_test.rst:62
+#: ../../stima_v4/pio_test/pio_test.rst:27
+#: ../../stima_v4/pio_test/pio_test.rst:65
 msgid "J3"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:24
+#: ../../stima_v4/pio_test/pio_test.rst:27
 msgid "Connettore Micro SD-Card"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:26
-#: ../../stima_v4/pio_test/pio_test.rst:64
+#: ../../stima_v4/pio_test/pio_test.rst:29
+#: ../../stima_v4/pio_test/pio_test.rst:67
 msgid "J4"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:26
-#: ../../stima_v4/pio_test/pio_test.rst:62
+#: ../../stima_v4/pio_test/pio_test.rst:29
+#: ../../stima_v4/pio_test/pio_test.rst:65
 msgid "Connettore CAN BUS"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:28
-#: ../../stima_v4/pio_test/pio_test.rst:66
+#: ../../stima_v4/pio_test/pio_test.rst:31
+#: ../../stima_v4/pio_test/pio_test.rst:69
 msgid "J5"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:28
-#: ../../stima_v4/pio_test/pio_test.rst:66
+#: ../../stima_v4/pio_test/pio_test.rst:31
+#: ../../stima_v4/pio_test/pio_test.rst:69
 msgid "Connettore EIA RS-232"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:30
-#: ../../stima_v4/pio_test/pio_test.rst:68
+#: ../../stima_v4/pio_test/pio_test.rst:33
+#: ../../stima_v4/pio_test/pio_test.rst:71
 msgid "J6"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:30
+#: ../../stima_v4/pio_test/pio_test.rst:33
 msgid "Connettore USB-C"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:32
-#: ../../stima_v4/pio_test/pio_test.rst:70
+#: ../../stima_v4/pio_test/pio_test.rst:35
+#: ../../stima_v4/pio_test/pio_test.rst:73
 msgid "J7"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:32
-#: ../../stima_v4/pio_test/pio_test.rst:80
+#: ../../stima_v4/pio_test/pio_test.rst:35
+#: ../../stima_v4/pio_test/pio_test.rst:83
 msgid "Connettore Alimentazione board"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:34
+#: ../../stima_v4/pio_test/pio_test.rst:37
 msgid "JP1 e JP2"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:34
-#: ../../stima_v4/pio_test/pio_test.rst:91
+#: ../../stima_v4/pio_test/pio_test.rst:37
+#: ../../stima_v4/pio_test/pio_test.rst:94
 msgid "Abilitazione terminatori di linea CAN BUS - Default jumper inserito"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:37
-#: ../../stima_v4/pio_test/pio_test.rst:88
+#: ../../stima_v4/pio_test/pio_test.rst:40
+#: ../../stima_v4/pio_test/pio_test.rst:91
 msgid "JP3"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:37
+#: ../../stima_v4/pio_test/pio_test.rst:40
 msgid ""
 "Abilitazione UPIN27 o connettore EIA RS232 - Default jumper inserito sui "
 "pin 1-2 (UPIN27)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:41
+#: ../../stima_v4/pio_test/pio_test.rst:44
 msgid "JP4"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:41
-#: ../../stima_v4/pio_test/pio_test.rst:105
+#: ../../stima_v4/pio_test/pio_test.rst:44
+#: ../../stima_v4/pio_test/pio_test.rst:108
 msgid "Abilitazione LED DL1 di colore verde - Default jumper inserito"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:44
+#: ../../stima_v4/pio_test/pio_test.rst:47
 msgid "BOOT1"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:44
-#: ../../stima_v4/pio_test/pio_test.rst:86
+#: ../../stima_v4/pio_test/pio_test.rst:47
+#: ../../stima_v4/pio_test/pio_test.rst:89
 msgid "Abilitazione BOOT"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:46
+#: ../../stima_v4/pio_test/pio_test.rst:49
 msgid "BATT1"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:46
-#: ../../stima_v4/pio_test/pio_test.rst:88
+#: ../../stima_v4/pio_test/pio_test.rst:49
+#: ../../stima_v4/pio_test/pio_test.rst:91
 msgid "Abilitazione batteria tampone - Default jumper inserito"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:51
+#: ../../stima_v4/pio_test/pio_test.rst:54
 msgid "Scheda Slave"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:53
+#: ../../stima_v4/pio_test/pio_test.rst:56
 msgid "slave-sheet"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:60
+#: ../../stima_v4/pio_test/pio_test.rst:63
 msgid "Connettore I2C 12V"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:64
+#: ../../stima_v4/pio_test/pio_test.rst:67
 msgid "Connettore EIA RS-232 3V3"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:68
+#: ../../stima_v4/pio_test/pio_test.rst:71
 msgid "Connettore SPI"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:70
+#: ../../stima_v4/pio_test/pio_test.rst:73
 msgid "Connettore Ingressi digitali"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:72
+#: ../../stima_v4/pio_test/pio_test.rst:75
 msgid "J8"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:72
+#: ../../stima_v4/pio_test/pio_test.rst:75
 msgid "Connettore Ingressi analogici"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:74
+#: ../../stima_v4/pio_test/pio_test.rst:77
 msgid "J9"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:74
+#: ../../stima_v4/pio_test/pio_test.rst:77
 msgid "Connettore Alimentazione sensori 5V e 3V3"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:77
+#: ../../stima_v4/pio_test/pio_test.rst:80
 msgid "J10"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:77
+#: ../../stima_v4/pio_test/pio_test.rst:80
 msgid "Connettore Alimentazione sensori 12V"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:80
+#: ../../stima_v4/pio_test/pio_test.rst:83
 msgid "J12"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:82
+#: ../../stima_v4/pio_test/pio_test.rst:85
 msgid "JP1"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:82
+#: ../../stima_v4/pio_test/pio_test.rst:85
 msgid "Impostazione della programmazione - Default jumper inserito sui pin 1-2"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:86
+#: ../../stima_v4/pio_test/pio_test.rst:89
 msgid "JP2"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:91
+#: ../../stima_v4/pio_test/pio_test.rst:94
 msgid "JP4 e JP5"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:94
+#: ../../stima_v4/pio_test/pio_test.rst:97
 msgid "JP6"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:94
+#: ../../stima_v4/pio_test/pio_test.rst:97
 msgid ""
 "Impostazione dell'alimentazione dell'I2C esteso e bufferizzato dal "
 "PCA9517D (5V o 3V3)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:98
+#: ../../stima_v4/pio_test/pio_test.rst:101
 msgid "JP7"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:98
+#: ../../stima_v4/pio_test/pio_test.rst:101
 msgid ""
 "Impostazione doppia alimentazione del traslatore di livello TXU0204-Q1 "
 "(5V o 3V3)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:102
+#: ../../stima_v4/pio_test/pio_test.rst:105
 msgid "da JP8 a JP31"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:102
+#: ../../stima_v4/pio_test/pio_test.rst:105
 msgid "Impostazione del tipo di ingresso del segnale analogico"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:105
+#: ../../stima_v4/pio_test/pio_test.rst:108
 msgid "JP32"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:108
+#: ../../stima_v4/pio_test/pio_test.rst:111
 msgid "da JP33 a JP35"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:108
+#: ../../stima_v4/pio_test/pio_test.rst:111
 msgid ""
 "Abilitazione resistori da 1K5 in ingresso agli optoisolatori per "
 "utilizzare gli ingressi digitali a 5V"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:115
+#: ../../stima_v4/pio_test/pio_test.rst:118
 msgid "Can hardware setup"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:117
+#: ../../stima_v4/pio_test/pio_test.rst:120
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_can_setup*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:120
-#: ../../stima_v4/pio_test/pio_test.rst:152
-#: ../../stima_v4/pio_test/pio_test.rst:188
-#: ../../stima_v4/pio_test/pio_test.rst:224
-#: ../../stima_v4/pio_test/pio_test.rst:255
-#: ../../stima_v4/pio_test/pio_test.rst:283
-#: ../../stima_v4/pio_test/pio_test.rst:318
-#: ../../stima_v4/pio_test/pio_test.rst:353
-#: ../../stima_v4/pio_test/pio_test.rst:387
-#: ../../stima_v4/pio_test/pio_test.rst:424
-#: ../../stima_v4/pio_test/pio_test.rst:469
-#: ../../stima_v4/pio_test/pio_test.rst:501
-#: ../../stima_v4/pio_test/pio_test.rst:546
-#: ../../stima_v4/pio_test/pio_test.rst:618
-#: ../../stima_v4/pio_test/pio_test.rst:634
+#: ../../stima_v4/pio_test/pio_test.rst:123
+#: ../../stima_v4/pio_test/pio_test.rst:155
+#: ../../stima_v4/pio_test/pio_test.rst:191
+#: ../../stima_v4/pio_test/pio_test.rst:227
+#: ../../stima_v4/pio_test/pio_test.rst:258
+#: ../../stima_v4/pio_test/pio_test.rst:286
+#: ../../stima_v4/pio_test/pio_test.rst:321
+#: ../../stima_v4/pio_test/pio_test.rst:356
+#: ../../stima_v4/pio_test/pio_test.rst:390
+#: ../../stima_v4/pio_test/pio_test.rst:427
+#: ../../stima_v4/pio_test/pio_test.rst:472
+#: ../../stima_v4/pio_test/pio_test.rst:504
+#: ../../stima_v4/pio_test/pio_test.rst:549
+#: ../../stima_v4/pio_test/pio_test.rst:621
+#: ../../stima_v4/pio_test/pio_test.rst:637
 msgid "Procedimento"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:122
-#: ../../stima_v4/pio_test/pio_test.rst:154
-#: ../../stima_v4/pio_test/pio_test.rst:190
-#: ../../stima_v4/pio_test/pio_test.rst:226
-#: ../../stima_v4/pio_test/pio_test.rst:257
-#: ../../stima_v4/pio_test/pio_test.rst:285
-#: ../../stima_v4/pio_test/pio_test.rst:320
-#: ../../stima_v4/pio_test/pio_test.rst:355
-#: ../../stima_v4/pio_test/pio_test.rst:392
-#: ../../stima_v4/pio_test/pio_test.rst:433
-#: ../../stima_v4/pio_test/pio_test.rst:471
-#: ../../stima_v4/pio_test/pio_test.rst:548
-#: ../../stima_v4/pio_test/pio_test.rst:624
-#: ../../stima_v4/pio_test/pio_test.rst:636
+#: ../../stima_v4/pio_test/pio_test.rst:125
+#: ../../stima_v4/pio_test/pio_test.rst:157
+#: ../../stima_v4/pio_test/pio_test.rst:193
+#: ../../stima_v4/pio_test/pio_test.rst:229
+#: ../../stima_v4/pio_test/pio_test.rst:260
+#: ../../stima_v4/pio_test/pio_test.rst:288
+#: ../../stima_v4/pio_test/pio_test.rst:323
+#: ../../stima_v4/pio_test/pio_test.rst:358
+#: ../../stima_v4/pio_test/pio_test.rst:395
+#: ../../stima_v4/pio_test/pio_test.rst:436
+#: ../../stima_v4/pio_test/pio_test.rst:474
+#: ../../stima_v4/pio_test/pio_test.rst:551
+#: ../../stima_v4/pio_test/pio_test.rst:627
+#: ../../stima_v4/pio_test/pio_test.rst:639
 msgid "Eseguire tramite linea di comando: **pio run test**"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:125
-#: ../../stima_v4/pio_test/pio_test.rst:161
-#: ../../stima_v4/pio_test/pio_test.rst:195
-#: ../../stima_v4/pio_test/pio_test.rst:231
-#: ../../stima_v4/pio_test/pio_test.rst:262
-#: ../../stima_v4/pio_test/pio_test.rst:290
-#: ../../stima_v4/pio_test/pio_test.rst:325
-#: ../../stima_v4/pio_test/pio_test.rst:360
-#: ../../stima_v4/pio_test/pio_test.rst:397
-#: ../../stima_v4/pio_test/pio_test.rst:438
-#: ../../stima_v4/pio_test/pio_test.rst:476
-#: ../../stima_v4/pio_test/pio_test.rst:521
-#: ../../stima_v4/pio_test/pio_test.rst:553
-#: ../../stima_v4/pio_test/pio_test.rst:581
-#: ../../stima_v4/pio_test/pio_test.rst:641
+#: ../../stima_v4/pio_test/pio_test.rst:128
+#: ../../stima_v4/pio_test/pio_test.rst:164
+#: ../../stima_v4/pio_test/pio_test.rst:198
+#: ../../stima_v4/pio_test/pio_test.rst:234
+#: ../../stima_v4/pio_test/pio_test.rst:265
+#: ../../stima_v4/pio_test/pio_test.rst:293
+#: ../../stima_v4/pio_test/pio_test.rst:328
+#: ../../stima_v4/pio_test/pio_test.rst:363
+#: ../../stima_v4/pio_test/pio_test.rst:400
+#: ../../stima_v4/pio_test/pio_test.rst:441
+#: ../../stima_v4/pio_test/pio_test.rst:479
+#: ../../stima_v4/pio_test/pio_test.rst:524
+#: ../../stima_v4/pio_test/pio_test.rst:556
+#: ../../stima_v4/pio_test/pio_test.rst:584
+#: ../../stima_v4/pio_test/pio_test.rst:644
 msgid "Requisiti hardware"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:127
-#: ../../stima_v4/pio_test/pio_test.rst:163
-#: ../../stima_v4/pio_test/pio_test.rst:399
-#: ../../stima_v4/pio_test/pio_test.rst:523
-#: ../../stima_v4/pio_test/pio_test.rst:643
+#: ../../stima_v4/pio_test/pio_test.rst:130
+#: ../../stima_v4/pio_test/pio_test.rst:166
+#: ../../stima_v4/pio_test/pio_test.rst:402
+#: ../../stima_v4/pio_test/pio_test.rst:526
+#: ../../stima_v4/pio_test/pio_test.rst:646
 msgid "Modulo Master"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:130
-#: ../../stima_v4/pio_test/pio_test.rst:168
-#: ../../stima_v4/pio_test/pio_test.rst:202
-#: ../../stima_v4/pio_test/pio_test.rst:239
-#: ../../stima_v4/pio_test/pio_test.rst:269
-#: ../../stima_v4/pio_test/pio_test.rst:297
-#: ../../stima_v4/pio_test/pio_test.rst:332
-#: ../../stima_v4/pio_test/pio_test.rst:367
-#: ../../stima_v4/pio_test/pio_test.rst:404
-#: ../../stima_v4/pio_test/pio_test.rst:445
-#: ../../stima_v4/pio_test/pio_test.rst:483
-#: ../../stima_v4/pio_test/pio_test.rst:528
-#: ../../stima_v4/pio_test/pio_test.rst:561
-#: ../../stima_v4/pio_test/pio_test.rst:648
+#: ../../stima_v4/pio_test/pio_test.rst:133
+#: ../../stima_v4/pio_test/pio_test.rst:171
+#: ../../stima_v4/pio_test/pio_test.rst:205
+#: ../../stima_v4/pio_test/pio_test.rst:242
+#: ../../stima_v4/pio_test/pio_test.rst:272
+#: ../../stima_v4/pio_test/pio_test.rst:300
+#: ../../stima_v4/pio_test/pio_test.rst:335
+#: ../../stima_v4/pio_test/pio_test.rst:370
+#: ../../stima_v4/pio_test/pio_test.rst:407
+#: ../../stima_v4/pio_test/pio_test.rst:448
+#: ../../stima_v4/pio_test/pio_test.rst:486
+#: ../../stima_v4/pio_test/pio_test.rst:531
+#: ../../stima_v4/pio_test/pio_test.rst:564
+#: ../../stima_v4/pio_test/pio_test.rst:651
 msgid "Descrizione software"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:132
+#: ../../stima_v4/pio_test/pio_test.rst:135
 msgid ""
 "Test sull'inizializzazione e avvio hardware del CAN BUS: 1. Impostazione "
 "bit-rate CAN 2. Configurazione velocità e modalità BXCan 3. Avvio modulo "
@@ -374,7 +378,7 @@ msgid ""
 "Canard"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:137
+#: ../../stima_v4/pio_test/pio_test.rst:140
 msgid ""
 "Il test effettua la programmazione delle apparecchiature hardware HAL "
 "STM32 e il chip di alimentazione della linea CAN StimaV4. Viene inoltre "
@@ -384,19 +388,19 @@ msgid ""
 "riprogrammata la sequenza."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:145
+#: ../../stima_v4/pio_test/pio_test.rst:148
 msgid "Display LCD"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:147
+#: ../../stima_v4/pio_test/pio_test.rst:150
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_lcd*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:155
+#: ../../stima_v4/pio_test/pio_test.rst:158
 msgid "Effettuare una pressione sull'encoder rotativo per attivare il display"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:170
+#: ../../stima_v4/pio_test/pio_test.rst:173
 msgid ""
 "Test sull'inizializzazione e avvio del task LCD con scrittura “Hello "
 "World” sul display: effettua il test della libreria utilizzata con "
@@ -409,22 +413,22 @@ msgid ""
 "tutto più rapido possibile."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:181
+#: ../../stima_v4/pio_test/pio_test.rst:184
 msgid "HTTP"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:183
+#: ../../stima_v4/pio_test/pio_test.rst:186
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_http*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:197
-#: ../../stima_v4/pio_test/pio_test.rst:292
-#: ../../stima_v4/pio_test/pio_test.rst:327
-#: ../../stima_v4/pio_test/pio_test.rst:362
+#: ../../stima_v4/pio_test/pio_test.rst:200
+#: ../../stima_v4/pio_test/pio_test.rst:295
+#: ../../stima_v4/pio_test/pio_test.rst:330
+#: ../../stima_v4/pio_test/pio_test.rst:365
 msgid "Modulo Master con il modulo GSM"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:204
+#: ../../stima_v4/pio_test/pio_test.rst:207
 msgid ""
 "Richiede una fase precedente di connessione del modem GSM. 1. "
 "Inizializzazione task e libreria Cyclone 2. Connessione http 3. Verifica "
@@ -432,7 +436,7 @@ msgid ""
 " rpc richiesta reboot"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:209
+#: ../../stima_v4/pio_test/pio_test.rst:212
 msgid ""
 "Il test effettua la connessione https con parametri di default "
 "preimpostati e avvia lo scaricamento della configurazione StimaV4. "
@@ -442,61 +446,61 @@ msgid ""
 "collegamento http."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:217
+#: ../../stima_v4/pio_test/pio_test.rst:220
 msgid "Master queue data"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:219
+#: ../../stima_v4/pio_test/pio_test.rst:222
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_queue_data*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:233
-#: ../../stima_v4/pio_test/pio_test.rst:555
+#: ../../stima_v4/pio_test/pio_test.rst:236
+#: ../../stima_v4/pio_test/pio_test.rst:558
 msgid ""
 "Modulo Master con il modulo SDCard UPIN27 (necessario collegarlo "
 "attraverso il modulo GSM)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:241
+#: ../../stima_v4/pio_test/pio_test.rst:244
 msgid ""
 "Inizializzazione SD card , creazione di file dati fittizzio e "
 "impostazione del puntatore ad un dato esistente/non esistente"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:243
+#: ../../stima_v4/pio_test/pio_test.rst:246
 msgid "Passaggio richiesta e risposta tramite coda gestita dal Supervisor task"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:247
+#: ../../stima_v4/pio_test/pio_test.rst:250
 msgid "Master o Slave memory"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:249
+#: ../../stima_v4/pio_test/pio_test.rst:252
 msgid ""
 "Percorso test Master: *rmap/platformio/stima_v4/test/master_memory* "
 "Percorso test Slave: *rmap/platformio/stima_v4/test/slave_memory*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:264
+#: ../../stima_v4/pio_test/pio_test.rst:267
 msgid "Modulo Master o Slave"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:271
+#: ../../stima_v4/pio_test/pio_test.rst:274
 msgid ""
 "Test sui task e librerie EEPROM e Flash con scrittura e lettura "
 "automatica. 1. Scrittura di dati fittizi 2. Lettura e verifica dei dati "
 "scritti in memoria"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:276
+#: ../../stima_v4/pio_test/pio_test.rst:279
 msgid "Modem GSM hardware setup"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:278
+#: ../../stima_v4/pio_test/pio_test.rst:281
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_gsm*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:299
+#: ../../stima_v4/pio_test/pio_test.rst:302
 msgid ""
 "Test sul task con inizializzazione, accensione, connessione e spegnimento"
 " modulo SIM7600E: effettua la connessione modem con parametri di default "
@@ -510,22 +514,22 @@ msgid ""
 "sue funzioni al collegamento trasparente PPP."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:311
+#: ../../stima_v4/pio_test/pio_test.rst:314
 msgid "MQTT"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:313
+#: ../../stima_v4/pio_test/pio_test.rst:316
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_mqtt*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:334
+#: ../../stima_v4/pio_test/pio_test.rst:337
 msgid ""
 "Richiede una fase precedente di connessione del modem GSM. 1. "
 "Inizializzazione task e libreria Cyclone 2. Connessione al server mqtt 3."
 " Connessione al topic 4. Pubblicazione di una stringa fittizia"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:338
+#: ../../stima_v4/pio_test/pio_test.rst:341
 msgid ""
 "Il test effettua la connessione mqtt con parametri di default "
 "preimpostati e avvia la pubblicazione e sottoscrizioneal server Mqtt "
@@ -535,19 +539,19 @@ msgid ""
 "collegamento mqtt."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:346
+#: ../../stima_v4/pio_test/pio_test.rst:349
 msgid "NTP"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:348
+#: ../../stima_v4/pio_test/pio_test.rst:351
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_ntp*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:369
+#: ../../stima_v4/pio_test/pio_test.rst:372
 msgid "Richiede una fase precedente di connessione del modem GSM."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:371
+#: ../../stima_v4/pio_test/pio_test.rst:374
 msgid ""
 "Test sul task con inizializzazione, connessione e ricezione data e ora: "
 "effettua la connessione ntp con parametri di default preimpostati e avvia"
@@ -558,25 +562,25 @@ msgid ""
 "conseguenza della connessione GSM che attiva il collegamento http."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:380
+#: ../../stima_v4/pio_test/pio_test.rst:383
 msgid "RPC Test and Reboot"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:382
+#: ../../stima_v4/pio_test/pio_test.rst:385
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_rpc_test_reboot*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:389
+#: ../../stima_v4/pio_test/pio_test.rst:392
 msgid "Alimentare la board tramite le disposizioni elencate sopra"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:390
+#: ../../stima_v4/pio_test/pio_test.rst:393
 msgid ""
 "Connettere la board al PC mediante un cavo USB type-C e aprire il "
 "programma dedicato."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:406
+#: ../../stima_v4/pio_test/pio_test.rst:409
 msgid ""
 "Test della classe RPC con test e reboot rpc inviati da USB mediante un "
 "programma dedicato: effettua la verifica di linee di comando usb-rs232 "
@@ -589,49 +593,49 @@ msgid ""
 "controllo e inoltro all'oggetto C++ RPC di StimaV4."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:417
+#: ../../stima_v4/pio_test/pio_test.rst:420
 msgid "Slave low power"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:419
+#: ../../stima_v4/pio_test/pio_test.rst:422
 msgid "Percorso test: *rmap/platformio/stima_v4/test/slave_lowpower*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:426
+#: ../../stima_v4/pio_test/pio_test.rst:429
 msgid ""
 "Alimentare la board Master e caricare il firmware che si trova nel "
 "percorso: rmap/platformio/stima_v4/master"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:428
+#: ../../stima_v4/pio_test/pio_test.rst:431
 msgid ""
 "Alimentare la board Slave e caricare il firmware che si trova nel "
 "percorso: rmap/platformio/stima_v4/slave_th"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:430
+#: ../../stima_v4/pio_test/pio_test.rst:433
 msgid ""
 "Collegare le boards tramite CAN bus: connettere CANH e CANL del Master "
 "rispettivamente al CANH e CANL dello Slave. Una volta terminato il "
 "collegamento, lo Slave entrerà in modalità Tickless."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:440
-#: ../../stima_v4/pio_test/pio_test.rst:478
+#: ../../stima_v4/pio_test/pio_test.rst:443
+#: ../../stima_v4/pio_test/pio_test.rst:481
 msgid "Modulo Slave"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:447
+#: ../../stima_v4/pio_test/pio_test.rst:450
 msgid ""
 "Entrata in modalità IDLE a FreeRTOS attivo senza soppressione tick "
 "automatico"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:449
+#: ../../stima_v4/pio_test/pio_test.rst:452
 msgid "Entrata in modalità Tickless 2 e risveglio dal LowPower Stop 2"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:451
+#: ../../stima_v4/pio_test/pio_test.rst:454
 msgid ""
 "Il test effettua la verifica della modalità LowPower di un modulo Slave. "
 "Per il corretto funzionamento è necessario che sia presente il master che"
@@ -644,15 +648,15 @@ msgid ""
 "corretto della piena funzionalità."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:462
+#: ../../stima_v4/pio_test/pio_test.rst:465
 msgid "Slave register"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:464
+#: ../../stima_v4/pio_test/pio_test.rst:467
 msgid "Percorso test: *rmap/platformio/stima_v4/test/slave_register*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:485
+#: ../../stima_v4/pio_test/pio_test.rst:488
 msgid ""
 "Test sull'inizializzazione, scrittura e lettura di un registro UAVCAN "
 "memorizzato nella EEPROM: effettua la verifica della libreria UAVCAN "
@@ -662,21 +666,21 @@ msgid ""
 "modalità trasparente appogiandosi alla memoria EEProm di StimaV4."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:493
+#: ../../stima_v4/pio_test/pio_test.rst:496
 msgid "Stack Fault Exception"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:495
+#: ../../stima_v4/pio_test/pio_test.rst:498
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_stack_overflow_beep*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:503
+#: ../../stima_v4/pio_test/pio_test.rst:506
 msgid ""
 "Il seguente test viene eseguito con il caricamento del firmware mediante "
 "il comando: pio run -e stimav4_master -t upload"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:505
+#: ../../stima_v4/pio_test/pio_test.rst:508
 msgid ""
 "Quando si raggiunge l'overflow dello stack, il cicalino emetterà un treno"
 " di impulsi che segnalano l'attivazione di un errore. Per una "
@@ -684,14 +688,14 @@ msgid ""
 "definizione del Supervisor task"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:514
+#: ../../stima_v4/pio_test/pio_test.rst:517
 msgid ""
 "e decommentando la linea superiore che presenta la stessa definizione ma "
 "con una dimensione maggiore di stack assegnata. Ciò permetterà di non "
 "raggiungere l'overflow."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:530
+#: ../../stima_v4/pio_test/pio_test.rst:533
 msgid ""
 "Test che simula un overlflow da parte dello stack: effettua la "
 "dimostrazione del funzionamento delle funzioni di callBack inserite nel "
@@ -701,15 +705,15 @@ msgid ""
 "buzzere dell'avvenuta call_back nelle funzioni di sistema."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:539
+#: ../../stima_v4/pio_test/pio_test.rst:542
 msgid "Queue log with SD Card"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:541
+#: ../../stima_v4/pio_test/pio_test.rst:544
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_sd_queue_log*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:563
+#: ../../stima_v4/pio_test/pio_test.rst:566
 msgid ""
 "Test che simula un comando su coda per effettuare un logging generico con"
 " scrittura dati log su SD card: effettua un semplice push tramitre coda "
@@ -719,11 +723,11 @@ msgid ""
 "viene verificata SD, sua programmazione, coda con passaggio dati."
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:571
+#: ../../stima_v4/pio_test/pio_test.rst:574
 msgid "Uavcan"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:573
+#: ../../stima_v4/pio_test/pio_test.rst:576
 msgid ""
 "Percorso test Master: "
 "*rmap/platformio/stima_v4/test/nucleo_uavcan/uavcan_master_cpp* Percorso "
@@ -731,131 +735,131 @@ msgid ""
 "*rmap/platformio/stima_v4/test/nucleo_uavcan/uavcan_slave_cpp*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:583
+#: ../../stima_v4/pio_test/pio_test.rst:586
 msgid "STM32L496ZG (Master)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:584
+#: ../../stima_v4/pio_test/pio_test.rst:587
 msgid "STM32L452RE (Slave)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:585
+#: ../../stima_v4/pio_test/pio_test.rst:588
 msgid "2x MicroSD Card Adapter"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:586
+#: ../../stima_v4/pio_test/pio_test.rst:589
 msgid "2x SD-Card"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:589
+#: ../../stima_v4/pio_test/pio_test.rst:592
 msgid "Collegamenti necessari"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:592
+#: ../../stima_v4/pio_test/pio_test.rst:595
 msgid "Connessione moduli con MicroSD Card Adapter"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:595
+#: ../../stima_v4/pio_test/pio_test.rst:598
 msgid "Master e Slave"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:595
+#: ../../stima_v4/pio_test/pio_test.rst:598
 msgid "MicroSD Card Adapter"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:597
+#: ../../stima_v4/pio_test/pio_test.rst:600
 msgid "5V"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:597
+#: ../../stima_v4/pio_test/pio_test.rst:600
 msgid "VCC"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:598
+#: ../../stima_v4/pio_test/pio_test.rst:601
 msgid "GND"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:599
+#: ../../stima_v4/pio_test/pio_test.rst:602
 msgid "PB6"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:599
+#: ../../stima_v4/pio_test/pio_test.rst:602
 msgid "CS"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:600
+#: ../../stima_v4/pio_test/pio_test.rst:603
 msgid "PB13"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:600
+#: ../../stima_v4/pio_test/pio_test.rst:603
 msgid "SCK"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:601
+#: ../../stima_v4/pio_test/pio_test.rst:604
 msgid "PB14"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:601
+#: ../../stima_v4/pio_test/pio_test.rst:604
 msgid "MISO"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:602
+#: ../../stima_v4/pio_test/pio_test.rst:605
 msgid "PB15"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:602
+#: ../../stima_v4/pio_test/pio_test.rst:605
 msgid "MOSI"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:606
+#: ../../stima_v4/pio_test/pio_test.rst:609
 msgid "Connessione moduli tramite CAN BUS"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:609
+#: ../../stima_v4/pio_test/pio_test.rst:612
 msgid "Master"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:609
+#: ../../stima_v4/pio_test/pio_test.rst:612
 msgid "Slave"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:611
+#: ../../stima_v4/pio_test/pio_test.rst:614
 msgid "CAN TX PA12"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:611
+#: ../../stima_v4/pio_test/pio_test.rst:614
 msgid "CAN RX PA7"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:612
+#: ../../stima_v4/pio_test/pio_test.rst:615
 msgid "CAN RX PA11"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:612
+#: ../../stima_v4/pio_test/pio_test.rst:615
 msgid "CAN TX PA6"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:620
+#: ../../stima_v4/pio_test/pio_test.rst:623
 msgid ""
 "Caricare il firmware nello Slave tramite linea di comando pio run -e "
 "nucleo_l452re -t upload"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:622
+#: ../../stima_v4/pio_test/pio_test.rst:625
 msgid ""
 "Nel progetto del Master, decommentare il test da eseguire nel "
 "platformio.ini (Selezionare solo un tipo di test alla volta)"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:627
+#: ../../stima_v4/pio_test/pio_test.rst:630
 msgid "Watchdog"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:629
+#: ../../stima_v4/pio_test/pio_test.rst:632
 msgid "Percorso test: *rmap/platformio/stima_v4/test/master_watchdog*"
 msgstr ""
 
-#: ../../stima_v4/pio_test/pio_test.rst:650
+#: ../../stima_v4/pio_test/pio_test.rst:653
 msgid ""
 "Test del task Watchdog. Verifica refresh con funzione presente in ogni "
 "task e blocco con esecuzione Wathdog: effettua la verifica del WatchDog "

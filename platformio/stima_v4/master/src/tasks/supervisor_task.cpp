@@ -154,7 +154,7 @@ void SupervisorTask::Run()
         param.system_status->connection.is_disconnected = true;
         param.system_status->connection.is_mqtt_disconnected = true;
         // Start INIT for Clear RPC Queue at first connection MQTT (Only at startup)
-        param.system_status->flags.clean_rpc = true;
+        param.system_status->flags.clean_session = true;
         // Check configuration remote is valid
         param.system_status->flags.config_empty = true;
         for(uint8_t iIdx=0; iIdx < BOARDS_COUNT_MAX; iIdx ++) {
@@ -468,6 +468,22 @@ void SupervisorTask::Run()
             param.systemStatusLock->Take();
             param.system_status->connection.is_mqtt_publishing_end = false;
             param.systemStatusLock->Give();
+
+            if ((param.system_status->command.do_http_configuration_update)||(param.system_status->command.do_http_firmware_download)) {
+              // is_mqtt_connected, Already terminated not newver Connection here
+              param.system_status->connection.is_mqtt_connected = true;
+              // Set istant connection HTTPS if required
+              param.system_status->connection.is_http_configuration_updated = !param.system_status->command.do_http_configuration_update;
+              param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_download;
+              param.system_status->command.do_http_configuration_update = false;
+              param.system_status->command.do_http_firmware_download = false;
+              TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_DO_HTTP (FROM RPC REQUEST)\r\n"));
+
+              state_check_connection = CONNECTION_CHECK_HTTP;
+              break;
+            }
+
+            // Normal end of connnection
             TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_STATE_REQUEST_DISCONNECTION\r\n"));
             // Init retry disconnection
             retry = 0;
@@ -777,6 +793,11 @@ bool SupervisorTask::loadConfiguration()
     status = param.eeprom->Read(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
     param.configurationLock->Give();
   }
+
+  // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
+  param.configuration->module_main_version = MODULE_MAIN_VERSION;
+  param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+  param.configuration->module_type = (Module_Type)MODULE_TYPE;
 
   #if (INIT_PARAMETER)
   status = saveConfiguration(CONFIGURATION_DEFAULT);

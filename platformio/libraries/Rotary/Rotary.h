@@ -20,7 +20,7 @@
 
 
 #if defined(ESP8266) || defined(ESP32)
-  #define ISR_PREFIX ICACHE_RAM_ATTR
+  #define ISR_PREFIX IRAM_ATTR
 #else
   #define ISR_PREFIX
 #endif

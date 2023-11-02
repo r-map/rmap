@@ -392,7 +392,7 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 600, OS_TASK_PRIORITY_02, supervisorParam);
 
 #if (ENABLE_SD)
-  static SdTask sd_task("SdTask", 1700, OS_TASK_PRIORITY_01, sdParam);
+  static SdTask sd_task("SdTask", 1750, OS_TASK_PRIORITY_01, sdParam);
 #endif
 
 #if (ENABLE_USBSERIAL)
@@ -401,7 +401,7 @@ void setup() {
 #endif
 
 #if (ENABLE_LCD)
-  static LCDTask lcd_task("LcdTask", 500, OS_TASK_PRIORITY_03, lcdParam);
+  static LCDTask lcd_task("LcdTask", 550, OS_TASK_PRIORITY_03, lcdParam);
 #endif
 
 #if (ENABLE_CAN)
@@ -409,11 +409,11 @@ void setup() {
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
-  static ModemTask modem_task("ModemTask", 700, OS_TASK_PRIORITY_02, modemParam);
+  static ModemTask modem_task("ModemTask", 800, OS_TASK_PRIORITY_02, modemParam);
 #endif
 
 #if (USE_NTP)
-  static NtpTask ntp_task("NtpTask", 500, OS_TASK_PRIORITY_02, ntpParam);
+  static NtpTask ntp_task("NtpTask", 550, OS_TASK_PRIORITY_02, ntpParam);
 #endif
 
 #if (USE_HTTP)
@@ -422,7 +422,7 @@ void setup() {
 #endif
 
 #if (USE_MQTT)
-  // Do not less stack < 1200. Overflow on RPC Command // 1400
+  // Do not less stack < 1700. Overflow on RPC Command
   static MqttTask mqtt_task("MqttTask", 1900, OS_TASK_PRIORITY_02, mqttParam);
 #endif
 

@@ -37,7 +37,7 @@ Permette di:
 SDcard
 ^^^^^^
 Permette di utilizzare una SDcard per effettuare:
-* aggiornamento firmware
+* `Aggiornamento firmware`_
 * salvataggio dati
 * debug
 
@@ -61,8 +61,8 @@ HUB
 
 Display
 ^^^^^^^
-* Diagnostica
-
+* `Diagnostica`_
+  
 
 Funzioni software
 -----------------
@@ -117,7 +117,7 @@ Fare riferimento a:
 
 * https://doc.rmap.cc/stima_v3/howto_stima_v3/howto_stima_v3.html e
 * https://doc.rmap.cc/stima_v3/doxygen/index.html
-
+  
 Connessione moduli
 ^^^^^^^^^^^^^^^^^^
 Fare riferimento a:
@@ -132,6 +132,43 @@ tensione di funzionamento di ciascun modulo/dispositivo da connettere
 e verificare la predisposizione corretta del ponticello di
 configurazione hardware sulla board I2C-hub.
 
+Utilizzo del tool sensor_config_menu_sdcard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Il firmware tool sensor_config_menu_sdcard può essere utilizzato in differenti configurazioni hardware:
+
+* sul modulo master:
+
+  - pro: non richiede ulteriore hardware, configura tutti i moduli
+  - contro: non permette la configurazione del sensore del vento windsonic
+
+* sul modulo i2c-wind:
+
+  praticamente utile solo per configurare il sensore del vento windsonic
+
+* sul modulo dedicato sensor_config:
+
+  - pro: il modulo può essere utilizzato in modo indipendente per:
+    + formattare SD card
+    + `Diagnostica del bus I2C`_
+    + configurare i moduli
+    + sensore del vento windsonic
+  - contro:
+    + richiede ulteriore hardware
+    + non permette la configurazione del sensore del vento windsonic
+
+Su qualunque modulo sia utilizzato il firmware sensor_config_menu_sdcard
+esso utilizza come dispositivi di input (uno o più, in alternativa o in contemporanea)
+
+  - input:
+    + tramite encoder con bottone
+    + da porta seriale (USB)
+    + tramite telecomando a infrarossi
+  - output:
+    + su display LCD
+    + su porta seriale (USB)
+
+Ovviamente tali dispositivi di input e output possono essere
+utilizzati solo se collegati hardware.
 
 Regolazione Display
 ...................
@@ -219,7 +256,8 @@ Sono accettati due tipi di formattazione:
 Per essere certi di formattare correttamentela card ci sono due possibilità:
 
 * per windows e MAC https://www.sdcard.org/downloads/formatter/
-* per tutti i sistemi l'apposito firmware SdFormatter messo a disposizione con Stima V3
+* per tutti i sistemi l'apposito firmware SdFormatter 
+  o il tool sensor_config_menu_sdcard messi a disposizione con Stima V3
 
 Il metodo consigliato è il secondo.
 
@@ -234,34 +272,94 @@ eseguire::
 
 e seguire le indicazioni del programma.
 
+Come formattare l'SDcard con il tool sensor_config_menu_sdcard
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Aggiornamento Firmware
-^^^^^^^^^^^^^^^^^^^^^^
-(Vedi sotto)
+Il firmware sensor_config_menu_sdcard permette anche di formattare semplicemente l'SD card.
+Fare riferimento alla sezione `Utilizzo del tool sensor_config_menu_sdcard`_
+
+
+Aggiornamento del Firmware
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Vedi `Aggiornamento Firmware`_
   
 Logging
 ^^^^^^^
-(vedi sotto in diagnostica)
+Vedi `Diagnostica`_
 
-Recupero dati
-^^^^^^^^^^^^^
-(vedi sotto)
+Recupero dei dati
+^^^^^^^^^^^^^^^^^
+Vedi `Recupero dati`_
 
-Configurazione
---------------
 
-Qui vengono descritte le fasi per effettuare la configurazione della stazione necessaria al suo funzionamento.
 
-Creare un nuovo utente RMAP
+Configurazione sensori
+----------------------
+
+Qui vengono descritte le fasi per effettuare la configurazione dei
+sensori utilizzati dalla stazione.  La stazione dovrà essere
+completamente assemblata per poter seguire le istruzioni qui
+riportate.
+
+Sensore del vento Windsonic
 ...........................
 
-Tramite interfaccia WEB
-^^^^^^^^^^^^^^^^^^^^^^^
+Prima di poter utilizzare il sensore del vento Windsonic esso dovrà
+essere opportunamente configurato.  Per farlo è necessario caricare il
+firmware sensor_config_menu_sdcard sul modulo i2c-wind.
+Connettere:
+
+* (sconsigliato) utilizzare un monitor seriale sulla porta USB dello
+  stesso modulo
+* (consigliato) l'encoder insieme a un monitor seriale sulla porta USB
+  dello stesso modulo
+
+Seguire i menu selezionando "configurazione windsonic" per eseguire l'operazione.
+
+
+Configurazione moduli
+---------------------
+ 
+Tramite modulo sensor_config.
+.............................
+
+* inserire SD card
+* collegare il modulo sensor_config al bus I2C tramite l'HUB
+* seguire i menu per configurare il moduli secondo le proprie esigenze
+* disconnettere il modulo sensor_config e riavviare la stazione
+
+
+Tramite modulo master.
+......................
+
+* rimuovere le board GSM, SIM e RTC
+* collegare l'encoder e/o il monitor della porta seriale (USB) 
+* senza SD card inserita caricare il firmware sensor_config_menu_sdcard
+* inserire la SD card
+* avviare la stazione
+* seguire i menu per configurare il moduli secondo le proprie esigenze
+* rimuovere l'SD card
+* caricare il firmware di stazione stima
+* inserire la SD card operativa
+* riavviare la stazione
+
+
+Configurazione stazione
+-----------------------
+
+Qui vengono descritte le fasi per effettuare la configurazione della
+stazione necessaria al suo funzionamento.
+
+Al termine delle operazioni la configurazione verrà salvata
+permanentemente sulla EEprom del modulo master.
+
+Creare un nuovo utente RMAP tramite interfaccia WEB
+...................................................
 
 Per iscriversi alla piattarforma RMAP bisogna collegarsi al sito:
 http://rmap.cc/
 
-andare con il mouse sul menù "Il mio RMAP", sulla destra della barra
+Andare con il mouse sul menù "Il mio RMAP", sulla destra della barra
 nera, e clickare su "Entra".
 
 Apparirà una maschera che chiede utente e password.  Nella seconda
@@ -279,7 +377,7 @@ Condizioni di Servizio (descritte nel quadrato sotto riportato).
 Completate queste operazioni si può procedere a clickare su "Invia".
 Fatto questo il server RMAP invierà una mail di conferma all'indirizzo
 indicato nella maschera di registrazione.  La registrazione verrà
-conclusa aprendo il mail e confermando la propria intenzione di
+conclusa aprendo il messaggio mail e confermando la propria intenzione di
 iscriversi seguendo il link indicato.
 
 
@@ -293,59 +391,47 @@ Tramite interfaccia WEB è possibile definire solo stazioni di modello
 (tipo e sensori) predefinito. Per modelli di stazione non predefiniti
 utilizzare la modalità a linea di comando.
 
-In modalità guidata
-"""""""""""""""""""
-
 Per poter registrare una nuova stazione è utile aver configurato un
 utente RMAP.
 
 Seguire il link:
 https://rmap.cc/insertdata/newstation
 
-Si può seguire alternativamente una delle due seguenti procedure:
+Per definire la posizione della stazione si può seguire
+alternativamente una delle seguenti procedure:
 
-* indicare l'indirizzo esatto della stazione (il sito utilizza il
-  DataBase geografico di OpenStreetMap che riconosce gli indirizzi
-  solo se indicati con precisione, quindi è necessario inserire
-  l'indirizzo con nome completo della via, es: "viale Antonio Silvani
-  6, Bologna", oppure " via degli Albergati 32, Zola Predosa,
-  Bologna").
-* utilizzare la mappa sottostante, clickare sul segnaposto (quello a
-  forma di goccia, ultimo in basso dei quattro centrali a sinistra
-  della mappa) e posizionarlo sul punto preciso della mappa, con
-  doppio click bottone sinistro del mouse. Se la posizione scelta non
-  è corretta, si potrà cancellare la posizione (selezionare l'ultimo
-  bottone a sinistra nella mappa a forma di bidone e poi clickare sul
-  segnaposto) e riposizionare il marker, oppure spostare il segnaposto
-  nella posizione corretta direttamente sulla mappa (selezionando
-  prima il penultimo bottone a sinistra a forma di matita su foglio
-  "edit layers", spostando il segnaposto e riclickando su "edit layer"
-  per salvare la nuova posizione). Queste funzionalità potrebbero non
-  essere disponibili su Android.
-
-Individuata la posizione bisognerà indicare il nome della nuova
-stazione ed infine il modello (tipo e template sensori).
+* indicare nel primo modulo l'indirizzo esatto della stazione (il sito
+  utilizza il DataBase geografico di OpenStreetMap che riconosce gli
+  indirizzi solo se indicati con precisione, quindi è necessario
+  inserire l'indirizzo con nome completo della via, es: "viale Antonio
+  Silvani 6, Bologna", oppure " via degli Albergati 32, Zola Predosa,
+  Bologna"). Selezionare invia.
+* utilizzare la mappa sottostante, del secondo modulo, clickare sul
+  segnaposto (quello a forma di goccia, ultimo in basso dei quattro
+  centrali a sinistra della mappa) e posizionarlo sul punto preciso
+  della mappa, con doppio click bottone sinistro del mouse. Se la
+  posizione scelta non è corretta, si potrà cancellare la posizione
+  (selezionare l'ultimo bottone a sinistra nella mappa a forma di
+  bidone e poi clickare sul segnaposto) e riposizionare il marker,
+  oppure spostare il segnaposto nella posizione corretta direttamente
+  sulla mappa (selezionando prima il penultimo bottone a sinistra a
+  forma di matita su foglio "edit layers", spostando il segnaposto e
+  riclickando su "edit layer" per salvare la nuova posizione). Queste
+  funzionalità potrebbero non essere disponibili su
+  Android. Selezionare invia.
+* inserire nel terzo modulo le coordinate (latitudine e longitudine in
+  formato sessagesimale
+  
+Individuata la posizione in tutti i casi bisognerà indicare:
+* il nome della nuova stazione
+* altezza della stazione in metri dal livello medio del mare
+* il modello (tipo e sensori collegati).
 
 La procedura di inserimento della nuova stazione si concluderà quindi
 clickando su "invia".
 
-In questa modalità non è possibile inserire i dati relativi al nome
-stazione e altezza dal livello medio del mare, ma poi è possibile
-integrarli tramite il modulo qui di seguito descritto
-
-
-Tramite modulo
-""""""""""""""
-
-Per poter registrare una nuova stazione è utile aver configurato un
-utente RMAP.
-
-Seguire il link:
-https://rmap.cc/insertdata/newstationdetail
-e autenticarsi
-
-compilare con i dati e confermare.
-
+Se i dati risulteranno corretti verranno presentati alcuni dati che
+dovranno essere utilizzati per trasferire i dati alla stazione.
 
 A linea di comando
 ^^^^^^^^^^^^^^^^^^
@@ -435,14 +521,83 @@ Qui un esempio di configurazione::
 Modificare la configurazione di una stazione esistente
 ......................................................
 
+E' possibile modificare la configurazione della stazione dopo aver
+fatto login con il proprio utente e accedendo alla propia pagina
+personale selezionando la stazione e seguendo i successivi menu.
 
 
 Trasferire la configurazione al datalogger
 ..........................................
 
-Ecco il comando da impartire per trasferire e salvare la configurazione nel datalogger::
+Tramite il tool a linea di comando tramite porta seriale (USB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dopo aver collegato il modulo master tramite il cavo USB ecco il
+comando da impartire per trasferire e salvare la configurazione nel
+datalogger::
   
-  rmap-configure --config_station --station_slug="myslug"  --board_slug=default --username="myuser"  --baudrate=115200 --device=/dev/ttyUSB0
+  rmap-configure --config_station --station_slug="myslug" --username="myuser"  --baudrate=115200 --device=/dev/ttyUSB0
+
+
+Tramite file binario
+^^^^^^^^^^^^^^^^^^^^
+
+Salvare il file binario su SD card
+""""""""""""""""""""""""""""""""""
+
+Per eseguire la configurazione bisogna disporre del file binario
+versione 32 ottenuto dopo la configurazione della stazione sul server
+dal server stesso:
+* autenticarsi al server con il proprio utente e password
+* accedere alla propria pagina personale
+* selezionare la stazione di interesse
+* scaricare il file dalla voce "Scaricare la configurazione per Stima V3"
+* salvare il file su SD card
+
+Salvare la configurazione sulla memoria permanente della stazione
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Tramite SD card sul modulo master
+'''''''''''''''''''''''''''''''''
+
+* rinominare il file binario di configurazione col nome "config.cfg"
+* inserire l'SD card con il file binario sul modulo master
+* inserire il ponticello di configurazione sul modulo master, board I2C
+* attendere 20 secondi
+* rimuovere il ponticello di configurazione
+* riavviare la stazione
+
+
+Tramite firmware sensor_config_menu_sdcard
+''''''''''''''''''''''''''''''''''''''''''
+ 
+Tramite modulo sensor_config.
++++++++++++++++++++++++++++++
+
+* inserire SD card con i vari file binari di configurazione per le
+  varie stazioni nel modulo sensor_config
+* collegare il modulo sensor_config al bus I2C tramite l'HUB
+* seguire i menu per configurare il modulo master
+* selezionare il corretto file binario di configurazione stazione
+* trasferire la configurazione al modulo master tramite I2C "I2C save conf"
+* disconnettere il modulo sensor_config e riavviare la stazione
+
+
+Tramite modulo master.
+++++++++++++++++++++++
+
+* rimuovere le board GSM, SIM e RTC
+* collegare l'encoder e/o il monitor della porta seriale (USB) 
+* senza SD card inserita caricare il firmware sensor_config_menu_sdcard
+* inserire la SD card con i vari file binari di configurazione per le
+  varie stazioni nel modulo sensor_config
+* avviare la stazione
+* selezionare il corretto file binario di configurazione stazione
+* seguire i menu per salvare la configurazione su eeprom "EE save config"
+* rimuovere l'SD card
+* caricare il firmware di stazione stima
+* inserire la SD card operativa
+* riavviare la stazione
 
 
 Aggiornamento Firmware
@@ -951,3 +1106,9 @@ Avviata la stazione la stessa messaggistica ottenuta dal monitoraggio
 tramite porta seriale verrà scritta in un file sulla SDcard con
 postfisso ".log".  Il file sarà leggibile da PC una volta recuperata
 la SDcard.
+
+Diagnostica del bus I2C
+.......................
+
+Il il firmware sensor_config_menu_sdcard permette una disgnostica del bus I2C
+ma solo se connesso come dispositivo di output a un monito della porta seriale (USB).

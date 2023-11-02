@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (0)
+#define MODULE_MINOR_VERSION  (2)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
@@ -59,6 +59,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #elif (USE_MODULE_RAIN)
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_RAIN)
 #endif
+
+// Enable control Error for Debug
+#define DEBUG_MODE            (false)
+#define ERROR_HANDLER_CB      (false)
 
 // HW device enabled
 #define ENABLE_I2C1           (true)
@@ -134,14 +138,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
 #define WAIT_QUEUE_REQUEST_RESET_TIP_MS   (2000)
 
-// Default value for sensor acquire task 
-#define SENSORS_TIPPING_DELAY_MS          (100)
-#define SENSORS_TIPPING_INIBITH_DELAY_MS  (500)
-#define SENSORS_TIPS_FOR_EVENT            (2)
+// Default value for sensor acquire task delay tipping
+#define RAIN_TIPPING_DELAY_MS             (100)
+#define RAIN_TIPPING_INIBITH_DELAY_MS     (500)
+/*!
+\def RAIN_TIPS_FOR_EVENT
+\brief How much mm of rain for one tip of tipping bucket rain gauge.
+*/
+#define RAIN_TIPS_FOR_EVENT               (2)
 
 // Sensor specific value and method
 #define USE_TIPPING_BUCKET_REDUNDANT      (true)    // Use redundant PIN tipping (verify and alert)
 #define USE_CLOGGED_UP_CONTROL            (true)    // Use clogged UP system control (verify and alert)
+#define USE_TIPPING_CONTROL               (false)   // Use strict tipping timings mode
 
 #define TIPPING_EVENT_VALUE               HIGH      // Input PIN tipping expected event value
 #define TIPPING_BUCKET_PIN                PIN_IN0   // Input PIN tipping
@@ -156,6 +165,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // TPR Elaboration scrolling data timings
 #define USE_MOBILE_TPR_60_S_AVG_MODE      (false)   // Using mobile scrolling max -> avg value by 60 sec. on all data buffered consecutive
+#define REPORT_INVALID_ACQUIRE_MIN_MS     (3000)    // Minimal timing for 2 report calculate (less can be only a command retry)
 #define SAMPLES_ACQUIRE_MS                (10000)
 #define SAMPLES_NEED_TPR_60_S             (60000 / SAMPLES_ACQUIRE_MS)
 #define SAMPLES_NEED_TPR_05_M             (300000 / SAMPLES_ACQUIRE_MS)

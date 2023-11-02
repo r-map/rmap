@@ -76,7 +76,8 @@ class RainSensorTask : public cpp_freertos::Thread {
     SENSOR_STATE_CHECK_SPIKE,
     SENSOR_STATE_READ,
     SENSOR_STATE_SPIKE,
-    SENSOR_STATE_END
+    SENSOR_STATE_END,
+    SENSOR_STATE_SAVE_SIGNAL
   } State_t;
 
 public:
@@ -96,7 +97,7 @@ private:
 
   State_t state;
   RainSensorParam_t param;
-  rain_t rain;
+  rain_t rain_sensor;
 
   // Acces static memeber parameter of class
   inline static cpp_freertos::Queue *localRainQueue;

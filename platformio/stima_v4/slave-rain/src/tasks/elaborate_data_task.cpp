@@ -118,23 +118,31 @@ void ElaborateDataTask::Run() {
 
   // Init scrolling TPR timings and buffer data
   // Maintenance not performed (automatic checked in rain_task)
-  rain.rain_scroll = 0;
+  rain_elaborate.rain_scroll = 0;
   bufferReset<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX);
   uint32_t next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
+  uint32_t request_data_init_ms = millis();
+  uint32_t sec_from_elaborate_start = 0;
+
+  // Init real and last elaborate data response variables
+  memset(&report, 0, sizeof(report_t));
+  memset(&report_last, 0, sizeof(report_t));
 
   while (true) {
 
     // Elaborate scrolling XX required defined msec.
     if(millis() >= next_ms_buffer_check) {
+      // Sec from starting (check valid RMAP data response timing when minimal data acquire is ready)
+      sec_from_elaborate_start += SAMPLES_ACQUIRE_MS / 1000;
       next_ms_buffer_check += SAMPLES_ACQUIRE_MS;
       // ? over roll and security check timer area into reset check ms expected
       if (labs(millis() - next_ms_buffer_check) > SAMPLES_ACQUIRE_MS) {
         next_ms_buffer_check = millis() + SAMPLES_ACQUIRE_MS;
       }
       // Add current scrolling data to buffer
-      addValue<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX, rain.rain_scroll);
+      addValue<sample_t, uint16_t, rmapdata_t>(&rain_samples, SAMPLES_COUNT_MAX, rain_elaborate.rain_scroll);
       // Perform reset on rain task. Security local new ungetted data rain.rain_scroll to 0
-      rain.rain_scroll = 0;
+      rain_elaborate.rain_scroll = 0;
       edata_cmd = RAIN_SCROLL_RESET;
       param.rainQueue->Enqueue(&edata_cmd, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
     }
@@ -161,7 +169,7 @@ void ElaborateDataTask::Run() {
         }
     }
 
-    // enqueud from th sensors task (populate data)
+    // enqueud from rain sensors task (populate data)
     if (!param.elaborateDataQueue->IsEmpty()) {
       if (param.elaborateDataQueue->Peek(&edata, 0))
       {
@@ -170,22 +178,22 @@ void ElaborateDataTask::Run() {
         {
         case RAIN_TIPS_INDEX:
           TRACE_VERBOSE_F(F("Rain tips: %d\r\n"), edata.value);
-          rain.tips_count = (uint16_t)edata.value;
+          rain_elaborate.tips_count = (uint16_t)edata.value;
           break;
 
         case RAIN_RAIN_INDEX:
           TRACE_VERBOSE_F(F("Rain: %d\r\n"), edata.value);
-          rain.rain = (uint16_t)edata.value;
+          rain_elaborate.rain = (uint16_t)edata.value;
           break;
 
         case RAIN_FULL_INDEX:
           TRACE_VERBOSE_F(F("Rain full: %d\r\n"), edata.value);
-          rain.rain_full = (uint16_t)edata.value;
+          rain_elaborate.rain_full = (uint16_t)edata.value;
           break;
 
         case RAIN_SCROLL_INDEX:
           TRACE_VERBOSE_F(F("Rain scroll: %d\r\n"), edata.value);
-          rain.rain_scroll = (uint16_t)edata.value;
+          rain_elaborate.rain_scroll = (uint16_t)edata.value;
           break;
         }
       }
@@ -193,23 +201,63 @@ void ElaborateDataTask::Run() {
 
     // enqueued from can task (get data, start command...)
     if (!param.requestDataQueue->IsEmpty()) {
-      if (param.requestDataQueue->Peek(&request_data, 0))
+      // Read request immediatly if queue is not empty
+      if (param.requestDataQueue->Dequeue(&request_data))
       {
-        // send request to elaborate task (all data is present verified on elaborate_task)
-        param.requestDataQueue->Dequeue(&request_data);
-        make_report(request_data.report_time_s, request_data.observation_time_s);
-        param.reportDataQueue->Enqueue(&report);
-        // Reset data from Queue is performed an is_init. Extern from makereport for responding
-        // calling up immediatly to sender and reset in second time from this task
-        if (request_data.is_init)
-        {
-          rain.tips_count = 0;
-          rain.tips_full = 0;
-          rain.rain = 0;
-          rain.rain_full = 0;
-          // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
-          edata_cmd = RAIN_TIPS_RESET;
-          param.rainQueue->Enqueue(&edata_cmd, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
+        // ? over roll and security check timer area into reset check ms expected
+        // Report request is too fast (<REPORT_INVALID_ACQUIRE_MIN_MS) ... N.B. When are in Command retry!
+        // Initialize value if command retry is also executed (before) but result data can be resetted
+        // Need to save older value and retry value must are older value (only in retry command)
+        // After timing retry command, value data report is ok and newver resetted value can be sended
+        if (request_data.is_init) {
+          // ? Request valid (last init request > REPORT_INVALID_ACQUIRE_MIN_MS)
+          if (labs(millis() - request_data_init_ms) > REPORT_INVALID_ACQUIRE_MIN_MS) {
+            // test if minimal data acquire are valid
+            bool min_percentage_acquire = false;
+            if (sec_from_elaborate_start < request_data.report_time_s) {
+              if(((((float)sec_from_elaborate_start / (float)request_data.report_time_s)) * 100.0) < SAMPLE_ERROR_PERCENTAGE_MIN) {
+                min_percentage_acquire = true;
+              }
+            }
+            if(!min_percentage_acquire) {
+              // Coerent value, generate report
+              make_report(request_data.report_time_s, request_data.observation_time_s);
+            } else {
+              // Error timing not full, void report
+              report.quality = RMAPDATA_MAX;
+              report.rain = RMAPDATA_MAX;
+              report.rain_full = RMAPDATA_MAX;
+              report.rain_tpr_05m_avg = RMAPDATA_MAX;
+              report.rain_tpr_60s_avg = RMAPDATA_MAX;
+              report.tips_count = RMAPDATA_MAX;
+            }
+            // Saving data before reset index and scrolling value (Need for possible retry...)
+            report_last = report;
+            // Response with new value (resetted ore istant value. No retry command Here)
+            param.reportDataQueue->Enqueue(&report);
+
+            // Save timing for report request and with init index value for saving remote data
+            request_data_init_ms = millis();
+
+            // Forced reset index internal (internal index are updated only with queue on event from rain)
+            // If no event occurs the queue would not fill and the value would remain the previous one
+            rain_elaborate.tips_count = 0;
+            rain_elaborate.tips_full = 0;
+            rain_elaborate.rain = 0;
+            rain_elaborate.rain_full = 0;
+
+            // Perform reset on rain task (event = false) No Event of Rain. (Other incoming Request)
+            edata_cmd = RAIN_TIPS_RESET;
+            param.rainQueue->Enqueue(&edata_cmd, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_RESET_TIP_MS));
+
+          } else {
+            // Response with older value (Retry command Here without reinit command also called up)
+            param.reportDataQueue->Enqueue(&report_last);
+          }
+        } else {
+          // Response with new value (istant value. Unused retry command Here)
+          make_report(request_data.report_time_s, request_data.observation_time_s);
+          param.reportDataQueue->Enqueue(&report);
         }
       }
     }
@@ -354,9 +402,9 @@ void ElaborateDataTask::make_report(uint16_t report_time_s, uint8_t observation_
   // ******* GENERATE REPORT RESPONSE WITH ALL DATA AVAIABLE AND VALID WITH EXPECETD OBSERVATION *******
   // ***************************************************************************************************
 
-  report.tips_count = rain.tips_count;
-  report.rain = rain.rain;
-  report.rain_full = rain.rain_full;
+  report.tips_count = rain_elaborate.tips_count;
+  report.rain = rain_elaborate.rain;
+  report.rain_full = rain_elaborate.rain_full;
   report.quality = (rmapdata_t)checkRain();
 
   // rain TPR, elaboration final (if over number min sample)

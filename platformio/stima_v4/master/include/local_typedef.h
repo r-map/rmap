@@ -305,7 +305,7 @@ typedef struct
       bool new_data_to_send;     // True if any data are ready to sent vs MQTT Server
       bool new_start_connect;    // True if passed time of report data (synch wit new_data)
       bool config_empty;         // True if configuration missed on system
-      bool clean_rpc;            // True if required disable RPC (examples on MQTT First connection)
+      bool clean_session;        // True if required clean session (examples on MQTT First connection remove RPC message)
       bool power_warning;        // True if power warning mode is activated from MPPT Module
       bool power_critical;       // True if power critical mode is activated from MPPT Module
       Power_Mode power_state;    // Current state of power for module StimaV4 (Power strategy...)
@@ -371,7 +371,9 @@ typedef struct
       uint8_t do_reboot       : 1;  // Request reboot from RPC Other in security mode (waiting operation)
       uint8_t do_update_fw    : 1;  // Request update firmware (node or master) from SD file
       uint8_t do_reload_fw    : 1;  // Request reload firmware really upgradable from SD file
-      uint8_t done_reload_fw  : 1;  // Request reload firmware really upgradable from SD file
+      uint8_t done_reload_fw  : 1;  // Response reload firmware really upgradable from SD file
+      uint8_t do_reinit_fw    : 1;  // Request reinit firmware really upgradable from SD file (destroy all file struct)
+      uint8_t done_reinit_fw  : 1;  // Response reinit firmware really upgradable from SD file (destroy all file struct)
       uint8_t do_update_all   : 1;  // Request starting update all system (all firmware upgradable) and Reboot any boards
       uint8_t do_inibith      : 1;  // Request inibith sleep
       uint8_t undo_inibith    : 1;  // Remove inibith sleep

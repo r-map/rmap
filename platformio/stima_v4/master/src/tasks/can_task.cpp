@@ -1716,8 +1716,12 @@ void CanTask::Run() {
                             clCanard.slave[queueId].file_server.reset_pending();
                             clCanard.slave[queueId].rmap_service.reset_pending();
                             // Set system_status (Set Node Offline)
+                            // Set module_version to unknown version to force get reload version and revision
+                            // If new firmware are updated (local or remote command) node go to offline mode...
                             param.systemStatusLock->Take();
                             param.system_status->data_slave[queueId].is_online = false;
+                            param.system_status->data_slave[queueId].module_version = 0;
+                            param.system_status->data_slave[queueId].module_revision = 0;
                             param.systemStatusLock->Give();
                         }
                     }
@@ -1847,7 +1851,7 @@ void CanTask::Run() {
                         // Normal mode (Not WakeUP)
                         bStartSetFullPower = false;
                     }
-                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {      
+                    if ((curEpoch / param.configuration->report_s) != param.system_status->datetime.ptr_time_for_sensors_get_value) {
                         // WakeUP Network for reading sensor and Synncronize date_time
                         TRACE_VERBOSE_F(F("Rmap data server: Start acquire request to sensor network\r\n"));
                         param.systemStatusLock->Take();
@@ -2294,6 +2298,11 @@ void CanTask::Run() {
                                         // Copy critical and warning power flag (Use only critical for internal purpose)
                                         param.system_status->flags.power_warning = retPwrData->is_power_warning;
                                         param.system_status->flags.power_critical = retPwrData->is_power_critical;
+                                        // Remove critical power flag if error measure occurs: prevent error sending data (disable modem when critical power)
+                                        // This command don't remove flags sending to RMAP Server
+                                        if((retPwrData->MPP.battery_charge.val.value == 0) || (retPwrData->MPP.battery_charge.val.value > rmap_tableb_B25192_1_0_MAX)) {                                            
+                                            param.system_status->flags.power_critical = false;
+                                        }
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;

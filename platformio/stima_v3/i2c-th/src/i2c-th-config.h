@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (12)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -65,18 +65,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Default i2c address.
 */
 #define CONFIGURATION_DEFAULT_I2C_ADDRESS             (I2C_TH_DEFAULT_ADDRESS)
-
-/*!
-\def CONFIGURATION_DEFAULT_TEMPERATURE_ADDRESS
-\brief Default i2c temperature address.
-*/
-#define CONFIGURATION_DEFAULT_TEMPERATURE_ADDRESS     (I2C_TH_TEMPERATURE_DEFAULT_ADDRESS)
-
-/*!
-\def CONFIGURATION_DEFAULT_HUMIDITY_ADDRESS
-\brief Default i2c humidity address.
-*/
-#define CONFIGURATION_DEFAULT_HUMIDITY_ADDRESS        (I2C_TH_HUMIDITY_DEFAULT_ADDRESS)
 
 /*!
 \def CONFIGURATION_RESET_PIN

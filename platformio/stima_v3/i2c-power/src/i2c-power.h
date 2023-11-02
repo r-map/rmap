@@ -57,8 +57,8 @@ typedef struct {
    uint8_t module_type;                //!< module type
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   float adc_voltage_max_panel;
-   float adc_voltage_max_battery;
+   uint16_t adc_voltage_max_panel;
+   uint16_t adc_voltage_max_battery;
 } configuration_t;
 
 /*!
@@ -90,8 +90,8 @@ typedef struct {
 typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   float adc_voltage_max_panel;
-   float adc_voltage_max_battery;
+   uint16_t adc_voltage_max_panel;
+   uint16_t adc_voltage_max_battery;
 
 } writable_data_t;
 
@@ -413,6 +413,13 @@ void init_pins(void);
 \return void.
 */
 void init_wire(void);
+
+/*!
+\fn void init_adc(void)
+\brief Init ADC converter.
+\return void.
+*/
+void init_adc(void);
 
 /*!
 \fn void init_spi(void)

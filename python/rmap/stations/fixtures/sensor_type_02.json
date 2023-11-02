@@ -56,5 +56,18 @@
                 ["B25194"]
             ]
         }
-    }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C Power monitor, report mode",
+            "type": "POW",
+	    "datalevel": "report",
+            "bcodes": [
+                ["B25025"],
+                ["B25194"]
+            ]
+        }
+    }    
 ]

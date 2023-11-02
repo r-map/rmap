@@ -245,4 +245,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define LEAF_CALIBRATION_OFFSET                       (5)
 
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)
+
 #endif

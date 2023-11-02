@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_ROOT_TOPIC_LENGTH
 \brief Length in bytes for mqtt root topic.
 */
-#define MQTT_ROOT_TOPIC_LENGTH (50)
+#define MQTT_ROOT_TOPIC_LENGTH (67)
 
 /*!
 \def MQTT_MAINT_TOPIC_LENGTH
@@ -60,7 +60,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_CLIENT_ID_LENGTH
 \brief Length in bytes for mqtt client id.
 */
-#define MQTT_CLIENT_ID_LENGTH (MQTT_ROOT_TOPIC_LENGTH)
+#define MQTT_CLIENT_ID_LENGTH (100)
 
 /*!
 \def MQTT_MESSAGE_LENGTH
@@ -191,7 +191,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define MQTT_ON_ERROR_MESSAGE ("{\"v\":\"error01\"}")
 
-#if (MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH > 100)
+#if (MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH > 105)
 #error MQTT root/sensor topic is too big!
 #endif
 

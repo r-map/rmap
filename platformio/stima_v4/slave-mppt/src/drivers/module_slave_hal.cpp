@@ -49,6 +49,7 @@ QSPI_HandleTypeDef hqspi;
 
 #ifdef HAL_ADC_MODULE_ENABLED
 const PinMap PinMap_ADC[] = {
+  {PA_4, ADC1, STM_PIN_DATA_EXT(STM_MODE_ANALOG, GPIO_NOPULL, 0, 9, 0)}, // ADC1_IN9 PSEUDO RNG
   {NC,   NP,   0}
 };
 #endif

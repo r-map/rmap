@@ -126,86 +126,86 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define STIMA_MODULE_TYPE_GAS                       (15)
 
 /*!
-\def STIMA_MODULE_POWER_RADIATION
+\def STIMA_MODULE_TYPE POWER
 \brief This module acquire power solar panel and battery information.
 */
-#define STIMA_MODULE_TYPE_POWER           (13)
+#define STIMA_MODULE_TYPE_POWER                     (16)
 
 /*!
 \def STIMA_MODULE_NAME_SAMPLE_ETH
-\brief The module'name for sending sample over ethernet.
+\brief The module's name for sending sample over ethernet.
 */
 #define STIMA_MODULE_NAME_SAMPLE_ETH                ("sample-eth")
 
 /*!
 \def STIMA_MODULE_NAME_REPORT_ETH
-\brief The module'name for sending report over ethernet.
+\brief The module's name for sending report over ethernet.
 */
 #define STIMA_MODULE_NAME_REPORT_ETH                ("report-eth")
 
 /*!
 \def STIMA_MODULE_NAME_SAMPLE_GSM
-\brief The module'name for sending sample over gsm/gprs.
+\brief The module's name for sending sample over gsm/gprs.
 */
 #define STIMA_MODULE_NAME_SAMPLE_GSM                ("sample-gsm")
 
 /*!
 \def STIMA_MODULE_NAME_REPORT_GSM
-\brief The module'name for sending report over gsm/gors.
+\brief The module's name for sending report over gsm/gors.
 */
 #define STIMA_MODULE_NAME_REPORT_GSM                ("report-gsm")
 
 /*!
 \def STIMA_MODULE_NAME_PASSIVE_ETH
-\brief The module'name for passive mode.
+\brief The module's name for passive mode.
 */
 #define STIMA_MODULE_NAME_PASSIVE_ETH               ("passive-eth")
 
 /*!
 \def STIMA_MODULE_NAME_PASSIVE_GSM
-\brief The module'name for passive mode.
+\brief The module's name for passive mode.
 */
 #define STIMA_MODULE_NAME_PASSIVE_GSM               ("passive-gsm")
 
 /*!
 \def STIMA_MODULE_NAME_PASSIVE
-\brief The module'name for passive mode.
+\brief The module's name for passive mode.
 */
 #define STIMA_MODULE_NAME_PASSIVE                   ("passive")
 
 /*!
 \def STIMA_MODULE_NAME_RAIN
-\brief The module'name for acquiring rain tips.
+\brief The module's name for acquiring rain tips.
 */
 #define STIMA_MODULE_NAME_RAIN                      ("i2c-rain")
 
 /*!
 \def STIMA_MODULE_NAME_TH
-\brief The module'name for acquiring temperature and humidity.
+\brief The module's name for acquiring temperature and humidity.
 */
 #define STIMA_MODULE_NAME_TH                        ("i2c-th")
 
 /*!
 \def STIMA_MODULE_NAME_THR
-\brief The module'name for acquiring temperature, humidity and rain.
+\brief The module's name for acquiring temperature, humidity and rain.
 */
 #define STIMA_MODULE_NAME_THR                       ("i2c-thr")
 
 /*!
 \def STIMA_MODULE_NAME_OPC
-\brief The module'name for acquiring air particle.
+\brief The module's name for acquiring air particle.
 */
 #define STIMA_MODULE_NAME_OPC                       ("i2c-opc")
 
 /*!
 \def STIMA_MODULE_NAME_OPC
-\brief The module'name for acquiring air gas (NO2, CO2).
+\brief The module's name for acquiring air gas (NO2, CO2).
 */
 #define STIMA_MODULE_NAME_GAS                       ("i2c-gas")
 
 /*!
 \def STIMA_MODULE_NAME_LEAF
-\brief The module'name for acquiring leaf wetness.
+\brief The module's name for acquiring leaf wetness.
 */
 #define STIMA_MODULE_NAME_LEAF                      ("i2c-leaf")
 
@@ -216,9 +216,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define STIMA_MODULE_NAME_WIND                      ("i2c-wind")
 
 /*!
-\def STIMA_MODULE_NAME_WIND
-\brief The module'name for acquiring radiation sensor.
+\def STIMA_MODULE_NAME_SOLAR_RADIATION
+\brief The module's name for acquiring radiation sensor.
 */
 #define STIMA_MODULE_NAME_SOLAR_RADIATION           ("i2c-radiation")
+
+/*!
+\def STIMA_MODULE_NAME_POWER
+\brief The module's name for acquire power solar panel and battery information.
+*/
+#define STIMA_MODULE_NAME_POWER                     ("i2c-power")
 
 #endif

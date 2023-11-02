@@ -208,10 +208,10 @@ void AccelerometerTask::Run()
 
     case ACCELEROMETER_STATE_CHECK_OPERATION:
       if(readModule()) {
-        // Controllo bolla (Send to system status if != from old state with Semaphore)
-        if((abs(value_x) > BUBBLE_ANGLE_ERROR) ||
-           (abs(value_y) > BUBBLE_ANGLE_ERROR) ||
-           (abs(value_z) > BUBBLE_ANGLE_ERROR))
+        // Checking bubble error limit (with Mirror Error "Z" become 0.001 -> 0.999 X,Y 0.001 -> -0.001)
+        if(((abs(value_x) > BUBBLE_ANGLE_ERROR) && (abs(value_x) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_y) > BUBBLE_ANGLE_ERROR) && (abs(value_y) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_z) > BUBBLE_ANGLE_ERROR) && (abs(value_z) < BUBBLE_ANGLE_MIRROR)))
         {
           if(!param.system_status->events.is_bubble_level_error) {
             param.systemStatusLock->Take();

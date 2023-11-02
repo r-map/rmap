@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "stima-config.h"
 #include <typedef.h>
 #include <registers.h>
+#include <registers.h>
+#include <registers-master.h>
 #include <debug.h>
 #include <ArduinoLog.h>
 #include <StreamUtils.h>
@@ -34,6 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
+#include <constantdata_config.h>
+#include <gsm_config.h>
 
 #if (USE_LCD)
 #include <lcd_config.h>
@@ -149,6 +153,7 @@ typedef struct {
 
    #endif
 } configuration_t;
+
 
 /*********************************************************************
 * TYPEDEF for Finite State Machine
@@ -499,6 +504,14 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client
 \return void.
 */
 hd44780_I2Cexp lcd;
+
+
+/*!
+\var display_set
+\brief Page to show on display when testing sensors.
+*/
+uint8_t display_set = 1;
+
 #endif
 
 /*!
