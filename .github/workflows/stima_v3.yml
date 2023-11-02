@@ -1,4 +1,4 @@
-name: platformio
+name: stima_v3
 on: 
   push:
     paths:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   main:
-    name: platformio
+    name: firmware_and_tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

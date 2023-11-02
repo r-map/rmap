@@ -1,0 +1,59 @@
+name: stima_v4
+on: 
+  push:
+    paths:
+    - 'platformio/stima_v4/**.ino'
+    - 'platformio/stima_v4/**.cpp'
+    - 'platformio/stima_v4/**.hpp'
+    - 'platformio/stima_v4/**platformio.ini'      
+    - '**platformio.yml'
+  #  branches: [ master ]
+  pull_request:
+
+jobs:
+  main:
+    name: firmware
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        #with:
+        #  ref: explorer
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: '3.x'
+      - name: Install Platform IO
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U platformio
+      # Runs a set of commands using the runners shell
+      - name: Build Stima V4 master
+        run: |
+          cd platformio/stima_v4/master
+          platformio run
+      - name: Build Stima V4 slave-mppt
+        run: |
+          cd platformio/stima_v4/slave-mppt
+          platformio run
+      - name: Build Stima V4 slave-radiation
+        run: |
+          cd platformio/stima_v4/slave-radiation
+          platformio run
+      - name: Build Stima V4 slave-rain
+        run: |
+          cd platformio/stima_v4/slave-rain
+          platformio run
+      - name: Build Stima V4 slave-th
+        run: |
+          cd platformio/stima_v4/slave-th
+          platformio run
+      - name: Build Stima V4 slave-vwc
+        run: |
+          cd platformio/stima_v4/slave-vwc
+          platformio run
+      - name: Build Stima V4 slave-wind
+        run: |
+          cd platformio/stima_v4/slave-wind
+          platformio run
+
+
