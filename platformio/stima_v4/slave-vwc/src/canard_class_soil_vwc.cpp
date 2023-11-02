@@ -28,7 +28,7 @@
 */
 
 #include "drivers/module_slave_hal.hpp"
-#include "canard_class_soil_vwc.hpp"
+#include "canard_class_SOIL_VWC.hpp"
 #include "canard_config.hpp"
 #include "bxcan.h"
 

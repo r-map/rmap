@@ -43,7 +43,7 @@
 #include "semaphore.hpp"
 #include "queue.hpp"
 #include "drivers/module_slave_hal.hpp"
-#include "drivers/accelerometer.h"
+#include "drivers/Accelerometer.h"
 
 // Register EEprom
 #include "register_class.hpp"
