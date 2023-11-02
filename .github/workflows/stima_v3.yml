@@ -2,11 +2,12 @@ name: stima_v3
 on: 
   push:
     paths:
-    - 'platformio/**.ino'
-    - 'platformio/**.cpp'
-    - 'platformio/**.h'
-    - 'platformio/**platformio.ini'      
+    - 'platformio/stima_v3/**.ino'
+    - 'platformio/stima_v3/**.cpp'
+    - 'platformio/stima_v3/**.h'
+    - 'platformio/stima_v3/**platformio.ini'      
     - '**platformio.yml'
+    - 'libraries/**'
   #  branches: [ master ]
   pull_request:
 
