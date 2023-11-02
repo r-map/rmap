@@ -1,0 +1,11 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference
+2	 GS4_b	Non montare	 Libreria_PCB_mia:GS4	Non montare	  J2 J3
+2	 GS3	Non montare	 Connectors:GS3	Non montare	  J1 J4
+1	 GS4_b	Non montare	 GS4	Non montare	  J5
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+1	 CONN_01X04	 	 Libreria_PCB_mia:WHURT_4pin_90°_61900411021	Wurth Elektronik  61900411021 	  P2
+1	 CONN_01X03	 	 Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm	 digikey 801-87-036-10-001101	  P3
+1	 BSP315PH6327XTSA1	 	 TO_SOT_Packages_SMD:SOT-223-3_TabPin2	 alternativa ISP25DP06LMXTSA1 	  Q1
+1	 BC847B	 	 TO_SOT_Packages_SMD:SOT-23	 BC847B,215 	  Q2
+1	 47k	 	 Resistors_SMD:R_0805	 	  R1
+1	 4k7	 	 Resistors_SMD:R_0805	 	  R2

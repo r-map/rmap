@@ -1,0 +1,13 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference
+1	 10uF	 	 SMD_Packages:SMD-1210_Pol	 F931C106KCC 	  C1
+3	 100nF	 	 Capacitors_SMD:C_0805	 	  C2 C3 C4
+1	 RED-RX	 	 LEDs:LED_0805	 Wurth Elektronik 150080RS75000	  D1
+1	 GREEN-TX	 	 LEDs:LED_0805	 Wurth Elektronik   150080VS75000	  D2
+1	 MBR0520	 	 Diodes_SMD:D_SOD-123		  D3
+1	 GS2	 	 Connectors:GS2	 	  GS1
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+1	 USB_OTG	 	 Libreria_PCB_mia:USB_Micro-B_Molex-105017-0001	 Molex 105017-0001 	  P2
+2	 1k	 	 Resistors_SMD:R_0805	 	  R1 R2
+2	 470	 	 Resistors_SMD:R_0805	 	  R3 R4
+2	 4k7	 	 Resistors_SMD:R_0805	 	  R5 R6
+1	 FT232RL	 	 Housings_SSOP:SSOP-28_5.3x10.2mm_Pitch0.65mm	  FT232RL ( vedi su broker…) 	  U1

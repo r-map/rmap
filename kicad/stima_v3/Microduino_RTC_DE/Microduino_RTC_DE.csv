@@ -1,0 +1,14 @@
+Quantity, Value, Mount, Footprint, Model, Reference
+1	 0.1 uF		 Capacitors_SMD:C_0805		 C1
+1	 0.2F		 Microduino_RTC_DE:Supercap	RSCSK2043R3D01004T	 C2
+1	 5-25 pF	 	 Capacitors_SMD:C_1206	Voltronics -  JV250 JV	  CV1
+1	 TMMBAT43	 	 Diodes_SMD:D_MiniMELF_Standard	TMMBAT43FILM 	  D1
+1	 MM3Z3V3ST1G	 	 Diodes_SMD:D_SOD-323	 MM3Z3V3ST1G	  D2
+2	 GS3	 Non montare	 Connectors:GS3	 Non montare	  GS1 GS2
+1	 GS4	 Non montare	 Libreria_PCB_mia:GS4	 Non montare	  GS3
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+2	 4k7	 	 Resistors_SMD:R_0805	 	R3
+1	 33	 	 Resistors_SMD:R_0805	 	  R4
+1	 PCF8563	 	 Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm	 PCF8563T/F4,118	  U1
+1	 32.762 kHz		 Crystals:Crystal_SMD_G8-2pin_3.2x1.5mm_HandSoldering	 ABS09-32.768KHZ-1-T o CM41532768DZCT	Y1
+1	 4k7	 	 Resistors_SMD:R_0805	Non montare	 R1 R2 

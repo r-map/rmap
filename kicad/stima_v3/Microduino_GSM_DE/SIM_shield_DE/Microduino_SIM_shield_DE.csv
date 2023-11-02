@@ -1,0 +1,15 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference	Column1
+1	 4.7uF		 Capacitors_SMD:C_0805		 	  C1
+2	 10uF	 	 Capacitors_SMD:C_0805	 	  C3 C4	
+2	 100uF	 	 Capacitors_Tantalum_SMD:CP_Tantalum_Case-B_EIA-3528-21_Reflow	F931C107KCC	  C6 C7	
+3	 100nF	 	 Capacitors_SMD:C_0805	 	  C2 C5 C8	
+1	 1 uH	 	 Libreria_PCB_mia:Induttanza_SMD_3030_Vishay	 IHLP1212ABEV1R0M01 	  L1	
+3	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101 	  P1	sono 3 in totale perche vengono montati sovrapposti per questioni di ingombro ( vedi foto ) 
+1	 CONN_01X06	 	 Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm	 digikey 801-87-036-10-001101 	  P2	
+1	 100k	 	 Resistors_SMD:R_0805	 	  R1	
+1	 10k	 	 Resistors_SMD:R_0805	 	  R2	
+1	 560k	 	 Resistors_SMD:R_0805	 	  R3	
+3	 56	 	 Resistors_SMD:R_0805	 	  R4 R5 R6	
+1	 SIM-CARD	 	 Libreria_PCB_mia:mini_sim_card_holder	WURTH 693010010601	  SIM1	
+1	 TLV62569	 	 TO_SOT_Packages_SMD:SOT-23-5	 TLV62569DBVT  codice MOUSER: 595-TLV62569DBVT 	  U1	
+1	 ESDA6V1-5W6	 	 TO_SOT_Packages_SMD:SOT-363_SC-70-6	" ESDA6V1-5W6 codice Digikey: 	TVS DIODE 3VWM SOT323-6L"	  U2	

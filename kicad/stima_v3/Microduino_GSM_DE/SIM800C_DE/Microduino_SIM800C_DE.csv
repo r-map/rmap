@@ -1,0 +1,22 @@
+Column1;Column2;Column3;Column4;Column5;Column6
+Source;C:\ETG\Sorgenti\StimaV3_Hw\rmap\kicad\stima_v3\Microduino_GSM_DE\SIM800C_DE\Microduino_SIM800C_DE.sch;;;;
+Kicad Rev;Eeschema (5.1.10)-1;;;;
+Generated Date;20/12/2022 17:17:25;;;;
+;;;;;
+Title;Microduino SIM800C DE;;;;
+Company;;;;;
+Revision;0.0;;;;
+Date Issue;24 dicembre 2017;;;;
+;;;;;
+Quantity; Value; Mount; Footprint; Model; Reference
+;;;;;
+1; CONN_01X02; ; Libreria_PCB_mia:Molex_SMA_Jack_Edge_Mount_microduino_2; 73251-1150 - Connettore RF, SMA, Zoccolo a innesto, Dritto, 50Ohm, Passante, Codice Distrelec: Molex - 300-48-830;  ANT1
+1; 100uF; ; Capacitors_Tantalum_SMD:CP_Tantalum_Case-B_EIA-3528-21_Reflow; F931C107KCC;  C1
+1; 100nF; ; Capacitors_SMD:C_0805; ;  C2
+2; LED_ALT; ; LEDs:LED_0805;RED LED LS R976-NR-1 ;  D1 D2
+2; GS3; ; Connectors:GS3;Non montare;  GS1 GS2
+1; CONN_1x27; ; Libreria_PCB_mia:Upin_27; digikey 801-87-036-10-001101;  P1
+1; CONN_01X06; ; Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm; digikey 801-87-036-10-001101;  P2
+1; 1k; ; Resistors_SMD:R_0805; ;  R1
+2; 220; ; Resistors_SMD:R_0805; ;  R2 R3
+1; SIM800C; ; Libreria_PCB_mia:SIM800C-42PIN;SIM800C S2-10686-Z1L10;  U1

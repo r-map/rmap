@@ -1,0 +1,8 @@
+1	 10uF	 	 Capacitors_Tantalum_SMD:CP_Tantalum_Case-B_EIA-3528-21_Reflow	 F931C106KCC 	  C2
+3	 100nF	 	 Capacitors_SMD:C_0805	 	    C1 C3 C4
+1	 GS3	 Non montare	 Connectors:GS3	 Non montare	  GS1
+1	ATMEGA1284-AU	 	 Housings_QFP:TQFP-44_10x10mm_Pitch0.8mm	ATMEGA1284-AU 	  IC1
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+1	 CONN_02X05	 Non montare	 Pin_Headers:Pin_Header_Straight_2x05_Pitch2.54mm	 Non montare	  P2
+1	 4k7	 	 Resistors_SMD:R_0805		  R1
+1	 8MHz	 	 Libreria_PCB_mia:Resonator_SMD_muRata_CST-3pin_3.2x1.3mm	CSTNE8M00G550000R0 	  Y1

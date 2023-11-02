@@ -1,0 +1,18 @@
+Column1	Column2	Column3	Column4	Column5	Column6
+1	 10uF	 	 Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow	 F931C106KCC 	  C13
+1	 100uF	 	 Capacitors_THT:CP_Radial_D6.3mm_P2.50mm	 Wurth Elektronik   870055974001	  C14
+13	 100n	 	 Capacitors_SMD:C_1206	 	  C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C15
+1	 SK34SMA	 	 Diodes_SMD:D_SMA_Standard	" 
+SK34SMA-3G-AQ "	  D1
+6		 	 Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm	Wurth Elektronik  61300611121	  GS1 GS2 GS3 GS4 GS5 GS6
+1	 2.2uH		 Libreria_PCB_mia:Induttanza_SMD_2520_Wurth	 Wurth Elektronik   	 L1
+7	 CONN_01X04	 	 Libreria_PCB_mia:WURTH_4pin_straight_61900411121	 Wurth Elektronik   61900411121	  P1 P2 P3 P5 P6 P7 P8
+1	 USB_B	 	 Connectors:USB_B	 Wurth Elektronik  61400416121	  P4
+14	 2k2	 	 Resistors_SMD:R_1206	 	  R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14
+1	 150k	 	 Resistors_SMD:R_1206	 	  R15
+1	 33k	 	 Resistors_SMD:R_1206	 	  R16
+6	 PCA9517A	 	 Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm	"296-23734-2-ND - Nastrato in bobina (TR)
+296-23734-1-ND - Nastro pre-tagliato (CT)
+296-23734-6-ND - Digi-Reel®
+PCA9517DR "	  U1 U2 U3 U4 U6 U7
+1	 TLV62569	 	 TO_SOT_Packages_SMD:SOT-23-5	 TLV62569DBVT  codice MOUSER: 595-TLV62569DBVT 	  U5

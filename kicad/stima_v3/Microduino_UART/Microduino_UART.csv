@@ -1,0 +1,13 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference
+7	 100nF	 	 Capacitor_SMD:C_0805_2012Metric	 	  C1 C2 C3 C4 C5 C6 C7
+1	 100uF	 	 Capacitors_Tantalum_SMD:CP_Tantalum_Case-B_EIA-3528-21_Reflow	  F931C107KCC	  C8
+1	 GS4_b	Non montare	 Libreria_PCB_mia:GS4	Non montare	  GS1
+1	 GS3	Non montare	 Connectors:GS3	Non montare	  GS2
+1	 Conn_01x05	 	 Libreria_PCB_mia:WHURT_5pin_90°_61900511021	 Wurth Elektronik 61900511021	  J1
+2	 SolderJumper_3_Open	Non montare	 Connectors:GS3	Non montare	  JP1 JP2
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+1	 BSP315PH6327XTSA1	 	 Package_TO_SOT_SMD:SOT-223-3_TabPin2	 alternativa ISP25DP06LMXTSA1 	  Q1
+1	 BC847B	 	 Package_TO_SOT_SMD:SOT-23	 BC847B,215 	  Q2
+1	 47k	 	 Resistor_SMD:R_0805_2012Metric	 	  R1
+1	 4k7	 	 Resistor_SMD:R_0805_2012Metric	 	  R2
+1	 MAX3232	 	 Package_SO:SOIC-16_3.9x9.9mm_P1.27mm	MAX3232IDW 	  U1

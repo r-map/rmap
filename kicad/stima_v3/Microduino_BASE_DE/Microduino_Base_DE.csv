@@ -1,0 +1,8 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference
+1	 100nF	 	 Capacitor_SMD:C_0805_2012Metric	 	  C1
+2	 330uF	 	 Capacitor_Tantalum_SMD:CP_EIA-7343-43_Kemet-X	 T598D337M006AHS025	  C2 C3
+1	 GS4	 Non montare	 Libreria_PCB_mia:GS4	 Non montare	  GS1
+1	 10uH	 	 SamacSys_Parts:FDSD0630H100MP3	"Murata Electronics FDSD0630-H-100M=P3"	  L1
+1	 CONN_01X02	 	 Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm	 	  P1
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P2
+1	 CONN_01X04	 	 Libreria_PCB_mia:WHURT_4pin_90°_61900411021	Wurth Elektronik  61900411021 	  P3

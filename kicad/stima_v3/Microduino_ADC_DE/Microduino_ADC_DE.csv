@@ -1,0 +1,13 @@
+Quantity	 Value	 Mount	 Footprint	 Model	 Reference
+3	 100nF	 	 Capacitors_SMD:C_0805	 	  C1 C2 C3
+2	 BZV55-B4V7 115	 	 Diodes_SMD:D_MiniMELF	" 
+BZV55-B15,115 "	  D1 D2
+2	 GS4_b	Non montare	 Libreria_PCB_mia:GS4	Non montare	  J1 J6
+6	 GS3	Non montare	 Connectors:GS3	Non montare	  J2 J3 J4 J5 J7 J8
+1	 CONN_1x27	 	 Libreria_PCB_mia:Upin_27	 digikey 801-87-036-10-001101	  P1
+1	 CONN_01X03	 	 Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm	 digikey 801-87-036-10-001101	  P2
+1	 CONN_01X04	 	 Libreria_PCB_mia:WHURT_4pin_90°_61900411021	Wurth Elektronik  61900411021 	  P3
+2	 110k	 	 Resistors_SMD:R_0805	 	  R1 R4
+2	 82	 	 Resistors_SMD:R_0805	 	  R2 R5
+2	 20k	 	 Resistors_SMD:R_0805	 	  R3 R6
+1	 ADS1115	 	 Housings_SSOP:MSOP-10_3x3mm_Pitch0.5mm	DS1115 	  U1
