@@ -61,7 +61,7 @@ class canardClass {
 
         // Tipologie elaborazioni/sensori modulo(i)
         // tbr (Standard rain), tbm (Rain with full maintenance data value)
-        enum Sensor_Type : u_int8_t {
+        enum Sensor_Type : uint8_t {
             tbr,
             tpr,
             tbm

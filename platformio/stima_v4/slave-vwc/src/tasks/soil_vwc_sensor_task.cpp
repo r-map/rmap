@@ -54,7 +54,7 @@ SoilVWCSensorTask::SoilVWCSensorTask(const char *taskName, uint16_t stackSize, u
 /// @brief local stack Monitor (optional)
 void SoilVWCSensorTask::TaskMonitorStack()
 {
-  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  uint16_t stackUsage = (uint16_t)uxTaskGetStackHighWaterMark( NULL );
   if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
     param.systemStatusLock->Take();
     param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;

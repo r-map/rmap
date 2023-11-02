@@ -41,9 +41,9 @@ WdtTask::WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, Wdt
 
 void WdtTask::Run() {
   bool firsCheck = true;
-  u_int16_t stackUsage;
+  uint16_t stackUsage;
   char strTask[12] = {0};
-  u_int8_t last_day_boot_rst;
+  uint8_t last_day_boot_rst;
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -115,7 +115,7 @@ void WdtTask::Run() {
     // Logging Stack (Only ready module task controlled)
     #if (ENABLE_STACK_USAGE)
     // Update This Task
-    stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+    stackUsage = (uint16_t)uxTaskGetStackHighWaterMark( NULL );
     if((stackUsage) && (stackUsage < param.system_status->tasks[WDT_TASK_ID].stack)) {
       param.systemStatusLock->Take();
       param.system_status->tasks[WDT_TASK_ID].stack = stackUsage;

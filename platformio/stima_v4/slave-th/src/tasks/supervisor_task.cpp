@@ -45,7 +45,7 @@ SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t
 /// @brief local stack Monitor (optional)
 void SupervisorTask::TaskMonitorStack()
 {
-  u_int16_t stackUsage = (u_int16_t)uxTaskGetStackHighWaterMark( NULL );
+  uint16_t stackUsage = (uint16_t)uxTaskGetStackHighWaterMark( NULL );
   if((stackUsage) && (stackUsage < param.system_status->tasks[LOCAL_TASK_ID].stack)) {
     param.systemStatusLock->Take();
     param.system_status->tasks[LOCAL_TASK_ID].stack = stackUsage;
@@ -325,7 +325,7 @@ void SupervisorTask::loadConfiguration()
   // uint8_t i2c_address[sensor_count];   // I2C Address
   // uint8_t is_redundant[sensor_count];  // Is Redundant sensor
   if(register_config_valid) {
-    u_int8_t elements = 0;
+    uint8_t elements = 0;
     // Select type register (uint_8)
     uavcan_register_Value_1_0_select_natural8_(&val);
     // Loading Default

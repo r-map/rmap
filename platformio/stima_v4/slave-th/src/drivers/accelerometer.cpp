@@ -115,7 +115,7 @@ int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t l
 void Accelerometer::push_raw_data(int16_t *data_raw)
 {
   // Scroll Value
-  for(u_int8_t i = (ARR_REG_FILTER-1); i>0; i--) {
+  for(uint8_t i = (ARR_REG_FILTER-1); i>0; i--) {
     _raw_scroll[0][i] = _raw_scroll[0][i-1];
     _raw_scroll[1][i] = _raw_scroll[1][i-1];
     _raw_scroll[2][i] = _raw_scroll[2][i-1];
@@ -132,7 +132,7 @@ void Accelerometer::push_raw_data(int16_t *data_raw)
 int16_t Accelerometer::get_raw_mean(coordinate request) {
   uint32_t tmp_data = 0;
   uint8_t tmp_count = 0;
-  for(u_int8_t i=0; i<ARR_REG_FILTER; i++) {
+  for(uint8_t i=0; i<ARR_REG_FILTER; i++) {
     if((_raw_scroll[request][i]>=-16000) && (_raw_scroll[request][i]<=16000)) {
       tmp_data += _raw_scroll[request][i];
       tmp_count++;
