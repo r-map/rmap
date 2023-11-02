@@ -72,16 +72,16 @@
 // Canard Type data
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>
-#include <rmap/_module/RAIN_1_0.h>
-#include <rmap/service/_module/RAIN_1_0.h>
-#include <rmap/_module/POWER_1_0.h>
-#include <rmap/service/_module/POWER_1_0.h>
-#include <rmap/_module/RADIATION_1_0.h>
-#include <rmap/service/_module/RADIATION_1_0.h>
+#include <rmap/_module/Rain_1_0.h>
+#include <rmap/service/_module/Rain_1_0.h>
+#include <rmap/_module/Power_1_0.h>
+#include <rmap/service/_module/Power_1_0.h>
+#include <rmap/_module/Radiation_1_0.h>
+#include <rmap/service/_module/Radiation_1_0.h>
 #include <rmap/_module/VWC_1_0.h>
 #include <rmap/service/_module/VWC_1_0.h>
-#include <rmap/_module/WIND_1_0.h>
-#include <rmap/service/_module/WIND_1_0.h>
+#include <rmap/_module/Wind_1_0.h>
+#include <rmap/service/_module/Wind_1_0.h>
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
 // #include "drivers/spi/arduino_spi_driver.h"

@@ -70,8 +70,8 @@
 #include <uavcan/time/Synchronization_1_0.h>
 #include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
-#include <rmap/_module/RADIATION_1_0.h>
-#include <rmap/service/_module/RADIATION_1_0.h>
+#include <rmap/_module/Radiation_1_0.h>
+#include <rmap/service/_module/Radiation_1_0.h>
 // Standard Library
 #include <stdio.h>
 #include <stdlib.h>
