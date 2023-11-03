@@ -152,6 +152,7 @@ void setup() {
 
   // Get Serial Number and Print Fixed to Serial logger default
   configuration.board_master.serial_number = StimaV4GetSerialNumber();
+  #ifndef DISABLE_SERIAL
   Serial.println();
   Serial.println(F("*****************************"));
   Serial.println(F("* Stima V4 MASTER - SER.NUM *"));
@@ -163,7 +164,7 @@ void setup() {
     if(id) Serial.print(F("-"));
   }
   Serial.println("\r\n");
-
+  #endif
   // ***************************************************************
   //           Setup parameter for Task and local Class
   // ***************************************************************

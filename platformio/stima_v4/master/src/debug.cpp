@@ -37,7 +37,9 @@ int_t fputc(int_t c, FILE *stream)
    // Standard output or error output?
    if (stream == stdout || stream == stderr)
    {
+      #ifndef DISABLE_SERIAL
       Serial.write(c);
+      #endif
       return c;
    }
    // Unknown output?
@@ -49,8 +51,10 @@ int_t fputc(int_t c, FILE *stream)
 }
 
 void init_debug(uint32_t baudrate) {
+  #ifndef DISABLE_SERIAL
   Serial.begin(baudrate);
   while (!Serial);
+  #endif
 }
 
 void print_debug(const char *fmt, ...)
@@ -59,7 +63,9 @@ void print_debug(const char *fmt, ...)
   va_start(args, fmt);
   vfprintf(stdout, fmt, args);
   va_end(args);
+  #ifndef DISABLE_SERIAL
   Serial.flush();
+  #endif
 }
 
 void print_debug_F(const __FlashStringHelper *fmt, ...)
@@ -69,7 +75,9 @@ void print_debug_F(const __FlashStringHelper *fmt, ...)
   va_start(args, fmt);
   vfprintf(stdout, (const char *)fmt, args);
   va_end(args);
+  #ifndef DISABLE_SERIAL
   Serial.flush();
+  #endif
   osResumeAllTasks();
 }
 
