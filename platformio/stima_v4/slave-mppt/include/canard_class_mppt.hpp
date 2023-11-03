@@ -60,7 +60,7 @@ class canardClass {
         // ********************   Tipi di Dati    *****************
 
         // Tipologie elaborazioni/sensori modulo(i)
-        enum Sensor_Type : u_int8_t {
+        enum Sensor_Type : uint8_t {
             dep
         };
 
