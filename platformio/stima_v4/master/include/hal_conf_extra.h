@@ -1,2 +1,0 @@
-#define HAL_UART_MODULE_ONLY
-
