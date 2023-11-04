@@ -134,7 +134,7 @@ ESP8266WebServer webserver(STIMAHTTP_PORT);
 ESP8266WebServer webserver(STIMAHTTP_PORT);
 
 #elif defined(ARDUINO_D1_MINI32)
-#include <analogWrite.h>
+//#include <analogWrite.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>
@@ -1682,8 +1682,8 @@ void setup() {
 	u8g2.print(F("Time not"));
 	u8g2.setCursor(0, 20); 
 	u8g2.print(F("configurated!"));
-	u8g2.setCursor(0, 30);
-	u8g2.print(F("RESTART"));
+	//u8g2.setCursor(0, 30);
+	//u8g2.print(F("RESTART"));
 	u8g2.sendBuffer();
 	delay(5000);
       }
