@@ -1,13 +1,13 @@
-name: stima_v3
+name: stima_v2
 on: 
   push:
     paths:
-    - 'platformio/stima_v3/stimawifi/**.ino'
-    - 'platformio/stima_v3/stimawifi/**.cpp'
-    - 'platformio/stima_v3/stimawifi/**.hpp'
-    - 'platformio/stima_v3/stimawifi/**.c'
-    - 'platformio/stima_v3/stimawifi/**.h'
-    - 'platformio/stima_v3/stimawifi/**platformio.ini'      
+    - 'platformio/stima_v2/stimawifi/**.ino'
+    - 'platformio/stima_v2/stimawifi/**.cpp'
+    - 'platformio/stima_v2/stimawifi/**.hpp'
+    - 'platformio/stima_v2/stimawifi/**.c'
+    - 'platformio/stima_v2/stimawifi/**.h'
+    - 'platformio/stima_v2/stimawifi/**platformio.ini'      
     - '**stima_v2.yml'
     - 'libraries/**'
   #  branches: [ master ]
@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
       # Runs a set of commands using the runners shell
-      - name: Build Stima V3 i2c-leaf
+      - name: Build Stima V2 stimawifi
         run: |
           cd platformio/stima_v2/stimawifi
           platformio run
