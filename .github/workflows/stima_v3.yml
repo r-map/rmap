@@ -4,9 +4,11 @@ on:
     paths:
     - 'platformio/stima_v3/**.ino'
     - 'platformio/stima_v3/**.cpp'
+    - 'platformio/stima_v3/**.hpp'
+    - 'platformio/stima_v3/**.c'
     - 'platformio/stima_v3/**.h'
     - 'platformio/stima_v3/**platformio.ini'      
-    - '**platformio.yml'
+    - '**stima_v3.yml'
     - 'libraries/**'
   #  branches: [ master ]
   pull_request:

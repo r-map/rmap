@@ -5,8 +5,10 @@ on:
     - 'platformio/stima_v4/**.ino'
     - 'platformio/stima_v4/**.cpp'
     - 'platformio/stima_v4/**.hpp'
+    - 'platformio/stima_v4/**.c'
+    - 'platformio/stima_v4/**.h'
     - 'platformio/stima_v4/**platformio.ini'      
-    - '**platformio.yml'
+    - '**stima_v4.yml'
   #  branches: [ master ]
   pull_request:
 

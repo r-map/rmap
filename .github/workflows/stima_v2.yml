@@ -1,0 +1,37 @@
+name: stima_v3
+on: 
+  push:
+    paths:
+    - 'platformio/stima_v3/stimawifi/**.ino'
+    - 'platformio/stima_v3/stimawifi/**.cpp'
+    - 'platformio/stima_v3/stimawifi/**.hpp'
+    - 'platformio/stima_v3/stimawifi/**.c'
+    - 'platformio/stima_v3/stimawifi/**.h'
+    - 'platformio/stima_v3/stimawifi/**platformio.ini'      
+    - '**stima_v2.yml'
+    - 'libraries/**'
+  #  branches: [ master ]
+  pull_request:
+
+jobs:
+  main:
+    name: firmware_and_tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        #with:
+        #  ref: explorer
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: '3.x'
+      - name: Install Platform IO
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U platformio
+      # Runs a set of commands using the runners shell
+      - name: Build Stima V3 i2c-leaf
+        run: |
+          cd platformio/stima_v2/stimawifi
+          platformio run
+
