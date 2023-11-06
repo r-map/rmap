@@ -491,14 +491,14 @@ STORAGE_FINDERS = (
 MAX_TAG_LENGTH = 50
 AUTO_REFRESH_INTERVAL = 60
 # Set to True to require authentication to save or delete dashboards
-DASHBOARD_REQUIRE_AUTHENTICATION = False
+DASHBOARD_REQUIRE_AUTHENTICATION = True
 # Require Django change/delete permissions to save or delete dashboards.
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
-DASHBOARD_REQUIRE_PERMISSIONS = False
+DASHBOARD_REQUIRE_PERMISSIONS = True
 # Name of a group to which the user must belong to save or delete dashboards.  Alternative to
 # DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
-DASHBOARD_REQUIRE_EDIT_GROUP = None
+DASHBOARD_REQUIRE_EDIT_GROUP = "dashboard"
 
 CONF_DIR = ''
 DASHBOARD_CONF = ''
@@ -525,7 +525,7 @@ REMOTE_STORE_FORWARD_HEADERS = []
 DEFAULT_XFILES_FACTOR = 0
 FETCH_TIMEOUT = 180.0
 USE_WORKER_POOL = True
-POOL_MAX_WORKERS = 10
+POOL_MAX_WORKERS = 3
 METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
 METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
 FIND_TIMEOUT = 180.0
