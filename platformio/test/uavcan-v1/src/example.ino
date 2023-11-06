@@ -313,6 +313,14 @@ void setup(void) {
   Serial.print("Initializing...");
   Serial.println(HAL_RCC_GetHCLKFreq());
 
+  #ifdef BOARD1
+  Serial.println("Board 1");
+  #endif
+
+  #ifdef BOARD2
+  Serial.println("Board 2");
+  #endif
+  
   // initialize digital pins
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
