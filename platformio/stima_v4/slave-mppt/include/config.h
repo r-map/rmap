@@ -159,4 +159,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define POWER_BATTERY_CURRENT_MULT        (1000)
 #define POWER_INPUT_CURRENT_MULT          (1000)
 
+#define BATTERY_CHARGE_MIN_FULL           (70)
+#define BATTERY_CHARGE_MIN_WARNING        (40)
+#define BATTERY_CHARGE_MIN_CRITICAL       (20)
+#define BATTERY_CHARGE_MIN_POWERDOWN      (4)
+#define INPUT_VOLTAGE_MIN_FULL            (15.5 * POWER_BATTERY_VOLTAGE_MULT)
+#define INPUT_VOLTAGE_MIN_POWERDOWN       (11.5 * POWER_BATTERY_VOLTAGE_MULT)
+
 #endif

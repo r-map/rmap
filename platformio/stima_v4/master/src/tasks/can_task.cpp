@@ -2300,7 +2300,7 @@ void CanTask::Run() {
                                         param.system_status->flags.power_critical = retPwrData->is_power_critical;
                                         // Remove critical power flag if error measure occurs: prevent error sending data (disable modem when critical power)
                                         // This command don't remove flags sending to RMAP Server
-                                        if((retPwrData->MPP.battery_charge.val.value == 0) || (retPwrData->MPP.battery_charge.val.value > rmap_tableb_B25192_1_0_MAX)) {                                            
+                                        if((retPwrData->MPP.battery_charge.val.value == 0) || (retPwrData->MPP.battery_charge.val.value > rmap_tableb_B25192_1_0_MAX)) {
                                             param.system_status->flags.power_critical = false;
                                         }
                                         param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;

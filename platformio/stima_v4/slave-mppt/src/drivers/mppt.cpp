@@ -171,7 +171,7 @@ float Mppt::get_I_IN(bool *is_ok) {
 /// @return Power battery istant value
 float Mppt::get_P_CHG(bool *is_ok) {
   uint16_t data;
-  float pChg;
+  float pChg = 0.0;
   float vBatt = get_V_BAT(is_ok);
   if(*is_ok) {
     if(vBatt>13.45) pChg = 100.0;
@@ -188,12 +188,9 @@ float Mppt::get_P_CHG(bool *is_ok) {
     else if(vBatt>11.50) { pChg = 14.54347826 + ((vBatt - 11.50) * 11.82241949); }
     else if(vBatt>11.15) { pChg = 9.713518356 + ((vBatt - 11.15) * 16.09986635); }
     else if(vBatt>10.85) { pChg = 4.838709677 + ((vBatt - 10.85) * 13.9280248); }
-    else pChg = 0.0;  
-    return pChg;
   }
-  else return 0;
+  return pChg;
 }
-
 
 // ****************************************************************************************
 // ******************************* PRIVATE FUNCTION ***************************************

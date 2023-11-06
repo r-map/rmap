@@ -114,6 +114,7 @@ void MpptSensorTask::Run() {
   bool is_power_full = false;
   bool is_power_critical = true;
   bool is_power_warning = true;
+  bool is_power_down = true;
   bool is_measure_done = true;
   bool is_error_measure = false;
 
@@ -159,6 +160,7 @@ void MpptSensorTask::Run() {
         is_power_full = false;
         is_power_critical = true;
         is_power_warning = true;
+        is_power_down = true;
         is_measure_done = true;
         is_error_measure = false;
 
@@ -167,9 +169,10 @@ void MpptSensorTask::Run() {
         is_error_measure |= !is_measure_done;
         // Power % > 70% (Full OK)
         // Power % > 30% (No Critical)
-        if(edata.value > 70) is_power_full = true;
-        if(edata.value > 40) is_power_warning = false;
-        if(edata.value > 20) is_power_critical = false;
+        if(edata.value > BATTERY_CHARGE_MIN_FULL) is_power_full = true;
+        if(edata.value > BATTERY_CHARGE_MIN_WARNING) is_power_warning = false;
+        if(edata.value > BATTERY_CHARGE_MIN_CRITICAL) is_power_critical = false;
+        if(edata.value > BATTERY_CHARGE_MIN_POWERDOWN) is_power_down = false;
         edata.index = POWER_BATTERY_CHARGE_INDEX;
         param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
@@ -180,8 +183,14 @@ void MpptSensorTask::Run() {
 
         edata.value = param.mpptIC->get_V_IN(&is_measure_done) * POWER_INPUT_VOLTAGE_MULT;
         is_error_measure |= !is_measure_done;
-        // VIn > 15.5 V (Full OK)
-        if(edata.value > 155) {
+        // VIn > INPUT_VOLTAGE_MIN_FULL (Full OK)
+        if(edata.value > INPUT_VOLTAGE_MIN_FULL) {
+          is_power_full = true;
+          is_power_warning = false;
+          is_power_critical = false;
+        }
+        // VIn Without VBAT (Full OK). Powered from external alim.
+        if((edata.value > INPUT_VOLTAGE_MIN_POWERDOWN) && (is_power_down)) {
           is_power_full = true;
           is_power_warning = false;
           is_power_critical = false;
