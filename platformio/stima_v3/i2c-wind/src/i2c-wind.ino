@@ -1370,9 +1370,7 @@ void windPowerOn () {
 
 #if (USE_SENSOR_DES)
 void wind_speed_interrupt_handler() {
-  noInterrupts();
   wind_speed_count++;
-  interrupts();
 }
 
 float getWindSpeed (float count) {
@@ -1388,12 +1386,12 @@ void calibrationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ide
 
   for (uint8_t i = 0; i < count; i++) {
     value += ((float) windDirectionRead() - value) / (float) (i+1);
-    SERIAL_INFO(F("%0.f\t"), value);
+    LOGN(F("%0.f\t"), value);
     delay(delay_ms);
   }
 
   *offset = ideal - getWindMv(value, 0);
-  SERIAL_INFO(F("Wind Direction: ideal %f mV - read %f mV = offset %f mV\r\n"), ideal, getWindMv(value, 0), *offset);
+  LOGN(F("Wind Direction: ideal %f mV - read %f mV = offset %f mV\r\n"), ideal, getWindMv(value, 0), *offset);
 }
 
 void calibrationValue(uint8_t count, uint8_t delay_ms, float *val) {
@@ -1479,7 +1477,7 @@ void wind_task () {
       wind_direction = getWindDirection(wind_direction);
       //bufferPtrResetBack<sample_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT);
       //addValue<sample_t, uint16_t, uint16_t>(&wind_direction_samples, WMO_REPORT_SAMPLES_COUNT, wind_direction);
-      cb_directionm.unshift(wind_direction);
+      cb_direction.unshift(wind_direction);
       #endif
 
       #if (USE_SENSOR_DES)
