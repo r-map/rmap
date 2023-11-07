@@ -414,7 +414,7 @@ void loop(void)
             #endif
             // Backup Flash actual Program for RollBack Function Flash Upload error or uncorrect
             // Need to work with WatchDog For securty control Running Firmware Uploaded
-            for(u_int32_t memPtr = APP_ADDRESS; memPtr < APP_ROMEND; memPtr++) {
+            for(uint32_t memPtr = APP_ADDRESS; memPtr < APP_ROMEND; memPtr++) {
                 memBlock[memBlockIndex++] = STM32Flash_ReadByte(memPtr);
                 if(memBlockIndex == 0) {
                     putBackupBlock(pageFlashIndex++, memBlock, 0x100, &qspiWritePtr, &qspiFlashBlock);
