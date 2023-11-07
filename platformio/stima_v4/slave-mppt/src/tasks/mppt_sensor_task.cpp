@@ -106,7 +106,7 @@ void MpptSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
   uint32_t delay_ms;
-  static bool is_test;
+
   // Request response for system queue Task controlled...
   system_message_t system_message;
   
@@ -172,7 +172,7 @@ void MpptSensorTask::Run() {
         if(edata.value > BATTERY_CHARGE_MIN_FULL) is_power_full = true;
         if(edata.value > BATTERY_CHARGE_MIN_WARNING) is_power_warning = false;
         if(edata.value > BATTERY_CHARGE_MIN_CRITICAL) is_power_critical = false;
-        if(edata.value > BATTERY_CHARGE_MIN_POWERDOWN) is_power_down = false;
+        if(edata.value > BATTERY_CHARGE_MIN_EMPTY) is_power_down = false;
         edata.index = POWER_BATTERY_CHARGE_INDEX;
         param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
 
@@ -183,13 +183,7 @@ void MpptSensorTask::Run() {
 
         edata.value = param.mpptIC->get_V_IN(&is_measure_done) * POWER_INPUT_VOLTAGE_MULT;
         is_error_measure |= !is_measure_done;
-        // VIn > INPUT_VOLTAGE_MIN_FULL (Full OK)
-        if(edata.value > INPUT_VOLTAGE_MIN_FULL) {
-          is_power_full = true;
-          is_power_warning = false;
-          is_power_critical = false;
-        }
-        // VIn Without VBAT (Full OK). Powered from external alim.
+        // VIn Without VBAT (Full OK). Direct powered from external power supply.
         if((edata.value > INPUT_VOLTAGE_MIN_POWERDOWN) && (is_power_down)) {
           is_power_full = true;
           is_power_warning = false;

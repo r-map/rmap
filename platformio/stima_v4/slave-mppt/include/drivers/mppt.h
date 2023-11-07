@@ -64,6 +64,9 @@ using namespace cpp_freertos;
 #define I_REF_BATT    1.47807f
 #define I_REF_CVAL    10000.0f
 
+// Check Time Get VBat Value (Exit 0.0 Condition) Start VBat Out to check if battery is connected (GetVale !=0 in this case)
+#define PCHG_CLEAR_ATTEMPT  3
+
 // Class Mppt LT4015 implementation
 class Mppt {
 
@@ -120,6 +123,10 @@ private:
   TwoWire *_wire;
   BinarySemaphore *_wireLock;
   uint8_t _i2c_address;
+
+  // ********** Private Variables LTC_VALUE ********** //
+  uint8_t last_P_CHG_Check;
+
 };
 
 #endif /* _MPPT_H */

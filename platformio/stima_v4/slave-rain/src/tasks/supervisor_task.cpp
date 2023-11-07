@@ -255,10 +255,14 @@ void SupervisorTask::loadConfiguration()
       if((param.configuration->module_main_version != MODULE_MAIN_VERSION)||
          (param.configuration->module_minor_version != MODULE_MINOR_VERSION)||
          (param.configuration->module_type != MODULE_TYPE)) {
-          // Rewrite Register...
+        // Rewrite Register...
         val.natural8.value.elements[0] = MODULE_MAIN_VERSION;
         val.natural8.value.elements[1] = MODULE_MINOR_VERSION;
         val.natural8.value.elements[2] = MODULE_TYPE;
+        // Reload parameter correct
+        param.configuration->module_main_version = MODULE_MAIN_VERSION;
+        param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+        param.configuration->module_type = MODULE_TYPE;
         param.registerAccessLock->Take();
         param.clRegister->write("rmap.module.identify", &val);
         param.registerAccessLock->Give();

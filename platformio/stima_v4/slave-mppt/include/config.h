@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (0)
+#define MODULE_MINOR_VERSION  (1)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
@@ -162,8 +162,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define BATTERY_CHARGE_MIN_FULL           (70)
 #define BATTERY_CHARGE_MIN_WARNING        (40)
 #define BATTERY_CHARGE_MIN_CRITICAL       (20)
-#define BATTERY_CHARGE_MIN_POWERDOWN      (4)
-#define INPUT_VOLTAGE_MIN_FULL            (15.5 * POWER_BATTERY_VOLTAGE_MULT)
-#define INPUT_VOLTAGE_MIN_POWERDOWN       (11.5 * POWER_BATTERY_VOLTAGE_MULT)
+#define BATTERY_CHARGE_MIN_EMPTY          (0)
+#define INPUT_VOLTAGE_MIN_POWERDOWN       (10.5 * POWER_BATTERY_VOLTAGE_MULT)
 
 #endif

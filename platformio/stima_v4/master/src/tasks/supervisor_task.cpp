@@ -253,7 +253,7 @@ void SupervisorTask::Run()
           (param.system_status->command.do_http_firmware_download)) {
         // ? External or internal request command strart connection
         // New data to send are syncronized with add new data (report_s time at data acquire)...
-        // If config_empty ( Start connection every hour... )
+        // If config_empty ( Also start connection every report_s... )
         if((param.system_status->flags.new_start_connect) ||
             (param.system_status->command.do_ntp_synchronization) ||
             (param.system_status->command.do_http_configuration_update) ||

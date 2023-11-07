@@ -52,7 +52,7 @@
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (4)
+#define MODULE_MINOR_VERSION  (5)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
@@ -209,9 +209,8 @@
 #define USE_RPC_METHOD_PREPANDGET   (false)
 #define USE_RPC_METHOD_TEST         (false)
 
-// Disable for DEBUG
+// Disable reboot for DEBUG
 #define ENABLE_RPC_LOCAL_REBOOT     (true)
-#define MAXLEN_RPC_RESPONSE         (80)
 
 /*!
 \def USE_CONSTANTDATA_COUNT

@@ -195,8 +195,9 @@ void MqttTask::Run()
 
     case MQTT_STATE_CONNECT:
 
-      // Reset rpc_response buffer
+      // Reset entire buffer rpc_response
       memset(rpc_response, 0, sizeof(rpc_response));
+      rpc_response_index = 0;
 
       error = mqttClientInit(&mqttClientContext);
       if (error)
@@ -502,13 +503,18 @@ void MqttTask::Run()
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
 
-          // Loop publish response to MQTT RPC (if request->response executed)
-          if(strlen(rpc_response)) {
-            TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
-            mqttClientPublish(&mqttClientContext, topic_rpc_response, rpc_response, strlen(rpc_response), qos, false, NULL);
-            TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-            // Reset response. Ready for next request
+          // External publish response RPC ququed to MQTT (if one or more request->response executed)
+          if(rpc_response_index) {
+            for(uint8_t rpcIdx = 0; rpcIdx < rpc_response_index; rpcIdx++) {
+              if(strlen(rpc_response[rpcIdx])) {
+                TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+                mqttClientPublish(&mqttClientContext, topic_rpc_response, rpc_response[rpcIdx], strlen(rpc_response[rpcIdx]), qos, false, NULL);
+                TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+              }
+            }
+            // Reset entire buffer rpc_response
             memset(rpc_response, 0, sizeof(rpc_response));
+            rpc_response_index = 0;
           }
 
           // SD have to GET Ready before Push DATA alert if not SD Ready or present into system_status
@@ -3195,37 +3201,47 @@ void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *top
 {
   task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)
   bool is_event_rpc = true;
+  bool is_event_executed = false;
   char rpc_message[255] = {0};
 
   memcpy(rpc_message, (void*)message, length);
  
   TRACE_INFO_F(F("MQTT packet received...\r\n"));
-  TRACE_INFO_F(F("Dup: %u\r\n"), dup);
-  TRACE_INFO_F(F("QoS: %u\r\n"), qos);
-  TRACE_INFO_F(F("Retain: %u\r\n"), retain);
-  TRACE_INFO_F(F("Packet Identifier: %u\r\n"), packetId);
+  TRACE_VERBOSE_F(F("Dup: %u\r\n"), dup);
+  TRACE_VERBOSE_F(F("QoS: %u\r\n"), qos);
+  TRACE_VERBOSE_F(F("Retain: %u\r\n"), retain);
+  TRACE_VERBOSE_F(F("Packet Identifier: %u\r\n"), packetId);
   TRACE_INFO_F(F("Message (%" PRIuSIZE " bytes):\r\n"), length);
   TRACE_INFO_F(F("%s %s\r\n"), topic, rpc_message);
 
-  memset(rpc_response, 0, sizeof(rpc_response));
-
-  localStreamRpc->init();
-  if (localRpcLock->Take())
-  {
-    while (is_event_rpc)
+  // Is response buffer avaiable?
+  if (rpc_response_index < MQTT_TASK_QUEUE_RPC_RESP_ELEMENT) {
+    // Clear single quque (current) element. Need to reset an older event not completed...
+    memset(rpc_response[rpc_response_index], 0, MQTT_TASK_QUEUE_RPC_RESP_LENGTH);
+    localStreamRpc->init();
+    if (localRpcLock->Take())
     {
-      // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
-      // Return to previous state on END of RPC Call execution
-      old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
-      localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
-      // Charge message of Response. Need to externalize sending Message
-      localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response, MAXLEN_RPC_RESPONSE, RPC_TYPE_HTTPS);
-      localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
-      localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
-      // Need Waiting Task for execute RPC call on Object module RPC. External TASK
-      vTaskDelay(100);
+      while (is_event_rpc)
+      {
+        // Security lock task_flag for External Local TASK RPC (Need for risk of WDT Reset)
+        // Return to previous state on END of RPC Call execution
+        old_status_task_flag = localSystemStatus->tasks[LOCAL_TASK_ID].state;
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = task_flag::suspended;
+        // Charge message of Response. Need to externalize sending Message
+        localStreamRpc->parseCharpointer(&is_event_rpc, rpc_message, strlen(rpc_message), rpc_response[rpc_response_index], MQTT_TASK_QUEUE_RPC_RESP_LENGTH, RPC_TYPE_HTTPS);
+        localSystemStatus->tasks[LOCAL_TASK_ID].state = old_status_task_flag;
+        localSystemStatus->tasks[LOCAL_TASK_ID].watch_dog = wdt_flag::set;
+        // Run event executed
+        is_event_executed = true;
+        // Need Waiting Task for execute RPC call on Object module RPC. External TASK
+        vTaskDelay(100);
+      }
+      localRpcLock->Give();
     }
-    localRpcLock->Give();
+    // Check limit overflow buffered for next response (only if event are executed)
+    if(is_event_executed) rpc_response_index++;
+  } else {
+    TRACE_INFO_F(F("MQTT response RPC buffer full, command ignored...\r\n"));
   }
 }
 

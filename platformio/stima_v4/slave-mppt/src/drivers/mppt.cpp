@@ -31,6 +31,7 @@
 /// @brief Constructor base
 Mppt::Mppt()
 {
+  last_P_CHG_Check = 0;
 }
 
 /// @brief Constructor Overload Wire && Semaphore
@@ -188,6 +189,15 @@ float Mppt::get_P_CHG(bool *is_ok) {
     else if(vBatt>11.50) { pChg = 14.54347826 + ((vBatt - 11.50) * 11.82241949); }
     else if(vBatt>11.15) { pChg = 9.713518356 + ((vBatt - 11.15) * 16.09986635); }
     else if(vBatt>10.85) { pChg = 4.838709677 + ((vBatt - 10.85) * 13.9280248); }
+  }
+  // Exit 0.0 Condition when attach a battery or when start power battery charge
+  if(pChg > 0.0) {
+    if(last_P_CHG_Check < PCHG_CLEAR_ATTEMPT) {
+      pChg = 0.0;
+      last_P_CHG_Check++;
+    }
+  } else {
+    last_P_CHG_Check = 0;
   }
   return pChg;
 }
