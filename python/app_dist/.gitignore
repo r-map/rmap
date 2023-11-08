@@ -1,4 +1,7 @@
 /build
 /cache
 /dist
+/doc
+/global_static/
+/rmap-core_app/dist/
 *.egg-info
