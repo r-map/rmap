@@ -107,22 +107,22 @@ class StationForm(forms.Form):
     def __init__(self, username, *args, **kwargs):
 
         super(StationForm, self).__init__(*args, **kwargs)
-        self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
+        self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=_('Your station'),help_text=_('Select configurated station'),initial="")
 
 
 class TimeElapsedForm(forms.Form):
 
-    timeelapsedchoices=[(0,__("now")),
-                        (-1,__("observed 1 our before")),
-                        (-2,__("observed 2 hours before")),
-                        (-3,__("observed 3 hours before")),
-                        (-4,__("observed 4 hours before")),
-                        (-5,__("observed 5 hours before")),
-                        (-6,__("observed 6 hours before"))]
+    timeelapsedchoices=[(0,_("now")),
+                        (-1,_("observed 1 our before")),
+                        (-2,_("observed 2 hours before")),
+                        (-3,_("observed 3 hours before")),
+                        (-4,_("observed 4 hours before")),
+                        (-5,_("observed 5 hours before")),
+                        (-6,_("observed 6 hours before"))]
     
     timeelapsed = forms.ChoiceField(choices=timeelapsedchoices,
-                                    required=True,label=__('Time elapsed'),
-                                    help_text=__('Time elapsed from observation time'),
+                                    required=True,label=_('Time elapsed'),
+                                    help_text=_('Time elapsed from observation time'),
                                     initial="0")
 
 class ManualForm(forms.ModelForm):
@@ -131,13 +131,13 @@ class ManualForm(forms.ModelForm):
 
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     
-    visibility=forms.IntegerField(required=False,label=__("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
-    snow_height=forms.IntegerField(required=False,label=__("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
+    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.language_code = kwargs["language_code"]
-        self.fields["presentweather"]=forms.ChoiceField(choices=scelta_present_weather(self.language_code),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
+        self.fields["presentweather"]=forms.ChoiceField(choices=scelta_present_weather(self.language_code),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
@@ -171,7 +171,7 @@ class RainboImpactForm(forms.ModelForm):
 
 
 class NominatimForm(forms.Form):
-    address= forms.CharField(required=False,label=__("Search address"),help_text='')
+    address= forms.CharField(required=False,label=_("Search address"),help_text=_("Insert street, city,country, state"))
 
 
 
@@ -197,12 +197,12 @@ class NewStationForm(forms.Form):
         CHOICES.append((sta.slug,sta.slug))
     
     #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
+    name= forms.CharField(required=True,label=_("New station name"),help_text=_('The name of the station to insert'))
     #coordinate = coordinateField(required=True,label=_('longitude,Latitude'),help_text=_('Longitude,Latitude'))
     latitude = forms.DecimalField(required=True,label=_('Latitude'),help_text=_('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
     longitude = forms.DecimalField(required=True,label=_('Longitude'),help_text=_('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
     height = forms.DecimalField(required=True,label=_('Station height (m.)'),help_text=_('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
-    template=forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
+    template=forms.ChoiceField(choices=CHOICES,required=True,label=_("Station model"),help_text=_('The model of the station to insert'),initial="none")
 
 #class transportMQTTForm(forms.Form):
 #    

@@ -1,0 +1,54 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-08 13:04+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: geoimage/models.py:53
+msgid "Active"
+msgstr ""
+
+#: geoimage/models.py:53
+msgid "Activate this geoimage"
+msgstr ""
+
+#: geoimage/templates/geoimage/georefencedimage_list.html:15
+msgid "Selected user"
+msgstr ""
+
+#: geoimage/templates/geoimage/georefencedimage_list.html:15
+msgid "Reset filter"
+msgstr ""
+
+#: geoimage/templates/geoimage/georefencedimage_list.html:45
+msgid "Submit"
+msgstr ""
+
+#: geoimage/views.py:17
+msgid "Starting date"
+msgstr ""
+
+#: geoimage/views.py:17
+msgid "Elaborate starting from this date"
+msgstr ""
+
+#: geoimage/views.py:19
+msgid "Ending date"
+msgstr ""
+
+#: geoimage/views.py:19
+msgid "Elaborate ending to this date"
+msgstr ""

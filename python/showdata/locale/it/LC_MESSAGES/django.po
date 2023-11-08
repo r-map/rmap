@@ -1,0 +1,132 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-08 13:04+0000\n"
+"PO-Revision-Date: 2023-11-08 14:26+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: showdata/templates/showdata/rainbospatialseries.html:112
+msgid "Observerd Impact"
+msgstr "Impatto osservato"
+
+#: showdata/templates/showdata/rainbospatialseries.html:120
+#: showdata/templates/showdata/rainbospatialseries.html:125
+#: showdata/templates/showdata/rainbospatialseries.html:130
+#: showdata/templates/showdata/rainbospatialseries.html:135
+#: showdata/templates/showdata/rainbospatialseries.html:140
+msgid "Present Weather"
+msgstr "Tempo presente"
+
+#: showdata/templates/showdata/rainbospatialseries.html:121
+msgid "Visibility Data"
+msgstr "Dati Visibilità"
+
+#: showdata/templates/showdata/rainbospatialseries.html:126
+msgid "Rain Data"
+msgstr "Dati Pioggia"
+
+#: showdata/templates/showdata/rainbospatialseries.html:131
+msgid "Snow Data"
+msgstr "Dati Neve"
+
+#: showdata/templates/showdata/rainbospatialseries.html:136
+msgid "Thunderstorm Data"
+msgstr "Dati Temporali"
+
+#: showdata/templates/showdata/rainbospatialseries.html:141
+msgid "Tornado Data"
+msgstr "Dati Tromba d'aria"
+
+#: showdata/templates/showdata/rainbospatialseries.html:159
+msgid "for day "
+msgstr "per il giorno "
+
+#: showdata/templates/showdata/rainbospatialseries.html:167
+#: showdata/templates/showdata/spatialseries.html:108
+#: showdata/templates/showdata/timeseries.html:49
+msgid "Prev"
+msgstr "Prima"
+
+#: showdata/templates/showdata/rainbospatialseries.html:172
+#: showdata/templates/showdata/spatialseries.html:113
+#: showdata/templates/showdata/timeseries.html:54
+msgid "Next"
+msgstr "Dopo"
+
+#: showdata/templates/showdata/rainbospatialseries.html:179
+#: showdata/templates/showdata/spatialseries.html:129
+#: showdata/templates/showdata/stationdata.html:92
+msgid "Loading data"
+msgstr "Caricamento dati"
+
+#: showdata/templates/showdata/rainbospatialseries.html:180
+#: showdata/templates/showdata/spatialseries.html:130
+#: showdata/templates/showdata/stationdata.html:93
+#: showdata/templates/showdata/stations.html:73
+msgid "Please wait ..."
+msgstr "Attendere per favore..."
+
+#: showdata/templates/showdata/rainbospatialseries.html:233
+#: showdata/templates/showdata/spatialseries.html:250
+#: showdata/templates/showdata/stationdata.html:161
+#: showdata/templates/showdata/stations.html:127
+msgid "Please Wait..."
+msgstr "Attendere per favore..."
+
+#: showdata/templates/showdata/spatialseries.html:100
+#: showdata/templates/showdata/timeseries.html:41
+msgid "More"
+msgstr "Di più"
+
+#: showdata/templates/showdata/spatialseries.html:121
+#: showdata/templates/showdata/timeseries.html:62
+msgid "Less"
+msgstr "Meno"
+
+#: showdata/templates/showdata/spatialseries.html:291
+msgid "Graph for mobile station"
+msgstr "Grafico per stazione mobile"
+
+#: showdata/templates/showdata/spatialseries.html:301
+msgid "Graph data for station"
+msgstr "Grafico per la stazione"
+
+#: showdata/templates/showdata/spatialseries.html:586
+msgid "Show all values on a map"
+msgstr "Mostra tutti i valori sulla mappa"
+
+#: showdata/templates/showdata/spatialseries.html:601
+msgid "Show all values on a graph"
+msgstr "Mostra tutti i valori in grafico"
+
+#: showdata/templates/showdata/spatialseries.html:614
+msgid "Show stations on a map"
+msgstr "Mostra le stazioni sulla mappa"
+
+#: showdata/templates/showdata/spatialseries.html:628
+#: showdata/templates/showdata/stationdata.html:406
+#: showdata/templates/showdata/stations.html:261
+#: showdata/templates/showdata/timeseries.html:116
+msgid "Download data"
+msgstr "Scarica i dati"
+
+#: showdata/templates/showdata/stationdata.html:396
+#: showdata/templates/showdata/stations.html:254
+msgid "Show all stations on a map"
+msgstr "Mostra tutte le stazioni sulla mappa"
+
+#: showdata/templates/showdata/timeseries.html:94
+msgid "Show values on a map"
+msgstr "Mostra valori sulla mappa"

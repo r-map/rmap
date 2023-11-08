@@ -108,16 +108,9 @@ class makemessages(Command):
         pass
 
     def run(self):
-
-        # rm build to do not duplicate messages
-        try:
-            shutil.rmtree("build")
-        except:
-            pass
-
         from django.core import management
-        management.call_command("makemessages",all=True)
-
+        management.call_command("makemessages",all=True,ignore=["build","app_dist","test","test_data"])
+                                
 
 class compilemessages(Command):
     description = "generate .mo files from .po"

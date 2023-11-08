@@ -1,0 +1,327 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-08 13:04+0000\n"
+"PO-Revision-Date: 2023-11-08 15:20+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:7
+#: insertdata/templates/insertdata/delstationform.html:7
+#: insertdata/templates/insertdata/form.html:13
+#: insertdata/templates/insertdata/manualdataform.html:14
+#: insertdata/templates/insertdata/newstationform.html:14
+#: insertdata/templates/insertdata/rainbodataform.html:16
+#: insertdata/templates/insertdata/stationmodifyform.html:7
+msgid "Invalid data; retry"
+msgstr "Dati invalidi; riprova"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:11
+#: insertdata/templates/insertdata/form.html:17
+#: insertdata/templates/insertdata/manualdataform.html:18
+#: insertdata/templates/insertdata/newstationform.html:22
+#: insertdata/templates/insertdata/rainbodataform.html:20
+#: insertdata/templates/insertdata/stationmodifyform.html:11
+msgid "Error on publish data; retry"
+msgstr "Errore pubblicando i dati; riprova"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:16
+msgid "Board chage completed successfully"
+msgstr "Modifica della board completata con successo"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:21
+msgid "Station"
+msgstr "Stazione"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:22
+#: insertdata/templates/insertdata/delstationform.html:30
+#: insertdata/templates/insertdata/stationmodifyform.html:24
+msgid "Cancel"
+msgstr "Annulla"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:40
+msgid "Modify board"
+msgstr "Modifica board"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:49
+msgid "Modify sensors"
+msgstr "Modifica sensori"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:55
+msgid "Modify sensor"
+msgstr "Modifica sensore"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:68
+msgid "Modify transport MQTT"
+msgstr "Modifica trasporto MQTT"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:77
+msgid "Modify transport TCPIP"
+msgstr "Modifica trasporto TCPIP"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:86
+msgid "Modify transport CAN"
+msgstr "Modifica trasporto CAN"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:95
+msgid "Modify transport AMQP"
+msgstr "Modifica trasporto AMQP"
+
+#: insertdata/templates/insertdata/boardmodifyform.html:102
+#: insertdata/templates/insertdata/form.html:51
+#: insertdata/templates/insertdata/manualdataform.html:50
+#: insertdata/templates/insertdata/newstationform.html:63
+#: insertdata/templates/insertdata/newstationform.html:71
+#: insertdata/templates/insertdata/rainbodataform.html:183
+#: insertdata/templates/insertdata/stationmodifyform.html:84
+msgid "Submit"
+msgstr "Invia"
+
+#: insertdata/templates/insertdata/delstationform.html:8
+#: insertdata/templates/insertdata/delstationform.html:23
+msgid "Return to station list"
+msgstr "Ritorna alla lista stazioni"
+
+#: insertdata/templates/insertdata/delstationform.html:12
+msgid "The station is not your own; cannot remove!"
+msgstr "La stazione non è tua; non puoi rimuoverla!"
+
+#: insertdata/templates/insertdata/delstationform.html:16
+msgid "Error deleting station; retry"
+msgstr "Errore nel cancellare la stazione; riprova"
+
+#: insertdata/templates/insertdata/delstationform.html:22
+msgid "Station removed"
+msgstr "Stazione rimossa"
+
+#: insertdata/templates/insertdata/delstationform.html:27
+msgid "Are you sure to delete station ?"
+msgstr "Sei sicuro di cancellare la stazione ?"
+
+#: insertdata/templates/insertdata/delstationform.html:33
+msgid "Remove"
+msgstr "Rimuovere"
+
+#: insertdata/templates/insertdata/form.html:20
+#: insertdata/templates/insertdata/manualdataform.html:24
+msgid "Select coordinates from your stations"
+msgstr "Seleziona le coordinate dalle tue stazioni"
+
+#: insertdata/templates/insertdata/form.html:28
+#: insertdata/templates/insertdata/form.html:40
+#: insertdata/templates/insertdata/manualdataform.html:30
+#: insertdata/templates/insertdata/manualdataform.html:40
+#: insertdata/templates/insertdata/newstationform.html:55
+msgid "Select"
+msgstr "Seleziona"
+
+#: insertdata/templates/insertdata/form.html:32
+#: insertdata/templates/insertdata/manualdataform.html:34
+#: insertdata/templates/insertdata/newstationform.html:49
+msgid "Select coordinate from address"
+msgstr "Seleziona le coordinate dall'indirizzo"
+
+#: insertdata/templates/insertdata/form.html:44
+msgid "Select coordinate from map and upload your image"
+msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
+
+#: insertdata/templates/insertdata/manualdataform.html:22
+msgid "OK, data published"
+msgstr "Ottimo, dati pubblicati"
+
+#: insertdata/templates/insertdata/manualdataform.html:44
+#: insertdata/templates/insertdata/rainbodataform.html:31
+msgid "Select coordinate from map and insert your actual data"
+msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
+
+#: insertdata/templates/insertdata/newstationform.html:18
+msgid "Duplicated station; an other station exist in the same place"
+msgstr "Stazione duplicata; un'altra stazione esiste nello stesso posto"
+
+#: insertdata/templates/insertdata/newstationform.html:27
+msgid "Station insert completed successfully"
+msgstr "Inserimento della stazione completato con successo"
+
+#: insertdata/templates/insertdata/newstationform.html:28
+msgid "User"
+msgstr "Utente"
+
+#: insertdata/templates/insertdata/newstationform.html:29
+msgid "Slug"
+msgstr "Slug (nome della risorsa)"
+
+#: insertdata/templates/insertdata/newstationform.html:31
+msgid "Save this private information and keep it confidential"
+msgstr "Salva questi dati privati e mantienili confidenziali"
+
+#: insertdata/templates/insertdata/newstationform.html:35
+msgid "Board"
+msgstr "Board"
+
+#: insertdata/templates/insertdata/newstationform.html:37
+msgid "mqtt password"
+msgstr "password mqtt"
+
+#: insertdata/templates/insertdata/newstationform.html:38
+msgid "mqtt pskkey"
+msgstr ""
+
+#: insertdata/templates/insertdata/newstationform.html:59
+msgid "Select coordinate from map"
+msgstr "Seleziona le coordinate dalla mappa"
+
+#: insertdata/templates/insertdata/newstationform.html:67
+msgid "Insert your new station"
+msgstr "Inserisci la tua nuova stazione"
+
+#: insertdata/templates/insertdata/rainbodataform.html:24
+msgid "Data succesfully added"
+msgstr "Dati aggiunti con successo"
+
+#: insertdata/templates/insertdata/rainbodataform.html:118
+msgid "No phenomenon in progress"
+msgstr "Nessun fenomeno in atto"
+
+#: insertdata/templates/insertdata/rainbodataform.html:125
+msgid "Visibility"
+msgstr "Visibilità"
+
+#: insertdata/templates/insertdata/rainbodataform.html:132
+msgid "Rain"
+msgstr "Pioggia"
+
+#: insertdata/templates/insertdata/rainbodataform.html:139
+msgid "Snow"
+msgstr "Neve"
+
+#: insertdata/templates/insertdata/rainbodataform.html:146
+msgid "Thunderstorm"
+msgstr "Temporale"
+
+#: insertdata/templates/insertdata/rainbodataform.html:153
+msgid "Tornado"
+msgstr "Tromba d'aria"
+
+#: insertdata/templates/insertdata/rainbodataform.html:170
+msgid "Impact type"
+msgstr "Tipo di impatto"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:16
+msgid "Station chage completed successfully"
+msgstr "Modifica della stazione completata con successo"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:23
+#: insertdata/templates/insertdata/stationmodifyform.html:57
+msgid "Modify station"
+msgstr "Modifica stazione"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:30
+msgid "Modify boards"
+msgstr "Modifica Boards"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:67
+msgid "Modify station constant data"
+msgstr "Modifica i dati costanti di stazione"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:73
+msgid "Modify constant data"
+msgstr "Modifica i dati costanti"
+
+#: insertdata/views.py:110
+msgid "Your station"
+msgstr "Tua stazione"
+
+#: insertdata/views.py:110
+msgid "Select configurated station"
+msgstr "Seleziona la stazione configurata"
+
+#: insertdata/views.py:115
+msgid "now"
+msgstr "adesso"
+
+#: insertdata/views.py:116
+msgid "observed 1 our before"
+msgstr "osservato 1 ora fa"
+
+#: insertdata/views.py:117
+msgid "observed 2 hours before"
+msgstr "osservato 2 ora fa"
+
+#: insertdata/views.py:118
+msgid "observed 3 hours before"
+msgstr "osservato 3 ora fa"
+
+#: insertdata/views.py:119
+msgid "observed 4 hours before"
+msgstr "osservato 4 ora fa"
+
+#: insertdata/views.py:120
+msgid "observed 5 hours before"
+msgstr "osservato 5 ora fa"
+
+#: insertdata/views.py:121
+msgid "observed 6 hours before"
+msgstr "osservato 6 ora fa"
+
+#: insertdata/views.py:124
+msgid "Time elapsed"
+msgstr "Tempo trascorso"
+
+#: insertdata/views.py:125
+msgid "Time elapsed from observation time"
+msgstr "Tempo trascorso dal momento dell'osservazione"
+
+#: insertdata/views.py:134
+msgid "Visibility(m.)"
+msgstr "Visibilità (m.)"
+
+#: insertdata/views.py:135
+msgid "Snow height(cm.)"
+msgstr "Altezza neve (cm.)"
+
+#: insertdata/views.py:140
+msgid "Present weather"
+msgstr "Tempo presente"
+
+#: insertdata/views.py:174
+msgid "Search address"
+msgstr "Indirizzo per la ricerca"
+
+#: insertdata/views.py:200
+msgid "New station name"
+msgstr "Nuovo nome stazione"
+
+#: insertdata/views.py:200
+msgid "The name of the station to insert"
+msgstr "Nome della stazione da inserire"
+
+#: insertdata/views.py:202
+msgid "Latitude"
+msgstr "Latitudine"
+
+#: insertdata/views.py:203
+msgid "Longitude"
+msgstr "Longitudine"
+
+#: insertdata/views.py:204
+msgid "Station height (m.)"
+msgstr "Altezza stazione (m)"
+
+#: insertdata/views.py:205
+msgid "Station model"
+msgstr "Modello stazione"
+
+#: insertdata/views.py:205
+msgid "The model of the station to insert"
+msgstr "Modello della stazione da inserire"
