@@ -72,6 +72,24 @@ class distclean(Command):
                     print('removing: %s' % join(root, name))
                     if not(self.dry_run): os.remove(join(root, name))
 
+        for root, dirs, files in os.walk('insertdata/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+
+        for root, dirs, files in os.walk('showdata/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+
+        for root, dirs, files in os.walk('geoimage/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+                    
         # remove all the .pyc files
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in files:
@@ -124,6 +142,7 @@ class compilemessages(Command):
         pass
 
     def run(self):
+        print("compile messages")
         from django.core import management
         management.call_command("compilemessages")
 
@@ -312,6 +331,10 @@ for dirpath, dirnames, filenames in os.walk('geoimage/static'):
     if filenames:
         for file in filenames:
             geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
+for dirpath, dirnames, filenames in os.walk('geoimage/locale'):
+    if filenames:
+        for file in filenames:
+            geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
 for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
     if filenames:
         for file in filenames:
@@ -328,11 +351,17 @@ for dirpath, dirnames, filenames in os.walk('insertdata/static'):
     if filenames:
         for file in filenames:
             insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
-                    
+
+for dirpath, dirnames, filenames in os.walk('insertdata/locale'):
+    if filenames:
+        for file in filenames:
+            insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
+            
 for dirpath, dirnames, filenames in os.walk('rmap/registration/locale'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap/registration'))
+
 for dirpath, dirnames, filenames in os.walk('rmap/registration/static'):
     if filenames:
         for file in filenames:
@@ -343,6 +372,11 @@ for dirpath, dirnames, filenames in os.walk('showdata/static'):
         for file in filenames:
             showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
 
+for dirpath, dirnames, filenames in os.walk('showdata/locale'):
+    if filenames:
+        for file in filenames:
+            showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
+            
 for dirpath, dirnames, filenames in os.walk('rainbo/static'):
     if filenames:
         for file in filenames:
