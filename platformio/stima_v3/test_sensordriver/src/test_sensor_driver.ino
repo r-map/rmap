@@ -179,7 +179,12 @@ void init_sensors () {
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
-  
+  #if (USE_SENSOR_DSR)
+  #include <registers-radiation.h>
+  address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSR, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif    
 }
 
 void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *driver = NULL, char *type = NULL, uint8_t address = 0, uint8_t node = 0, uint8_t *sensor_index = 0, uint32_t *wait_time = NULL) {
