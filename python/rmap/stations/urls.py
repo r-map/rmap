@@ -12,6 +12,7 @@ from rmap.stations.views import mystationmetadata_del
 from rmap.stations.views import mystation_localdata
 from rmap.stations.views import mystationmetadata_config
 from rmap.stations.views import mystationmetadata_configv3
+from rmap.stations.views import station_mqtt_monitor
 
 urlpatterns = [
 
@@ -44,7 +45,9 @@ urlpatterns = [
                        url(r'^stationstatus/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationstatus_detail ,name='mystationstatus-detail'),
 
-    
+                       url(r'^stationmqttmonitor/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
+                           station_mqtt_monitor ,name='station-mqtt-monitor'),
+
                        url(r'^stationsupload/json/$',
                            mystationmetadata_upload_json ,name='mystationmetadata-upload-json'),
     
