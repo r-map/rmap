@@ -1,0 +1,220 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2021, CC BY-SA 4.0, Arpae https://www.arpae.it
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-08 23:18+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:2
+msgid "Howto per Stima versione 3.2"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:4
+msgid ""
+"Le stazioni nella versione completa consentono la lettura , "
+"memorizzazione e invio dei seguenti sensori:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:7
+msgid "Anemometro GILL WINDOSONIC OPTION1"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:8
+msgid "Sensore Temperatura umidità basato sul sensore SHT35"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:9
+msgid "Pluviometro a bascula da 0.2mm"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:10
+msgid "Radiometro 0-1V 0-2000W/m2"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:11
+msgid "Batteria e pannello solare"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:13
+msgid "La soluzione prevista è quella mostrata in figura:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:15
+msgid "|image0|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:17
+msgid "Cioè si compone di 6 moduli che seguono:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:19
+msgid "Stima"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:20
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:35
+msgid "i2c-th"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:21
+msgid "i2c-Power"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:22
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:54
+msgid "i2c-radiation"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:23
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:62
+msgid "i2c-wind"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:24
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:70
+msgid "i2c-rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:27
+msgid "Master"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:29
+msgid ""
+"In figuralo schema di massima della pila Master con jumper e "
+"configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:32
+msgid "|image1|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:37
+msgid ""
+"In figura lo schema di massima della pila i2c-th con jumper e "
+"configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:40
+msgid "|image2|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:43
+msgid "i2c-power"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:45
+msgid ""
+"In figura lo schema di massima della pila i2c-power con jumper e "
+"configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:48
+msgid "|image3|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:50
+msgid ""
+"In particolare per la scheda ADC è prevista una modifica con taglio pista"
+" e la sostituzione delle resistenza R3 e R7 da 20k a 8.2k."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:56
+msgid ""
+"In figura lo schema di massima della pila i2c-radiation con jumper e "
+"configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:59
+msgid "|image4|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:64
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:72
+msgid ""
+"In figura lo schema di massima della pila i2c-wind con jumper e "
+"configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:67
+msgid "|image5|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:75
+msgid "|image6|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:78
+msgid "Schema di collegamento"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:80
+msgid "In figura è riportato lo schema di collegamento del quadro:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:82
+msgid "|image7|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:84
+msgid "Segue invece schema dettaglio della morsettiera di confine:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:86
+msgid "|image8|"
+msgstr ""
+
+#~ msgid "STAZIONI RMAP"
+#~ msgstr ""
+
+#~ msgid "Versione"
+#~ msgstr ""
+
+#~ msgid "Autore"
+#~ msgstr ""
+
+#~ msgid "Data"
+#~ msgstr ""
+
+#~ msgid "1.0"
+#~ msgstr ""
+
+#~ msgid "Alessio Valgimigli"
+#~ msgstr ""
+
+#~ msgid "03/11/2023"
+#~ msgstr ""
+
+#~ msgid "\\"
+#~ msgstr ""
+
+#~ msgid "[TOC]"
+#~ msgstr ""
+
+#~ msgid "Stazioni di monitoraggio"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Le stazioni oggetto della fornitura "
+#~ "consentono la lettura , memorizzazione e"
+#~ " invio dei seguenti sensori:"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "In figuralo schema di massima della "
+#~ "pila Stima con jumper e configurazione:"
+#~ msgstr ""
+
