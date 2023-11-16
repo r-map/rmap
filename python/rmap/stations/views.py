@@ -146,6 +146,7 @@ def station_mqtt_monitor(request,user,slug):
                                         ,"mqtt_root_topic":mqtt_root_topic
                                         ,"mqtt_maint_topic":mqtt_maint_topic
                                         ,"mqtt_rpc_topic":mqtt_rpc_topic
+                                        ,"report_seconds":report_seconds
                                         ,"stationmetadata":mystation})
                         
                 except ObjectDoesNotExist:
