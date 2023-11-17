@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% load status_manager %}
+
+{% block extra_assets %}
+
+<!-- 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js" type="text/javascript"></script>
+ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+
+<script type = "text/javascript">
+  
+  function onConnectionLost(errorCode,errorMessage){
+      console.log("connection lost "+errorMessage );
+      document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status_messages").innerHTML +="; Connection Lost: "+errorMessage;
+      connected_flag=0;
+  }
+  function onFailure(message) {
+      console.log("Failed");
+      document.getElementById("status_messages").innerHTML += "; Connection Failed- Retrying";
+      setTimeout(MQTTconnect, reconnectTimeout);
+      connected_flag=0;
+  }
+  function onMessageArrived(r_message){
+      out_msg="<b>";
+      out_msg+="Topic: "+r_message.destinationName;
+      out_msg+=" Payload: "+r_message.payloadString +"<br/>";
+      out_msg+="</b>";
+      
+      console.log(out_msg);
+      try{
+	  document.getElementById("out_messages").innerHTML+=out_msg;
+      }
+      catch(err){
+	  document.getElementById("out_messages").innerHTML=err.message;
+      }
+      
+      if (row==500){
+	  row=1;
+	  document.getElementById("out_messages").innerHTML=out_msg;
+      }
+      else
+	  row+=1;
+      
+      mcount+=1;
+      console.log(mcount+"  "+row);
+  }
+  
+  function onConnected(recon,url){
+      console.log(" in onConnected " +reconn);
+  }
+  function onConnect() {
+      // Once a connection has been made, make a subscription.
+      document.getElementById("status_messages").innerHTML +="; Connected to "+host +" on port "+port;
+      connected_flag=1;
+      document.getElementById("status").innerHTML = "Connection Status: Connected";
+      console.log("in onConnect");
+      document.getElementById("out_messages").innerHTML="";
+      sub_topics(root_topic);
+      sub_topics(maint_topic);
+      sub_topics(rpc_topic);
+  }
+  function disconnect()
+  {
+      if (connected_flag==1)
+	  mqtt.disconnect();
+  }
+
+  function MQTTconnect() {
+            
+      disconnect();
+      document.getElementById("status_messages").innerHTML ="";
+      console.log("connecting to "+ host +" "+ port +"clean session="+clean_sessions);
+      console.log("user "+username);
+      document.getElementById("status_messages").innerHTML+='Connecting';
+      //document.write("connecting to "+ host);
+
+      var x=Math.floor(Math.random() * 10000); 
+      var clientid="mqtt_websocket_monitor-"+x;
+      mqtt = new Paho.MQTT.Client(host,port,clientid);
+
+      var options = {
+	  useSSL: true,
+	  userName: username,
+	  password: password,
+	  mqttVersion: 4,
+          //timeout: 10000,
+	  cleanSession: clean_sessions,
+	  onSuccess: onConnect,
+	  onFailure: onFailure,
+	  
+      };
+      
+      mqtt.onConnectionLost = onConnectionLost;
+      mqtt.onMessageArrived = onMessageArrived;
+      mqtt.onConnected = onConnected;
+      
+      mqtt.connect(options);
+      return false;
+  }
+
+  function onSubcribeSuccess (){
+      console.log("subscribe success");
+      document.getElementById("status_messages").innerHTML += "; Success subscribing";
+  }
+  
+  function onSubcribeFailure (){
+      console.log("subscribe failure");
+      document.getElementById("status_messages").innerHTML += "; Failure subscribing";
+      disconnect();
+  }
+  
+  function sub_topics(stopic){
+      if (connected_flag==0){
+	  out_msg="<b>Not Connected so can't subscribe</b>"
+	  console.log(out_msg);
+	  document.getElementById("status_messages").innerHTML += out_msg;
+	  //return false;
+      }
+      var sqos=0;
+      console.log("Subscribing to topic ="+stopic +" QOS " +sqos);
+      document.getElementById("status_messages").innerHTML += "; Subscribing to topic ="+stopic;
+      var soptions={
+	  qos:sqos,
+	  onSuccess:onSubcribeSuccess,
+	  onFailure:onSubcribeFailure
+      };
+      mqtt.subscribe(stopic,soptions);
+      //return false;
+  }
+  
+  </script>
+
+<style>
+  #status_messages
+  {
+      background-color:yellow;
+      font-size:3;
+      font-weight:bold;
+      line-height:140%;
+  }
+  #status
+  {
+      background-color:red;
+      font-size:4;
+      font-weight:bold;
+      color:white;
+      line-height:140%;
+  }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<section id="main_content">
+  
+<h2>{% trans 'Station name' %}: {{ stationmetadata.name }}     {% trans 'Data level:' %} {{ stationmetadata.mqttrootpath }}  {% trans 'Report period:' %} {{ report_seconds }}s</h2>
+
+
+<div id="status">Connection Status: Not Connected</div>
+
+<br>
+<table>
+  <tr>
+    
+    <td id="connect" width="300" >
+      
+      <form name="connform" action="" onsubmit="return MQTTconnect()">    
+	<input name="conn" type="submit" value="Connect">
+	<input TYPE="button" name="discon " value="DisConnect" onclick="disconnect()">
+      </form>
+      
+    </td>
+  </tr>
+</table>
+
+Status Messages:
+<div id="status_messages">
+</div>
+
+Received Messages:
+<div id="out_messages">
+</div>
+
+<script>
+
+  var host="{{ mqtt_host }}";
+  var username="{{ mqtt_username }}";
+  var password="{{ mqtt_password }}";
+  var root_topic= "{{ mqtt_root_topic }}"+"#";
+  var maint_topic= "{{ mqtt_maint_topic }}"+"#";
+  var rpc_topic= "{{ mqtt_rpc_topic }}"+"#";
+
+  var port=5925;
+  var clean_sessions=true;
+  var connected_flag=0	
+  var reconnectTimeout = 5000;  
+  var row=0;
+  var out_msg="";
+  var mcount=0;
+  var mqtt;
+
+</script>
+
+{% endblock %}

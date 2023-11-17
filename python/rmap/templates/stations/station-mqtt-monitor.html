@@ -5,30 +5,148 @@
 
 {% block extra_assets %}
 
-<!-- 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js" type="text/javascript"></script>
- -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
-
+<script src="https://unpkg.com/mqtt/dist/mqtt.js"></script>
 <script type = "text/javascript">
+
+  //console.log(mqtt);
+
+  /***
+   * Browser
+   * This document explains how to use MQTT over WebSocket with the ws and wss protocols.
+   * EMQX's default port for ws connection is 8083 and for wss connection is 8084.
+   * Note that you need to add a path after the connection address, such as /mqtt.
+   */
+  const url = 'wss://{{ mqtt_host }}:5925/mqtt'
+
+  var username="{{ mqtt_username }}";
+  var password="{{ mqtt_password }}";
+
+  var root_topic= "{{ mqtt_root_topic }}"+"#";
+  var maint_topic= "{{ mqtt_maint_topic }}"+"#";
+  var rpc_topic= "{{ mqtt_rpc_topic }}"+"#";
+
+  var row=0;
+  var out_msg="";
+  var mcount=0;
+  var x=Math.floor(Math.random() * 10000); 
+  var clientid="mqtt_websocket_monitor-"+x;
+  var first_connect = true;
+
+
+var buttonstate=0;
+function onoff(element) {
+    buttonstate= 1 - buttonstate;
+    var blabel, bclass;
+    if(buttonstate) {
+	blabel="Disconnect";
+	bclass="btn btn-success";
+	MQTTconnect();
+    } else {
+	blabel="Connect";
+	bclass="btn btn-primary";
+	MQTTdisconnect();
+    }
+    var child=element.firstChild;
+    child.className=bclass;
+    child.innerHTML=blabel;
+}
+
+  // Create an MQTT client instance
+  const options = {
+      // Clean session
+      clean: true,
+      connectTimeout: 30000,
+      // Authentication
+      clientId: clientid,
+      username: username,
+      password: password,
+      manualConnect:true,
+      reconnectPeriod: 0
+  }
+  const client  = mqtt.connect(url, options);
+
+  function MQTTconnect() {
+      console.log('Connecting')
+      document.getElementById("status_messages").innerHTML ="Connecting to "+"{{ mqtt_host }}";
+      if (first_connect) {
+	  first_connect = false;
+	  client.connect();
+      }else{
+	  client.reconnect();
+      }
+      return false;
+  }
+
+  function MQTTdisconnect() {
+      console.log('DisConnecting')
+      client.end();
+      return false;
+  }
   
-  function onConnectionLost(errorCode,errorMessage){
-      console.log("connection lost "+errorMessage );
+  client.on('connect', function () {
+      console.log('Connected')
+
+      document.getElementById("status_messages").innerHTML +="; Connected";
+      document.getElementById("status").innerHTML = "Connection Status: Connected";
+      document.getElementById("out_messages").innerHTML="";
+      
+      // Subscribe to root_topic topic
+      client.subscribe(root_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+root_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+root_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+root_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+root_topic;
+	  }
+      })
+      // Subscribe to maint topic
+      client.subscribe(maint_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+maint_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+maint_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+maint_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+maint_topic;
+	  }
+      })
+      // Subscribe to rpc topic
+      client.subscribe(maint_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+rpc_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+rpc_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+rpc_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+rpc_topic;
+	  }
+      })
+      
+  })
+
+  client.on('disconnect', function (packet) {
+      console.log("disconnected")
       document.getElementById("status").innerHTML = "Connection Status: Not Connected";
-      document.getElementById("status_messages").innerHTML +="; Connection Lost: "+errorMessage;
-      connected_flag=0;
-  }
-  function onFailure(message) {
-      console.log("Failed");
-      document.getElementById("status_messages").innerHTML += "; Connection Failed- Retrying";
-      setTimeout(MQTTconnect, reconnectTimeout);
-      connected_flag=0;
-  }
-  function onMessageArrived(r_message){
+      document.getElementById("status_messages").innerHTML +="; Connection Lost";      
+  })
+
+  client.on('close', function () {
+      console.log("disconnected")
+      document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status_messages").innerHTML +="; DisConnection";      
+  })
+  
+  // Receive messages
+  client.on('message', function (topic, message) {
+	  // message is Buffer
+
+      payload=message.toString();
+      
       out_msg="<b>";
-      out_msg+="Topic: "+r_message.destinationName;
-      out_msg+=" Payload: "+r_message.payloadString +"<br/>";
+      out_msg+="Topic: "+topic;
+      out_msg+=" Payload: "+payload +"<br/>";
       out_msg+="</b>";
       
       console.log(out_msg);
@@ -48,91 +166,16 @@
       
       mcount+=1;
       console.log(mcount+"  "+row);
-  }
-  
-  function onConnected(recon,url){
-      console.log(" in onConnected " +reconn);
-  }
-  function onConnect() {
-      // Once a connection has been made, make a subscription.
-      document.getElementById("status_messages").innerHTML +="; Connected to "+host +" on port "+port;
-      connected_flag=1;
-      document.getElementById("status").innerHTML = "Connection Status: Connected";
-      console.log("in onConnect");
-      sub_topics(root_topic);
-      sub_topics(maint_topic);
-      sub_topics(rpc_topic);
-  }
-  function disconnect()
-  {
-      if (connected_flag==1)
-	  mqtt.disconnect();
-  }
 
-  function MQTTconnect() {
-            
-      disconnect();
-      document.getElementById("status_messages").innerHTML ="";
-      console.log("connecting to "+ host +" "+ port +"clean session="+clean_sessions);
-      console.log("user "+username);
-      document.getElementById("status_messages").innerHTML+='Connecting';
-      //document.write("connecting to "+ host);
-
-      var x=Math.floor(Math.random() * 10000); 
-      var clientid="mqtt_websocket_monitor-"+x;
-      mqtt = new Paho.MQTT.Client(host,port,clientid);
-
-      var options = {
-	  useSSL: true,
-	  userName: username,
-	  password: password,
-	  mqttVersion: 4,
-          //timeout: 10000,
-	  cleanSession: clean_sessions,
-	  onSuccess: onConnect,
-	  onFailure: onFailure,
-	  
-      };
-      
-      mqtt.onConnectionLost = onConnectionLost;
-      mqtt.onMessageArrived = onMessageArrived;
-      mqtt.onConnected = onConnected;
-      
-      mqtt.connect(options);
-      return false;
-  }
-
-  function onSubcribeSuccess (){
-      console.log("subscribe success");
-      document.getElementById("status_messages").innerHTML += "; Success subscribing";
-  }
+  })
   
-  function onSubcribeFailure (){
-      console.log("subscribe failure");
-      document.getElementById("status_messages").innerHTML += "; Failure subscribing";
-      disconnect();
-  }
+  client.on('error', function (error) {
+      console.log(error)
+      document.getElementById("status_messages").innerHTML +="; Error: "+error;
+  })
   
-  function sub_topics(stopic){
-      if (connected_flag==0){
-	  out_msg="<b>Not Connected so can't subscribe</b>"
-	  console.log(out_msg);
-	  document.getElementById("status_messages").innerHTML += out_msg;
-	  //return false;
-      }
-      var sqos=0;
-      console.log("Subscribing to topic ="+stopic +" QOS " +sqos);
-      document.getElementById("status_messages").innerHTML += "; Subscribing to topic ="+stopic;
-      var soptions={
-	  qos:sqos,
-	  onSuccess:onSubcribeSuccess,
-	  onFailure:onSubcribeFailure
-      };
-      mqtt.subscribe(stopic,soptions);
-      //return false;
-  }
-  
-  </script>
+
+</script>
 
 <style>
   #status_messages
@@ -163,20 +206,9 @@
 
 <div id="status">Connection Status: Not Connected</div>
 
-<br>
-<table>
-  <tr>
-    
-    <td id="connect" width="300" >
-      
-      <form name="connform" action="" onsubmit="return MQTTconnect()">    
-	<input name="conn" type="submit" value="Connect">
-	<input TYPE="button" name="discon " value="DisConnect" onclick="disconnect()">
-      </form>
-      
-    </td>
-  </tr>
-</table>
+<div id="buttonconnect">
+<button class="btn btn-primary" onclick="onoff(this)"><div>Connect</div></button>
+</div>
 
 Status Messages:
 <div id="status_messages">
@@ -185,25 +217,5 @@ Status Messages:
 Received Messages:
 <div id="out_messages">
 </div>
-
-<script>
-
-  var host="{{ mqtt_host }}";
-  var username="{{ mqtt_username }}";
-  var password="{{ mqtt_password }}";
-  var root_topic= "{{ mqtt_root_topic }}"+"#";
-  var maint_topic= "{{ mqtt_maint_topic }}"+"#";
-  var rpc_topic= "{{ mqtt_rpc_topic }}"+"#";
-
-  var port=5925;
-  var clean_sessions=true;
-  var connected_flag=0	
-  var reconnectTimeout = 5000;  
-  var row=0;
-  var out_msg="";
-  var mcount=0;
-  var mqtt;
-
-</script>
 
 {% endblock %}
