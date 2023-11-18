@@ -1397,6 +1397,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
         {"import": 'ticket',                         "apps": ('ticket'   ,)},
         {"import": 'rpc',                            "apps": ('rpc'   ,)},
+        {"import": 'hijack',                         "apps": ('hijack','hijack.contrib.admin')   ,"middleware":((99,'hijack.middleware.HijackUserMiddleware'),)},
     )
 
     # Set up each optional app if available.

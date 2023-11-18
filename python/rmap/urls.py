@@ -9,6 +9,7 @@ import django.views
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 import traceback
+from django.urls import include, path
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -141,6 +142,15 @@ if not android  :
         print("Warning: rpc disabled")
         print(e)
         print(traceback.format_exc())
+
+    try:
+        urlpatterns += [
+            path('hijack/', include('hijack.urls')),
+        ]
+    except Exception as e:
+        print("Warning: hijack disabled")
+        print(e)
+        print(traceback.format_exc())       
         
 if ( settings.SERVE_STATIC ):
 #serve local static files
@@ -157,3 +167,4 @@ if ( settings.SERVE_STATIC ):
 
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
     urlpatterns += staticfiles_urlpatterns()
+
