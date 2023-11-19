@@ -1,6 +1,6 @@
 %define srcname rmap-core
-%define version 12.3
-%define release 8
+%define version 16.0
+%define release 2
 
 Summary: rete monitoraggio ambientale partecipativo
 Name: python3-%{srcname}
@@ -19,6 +19,7 @@ BuildRequires: help2man  python3-numpy python3-paho-mqtt
 Requires: (python3-django < 3.0.0) python3-configobj
 Requires: python3-django-imagekit python3-pilkit python3-dballe
 Requires: python3-django-appconf python3-paho-mqtt python3-requests
+Requires: python3-sslpsk
 #Requires:corsheaders
 #autoreq: yes
 

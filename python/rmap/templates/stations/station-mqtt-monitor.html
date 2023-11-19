@@ -67,7 +67,7 @@ function onoff(element) {
 
   function MQTTconnect() {
       console.log('Connecting')
-      document.getElementById("status_messages").innerHTML ="Connecting to "+"{{ mqtt_host }}";
+      document.getElementById("status_messages").innerHTML ="Connecting to "+url;
       if (first_connect) {
 	  first_connect = false;
 	  client.connect();
@@ -88,6 +88,7 @@ function onoff(element) {
 
       document.getElementById("status_messages").innerHTML +="; Connected";
       document.getElementById("status").innerHTML = "Connection Status: Connected";
+      document.getElementById("status").style.backgroundColor = "green";
       document.getElementById("out_messages").innerHTML="";
       
       // Subscribe to root_topic topic
@@ -129,12 +130,14 @@ function onoff(element) {
   client.on('disconnect', function (packet) {
       console.log("disconnected")
       document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status").style.backgroundColor = "red";
       document.getElementById("status_messages").innerHTML +="; Connection Lost";      
   })
 
   client.on('close', function () {
       console.log("disconnected")
       document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status").style.backgroundColor = "gray";
       document.getElementById("status_messages").innerHTML +="; DisConnection";      
   })
   
@@ -187,7 +190,7 @@ function onoff(element) {
   }
   #status
   {
-      background-color:red;
+      background-color:gray;
       font-size:4;
       font-weight:bold;
       color:white;
