@@ -17,6 +17,16 @@
 <div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}
 
+{% if success  %}
+<div class="alert alert-success" role="alert">{% trans 'OK, data published' %}<br><button onclick="showImage()">{% trans 'Show data published' %}</button></div>
+<script>
+function showImage() {
+  var myWindow = window.open( "{% url 'geoimage-ident-id' user imageid %}", "{% trans 'My last image published' %}", "width=1024,height=900");
+}
+</script>
+
+{% endif %}
+
 <h3 id="striped-rows">{% trans 'If you are observing from a regular site select coordinates from your stations:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
@@ -47,6 +57,7 @@
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
 
         {{ form.as_p }}
+        {{ timeelapsedform.as_p }}
 
       <input type="submit" value={%trans "Submit" %} class="btn">
     </form>

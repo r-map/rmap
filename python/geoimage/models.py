@@ -61,7 +61,7 @@ class GeorefencedImage(models.Model):
 
     image = DeletingImageField(processors=[Transpose(),ResizeToFit(1024, 1024)],
                                           format='jpeg',
-                                          options={'quality': 70})
+                                          options={'quality': 70},help_text=ugettext_lazy("File with image"))
 
     image_thumbnail = ImageSpecField(
         source='image',
@@ -75,7 +75,7 @@ class GeorefencedImage(models.Model):
         return \
             '\
             <p>\
-            <a href="#" onClick="window.open(\'/geoimage/{}/{}\',\'geoimage\', \'width=800, height=620\').focus(); return false;" >\
+            <a href="#" onClick="window.open(\'/geoimage/{}/{}\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\
             </a>\
             {}\

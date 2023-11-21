@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-21 15:20+0000\n"
-"PO-Revision-Date: 2023-11-21 16:24+0100\n"
+"POT-Creation-Date: 2023-11-21 17:19+0000\n"
+"PO-Revision-Date: 2023-11-21 18:21+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -79,7 +79,7 @@ msgid "Modify transport AMQP"
 msgstr "Modifica trasporto AMQP"
 
 #: insertdata/templates/insertdata/boardmodifyform.html:102
-#: insertdata/templates/insertdata/form.html:51
+#: insertdata/templates/insertdata/form.html:62
 #: insertdata/templates/insertdata/manualdataform.html:50
 #: insertdata/templates/insertdata/newstationform.html:71
 #: insertdata/templates/insertdata/rainbodataform.html:183
@@ -112,7 +112,20 @@ msgstr "Sei sicuro di cancellare la stazione ?"
 msgid "Remove"
 msgstr "Rimuovere"
 
-#: insertdata/templates/insertdata/form.html:20
+#: insertdata/templates/insertdata/form.html:21
+#: insertdata/templates/insertdata/manualdataform.html:22
+msgid "OK, data published"
+msgstr "Ottimo, dati pubblicati"
+
+#: insertdata/templates/insertdata/form.html:21
+msgid "Show data published"
+msgstr "Mostra i dati pubblicati"
+
+#: insertdata/templates/insertdata/form.html:24
+msgid "My last image published"
+msgstr "La mia ultima immagine pubblicata"
+
+#: insertdata/templates/insertdata/form.html:30
 #: insertdata/templates/insertdata/manualdataform.html:24
 msgid ""
 "If you are observing from a regular site select coordinates from your "
@@ -121,8 +134,8 @@ msgstr ""
 "Se stai osservando da una postazione abituale seleziona le coordinate da una "
 "delle tue stazioni:"
 
-#: insertdata/templates/insertdata/form.html:28
-#: insertdata/templates/insertdata/form.html:40
+#: insertdata/templates/insertdata/form.html:38
+#: insertdata/templates/insertdata/form.html:50
 #: insertdata/templates/insertdata/manualdataform.html:30
 #: insertdata/templates/insertdata/manualdataform.html:40
 #: insertdata/templates/insertdata/newstationform.html:55
@@ -130,22 +143,18 @@ msgstr ""
 msgid "Select"
 msgstr "Seleziona"
 
-#: insertdata/templates/insertdata/form.html:32
+#: insertdata/templates/insertdata/form.html:42
 #: insertdata/templates/insertdata/manualdataform.html:34
 msgid "Or if you prefer select coordinate from address:"
 msgstr "Oppure se preferisci seleziona le coordinate dall'indirizzo:"
 
-#: insertdata/templates/insertdata/form.html:44
+#: insertdata/templates/insertdata/form.html:54
 msgid ""
 "If still necessary, select the coordinates from the map and then complete "
 "uploading your image:"
 msgstr ""
 "Se ancora necessario, seleziona le coordinate dalla mappa e completa "
 "caricando la tua immagine:"
-
-#: insertdata/templates/insertdata/manualdataform.html:22
-msgid "OK, data published"
-msgstr "Ottimo, dati pubblicati"
 
 #: insertdata/templates/insertdata/manualdataform.html:44
 msgid ""
@@ -256,7 +265,7 @@ msgstr "Modifica i dati costanti di stazione"
 msgid "Modify constant data"
 msgstr "Modifica i dati costanti"
 
-#: insertdata/views.py:115
+#: insertdata/views.py:116
 msgid "now"
 msgstr "adesso"
 

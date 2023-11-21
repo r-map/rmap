@@ -3,6 +3,7 @@ from geoimage.models import CATEGORY_CHOICES
 from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
@@ -220,6 +221,7 @@ def insertDataImage(request):
     if request.method == 'POST': # If the form has been submitted...
         stationform = StationForm(request.user.get_username(),request.POST, request.FILES) # A form bound to the POST data
         nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        timeelapsedform=TimeElapsedForm(request.POST) # A form bound to the POST data
         form = ImageForm(request.POST, request.FILES) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
@@ -231,12 +233,13 @@ def insertDataImage(request):
                 #stationlon=station.lon
                 POST=request.POST.copy()
                 POST['geom']= str(Point(station.lon,station.lat))
+                POST['coordinate_slug']= slug
                 stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
                 form = ImageForm(POST, request.FILES) # A form bound to the new data
-                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             stationform = StationForm(request.user.get_username())
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
 
         if nominatimform.is_valid(): # All validation rules pass
 
@@ -244,29 +247,31 @@ def insertDataImage(request):
             if address:
                 nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer= get_current_site(request).domain)
                 result=nom.query(address,limit=1,countrycodes="IT")
-                if len(result) >= 1:
+                if result is not None:
+                  if len(result) >= 1:
                     lat= result[0]["lat"]
                     lon= result[0]["lon"]
                     address= result[0]["display_name"]
                     POST=request.POST.copy()
                     POST['geom']= str(Point(float(lon),float(lat)))
                     POST['address']= address
-                    stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
                     nominatimform = NominatimForm(POST) # A form bound to the new data
+                    stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
                     form = ImageForm(POST, request.FILES) # A form bound to the new data
-                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             nominatimform = NominatimForm()
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
 
-        if form.is_valid(): # All validation rules pass
+        if form.is_valid() and timeelapsedform.is_valid(): # All validation rules pass
 
             if True:
                 from rmap import exifutils
                 comment=form.cleaned_data['comment']
+                timeelapsed=timeelapsedform.cleaned_data['timeelapsed']
                 geom=form.cleaned_data['geom']
                 image=request.FILES['image']
-                dt=datetime.utcnow().replace(microsecond=0)
+                dt=timezone.now().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
                 lon=geom['coordinates'][0]
                 lat=geom['coordinates'][1]
                 image=image.read()
@@ -333,18 +338,27 @@ def insertDataImage(request):
                                          exchange="photo",routing_key="photo")
 
             #return HttpResponseRedirect(reverse('geoimage-ident-id', args=[request.user.username,geoimage.pk]))
-            return HttpResponseRedirect(reverse('geoimage-ident', args=[request.user.username]))
+            #return HttpResponseRedirect(reverse('geoimage-ident', args=[request.user.username]))
 
+            stationform = StationForm(request.user.get_username()) # An unbound form
+            nominatimform = NominatimForm() # An unbound form
+            form = ImageForm() # An unbound form
+            timeelapsedform = TimeElapsedForm() # A form bound to the POST data
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform
+                                                           ,"success":True,"user":request.user.username,"imageid":geoimage.pk})
+        
         else:
 
             form = ImageForm() # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+            timeelapsedform = TimeElapsedForm()
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
 
     else:
             stationform = StationForm(request.user.get_username()) # An unbound form
             nominatimform = NominatimForm() # An unbound form
             form = ImageForm() # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+            timeelapsedform = TimeElapsedForm() # A form bound to the POST data
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
 
 @login_required
 def insertDataRainboImpactData(request):
@@ -355,7 +369,7 @@ def insertDataRainboImpactData(request):
             geom=form.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
-            dt=datetime.utcnow().replace(microsecond=0)
+            dt=timezone.now().replace(microsecond=0)
             username=request.user.username
             datavar={}
 
@@ -402,7 +416,7 @@ def insertDataRainboWeatherData(request):
             geom=form.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
-            dt=datetime.utcnow().replace(microsecond=0)
+            dt=timezone.now().replace(microsecond=0)
             username=request.user.username
             datavar={}
 
@@ -503,7 +517,7 @@ def insertDataManualData(request):
             geom=form.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
-            dt=datetime.utcnow().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
+            dt=timezone.now().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
             username=request.user.username
             board_slug="default"
             

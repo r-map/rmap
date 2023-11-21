@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-21 15:20+0000\n"
-"PO-Revision-Date: 2023-11-21 16:27+0100\n"
+"POT-Creation-Date: 2023-11-21 17:19+0000\n"
+"PO-Revision-Date: 2023-11-21 18:20+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -33,6 +33,10 @@ msgstr "Commento"
 msgid "Image description"
 msgstr "Descrizione dell'immagine"
 
+#: geoimage/models.py:64
+msgid "File with image"
+msgstr "File con immagine"
+
 #: geoimage/templates/geoimage/georefencedimage_list.html:15
 msgid "Selected user"
 msgstr "Seleziona utente"
@@ -45,18 +49,18 @@ msgstr "Annulla il filtro"
 msgid "Submit"
 msgstr "Invia"
 
-#: geoimage/views.py:17
+#: geoimage/views.py:18
 msgid "Starting date"
 msgstr "Data iniziale"
 
-#: geoimage/views.py:17
+#: geoimage/views.py:18
 msgid "Elaborate starting from this date"
 msgstr "L'elaborazione inizia da questa data"
 
-#: geoimage/views.py:19
+#: geoimage/views.py:20
 msgid "Ending date"
 msgstr "Data di termine"
 
-#: geoimage/views.py:19
+#: geoimage/views.py:20
 msgid "Elaborate ending to this date"
 msgstr "L'elaborazione termina a questa data"

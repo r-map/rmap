@@ -2,6 +2,7 @@ from .models import GeorefencedImage
 from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
+from django.utils import timezone
 from django.forms.widgets import SelectDateWidget
 from django.utils.translation import ugettext_lazy
 
@@ -34,7 +35,7 @@ def showImage(request,ident=None):
 
     else:
 
-        now=datetime.utcnow()
+        now=timezone.now()
         datetime_start=(now-timedelta(days=10))
         datetime_end=now
         form = ExtremeForm() # An unbound form
