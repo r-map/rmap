@@ -17,7 +17,7 @@
 <div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}
 
-<h3 id="striped-rows">{% trans 'Select coordinates from your stations' %}</h3>
+<h3 id="striped-rows">{% trans 'If you are observing from a regular site select coordinates from your stations:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
       <table class="table">
@@ -29,7 +29,7 @@
     </form>
    </div>
 
-<h3>{% trans 'Select coordinate from address' %}</h3>
+<h3>{% trans 'Or if you prefer select coordinate from address:' %}</h3>
    <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
       <table class="table">
@@ -41,7 +41,7 @@
     </form>
    </div>
 
-<h3 id="striped-rows">{% trans 'Select coordinate from map and upload your image' %}</h3>
+<h3 id="striped-rows">{% trans 'If still necessary, select the coordinates from the map and then complete uploading your image:' %}</h3>
 
    <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}

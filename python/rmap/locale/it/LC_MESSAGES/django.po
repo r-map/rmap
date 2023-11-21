@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-08 13:04+0000\n"
+"POT-Creation-Date: 2023-11-21 15:20+0000\n"
 "PO-Revision-Date: 2023-11-08 14:22+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
@@ -34,6 +34,8 @@ msgid "Password"
 msgstr ""
 
 #: rmap/form.py:32 rmap/templates/profile_details.html:18
+#: rmap/templates/stations/station-mqtt-monitor.html:207
+#: rmap/templates/stations/station-mqtt-monitor_paho_obsolete.html:162
 #: rmap/templates/stations/stationlocaldata.html:59
 #: rmap/templates/stations/stationmetadata_detail.html:22
 #: rmap/templates/stations/stationstatus_detail.html:70
@@ -868,7 +870,7 @@ msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 #: rmap/stations/models.py:597 rmap/stations/models.py:629
 #: rmap/stations/models.py:660 rmap/stations/models.py:720
 #: rmap/stations/models.py:865 rmap/stations/models.py:913
-#: rmap/stations/models.py:1102 rmap/templates/profile_details.html:45
+#: rmap/stations/models.py:1102 rmap/templates/profile_details.html:46
 #: rmap/templates/stations/stationlocaldata.html:65
 #: rmap/templates/stations/stationmetadata_detail.html:27
 #: rmap/templates/stations/stationstatus_detail.html:75
@@ -1497,7 +1499,7 @@ msgid "Here your station details"
 msgstr "Questi i dettagli stazione"
 
 #: rmap/templates/profile_details.html:20
-#: rmap/templates/profile_details.html:98
+#: rmap/templates/profile_details.html:99
 msgid "Delete"
 msgstr "Rimuovi"
 
@@ -1518,81 +1520,97 @@ msgid "Submit Remote Procedure Call"
 msgstr "Invia Remote Procedure Call"
 
 #: rmap/templates/profile_details.html:25
+msgid "Monitor MQTT"
+msgstr ""
+
+#: rmap/templates/profile_details.html:26
 msgid "Download configuration for Stima V3"
 msgstr "Scarica la configurazione per Stima V3"
 
-#: rmap/templates/profile_details.html:27
+#: rmap/templates/profile_details.html:28
 msgid "Reserved information"
 msgstr "Informazioni riservate"
 
-#: rmap/templates/profile_details.html:27
+#: rmap/templates/profile_details.html:28
 msgid "click over to open"
 msgstr "clicca sopra per aprire"
 
-#: rmap/templates/profile_details.html:46
+#: rmap/templates/profile_details.html:47
 #: rmap/templates/stations/stationlocaldata.html:66
 #: rmap/templates/stations/stationmetadata_detail.html:28
 #: rmap/templates/stations/stationstatus_detail.html:76
 msgid "User"
 msgstr "Utente"
 
-#: rmap/templates/profile_details.html:47
+#: rmap/templates/profile_details.html:48
 #: rmap/templates/stations/stationlocaldata.html:67
 #: rmap/templates/stations/stationmetadata_detail.html:29
 #: rmap/templates/stations/stationstatus_detail.html:77
 msgid "Lat"
 msgstr ""
 
-#: rmap/templates/profile_details.html:48
+#: rmap/templates/profile_details.html:49
 #: rmap/templates/stations/stationlocaldata.html:68
 #: rmap/templates/stations/stationmetadata_detail.html:30
 #: rmap/templates/stations/stationstatus_detail.html:78
 msgid "Lon"
 msgstr ""
 
-#: rmap/templates/profile_details.html:49
+#: rmap/templates/profile_details.html:50
 msgid "Locate"
 msgstr "Mappa"
 
-#: rmap/templates/profile_details.html:50
-#: rmap/templates/profile_details.html:78
+#: rmap/templates/profile_details.html:51
+#: rmap/templates/profile_details.html:79
 #: rmap/templates/stations/stationlocaldata.html:69
 #: rmap/templates/stations/stationmetadata_detail.html:31
 #: rmap/templates/stations/stationstatus_detail.html:79
 msgid "Category"
 msgstr "Categoria"
 
-#: rmap/templates/profile_details.html:70
+#: rmap/templates/profile_details.html:71
 msgid "Show station details"
 msgstr "Mostra i dettagli stazione"
 
-#: rmap/templates/profile_details.html:76
+#: rmap/templates/profile_details.html:77
 msgid "Comment"
 msgstr "Commento"
 
-#: rmap/templates/profile_details.html:77
+#: rmap/templates/profile_details.html:78
 msgid "Date"
 msgstr "Data"
 
-#: rmap/templates/profile_details.html:79
+#: rmap/templates/profile_details.html:80
 msgid "Image"
 msgstr "Immagine"
 
-#: rmap/templates/profile_details.html:80
+#: rmap/templates/profile_details.html:81
 msgid "Operation"
 msgstr "Operazione"
 
-#: rmap/templates/profile_details.html:105
+#: rmap/templates/profile_details.html:106
 msgid "No image yet."
 msgstr "Non ci sono ancora immagini."
 
-#: rmap/templates/profile_details.html:109
+#: rmap/templates/profile_details.html:110
 msgid "upload your station image"
 msgstr "Carica una immagine della stazione"
 
-#: rmap/templates/profile_details.html:116
+#: rmap/templates/profile_details.html:117
 msgid "Submit"
 msgstr "Invia"
+
+#: rmap/templates/stations/station-mqtt-monitor.html:207
+#: rmap/templates/stations/station-mqtt-monitor_paho_obsolete.html:162
+#: rmap/templates/stations/stationmetadata_detail.html:22
+#: rmap/templates/stations/stationstatus_detail.html:70
+msgid "Data level:"
+msgstr "Livello dati:"
+
+#: rmap/templates/stations/station-mqtt-monitor.html:207
+#: rmap/templates/stations/station-mqtt-monitor_paho_obsolete.html:162
+msgid "Report period:"
+msgstr ""
 
 #: rmap/templates/stations/stationlocaldata.html:60
 msgid "Comunication status with server"
@@ -1601,11 +1619,6 @@ msgstr "Stato comunicazione col server"
 #: rmap/templates/stations/stationlocaldata.html:90
 msgid "Last local station data"
 msgstr "Ultimi dati da stazione locale"
-
-#: rmap/templates/stations/stationmetadata_detail.html:22
-#: rmap/templates/stations/stationstatus_detail.html:70
-msgid "Data level:"
-msgstr "Livello dati:"
 
 #: rmap/templates/stations/stationmetadata_detail.html:52
 #: rmap/templates/stations/stationmetadata_list.html:29

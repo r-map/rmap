@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-08 13:04+0000\n"
-"PO-Revision-Date: 2023-11-08 15:20+0100\n"
+"POT-Creation-Date: 2023-11-21 15:20+0000\n"
+"PO-Revision-Date: 2023-11-21 16:24+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -81,7 +81,6 @@ msgstr "Modifica trasporto AMQP"
 #: insertdata/templates/insertdata/boardmodifyform.html:102
 #: insertdata/templates/insertdata/form.html:51
 #: insertdata/templates/insertdata/manualdataform.html:50
-#: insertdata/templates/insertdata/newstationform.html:63
 #: insertdata/templates/insertdata/newstationform.html:71
 #: insertdata/templates/insertdata/rainbodataform.html:183
 #: insertdata/templates/insertdata/stationmodifyform.html:84
@@ -115,35 +114,46 @@ msgstr "Rimuovere"
 
 #: insertdata/templates/insertdata/form.html:20
 #: insertdata/templates/insertdata/manualdataform.html:24
-msgid "Select coordinates from your stations"
-msgstr "Seleziona le coordinate dalle tue stazioni"
+msgid ""
+"If you are observing from a regular site select coordinates from your "
+"stations:"
+msgstr ""
+"Se stai osservando da una postazione abituale seleziona le coordinate da una "
+"delle tue stazioni:"
 
 #: insertdata/templates/insertdata/form.html:28
 #: insertdata/templates/insertdata/form.html:40
 #: insertdata/templates/insertdata/manualdataform.html:30
 #: insertdata/templates/insertdata/manualdataform.html:40
 #: insertdata/templates/insertdata/newstationform.html:55
+#: insertdata/templates/insertdata/newstationform.html:63
 msgid "Select"
 msgstr "Seleziona"
 
 #: insertdata/templates/insertdata/form.html:32
 #: insertdata/templates/insertdata/manualdataform.html:34
-#: insertdata/templates/insertdata/newstationform.html:49
-msgid "Select coordinate from address"
-msgstr "Seleziona le coordinate dall'indirizzo"
+msgid "Or if you prefer select coordinate from address:"
+msgstr "Oppure se preferisci seleziona le coordinate dall'indirizzo:"
 
 #: insertdata/templates/insertdata/form.html:44
-msgid "Select coordinate from map and upload your image"
-msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
+msgid ""
+"If still necessary, select the coordinates from the map and then complete "
+"uploading your image:"
+msgstr ""
+"Se ancora necessario, seleziona le coordinate dalla mappa e completa "
+"caricando la tua immagine:"
 
 #: insertdata/templates/insertdata/manualdataform.html:22
 msgid "OK, data published"
 msgstr "Ottimo, dati pubblicati"
 
 #: insertdata/templates/insertdata/manualdataform.html:44
-#: insertdata/templates/insertdata/rainbodataform.html:31
-msgid "Select coordinate from map and insert your actual data"
-msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
+msgid ""
+"If still necessary, select the coordinates from the map and then complete "
+"with your current data:"
+msgstr ""
+"Se ancora necessario, seleziona le coordinate dalla mappa e poi termina "
+"inserendo i tuo dati attuali:"
 
 #: insertdata/templates/insertdata/newstationform.html:18
 msgid "Duplicated station; an other station exist in the same place"
@@ -177,17 +187,25 @@ msgstr "password mqtt"
 msgid "mqtt pskkey"
 msgstr ""
 
+#: insertdata/templates/insertdata/newstationform.html:49
+msgid "If you prefer, select the coordinates from the address:"
+msgstr "Se preferisci, seleziona le coordinate dall'indirizzo:"
+
 #: insertdata/templates/insertdata/newstationform.html:59
-msgid "Select coordinate from map"
-msgstr "Seleziona le coordinate dalla mappa"
+msgid "Or select coordinate from map:"
+msgstr "Oppure seleziona le coordinate dalla mappa:"
 
 #: insertdata/templates/insertdata/newstationform.html:67
-msgid "Insert your new station"
-msgstr "Inserisci la tua nuova stazione"
+msgid "And finally, enter your new station:"
+msgstr "Termina inserendo la tua nuova stazione:"
 
 #: insertdata/templates/insertdata/rainbodataform.html:24
 msgid "Data succesfully added"
 msgstr "Dati aggiunti con successo"
+
+#: insertdata/templates/insertdata/rainbodataform.html:31
+msgid "Select coordinate from map and insert your actual data"
+msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 
 #: insertdata/templates/insertdata/rainbodataform.html:118
 msgid "No phenomenon in progress"
@@ -238,90 +256,69 @@ msgstr "Modifica i dati costanti di stazione"
 msgid "Modify constant data"
 msgstr "Modifica i dati costanti"
 
-#: insertdata/views.py:110
-msgid "Your station"
-msgstr "Tua stazione"
-
-#: insertdata/views.py:110
-msgid "Select configurated station"
-msgstr "Seleziona la stazione configurata"
-
 #: insertdata/views.py:115
 msgid "now"
 msgstr "adesso"
 
-#: insertdata/views.py:116
-msgid "observed 1 our before"
-msgstr "osservato 1 ora fa"
+#~ msgid "Your station"
+#~ msgstr "Tua stazione"
 
-#: insertdata/views.py:117
-msgid "observed 2 hours before"
-msgstr "osservato 2 ora fa"
+#~ msgid "Select configurated station"
+#~ msgstr "Seleziona la stazione configurata"
 
-#: insertdata/views.py:118
-msgid "observed 3 hours before"
-msgstr "osservato 3 ora fa"
+#~ msgid "observed 1 our before"
+#~ msgstr "osservato 1 ora fa"
 
-#: insertdata/views.py:119
-msgid "observed 4 hours before"
-msgstr "osservato 4 ora fa"
+#~ msgid "observed 2 hours before"
+#~ msgstr "osservato 2 ora fa"
 
-#: insertdata/views.py:120
-msgid "observed 5 hours before"
-msgstr "osservato 5 ora fa"
+#~ msgid "observed 3 hours before"
+#~ msgstr "osservato 3 ora fa"
 
-#: insertdata/views.py:121
-msgid "observed 6 hours before"
-msgstr "osservato 6 ora fa"
+#~ msgid "observed 4 hours before"
+#~ msgstr "osservato 4 ora fa"
 
-#: insertdata/views.py:124
-msgid "Time elapsed"
-msgstr "Tempo trascorso"
+#~ msgid "observed 5 hours before"
+#~ msgstr "osservato 5 ora fa"
 
-#: insertdata/views.py:125
-msgid "Time elapsed from observation time"
-msgstr "Tempo trascorso dal momento dell'osservazione"
+#~ msgid "observed 6 hours before"
+#~ msgstr "osservato 6 ora fa"
 
-#: insertdata/views.py:134
-msgid "Visibility(m.)"
-msgstr "Visibilità (m.)"
+#~ msgid "Time elapsed"
+#~ msgstr "Tempo trascorso"
 
-#: insertdata/views.py:135
-msgid "Snow height(cm.)"
-msgstr "Altezza neve (cm.)"
+#~ msgid "Time elapsed from observation time"
+#~ msgstr "Tempo trascorso dal momento dell'osservazione"
 
-#: insertdata/views.py:140
-msgid "Present weather"
-msgstr "Tempo presente"
+#~ msgid "Visibility(m.)"
+#~ msgstr "Visibilità (m.)"
 
-#: insertdata/views.py:174
-msgid "Search address"
-msgstr "Indirizzo per la ricerca"
+#~ msgid "Snow height(cm.)"
+#~ msgstr "Altezza neve (cm.)"
 
-#: insertdata/views.py:200
-msgid "New station name"
-msgstr "Nuovo nome stazione"
+#~ msgid "Present weather"
+#~ msgstr "Tempo presente"
 
-#: insertdata/views.py:200
-msgid "The name of the station to insert"
-msgstr "Nome della stazione da inserire"
+#~ msgid "Search address"
+#~ msgstr "Indirizzo per la ricerca"
 
-#: insertdata/views.py:202
-msgid "Latitude"
-msgstr "Latitudine"
+#~ msgid "New station name"
+#~ msgstr "Nuovo nome stazione"
 
-#: insertdata/views.py:203
-msgid "Longitude"
-msgstr "Longitudine"
+#~ msgid "The name of the station to insert"
+#~ msgstr "Nome della stazione da inserire"
 
-#: insertdata/views.py:204
-msgid "Station height (m.)"
-msgstr "Altezza stazione (m)"
+#~ msgid "Latitude"
+#~ msgstr "Latitudine"
 
-#: insertdata/views.py:205
-msgid "Station model"
-msgstr "Modello stazione"
+#~ msgid "Longitude"
+#~ msgstr "Longitudine"
 
-#: insertdata/views.py:205
-msgid "The model of the station to insert"
-msgstr "Modello della stazione da inserire"
+#~ msgid "Station height (m.)"
+#~ msgstr "Altezza stazione (m)"
+
+#~ msgid "Station model"
+#~ msgstr "Modello stazione"
+
+#~ msgid "The model of the station to insert"
+#~ msgstr "Modello della stazione da inserire"

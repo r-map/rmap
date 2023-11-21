@@ -52,7 +52,7 @@ class GeorefencedImage(models.Model):
 
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this geoimage"))
     geom = PointField()
-    comment = models.TextField()
+    comment = models.TextField(ugettext_lazy("Comment"),help_text=ugettext_lazy("Image description"))
     #image = DeletingImageField()
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     date=models.DateTimeField(auto_now=False, auto_now_add=False)
