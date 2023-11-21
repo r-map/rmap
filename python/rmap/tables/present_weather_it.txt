@@ -10,6 +10,8 @@
 155 Pioviggine congelantesi al suolo (moderata)
 160 Pioggia (non congelantesi)
 165 Pioggia congelantesi al suolo (moderata)
+167 Pioggia (o pioviggine) mista a neve,\n debole
+168 Pioggia (o pioviggine) mista a neve,\n moderata o intensa
 171 Neve, debole
 172 Neve, moderata
 173 Neve, forte
