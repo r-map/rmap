@@ -200,9 +200,9 @@ class NewStationForm(forms.Form):
     #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
     #coordinate = coordinateField(required=True,label=__('longitude,Latitude'),help_text=__('Longitude,Latitude'))
-    latitude = forms.DecimalField(required=True,label=__('Latitude'),help_text=__('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
-    longitude = forms.DecimalField(required=True,label=__('Longitude'),help_text=__('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
-    height = forms.DecimalField(required=True,label=__('Station height (m.)'),help_text=__('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
+    latitude = forms.DecimalField(required=True,label=__('Latitude'),help_text=__('Latitude in decimal degrees '),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
+    longitude = forms.DecimalField(required=True,label=__('Longitude'),help_text=__('Longitude in decimal degrees'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    height = forms.DecimalField(required=False,label=__('Station height (m.)'),help_text=__('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
     template=forms.ChoiceField(choices=CHOICES,required=True,label=__("Station model"),help_text=__('The model of the station to insert'),initial="none")
 
 #class transportMQTTForm(forms.Form):
@@ -704,10 +704,11 @@ def insertNewStation(request):
             lon=newstationform.cleaned_data['longitude']
             lat=newstationform.cleaned_data['latitude']
             name=newstationform.cleaned_data['name']
-            height=str(int(newstationform.cleaned_data['height']*10))
             constantdata={}
             constantdata["B01019"]=name
-            constantdata["B07030"]=height
+            if not newstationform.cleaned_data['height'] is None :
+                height=str(int(newstationform.cleaned_data['height']*10))
+                constantdata["B07030"]=height
 
             username=request.user.username
             slug=slugify(name)
