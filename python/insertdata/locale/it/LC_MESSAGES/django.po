@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-21 17:19+0000\n"
-"PO-Revision-Date: 2023-11-21 18:21+0100\n"
+"POT-Creation-Date: 2023-11-23 14:44+0000\n"
+"PO-Revision-Date: 2023-11-23 15:49+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -221,22 +221,27 @@ msgid "No phenomenon in progress"
 msgstr "Nessun fenomeno in atto"
 
 #: insertdata/templates/insertdata/rainbodataform.html:125
+#: insertdata/views.py:151
 msgid "Visibility"
 msgstr "Visibilità"
 
 #: insertdata/templates/insertdata/rainbodataform.html:132
+#: insertdata/views.py:154
 msgid "Rain"
 msgstr "Pioggia"
 
 #: insertdata/templates/insertdata/rainbodataform.html:139
+#: insertdata/views.py:152
 msgid "Snow"
 msgstr "Neve"
 
 #: insertdata/templates/insertdata/rainbodataform.html:146
+#: insertdata/views.py:153
 msgid "Thunderstorm"
 msgstr "Temporale"
 
 #: insertdata/templates/insertdata/rainbodataform.html:153
+#: insertdata/views.py:155
 msgid "Tornado"
 msgstr "Tromba d'aria"
 
@@ -265,69 +270,182 @@ msgstr "Modifica i dati costanti di stazione"
 msgid "Modify constant data"
 msgstr "Modifica i dati costanti"
 
-#: insertdata/views.py:116
+#: insertdata/views.py:110
+msgid "Your station"
+msgstr "Tua stazione"
+
+#: insertdata/views.py:110
+msgid "Select configurated station"
+msgstr "Seleziona la stazione configurata"
+
+#: insertdata/views.py:115
 msgid "now"
 msgstr "adesso"
 
-#~ msgid "Your station"
-#~ msgstr "Tua stazione"
+#: insertdata/views.py:116
+msgid "observed 1 our before"
+msgstr "osservato 1 ora fa"
 
-#~ msgid "Select configurated station"
-#~ msgstr "Seleziona la stazione configurata"
+#: insertdata/views.py:117
+msgid "observed 2 hours before"
+msgstr "osservato 2 ora fa"
 
-#~ msgid "observed 1 our before"
-#~ msgstr "osservato 1 ora fa"
+#: insertdata/views.py:118
+msgid "observed 3 hours before"
+msgstr "osservato 3 ora fa"
 
-#~ msgid "observed 2 hours before"
-#~ msgstr "osservato 2 ora fa"
+#: insertdata/views.py:119
+msgid "observed 4 hours before"
+msgstr "osservato 4 ora fa"
 
-#~ msgid "observed 3 hours before"
-#~ msgstr "osservato 3 ora fa"
+#: insertdata/views.py:120
+msgid "observed 5 hours before"
+msgstr "osservato 5 ora fa"
 
-#~ msgid "observed 4 hours before"
-#~ msgstr "osservato 4 ora fa"
+#: insertdata/views.py:121
+msgid "observed 6 hours before"
+msgstr "osservato 6 ora fa"
 
-#~ msgid "observed 5 hours before"
-#~ msgstr "osservato 5 ora fa"
+#: insertdata/views.py:124
+msgid "Time elapsed"
+msgstr "Tempo trascorso"
 
-#~ msgid "observed 6 hours before"
-#~ msgstr "osservato 6 ora fa"
+#: insertdata/views.py:125
+msgid "Time elapsed from observation time"
+msgstr "Tempo trascorso dal momento dell'osservazione"
 
-#~ msgid "Time elapsed"
-#~ msgstr "Tempo trascorso"
+#: insertdata/views.py:134
+msgid "Visibility(m.)"
+msgstr "Visibilità (m.)"
 
-#~ msgid "Time elapsed from observation time"
-#~ msgstr "Tempo trascorso dal momento dell'osservazione"
+#: insertdata/views.py:135
+msgid "Snow height(cm.)"
+msgstr "Altezza neve (cm.)"
 
-#~ msgid "Visibility(m.)"
-#~ msgstr "Visibilità (m.)"
+#: insertdata/views.py:140
+msgid "Present weather"
+msgstr "Tempo presente"
 
-#~ msgid "Snow height(cm.)"
-#~ msgstr "Altezza neve (cm.)"
+#: insertdata/views.py:150
+msgid "not significant"
+msgstr ""
 
-#~ msgid "Present weather"
-#~ msgstr "Tempo presente"
+#: insertdata/views.py:150
+msgid "Not_significant"
+msgstr ""
 
-#~ msgid "Search address"
-#~ msgstr "Indirizzo per la ricerca"
+#: insertdata/views.py:151
+msgid "haze"
+msgstr ""
 
-#~ msgid "New station name"
-#~ msgstr "Nuovo nome stazione"
+#: insertdata/views.py:151
+msgid "fog"
+msgstr ""
 
-#~ msgid "The name of the station to insert"
-#~ msgstr "Nome della stazione da inserire"
+#: insertdata/views.py:152
+msgid "weak"
+msgstr ""
 
-#~ msgid "Latitude"
-#~ msgstr "Latitudine"
+#: insertdata/views.py:152
+msgid "moderate"
+msgstr ""
 
-#~ msgid "Longitude"
-#~ msgstr "Longitudine"
+#: insertdata/views.py:152
+msgid "intense"
+msgstr ""
 
-#~ msgid "Station height (m.)"
-#~ msgstr "Altezza stazione (m)"
+#: insertdata/views.py:153
+msgid "moderate with rain"
+msgstr ""
 
-#~ msgid "Station model"
-#~ msgstr "Modello stazione"
+#: insertdata/views.py:153
+msgid "moderate with hail"
+msgstr ""
 
-#~ msgid "The model of the station to insert"
-#~ msgstr "Modello della stazione da inserire"
+#: insertdata/views.py:153
+msgid "intense with rain"
+msgstr ""
+
+#: insertdata/views.py:153
+msgid "intense with hail"
+msgstr ""
+
+#: insertdata/views.py:154
+msgid "drizzle"
+msgstr ""
+
+#: insertdata/views.py:154
+msgid "rain"
+msgstr ""
+
+#: insertdata/views.py:154
+msgid "freezing on the ground"
+msgstr ""
+
+#: insertdata/views.py:155
+msgid "tornado"
+msgstr "Tromba d'aria"
+
+#: insertdata/views.py:165
+msgid "fallen tree"
+msgstr ""
+
+#: insertdata/views.py:165
+msgid "icy road"
+msgstr ""
+
+#: insertdata/views.py:165
+msgid "flooding"
+msgstr ""
+
+#: insertdata/views.py:165
+msgid "pothole"
+msgstr ""
+
+#: insertdata/views.py:165
+msgid "Impact detected"
+msgstr "Tipo di impatto"
+
+#: insertdata/views.py:174
+msgid "Search address"
+msgstr "Indirizzo per la ricerca"
+
+#: insertdata/views.py:174
+msgid "Insert street, city,country, state"
+msgstr "Inserire via, città, cap, stato"
+
+#: insertdata/views.py:200
+msgid "New station name"
+msgstr "Nuovo nome stazione"
+
+#: insertdata/views.py:200
+msgid "The name of the station to insert"
+msgstr "Nome della stazione da inserire"
+
+#: insertdata/views.py:202
+msgid "Latitude"
+msgstr "Latitudine"
+
+#: insertdata/views.py:202
+msgid "Latitude in decimal degrees"
+msgstr "Latitudine in gradi sessadecimali"
+
+#: insertdata/views.py:203
+msgid "Longitude"
+msgstr "Longitudine"
+
+#: insertdata/views.py:203
+msgid "Longitude in decimal degrees"
+msgstr "Longitudine in gradi sessadecimali"
+
+#: insertdata/views.py:204
+msgid "Station height (m.)"
+msgstr "Altezza stazione (m)"
+
+#: insertdata/views.py:205
+msgid "Station model"
+msgstr "Modello stazione"
+
+#: insertdata/views.py:205
+msgid "The model of the station to insert"
+msgstr "Modello della stazione da inserire"

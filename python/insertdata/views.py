@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from leaflet.forms.widgets import LeafletWidget
@@ -12,8 +11,8 @@ from leaflet.forms.fields import PointField
 from django.urls import reverse
 from  rmap.tables import Table,TableEntry
 import os
-from django.utils.translation import ugettext as _
-from django.utils.translation import ugettext_lazy as __
+from django.utils.translation import ugettext
+from django.utils.translation import ugettext_lazy as _
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
@@ -108,22 +107,22 @@ class StationForm(forms.Form):
     def __init__(self, username, *args, **kwargs):
 
         super(StationForm, self).__init__(*args, **kwargs)
-        self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
+        self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=_("Your station"),help_text=_("Select configurated station"),initial="")
 
 
 class TimeElapsedForm(forms.Form):
 
     timeelapsedchoices=[(0,_("now")),
-                        (-1,__("observed 1 our before")),
-                        (-2,__("observed 2 hours before")),
-                        (-3,__("observed 3 hours before")),
-                        (-4,__("observed 4 hours before")),
-                        (-5,__("observed 5 hours before")),
-                        (-6,__("observed 6 hours before"))]
+                        (-1,_("observed 1 our before")),
+                        (-2,_("observed 2 hours before")),
+                        (-3,_("observed 3 hours before")),
+                        (-4,_("observed 4 hours before")),
+                        (-5,_("observed 5 hours before")),
+                        (-6,_("observed 6 hours before"))]
     
     timeelapsed = forms.ChoiceField(choices=timeelapsedchoices,
-                                    required=True,label=__('Time elapsed'),
-                                    help_text=__('Time elapsed from observation time'),
+                                    required=True,label=_("Time elapsed"),
+                                    help_text=_("Time elapsed from observation time"),
                                     initial="0")
 
 class ManualForm(forms.ModelForm):
@@ -132,13 +131,13 @@ class ManualForm(forms.ModelForm):
 
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     
-    visibility=forms.IntegerField(required=False,label=__("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
-    snow_height=forms.IntegerField(required=False,label=__("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
+    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.language_code = kwargs["language_code"]
-        self.fields["presentweather"]=forms.ChoiceField(choices=scelta_present_weather(self.language_code),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
+        self.fields["presentweather"]=forms.ChoiceField(choices=scelta_present_weather(self.language_code),required=False,label=_("Present weather"),help_text=_("Present weather"),initial="")
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
@@ -148,12 +147,12 @@ class ManualForm(forms.ModelForm):
 class RainboWeatherForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     #fixed standard values from ~/rmap/python/rmap/tables/present_weather.txt  
-    not_significant = forms.ChoiceField(widget=forms.RadioSelect(),choices=[(100,__("not significant"))],required=False,label=__("Not_significant"),help_text='')
-    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,__("haze")),(130,__("fog"))],required=False,label=__("Visibility"),help_text='')
-    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,__("weak")),(186,__("moderate")),(187,__("intense"))],required=False,label=__("Snow"),help_text='')    
-    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,__("moderate with rain")),(193,__("moderate with hail")),(195,__("intense with rain")),(196,__("intense with hail"))],required=False,label=__("Thunderstorm"),help_text='') 
-    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,__("drizzle")),(160,__("rain")),(165,__("freezing on the ground")),(184,'very heavy')],required=False,label=__("Rain"),help_text='')
-    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,__("tornado"))],required=False,label=__("Tornado"),help_text='')
+    not_significant = forms.ChoiceField(widget=forms.RadioSelect(),choices=[(100,_("not significant"))],required=False,label=_("Not_significant"),help_text='')
+    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,_("haze")),(130,_("fog"))],required=False,label=_("Visibility"),help_text='')
+    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,_("weak")),(186,_("moderate")),(187,_("intense"))],required=False,label=_("Snow"),help_text='')    
+    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,_("moderate with rain")),(193,_("moderate with hail")),(195,_("intense with rain")),(196,_("intense with hail"))],required=False,label=_("Thunderstorm"),help_text='') 
+    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,_("drizzle")),(160,_("rain")),(165,_("freezing on the ground")),(184,'very heavy')],required=False,label=_("Rain"),help_text='')
+    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,_("tornado"))],required=False,label=_("Tornado"),help_text='')
 
     class Meta:
         model = GeorefencedImage
@@ -163,7 +162,7 @@ class RainboWeatherForm(forms.ModelForm):
 
 class RainboImpactForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,__("fallen tree")),(20,__("icy road")),(30,__("flooding")),(40,__("pothole"))],required=False,label=__("Impact detected"),help_text='') 
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,_("fallen tree")),(20,_("icy road")),(30,_("flooding")),(40,_("pothole"))],required=False,label=_("Impact detected"),help_text='') 
 
     class Meta:
         model = GeorefencedImage
@@ -172,7 +171,7 @@ class RainboImpactForm(forms.ModelForm):
 
 
 class NominatimForm(forms.Form):
-    address= forms.CharField(required=False,label=__("Search address"),help_text=__("Insert street, city,country, state"))
+    address= forms.CharField(required=False,label=_("Search address"),help_text=_("Insert street, city,country, state"))
 
 
 
@@ -198,16 +197,16 @@ class NewStationForm(forms.Form):
         CHOICES.append((sta.slug,sta.slug))
     
     #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
-    #coordinate = coordinateField(required=True,label=__('longitude,Latitude'),help_text=__('Longitude,Latitude'))
-    latitude = forms.DecimalField(required=True,label=__('Latitude'),help_text=__('Latitude in decimal degrees '),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
-    longitude = forms.DecimalField(required=True,label=__('Longitude'),help_text=__('Longitude in decimal degrees'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
-    height = forms.DecimalField(required=False,label=__('Station height (m.)'),help_text=__('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
-    template=forms.ChoiceField(choices=CHOICES,required=True,label=__("Station model"),help_text=__('The model of the station to insert'),initial="none")
+    name= forms.CharField(required=True,label=_("New station name"),help_text=_("The name of the station to insert"))
+    #coordinate = coordinateField(required=True,label=_("longitude,Latitude"),help_text=_("Longitude,Latitude"))
+    latitude = forms.DecimalField(required=True,label=_("Latitude"),help_text=_("Latitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
+    longitude = forms.DecimalField(required=True,label=_("Longitude"),help_text=_("Longitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    height = forms.DecimalField(required=False,label=_("Station height (m.)"),help_text=_("Station height (m.)"),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
+    template=forms.ChoiceField(choices=CHOICES,required=True,label=_("Station model"),help_text=_("The model of the station to insert"),initial="none")
 
 #class transportMQTTForm(forms.Form):
 #    
-#    mqttsamplerate=forms.IntegerField(required=True,label=__("report period (secondi)"),help_text='Time elapsed from two reports',min_value=0,max_value=3600*12,initial=900)
+#    mqttsamplerate=forms.IntegerField(required=True,label=_("report period (secondi)"),help_text='Time elapsed from two reports',min_value=0,max_value=3600*12,initial=900)
 #    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
 #    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
     
