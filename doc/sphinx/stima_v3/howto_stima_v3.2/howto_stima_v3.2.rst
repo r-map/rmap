@@ -14,6 +14,8 @@ La soluzione prevista è quella mostrata in figura:
 
 |image0|
 
+|image9|
+
 Cioè si compone di 6 moduli che seguono:
 
 -  Stima
@@ -58,6 +60,14 @@ configurazione:
 
 |image4|
 
+Per il collegamento del sensore Radiometro ( come mostrato in foto ) collegare:
+
+- CAVO DELTAOHM NERO + BLU  -> RADIATION GND
+- CAVO DELTAOHM ROSSO  -> RADIATION SEGNALE
+- CAVO DELTAOHM BIANCO -> RADIATION +12V
+
+|image10|
+
 i2c-wind
 ~~~~~~~~
 
@@ -94,3 +104,5 @@ Segue invece schema dettaglio della morsettiera di confine:
 .. |image6| image:: ./img/i2c-rain.png
 .. |image7| image:: ./img/schema.png
 .. |image8| image:: ./img/morsettiera.png
+.. |image9| image:: ./img/complessivo.jpg
+.. |image10| image:: ./img/foto_morsettiera.jpg
