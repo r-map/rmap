@@ -5,6 +5,7 @@ from datetime import date,datetime,timedelta,time
 from django.utils import timezone
 from django.forms.widgets import SelectDateWidget
 from django.utils.translation import ugettext_lazy
+from django.core.paginator import Paginator
 
 class ExtremeForm(forms.Form):
 
@@ -21,7 +22,7 @@ class ExtremeForm(forms.Form):
 
 
 
-def showImage(request,ident=None):
+def geoimagesOnMap(request,ident=None):
 
     if request.method == 'POST': # If the form has been submitted...
         form = ExtremeForm(request.POST) # A form bound to the POST data
@@ -47,12 +48,22 @@ def showImage(request,ident=None):
         print("query:",datetime_start,datetime_end,ident)
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,user__username=ident).order_by("date")
 
-    return render(request, 'geoimage/georefencedimage_list.html',{'form': form,"grimages":grimages,"ident":ident})
+    return render(request, 'geoimage/geoimages_on_map.html',{'form': form,"grimages":grimages,"ident":ident})
 
 
-def showOneImage(request,ident,id):
+def geoimagesByCoordinate(request,lon,lat):
+    geom={'type': 'Point', 'coordinates': [float(lon),float(lat)]}
+    print(lon,lat)
+    grimages=GeorefencedImage.objects.filter(geom=geom).order_by("-date")
+    print(grimages)
+    paginator = Paginator(grimages, 1) # Show 1 image per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'geoimage/geoimages_by_coordinate.html',{"page_obj":page_obj})
+
+def geoimageByIdentId(request,ident,id):
     grimage=GeorefencedImage.objects.get(user__username=ident,id=id)
     print("grimage")
     print(grimage)
-    return render(request, 'geoimage/georefencedimage.html',{"grimage":grimage})
+    return render(request, 'geoimage/geoimage_by_ident_id.html',{"grimage":grimage})
 

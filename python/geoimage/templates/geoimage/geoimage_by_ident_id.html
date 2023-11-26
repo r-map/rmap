@@ -28,7 +28,7 @@ img {
     <img src="/{{ grimage.image.url }}" class="img-rounded img-responsive">
     </div>
     <div class="col-xs-4">
-<a href="/geoimage/{{grimage.ident}}">{{grimage.ident}}</a>
+<a href="{% url 'geoimages-on-map-by-ident' grimage.user %}">{{grimage.user}}</a>
     </div>
     <div class="col-xs-8">
  {{grimage.date}}
