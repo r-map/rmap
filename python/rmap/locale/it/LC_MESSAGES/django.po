@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-23 14:44+0000\n"
-"PO-Revision-Date: 2023-11-23 15:53+0100\n"
+"POT-Creation-Date: 2023-11-27 10:28+0000\n"
+"PO-Revision-Date: 2023-11-27 11:32+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -872,7 +872,7 @@ msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 #: rmap/stations/models.py:865 rmap/stations/models.py:913
 #: rmap/stations/models.py:1102 rmap/templates/profile_details.html:46
 #: rmap/templates/stations/stationlocaldata.html:65
-#: rmap/templates/stations/stationmetadata_detail.html:27
+#: rmap/templates/stations/stationmetadata_detail.html:28
 #: rmap/templates/stations/stationstatus_detail.html:75
 msgid "Active"
 msgstr "Attivo"
@@ -1320,7 +1320,7 @@ msgstr "Fornitori dati"
 
 #: rmap/templates/base.html:80
 #: rmap/templates/stations/stationmetadata_list.html:9
-#: rmap/templates/stations/stationmetadata_list.html:11
+#: rmap/templates/stations/stationmetadata_list.html:12
 #: rmap/templates/stations/stationstatus_list.html:9
 #: rmap/templates/stations/stationstatus_list.html:11
 msgid "Stations"
@@ -1472,16 +1472,16 @@ msgstr "Le tue stazioni"
 
 #: rmap/templates/profile.html:29
 #: rmap/templates/stations/stationlocaldata.html:70
-#: rmap/templates/stations/stationmetadata_detail.html:32
-#: rmap/templates/stations/stationmetadata_list.html:14
-#: rmap/templates/stations/stationmetadata_list.html:33
+#: rmap/templates/stations/stationmetadata_detail.html:33
+#: rmap/templates/stations/stationmetadata_list.html:15
+#: rmap/templates/stations/stationmetadata_list.html:34
 #: rmap/templates/stations/stationstatus_detail.html:80
 #: rmap/templates/stations/stationstatus_list.html:14
 msgid "View on the map"
 msgstr "Visualizza sulla mappa"
 
 #: rmap/templates/profile.html:59
-#: rmap/templates/stations/stationmetadata_list.html:51
+#: rmap/templates/stations/stationmetadata_list.html:52
 #: rmap/templates/stations/stationstatus_list.html:49
 msgid "No station yet."
 msgstr "Non ci sono stazioni."
@@ -1537,21 +1537,22 @@ msgstr "clicca sopra per aprire"
 
 #: rmap/templates/profile_details.html:47
 #: rmap/templates/stations/stationlocaldata.html:66
-#: rmap/templates/stations/stationmetadata_detail.html:28
+#: rmap/templates/stations/stationmetadata_detail.html:22
+#: rmap/templates/stations/stationmetadata_detail.html:29
 #: rmap/templates/stations/stationstatus_detail.html:76
 msgid "User"
 msgstr "Utente"
 
 #: rmap/templates/profile_details.html:48
 #: rmap/templates/stations/stationlocaldata.html:67
-#: rmap/templates/stations/stationmetadata_detail.html:29
+#: rmap/templates/stations/stationmetadata_detail.html:30
 #: rmap/templates/stations/stationstatus_detail.html:77
 msgid "Lat"
 msgstr ""
 
 #: rmap/templates/profile_details.html:49
 #: rmap/templates/stations/stationlocaldata.html:68
-#: rmap/templates/stations/stationmetadata_detail.html:30
+#: rmap/templates/stations/stationmetadata_detail.html:31
 #: rmap/templates/stations/stationstatus_detail.html:78
 msgid "Lon"
 msgstr ""
@@ -1563,7 +1564,7 @@ msgstr "Mappa"
 #: rmap/templates/profile_details.html:51
 #: rmap/templates/profile_details.html:79
 #: rmap/templates/stations/stationlocaldata.html:69
-#: rmap/templates/stations/stationmetadata_detail.html:31
+#: rmap/templates/stations/stationmetadata_detail.html:32
 #: rmap/templates/stations/stationstatus_detail.html:79
 msgid "Category"
 msgstr "Categoria"
@@ -1620,16 +1621,20 @@ msgstr "Stato comunicazione col server"
 msgid "Last local station data"
 msgstr "Ultimi dati da stazione locale"
 
-#: rmap/templates/stations/stationmetadata_detail.html:52
-#: rmap/templates/stations/stationmetadata_list.html:29
+#: rmap/templates/stations/stationmetadata_detail.html:23
+msgid "Return to user station list"
+msgstr "Ritorna alla lista stazioni"
+
+#: rmap/templates/stations/stationmetadata_detail.html:53
+#: rmap/templates/stations/stationmetadata_list.html:30
 #: rmap/templates/stations/stationstatus_detail.html:100
 #: rmap/templates/stations/stationstatus_list.html:27
 msgid "Station status"
 msgstr "Stato stazione"
 
-#: rmap/templates/stations/stationmetadata_detail.html:52
 #: rmap/templates/stations/stationmetadata_detail.html:53
-#: rmap/templates/stations/stationmetadata_detail.html:66
+#: rmap/templates/stations/stationmetadata_detail.html:54
+#: rmap/templates/stations/stationmetadata_detail.html:67
 #: rmap/templates/stations/stationstatus_detail.html:100
 #: rmap/templates/stations/stationstatus_detail.html:101
 #: rmap/templates/stations/stationstatus_detail.html:142
@@ -1637,65 +1642,70 @@ msgstr "Stato stazione"
 msgid "Missing"
 msgstr "Mancante"
 
-#: rmap/templates/stations/stationmetadata_detail.html:52
-#: rmap/templates/stations/stationmetadata_list.html:30
+#: rmap/templates/stations/stationmetadata_detail.html:53
+#: rmap/templates/stations/stationmetadata_list.html:31
 #: rmap/templates/stations/stationstatus_detail.html:100
 #: rmap/templates/stations/stationstatus_detail.html:111
 #: rmap/templates/stations/stationstatus_list.html:28
 msgid "Last status update"
 msgstr "Ultimo aggiornamento dello stato"
 
-#: rmap/templates/stations/stationmetadata_detail.html:53
-#: rmap/templates/stations/stationmetadata_detail.html:66
+#: rmap/templates/stations/stationmetadata_detail.html:54
+#: rmap/templates/stations/stationmetadata_detail.html:67
 #: rmap/templates/stations/stationstatus_detail.html:101
 #: rmap/templates/stations/stationstatus_detail.html:109
 msgid "Firmware version"
 msgstr "Versione del Firmware"
 
-#: rmap/templates/stations/stationmetadata_detail.html:55
+#: rmap/templates/stations/stationmetadata_detail.html:56
 msgid "Realtime local data"
 msgstr "Dati locali in tempo reale"
 
-#: rmap/templates/stations/stationmetadata_detail.html:65
+#: rmap/templates/stations/stationmetadata_detail.html:66
 #: rmap/templates/stations/stationstatus_detail.html:108
 msgid "Board name"
 msgstr "Nome scheda"
 
-#: rmap/templates/stations/stationmetadata_detail.html:66
+#: rmap/templates/stations/stationmetadata_detail.html:67
 #: rmap/templates/stations/stationstatus_detail.html:110
 msgid "Last firmware update"
 msgstr "Ultimo aggiornamento firmware"
 
-#: rmap/templates/stations/stationmetadata_detail.html:74
+#: rmap/templates/stations/stationmetadata_detail.html:75
 msgid "Sensor"
 msgstr "Sensore"
 
-#: rmap/templates/stations/stationmetadata_list.html:31
+#: rmap/templates/stations/stationmetadata_list.html:10
+#: rmap/templates/stations/stationsonmap.html:14
+msgid "Reset user filter"
+msgstr "Reimposta filtro utente"
+
+#: rmap/templates/stations/stationmetadata_list.html:32
 #: rmap/templates/stations/stationstatus_list.html:29
 msgid "Version"
 msgstr "Versione"
 
-#: rmap/templates/stations/stationmetadata_list.html:59
+#: rmap/templates/stations/stationmetadata_list.html:60
 #: rmap/templates/stations/stationstatus_list.html:57
 msgid "previous"
 msgstr "precedente"
 
-#: rmap/templates/stations/stationmetadata_list.html:64
+#: rmap/templates/stations/stationmetadata_list.html:65
 #: rmap/templates/stations/stationstatus_list.html:62
 msgid "Page"
 msgstr "Pagina"
 
-#: rmap/templates/stations/stationmetadata_list.html:64
+#: rmap/templates/stations/stationmetadata_list.html:65
 #: rmap/templates/stations/stationstatus_list.html:62
 msgid "of"
 msgstr "di"
 
-#: rmap/templates/stations/stationmetadata_list.html:69
+#: rmap/templates/stations/stationmetadata_list.html:70
 #: rmap/templates/stations/stationstatus_list.html:67
 msgid "next"
 msgstr "successivo"
 
-#: rmap/templates/stations/stationmetadata_list.html:70
+#: rmap/templates/stations/stationmetadata_list.html:71
 #: rmap/templates/stations/stationstatus_list.html:68
 msgid "last &raquo;"
 msgstr ""
@@ -1703,10 +1713,6 @@ msgstr ""
 #: rmap/templates/stations/stationsonmap.html:14
 msgid "Selected user"
 msgstr "Utente selezionato"
-
-#: rmap/templates/stations/stationsonmap.html:14
-msgid "Reset user filter"
-msgstr "Reimposta filtro utente"
 
 #: rmap/templates/stations/stationsonmap.html:18
 msgid "Selected slug"
@@ -1865,9 +1871,6 @@ msgstr "Profilo"
 
 #~ msgid "Elaborate ending to this date"
 #~ msgstr "Data finale elaborazione"
-
-#~ msgid "Return to station list"
-#~ msgstr "Ritorna alla lista stazioni"
 
 #~ msgid "The station is not your own; cannot remove!"
 #~ msgstr "La stazione non è tua; non puoi rimuoverla!"

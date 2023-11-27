@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-21 17:19+0000\n"
-"PO-Revision-Date: 2023-11-21 18:20+0100\n"
+"POT-Creation-Date: 2023-11-27 10:28+0000\n"
+"PO-Revision-Date: 2023-11-27 11:30+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -37,30 +37,54 @@ msgstr "Descrizione dell'immagine"
 msgid "File with image"
 msgstr "File con immagine"
 
-#: geoimage/templates/geoimage/georefencedimage_list.html:15
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:46
+msgid "No geoimages."
+msgstr "No immagini georeferenziate."
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:53
+msgid "previous"
+msgstr "precedente"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:58
+msgid "Page"
+msgstr "Pagina"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:58
+msgid "of"
+msgstr "di"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:63
+msgid "next"
+msgstr "successiva"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:64
+msgid "last &raquo;"
+msgstr "ultima&raquo;"
+
+#: geoimage/templates/geoimage/geoimages_on_map.html:15
 msgid "Selected user"
 msgstr "Seleziona utente"
 
-#: geoimage/templates/geoimage/georefencedimage_list.html:15
+#: geoimage/templates/geoimage/geoimages_on_map.html:15
 msgid "Reset filter"
 msgstr "Annulla il filtro"
 
-#: geoimage/templates/geoimage/georefencedimage_list.html:45
+#: geoimage/templates/geoimage/geoimages_on_map.html:45
 msgid "Submit"
 msgstr "Invia"
 
-#: geoimage/views.py:18
+#: geoimage/views.py:19
 msgid "Starting date"
 msgstr "Data iniziale"
 
-#: geoimage/views.py:18
+#: geoimage/views.py:19
 msgid "Elaborate starting from this date"
 msgstr "L'elaborazione inizia da questa data"
 
-#: geoimage/views.py:20
+#: geoimage/views.py:21
 msgid "Ending date"
 msgstr "Data di termine"
 
-#: geoimage/views.py:20
+#: geoimage/views.py:21
 msgid "Elaborate ending to this date"
 msgstr "L'elaborazione termina a questa data"
