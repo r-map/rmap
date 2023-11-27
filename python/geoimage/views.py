@@ -50,8 +50,11 @@ def geoimagesOnMap(request,ident=None):
 
 
 def geoimagesByCoordinate(request,lon,lat):
-    geom={'type': 'Point', 'coordinates': [float(lon),float(lat)]}
-    grimages=GeorefencedImage.objects.filter(geom=geom).order_by("date")
+    # the query here is "text" and not a geo-query
+    # json come from an unordered dict!
+    # so this do not work #geom={'type': 'Point', 'coordinates': [float(lon),float(lat)]}
+    coordinate="[{},{}]".format(float(lon),float(lat))
+    grimages=GeorefencedImage.objects.filter(geom__contains=coordinate).order_by("date")
     paginator = Paginator(grimages, 1) # Show 1 image per page.
     page_number = request.GET.get('page',-1)  # start with last page
     page_obj = paginator.get_page(page_number)

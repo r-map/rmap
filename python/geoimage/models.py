@@ -70,6 +70,9 @@ class GeorefencedImage(models.Model):
         options = {'quality': 60}
     )
 
+    def geom_as_json(self):
+        return str(self.geom)
+    
     @property
     def popupContent(self):
         return \
