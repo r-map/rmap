@@ -42,10 +42,8 @@ def geoimagesOnMap(request,ident=None):
         form = ExtremeForm() # An unbound form
 
     if ident is None:
-        print("query no ident:",datetime_start,datetime_end)
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end).order_by("date")
     else:
-        print("query:",datetime_start,datetime_end,ident)
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,user__username=ident).order_by("date")
 
     return render(request, 'geoimage/geoimages_on_map.html',{'form': form,"grimages":grimages,"ident":ident})
@@ -53,17 +51,13 @@ def geoimagesOnMap(request,ident=None):
 
 def geoimagesByCoordinate(request,lon,lat):
     geom={'type': 'Point', 'coordinates': [float(lon),float(lat)]}
-    print(lon,lat)
-    grimages=GeorefencedImage.objects.filter(geom=geom).order_by("-date")
-    print(grimages)
+    grimages=GeorefencedImage.objects.filter(geom=geom).order_by("date")
     paginator = Paginator(grimages, 1) # Show 1 image per page.
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page',-1)  # start with last page
     page_obj = paginator.get_page(page_number)
     return render(request, 'geoimage/geoimages_by_coordinate.html',{"page_obj":page_obj})
 
 def geoimageByIdentId(request,ident,id):
     grimage=GeorefencedImage.objects.get(user__username=ident,id=id)
-    print("grimage")
-    print(grimage)
     return render(request, 'geoimage/geoimage_by_ident_id.html',{"grimage":grimage})
 
