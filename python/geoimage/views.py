@@ -2,6 +2,7 @@ from .models import GeorefencedImage
 from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
+import pytz
 from django.utils import timezone
 from django.forms.widgets import SelectDateWidget
 from django.utils.translation import ugettext_lazy
@@ -31,8 +32,8 @@ def geoimagesOnMap(request,ident=None):
             datetime_start=form.cleaned_data['datetime_start']
             datetime_end=form.cleaned_data['datetime_end']
 
-            datetime_start = datetime.combine(datetime_start.date(),time(00,00))
-            datetime_end = datetime.combine(datetime_end.date(),time(23,59,59))
+            datetime_start = datetime.combine(datetime_start.date(),time(00,00), tzinfo=pytz.utc)
+            datetime_end = datetime.combine(datetime_end.date(),time(23,59,59), tzinfo=pytz.utc)
 
     else:
 

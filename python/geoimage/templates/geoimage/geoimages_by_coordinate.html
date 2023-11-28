@@ -23,49 +23,59 @@
   </head>
   <body>
 
-    {% for grimage in page_obj %}
-    
     <div class="container-fluid">
+      {% for grimage in page_obj %}
+      
       <div class="row">
 	<div class="col-xs-12">
 	  <img src="/{{ grimage.image.url }}" class="img-rounded img-responsive">
 	</div>
+      </div>
+      <div class="row">
 	<div class="col-xs-4">
-	  <a href="{% url 'geoimages-on-map-by-ident' grimage.user %}">{{grimage.user}}</a>
+	  <a href="{% url 'geoimages-on-map-by-ident' grimage.user %}">{% trans 'All images for ' %}{{grimage.user}}</a>
 	</div>
-	<div class="col-xs-8">
+	<div class="col-xs-4">
 	  {{grimage.date}}
 	</div>
+      </div>
+      <div class="row">	
 	<div class="col-xs-12">
 	  {{grimage.comment}}
 	</div>
       </div>
-    </div>
 
-    {% empty %}
-      {% trans 'No geoimages.' %}
-    {% endfor %}
-
-      <div class="pagination">
-	<span class="step-links">
-          {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
-          {% endif %}
-
-          {% if page_obj.number %}
-            <span class="current">
-              {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.
-            </span>
-          {% endif %}
-
-          {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last &raquo;' %}</a>
-          {% endif %}
-	</span>
+      {% empty %}
+      <div class="row">	
+	<div class="col-xs-12">
+	  {% trans 'No geoimages.' %}
+	</div>
       </div>
-
-    
+      {% endfor %}
+      
+      <div class="row">	
+        {% if page_obj.has_previous %}
+	<div class="col-xs-4">
+	  <a href="?page=1">&laquo; first</a>
+	  <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
+	</div>
+	{% endif %}
+	
+        {% if page_obj.number %}
+        <span class="current">
+	  <div class="col-xs-4">
+	    {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.
+	  </div>
+        </span>
+        {% endif %}
+	    
+        {% if page_obj.has_next %}
+	<div class="col-xs-4">
+          <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last &raquo;' %}</a>
+	</div>
+        {% endif %}
+      </div>
+    </div>	  
   </body>
 </html>

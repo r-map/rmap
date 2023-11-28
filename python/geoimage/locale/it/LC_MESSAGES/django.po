@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28+0000\n"
-"PO-Revision-Date: 2023-11-27 11:30+0100\n"
+"POT-Creation-Date: 2023-11-28 10:21+0000\n"
+"PO-Revision-Date: 2023-11-28 11:22+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -37,27 +37,35 @@ msgstr "Descrizione dell'immagine"
 msgid "File with image"
 msgstr "File con immagine"
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:46
+#: geoimage/templates/geoimage/geoimage_by_ident_id.html:37
+msgid "Navigate this point by time"
+msgstr "Navigare questo sito nel tempo"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:36
+msgid "All images for "
+msgstr "Tutte le immagini per "
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:51
 msgid "No geoimages."
 msgstr "No immagini georeferenziate."
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:53
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:60
 msgid "previous"
 msgstr "precedente"
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:58
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:67
 msgid "Page"
 msgstr "Pagina"
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:58
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:67
 msgid "of"
 msgstr "di"
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:63
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:74
 msgid "next"
 msgstr "successiva"
 
-#: geoimage/templates/geoimage/geoimages_by_coordinate.html:64
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:75
 msgid "last &raquo;"
 msgstr "ultima&raquo;"
 
@@ -73,18 +81,18 @@ msgstr "Annulla il filtro"
 msgid "Submit"
 msgstr "Invia"
 
-#: geoimage/views.py:19
+#: geoimage/views.py:20
 msgid "Starting date"
 msgstr "Data iniziale"
 
-#: geoimage/views.py:19
+#: geoimage/views.py:20
 msgid "Elaborate starting from this date"
 msgstr "L'elaborazione inizia da questa data"
 
-#: geoimage/views.py:21
+#: geoimage/views.py:22
 msgid "Ending date"
 msgstr "Data di termine"
 
-#: geoimage/views.py:21
+#: geoimage/views.py:22
 msgid "Elaborate ending to this date"
 msgstr "L'elaborazione termina a questa data"

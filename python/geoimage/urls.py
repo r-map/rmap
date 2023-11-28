@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^geoimagesonmap/(?P<ident>[-_\w]+)/$',
         geoimagesOnMap,name="geoimages-on-map-by-ident"),
     
-    url(r'^geoimagebyidentid(?P<ident>[-_\w]+)/(?P<id>[-_\w]+)/$',
+    url(r'^geoimagebyidentid/(?P<ident>[-_\w]+)/(?P<id>[-_\w]+)/$',
         geoimageByIdentId,name="geoimage-by-ident-id"),
     
     url(r'^geoimagesbycoordinate/(?P<lon>[-_\w.]+)/(?P<lat>[-_\w.]+)/$',

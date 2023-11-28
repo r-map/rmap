@@ -72,20 +72,26 @@ class GeorefencedImage(models.Model):
 
     def geom_as_json(self):
         return str(self.geom)
+
+    def lon(self):
+        return self.geom["coordinates"][0]
+    
+    def lat(self):
+        return self.geom["coordinates"][1]
     
     @property
     def popupContent(self):
         return \
             '\
             <p>\
-            <a href="#" onClick="window.open(\'/geoimage/geoimagesbycoordinate/{}/{}/\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
+            <a href="#" onClick="window.open(\'/geoimage/geoimagebyidentid/{}/{}/\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\
             </a>\
             {}\
             </p>\
             <p><a href="/geoimage/geoimagesonmap/{}">{}</a> {}</p>'.format(
-                self.geom["coordinates"][0],
-                self.geom["coordinates"][1],
+                self.user,
+                self.id,
                 self.image_thumbnail.url,
                 self.comment,
                 self.user,
