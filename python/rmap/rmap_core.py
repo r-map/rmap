@@ -2688,8 +2688,8 @@ class amqpConsumerProducer(threading.Thread):
         :param pika.Spec.BasicProperties: properties
         :param bytes body: The message body
         """
-        self._logging.debug('Received message # %s from %s: %s',
-                           basic_deliver.delivery_tag, properties.app_id, body)
+        self._logging.debug('Received message # %s from %s',
+                           basic_deliver.delivery_tag, properties.app_id)
 
         if (self._pipefunction is not None):
             self._pipefunction(self,basic_deliver, properties, body)
