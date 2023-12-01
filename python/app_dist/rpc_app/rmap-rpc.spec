@@ -1,4 +1,4 @@
-%define srcname rmap-core
+%define srcname rmap-rpc
 %define version 16.2
 %define release 5
 
@@ -19,12 +19,11 @@ BuildRequires: help2man  python3-numpy python3-paho-mqtt
 Requires: (python3-django < 3.0.0) python3-configobj
 Requires: python3-django-imagekit python3-pilkit python3-dballe
 Requires: python3-django-appconf python3-paho-mqtt python3-requests
-Requires: python3-sslpsk
 #Requires:corsheaders
 #autoreq: yes
 
 %description
-RMAP: participative environmental monitoring net.
+RMAP: participative environmental monitoring net. RPC packet
 
 
 %prep
@@ -46,5 +45,4 @@ RMAP: participative environmental monitoring net.
 %{python3_sitelib}/*
 %config(noreplace) %{_sysconfdir}/rmap/*
 %{_bindir}/*
-%{_datadir}/rmap/
 %{_mandir}/man1/*
