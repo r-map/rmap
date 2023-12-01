@@ -43,6 +43,5 @@ RMAP: participative environmental monitoring net. RPC packet
 #%license LICENSE
 %doc README.rst
 %{python3_sitelib}/*
-%config(noreplace) %{_sysconfdir}/rmap/*
 %{_bindir}/*
 %{_mandir}/man1/*

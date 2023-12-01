@@ -15,6 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+
 class distclean(Command):
     description = "remove man pages and *.mo files"
     user_options = []
@@ -57,7 +58,6 @@ class distclean(Command):
 class build(build_):
 
     sub_commands = build_.sub_commands[:]
-    sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
 
     
@@ -92,21 +92,6 @@ class makemessages(Command):
         from django.core import management
         management.call_command("makemessages",all=True)
 
-
-class compilemessages(Command):
-    description = "generate .mo files from .po"
-    user_options = []
-    boolean_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        from django.core import management
-        management.call_command("compilemessages")
 
 class createmanpages(Command):
     description = "generate man page with help2man"
@@ -193,7 +178,7 @@ setup(name='rmap-rpc',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
-      cmdclass={'build': build,'compilemessages':compilemessages,'makemessages':makemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
+      cmdclass={'build': build,'makemessages':makemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
 #      include_package_data=True,
 #      packages=find_packages(),
       packages=['rpc','rpc.migrations',
@@ -203,7 +188,7 @@ setup(name='rmap-rpc',
           'rpc': ['templates/*.htm*','templates/*.txt'],
           'rpc': ['fixtures/*.json'],
       },
-      scripts=['rpcdd',],
+      scripts=['rpcd',],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'rmap','django>=2.0,<3.0',"simplejson","paho-mqtt",]
