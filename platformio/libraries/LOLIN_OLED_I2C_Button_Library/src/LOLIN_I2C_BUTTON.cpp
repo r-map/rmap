@@ -102,9 +102,9 @@ unsigned char I2C_BUTTON::sendData(unsigned char *data, unsigned char len)
 		delay(50);
 
 		if (data[0] == GET_SLAVE_STATUS)
-			Wire.requestFrom(_address, 2);
+		  Wire.requestFrom(_address,(uint8_t)2);
 		else
-			Wire.requestFrom(_address, 1);
+		  Wire.requestFrom(_address, (uint8_t)1);
 
 		i = 0;
 
