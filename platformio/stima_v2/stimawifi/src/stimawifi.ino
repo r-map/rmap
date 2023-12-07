@@ -51,7 +51,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
 #define DEFAULT_SAMPLETIME 30
-#define UDP_PORT 8888
 
 #define OLEDI2CADDRESS 0X3C
 
@@ -176,8 +175,6 @@ void analogWriteFreq(double frequency){
 #include <U8g2lib.h>
 #include "time.h"
 #include <LOLIN_I2C_BUTTON.h>
-#include <WiFiUdp.h>
-#include "ozgps.h"
 
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
@@ -191,9 +188,6 @@ WiFiClient espClient;
 PubSubClient mqttclient(espClient);
 //WebSocketsServer webSocket(WS_PORT);
 //EspHtmlTemplateProcessor templateProcessor(&server);
-WiFiUDP UDP;
-OZGPS gps;
-MGPS mgps;
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -1316,10 +1310,6 @@ void logSuffix(Print* _logOutput) {
 
 void setup() {
   // put your setup code here, to run once:
-
-  //#include "soc/soc.h"
-  //#include "soc/rtc_cntl_reg.h"
-  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
   
   pinMode(RESET_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
@@ -1736,14 +1726,6 @@ void setup() {
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
-  // Begin listening to UDP port
-  UDP.begin(UDP_PORT);
-  LOGN(F("Listening on UDP port %d"),UDP_PORT);
-  //UDP.stop();
-  //LOGN(F("Stop listening on UDP port %d"),UDP_PORT);
-  
-  gps.init(&mgps);
-  gps.set_filter(0xE); // "RMC","GGA","GLL"
 }
 
 
@@ -1768,31 +1750,5 @@ void loop() {
   }
 #endif
 
-  // If UDP packet received...
-  int packetSize = UDP.parsePacket();
-  if (packetSize) {
-    //LOGN(F("Received packet! Size: %d"),packetSize);
-    
-    uint8_t gpsflag;
-    while(UDP.available()) {
-      char c=UDP.read();
-      gpsflag = gps.encode(c);
-      if(gps.valid){
-	LOGN("RMC latitude : %D", mgps.rmc.dms.latitude);
-	LOGN("RMC longitude: %D", mgps.rmc.dms.longitude);
-	LOGN("GGA latitude : %D", mgps.gga.dms.latitude);
-	LOGN("GGA longitude: %D", mgps.gga.dms.longitude);
-	LOGN("GLL latitude : %D", mgps.gll.dms.latitude);
-	LOGN("GLL longitude: %D", mgps.gll.dms.longitude);
-	LOGN("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
-	     mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);
-
-	UDP.flush();
-      //}else{
-	//LOGN("gps_error: %d", gpsflag);
-      //}
-      }
-    }
-  }
   Alarm.delay(0);
 }
