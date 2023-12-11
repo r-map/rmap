@@ -46,55 +46,45 @@ using namespace cpp_freertos;
 
 
 list<TickHook *> TickHook::Callbacks;
+static portMUX_TYPE tickhookspinlock = portMUX_INITIALIZER_UNLOCKED;
 
 
 TickHook::TickHook()
     : Enabled(true)
 {
+  portMUX_INITIALIZE(&tickhookspinlock);
 }
 
 
 TickHook::~TickHook()
 {
-  //portMUX_TYPE *spinlock = malloc(sizeof(portMUX_TYPE));
-  static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
-  portMUX_INITIALIZE(&spinlock);
-    taskENTER_CRITICAL(&spinlock);
+    taskENTER_CRITICAL(&tickhookspinlock);
     Callbacks.remove(this);
-    taskEXIT_CRITICAL(&spinlock);
+    taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
 
 void TickHook::Register()
 {
-  //portMUX_TYPE *spinlock = malloc(sizeof(portMUX_TYPE));
-  static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
-  portMUX_INITIALIZE(&spinlock);
-    taskENTER_CRITICAL(&spinlock);
+    taskENTER_CRITICAL(&tickhookspinlock);
     Callbacks.push_front(this);
-    taskEXIT_CRITICAL(&spinlock);
+    taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
 
 void TickHook::Disable()
 {
-  //portMUX_TYPE *spinlock = malloc(sizeof(portMUX_TYPE));
-  static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
-  portMUX_INITIALIZE(&spinlock);
-    taskENTER_CRITICAL(&spinlock);
+    taskENTER_CRITICAL(&tickhookspinlock);
     Enabled = false;
-    taskEXIT_CRITICAL(&spinlock);
+    taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
 
 void TickHook::Enable()
 {
-  //portMUX_TYPE *spinlock = malloc(sizeof(portMUX_TYPE));
-  static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
-  portMUX_INITIALIZE(&spinlock);
-    taskENTER_CRITICAL(&spinlock);
+    taskENTER_CRITICAL(&tickhookspinlock);
     Enabled = true;
-    taskEXIT_CRITICAL(&spinlock);
+    taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
 

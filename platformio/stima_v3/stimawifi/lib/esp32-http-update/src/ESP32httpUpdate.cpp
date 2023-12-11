@@ -22,7 +22,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#if defined(ARDUINO_D1_MINI32)
+#if defined(ARDUINO_D1_MINI32) || defined(ARDUINO_LOLIN_C3_MINI)
 #include "ESP32httpUpdate.h"
 #include <StreamString.h>
 

@@ -69,7 +69,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #define I2C_CLOCK 10000
 // #define I2CPULLUP define this if you want software pullup on I2C
 
-const int EPOCH_1_1_2019 = 1546300800; //1546300800 =  01/01/2019 @ 12:00am (UTC)
+#define EPOCH_1_1_2019 1546300800   //1546300800 =  01/01/2019 @ 12:00am (UTC)
 
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
@@ -95,17 +95,10 @@ const int EPOCH_1_1_2019 = 1546300800; //1546300800 =  01/01/2019 @ 12:00am (UTC
 #endif
 #define LED_PIN LED_BUILTIN
 
-WebServer webserver(STIMAHTTP_PORT);
-
-void analogWriteFreq(double frequency){
-  analogWriteFrequency(frequency);
-}
-
 #include "thread.hpp"
+#include "critical.hpp"
 #include "ticks.hpp"
 #include <frtosLog.h>
-MutexStandard loggingmutex;
-//TaskHandle_t Task1;
 
 //needed for library
 #include <DNSServer.h>
@@ -133,6 +126,8 @@ MutexStandard loggingmutex;
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
 const uint16_t update_port = 80;
 
+WebServer webserver(STIMAHTTP_PORT);
+
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
 //WebSocketsServer webSocket(WS_PORT);
@@ -140,62 +135,7 @@ PubSubClient mqttclient(espClient);
 WiFiUDP UDP;
 OZGPS gps;
 MGPS mgps;
-
-
-using namespace cpp_freertos;
-
-class udpThread : public Thread {
-  
-public:
-  
-  udpThread(int i)
-    : Thread("Thread UDP", 10000, 1),
-       Id (i)
-  {
-            Start();
-  };
-  
-protected:
-
-  virtual void Run() {
-    
-    frtosLog.notice("Starting Thread %d", Id);
-
-    for(;;){
-      // If UDP packet received...
-      int packetSize = UDP.parsePacket();
-      if (packetSize) {
-	//frtosLog.notice(F("Received packet! Size: %d"),packetSize);
-	
-	uint8_t gpsflag;
-	while(UDP.available()) {
-	  char c=UDP.read();
-	  gpsflag = gps.encode(c);
-	  if(gps.valid){
-	    frtosLog.notice("RMC latitude : %D", mgps.rmc.dms.latitude);
-	    frtosLog.notice("RMC longitude: %D", mgps.rmc.dms.longitude);
-	    frtosLog.notice("GGA latitude : %D", mgps.gga.dms.latitude);
-	    frtosLog.notice("GGA longitude: %D", mgps.gga.dms.longitude);
-	    frtosLog.notice("GLL latitude : %D", mgps.gll.dms.latitude);
-	    frtosLog.notice("GLL longitude: %D", mgps.gll.dms.longitude);
-	    frtosLog.notice("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
-			    mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
-	    //UDP.flush();
-	  }else{
-	    frtosLog.notice("gps_error: %d", gpsflag);
-	  }
-	}
-      }else{
-	frtosLog.notice(F("No Received packet!"));
-      }
-      delay(100);
-    }
-  };
-  
-private:
-  int Id;
-  
-};
+MutexStandard loggingmutex;
 
 
 //flag for saving data
@@ -255,23 +195,8 @@ I2C_BUTTON button; //I2C address 0x31
 // I2C_BUTTON button(your_address); //using customize I2C address
 
 
-static float temperature=NAN;
-static int humidity=-999,pm2=-999,pm10=-999,co2=-999;
-
-/*
-const char* reportKeyProcessor(const String& key)
-{
-  if (key == "TEMPERATURE") return "28.5";
-  else if (key == "HUMIDITY") return "55.6";
-
-  return "ERROR: Key not found";
-}
-
-void handleReport()
-{
-  templateProcessor.processAndSend("/report.html", reportKeyProcessor);
-}
-*/
+float temperature=NAN;
+int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 
 String Json(){
 
@@ -1077,8 +1002,8 @@ bool publish_constantdata() {
   return true;
 }
 
-void repeats() {
-  
+void doMeasureAndPublish() {
+
   uint32_t waittime,maxwaittime=0;
 
   char values[MAX_VALUES_FOR_SENSOR*20];
@@ -1210,6 +1135,106 @@ void repeats() {
 }
 
 
+void analogWriteFreq(double frequency){
+  analogWriteFrequency(frequency);
+}
+
+void doUdp(void){
+  
+  for(;;){
+    // If UDP packet received...
+    int packetSize = UDP.parsePacket();
+    if (packetSize) {
+      //frtosLog.notice(F("Received packet! Size: %d"),packetSize);
+      
+      uint8_t gpsflag;
+      while(UDP.available()) {
+	char c=UDP.read();
+	gpsflag = gps.encode(c);
+	if(gps.valid){
+	  frtosLog.notice("RMC latitude : %D", mgps.rmc.dms.latitude);
+	  frtosLog.notice("RMC longitude: %D", mgps.rmc.dms.longitude);
+	  frtosLog.notice("GGA latitude : %D", mgps.gga.dms.latitude);
+	  frtosLog.notice("GGA longitude: %D", mgps.gga.dms.longitude);
+	  frtosLog.notice("GLL latitude : %D", mgps.gll.dms.latitude);
+	  frtosLog.notice("GLL longitude: %D", mgps.gll.dms.longitude);
+	  frtosLog.notice("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
+			  mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
+	  //UDP.flush();
+	}else{
+	  frtosLog.notice("gps_error: %d", gpsflag);
+	}
+      }
+    }else{
+	frtosLog.notice(F("No Received packet!"));
+    }
+    delay(100);
+  }
+}
+
+using namespace cpp_freertos;
+
+class udpThread : public Thread {
+  
+public:
+  udpThread(int i)
+    : Thread("UDP", 10000, 1),
+      Id (i)
+  {
+    frtosLog.notice("Create Thread %s %d", GetName().c_str(), Id);
+    //Start();
+  };
+  
+protected:
+  virtual void Run() {
+    frtosLog.notice("Starting Thread %s %d", GetName().c_str(), Id);
+    doUdp();
+  };
+  
+private:
+  int Id;
+};
+
+
+class measureAndPublishThread : public Thread {
+  
+public:
+  measureAndPublishThread(int i)
+    : Thread("measure and publish", 10000, 1),
+      Id (i)
+  {
+    frtosLog.notice("Create Thread %s %d", GetName().c_str(), Id);
+    //Start();
+  };
+
+  ~measureAndPublishThread()
+  {
+    frtosLog.notice("Delete Thread %s %d", GetName().c_str(), Id);
+  }
+  
+  virtual void Cleanup()
+  {
+    delete this;
+  }
+  
+protected:  
+  virtual void Run() {
+    frtosLog.notice("Starting Thread %s %d", GetName().c_str(), Id);
+    doMeasureAndPublish();
+  };
+  
+private:
+  int Id;
+};
+
+udpThread threadUdp(1);
+
+void measureAndPublish() {
+  measureAndPublishThread *threadMeasureAndPublish;
+  threadMeasureAndPublish  = new measureAndPublishThread(1);
+  threadMeasureAndPublish->Start();
+}
+
 void reboot() {
   //reset and try again, or maybe put it to deep sleep
   ESP.restart();
@@ -1255,8 +1280,6 @@ void setup() {
   // Note: if you want to fully remove all logging code, change #define LOG_LEVEL ....
   //       this will significantly reduce your project size
 
-
-  
   // set runtime log level to the same of compile time
   frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
   frtosLog.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
@@ -1275,7 +1298,6 @@ void setup() {
 #endif
 
   espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
-  
   
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
@@ -1602,7 +1624,7 @@ void setup() {
 
   mqttclient.setServer(rmap_mqtt_server, 1883);
   
-  Alarm.timerRepeat(rmap_sampletime, repeats);             // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(rmap_sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
 
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
@@ -1632,16 +1654,14 @@ void setup() {
   gps.init(&mgps);
   gps.set_filter(0xE); // "RMC","GGA","GLL"
 
-  static udpThread theadUDP(1);
+  threadUdp.Start();
   
 }
 
 void loop() {
   mqttclient.loop();
   webserver.handleClient();
-#if not defined(ARDUINO_D1_MINI32)
-  MDNS.update();
-#else
+  //MDNS.update();
   // sometimes ESP32 do not reconnect and we need a restart
   uint16_t counter=0;
   while (WiFi.status() != WL_CONNECTED) { //lost connection
@@ -1655,6 +1675,5 @@ void loop() {
     if(counter++>=300) reboot(); //300 seconds timeout - reset board
     delay(1000);
   }
-#endif
   Alarm.delay(0);
 }

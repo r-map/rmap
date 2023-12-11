@@ -71,20 +71,53 @@ class CriticalSection {
     public:
         /**
          *  Disable context switches as well as maskable interrupts.
+	 *
+         *  @note See the following for further details:
+         *  https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-guides/freertos-smp.html#critical-sections
          */
-        static inline void Enter()
+        static inline void Enter(spinlock_t* spinlock)
         {
-            taskENTER_CRITICAL();
+            taskENTER_CRITICAL(spinlock);
         }
 
         /**
          *  Re-enable context switches.
+	 *
+         *  @note See the following for further details:
+         *  https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-guides/freertos-smp.html#critical-sections
          */
-        static inline void Exit()
+        static inline void Exit(spinlock_t* spinlock)
         {
-            taskEXIT_CRITICAL();
+            taskEXIT_CRITICAL(spinlock);
         }
 
+        /**
+         *  Disable context switches as well as maskable interrupts
+         *  from an interrupt context.
+         *
+         *  @param spinlock 
+         *
+         *  @note See the following for further details:
+         *  https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-guides/freertos-smp.html#critical-sections
+         */
+        static inline void EnterISR(spinlock_t* spinlock)
+        {
+            return taskENTER_CRITICAL_ISR(spinlock);
+        }
+
+        /**
+         *  Re-enable context switches from an interrupt context.
+         *
+         *  @param spinlock 
+         *
+         *  @note See the following for further details:
+         *  https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-guides/freertos-smp.html#critical-sections
+         */
+        static inline void ExitISR(spinlock_t* spinlock)
+        {
+            taskEXIT_CRITICAL_ISR(spinlock);
+        }
+  
         /**
          *  Disable context switches as well as maskable interrupts
          *  from an interrupt context.
