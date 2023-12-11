@@ -83,7 +83,6 @@ class distclean(Command):
 class build(build_):
 
     sub_commands = build_.sub_commands[:]
-    sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
 
     
@@ -118,21 +117,6 @@ class makemessages(Command):
         from django.core import management
         management.call_command("makemessages",all=True)
 
-
-class compilemessages(Command):
-    description = "generate .mo files from .po"
-    user_options = []
-    boolean_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        from django.core import management
-        management.call_command("compilemessages")
 
 class createmanpages(Command):
     description = "generate man page with help2man"

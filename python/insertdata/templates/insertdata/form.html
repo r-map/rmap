@@ -21,7 +21,7 @@
 <div class="alert alert-success" role="alert">{% trans 'OK, data published' %}<br><button onclick="showImage()">{% trans 'Show data published' %}</button></div>
 <script>
 function showImage() {
-  var myWindow = window.open( "{% url 'geoimage-by-ident-id' user imageid %}", "{% trans 'My last image published' %}", "width=1024,height=900");
+  var myWindow = window.open( "{% url 'geoimage-by-id' imageid %}", "{% trans 'My last image published' %}", "width=1024,height=900");
 }
 </script>
 

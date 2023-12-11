@@ -28,7 +28,10 @@
       
       <div class="row">
 	<div class="col-xs-12">
-	  <img src="/{{ grimage.image.url }}" class="img-rounded img-responsive">
+	  <a href="{% url 'geoimage-by-id' grimage.id %}">
+	    <img src="/{{ grimage.image.url }}" class="img-rounded img-responsive">
+	    {% trans 'Select this image' %}
+	  </a>
 	</div>
       </div>
       <div class="row">

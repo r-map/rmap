@@ -84,13 +84,12 @@ class GeorefencedImage(models.Model):
         return \
             '\
             <p>\
-            <a href="#" onClick="window.open(\'/geoimage/geoimagebyidentid/{}/{}/\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
+            <a href="#" onClick="window.open(\'/geoimage/geoimagebyid/{}/\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\
             </a>\
             {}\
             </p>\
             <p><a href="/geoimage/geoimagesonmap/{}">{}</a> {}</p>'.format(
-                self.user,
                 self.id,
                 self.image_thumbnail.url,
                 self.comment,

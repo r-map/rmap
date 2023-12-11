@@ -33,9 +33,16 @@
 	<div class="col-xs-4">
 	  {{grimage.date}}
 	</div>
-	<div class="col-xs-4">
+	<div class="col-xs-2">
 	  <a href="{% url 'geoimages-by-coordinate' grimage.lon grimage.lat %}">{%trans "Navigate this point by time" %}</a>
-	</div>	
+	</div>
+	{% if request.user.is_authenticated %}
+	  {% if request.user.username == grimage.user.username %}
+	    <div class="col-xs-2">
+	      <a href="{% url 'geoimage-delete' grimage.id %}">{%trans "Delete" %}</a>
+	    </div>
+	  {% endif %}
+	{% endif %}
 	<div class="col-xs-12">
 	  {{grimage.comment}}
 	</div>
