@@ -102,7 +102,7 @@ class CriticalSection {
          */
         static inline void EnterISR(spinlock_t* spinlock)
         {
-            return taskENTER_CRITICAL_ISR(spinlock);
+            taskENTER_CRITICAL_ISR(spinlock);
         }
 
         /**
