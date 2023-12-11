@@ -69,8 +69,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #define I2C_CLOCK 10000
 // #define I2CPULLUP define this if you want software pullup on I2C
 
-#define EPOCH_1_1_2019 1546300800   //1546300800 =  01/01/2019 @ 12:00am (UTC)
-
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
 
@@ -117,6 +115,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #include <LOLIN_I2C_BUTTON.h>
 #include <WiFiUdp.h>
 #include "ozgps.h"
+#include "esp_sntp.h"
+//#include "esp_netif_sntp.h"
 
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
@@ -1015,7 +1015,8 @@ void doMeasureAndPublish() {
 
   digitalWrite(LED_PIN,LOW);
 
-  time_t tnow = now();
+  time_t tnow;
+  time(&tnow);
   setTime(tnow);              // resync from sntp
   
   frtosLog.notice(F("Time: %s"),ctime(&tnow));
@@ -1578,47 +1579,46 @@ void setup() {
   webserver.begin();
   frtosLog.notice(F("HTTP server started"));
 
-  configTime(0,0, ntp_server); // this seems not taken in account
-  // ESP time and arduino time are different thinks !
-  //time_t tnow = now();
-  time_t tnow = time(nullptr);
-
-  uint16_t counter=0;
-  while (tnow < EPOCH_1_1_2019)
-  {
-    tnow = now();
-    frtosLog.notice(F("Time: %s"),ctime(&tnow));
-    frtosLog.notice(F("Wait for NTP"));
-
-    if (oledpresent){
-      u8g2.setCursor(0, 30);
-      u8g2.print(F("Setting time"));
-      u8g2.sendBuffer();
-    }
-    if(counter++>=2) {
-      if (oledpresent){
-	u8g2.clearBuffer();
-	u8g2.setCursor(0, 10); 
-	u8g2.print(F("Time not"));
-	u8g2.setCursor(0, 20); 
-	u8g2.print(F("configurated!"));
-	//u8g2.setCursor(0, 30);
-	//u8g2.print(F("RESTART"));
-	u8g2.sendBuffer();
-	delay(5000);
-      }
-      //frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
-      //delay(1000);
-      //reboot(); //300 seconds timeout - reset board
-      break;
-    }
-    yield();
-    delay(1000);
+  if (oledpresent){
+    u8g2.setCursor(0, 30);
+    u8g2.print(F("Setting time"));
+    u8g2.sendBuffer();
+  }
+  
+  sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  sntp_setservername(0, ntp_server);
+  sntp_init();
+  // wait for time to be set
+  time_t now = 0;
+  struct tm timeinfo = { 0 };
+  int retry = 0;
+  const int retry_count = 10;
+  while(timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
+    frtosLog.notice(F("Waiting for system time to be set... (%d/%d)"), retry, retry_count);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    time(&now);
+    localtime_r(&now, &timeinfo);
   }
 
-  setTime(tnow);
-  
-  frtosLog.notice(F("Time: %s"),ctime(&tnow));
+  if(retry >= retry_count) {
+    if (oledpresent){
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("Time not"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("configurated!"));
+      u8g2.setCursor(0, 30);
+      u8g2.print(F("RESTART"));
+      u8g2.sendBuffer();
+      delay(5000);
+    }
+    frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
+    delay(1000);
+    reboot(); //300 seconds timeout - reset board
+  }
+    
+  frtosLog.notice(F("Time: %s"),ctime(&now));
+  setTime(now);
   
   frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
 
