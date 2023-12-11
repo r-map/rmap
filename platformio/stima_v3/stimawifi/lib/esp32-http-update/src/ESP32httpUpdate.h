@@ -23,7 +23,7 @@
  *
  */
 
-#if defined(ARDUINO_D1_MINI32) || defined(ARDUINO_LOLIN_C3_MINI)
+#if defined(ARDUINO_ARCH_ESP32)
 #ifndef ESP32HTTPUPDATE_H_
 #define ESP32HTTPUPDATE_H_
 

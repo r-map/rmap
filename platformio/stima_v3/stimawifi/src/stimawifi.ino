@@ -96,7 +96,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #define LED_PIN LED_BUILTIN
 
 #include "thread.hpp"
-#include "critical.hpp"
+//#include "critical.hpp"
 #include "ticks.hpp"
 #include <frtosLog.h>
 
@@ -1257,9 +1257,9 @@ void logSuffix(Print* _logOutput) {
 void setup() {
   // put your setup code here, to run once:
 
-  #include "soc/soc.h"
-  #include "soc/rtc_cntl_reg.h"
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
+  //#include "soc/soc.h"
+  //#include "soc/rtc_cntl_reg.h"
+  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
   
   pinMode(RESET_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
