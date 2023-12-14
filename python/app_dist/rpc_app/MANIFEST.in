@@ -1,0 +1,13 @@
+include COPYING
+include NEWS
+include README
+include LICENSE
+include README.rst
+include TODO
+include *.txt
+include rmap-rpc.spec
+global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
+
+recursive-include rpc/static *
+recursive-include rpc/templates *
+

@@ -1540,7 +1540,7 @@ def configstation_to_struct_v3(station_slug=None,board_slug=None,username=None):
             
         try:
             if ( board.transportmqtt.active):
-                print("TCP/IP Transport",board.transportmqtt)
+                print("MQTT Transport",board.transportmqtt)
 
                 myconfiguration.constantdata_count=0                
                 for constantdata in  mystation.stationconstantdata_set.all():
@@ -2688,8 +2688,8 @@ class amqpConsumerProducer(threading.Thread):
         :param pika.Spec.BasicProperties: properties
         :param bytes body: The message body
         """
-        self._logging.debug('Received message # %s from %s: %s',
-                           basic_deliver.delivery_tag, properties.app_id, body)
+        self._logging.debug('Received message # %s from %s',
+                           basic_deliver.delivery_tag, properties.app_id)
 
         if (self._pipefunction is not None):
             self._pipefunction(self,basic_deliver, properties, body)

@@ -72,6 +72,24 @@ class distclean(Command):
                     print('removing: %s' % join(root, name))
                     if not(self.dry_run): os.remove(join(root, name))
 
+        for root, dirs, files in os.walk('insertdata/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+
+        for root, dirs, files in os.walk('showdata/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+
+        for root, dirs, files in os.walk('geoimage/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+                    
         # remove all the .pyc files
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in files:
@@ -108,16 +126,9 @@ class makemessages(Command):
         pass
 
     def run(self):
-
-        # rm build to do not duplicate messages
-        try:
-            shutil.rmtree("build")
-        except:
-            pass
-
         from django.core import management
-        management.call_command("makemessages",all=True)
-
+        management.call_command("makemessages",all=True,ignore=["build","app_dist","test","test_data"])
+                                
 
 class compilemessages(Command):
     description = "generate .mo files from .po"
@@ -131,6 +142,7 @@ class compilemessages(Command):
         pass
 
     def run(self):
+        print("compile messages")
         from django.core import management
         management.call_command("compilemessages")
 
@@ -319,6 +331,10 @@ for dirpath, dirnames, filenames in os.walk('geoimage/static'):
     if filenames:
         for file in filenames:
             geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
+for dirpath, dirnames, filenames in os.walk('geoimage/locale'):
+    if filenames:
+        for file in filenames:
+            geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
 for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
     if filenames:
         for file in filenames:
@@ -335,11 +351,17 @@ for dirpath, dirnames, filenames in os.walk('insertdata/static'):
     if filenames:
         for file in filenames:
             insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
-                    
+
+for dirpath, dirnames, filenames in os.walk('insertdata/locale'):
+    if filenames:
+        for file in filenames:
+            insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
+            
 for dirpath, dirnames, filenames in os.walk('rmap/registration/locale'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap/registration'))
+
 for dirpath, dirnames, filenames in os.walk('rmap/registration/static'):
     if filenames:
         for file in filenames:
@@ -350,6 +372,11 @@ for dirpath, dirnames, filenames in os.walk('showdata/static'):
         for file in filenames:
             showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
 
+for dirpath, dirnames, filenames in os.walk('showdata/locale'):
+    if filenames:
+        for file in filenames:
+            showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
+            
 for dirpath, dirnames, filenames in os.walk('rainbo/static'):
     if filenames:
         for file in filenames:
@@ -450,7 +477,7 @@ setup(name='rmap',
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson"
                           ,"requests","pyserial","django-leaflet","jsonfield","django-geojson"
                           ,"Pillow","django-imagekit","django-appconf","nominatim","django-hosts"
-                          ,"iso8601","django-cookie-law","django-tagging","pytz","six","paho-mqtt","sslpsk"],
+                          ,"iso8601","django-cookie-law","django-tagging","pytz","six","paho-mqtt","sslpsk","django-hijack"],
       extras_require = {
           'borinud': ['dballe>=8.4', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'classytags','cookielaw','numpy']

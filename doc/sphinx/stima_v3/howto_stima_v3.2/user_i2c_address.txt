@@ -1,0 +1,29 @@
+Lo scan di sensor config deve riportare rutti i dispositivi
+collegati all'hub.
+
+questi gli indirizzi di default dei moduli:
+
+Rmap/registers-rain.h:#define I2C_RAIN_DEFAULT_ADDRESS                  (0x21)
+Rmap/registers-power.h:#define I2C_POWER_DEFAULT_ADDRESS                (0x4A)
+Rmap/registers-wind.h:#define I2C_WIND_DEFAULT_ADDRESS                  (0x45)
+Rmap/registers-th.h:#define I2C_TH_DEFAULT_ADDRESS                      (0x23)
+Rmap/registers-radiation.h:#define I2C_SOLAR_RADIATION_DEFAULT_ADDRESS  (0x47)
+
+non installati:
+Rmap/registers-leaf.h:#define I2C_LEAF_DEFAULT_ADDRESS                  (0x65)
+Rmap/registers-opc.h:#define I2C_OPC_DEFAULT_ADDRESS                    (0x55)
+Rmap/registers-thr.h:#define I2C_THR_DEFAULT_ADDRESS                    (0x23)
+Rmap/registers-thr.h:#define I2C_THR_TEMPERATURE_DEFAULT_ADDRESS        (0x49)
+Rmap/registers-thr.h:#define I2C_THR_HUMIDITY_DEFAULT_ADDRESS           (0x27)
+
+poi ci sono i sensori:
+SHT                                                                     (0x44)
+
+Gli adc:
+ADC  radiation								(0x48)
+ADC  power								(0x49)
+
+e il display
+il display prevede questi due possibili indirizzi utilizzati a "cascata"
+include/lcd_config.h:#define LCD_I2C_ADDRESS                            (0x3F)
+include/lcd_config.h:#define LCD_I2C_SECONDARY_ADDRESS                  (0x27)

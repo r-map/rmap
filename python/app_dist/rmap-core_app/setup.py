@@ -83,7 +83,6 @@ class distclean(Command):
 class build(build_):
 
     sub_commands = build_.sub_commands[:]
-    sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
 
     
@@ -119,21 +118,6 @@ class makemessages(Command):
         management.call_command("makemessages",all=True)
 
 
-class compilemessages(Command):
-    description = "generate .mo files from .po"
-    user_options = []
-    boolean_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        from django.core import management
-        management.call_command("compilemessages")
-
 class createmanpages(Command):
     description = "generate man page with help2man"
     user_options = []
@@ -148,7 +132,7 @@ class createmanpages(Command):
     def run(self):
         try:
             import subprocess
-
+            subprocess.check_call(["mkdir","-p", "man/man1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2amqpd.1","./mqtt2amqpd"])
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2amqpd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2stationmaintd.1","./mqtt2stationmaintd"])

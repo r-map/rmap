@@ -46,7 +46,7 @@
 {% endif %}
 
 
-<h3 id="striped-rows">{% trans 'Select coordinate from address' %}</h3>
+<h3 id="striped-rows">{% trans 'If you prefer, select the coordinates from the address:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
      <table class="table">
@@ -56,15 +56,15 @@
     </form>
 </div>
 
-<h3 id="striped-rows">{% trans 'Select coordinate from map' %}</h3>
+<h3 id="striped-rows">{% trans 'Or select coordinate from map:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
         {{ stationonmapform.as_p }}
-     <input type="submit" value={%trans "Submit" %} class="btn">
+     <input type="submit" value={%trans "Select" %} class="btn">
     </form>
 </div>
 
-<h3 id="striped-rows">{% trans 'Insert your new station' %}</h3>
+<h3 id="striped-rows">{% trans 'And finally, enter your new station:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
         {{ newstationform.as_p }}

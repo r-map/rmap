@@ -1,0 +1,142 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-11 12:00+0000\n"
+"PO-Revision-Date: 2023-12-11 13:03+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: geoimage/models.py:53
+msgid "Active"
+msgstr "Attiva"
+
+#: geoimage/models.py:53
+msgid "Activate this geoimage"
+msgstr "Attivare questa geoimmagine"
+
+#: geoimage/models.py:55
+msgid "Comment"
+msgstr "Commento"
+
+#: geoimage/models.py:55
+msgid "Image description"
+msgstr "Descrizione dell'immagine"
+
+#: geoimage/models.py:64
+msgid "File with image"
+msgstr "File con immagine"
+
+#: geoimage/templates/geoimage/geoimage_by_id.html:37
+msgid "Navigate this point by time"
+msgstr "Navigare questo sito nel tempo"
+
+#: geoimage/templates/geoimage/geoimage_by_id.html:42
+msgid "Delete"
+msgstr "Rimuovi"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:27
+msgid "Invalid data; retry"
+msgstr "Dati invalidi; riprova"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:28
+msgid "Return to image"
+msgstr "Tona all'immagine"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:32
+msgid "The image is not your own; cannot remove!"
+msgstr "L'immagine non è di tua proprietà; non puoi rimuoverla!"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:36
+msgid "Error deleting image; retry"
+msgstr "Errore cancellando l'immagine; riprova"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:42
+msgid "Image removed"
+msgstr "Immagine rimossa"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:43
+msgid "Return to image on map"
+msgstr "Ritorna alle immagini sulla mappa"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:59
+msgid "Are you sure to delete image ?"
+msgstr "Siete sicuri di cancellare l'immagine?"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:63
+msgid "Cancel"
+msgstr "Annulla"
+
+#: geoimage/templates/geoimage/geoimage_delete.html:69
+msgid "Remove"
+msgstr "Rimuovi"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:33
+msgid "Select this image"
+msgstr "Seleziona questa immagine"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:39
+msgid "All images for "
+msgstr "Tutte le immagini per "
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:54
+msgid "No geoimages."
+msgstr "No immagini georeferenziate."
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:63
+msgid "previous"
+msgstr "precedente"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:70
+msgid "Page"
+msgstr "Pagina"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:70
+msgid "of"
+msgstr "di"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:77
+msgid "next"
+msgstr "successiva"
+
+#: geoimage/templates/geoimage/geoimages_by_coordinate.html:78
+msgid "last &raquo;"
+msgstr "ultima&raquo;"
+
+#: geoimage/templates/geoimage/geoimages_on_map.html:15
+msgid "Selected user"
+msgstr "Seleziona utente"
+
+#: geoimage/templates/geoimage/geoimages_on_map.html:15
+msgid "Reset filter"
+msgstr "Annulla il filtro"
+
+#: geoimage/templates/geoimage/geoimages_on_map.html:45
+msgid "Submit"
+msgstr "Invia"
+
+#: geoimage/views.py:21
+msgid "Starting date"
+msgstr "Data iniziale"
+
+#: geoimage/views.py:21
+msgid "Elaborate starting from this date"
+msgstr "L'elaborazione inizia da questa data"
+
+#: geoimage/views.py:23
+msgid "Ending date"
+msgstr "Data di termine"
+
+#: geoimage/views.py:23
+msgid "Elaborate ending to this date"
+msgstr "L'elaborazione termina a questa data"

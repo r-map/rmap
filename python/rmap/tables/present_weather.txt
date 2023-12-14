@@ -10,6 +10,8 @@
 155 Drizzle, freezing ( moderate )
 160 Rain
 165 Rain, freezing ( moderate )
+167 Rain (or drizzle) and snow,\n slight
+168 Rain (or drizzle) and snow,\n moderate or heavy
 171 Snow, slight
 172 Snow, moderate
 173 Snow, heavy

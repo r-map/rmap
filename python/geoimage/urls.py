@@ -1,14 +1,19 @@
 from django.conf.urls import url
-from .views import showImage,showOneImage
+from .views import geoimagesOnMap,geoimageById,geoimagesByCoordinate,geoimageDelete
 
 urlpatterns = [
-    url(r'^$',
-        showImage,name="geoimage"),
+    url(r'^geoimagesonmap$',
+        geoimagesOnMap,name="geoimages-on-map"),
 
-    url(r'^(?P<ident>[-_\w]+)/$',
-        showImage,name="geoimage-ident"),
+    url(r'^geoimagesonmap/(?P<ident>[-_\w]+)/$',
+        geoimagesOnMap,name="geoimages-on-map-by-ident"),
     
-    url(r'^(?P<ident>[-_\w]+)/(?P<id>[-_\w]+)/$',
-        showOneImage,name="geoimage-ident-id"),
+    url(r'^geoimagebyid/(?P<id>[-_\w]+)/$',
+        geoimageById,name="geoimage-by-id"),
 
+    url(r'^geoimagedelete/(?P<id>[-_\w]+)/$',
+        geoimageDelete,name="geoimage-delete"),
+    
+    url(r'^geoimagesbycoordinate/(?P<lon>[-_\w.]+)/(?P<lat>[-_\w.]+)/$',
+        geoimagesByCoordinate,name="geoimages-by-coordinate"),
 ]

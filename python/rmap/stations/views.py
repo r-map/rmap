@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from rmap.jsonrpc import TransportHTTPREPONSE
+from django.core.exceptions import ObjectDoesNotExist
 
 
 def mystationmetadata_list(request,user=None):
@@ -98,7 +99,65 @@ def mystationmetadata_del(request,user,slug):
         return render(request, 'insertdata/delstationform.html',{'delstationform':delstationform})
 
 
+def station_mqtt_monitor(request,user,slug):
 
+    if request.user.is_authenticated:
+        authuser = request.user.username
+        #print("Received from user: %r" % authuser) 
+        if (authuser == user):
+            mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
+
+            if not mystation.active:
+                print("disactivated station: do nothing!")
+                response=HttpResponse("disactivated station")
+                response.status_code=403
+                return response
+
+            for board in mystation.board_set.all():
+                if not board.active:
+                    continue
+
+                try:
+                    if ( board.transportmqtt.active):
+
+                        mqtt_host=board.transportmqtt.mqttserver
+                        mqtt_root_topic="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                            +"/"+ mystation.ident +"/"\
+                            +mystation.lonlat()\
+                            +"/"+mystation.network+"/"
+                        
+                        mqtt_maint_topic="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                            +"/"+ mystation.ident +"/"\
+                            +mystation.lonlat()\
+                            +"/"+mystation.network+"/"
+                        mqtt_rpc_topic="1/rpc/"+board.transportmqtt.mqttuser\
+                            +"/"+ mystation.ident +"/"\
+                            +mystation.lonlat()\
+                            +"/"+mystation.network+"/"
+                        mqtt_username=board.transportmqtt.mqttuser+"/"+mystation.slug+"/"+board.slug
+                        mqtt_password=board.transportmqtt.mqttpassword
+                        
+                        report_seconds=board.transportmqtt.mqttsampletime
+
+                        return render(request, 'stations/station-mqtt-monitor.html',
+                                      { "mqtt_host":mqtt_host
+                                        ,"mqtt_username":mqtt_username
+                                        ,"mqtt_password":mqtt_password
+                                        ,"mqtt_root_topic":mqtt_root_topic
+                                        ,"mqtt_maint_topic":mqtt_maint_topic
+                                        ,"mqtt_rpc_topic":mqtt_rpc_topic
+                                        ,"report_seconds":report_seconds
+                                        ,"stationmetadata":mystation})
+                        
+                except ObjectDoesNotExist:
+                    print("transport mqtt not present")
+                    response=HttpResponse("No MQTT transport")
+                    response.status_code=403
+                    return response
+
+    response=HttpResponse("deny")
+    response.status_code=403
+    return response
 
 def mystationmetadata_detail(request,user,slug):
 
@@ -134,7 +193,6 @@ def mystationstatus_detail(request,user,slug):
 def mystation_localdata(request,user,slug):
     mystation=get_object_or_404(StationMetadata,user__username=user,slug=slug)
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
-
 
 
 

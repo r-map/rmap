@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# GPL. (C) 2014 Paolo Patruno.
+#!/usr/bin/python3.6 -s
+# GPL. (C) 2023 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -17,6 +17,7 @@
 # 
 
 TIMESTEP=15             # execute dbadb import everi TIMESTEP seconds
+PACKET_MAX_SIZE= 1000000 # max size in bytes for one dballe import
 
 import os,io,signal
 import logging,logging.handlers
@@ -110,9 +111,24 @@ class Threaded_bufr2dballe(threading.Thread):
             timestart=now
             
             messages=[]
-            while not self._send_queue.empty():
-                messages.append(self._send_queue.get())
+            size=0
+            go=True
+            while not self._send_queue.empty() and go:
+                message=self._send_queue.get()
 
+                #if len(message.body) > PACKET_MAX_SIZE:
+                #    self._logging.error("Message too big, skip it; tag %d, size %d" % (message.delivery_tag,len(message.body)))
+                #    self._receive_queue.put_nowait(Message(False,message.delivery_tag))
+                #else:
+                size += len(message.body)
+                if size <= PACKET_MAX_SIZE or len(messages)==0:
+                    messages.append(message)
+                else:
+                    self._logging.warning("max size for packet, requeue last message of size %s bytes" % len(message.body))
+                    # requeue message for late
+                    self._send_queue.put(message)
+                    go=False
+                    
             if len(messages) > 0:
                 self._logging.debug("elaborate %s messages" % len(messages))
                 totalbody=b""

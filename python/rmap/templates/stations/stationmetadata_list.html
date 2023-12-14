@@ -7,6 +7,7 @@
 
     {% if user %}
     <h2 id="striped-rows"> {{user}} {% trans 'Stations' %}</h2>
+    <a href="{% url 'stationmetadata-list' %}">{%trans "Reset user filter" %}</a>
     {% else %}
     <h2 id="striped-rows">{% trans 'Stations' %}</h2>
     {% endif %}

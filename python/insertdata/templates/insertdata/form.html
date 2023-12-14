@@ -17,7 +17,17 @@
 <div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}
 
-<h3 id="striped-rows">{% trans 'Select coordinates from your stations' %}</h3>
+{% if success  %}
+<div class="alert alert-success" role="alert">{% trans 'OK, data published' %}<br><button onclick="showImage()">{% trans 'Show data published' %}</button></div>
+<script>
+function showImage() {
+  var myWindow = window.open( "{% url 'geoimage-by-id' imageid %}", "{% trans 'My last image published' %}", "width=1024,height=900");
+}
+</script>
+
+{% endif %}
+
+<h3 id="striped-rows">{% trans 'If you are observing from a regular site select coordinates from your stations:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
       <table class="table">
@@ -29,7 +39,7 @@
     </form>
    </div>
 
-<h3>{% trans 'Select coordinate from address' %}</h3>
+<h3>{% trans 'Or if you prefer select coordinate from address:' %}</h3>
    <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
       <table class="table">
@@ -41,12 +51,13 @@
     </form>
    </div>
 
-<h3 id="striped-rows">{% trans 'Select coordinate from map and upload your image' %}</h3>
+<h3 id="striped-rows">{% trans 'If still necessary, select the coordinates from the map and then complete uploading your image:' %}</h3>
 
    <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
 
         {{ form.as_p }}
+        {{ timeelapsedform.as_p }}
 
       <input type="submit" value={%trans "Submit" %} class="btn">
     </form>

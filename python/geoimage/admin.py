@@ -10,4 +10,13 @@ from .models import GeorefencedImage
 #
 #admin.site.register(GeorefencedImage, ImageAdmin)
 
-admin.site.register(GeorefencedImage, LeafletGeoAdmin)
+
+#admin.site.register(GeorefencedImage, LeafletGeoAdmin)
+
+class ImageAdmin(LeafletGeoAdmin):
+    list_display = ('user','date','geom_as_json', 'category')
+    search_fields = ['user__username']
+    list_filter = ('user','category')
+
+admin.site.register(GeorefencedImage, ImageAdmin)
+

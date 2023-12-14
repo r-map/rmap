@@ -6,6 +6,7 @@ Stima V3
    :maxdepth: 5
 
    howto_stima_v3/howto_stima_v3
+   howto_stima_v3.2/howto_stima_v3.2
    development_guide/development_guide
    stimacode
    user_manual/user_manual.rst

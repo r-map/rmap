@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-registration 0.8 alpha-1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-02 20:04+0000\n"
-"PO-Revision-Date: 2021-05-02 22:14+0200\n"
+"POT-Creation-Date: 2023-11-21 15:20+0000\n"
+"PO-Revision-Date: 2023-11-08 14:12+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: Italiano <it@li.org>\n"
 "Language: it_IT\n"
@@ -17,40 +17,40 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 3.0.1\n"
 
-#: registration/admin.py:25
+#: rmap/registration/admin.py:25
 msgid "Activate users"
 msgstr "Attiva utenti"
 
-#: registration/admin.py:42
+#: rmap/registration/admin.py:42
 msgid "Re-send activation emails"
 msgstr "Re-invia email di attivazione"
 
-#: registration/forms.py:38 registration/forms.py:112
+#: rmap/registration/forms.py:38 rmap/registration/forms.py:112
 msgid "E-mail"
 msgstr ""
 
-#: registration/forms.py:52
+#: rmap/registration/forms.py:52
 msgid "A user with that username already exists."
 msgstr "Questo nome utente è già usato."
 
-#: registration/forms.py:64
+#: rmap/registration/forms.py:64
 msgid "I have read and agree to the Terms of Service"
 msgstr "Dichiaro di aver letto e di approvare le Condizioni di Servizio"
 
-#: registration/forms.py:65
+#: rmap/registration/forms.py:65
 msgid "You must agree to the terms to register"
 msgstr "Per registrarsi bisogna approvare le condizioni"
 
-#: registration/forms.py:81
+#: rmap/registration/forms.py:81
 msgid ""
 "This email address is already in use. Please supply a different email "
 "address."
 msgstr ""
 "Questo indirizzo email è già in uso. Inserisci un altro indirizzo email."
 
-#: registration/forms.py:108
+#: rmap/registration/forms.py:108
 msgid ""
 "Registration using free email addresses is prohibited. Please supply a "
 "different email address."
@@ -58,54 +58,54 @@ msgstr ""
 "La registrazione con indirizzi email gratis non è permessa. Inserisci un "
 "altro indirizzo email."
 
-#: registration/models.py:307
+#: rmap/registration/models.py:307
 msgid "user"
 msgstr "utente"
 
-#: registration/models.py:309
+#: rmap/registration/models.py:309
 msgid "activation key"
 msgstr "chiave di attivazione"
 
-#: registration/models.py:315
+#: rmap/registration/models.py:315
 msgid "registration profile"
 msgstr "profilo di registrazione"
 
-#: registration/models.py:316
+#: rmap/registration/models.py:316
 msgid "registration profiles"
 msgstr "profili di registrazione"
 
-#: registration/templates/registration/activate.html:3
+#: rmap/registration/templates/registration/activate.html:3
 msgid "Activation Failure"
 msgstr "Attivazione Fallita"
 
-#: registration/templates/registration/activate.html:6
+#: rmap/registration/templates/registration/activate.html:6
 msgid "Account activation failed."
 msgstr "Attivazione utente fallita."
 
-#: registration/templates/registration/activation_complete.html:4
-#: registration/templates/registration/activation_complete_admin_pending.html:4
+#: rmap/registration/templates/registration/activation_complete.html:4
+#: rmap/registration/templates/registration/activation_complete_admin_pending.html:4
 msgid "Account Activated"
 msgstr "Utente Attivato"
 
-#: registration/templates/registration/activation_complete.html:8
-#: registration/templates/registration/activation_complete_admin_pending.html:8
+#: rmap/registration/templates/registration/activation_complete.html:8
+#: rmap/registration/templates/registration/activation_complete_admin_pending.html:8
 msgid "Your account is now activated."
 msgstr "Il tuo utente ora è attivo."
 
-#: registration/templates/registration/activation_complete.html:10
+#: rmap/registration/templates/registration/activation_complete.html:10
 msgid "You can log in."
 msgstr "Puoi entrare."
 
-#: registration/templates/registration/activation_complete_admin_pending.html:10
+#: rmap/registration/templates/registration/activation_complete_admin_pending.html:10
 msgid "Once a site administrator activates your account you can login."
 msgstr "Dopo che l'amministratore del sito  attiverà l'utente potrai entrare."
 
-#: registration/templates/registration/activation_email.html:6
-#: registration/templates/registration/admin_approve_email.html:6
+#: rmap/registration/templates/registration/activation_email.html:6
+#: rmap/registration/templates/registration/admin_approve_email.html:6
 msgid "registration"
 msgstr "registrazione"
 
-#: registration/templates/registration/activation_email.html:11
+#: rmap/registration/templates/registration/activation_email.html:11
 #, python-format
 msgid ""
 "\n"
@@ -122,7 +122,7 @@ msgstr ""
 "    e il tuo indirizzo di posta sarà rimosso dalle nostre memorie.\n"
 "    "
 
-#: registration/templates/registration/activation_email.html:18
+#: rmap/registration/templates/registration/activation_email.html:18
 #, python-format
 msgid ""
 "\n"
@@ -137,8 +137,8 @@ msgstr ""
 "    entro %(expiration_days)s  giorni:\n"
 "    "
 
-#: registration/templates/registration/activation_email.html:30
-#: registration/templates/registration/admin_approve_email.html:23
+#: rmap/registration/templates/registration/activation_email.html:30
+#: rmap/registration/templates/registration/admin_approve_email.html:23
 #, python-format
 msgid ""
 "\n"
@@ -151,7 +151,7 @@ msgstr ""
 "    I gestori di %(site_name)s \n"
 "    "
 
-#: registration/templates/registration/activation_email.txt:2
+#: rmap/registration/templates/registration/activation_email.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -164,7 +164,7 @@ msgstr ""
 "a %(site_name)s.  Se non lo hai fatto tu per favore ignora questa email\n"
 "e il tuo indirizzo di posta sarà rimosso dalle nostre memorie.\n"
 
-#: registration/templates/registration/activation_email.txt:7
+#: rmap/registration/templates/registration/activation_email.txt:7
 #, python-format
 msgid ""
 "\n"
@@ -175,7 +175,7 @@ msgstr ""
 "Per attivare questo utente per favore segui il seguente collegamento\n"
 "entro %(expiration_days)s giorni:\n"
 
-#: registration/templates/registration/activation_email.txt:14
+#: rmap/registration/templates/registration/activation_email.txt:14
 #, python-format
 msgid ""
 "\n"
@@ -186,32 +186,32 @@ msgstr ""
 "Cordialmente,\n"
 "I gestori di %(site_name)s\n"
 
-#: registration/templates/registration/activation_email_subject.txt:1
-#: registration/templates/registration/admin_approve_complete_email_subject.txt:1
+#: rmap/registration/templates/registration/activation_email_subject.txt:1
+#: rmap/registration/templates/registration/admin_approve_complete_email_subject.txt:1
 msgid "Account activation on"
 msgstr "Attivazione utente attiva"
 
-#: registration/templates/registration/admin_approve.html:4
+#: rmap/registration/templates/registration/admin_approve.html:4
 msgid "Approval Failure"
 msgstr "Approvazione Fallita"
 
-#: registration/templates/registration/admin_approve.html:7
+#: rmap/registration/templates/registration/admin_approve.html:7
 msgid "Account Approval failed."
 msgstr "Attivazione utente fallita."
 
-#: registration/templates/registration/admin_approve_complete.html:4
+#: rmap/registration/templates/registration/admin_approve_complete.html:4
 msgid "Account Approved"
 msgstr "Utente Approvato"
 
-#: registration/templates/registration/admin_approve_complete.html:8
+#: rmap/registration/templates/registration/admin_approve_complete.html:8
 msgid "The user's account is now approved."
 msgstr "Il tuo utente ora è approvato."
 
-#: registration/templates/registration/admin_approve_complete_email.html:6
+#: rmap/registration/templates/registration/admin_approve_complete_email.html:6
 msgid "admin approval"
 msgstr "approvazione amministratore"
 
-#: registration/templates/registration/admin_approve_complete_email.html:11
+#: rmap/registration/templates/registration/admin_approve_complete_email.html:11
 msgid ""
 "\n"
 "    Your account is now approved. You can \n"
@@ -221,11 +221,11 @@ msgstr ""
 "Il tuo utente ora è approvato.  Puoi \n"
 "    "
 
-#: registration/templates/registration/admin_approve_complete_email.html:14
+#: rmap/registration/templates/registration/admin_approve_complete_email.html:14
 msgid "log in."
 msgstr "entra."
 
-#: registration/templates/registration/admin_approve_complete_email.txt:2
+#: rmap/registration/templates/registration/admin_approve_complete_email.txt:2
 msgid ""
 "\n"
 "Your account is now approved. You can log in using the following link\n"
@@ -233,7 +233,7 @@ msgstr ""
 "\n"
 "Il tuo utente ora è approvato. Puoi entrare usando il seguente collegamento\n"
 
-#: registration/templates/registration/admin_approve_email.html:11
+#: rmap/registration/templates/registration/admin_approve_email.html:11
 #, python-format
 msgid ""
 "\n"
@@ -246,7 +246,7 @@ msgstr ""
 "    %(site_name)s.\n"
 "    "
 
-#: registration/templates/registration/admin_approve_email.html:17
+#: rmap/registration/templates/registration/admin_approve_email.html:17
 msgid ""
 "\n"
 "    To approve this, please\n"
@@ -256,11 +256,11 @@ msgstr ""
 "    Per approvare questo, per favore\n"
 "    "
 
-#: registration/templates/registration/admin_approve_email.html:20
+#: rmap/registration/templates/registration/admin_approve_email.html:20
 msgid "click here"
 msgstr "clicca qui"
 
-#: registration/templates/registration/admin_approve_email.txt:2
+#: rmap/registration/templates/registration/admin_approve_email.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -271,7 +271,7 @@ msgstr ""
 "L'utente (%(user)s) ha richiesto di registrarsi a\n"
 "%(site_name)s.\n"
 
-#: registration/templates/registration/admin_approve_email.txt:6
+#: rmap/registration/templates/registration/admin_approve_email.txt:6
 msgid ""
 "\n"
 "To approve this, please click the following link.\n"
@@ -280,85 +280,85 @@ msgstr ""
 "Per attivare questo utente per favore segui il seguente collegamento\n"
 "\n"
 
-#: registration/templates/registration/admin_approve_email_subject.txt:1
+#: rmap/registration/templates/registration/admin_approve_email_subject.txt:1
 msgid "Account approval on"
 msgstr "Attivazione utente attiva"
 
-#: registration/templates/registration/login.html:4
-#: registration/templates/registration/login.html:10
+#: rmap/registration/templates/registration/login.html:4
+#: rmap/registration/templates/registration/login.html:10
 msgid "Log in"
 msgstr "Entra"
 
-#: registration/templates/registration/login.html:15
+#: rmap/registration/templates/registration/login.html:15
 msgid "Forgot your password?"
 msgstr "Dimenticato la password?"
 
-#: registration/templates/registration/login.html:15
+#: rmap/registration/templates/registration/login.html:15
 msgid "Reset it"
 msgstr "Reimpostalo"
 
-#: registration/templates/registration/login.html:20
+#: rmap/registration/templates/registration/login.html:20
 msgid "Not a member?"
 msgstr "Non sei iscritto?"
 
-#: registration/templates/registration/login.html:20
+#: rmap/registration/templates/registration/login.html:20
 msgid "Register"
 msgstr "Registra"
 
-#: registration/templates/registration/logout.html:4
+#: rmap/registration/templates/registration/logout.html:4
 msgid "Logged out"
 msgstr "Uscito"
 
-#: registration/templates/registration/logout.html:7
+#: rmap/registration/templates/registration/logout.html:7
 msgid "Successfully logged out"
 msgstr "Uscito con successo"
 
-#: registration/templates/registration/password_change_done.html:4
+#: rmap/registration/templates/registration/password_change_done.html:4
 msgid "Password changed"
 msgstr "Password cambiata"
 
-#: registration/templates/registration/password_change_done.html:7
+#: rmap/registration/templates/registration/password_change_done.html:7
 msgid "Password successfully changed!"
 msgstr "Password cambiata con successo!"
 
-#: registration/templates/registration/password_change_form.html:4
-#: registration/templates/registration/password_change_form.html:10
+#: rmap/registration/templates/registration/password_change_form.html:4
+#: rmap/registration/templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "Cambio password"
 
-#: registration/templates/registration/password_reset_complete.html:4
+#: rmap/registration/templates/registration/password_reset_complete.html:4
 msgid "Password reset complete"
 msgstr "Reimpostazione della password completata"
 
-#: registration/templates/registration/password_reset_complete.html:8
+#: rmap/registration/templates/registration/password_reset_complete.html:8
 msgid "Your password has been reset!"
 msgstr "La tua password è stata reimpostata!"
 
-#: registration/templates/registration/password_reset_complete.html:9
+#: rmap/registration/templates/registration/password_reset_complete.html:9
 msgid "You may now"
 msgstr "Ora puoi"
 
-#: registration/templates/registration/password_reset_complete.html:9
+#: rmap/registration/templates/registration/password_reset_complete.html:9
 msgid "log in"
 msgstr "entra"
 
-#: registration/templates/registration/password_reset_confirm.html:9
+#: rmap/registration/templates/registration/password_reset_confirm.html:9
 msgid "Confirm password reset"
 msgstr "Conferma la reimpostazione della password"
 
-#: registration/templates/registration/password_reset_confirm.html:13
+#: rmap/registration/templates/registration/password_reset_confirm.html:13
 msgid "Enter your new password below to reset your password:"
 msgstr "Inserisci la tua nuova password qui sotto per reimpostare la password:"
 
-#: registration/templates/registration/password_reset_confirm.html:17
+#: rmap/registration/templates/registration/password_reset_confirm.html:17
 msgid "Set password"
 msgstr "Imposta password"
 
-#: registration/templates/registration/password_reset_done.html:4
+#: rmap/registration/templates/registration/password_reset_done.html:4
 msgid "Password reset"
 msgstr "Reimposta password"
 
-#: registration/templates/registration/password_reset_done.html:8
+#: rmap/registration/templates/registration/password_reset_done.html:8
 msgid ""
 "\n"
 "    We have sent you an email with a link to reset your password.  Please "
@@ -373,11 +373,11 @@ msgstr ""
 "continuare.\n"
 "    "
 
-#: registration/templates/registration/password_reset_email.html:3
+#: rmap/registration/templates/registration/password_reset_email.html:3
 msgid "Greetings"
 msgstr "Saluti"
 
-#: registration/templates/registration/password_reset_email.html:5
+#: rmap/registration/templates/registration/password_reset_email.html:5
 #, python-format
 msgid ""
 "\n"
@@ -392,7 +392,7 @@ msgstr ""
 "desideri\n"
 "reimpostare la tua password, cortesemente ignora questo messaggio.\n"
 
-#: registration/templates/registration/password_reset_email.html:11
+#: rmap/registration/templates/registration/password_reset_email.html:11
 msgid ""
 "\n"
 "To reset your password, please click the following link, or copy and paste "
@@ -404,24 +404,24 @@ msgstr ""
 "o copialo e incollalo\n"
 "nel tuo web browser:\n"
 
-#: registration/templates/registration/password_reset_email.html:20
+#: rmap/registration/templates/registration/password_reset_email.html:20
 msgid "Your username, in case you've forgotten:"
 msgstr "Il tuo nome utente nel caso te lo fossi dimenticato:"
 
-#: registration/templates/registration/password_reset_email.html:23
+#: rmap/registration/templates/registration/password_reset_email.html:23
 msgid "Best regards"
 msgstr "Saluti"
 
-#: registration/templates/registration/password_reset_email.html:24
+#: rmap/registration/templates/registration/password_reset_email.html:24
 msgid "Management"
 msgstr "Gestione"
 
-#: registration/templates/registration/password_reset_form.html:4
-#: registration/templates/registration/password_reset_form.html:15
+#: rmap/registration/templates/registration/password_reset_form.html:4
+#: rmap/registration/templates/registration/password_reset_form.html:15
 msgid "Reset password"
 msgstr "Reimposta password"
 
-#: registration/templates/registration/password_reset_form.html:8
+#: rmap/registration/templates/registration/password_reset_form.html:8
 msgid ""
 "\n"
 "    <strong>Forgot your password?</strong> Enter your email in the form "
@@ -433,39 +433,39 @@ msgstr ""
 "modulo sotto e ti saranno inviate le istruzioni per crearne una nuova.\n"
 "   "
 
-#: registration/templates/registration/registration_closed.html:4
+#: rmap/registration/templates/registration/registration_closed.html:4
 msgid "Registration is closed"
 msgstr "La registrazione è chiusa"
 
-#: registration/templates/registration/registration_closed.html:7
+#: rmap/registration/templates/registration/registration_closed.html:7
 msgid "Sorry, but registration is closed at this moment. Come back later."
 msgstr ""
 "Scusate, ma la registrazione e temporaneamente chiusa. Riprovare più tardi."
 
-#: registration/templates/registration/registration_complete.html:4
+#: rmap/registration/templates/registration/registration_complete.html:4
 msgid "Activation email sent"
 msgstr "Mail di attivazione inviata"
 
-#: registration/templates/registration/registration_complete.html:7
+#: rmap/registration/templates/registration/registration_complete.html:7
 msgid "Please check your email to complete the registration process."
 msgstr ""
 "Per favore controlla la tua email per completare il processo di "
 "registrazione."
 
-#: registration/templates/registration/registration_form.html:4
+#: rmap/registration/templates/registration/registration_form.html:4
 msgid "Register for an account"
 msgstr "Registra un utente"
 
-#: registration/templates/registration/registration_form.html:11
-#: registration/templates/registration/resend_activation_form.html:10
+#: rmap/registration/templates/registration/registration_form.html:11
+#: rmap/registration/templates/registration/resend_activation_form.html:10
 msgid "Submit"
 msgstr "Invia"
 
-#: registration/templates/registration/registration_form.html:15
+#: rmap/registration/templates/registration/registration_form.html:15
 msgid "Terms of Service"
 msgstr "Condizioni di servizio"
 
-#: registration/templates/registration/registration_form.html:18
+#: rmap/registration/templates/registration/registration_form.html:18
 msgid ""
 "Rmap data-base is made available under the <a href=https://creativecommons."
 "org/licenses/by/4.0/>CC BY 4.0 license</a>."
@@ -473,7 +473,7 @@ msgstr ""
 "Il data-base Rmap è reso disponibile con la licenza <a href=https://"
 "creativecommons.org/licenses/by/4.0/>CC BY 4.0</a>."
 
-#: registration/templates/registration/registration_form.html:22
+#: rmap/registration/templates/registration/registration_form.html:22
 msgid ""
 "\n"
 "      AVAILABLE IN ITALIAN LANGUAGE ONLY: Ti ringraziamo per\n"
@@ -597,7 +597,7 @@ msgstr ""
 "      delle Nazioni Unite.\n"
 "      "
 
-#: registration/templates/registration/registration_form.html:85
+#: rmap/registration/templates/registration/registration_form.html:85
 msgid ""
 "\n"
 "      AVAILABLE IN ITALIAN LANGUAGE ONLY: Il/la\n"
@@ -635,11 +635,11 @@ msgstr ""
 "      delle operazioni indicate nell'informativa.\n"
 "      "
 
-#: registration/templates/registration/resend_activation_complete.html:4
+#: rmap/registration/templates/registration/resend_activation_complete.html:4
 msgid "Account Activation Resent"
 msgstr "Attivazione utente reinviata"
 
-#: registration/templates/registration/resend_activation_complete.html:8
+#: rmap/registration/templates/registration/resend_activation_complete.html:8
 #, python-format
 msgid ""
 "\n"
@@ -647,9 +647,10 @@ msgid ""
 "  "
 msgstr ""
 "\n"
-" Abbiamo inviato una email a %(email)s con ulteriori istruzioni."
+" Abbiamo inviato una email a %(email)s con ulteriori istruzioni.\n"
+" "
 
-#: registration/templates/registration/resend_activation_form.html:4
+#: rmap/registration/templates/registration/resend_activation_form.html:4
 msgid "Resend Activation Email"
 msgstr "Re-invia email di attivazione"
 

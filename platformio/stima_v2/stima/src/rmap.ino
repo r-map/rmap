@@ -2981,7 +2981,7 @@ void mgrsdcard(time_t maxtime)
 		  IF_SDEBUG(DBGSERIAL.print(F("#RENAME: ")));
 		  IF_SDEBUG(DBGSERIAL.print(fullfileName));
 		  IF_SDEBUG(DBGSERIAL.println(newfileName));
-		  dataFile.rename(SD.vwd(),newfileName);
+		  dataFile.rename(newfileName);
 		  dataFile.close();
 		  }
 	    }
@@ -3888,7 +3888,7 @@ void loop()
     delay(100);
 
 #if defined(GSMGPRSMQTT)
-    #if def ARDUINO_ARCH_AVR
+    #ifdef ARDUINO_ARCH_AVR
     sleep.idleMode(); //set sleep mode
     //sleep.pwrDownMode(); //set sleep mode
     sleep.sleepDelay((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000); //sleep for: sleepTime

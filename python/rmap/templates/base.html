@@ -69,7 +69,7 @@
 		      <li><a href="//{{site.domain}}/showdata/">{% trans "Maps and graph of main parameters" %}</a></li>
 		      <li><a href="//{{site.domain}}/dynamic/map/">{% trans "Maps and graph for all parameters (new testing)" %}</a></li>
 		      <!-- <li><a href="//{{site.domain}}/borinud/">{% trans "Maps and graph for all parameters (obsolete disabled)" %}</a></li> -->
-		      <li><a href="//{{site.domain}}/geoimage/">{% trans "Georeferenced image on a map" %}</a></li>
+		      <li><a href="{% url 'geoimages-on-map' %}">{% trans "Georeferenced image on a map" %}</a></li>
                       <li><a href="//{{site.domain}}/graphite">{% trans "Graph with  Graphite" %}</a></li>
                       <li><a href="//{{site.domain}}/graphite/dashboard/#rmap%20default">{% trans "Sample Dashboard" %}</a></li>
 		      <!-- <li><a href="//{{site.domain}}/arkiweb">{% trans "Extract historical data" %}</a></li> -->

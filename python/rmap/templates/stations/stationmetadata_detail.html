@@ -19,7 +19,8 @@
 
 <section id="main_content">
 
-<h2>{% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
+<h2>{% trans 'User' %}: {{ object.user }}     {% trans 'Station name' %}: {{ object.name }}      {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
+<a href="{% url 'mystationmetadata-list' object.user %}">{%trans "Return to user station list" %}</a>
 
 <div class="table-responsive">
 <table class="table">

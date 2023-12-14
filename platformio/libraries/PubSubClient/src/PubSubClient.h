@@ -10,7 +10,7 @@
 #include <Arduino.h>
 #include "IPAddress.h"
 // if use sim800 client
-#ifndef PUSUBCLIENT_ETHERNET
+#ifndef PUBSUBCLIENT_ETHERNET
 #include "sim800bClient.h"
 #define TCPCLIENT sim800Client
 #else
@@ -95,7 +95,7 @@
 
 class PubSubClient : public Print {
 private:
-   Client* _client;
+   TCPCLIENT* _client;
    uint8_t* buffer;
    uint16_t bufferSize;
    uint16_t keepAlive;

@@ -52,7 +52,7 @@ class GeorefencedImage(models.Model):
 
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this geoimage"))
     geom = PointField()
-    comment = models.TextField()
+    comment = models.TextField(ugettext_lazy("Comment"),help_text=ugettext_lazy("Image description"))
     #image = DeletingImageField()
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     date=models.DateTimeField(auto_now=False, auto_now_add=False)
@@ -61,7 +61,7 @@ class GeorefencedImage(models.Model):
 
     image = DeletingImageField(processors=[Transpose(),ResizeToFit(1024, 1024)],
                                           format='jpeg',
-                                          options={'quality': 70})
+                                          options={'quality': 70},help_text=ugettext_lazy("File with image"))
 
     image_thumbnail = ImageSpecField(
         source='image',
@@ -70,18 +70,26 @@ class GeorefencedImage(models.Model):
         options = {'quality': 60}
     )
 
+    def geom_as_json(self):
+        return str(self.geom)
+
+    def lon(self):
+        return self.geom["coordinates"][0]
+    
+    def lat(self):
+        return self.geom["coordinates"][1]
+    
     @property
     def popupContent(self):
         return \
             '\
             <p>\
-            <a href="#" onClick="window.open(\'/geoimage/{}/{}\',\'geoimage\', \'width=800, height=620\').focus(); return false;" >\
+            <a href="#" onClick="window.open(\'/geoimage/geoimagebyid/{}/\',\'geoimage\', \'width=1024, height=900\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\
             </a>\
             {}\
             </p>\
-            <p><a href="/geoimage/{}">{}</a> {}</p>'.format(
-                self.user,
+            <p><a href="/geoimage/geoimagesonmap/{}">{}</a> {}</p>'.format(
                 self.id,
                 self.image_thumbnail.url,
                 self.comment,

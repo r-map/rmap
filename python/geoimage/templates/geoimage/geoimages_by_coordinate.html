@@ -1,0 +1,84 @@
+{% load i18n %}
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+  <head>
+    <style>
+      img {
+	  float: right;
+	  border: 3px solid black;
+	  margin: 0px 0px 10px 10px;
+      }
+    </style>
+    <meta name="viewport" content="width=device-width">
+    <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/bootstrap/3.3.6/css/bootstrap.min.css" %}" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" >
+    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/bootstrap/3.3.6/css/docs.min.css" %}" >
+    
+    <!-- Custom styles for this template -->
+    <script src="{% static "rmap/libs/bootstrap/3.3.6/js/bootstrap.min.js" %}" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      {% for grimage in page_obj %}
+      
+      <div class="row">
+	<div class="col-xs-12">
+	  <a href="{% url 'geoimage-by-id' grimage.id %}">
+	    <img src="/{{ grimage.image.url }}" class="img-rounded img-responsive">
+	    {% trans 'Select this image' %}
+	  </a>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-4">
+	  <a href="{% url 'geoimages-on-map-by-ident' grimage.user %}">{% trans 'All images for ' %}{{grimage.user}}</a>
+	</div>
+	<div class="col-xs-4">
+	  {{grimage.date}}
+	</div>
+      </div>
+      <div class="row">	
+	<div class="col-xs-12">
+	  {{grimage.comment}}
+	</div>
+      </div>
+
+      {% empty %}
+      <div class="row">	
+	<div class="col-xs-12">
+	  {% trans 'No geoimages.' %}
+	</div>
+      </div>
+      {% endfor %}
+      
+      <div class="row">	
+        {% if page_obj.has_previous %}
+	<div class="col-xs-4">
+	  <a href="?page=1">&laquo; first</a>
+	  <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
+	</div>
+	{% endif %}
+	
+        {% if page_obj.number %}
+        <span class="current">
+	  <div class="col-xs-4">
+	    {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.
+	  </div>
+        </span>
+        {% endif %}
+	    
+        {% if page_obj.has_next %}
+	<div class="col-xs-4">
+          <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last &raquo;' %}</a>
+	</div>
+        {% endif %}
+      </div>
+    </div>	  
+  </body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "name": "OZGPS_NMEA",
+  "version": "1.2.1",
+  "description": "GPS NMEA protokol parser, it breaks down the sentence and transfers it to the sequence by reading with a single char." 
+, 
+  "keywords": "GPS, NMEA, parser, library, communication",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hmz06967/OZGPS_NMEA"
+  },
+  "authors": [
+    {
+      "name": "Hamza Ozkan",
+      "email": "hamza@hamzaozkan.com.tr"
+    }
+  ],
+  "platforms": [
+    "avr",
+    "sam",
+    "samd",
+    "esp8266",
+    "esp32",
+    "Simblee",
+    "stm32",
+    "nrf52"
+  ],
+  "frameworks": [],
+  "dependencies": {},
+  "build": {
+    "flags": [],
+    "extraFlags": "",
+    "libExtraDirs": []
+  },
+  "url": "https://github.com/hmz06967/OZGPS_NMEA",
+  "license": "MIT",
+  "homepage": "https://github.com/hmz06967/OZGPS_NMEA",
+  "authors": [
+    {
+      "name": "Hamza Ozkan",
+      "email": "hamza@hamzaozkan.com.tr"
+    }
+  ]
+}

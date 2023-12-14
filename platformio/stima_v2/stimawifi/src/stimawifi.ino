@@ -1155,7 +1155,7 @@ bool publish_constantdata() {
 }
 
 void repeats() {
-
+  
   uint32_t waittime,maxwaittime=0;
 
   char values[MAX_VALUES_FOR_SENSOR*20];
@@ -1188,7 +1188,7 @@ void repeats() {
   
   //wait sensors to go ready
   LOGN(F("wait sensors for ms: %d"),maxwaittime);
-  unsigned long int now=millis();
+  uint32_t now=millis();
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.connected()){
@@ -1238,7 +1238,7 @@ void repeats() {
     u8g2.clearBuffer();
   }
 
-  while ((float(maxwaittime)-float(millis()-now)) >0.) {
+  while ((millis()-now) < maxwaittime) {
     //LOGN(F("delay"));
     mqttclient.loop();;
     webserver.handleClient();
@@ -1283,7 +1283,7 @@ void repeats() {
       }
     }
   }
-  
+
   if (oledpresent) u8g2.sendBuffer();
   digitalWrite(LED_PIN,HIGH);
 }
@@ -1310,7 +1310,7 @@ void logSuffix(Print* _logOutput) {
 
 void setup() {
   // put your setup code here, to run once:
-
+  
   pinMode(RESET_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   analogWriteFreq(1);
@@ -1426,6 +1426,7 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
+    LittleFS.begin();    
     LittleFS.format();
     LOGN(F("Reset wifi configuration"));
     wifiManager.resetSettings();
@@ -1452,8 +1453,8 @@ void setup() {
     LOGW(F("Old configuration read"));
     SPIFFS.end();
     LOGW(F("Reformat LittleFS"));
-    LittleFS.format();
     LittleFS.begin();
+    LittleFS.format();
     LOGW(F("writeconfig"));
     writeconfig();
     LOGW(F("writeconfig rmap"));
@@ -1467,8 +1468,8 @@ void setup() {
   } else {
     LOGE(F("failed to mount FS"));
     LOGW(F("Reformat LittleFS"));
-    LittleFS.format();
     LittleFS.begin();    
+    LittleFS.format();
     LOGW(F("Reset wifi configuration"));
     wifiManager.resetSettings();
 
@@ -1675,7 +1676,7 @@ void setup() {
       u8g2.print(F("Setting time"));
       u8g2.sendBuffer();
     }
-    if(counter++>=60) {
+    if(counter++>=2) {
       if (oledpresent){
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 10); 
@@ -1748,5 +1749,6 @@ void loop() {
     delay(1000);
   }
 #endif
+
   Alarm.delay(0);
 }

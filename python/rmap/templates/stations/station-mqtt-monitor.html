@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% load status_manager %}
+
+{% block extra_assets %}
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.js"></script>
+<script type = "text/javascript">
+
+  //console.log(mqtt);
+
+  /***
+   * Browser
+   * This document explains how to use MQTT over WebSocket with the ws and wss protocols.
+   * EMQX's default port for ws connection is 8083 and for wss connection is 8084.
+   * Note that you need to add a path after the connection address, such as /mqtt.
+   */
+  const url = 'wss://{{ mqtt_host }}:8884/mqtt'
+
+  var username="{{ mqtt_username }}";
+  var password="{{ mqtt_password }}";
+
+  var root_topic= "{{ mqtt_root_topic }}"+"#";
+  var maint_topic= "{{ mqtt_maint_topic }}"+"#";
+  var rpc_topic= "{{ mqtt_rpc_topic }}"+"#";
+
+  var row=0;
+  var out_msg="";
+  var mcount=0;
+  var x=Math.floor(Math.random() * 10000); 
+  var clientid="mqtt_websocket_monitor-"+x;
+  var first_connect = true;
+
+
+var buttonstate=0;
+function onoff(element) {
+    buttonstate= 1 - buttonstate;
+    var blabel, bclass;
+    if(buttonstate) {
+	blabel="Disconnect";
+	bclass="btn btn-success";
+	MQTTconnect();
+    } else {
+	blabel="Connect";
+	bclass="btn btn-primary";
+	MQTTdisconnect();
+    }
+    var child=element.firstChild;
+    child.className=bclass;
+    child.innerHTML=blabel;
+}
+
+  // Create an MQTT client instance
+  const options = {
+      // Clean session
+      clean: true,
+      connectTimeout: 30000,
+      // Authentication
+      clientId: clientid,
+      username: username,
+      password: password,
+      manualConnect:true,
+      reconnectPeriod: 0
+  }
+  const client  = mqtt.connect(url, options);
+
+  function MQTTconnect() {
+      console.log('Connecting')
+      document.getElementById("status_messages").innerHTML ="Connecting to "+url;
+      if (first_connect) {
+	  first_connect = false;
+	  client.connect();
+      }else{
+	  client.reconnect();
+      }
+      return false;
+  }
+
+  function MQTTdisconnect() {
+      console.log('DisConnecting')
+      client.end();
+      return false;
+  }
+  
+  client.on('connect', function () {
+      console.log('Connected')
+
+      document.getElementById("status_messages").innerHTML +="; Connected";
+      document.getElementById("status").innerHTML = "Connection Status: Connected";
+      document.getElementById("status").style.backgroundColor = "green";
+      document.getElementById("out_messages").innerHTML="";
+      
+      // Subscribe to root_topic topic
+      client.subscribe(root_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+root_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+root_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+root_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+root_topic;
+	  }
+      })
+      // Subscribe to maint topic
+      client.subscribe(maint_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+maint_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+maint_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+maint_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+maint_topic;
+	  }
+      })
+      // Subscribe to rpc topic
+      client.subscribe(maint_topic, function (err) {
+	  if (err) {
+	      console.log('Error Subscribing: '+rpc_topic)
+	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+rpc_topic;
+	      MQTTdisconnect()
+	  }else{
+	      console.log('Subscribed: '+rpc_topic)
+	      document.getElementById("status_messages").innerHTML += "; Success subscribing "+rpc_topic;
+	  }
+      })
+      
+  })
+
+  client.on('disconnect', function (packet) {
+      console.log("disconnected")
+      document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status").style.backgroundColor = "red";
+      document.getElementById("status_messages").innerHTML +="; Connection Lost";      
+  })
+
+  client.on('close', function () {
+      console.log("disconnected")
+      document.getElementById("status").innerHTML = "Connection Status: Not Connected";
+      document.getElementById("status").style.backgroundColor = "gray";
+      document.getElementById("status_messages").innerHTML +="; DisConnection";      
+  })
+  
+  // Receive messages
+  client.on('message', function (topic, message) {
+	  // message is Buffer
+
+      payload=message.toString();
+      
+      out_msg="<b>";
+      out_msg+="Topic: "+topic;
+      out_msg+=" Payload: "+payload +"<br/>";
+      out_msg+="</b>";
+      
+      console.log(out_msg);
+      try{
+	  document.getElementById("out_messages").innerHTML+=out_msg;
+      }
+      catch(err){
+	  document.getElementById("out_messages").innerHTML=err.message;
+      }
+      
+      if (row==500){
+	  row=1;
+	  document.getElementById("out_messages").innerHTML=out_msg;
+      }
+      else
+	  row+=1;
+      
+      mcount+=1;
+      console.log(mcount+"  "+row);
+
+  })
+  
+  client.on('error', function (error) {
+      console.log(error)
+      document.getElementById("status_messages").innerHTML +="; Error: "+error;
+  })
+  
+
+</script>
+
+<style>
+  #status_messages
+  {
+      background-color:yellow;
+      font-size:3;
+      font-weight:bold;
+      line-height:140%;
+  }
+  #status
+  {
+      background-color:gray;
+      font-size:4;
+      font-weight:bold;
+      color:white;
+      line-height:140%;
+  }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<section id="main_content">
+  
+<h2>{% trans 'Station name' %}: {{ stationmetadata.name }}     {% trans 'Data level:' %} {{ stationmetadata.mqttrootpath }}  {% trans 'Report period:' %} {{ report_seconds }}s</h2>
+
+
+<div id="status">Connection Status: Not Connected</div>
+
+<div id="buttonconnect">
+<button class="btn btn-primary" onclick="onoff(this)"><div>Connect</div></button>
+</div>
+
+Status Messages:
+<div id="status_messages">
+</div>
+
+Received Messages:
+<div id="out_messages">
+</div>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+encoder A                                                                (2)
+encoder B                                                                (3)
+include/gsm_config.h:#define SIM800_ON_OFF_PIN                           (5)
+src/stima-config.h:#define RTC_INTERRUPT_PIN                             (6)
+src/stima-config.h:#define SDCARD_CHIP_SELECT_PIN                        (7)
+src/stima-config.h:#define CONFIGURATION_RESET_PIN                       (8)
+button                                                                   (9)
+src/stima-config.h:#define W5500_CHIP_SELECT_PIN                         (10)
+src/stima-config.h:#define GSM_ON_OFF_PIN                                (SIM800_ON_OFF_PIN)
+

@@ -21,7 +21,7 @@
 {% if success  %}
 <div class="alert alert-success" role="alert">{% trans 'OK, data published' %}</div>
 {% endif %}
-<h3 id="striped-rows">{% trans 'Select coordinates from your stations' %}</h3>
+<h3 id="striped-rows">{% trans 'If you are observing from a regular site select coordinates from your stations:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
      <table class="table">
@@ -31,7 +31,7 @@
     </form>
 </div>
 
-<h3 id="striped-rows">{% trans 'Select coordinate from address' %}</h3>
+<h3 id="striped-rows">{% trans 'Or if you prefer select coordinate from address:' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
      <table class="table">
@@ -41,7 +41,7 @@
     </form>
 </div>
 
-<h3 id="striped-rows">{% trans 'Select coordinate from map and insert your actual data' %}</h3>
+<h3 id="striped-rows">{% trans 'If still necessary, select the coordinates from the map and then complete with your current data:' %}</h3>
 <div class="table-responsive">
     
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
