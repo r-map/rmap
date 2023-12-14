@@ -35,6 +35,10 @@
 TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 #endif
 
+#if (ENABLE_SPI2)
+SPIClass Spi2(PIN_SPI2_MOSI, PIN_SPI2_MISO, PIN_SPI2_SCK);
+#endif
+
 // Non utilizzo FreRTOS LOW_Power per il Debugging
 #ifdef _USE_FREERTOS_LOW_POWER
 #define _EXIT_SLEEP_FOR_DEBUGGING
@@ -95,18 +99,30 @@ const PinMap PinMap_I2C_SCL[] = {
 #ifdef HAL_SPI_MODULE_ENABLED
 const PinMap PinMap_SPI_MOSI[] = {
   {PB_5,      SPI1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI1)},
+  #if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+  {PC_1,      SPI2, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF3_SPI2)},
+  #endif
   {NC,        NP,   0}
 };
 const PinMap PinMap_SPI_MISO[] = {
   {PB_4,      SPI1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI1)},
+  #if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+  {PC_2,      SPI2, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI2)},
+  #endif
   {NC,        NP,   0}
 };
 const PinMap PinMap_SPI_SCLK[] = {
   {PA_5,      SPI1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI1)},
+  #if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+  {PB_13,     SPI2, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI2)},
+  #endif
   {NC,        NP,   0}
 };
 const PinMap PinMap_SPI_SSEL[] = {
   {PA_15,      SPI1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI1)},
+  #if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+  {PB_12,      SPI2, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF5_SPI2)},
+  #endif
   {NC,         NP,   0}
 };
 #endif
@@ -498,10 +514,18 @@ void MX_GPIO_Init(void)
   // ********** SETUP Port A *************
  
   /* Unused PAx (esclude UPIN27) */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  #if (!ENABLE_SIM7600E)
+  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  #else
+  /* Ring Indicator NoPull */
+  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  #endif
 
   /* MCO */
   GPIO_InitStruct.Pin = GPIO_PIN_8;
@@ -510,13 +534,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /* Ring Indicator NoPull */
-  GPIO_InitStruct.Pin = GSM_RingInd_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
 
   // ********** SETUP Port B *************
  

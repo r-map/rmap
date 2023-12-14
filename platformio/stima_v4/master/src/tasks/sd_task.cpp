@@ -297,9 +297,11 @@ void SdTask::Run()
 {
   // System message data queue structured
   system_message_t system_message;
+  #ifdef PIN_SD_LED
   // Diagnostic LED
   bool bLedLevel;
   uint8_t led_counter;
+  #endif
   // Security verify write flag
   bool bWriteErr;
   // Generic retry
@@ -359,10 +361,17 @@ void SdTask::Run()
   #endif
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
-  // SD-CARD Setup PIN CS SD UPIN27
-  pinMode(PIN_SPI_SS, OUTPUT);
-  digitalWrite(PIN_SPI_SS, HIGH);
+  // SD-CARD Setup PIN CS SD UPIN27 OR HW VER_01_01 INTERNAL SPI2 TO SD DIRECT
+  #if (SD_SPI_PORT_ID == 1)
+    pinMode(PIN_SPI1_SS, OUTPUT);
+    digitalWrite(PIN_SPI1_SS, HIGH);
+  #else
+    pinMode(PIN_SPI2_SS, OUTPUT);
+    digitalWrite(PIN_SPI2_SS, HIGH);
+  #endif
+  #ifdef PIN_SD_LED
   pinMode(PIN_SD_LED, OUTPUT);
+  #endif
 
   while (true)
   {
@@ -371,14 +380,20 @@ void SdTask::Run()
     {
     case SD_STATE_INIT:
       // Init signal LED Diagnostic to High Level
+      #ifdef PIN_SD_LED
       bLedLevel = true;
       digitalWrite(PIN_SD_LED, bLedLevel);
       led_counter = 0;
+      #endif
       // break unused
     case SD_STATE_INIT_SD:
       state = SD_STATE_INIT_SD;
       // Check SD or Resynch after Error
-      if (SD.begin(PIN_SPI_SS, SPI_SPEED)) {
+      #if (SD_SPI_PORT_ID == 1)
+      if (SD.begin(SdSpiConfig(PIN_SPI1_SS, SD_SPI1_SS_USER_MODE, SPI_SPEED, &Spi1))) {
+      #else
+      if (SD.begin(SdSpiConfig(PIN_SPI2_SS, DEDICATED_SPI, SPI_SPEED, &Spi2))) {
+      #endif  
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
         message_traced = false;
 
@@ -386,12 +401,14 @@ void SdTask::Run()
         message_traced = false;
       } else {
         // Signal LED Blink every (500 mS) SD Not inizialized
+        #ifdef PIN_SD_LED
         led_counter++;
         if(led_counter > (500 / SD_TASK_WAIT_DELAY_MS)) {
           led_counter = 0;
           bLedLevel = !bLedLevel;
           digitalWrite(PIN_SD_LED, bLedLevel);
         }
+        #endif
         // Only one TRACE message... SD Not present
         if(!message_traced) {
           // SD Was NOT Ready... for System
@@ -420,11 +437,12 @@ void SdTask::Run()
       //    SD Check and create structure Directory Data
       // ***************************************************
       // LED Diag signal OFF (SD Ready and inizialized)
+      #ifdef PIN_SD_LED
       bLedLevel = false;
       digitalWrite(PIN_SD_LED, bLedLevel);
+      #endif
       // Optional Trace Type of CARD... and Size
       // Check or create directory Structure...
-
       // Create firmware directory
       if(!SD.exists("/firmware")) {
         if(!SD.mkdir("/firmware")) {
@@ -478,7 +496,9 @@ void SdTask::Run()
         tmpFile = SD.open("/data/pointer.dat", O_RDONLY);
         if(tmpFile) {
           // Open File High LED
+          #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, HIGH);
+          #endif
           tmpFile.read(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
           tmpFile.read(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
           // Debug message timestamp Ptr
@@ -492,7 +512,9 @@ void SdTask::Run()
           using_rmap_pointer_datetime_end = false;
           tmpFile.close();
           // Close File Low LED
+          #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, LOW);
+          #endif
           // At First Get Data Set Sync Pointer position with loaded param
           namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_rd);
           // Check file
@@ -522,7 +544,9 @@ void SdTask::Run()
         if(tmpFile) {
           TRACE_INFO_F(F("SD: create new data pointer at configured ()\r\n"));
           // Open File High LED
+          #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, HIGH);
+          #endif
           rmap_pointer_seek = 0xFFFFFFFFu; // Unknown position
           rmap_pointer_datetime = param.system_status->datetime.ptr_time_for_sensors_get_value * param.configuration->report_s;  // Init to Data Next Epoch
           // System status enter in data not ready for SENT (no data present)
@@ -534,7 +558,9 @@ void SdTask::Run()
           bWriteErr |= !tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
           tmpFile.close();
           // Close File Low LED
+          #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, LOW);
+          #endif
           if(bWriteErr) {
             // SD Pointer Error, general Openon first File...
             // Error. Send to system_stae and retry OPEN INIT SD
@@ -567,7 +593,9 @@ void SdTask::Run()
           break;
         }
         // Open File High LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, HIGH);
+        #endif
         if(!dir.isDir()) {
           SD.remove("/firmware");
           // Create newver firmware directory
@@ -592,7 +620,9 @@ void SdTask::Run()
           dir.close();
         }
         // Close File Low LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, LOW);
+        #endif
       }
 
       // Force init array structure SD Card firmware present (RESETTED to initial void value)
@@ -633,7 +663,9 @@ void SdTask::Run()
         entry = dir.openNextFile();
         if(!entry) break;
         // Open File High LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, HIGH);
+        #endif
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
         if(checkStimaFirmwareType(local_file_name, &module_type_cast, &fw_version, &fw_revision)) {
@@ -677,7 +709,9 @@ void SdTask::Run()
       }
       dir.close();
       // Close File Low LED
+      #ifdef PIN_SD_LED
       digitalWrite(PIN_SD_LED, LOW);
+      #endif
       // **********************************************************************************
 
       // ? Need to send response to sender (Not at startup -> fw_reload_struct = false)
@@ -785,14 +819,18 @@ void SdTask::Run()
           if(!logFile) logFile = SD.open("/log/log.txt", O_RDWR | O_CREAT | O_AT_END);
           if(logFile) {
             // Open File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
             bWriteErr = false;
             bWriteErr |= !logFile.print(logIntest);
             bWriteErr |= !logFile.write(logBuffer, strlen(logBuffer) < LOG_PUT_DATA_ELEMENT_SIZE ? strlen(logBuffer) : LOG_PUT_DATA_ELEMENT_SIZE);
             bWriteErr |= !logFile.println();
             logFile.flush();
             // Close File Low LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, LOW);
+            #endif
             if(bWriteErr) error_sd_card = true;
           } else {
             // Generic open file Error
@@ -826,20 +864,26 @@ void SdTask::Run()
             if(rmapBkpFile) rmapBkpFile.close();
             rmapBkpFile = SD.open(rmap_file_name_bkp, O_RDWR | O_CREAT | O_AT_END);
             // Open File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
           }
           // All correct... Write Block of data
 
           // Put to SD ( APPEND File Always Opened with Flush Data )
           if(rmapBkpFile) {          
             // Open File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
             // Fixed Lenght File type
             bWriteErr = false;
             bWriteErr |= !rmapBkpFile.write((char*)rmap_backup_archive_data.block, RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE);
             rmapBkpFile.flush();
             // Close File Low LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, LOW);
+            #endif
             if(bWriteErr) error_sd_card = true;
           } else {
             // Generic open file Error
@@ -876,7 +920,9 @@ void SdTask::Run()
             if(rmapWrFile) rmapWrFile.close();
             rmapWrFile = SD.open(rmap_file_name_wr, O_RDWR | O_CREAT | O_AT_END);
             // Open File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
           }
           // All correct... Write Block of data
           if(rmapWrFile) {
@@ -898,7 +944,9 @@ void SdTask::Run()
           }
         }
         // Close File Low LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, LOW);
+        #endif
       }
       // *********************************************************
       //         End OF perform RMAP Write append message
@@ -968,7 +1016,9 @@ void SdTask::Run()
               // Correctly opened..
               if(tmpFile) {
                 // Open File High LED
+                #ifdef PIN_SD_LED
                 digitalWrite(PIN_SD_LED, HIGH);
+                #endif
                 // Search wile dateTime block into file are >= to requested dateTime block
                 while(true) {
                   // Operation perform non blocking TASK
@@ -1015,7 +1065,9 @@ void SdTask::Run()
                 }
                 tmpFile.close();
                 // Close File Low LED
+                #ifdef PIN_SD_LED
                 digitalWrite(PIN_SD_LED, LOW);
+                #endif
               } else {
                 // Error opening file
                 file_get_response.error_operation = true;
@@ -1130,7 +1182,9 @@ void SdTask::Run()
               if (reSyncPtr) rmapRdFile.seek(rmap_pointer_seek);
               else rmap_pointer_seek = 0;
               // Open File High LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, HIGH);
+              #endif
             }
             memset(&rmap_get_response, 0, sizeof(rmap_get_response));
             if(rmapRdFile) {
@@ -1138,7 +1192,9 @@ void SdTask::Run()
               if(rmapRdFile.available()) {
                 // Not read size correct block?... Error
                 // Read File High LED
+                #ifdef PIN_SD_LED
                 digitalWrite(PIN_SD_LED, HIGH);
+                #endif
                 int bytes_readed = rmapRdFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
                 if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
                   // CurPosition Check assert(bytes_readed+=sizeof(rmap_get_response.rmap_data))
@@ -1164,7 +1220,9 @@ void SdTask::Run()
                       rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
                       // Not required Save pointer, data can be continued (rmap_pointer_seek is resetted to 0)
                       // Open File High LED
+                      #ifdef PIN_SD_LED
                       digitalWrite(PIN_SD_LED, HIGH);
+                      #endif
                     } else {
                       rmap_get_response.result.end_of_data = true;
                       // No more data avaiable
@@ -1201,7 +1259,9 @@ void SdTask::Run()
                     if(rmapRdFile) rmapRdFile.close();
                     rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
                     // Open File High LED
+                    #ifdef PIN_SD_LED
                     digitalWrite(PIN_SD_LED, HIGH);
+                    #endif
                     // EXIT DATA FOUND...!!!
                     break;
                   } else {
@@ -1263,7 +1323,9 @@ void SdTask::Run()
             // ***** Send response to request *****
             param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
             // Close File Low LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, LOW);
+            #endif
           }
           // ******************************************************************
           //        Request is save current Seek and DateTime pointer
@@ -1277,13 +1339,17 @@ void SdTask::Run()
             if(tmpFile) {
               if(rmap_pointer_seek == 0xFFFFFFFFu) rmap_pointer_seek = 0;
               // Open File High LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, HIGH);
+              #endif
               bWriteErr = false;
               bWriteErr |= !tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
               bWriteErr |= !tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
               tmpFile.close();
               // Close File Low LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, LOW);
+              #endif
               if (bWriteErr) error_sd_card = true;
             } else {
               // Generic open file Error
@@ -1322,7 +1388,9 @@ void SdTask::Run()
             // Open Put File
             putFile = SD.open(remote_file_name, O_RDWR | O_CREAT);
             // Open File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
             if(!putFile)
               file_put_response.done_operation = false;
             else
@@ -1356,7 +1424,9 @@ void SdTask::Run()
             // Send response to caller ... OK done
             putFile.close();
             // Close File Low LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, LOW);
+            #endif
             memset(&file_put_response, 0, sizeof(file_put_response));
             file_put_response.done_operation = true;
             param.dataFilePutResponseQueue->Enqueue(&file_put_response);
@@ -1372,7 +1442,9 @@ void SdTask::Run()
           }
         }
         // On Exit Low LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, LOW);
+        #endif
       }
       // *********************************************************
       //        End OF FILE (FIRMWARE) WRITE append message
@@ -1405,7 +1477,9 @@ void SdTask::Run()
             getFile[file_get_request.board_id] = SD.open(local_file_name, O_RDONLY);
             if(getFile[file_get_request.board_id]) {
               // Open File High LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, HIGH);
+              #endif
               // Read the first block data (return number of bytes read)
               file_get_response.done_operation = true;
               uint32_t avaiables = getFile[file_get_request.board_id].available();
@@ -1420,7 +1494,9 @@ void SdTask::Run()
               param.dataFileGetResponseQueue->Enqueue(&file_get_response);
               getFile[file_get_request.board_id].close();
               // Close File Low LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, LOW);
+              #endif
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
             } else
@@ -1432,7 +1508,9 @@ void SdTask::Run()
             // Read the first block data (return number of bytes read)
             file_get_response.done_operation = true;
             // Read File High LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
+            #endif
             uint32_t avaiables = getFile[file_get_request.board_id].available();
             if(avaiables > FILE_GET_DATA_BLOCK_SIZE) avaiables = FILE_GET_DATA_BLOCK_SIZE;
             file_get_response.block_lenght = getFile[file_get_request.board_id].readBytes(file_get_response.block, avaiables);
@@ -1442,7 +1520,9 @@ void SdTask::Run()
               param.dataFileGetResponseQueue->Enqueue(&file_get_response);
               getFile[file_get_request.board_id].close();
               // Close File Low LED
+              #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, LOW);
+              #endif
               // Unlock file (clear name)
               memset(local_file_name, 0, sizeof(local_file_name));
             } else
@@ -1451,7 +1531,9 @@ void SdTask::Run()
           }
         }
         // On Exit Low LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, LOW);
+        #endif
       }
       // *********************************************************
       //        End OF FILE (FIRMWARE) WRITE append message
@@ -1484,20 +1566,26 @@ void SdTask::Run()
         entry = dir.openNextFile();
         if(!entry) break;
         // Open File High LED
+        #ifdef PIN_SD_LED
         digitalWrite(PIN_SD_LED, HIGH);
+        #endif
         // Found firmware file?
         entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
         if(!checkStimaFirmwareType(local_file_name, &module_type_cast, &fw_version, &fw_revision)) {
           entry.close();
           // Close File Low LED
+          #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, LOW);
+          #endif
         } else {
           module_type = static_cast<Module_Type>(module_type_cast);
           // Is this module ?
           if(module_type != param.configuration->module_type) {
             entry.close();
             // Close File Low LED
+            #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, LOW);
+            #endif
           } else {
             // if current version (last version into SD CARD?)
             bool is_last_firmware_on_sd = false;
@@ -1530,7 +1618,9 @@ void SdTask::Run()
                   // *************  PREPARE FLASHING *************
                   // Read block data from file
                   // Read File High LED
+                  #ifdef PIN_SD_LED
                   digitalWrite(PIN_SD_LED, HIGH);
+                  #endif
                   len_block = entry.read(data_block, SD_FW_BLOCK_SIZE);
                   if(len_block < 0) {
                     is_error = true;
@@ -1553,7 +1643,9 @@ void SdTask::Run()
                 }
                 entry.close();
                 // Close File Low LED
+                #ifdef PIN_SD_LED
                 digitalWrite(PIN_SD_LED, LOW);
+                #endif
                 // Nothing error, starting firmware upgrade
                 if(!is_error) {
                   // Optional send SIGTerm to all task
@@ -1609,7 +1701,9 @@ void SdTask::Run()
         state = SD_STATE_WAITING_EVENT;
       }
       // On Exit Low LED
+      #ifdef PIN_SD_LED
       digitalWrite(PIN_SD_LED, LOW);
+      #endif
       break;
 
     case SD_STATE_ERROR:

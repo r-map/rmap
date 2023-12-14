@@ -318,8 +318,8 @@ void SupervisorTask::Run()
       // START REQUEST LIST...
       param.systemStatusLock->Take();
       param.system_status->connection.is_ntp_synchronized = false;
-      param.system_status->connection.is_http_configuration_updated = false;
-      param.system_status->connection.is_http_firmware_upgraded = false;
+      param.system_status->connection.is_http_configuration_updated = true;
+      param.system_status->connection.is_http_firmware_upgraded = true;
       param.system_status->connection.is_mqtt_connected = false;
       param.systemStatusLock->Give();
 

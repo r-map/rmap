@@ -38,10 +38,19 @@
 // CPUID STM32
 #define UID_BASE_ADDRESS       (0x1FFF7590UL)
 
-#if (ENABLE_I2C1 || ENABLE_I2C2)
+#if (ENABLE_I2C2)
 #include <Wire.h>
 #define I2C_MAX_DATA_LENGTH   (32)
 #define I2C_MAX_ERROR_COUNT   (3)
+#endif
+
+#if (ENABLE_SPI1)
+  // Same naming Type SPI->Spi1 for global Arduino Istance and optional Spi2 (as Wire1..Wire2)
+  #define Spi1  SPI
+#endif
+#if (ENABLE_SPI2)
+#include <Spi.h>
+extern SPIClass Spi2;
 #endif
 
 #if (ENABLE_I2C1)
@@ -99,13 +108,45 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_ENCODER_EN5 PE5
 #define PIN_ENCODER_INT PE6
 
-// SPI1 
-#define PIN_SPI_SCK     PA5
-#define PIN_SPI_MOSI    PB5
-#define PIN_SPI_MISO    PB4
-// SPI1 SD
-#define PIN_SPI_SS      PA15
-#define PIN_SD_LED      PD14
+#ifdef STIMAV4_MASTER_HW_VER_01_01
+  // #define SD_SPI_PORT_ID  1 (UNCECK FOR FORCE SPI EXTERNAL UPIN27 MODULE CARD, WITH NEW SPI HARDWARE)
+  #define SD_SPI_PORT_ID  2
+#else
+  #define SD_SPI_PORT_ID  1
+#endif
+
+#if (SD_SPI_PORT_ID == 1)
+  #define SD_SPI1_SS_USER_MODE    DEDICATED_SPI   // USE SHARED_SPI IF SPI ARE SHARED WITH OTHER HW DEVICE
+  #define USE_PIN_SD_LED
+#endif
+
+#if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+  // SPI1 AND SPI2 AVAIABLE
+  // SPI1 - TO EXTERNAL UPIN 27 CONNECTOR
+  #define PIN_SPI1_SCK    PA5
+  #define PIN_SPI1_MOSI   PB5
+  #define PIN_SPI1_MISO   PB4
+  // SPI1 SD
+  #define PIN_SPI1_SS     PA15
+  #ifdef USE_PIN_SD_LED
+    #define PIN_SD_LED    PD14
+  #endif
+
+  // SPI2 - DIRECT DEDICATED TO SD CARD 
+  #define PIN_SPI2_SCK    PB13
+  #define PIN_SPI2_MOSI   PC1
+  #define PIN_SPI2_MISO   PC2
+  // SPI2 SD (WITHOUT LED SPI EXTERNAL STIMAV3 MODULE)
+  #define PIN_SPI2_SS     PB12
+#else
+  // SPI1 ONLY AVAIABLE
+  #define PIN_SPI1_SCK     PA5
+  #define PIN_SPI1_MOSI    PB5
+  #define PIN_SPI1_MISO    PB4
+  // SPI1 SD
+  #define PIN_SPI1_SS      PA15
+  #define PIN_SD_LED      PD14
+#endif
 
 // I2C1 Esterna (Upin 27 A4/A5)
 #define PIN_I2C1_SDA    PB7
@@ -119,16 +160,15 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_UP27_PA0    PC4
 #define PIN_UP27_PA1    PC1
 #define PIN_UP27_PA2    PC3
-#define PIN_UP27_PD10   PA15
+#define PIN_UP27_PD10   PA15  // SPI1_SS ENABLED
 #define PIN_UP27_PD0    PIN_UART2_RX
 #define PIN_UP27_PD1    PIN_UART2_TX
-// #define PIN_UP27_PD2    PIN_UART1_RX
-// #define PIN_UP27_PD3    PIN_UART1_TX
-#define PIN_UP27_PD2    PA10
-#define PIN_UP27_PD3    PB6
+#define PIN_UP27_PD2    PA10  // PIN_UART1_RX
+#define PIN_UP27_PD3    PB6   // PIN_UART1_TX
 #define PIN_UP27_PD4    PD11
 #define PIN_UP27_PD5    PD12
 #define PIN_UP27_PD6    PD13
+#define PIN_UP27_PD7    PA4   // SPI1_SS ALTERNATIVE
 #define PIN_UP27_PD8    PD14
 #define PIN_UP27_PD9    PD15
 

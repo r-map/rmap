@@ -48,7 +48,7 @@
 #include "queue.hpp"
 #include "drivers/module_master_hal.hpp"
 
-#if (ENABLE_SPI1)
+#if (ENABLE_SPI1 || ENABLE_SPI2)
 #include <SPI.h>
 #endif
 

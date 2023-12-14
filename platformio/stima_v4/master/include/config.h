@@ -72,6 +72,9 @@
 
 // HW device
 #define ENABLE_SPI1           (true)
+#if defined(HAL_SD_MODULE_DISABLED) && defined(STIMAV4_MASTER_HW_VER_01_01)
+#define ENABLE_SPI2           (true)
+#endif
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (true)
 #define ENABLE_QSPI           (true)
