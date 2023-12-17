@@ -42,10 +42,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #define SOFTWARE_VERSION "2023-10-31T00:00"    // date and time
 #define MAJOR_VERSION    "20231031"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
-//
-// firmware type for nodemcu is "ESP8266_NODEMCU"
-// firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
-
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
@@ -72,16 +68,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
 
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
-
-//#include <analogWrite.h>
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <WebServer.h>
-#include <HTTPClient.h>
-#include <ESP32httpUpdate.h>
-//#include <ESP32LittleFS.h>
-#include <LittleFS.h>
 #define FIRMWARE_TYPE "WEMOS_D1_MINI32"
 #define PMS_RESET D0
 #define SCL D1
@@ -92,12 +78,26 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
     #define LED_BUILTIN 2
 #endif
 #define LED_PIN LED_BUILTIN
+// for sensor_t
+#define SENSORS_LEN 5
+#define SENSORDRIVER_DRIVER_LEN 5
+#define SENSORDRIVER_TYPE_LEN 5
+#define SENSORDRIVER_META_LEN 30
+#define MAX_VALUES_FOR_SENSOR 9
 
+#define CH 9            // character height px
+
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <WebServer.h>
+#include <HTTPClient.h>
+#include <ESP32httpUpdate.h>
+#include <LittleFS.h>
 #include "thread.hpp"
 //#include "critical.hpp"
 #include "ticks.hpp"
+#include "queue.hpp"
 #include <frtosLog.h>
-
 //needed for library
 #include <DNSServer.h>
 //#include <WebSocketsServer.h>
@@ -118,50 +118,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 #include "esp_sntp.h"
 //#include "esp_netif_sntp.h"
 
-// watchdog is enabled by default on ESP
-// https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
-
   
-//const char* update_host = "rmap.cc";
-const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
-const uint16_t update_port = 80;
-
-WebServer webserver(STIMAHTTP_PORT);
-
-WiFiClient espClient;
-PubSubClient mqttclient(espClient);
-//WebSocketsServer webSocket(WS_PORT);
-//EspHtmlTemplateProcessor templateProcessor(&server);
-WiFiUDP UDP;
-OZGPS gps;
-MGPS mgps;
-MutexStandard loggingmutex;
-
-
-//flag for saving data
-bool shouldSaveConfig = false;
-bool pmspresent =  false;
-
-//define your default values here, if there are different values in config.json, they are overwritten.
-char rmap_longitude[11] = "";
-char rmap_latitude[11] = "";
-char rmap_network[31] = "";
-char rmap_server[41] = "rmap.cc";
-char ntp_server[41] = "0.europe.pool.ntp.org";
-char rmap_mqtt_server[41] = "rmap.cc";
-int  rmap_sampletime = DEFAULT_SAMPLETIME;
-char rmap_user[10] = "";
-char rmap_password[31] = "";
-char rmap_slug[31] = "stimawifi";
-char rmap_mqttrootpath[10] = "sample";
-char rmap_mqttmaintpath[10] = "maint";
-
-// for sensor_t
-#define SENSORS_LEN 5
-#define SENSORDRIVER_DRIVER_LEN 5
-#define SENSORDRIVER_TYPE_LEN 5
-#define SENSORDRIVER_META_LEN 30
-#define MAX_VALUES_FOR_SENSOR 9
 
 // sensor information
 struct sensor_t
@@ -184,10 +141,48 @@ struct sensor_t
 
 SensorDriver* sd[SENSORS_LEN];
 
+struct mqttMessage_t
+{
+  char topic[100];
+  char payload[100];
+};
+
+
+const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
+const uint16_t update_port = 80;
+
+WebServer webserver(STIMAHTTP_PORT);
+
+WiFiClient espClient;
+PubSubClient mqttclient(espClient);
+//WebSocketsServer webSocket(WS_PORT);
+//EspHtmlTemplateProcessor templateProcessor(&server);
+WiFiUDP UDP;
+OZGPS gps;
+MGPS mgps;
+MutexStandard loggingmutex;
+
+//flag for saving data
+bool shouldSaveConfig = false;
+bool pmspresent =  false;
+
+//define your default values here, if there are different values in config.json, they are overwritten.
+char rmap_longitude[11] = "";
+char rmap_latitude[11] = "";
+char rmap_network[31] = "";
+char rmap_server[41] = "rmap.cc";
+char ntp_server[41] = "0.europe.pool.ntp.org";
+char rmap_mqtt_server[41] = "rmap.cc";
+int  rmap_sampletime = DEFAULT_SAMPLETIME;
+char rmap_user[10] = "";
+char rmap_password[31] = "";
+char rmap_slug[31] = "stimawifi";
+char rmap_mqttrootpath[10] = "sample";
+char rmap_mqttmaintpath[10] = "maint";
+
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
 unsigned short int displaypos;
-#define CH 9            // character height px
 
 // i2c button for wemos OLED version 2.1.0
 I2C_BUTTON button; //I2C address 0x31
@@ -439,63 +434,61 @@ bool publish_maint() {
 }
 
 
-bool publish_data(const char* values, const char* timerange, const char* level) {
+void enqueueMqttMessage(char* values, const char* timerange, const char* level, Queue* MqttQueue ) {
   
-  char topic[100];
+  mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
+  strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
+  
   frtosLog.notice(F("have to publish: %s"),values);
   DeserializationError error = deserializeJson(doc,values);
   if (error) {
     frtosLog.error(F("reading json data: %s"),error.c_str());
-    return false;
+    return;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
       /*
-      analogWriteFreq(2);
-      analogWrite(LED_PIN,512);
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      analogWriteFreq(1);
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
+	analogWriteFreq(2);
+	analogWrite(LED_PIN,512);
+	delay(1000);
+	digitalWrite(LED_PIN,HIGH);      
+	analogWriteFreq(1);
+	delay(1000);
+	digitalWrite(LED_PIN,LOW);      
       */
       continue;
     }
+        
+    strcpy(mqtt_message.topic,"1/");
+    strcat(mqtt_message.topic,rmap_mqttrootpath);
+    strcat(mqtt_message.topic,"/");
+    strcat(mqtt_message.topic,rmap_user);
+    strcat(mqtt_message.topic,"//");  
+    strcat(mqtt_message.topic,rmap_longitude);
+    strcat(mqtt_message.topic,",");
+    strcat(mqtt_message.topic,rmap_latitude);
+    strcat(mqtt_message.topic,"/");
+    strcat(mqtt_message.topic,rmap_network);
+    strcat(mqtt_message.topic,"/");
+    strcat(mqtt_message.topic,timerange);
+    strcat(mqtt_message.topic,"/");
+    strcat(mqtt_message.topic,level);
+    strcat(mqtt_message.topic,"/");
+    strcat(mqtt_message.topic,pair.key().c_str());
 
-    char payload[100]="{\"v\":";
+    strcpy(mqtt_message.payload,"{\"v\":");
     char value[33];
     itoa(pair.value().as<uint32_t>(),value,10);
-    strcat(payload,value);
-    strcat(payload,"}");
-    
-    strcpy(topic,"1/");
-    strcat(topic,rmap_mqttrootpath);
-    strcat(topic,"/");
-    strcat(topic,rmap_user);
-    strcat(topic,"//");  
-    strcat(topic,rmap_longitude);
-    strcat(topic,",");
-    strcat(topic,rmap_latitude);
-    strcat(topic,"/");
-    strcat(topic,rmap_network);
-    strcat(topic,"/");
-    strcat(topic,timerange);
-    strcat(topic,"/");
-    strcat(topic,level);
-    strcat(topic,"/");
-    strcat(topic,pair.key().c_str());
+    strcat(mqtt_message.payload,value);
+    strcat(mqtt_message.payload,"}");
 
-    frtosLog.notice(F("mqtt publish: %s %s"),topic,payload);
-    if (!mqttclient.publish(topic, payload)){
-      frtosLog.error(F("MQTT data not published"));
-      mqttclient.disconnect();
-      return false;
-    }
-    frtosLog.notice(F("MQTT data published"));
+    frtosLog.notice(F("Measure: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    
+    MqttQueue->Enqueue(&mqtt_message);
+    
   }
-  return true;
 }
 
 void firmware_upgrade() {
@@ -511,8 +504,6 @@ void firmware_upgrade() {
 
   analogWriteFreq(4);
   analogWrite(LED_PIN,512);  
-
-
 
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(String(rmap_server), update_port, String(update_url), String(buffer));
@@ -603,7 +594,7 @@ String readconfig_rmap() {
   return String();  
 }
 
-void writeconfig_rmap(String payload) {;
+void writeconfig_rmap(const String payload) {;
 
   //save the custom parameters to FS
   frtosLog.notice(F("saving rmap config"));
@@ -619,7 +610,7 @@ void writeconfig_rmap(String payload) {;
   //end save
 }
 
-int  rmap_config(String payload){
+int  rmap_config(const String payload){
 
   bool status_station = false;
   bool status_board_mqtt = false;
@@ -693,18 +684,6 @@ int  rmap_config(String payload){
 		rmap_user[9]='\0';
 		frtosLog.notice(F("rmap_user: %s"),rmap_user);
 	      }
-
-	      ///////////////////////////////////////////////////////////////////////////////
-	      // use this to migrate from user authentication to user/station_slug/board_slug
-
-	      if (!element["fields"]["mqttpassword"].isNull()){
-		strncpy (rmap_password, element["fields"]["mqttpassword"].as< const char*>(),30);
-		rmap_password[30]='\0';
-		frtosLog.notice(F("rmap_password: %s"),rmap_password);
-		// save new user and password (station auth)
-		writeconfig();
-	      }
-	      ///////////////////////////////////////////////////////////////////////////////
 
 	      status_board_mqtt = true;
 	    }
@@ -1002,42 +981,7 @@ bool publish_constantdata() {
   return true;
 }
 
-void doMeasureAndPublish() {
-
-  uint32_t waittime,maxwaittime=0;
-
-  char values[MAX_VALUES_FOR_SENSOR*20];
-  size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
-  //  long values[MAX_VALUES_FOR_SENSOR];
-  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
-  displaypos=1;
-  u8g2.clearBuffer();
-
-  digitalWrite(LED_PIN,LOW);
-
-  time_t tnow;
-  time(&tnow);
-  setTime(tnow);              // resync from sntp
-  
-  frtosLog.notice(F("Time: %s"),ctime(&tnow));
-  
-  // prepare sensors to measure
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      frtosLog.notice(F("prepare sd %d"),i);
-      if (sd[i]->prepare(waittime) == SD_SUCCESS){
-	maxwaittime=_max(maxwaittime,waittime);
-      }else{
-	frtosLog.error(F("%s: prepare failed !"),sensors[i].driver);
-      }
-    }
-  }
-
-  yield();
-  
-  //wait sensors to go ready
-  frtosLog.notice(F("wait sensors for ms: %d"),maxwaittime);
-  uint32_t now=millis();
+void doPublish(const mqttMessage_t* mqtt_message) {
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.connected()){
@@ -1078,6 +1022,61 @@ void doMeasureAndPublish() {
     }    
   }
 
+  frtosLog.notice(F("Publish: %s ; %s"),  mqtt_message->topic, mqtt_message->payload);
+  if(mqttclient.publish(mqtt_message->topic, mqtt_message->payload)){
+    //if(publish_data(values,sensors[i].timerange,sensors[i].level)){
+    frtosLog.notice(F("Data published"));    
+  }else{
+    mqttclient.disconnect(); ////////////////////////////////////// do to ?
+    frtosLog.error(F("Error in publish data"));
+    if (oledpresent) {
+      u8g2.setCursor(0, (displaypos++)*CH); 
+      u8g2.print(F("MQTT error publish"));
+    }else{
+      analogWrite(LED_PIN,973);
+      delay(5000);
+    }
+  }
+}
+
+void doMeasure( Queue &MqttQueue ) {
+
+  uint32_t waittime,maxwaittime=0;
+
+  char values[MAX_VALUES_FOR_SENSOR*20];
+  size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
+  //  long values[MAX_VALUES_FOR_SENSOR];
+  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
+  displaypos=1;
+  u8g2.clearBuffer();
+
+  digitalWrite(LED_PIN,LOW);
+
+  time_t tnow;
+  time(&tnow);
+  setTime(tnow);              // resync from sntp
+  
+  frtosLog.notice(F("Time: %s"),ctime(&tnow));
+  
+  // prepare sensors to measure
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == 0){
+      frtosLog.notice(F("prepare sd %d"),i);
+      if (sd[i]->prepare(waittime) == SD_SUCCESS){
+	maxwaittime=_max(maxwaittime,waittime);
+      }else{
+	frtosLog.error(F("%s: prepare failed !"),sensors[i].driver);
+      }
+    }
+  }
+
+  yield();
+  
+  //wait sensors to go ready
+  frtosLog.notice(F("wait sensors for ms: %d"),maxwaittime);
+  uint32_t now=millis();
+
+
   if (oledpresent) {
     u8g2.clearBuffer();
     u8g2.setCursor(0, 20); 
@@ -1091,7 +1090,6 @@ void doMeasureAndPublish() {
     //frtosLog.notice(F("delay"));
     mqttclient.loop();;
     webserver.handleClient();
-    //MDNS.update();
     yield();
   }
 
@@ -1106,21 +1104,14 @@ void doMeasureAndPublish() {
     if (!sd[i] == 0){
       frtosLog.notice(F("getJson sd %d"),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
-	if(publish_data(values,sensors[i].timerange,sensors[i].level)){
-	  web_values(values);
-	  if (oledpresent) {
-	    display_values(values);
-	  }
-	}else{
-	  frtosLog.error(F("Error in publish data"));
-	  if (oledpresent) {
-	    u8g2.setCursor(0, (displaypos++)*CH); 
-	    u8g2.print(F("MQTT error publish"));
-	  }else{
-	    analogWrite(LED_PIN,973);
-	    delay(5000);
-	  }
-	}
+	
+	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, &MqttQueue );
+	
+        web_values(values);
+        if (oledpresent) {
+          display_values(values);
+        }
+
       }else{
 	frtosLog.error(F("Error getting json from sensor"));
 	if (oledpresent) {
@@ -1133,43 +1124,41 @@ void doMeasureAndPublish() {
 
   if (oledpresent) u8g2.sendBuffer();
   digitalWrite(LED_PIN,HIGH);
+
 }
 
 
-void analogWriteFreq(double frequency){
+void analogWriteFreq(const double frequency){
   analogWriteFrequency(frequency);
 }
 
 void doUdp(void){
   
-  for(;;){
-    // If UDP packet received...
-    int packetSize = UDP.parsePacket();
-    if (packetSize) {
-      //frtosLog.notice(F("Received packet! Size: %d"),packetSize);
-      
-      uint8_t gpsflag;
-      while(UDP.available()) {
-	char c=UDP.read();
-	gpsflag = gps.encode(c);
-	if(gps.valid){
-	  frtosLog.notice("RMC latitude : %D", mgps.rmc.dms.latitude);
-	  frtosLog.notice("RMC longitude: %D", mgps.rmc.dms.longitude);
-	  frtosLog.notice("GGA latitude : %D", mgps.gga.dms.latitude);
-	  frtosLog.notice("GGA longitude: %D", mgps.gga.dms.longitude);
-	  frtosLog.notice("GLL latitude : %D", mgps.gll.dms.latitude);
-	  frtosLog.notice("GLL longitude: %D", mgps.gll.dms.longitude);
-	  frtosLog.notice("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
-			  mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
-	  //UDP.flush();
-	}else{
-	  frtosLog.notice("gps_error: %d", gpsflag);
-	}
+  // If UDP packet received...
+  int packetSize = UDP.parsePacket();
+  if (packetSize) {
+    //frtosLog.notice(F("Received packet! Size: %d"),packetSize);
+    
+    uint8_t gpsflag;
+    while(UDP.available()) {
+      char c=UDP.read();
+      gpsflag = gps.encode(c);
+      if(gps.valid){
+	frtosLog.notice("RMC latitude : %D", mgps.rmc.dms.latitude);
+	frtosLog.notice("RMC longitude: %D", mgps.rmc.dms.longitude);
+	frtosLog.notice("GGA latitude : %D", mgps.gga.dms.latitude);
+	frtosLog.notice("GGA longitude: %D", mgps.gga.dms.longitude);
+	frtosLog.notice("GLL latitude : %D", mgps.gll.dms.latitude);
+	frtosLog.notice("GLL longitude: %D", mgps.gll.dms.longitude);
+	frtosLog.notice("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
+			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
+	//UDP.flush();
+      }else{
+	frtosLog.notice("gps_error: %d", gpsflag);
       }
-    }else{
-	frtosLog.notice(F("No Received packet!"));
     }
-    delay(100);
+  }else{
+    frtosLog.notice(F("No Received packet!"));
   }
 }
 
@@ -1178,39 +1167,45 @@ using namespace cpp_freertos;
 class udpThread : public Thread {
   
 public:
-  udpThread(int i)
+  udpThread(int i, frtosLogging &logger)
     : Thread("UDP", 10000, 1),
-      Id (i)
+      Id (i),
+      Logger(logger)
   {
-    frtosLog.notice("Create Thread %s %d", GetName().c_str(), Id);
+    Logger.notice("Create Thread %s %d", GetName().c_str(), Id);
     //Start();
   };
   
 protected:
   virtual void Run() {
-    frtosLog.notice("Starting Thread %s %d", GetName().c_str(), Id);
-    doUdp();
+    Logger.notice("Starting Thread %s %d", GetName().c_str(), Id);
+    for(;;){
+      doUdp();
+      Delay(Ticks::SecondsToTicks(1));
+    }
   };
   
 private:
   int Id;
+  frtosLogging &Logger;
 };
 
-
-class measureAndPublishThread : public Thread {
+class measureThread : public Thread {
   
 public:
-  measureAndPublishThread(int i)
-    : Thread("measure and publish", 10000, 1),
-      Id (i)
+  measureThread(int i, frtosLogging &logger, Queue &mqttQueue)
+    : Thread("measure", 10000, 1),
+      Id (i),
+      Logger(logger),
+      MqttQueue(mqttQueue)
   {
-    frtosLog.notice("Create Thread %s %d", GetName().c_str(), Id);
+    Logger.notice("Create Thread %s %d", GetName().c_str(), Id);
     //Start();
   };
-
-  ~measureAndPublishThread()
+  
+  ~measureThread()
   {
-    frtosLog.notice("Delete Thread %s %d", GetName().c_str(), Id);
+    Logger.notice("Delete Thread %s %d", GetName().c_str(), Id);
   }
   
   virtual void Cleanup()
@@ -1220,20 +1215,67 @@ public:
   
 protected:  
   virtual void Run() {
-    frtosLog.notice("Starting Thread %s %d", GetName().c_str(), Id);
-    doMeasureAndPublish();
+    Logger.notice("Starting Thread %s %d", GetName().c_str(), Id);
+    for(;;){
+      WaitForNotification();
+      doMeasure(MqttQueue);
+    }
   };
-  
+
 private:
   int Id;
+  Queue &MqttQueue;
+  frtosLogging &Logger;
+};
+  
+  
+class publishThread : public Thread {
+  
+public:
+  publishThread(int i, frtosLogging &logger,Queue &mqttQueue)
+    : Thread("publish", 10000, 1),
+      Id (i),
+      Logger(logger),
+      MqttQueue(mqttQueue)
+  {
+    Logger.notice("Create Thread %s %d", GetName().c_str(), Id);
+    //Start();
+  };
+
+  ~publishThread()
+  {
+    Logger.notice("Delete Thread %s %d", GetName().c_str(), Id);
+  }
+  
+  virtual void Cleanup()
+  {
+    delete this;
+  }
+  
+protected:  
+  virtual void Run() {
+    Logger.notice("Starting Thread %s %d", GetName().c_str(), Id);
+    for(;;){
+      mqttMessage_t mqttMessage;
+      MqttQueue.Dequeue(&mqttMessage);     
+      doPublish(&mqttMessage);
+    }
+  };
+
+private:
+  int Id;
+  frtosLogging &Logger;
+  Queue &MqttQueue;
 };
 
-udpThread threadUdp(1);
+udpThread threadUdp(1,frtosLog);
+Queue mqttQueue(10,sizeof(mqttMessage_t));
+measureThread threadMeasure(1,frtosLog,mqttQueue);
+publishThread threadPublish(1,frtosLog,mqttQueue);
+
 
 void measureAndPublish() {
-  measureAndPublishThread *threadMeasureAndPublish;
-  threadMeasureAndPublish  = new measureAndPublishThread(1);
-  threadMeasureAndPublish->Start();
+  threadMeasure.Notify();
 }
 
 void reboot() {
@@ -1655,7 +1697,9 @@ void setup() {
   gps.set_filter(0xE); // "RMC","GGA","GLL"
 
   threadUdp.Start();
-  
+  threadMeasure.Start();
+  threadPublish.Start();
+
 }
 
 void loop() {
