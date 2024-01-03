@@ -256,6 +256,7 @@ def main(host, keepalive, port, topics, username, password, debug,
                 topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8").strip('\x00')
                 if not topic:
                     break
+                topic=roottopic+topic
 
                 payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
                 if not topic:
