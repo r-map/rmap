@@ -29,17 +29,23 @@
 
 #if defined (SDS011_ONESHOT)
 #include "Sds011.h"
+#if defined(ARDUINO_ARCH_ESP8266)
 #include <SoftwareSerial.h>
+#endif
 #endif
 
 #if defined (HPM_ONESHOT)
 #include "hpm.h"
+#if defined(ARDUINO_ARCH_ESP8266)
 #include <SoftwareSerial.h>
+#endif
 #endif
 
 #if defined (PMS_ONESHOT)
 #include "pms.h"
+#if defined(ARDUINO_ARCH_ESP8266)
 #include <SoftwareSerial.h>
+#endif
 #endif
 
 #if defined (SCD_ONESHOT)
@@ -547,7 +553,11 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
   #endif
     
    private:
+    #if defined(ARDUINO_ARCH_ESP8266)
     SoftwareSerial* _sdsSerial=NULL;
+    #else
+    HardwareSerial* _sdsSerial=NULL;
+    #endif
     sds011::Sds011* _sds011=NULL;  
 };
 
@@ -857,7 +867,11 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
   #endif
     
    private:
+    #if defined(ARDUINO_ARCH_ESP8266)
     SoftwareSerial* _hpmSerial=NULL;
+    #else
+    HardwareSerial* _hpmSerial=NULL;
+    #endif
     hpm* _hpm=NULL;  
     bool HPMstarted=false;
 };
@@ -887,7 +901,11 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
   #endif
     
    private:
+    #if defined(ARDUINO_ARCH_ESP8266)
     SoftwareSerial* _pmsSerial=NULL;
+    #else
+    HardwareSerial* _pmsSerial=NULL;
+    #endif
     Pmsx003* _pms=NULL;  
     bool PMSstarted=false;
  };

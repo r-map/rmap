@@ -93,6 +93,9 @@
 #define SDS_PIN_RX 4
 #define SDS_PIN_TX 5
 #endif
+#elif defined(ARDUINO_ARCH_ESP32)
+#define SDS_PIN_RX 8
+#define SDS_PIN_TX 10
 #endif
 
 #define SDSSAMPLES 3

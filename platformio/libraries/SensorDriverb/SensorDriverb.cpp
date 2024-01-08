@@ -2941,8 +2941,13 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
   SensorDriver::setup(driver,address,node,type);
   //bool oneshot=true;
 
+   #if defined(ARDUINO_ARCH_ESP8266)
   _sdsSerial=new SoftwareSerial();
   _sdsSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
+   #else
+  _sdsSerial=new HardwareSerial(1);
+  _sdsSerial->begin(9600,SERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
+   #endif
   _sds011 = new sds011::Sds011(*_sdsSerial);
   delay(1000);
  
@@ -4959,10 +4964,10 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
 
   #if defined(ARDUINO_ARCH_ESP8266)
   _hpmSerial=new SoftwareSerial();
-  _hpmSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
+  _hpmSerial->begin(9600,SWSERIAL_8N1, HPM_PIN_RX, HPM_PIN_TX, false, 128,11);
   #else
-  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX);
-  _hpmSerial->begin(9600);
+  _hpmSerial=new HardwareSerial(1);
+  _hpmSerial->begin(9600,SERIAL_8N1,HPM_PIN_RX, HPM_PIN_TX);
   //_hpmSerial= &Serial1;
   #endif
 
@@ -5148,10 +5153,10 @@ int SensorDriverPMSoneshotSerial::setup(const char* driver, const int address, c
 
   #if defined(ARDUINO_ARCH_ESP8266)
   _pmsSerial=new SoftwareSerial();
-  _pmsSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
+  _pmsSerial->begin(9600,SWSERIAL_8N1, PMS_PIN_RX, PMS_PIN_TX, false, 128,11);
   #else
-  _pmsSerial=new SoftwareSerial(PMS_PIN_RX, PMS_PIN_TX);
-  _pmsSerial->begin(9600);
+  _pmsSerial=new HardwareSerial(1);
+  _pmsSerial->begin(9600,SERIAL_8N1,PMS_PIN_RX, PMS_PIN_TX);
   //_pmsSerial= &Serial1;
   #endif
 
