@@ -85,7 +85,7 @@ class RpcSubmitFormFree(forms.Form):
              raise forms.ValidationError("Invalid data in params")
          #if json data not valid:
             #raise forms.ValidationError("Invalid data in jsonfield")
-         return jdata
+         return json_data
 
     
     
