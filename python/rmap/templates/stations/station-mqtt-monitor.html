@@ -114,7 +114,7 @@ function onoff(element) {
 	  }
       })
       // Subscribe to rpc topic
-      client.subscribe(maint_topic, function (err) {
+      client.subscribe(rpc_topic, function (err) {
 	  if (err) {
 	      console.log('Error Subscribing: '+rpc_topic)
 	      document.getElementById("status_messages").innerHTML += "; Failure subscribing "+rpc_topic;
