@@ -1,0 +1,206 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-09 10:22+0000\n"
+"PO-Revision-Date: 2024-01-09 11:31+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: rpc/admin.py:14
+msgid "Rpc"
+msgstr ""
+
+#: rpc/admin.py:15 rpc/templates/rpc/rpc_details.html:38
+msgid "Command"
+msgstr "Comando"
+
+#: rpc/admin.py:16 rpc/templates/rpc/rpc_details.html:47
+msgid "Response"
+msgstr "Risposta"
+
+#: rpc/models.py:15 rpc/templates/rpc/rpc_list.html:36
+msgid "Active"
+msgstr "Attiva"
+
+#: rpc/models.py:15
+msgid "Active ticket"
+msgstr "Ticket attivo"
+
+#: rpc/models.py:16 rpc/templates/rpc/rpc_details.html:19
+msgid "Date"
+msgstr "Data"
+
+#: rpc/models.py:17
+msgid "Date command"
+msgstr "Data del comando"
+
+#: rpc/models.py:18
+msgid "method"
+msgstr "metodo"
+
+#: rpc/models.py:19
+msgid "params"
+msgstr "parametri"
+
+#: rpc/models.py:20
+msgid "Date reposnse"
+msgstr "Data della risposta"
+
+#: rpc/models.py:21
+msgid "result"
+msgstr "risultato"
+
+#: rpc/models.py:22
+msgid "error"
+msgstr "errore"
+
+#: rpc/models.py:45 rpc/templates/rpc/rpc_list.html:35
+msgid "RPC"
+msgstr ""
+
+#: rpc/models.py:46
+msgid "RPCSs"
+msgstr ""
+
+#: rpc/templates/rpc/rpc_details.html:9
+msgid "Remote Procedure Call ID"
+msgstr ""
+
+#: rpc/templates/rpc/rpc_details.html:9
+msgid "Active:"
+msgstr "Attiva:"
+
+#: rpc/templates/rpc/rpc_details.html:10
+msgid "Status:"
+msgstr "Stato:"
+
+#: rpc/templates/rpc/rpc_details.html:11
+msgid "User:"
+msgstr "Utente:"
+
+#: rpc/templates/rpc/rpc_details.html:12
+msgid "Station:"
+msgstr "Stazione:"
+
+#: rpc/templates/rpc/rpc_details.html:20
+msgid "Phase"
+msgstr "Fase"
+
+#: rpc/templates/rpc/rpc_details.html:21 rpc/templates/rpc/rpc_list.html:40
+msgid "Method"
+msgstr "Metodo"
+
+#: rpc/templates/rpc/rpc_details.html:22
+msgid "Params"
+msgstr "Parametri"
+
+#: rpc/templates/rpc/rpc_details.html:23
+msgid "Result"
+msgstr "Risultato"
+
+#: rpc/templates/rpc/rpc_details.html:24 rpc/templates/rpc/rpc_list.html:41
+msgid "Error"
+msgstr "Errore"
+
+#: rpc/templates/rpc/rpc_details.html:29
+msgid "Submitted"
+msgstr "Sottomessa"
+
+#: rpc/templates/rpc/rpc_list.html:9
+msgid "Remote Procedure Call of user: "
+msgstr "Remote Procedure Call dell'utente: "
+
+#: rpc/templates/rpc/rpc_list.html:10 rpc/templates/rpc/rpc_list.html:13
+msgid "Remote Procedure Call for all users"
+msgstr "Remote Procedure Call  per tutti gli utenti"
+
+#: rpc/templates/rpc/rpc_list.html:11 rpc/templates/rpc/rpc_list.html:14
+msgid "Remote Procedure Call for user"
+msgstr "Remote Procedure Call per l'utente"
+
+#: rpc/templates/rpc/rpc_list.html:11
+msgid "and station"
+msgstr "e stazione"
+
+#: rpc/templates/rpc/rpc_list.html:16
+msgid "Remote Procedure Call"
+msgstr ""
+
+#: rpc/templates/rpc/rpc_list.html:27
+msgid "Filter"
+msgstr "Filtra"
+
+#: rpc/templates/rpc/rpc_list.html:37
+msgid "Status"
+msgstr "Stato"
+
+#: rpc/templates/rpc/rpc_list.html:38
+msgid "Station"
+msgstr "Stazione"
+
+#: rpc/templates/rpc/rpc_list.html:39
+msgid "Created"
+msgstr "Creata"
+
+#: rpc/templates/rpc/rpc_list.html:61
+msgid "No rpcs."
+msgstr ""
+
+#: rpc/templates/rpc/rpc_list.html:69
+msgid "previous"
+msgstr "precedente"
+
+#: rpc/templates/rpc/rpc_list.html:74
+msgid "Page"
+msgstr "Pagina"
+
+#: rpc/templates/rpc/rpc_list.html:74
+msgid "of"
+msgstr "di"
+
+#: rpc/templates/rpc/rpc_list.html:79
+msgid "next"
+msgstr "successiva"
+
+#: rpc/templates/rpc/rpc_list.html:80
+msgid "last &raquo;"
+msgstr ""
+
+#: rpc/templates/rpc/rpc_submit.html:7
+msgid "Invalid data; retry"
+msgstr "Dati invalidi; riprova"
+
+#: rpc/templates/rpc/rpc_submit.html:11
+msgid "Error on submit RPC; retry"
+msgstr "Errore nel sottomettere la RPC; riprova"
+
+#: rpc/templates/rpc/rpc_submit.html:15
+msgid "OK, RPC submitted"
+msgstr "OK, RPC sottomessa"
+
+#: rpc/templates/rpc/rpc_submit.html:18
+msgid "Insert your new Remote Procedure Call for user:"
+msgstr "Inserisci la tua nuova Remote Procedure Call per l'utente:"
+
+#: rpc/templates/rpc/rpc_submit.html:18
+msgid "and station:"
+msgstr "e stazione:"
+
+#: rpc/templates/rpc/rpc_submit.html:23
+msgid "Submit"
+msgstr "Sottometti"
+
+#: rpc/views.py:76 rpc/views.py:77
+msgid "for example"
+msgstr "per esempio"

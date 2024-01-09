@@ -17,6 +17,7 @@ from rpc.models import Rpc
 from jsonfield import JSONField
 import json
 from datetime import datetime,timedelta
+from django.utils.translation import ugettext_lazy as _
 
 @never_cache
 def rpc_list(request,user=None,slug=None):
@@ -72,8 +73,8 @@ def rpc_details(request,user=None,slug=None,id=None):
 
 
 class RpcSubmitFormFree(forms.Form):
-    method = forms.CharField(required=True)
-    params = forms.CharField(required=False)
+    method = forms.CharField(required=True, help_text=_('for example')+': recovery')
+    params = forms.CharField(required=False, help_text=_('for example')+': {"dts": [2023, 12, 24, 12, 0, 0]}')
 
     def clean_params(self):
          jdata = self.cleaned_data['params']
