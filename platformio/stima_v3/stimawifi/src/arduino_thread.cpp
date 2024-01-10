@@ -1,7 +1,7 @@
 #include "arduino_thread.h"
 
 void analogWriteFreq(const double frequency){
-  analogWriteFrequency(frequency);
+  //analogWriteFrequency(frequency);
 }
 
 String Json(){
@@ -197,6 +197,10 @@ String  rmap_get_remote_config(){
 }
 
 void firmware_upgrade() {
+}
+
+/*
+void firmware_upgrade() {
 
   StaticJsonDocument<200> doc; 
   doc["ver"] = SOFTWARE_VERSION;
@@ -246,23 +250,23 @@ void firmware_upgrade() {
       break;
     case HTTP_UPDATE_OK:
       frtosLog.notice(F("[update] Update ok.")); // may not called we reboot the ESP
-      /*
-      if (oledpresent) {
-	u8g2.setCursor(0, 20); 
-	u8g2.print(F("FW Updated!"));
-	u8g2.sendBuffer();
-      }
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      */
+      
+//    if (oledpresent) {
+//	u8g2.setCursor(0, 20); 
+//	u8g2.print(F("FW Updated!"));
+//	u8g2.sendBuffer();
+//      }
+//      digitalWrite(LED_PIN,LOW);      
+//      delay(1000);
+//      digitalWrite(LED_PIN,HIGH);      
+//      delay(1000);
+//      digitalWrite(LED_PIN,LOW);      
+//      delay(1000);
+//      digitalWrite(LED_PIN,HIGH);      
+//      delay(1000);
+//      digitalWrite(LED_PIN,LOW);      
+//      delay(1000);
+
       break;
     }
 
@@ -271,7 +275,7 @@ void firmware_upgrade() {
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
 }
-
+*/
 
 String readconfig_rmap() {
 
@@ -662,8 +666,10 @@ void setup() {
   delay(500);
   digitalWrite(PMS_RESET,HIGH);
 
+  //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
   Serial.begin(115200);
-
+  //Serial.setDebugOutput(true);
+ 
   // Pass log level, whether to show log level, and print interface.
   // Available levels are:
   // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
@@ -677,20 +683,12 @@ void setup() {
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
 
-#ifdef I2CPULLUP
-  //if you want to set the internal pullup
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
-#else
-  // here we enforce we do not want pullup
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
-#endif
-
+  
   espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   
-  Wire.begin(SDA,SCL);
-  Wire.setClock(I2C_CLOCK);
+  Wire.begin();
+  //Wire.begin(SDA_PIN,SCL_PIN);
+  //Wire.setClock(I2C_CLOCK);
 
   // check return value of
   // the Write.endTransmisstion to see if
@@ -823,7 +821,7 @@ void setup() {
   wifiManager.addParameter(&custom_rmap_password);
   wifiManager.addParameter(&custom_rmap_slug);
 
-  //set minimu quality of signal so it ignores AP's under that quality
+  //set minimum quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
   

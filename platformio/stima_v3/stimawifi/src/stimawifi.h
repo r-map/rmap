@@ -10,7 +10,7 @@
 #include <ESPmDNS.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
-#include <ESP32httpUpdate.h>
+//#include <ESP32httpUpdate.h>
 #include <LittleFS.h>
 #include "thread.hpp"
 //#include "critical.hpp"
@@ -23,7 +23,6 @@
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 #include <PubSubClient.h>
-#include <SoftwareSerial.h>
 #include <TimeAlarms.h>
 #include <Wire.h>
 #include <SensorDriverb.h>
@@ -38,6 +37,7 @@
 #include "measure_thread.h"
 #include "publish_thread.h"
 #include "arduino_thread.h"
+#include "USB.h"
 
 //////////////// REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 extern String readconfig_rmap();

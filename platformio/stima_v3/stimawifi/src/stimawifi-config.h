@@ -26,18 +26,17 @@
 // set the frequency
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
 #define I2C_CLOCK 10000
-// #define I2CPULLUP define this if you want software pullup on I2C
 
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
 
 #define FIRMWARE_TYPE "WEMOS_D1_MINI32"
-#define PMS_RESET D0
+#define PMS_RESET 0
 
-//#define SCL D1
-//#define SDA D2
+#define SCL_PIN SCL
+#define SDA_PIN SDA
 
-#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define RESET_PIN 4    // pin to connect to ground for reset wifi configuration
 // Set LED_BUILTIN if it is not defined by Arduino framework
 #ifndef LED_BUILTIN
     #define LED_BUILTIN 2
