@@ -2,7 +2,6 @@
 #define _HPM_H
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <ArduinoLog.h>
 
 #ifdef ARDUINO_ARCH_AVR

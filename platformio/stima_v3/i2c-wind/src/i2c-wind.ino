@@ -1670,6 +1670,7 @@ void flush(void){
 
 void windsonicReboot(void){
   //ATTENTION here all is blocking!
+  LOGE(F("windsonic reboot!"));
   windPowerOff();
   delay(1000);
   wdt_reset();
