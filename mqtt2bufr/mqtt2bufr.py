@@ -100,29 +100,35 @@ def parse_payload(payload):
     return json.loads(payload)
 
 
-def parse_message(topic, payload,version):
+def parse_message(topic, payload,version,debug):
     t = parse_topic(topic,version)
     if t is None:
+        if(debug):
+            sys.stderr.write("ERROR parsing topic\n")
         return None
 
-    m = parse_payload(payload)
-    msg = t.copy()
-    msg["value"] = m["v"]
-    if all([
-        t["level"] != (None, None, None, None),
-        t["trange"] != (None, None, None),
-    ]):
-        if "t" in m:
-            msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+    try:
+        m = parse_payload(payload)
+        msg = t.copy()
+        msg["value"] = m["v"]
+        if all([
+                t["level"] != (None, None, None, None),
+                t["trange"] != (None, None, None),  ]):
+            if "t" in m:
+                msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+            else:
+                msg["datetime"] = datetime.now()
         else:
-            msg["datetime"] = datetime.now()
-    else:
-        msg["datetime"] = None
+            msg["datetime"] = None
 
-    if "a" in m:
-        msg["attributes"] = m["a"]
-    else:
-        msg["attributes"] = {}
+        if "a" in m:
+            msg["attributes"] = m["a"]
+        else:
+            msg["attributes"] = {}
+
+    except:
+        if(debug):
+            sys.stderr.write("ERROR parsing payload\n")
 
     return msg
 
@@ -139,7 +145,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     try:
-        m = parse_message(message.topic, message.payload.decode("utf-8"),userdata["version"])
+        m = parse_message(message.topic, message.payload.decode("utf-8"),userdata["version"],userdata["debug"])
         if m is None:
             return
         msg = dballe.Message("generic")
@@ -181,10 +187,12 @@ def on_message(client, userdata, message):
 
 
 
-def write_message(topic,payload,outfile,version):
+def write_message(topic,payload,outfile,version,debug):
     try:
-        m = parse_message(topic,payload,version)
+        m = parse_message(topic,payload,version,debug)
         if m is None:
+            if(debug):
+                sys.stderr.write("ERROR parsing message\n")
             return
         msg = dballe.Message("generic")
         if m["ident"] is not None:
@@ -246,23 +254,42 @@ def main(host, keepalive, port, topics, username, password, debug,
                 roottopic=i.readline()[:-1]
                 MQTT_SENSOR_TOPIC_LENGTH=int(i.readline())
                 MQTT_MESSAGE_LENGTH=int(i.readline())
+            if(debug):
+                sys.stderr.write("version: {}.{}\n".format(int(majorversion),int(minorversion)))
+                sys.stderr.write("roottopic: {}\n".format(roottopic))
+                sys.stderr.write("topic len  : {}\n".format(MQTT_SENSOR_TOPIC_LENGTH))
+                sys.stderr.write("payload len: {}\n".format(MQTT_MESSAGE_LENGTH))
         except:
+            if(debug):
+                sys.stderr.write("ERROR reading info file; trying with default\n")
             MQTT_SENSOR_TOPIC_LENGTH=38
             MQTT_MESSAGE_LENGTH=44
         
         reclen=MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH
         with fileinput as f:
             while True:
-                topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8").strip('\x00')
+
+                message=f.read(MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                try:    
+                    topic,payload=message.split(" ")
+                except ValueError:
+                    break
+                
                 if not topic:
                     break
                 topic=roottopic+topic
 
-                payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                if(debug):
+                    sys.stderr.write("topic: {}\n".format(topic))
+                
+                #payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
                 if not topic:
                     break
 
-                write_message(topic,payload,outfile,version)
+                if(debug):
+                    sys.stderr.write("payload: {}\n".format(payload))
+                
+                write_message(topic,payload,outfile,version,debug)
 
     else:
         mqttclient = mqtt.Client(userdata={

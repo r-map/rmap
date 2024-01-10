@@ -47,7 +47,8 @@ def convert_to_mqtt(dballefile):
                 except Exception:
                     traceback.print_exc()
                 else:
-                    yield topic, payload, True
+                    if not topic is None and not payload is None:
+                        yield topic, payload, True
 
             for data in msg.query_data():
                 try:
@@ -55,18 +56,24 @@ def convert_to_mqtt(dballefile):
                 except Exception:
                     traceback.print_exc()
                 else:
-                    yield topic, payload, False
+                    if not topic is None and not payload is None:
+                        yield topic, payload, False
 
 
 def data_to_mqtt(data):
     # Convert msg data to topic, payload
     d = data.data_dict
     var = data["variable"]
+
+    #Skip constant station data
+    if var.code in ("B04001","B04002","B04003","B04004","B04005","B04006","B05001","B06001","B01011","B01194" ):
+        return None,None
+ 
     topic = (
         "/{ident}/{lon},{lat}/{rep_memo}/"
         "{trange}/{level}/{varcode}"
     ).format(
-        ident=d.get("ident", "-"),
+        ident="" if d.get("ident"," ") == " " else d.get("ident","-"), 
         lon="-" if d.get("lon") is None else int(d["lon"]*10**5),
         lat="-" if d.get("lat") is None else int(d["lat"]*10**5),
         rep_memo=d.get("report", "-"),
@@ -114,7 +121,7 @@ def handle_signals(mqttclient):
     signal.signal(signal.SIGINT, cleanup_on_signal)
 
 
-def main(host, keepalive, port, topics, username, password, debug, infile):
+def main(host, keepalive, port, roottopic, username, password, debug, infile):
     mqttclient = mqtt.Client(userdata={
         "debug": debug,
     })
@@ -133,9 +140,11 @@ def main(host, keepalive, port, topics, username, password, debug, infile):
     importer = dballe.Importer("BUFR")
     with importer.from_file(infile) as f:
         for topic, payload, is_station in convert_to_mqtt(f):
-            for basetopic in topics:
-                t = basetopic + topic
-                publish_to_mqtt(mqttclient, t, payload, is_station)
+            t = roottopic + "/" + username + topic
+            if debug:
+                sys.stderr.write("topic:{}  payload:{}\n".format(t,payload))
+
+            publish_to_mqtt(mqttclient, t, payload, is_station)
 
     mqttclient.loop_stop()
 
@@ -161,10 +170,9 @@ if __name__ == '__main__':
                         help=("connect to the port specified "
                               "(default: %(default)s)"),
                         type=int, default=1883)
-    parser.add_argument("-t", "--topic", metavar="TOPIC",
-                        action="append", default=[],
-                        help=("MQTT topic to subscribe to (may be repeated "
-                              "multiple times"))
+    parser.add_argument("-r", "--roottopic",
+                        help="root topic used when publish (default %(default)s)",
+                        default="1/report")
     parser.add_argument("-u", "--username", metavar="NAME",
                         help="username for authenticating with the broker")
     parser.add_argument("-P", "--pw", metavar="PASSWORD",
@@ -176,6 +184,6 @@ if __name__ == '__main__':
 
     main(
         host=args.host, keepalive=args.keepalive, port=args.port,
-        topics=args.topic, username=args.username, password=args.pw,
+        roottopic=args.roottopic, username=args.username, password=args.pw,
         debug=args.debug, infile=sys.stdin,
     )
