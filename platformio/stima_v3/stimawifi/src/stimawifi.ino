@@ -29,8 +29,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 */
 
 #include "stimawifi.h"
-#include "arduino_thread.h"
-#include "udp_thread.h"
+//#include "arduino_thread.h"
+//#include "udp_thread.h"
 //#include "measure_thread.h"
 //#include "publish_thread.h"
 
@@ -81,12 +81,13 @@ I2C_BUTTON button; //I2C address 0x31
 float temperature=NAN;
 int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 
-
-
 udp_data_t udp_data={1,frtosLog};
 udpThread threadUdp(udp_data);
+
 Queue mqttQueue(10,sizeof(mqttMessage_t));
+
 measure_data_t measure_data={1,frtosLog,mqttQueue};
 measureThread threadMeasure(measure_data);
+
 publish_data_t publish_data={1,frtosLog,mqttQueue};
 publishThread threadPublish(publish_data);
