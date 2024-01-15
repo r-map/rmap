@@ -32,9 +32,29 @@
 
 #ifdef ARDUINO_ESP8266_RELEASE_2_3_0
 #warning "ARDUINO_ESP8266_RELEASE_2_3_0, some WM features disabled" 
+// @todo check failing on platform = espressif8266@1.7.3
 #define WM_NOASYNC         // esp8266 no async scan wifi
 #define WM_NOCOUNTRY       // esp8266 no country
+#define WM_NOAUTH          // no httpauth
+#define WM_NOSOFTAPSSID    // no softapssid() @todo shim
 #endif
+
+// #ifdef CONFIG_IDF_TARGET_ESP32S2
+// #warning ESP32S2
+// #endif
+
+// #ifdef CONFIG_IDF_TARGET_ESP32C3
+// #warning ESP32C3
+// #endif
+
+// #ifdef CONFIG_IDF_TARGET_ESP32S3
+// #warning ESP32S3
+// #endif
+
+// #if defined(ARDUINO_ESP32S3_DEV) || defined(CONFIG_IDF_TARGET_ESP32S3)
+// #warning "WM_NOTEMP"
+// #define WM_NOTEMP // disabled temp sensor, have to determine which chip we are on
+// #endif
 
 // #include "soc/efuse_reg.h" // include to add efuse chip rev to info, getChipRevision() is almost always the same though, so not sure why it matters.
 
@@ -42,6 +62,8 @@
 // autoreconnect is WORKING https://github.com/espressif/arduino-esp32/issues/653#issuecomment-405604766
 
 #define WM_WEBSERVERSHIM      // use webserver shim lib
+
+#define WM_G(string_literal)  (String(FPSTR(string_literal)).c_str())
 
 #ifdef ESP8266
 
@@ -87,7 +109,21 @@
     #endif
 
     #ifdef WM_RTC
-        #include <rom/rtc.h>
+        #ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+        #if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+        #include "esp32/rom/rtc.h"
+        #elif CONFIG_IDF_TARGET_ESP32S2
+        #include "esp32s2/rom/rtc.h"
+        #elif CONFIG_IDF_TARGET_ESP32C3
+        #include "esp32c3/rom/rtc.h"
+        #elif CONFIG_IDF_TARGET_ESP32S3
+        #include "esp32s3/rom/rtc.h"
+        #else
+        #error Target CONFIG_IDF_TARGET is not supported
+        #endif
+        #else // ESP32 Before IDF 4.0
+        #include "rom/rtc.h"
+        #endif
     #endif
 
 #else
@@ -95,7 +131,60 @@
 
 #include <DNSServer.h>
 #include <memory>
-#include "strings_en.h"
+
+
+// Include wm strings vars
+// Pass in strings env override via WM_STRINGS_FILE
+#ifndef WM_STRINGS_FILE
+#define WM_STRINGS_FILE "wm_strings_en.h" // this includes constants as dependency
+#endif
+#include WM_STRINGS_FILE
+
+// prep string concat vars
+#define WM_STRING2(x) #x
+#define WM_STRING(x) WM_STRING2(x)    
+
+// #include <esp_idf_version.h>
+#ifdef ESP_IDF_VERSION
+    // #pragma message "ESP_IDF_VERSION_MAJOR = " WM_STRING(ESP_IDF_VERSION_MAJOR)
+    // #pragma message "ESP_IDF_VERSION_MINOR = " WM_STRING(ESP_IDF_VERSION_MINOR)
+    // #pragma message "ESP_IDF_VERSION_PATCH = " WM_STRING(ESP_IDF_VERSION_PATCH)
+    #define VER_IDF_STR WM_STRING(ESP_IDF_VERSION_MAJOR)  "."  WM_STRING(ESP_IDF_VERSION_MINOR)  "."  WM_STRING(ESP_IDF_VERSION_PATCH)
+#else 
+    #define VER_IDF_STR "Unknown"
+#endif
+
+#ifdef Arduino_h
+    #ifdef ESP32
+    // #include "esp_arduino_version.h" // esp32 arduino > 2.x
+    #endif
+    // esp_get_idf_version
+    #ifdef ESP_ARDUINO_VERSION
+        // #pragma message "ESP_ARDUINO_VERSION_MAJOR = " WM_STRING(ESP_ARDUINO_VERSION_MAJOR)
+        // #pragma message "ESP_ARDUINO_VERSION_MINOR = " WM_STRING(ESP_ARDUINO_VERSION_MINOR)
+        // #pragma message "ESP_ARDUINO_VERSION_PATCH = " WM_STRING(ESP_ARDUINO_VERSION_PATCH)
+        #ifdef ESP_ARDUINO_VERSION_MAJOR
+        #define VER_ARDUINO_STR WM_STRING(ESP_ARDUINO_VERSION_MAJOR)  "."  WM_STRING(ESP_ARDUINO_VERSION_MINOR)  "."  WM_STRING(ESP_ARDUINO_VERSION_PATCH)
+        #else
+        #define VER_ARDUINO_STR "Unknown"
+        #endif
+    #else
+        #include <core_version.h>
+        // #pragma message "ESP_ARDUINO_VERSION_GIT  = " WM_STRING(ARDUINO_ESP32_GIT_VER)//  0x46d5afb1
+        // #pragma message "ESP_ARDUINO_VERSION_DESC = " WM_STRING(ARDUINO_ESP32_GIT_DESC) //  1.0.6
+        // #pragma message "ESP_ARDUINO_VERSION_REL  = " WM_STRING(ARDUINO_ESP32_RELEASE) //"1_0_6"
+        #ifdef ESP_ARDUINO_VERSION_MAJOR
+        #define VER_ARDUINO_STR WM_STRING(ESP_ARDUINO_VERSION_MAJOR)  "."  WM_STRING(ESP_ARDUINO_VERSION_MINOR)  "."  WM_STRING(ESP_ARDUINO_VERSION_PATCH)
+        #else
+        #define VER_ARDUINO_STR "Unknown"
+        #endif
+    #endif
+#else 
+#define VER_ARDUINO_STR "Unknown"
+#endif
+
+// #pragma message "VER_IDF_STR = " WM_STRING(VER_IDF_STR)
+// #pragma message "VER_ARDUINO_STR = " WM_STRING(VER_ARDUINO_STR)
 
 #ifndef WIFI_MANAGER_MAX_PARAMS
     #define WIFI_MANAGER_MAX_PARAMS 5 // params will autoincrement and realloc by this amount when max is reached
@@ -104,6 +193,7 @@
 #define WFM_LABEL_BEFORE 1
 #define WFM_LABEL_AFTER 2
 #define WFM_NO_LABEL 0
+#define WFM_LABEL_DEFAULT 1
 
 class WiFiManagerParameter {
   public:
@@ -120,34 +210,44 @@ class WiFiManagerParameter {
     ~WiFiManagerParameter();
     // WiFiManagerParameter& operator=(const WiFiManagerParameter& rhs);
 
-    const char *getID();
-    const char *getValue();
-    const char *getLabel();
-    const char *getPlaceholder(); // @deprecated, use getLabel
-    int         getValueLength();
-    int         getLabelPlacement();
-    const char *getCustomHTML();
+    const char *getID() const;
+    const char *getValue() const;
+    const char *getLabel() const;
+    const char *getPlaceholder() const; // @deprecated, use getLabel
+    int         getValueLength() const;
+    int         getLabelPlacement() const;
+    virtual const char *getCustomHTML() const;
     void        setValue(const char *defaultValue, int length);
 
   protected:
     void init(const char *id, const char *label, const char *defaultValue, int length, const char *custom, int labelPlacement);
 
-  private:
     WiFiManagerParameter& operator=(const WiFiManagerParameter&);
     const char *_id;
     const char *_label;
     char       *_value;
     int         _length;
     int         _labelPlacement;
+  
     const char *_customHTML;
     friend class WiFiManager;
 };
 
 
+    // debugging
+    typedef enum {
+        WM_DEBUG_SILENT    = 0, // debug OFF but still compiled for runtime
+        WM_DEBUG_ERROR     = 1, // error only
+        WM_DEBUG_NOTIFY    = 2, // default stable,INFO
+        WM_DEBUG_VERBOSE   = 3, // move verbose info
+        WM_DEBUG_DEV       = 4, // development useful debugging info
+        WM_DEBUG_MAX       = 5  // MAX extra dev auditing, var dumps etc (MAX+1 will print timing,mem and frag info)
+    } wm_debuglevel_t;
+
 class WiFiManager
 {
   public:
-    WiFiManager(Stream& consolePort);
+    WiFiManager(Print& consolePort);
     WiFiManager();
     ~WiFiManager();
     void WiFiManagerInit();
@@ -212,12 +312,20 @@ class WiFiManager
     //called when wifi settings have been changed and connection was successful ( or setBreakAfterConfig(true) )
     void          setSaveConfigCallback( std::function<void()> func );
 
-    //called when settings have been changed and connection was successful
-    void          setSaveParamsCallback( std::function<void()> func );
-
-    //called when settings before have been changed and connection was successful
+    //called when saving params-in-wifi or params before anything else happens (eg wifi)
     void          setPreSaveConfigCallback( std::function<void()> func );
 
+    //called when saving params before anything else happens
+    void          setPreSaveParamsCallback( std::function<void()> func );
+
+    //called when saving either params-in-wifi or params page
+    void          setSaveParamsCallback( std::function<void()> func );
+
+    //called just before doing OTA update
+    void          setPreOtaUpdateCallback( std::function<void()> func );
+
+    //called when config portal is timeout
+    void          setConfigPortalTimeoutCallback( std::function<void()> func );
 
     //sets timeout before AP,webserver loop ends and exits even if there has been no setup.
     //useful for devices that failed to connect at some point and got stuck in a webserver loop
@@ -234,9 +342,14 @@ class WiFiManager
     //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
     void          setSaveConnectTimeout(unsigned long seconds);
     
+    // lets you disable automatically connecting after save from webportal
+    void          setSaveConnect(bool connect = true);
+    
     // toggle debug output
     void          setDebugOutput(boolean debug);
-    
+    void          setDebugOutput(boolean debug, String prefix); // log line prefix, default "*wm:"
+    void          setDebugOutput(boolean debug, wm_debuglevel_t level ); // log line prefix, default "*wm:"
+
     //set min quality percentage to include in scan, defaults to 8% if not specified
     void          setMinimumSignalQuality(int quality = 8);
     
@@ -257,9 +370,12 @@ class WiFiManager
     // setConfigPortalTimeout is ignored in this mode, user is responsible for closing configportal
     void          setConfigPortalBlocking(boolean shouldBlock);
     
+    //add custom html at inside <head> for all pages
+    void          setCustomHeadElement(const char* html);
+
     //if this is set, customise style
-    void          setCustomHeadElement(const char* element);
-    
+    void          setCustomMenuHTML(const char* html);
+
     //if this is true, remove duplicated Access Points - defaut true
     void          setRemoveDuplicateAPs(boolean removeDuplicates);
     
@@ -292,9 +408,13 @@ class WiFiManager
     
     // if true (default) then start the config portal from autoConnect if connection failed
     void          setEnableConfigPortal(boolean enable);
-    
+
+    // if true (default) then stop the config portal from autoConnect when wifi is saved
+    void          setDisableConfigPortal(boolean enable);
+
     // set a custom hostname, sets sta and ap dhcp client id for esp32, and sta for esp8266
     bool          setHostname(const char * hostname);
+    bool          setHostname(String hostname);
 
     // show erase wifi onfig button on info page, true
     void          setShowInfoErase(boolean enabled);
@@ -316,6 +436,9 @@ class WiFiManager
     void          setMenu(std::vector<const char*>& menu);
     void          setMenu(const char* menu[], uint8_t size);
     
+    // set the webapp title, default WiFiManager
+    void          setTitle(String title);
+
     // add params to its own menu page and remove from wifi, NOT TO BE COMBINED WITH setMenu!
     void          setParamsPage(bool enable);
 
@@ -324,6 +447,7 @@ class WiFiManager
     
     // get a status as string
     String        getWLStatusString(uint8_t status);    
+    String        getWLStatusString();    
 
     // get wifi mode as string
     String        getModeString(uint8_t mode);
@@ -332,10 +456,10 @@ class WiFiManager
     bool          getWiFiIsSaved();
 
     // helper to get saved password, if persistent get stored, else get current if connected    
-    String        getWiFiPass(bool persistent = false);
+    String        getWiFiPass(bool persistent = true);
 
     // helper to get saved ssid, if persistent get stored, else get current if connected
-    String        getWiFiSSID(bool persistent = false);
+    String        getWiFiSSID(bool persistent = true);
 
     // debug output the softap config
     void          debugSoftAPConfig();
@@ -344,7 +468,7 @@ class WiFiManager
     void          debugPlatformInfo();
 
     // helper for html
-    String        htmlEntities(String str);
+    String        htmlEntities(String str, bool whitespace = false);
     
     // set the country code for wifi settings, CN
     void          setCountry(String cc);
@@ -361,6 +485,19 @@ class WiFiManager
     // set port of webserver, 80
     void          setHttpPort(uint16_t port);
 
+    // check if config portal is active (true)
+    bool          getConfigPortalActive();
+    
+    // check if web portal is active (true)
+    bool          getWebPortalActive();
+
+    // to preload autoconnect for test fixtures or other uses that skip esp sta config
+    bool          preloadWiFi(String ssid, String pass);
+
+    // get hostname helper
+    String        getWiFiHostname();
+
+
     std::unique_ptr<DNSServer>        dnsServer;
 
     #if defined(ESP32) && defined(WM_WEBSERVERSHIM)
@@ -371,7 +508,8 @@ class WiFiManager
     
     std::unique_ptr<WM_WebServer> server;
 
-  private:
+  protected:
+    // vars
     std::vector<uint8_t> _menuIds;
     std::vector<const char *> _menuIdsParams  = {"wifi","param","info","exit"};
     std::vector<const char *> _menuIdsUpdate  = {"wifi","param","info","update","exit"};
@@ -386,40 +524,48 @@ class WiFiManager
     IPAddress     _sta_static_sn;
     IPAddress     _sta_static_dns;
 
-    // defaults
-    const byte    DNS_PORT                = 53;
-    const byte    HTTP_PORT               = 80;
-    String        _apName                 = "no-net";
-    String        _apPassword             = "";
-    String        _ssid                   = "";
-    String        _pass                   = "";
-    
-    // options flags
-    unsigned long _configPortalTimeout    = 0; // ms close config portal loop if set (depending on  _cp/webClientCheck options)
-    unsigned long _connectTimeout         = 0; // ms stop trying to connect to ap if set
-    unsigned long _saveTimeout            = 0; // ms stop trying to connect to ap on saves, in case bugs in esp waitforconnectresult
     unsigned long _configPortalStart      = 0; // ms config portal start time (updated for timeouts)
     unsigned long _webPortalAccessed      = 0; // ms last web access time
-    WiFiMode_t    _usermode               = WIFI_STA; // Default user mode
-    String        _wifissidprefix         = FPSTR(S_ssidpre); // auto apname prefix prefix+chipid
     uint8_t       _lastconxresult         = WL_IDLE_STATUS; // store last result when doing connect operations
     int           _numNetworks            = 0; // init index for numnetworks wifiscans
     unsigned long _lastscan               = 0; // ms for timing wifi scans
     unsigned long _startscan              = 0; // ms for timing wifi scans
+    unsigned long _startconn              = 0; // ms for timing wifi connects
+
+    // defaults
+    const byte    DNS_PORT                = 53;
+    String        _apName                 = "no-net";
+    String        _apPassword             = "";
+    String        _ssid                   = ""; // var temp ssid
+    String        _pass                   = ""; // var temp psk
+    String        _defaultssid            = ""; // preload ssid
+    String        _defaultpass            = ""; // preload pass
+
+    // options flags
+    unsigned long _configPortalTimeout    = 0; // ms close config portal loop if set (depending on  _cp/webClientCheck options)
+    unsigned long _connectTimeout         = 0; // ms stop trying to connect to ap if set
+    unsigned long _saveTimeout            = 0; // ms stop trying to connect to ap on saves, in case bugs in esp waitforconnectresult
+    
+    WiFiMode_t    _usermode               = WIFI_STA; // Default user mode
+    String        _wifissidprefix         = FPSTR(S_ssidpre); // auto apname prefix prefix+chipid
     int           _cpclosedelay           = 2000; // delay before wifisave, prevents captive portal from closing to fast.
     bool          _cleanConnect           = false; // disconnect before connect in connectwifi, increases stability on connects
-   
+    bool          _connectonsave          = true; // connect to wifi when saving creds
     bool          _disableSTA             = false; // disable sta when starting ap, always
     bool          _disableSTAConn         = true;  // disable sta when starting ap, if sta is not connected ( stability )
     bool          _channelSync            = false; // use same wifi sta channel when starting ap
-    int32_t       _apChannel              = 0; // channel to use for ap
+    int32_t       _apChannel              = 0; // default channel to use for ap, 0 for auto
     bool          _apHidden               = false; // store softap hidden value
     uint16_t      _httpPort               = 80; // port for webserver
     // uint8_t       _retryCount             = 0; // counter for retries, probably not needed if synchronous
     uint8_t       _connectRetries         = 1; // number of sta connect retries, force reconnect, wait loop (connectimeout) does not always work and first disconnect bails
+    bool          _aggresiveReconn        = true; // use an agrressive reconnect strategy, WILL delay conxs
+                                                   // on some conn failure modes will add delays and many retries to work around esp and ap bugs, ie, anti de-auth protections
+                                                   // https://github.com/tzapu/WiFiManager/issues/1067
+    bool          _allowExit              = true; // allow exit in nonblocking, else user exit/abort calls will be ignored including cptimeout
 
     #ifdef ESP32
-    wifi_event_id_t wm_event_id;
+    wifi_event_id_t wm_event_id           = 0;
     static uint8_t _lastconxresulttmp; // tmp var for esp32 callback
     #endif
 
@@ -429,8 +575,8 @@ class WiFiManager
 
     // parameter options
     int           _minimumQuality         = -1;    // filter wifiscan ap by this rssi
-    int            _staShowStaticFields   = 0;     // ternary 1=always show static ip fields, 0=only if set, -1=never(cannot change ips via web!)
-    int            _staShowDns            = 0;     // ternary 1=always show dns, 0=only if set, -1=never(cannot change dns via web!)
+    int           _staShowStaticFields    = 0;     // ternary 1=always show static ip fields, 0=only if set, -1=never(cannot change ips via web!)
+    int           _staShowDns             = 0;     // ternary 1=always show dns, 0=only if set, -1=never(cannot change dns via web!)
     boolean       _removeDuplicateAPs     = true;  // remove dup aps from wifiscan
     boolean       _showPassword           = false; // show or hide saved password on wifi form, might be a security issue!
     boolean       _shouldBreakAfterConfig = false; // stop configportal on save failure
@@ -445,15 +591,19 @@ class WiFiManager
     boolean       _showInfoErase          = true;  // info page erase button
     boolean       _showInfoUpdate         = true;  // info page update button
     boolean       _showBack               = false; // show back button
-    boolean       _enableConfigPortal     = true;  // use config portal if autoconnect failed
-    const char *  _hostname               = "";    // hostname for esp8266 for dhcp, and or MDNS
+    boolean       _enableConfigPortal     = true;  // FOR autoconnect - start config portal if autoconnect failed
+    boolean       _disableConfigPortal    = true;  // FOR autoconnect - stop config portal if cp wifi save
+    String        _hostname               = "";    // hostname for esp8266 for dhcp, and or MDNS
 
-    const char*   _customHeadElement      = ""; // store custom head element html from user
+    const char*   _customHeadElement      = ""; // store custom head element html from user isnide <head>
+    const char*   _customMenuHTML         = ""; // store custom head element html from user inside <>
     String        _bodyClass              = ""; // class to add to body
+    String        _title                  = FPSTR(S_brand); // app title -  default WiFiManager
 
     // internal options
     
     // wifiscan notes
+    // currently disabled due to issues with caching, sometimes first scan is empty esp32 wifi not init yet race, or portals hit server nonstop flood
     // The following are background wifi scanning optimizations
     // experimental to make scans faster, preload scans after starting cp, and visiting home page, so when you click wifi its already has your list
     // ideally we would add async and xhr here but I am holding off on js requirements atm
@@ -461,10 +611,24 @@ class WiFiManager
     // cache time helps throttle this
     // async enables asyncronous scans, so they do not block anything
     // the refresh button bypasses cache
-    boolean       _preloadwifiscan        = false;  // preload wifiscan if true
+    // no aps found is problematic as scans are always going to want to run, leading to page load delays
+    // 
+    // These settings really only make sense with _preloadwifiscan true
+    // but not limited to, we could run continuous background scans on various page hits, or xhr hits
+    // which would be better coupled with asyncscan
+    // atm preload is only done on root hit and startcp
+    // 
+    // preload scanning causes AP to delay showing for users, but also caches and lets the cp load faster once its open
+    //  my scan takes 7-10 seconds
+public:
+    boolean       _preloadwifiscan        = false; // preload wifiscan if true
+    unsigned int  _scancachetime          = 30000; // ms cache time for preload scans
     boolean       _asyncScan              = false; // perform wifi network scan async
-    unsigned int  _scancachetime          = 30000; // ms cache time for background scans
+    
+protected:
 
+    boolean       _autoforcerescan        = false;  // automatically force rescan if scan networks is 0, ignoring cache
+    
     boolean       _disableIpFields        = false; // modify function of setShow_X_Fields(false), forces ip fields off instead of default show if set, eg. _staShowStaticFields=-1
 
     String        _wificountry            = "";  // country code, @todo define in strings lang
@@ -485,23 +649,29 @@ class WiFiManager
 #endif
 
     bool          startAP();
+    void          setupDNSD();
+    void          setupHTTPServer();
 
-    uint8_t       connectWifi(String ssid, String pass);
+    uint8_t       connectWifi(String ssid, String pass, bool connect = true);
     bool          setSTAConfig();
     bool          wifiConnectDefault();
-    bool          wifiConnectNew(String ssid, String pass);
+    bool          wifiConnectNew(String ssid, String pass,bool connect = true);
 
     uint8_t       waitForConnectResult();
-    uint8_t       waitForConnectResult(uint16_t timeout);
+    uint8_t       waitForConnectResult(uint32_t timeout);
     void          updateConxResult(uint8_t status);
 
     // webserver handlers
+public:
+    void          handleNotFound();
+protected:
+    void          HTTPSend(const String &content);
     void          handleRoot();
     void          handleWifi(boolean scan);
     void          handleWifiSave();
     void          handleInfo();
     void          handleReset();
-    void          handleNotFound();
+
     void          handleExit();
     void          handleClose();
     // void          handleErase();
@@ -532,8 +702,8 @@ class WiFiManager
     uint8_t       WiFi_softap_num_stations();
     bool          WiFi_hasAutoConnect();
     void          WiFi_autoReconnect();
-    String        WiFi_SSID(bool persistent = false) const;
-    String        WiFi_psk(bool persistent = false) const;
+    String        WiFi_SSID(bool persistent = true) const;
+    String        WiFi_psk(bool persistent = true) const;
     bool          WiFi_scanNetworks();
     bool          WiFi_scanNetworks(bool force,bool async);
     bool          WiFi_scanNetworks(unsigned int cachetime,bool async);
@@ -542,7 +712,38 @@ class WiFiManager
     bool          WiFiSetCountry();
 
     #ifdef ESP32
-    void   WiFiEvent(WiFiEvent_t event, system_event_info_t info);
+
+    // check for arduino or system event system, handle esp32 arduino v2 and IDF
+    #if defined(ESP_ARDUINO_VERSION) && defined(ESP_ARDUINO_VERSION_VAL)
+
+        #define WM_ARDUINOVERCHECK ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+        #define WM_ARDUINOVERCHECK_204 ESP_ARDUINO_VERSION <= ESP_ARDUINO_VERSION_VAL(2, 0, 5)
+
+        #ifdef WM_ARDUINOVERCHECK
+            #define WM_ARDUINOEVENTS
+        #else
+            #define WM_NOSOFTAPSSID
+            #define WM_NOCOUNTRY
+        #endif
+
+        #ifdef WM_ARDUINOVERCHECK_204
+            #define WM_DISCONWORKAROUND
+        #endif
+
+    #else 
+        #define WM_NOCOUNTRY
+    #endif
+
+    #ifdef WM_NOCOUNTRY
+        #warning "ESP32 set country unavailable" 
+    #endif
+
+
+    #ifdef WM_ARDUINOEVENTS
+        void   WiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
+    #else
+        void   WiFiEvent(WiFiEvent_t event, system_event_info_t info);
+    #endif
     #endif
 
     // output helpers
@@ -561,38 +762,39 @@ class WiFiManager
     String        getInfoData(String id);
 
     // flags
-    boolean       connect;
-    boolean       abort;
+    boolean       connect             = false;
+    boolean       abort               = false;
     boolean       reset               = false;
     boolean       configPortalActive  = false;
+
+
+    // these are state flags for portal mode, we are either in webportal mode(STA) or configportal mode(AP)
+    // these are mutually exclusive as STA+AP mode is not supported due to channel restrictions and stability
+    // if we decide to support this, these checks will need to be replaced with something client aware to check if client origin is ap or web
+    // These state checks are critical and used for internal function checks
     boolean       webPortalActive     = false;
     boolean       portalTimeoutResult = false;
+
     boolean       portalAbortResult   = false;
     boolean       storeSTAmode        = true; // option store persistent STA mode in connectwifi 
-    int           timer               = 0;
+    int           timer               = 0;    // timer for debug throttle for numclients, and portal timeout messages
     
     // WiFiManagerParameter
     int         _paramsCount          = 0;
     int         _max_params;
     WiFiManagerParameter** _params    = NULL;
 
-    // debugging
-    typedef enum {
-        DEBUG_ERROR     = 0,
-        DEBUG_NOTIFY    = 1, // default stable
-        DEBUG_VERBOSE   = 2,
-        DEBUG_DEV       = 3, // default dev
-        DEBUG_MAX       = 4
-    } wm_debuglevel_t;
-
     boolean _debug  = true;
-    
+    String _debugPrefix = FPSTR(S_debugPrefix);
+
+    wm_debuglevel_t debugLvlShow = WM_DEBUG_VERBOSE; // at which level start showing [n] level tags
+
     // build debuglevel support
     // @todo use DEBUG_ESP_x?
     
     // Set default debug level
     #ifndef WM_DEBUG_LEVEL
-    #define WM_DEBUG_LEVEL DEBUG_DEV // development default, not release
+    #define WM_DEBUG_LEVEL WM_DEBUG_NOTIFY
     #endif
 
     // override debug level OFF
@@ -603,14 +805,14 @@ class WiFiManager
     #ifdef WM_DEBUG_LEVEL
     uint8_t _debugLevel = (uint8_t)WM_DEBUG_LEVEL;
     #else 
-    uint8_t _debugLevel = DEBUG_DEV; // default debug level
+    uint8_t _debugLevel = 0; // default debug level
     #endif
 
     // @todo use DEBUG_ESP_PORT ?
     #ifdef WM_DEBUG_PORT
-    Stream& _debugPort = WM_DEBUG_PORT;
+    Print& _debugPort = WM_DEBUG_PORT;
     #else
-    Stream& _debugPort = Serial; // debug output stream ref
+    Print& _debugPort = Serial; // debug output stream ref
     #endif
 
     template <typename Generic>
@@ -628,9 +830,12 @@ class WiFiManager
     std::function<void(WiFiManager*)> _apcallback;
     std::function<void()> _webservercallback;
     std::function<void()> _savewificallback;
-    std::function<void()> _presavecallback;
+    std::function<void()> _presavewificallback;
+    std::function<void()> _presaveparamscallback;
     std::function<void()> _saveparamscallback;
     std::function<void()> _resetcallback;
+    std::function<void()> _preotaupdatecallback;
+    std::function<void()> _configportaltimeoutcallback;
 
     template <class T>
     auto optionalIPFromString(T *obj, const char *s) -> decltype(  obj->fromString(s)  ) {
@@ -640,6 +845,7 @@ class WiFiManager
       // DEBUG_WM("NO fromString METHOD ON IPAddress, you need ESP8266 core 2.1.0 or newer for Custom IP configuration to work.");
       return false;
     }
+
 };
 
 #endif
