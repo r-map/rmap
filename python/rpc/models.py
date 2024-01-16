@@ -23,7 +23,15 @@ class Rpc(models.Model):
 
     def params_json(self):
         return json.dumps(self.params)
-                  
+
+    def result_json(self):
+        return json.dumps(self.result)
+
+    def error_json(self):
+        if self.error is None:
+            return _("OK")
+        return json.dumps(self.error)
+    
     def status(self):
         if (self.datecmd is not None):
             if (self.dateres is not None):
