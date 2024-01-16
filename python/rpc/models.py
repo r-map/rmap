@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from jsonfield import JSONField
 from django.utils import timezone
-
+import json
 
 class Rpc(models.Model):
     dbid = models.AutoField(primary_key=True)
@@ -20,8 +20,10 @@ class Rpc(models.Model):
     dateres = models.DateTimeField(_('Date reposnse'), default=None, null=True,blank=True)
     result = JSONField(_('result'), max_length=120, null=True,blank=True)
     error =  JSONField(_('error'),  max_length=120, null=True,blank=True)
-    
 
+    def params_json(self):
+        return json.dumps(self.params)
+                  
     def status(self):
         if (self.datecmd is not None):
             if (self.dateres is not None):
