@@ -28,8 +28,6 @@ class Rpc(models.Model):
         return json.dumps(self.result)
 
     def error_json(self):
-        if self.error is None:
-            return _("OK")
         return json.dumps(self.error)
     
     def status(self):
