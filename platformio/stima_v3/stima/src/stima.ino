@@ -258,7 +258,8 @@ void loop() {
 
 void logPrefix(Print* _logOutput) {
   char dt[DATE_TIME_STRING_LENGTH];
-  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+  time_t date_time=now();
+  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(date_time), month(date_time), day(date_time), hour(date_time), minute(date_time), second(date_time));
   _logOutput->print("#");
   _logOutput->print(dt);
   _logOutput->print(" ");
@@ -606,7 +607,7 @@ void init_rtc() {
      system_time=datetime;
      setTime(system_time);
      is_datetime_set = true;
-     LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+     LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(system_time), month(system_time), year(system_time), hour(system_time), minute(system_time), second(system_time));
    }
 }
 #endif
@@ -1367,7 +1368,9 @@ int getjson(JsonObject params, JsonObject result) {
          else {
             StaticJsonBuffer<JSON_BUFFER_LENGTH*2> jsonBuffer;
             JsonObject &v = jsonBuffer.parseObject((const char*) &json_sensors_data[i][0]);
-            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second())unsigned int>() == 0) {
+	    time_t date_time=now();
+            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u",
+		     year(date_time), month(date_time), day(date_time), hour(date_time), minute(date_time), second(date_time))unsigned int>() == 0) {
                   result[F("v")][(char *) it.key().c_str()] = (char *) NULL;
                }
                else {
@@ -1429,7 +1432,9 @@ int prepandget(JsonObject params, JsonObject result) {
          else {
             StaticJsonBuffer<JSON_BUFFER_LENGTH*2> jsonBuffer;
             JsonObject &v = jsonBuffer.parseObject((const char*) &json_sensors_data[i][0]);
-            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+	    time_t date_time=now();
+            snprintf(sensor_reading_time_buffer, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u",
+		     year(date_time), month(date_time), day(date_time), hour(date_time), minute(date_time), second(date_time));
 
             result[F("state")] = F("done");
             result.createNestedObject(F("v"));
@@ -1782,7 +1787,9 @@ void supervisor_task() {
 
       case SUPERVISOR_MANAGE_LEVEL_TASK:
          if (is_time_updated) {
-            LOGN(F("Current date and time is: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+	    time_t date_time=now();
+            LOGN(F("Current date and time is: %d/%d/%d %d:%d:%d"),
+		 day(date_time), month(date_time), year(date_time), hour(date_time), minute(date_time), second(date_time));
          }
 
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
@@ -2006,7 +2013,8 @@ void time_task() {
    static time_state_t state_after_wait;
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
-
+   time_t date_time;
+   
    #if (USE_NTP)
    static bool is_set_rtc_ok;
    static time_t current_ntp_time;
@@ -2110,7 +2118,8 @@ void time_task() {
             setTime(system_time);
             last_ntp_sync = current_ntp_time;
 	    is_datetime_set = true;
-	    LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+	    LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"),
+		 day(system_time), month(system_time), year(system_time), hour(system_time), minute(system_time), second(system_time));
             #if (USE_RTC)
             time_state = TIME_SET_SYNC_NTP_PROVIDER;
             LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_NTP_PROVIDER"));
@@ -2179,7 +2188,9 @@ void time_task() {
       case TIME_SET_SYNC_RTC_PROVIDER:
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
          setSyncProvider(getSystemTime);
-         LOGN(F("Current System date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+	 date_time=now();
+         LOGN(F("Current System date and time: %d/%d/%d %d:%d:%d"),
+	      day(date_time), month(date_time), year(date_time), hour(date_time), minute(date_time), second(date_time));
          time_state = TIME_END;
          LOGV(F("TIME_SET_SYNC_RTC_PROVIDER --> TIME_END"));
       break;
@@ -3251,7 +3262,8 @@ void mqtt_task() {
    int read_bytes_count;
    static char comtopic[MQTT_RPC_TOPIC_LENGTH+3];    // static is required here for MQTTClient
    //static uint8_t mqtt_numretry_rpc_response;
-
+   time_t date_time;
+   
    // check every loop to send RPC response
    // callback driven !
 
@@ -3397,16 +3409,10 @@ void mqtt_task() {
             mqtt_state = MQTT_PTR_FOUND;
             LOGV(F("MQTT_PTR_READ ---> MQTT_PTR_FOUND"));
          }
-         // not found (no sdcard error): find it by starting from 1th January of previous year
+         // not found (no sdcard error): find it by starting one month before
          else if (read_bytes_count >= 0) {
             LOGN(F("Data pointer... [ FIND ]"));
-            datetime.Year = CalendarYrToTm(year(now()))-1;
-            datetime.Month = 1;
-            datetime.Day = 1;
-            datetime.Hour = 0;
-            datetime.Minute = 0;
-            datetime.Second = 0;
-            ptr_time_data = makeTime(datetime);
+            ptr_time_data = now()-(SECS_PER_DAY*30);
             is_ptr_found = false;
             mqtt_state = MQTT_PTR_FIND;
             LOGV(F("MQTT_PTR_READ ---> MQTT_PTR_FIND"));
@@ -3432,18 +3438,19 @@ void mqtt_task() {
                is_eof_data_read = false;
                LOGN(F("%s... [ FOUND ]"), file_name);
                mqtt_state = MQTT_PTR_END;
-               LOGV(F("MQTT_PTR_FOUND ---> MQTT_PTR_END"));
+               LOGV(F("MQTT_PTR_FIND ---> MQTT_PTR_END"));
             }
             else {
                LOGN(F("%s... [ NOT FOUND ]"), file_name);
                ptr_time_data += SECS_PER_DAY;
             }
          }
-         // ptr not found: set ptr to yesterday (today at 00:00:00 - readable_configuration.report_seconds time).
+         // ptr not found: set ptr to today at 00:00:00.
          else if (!is_ptr_found && ptr_time_data >= now()) {
-            datetime.Year = CalendarYrToTm(year());
-            datetime.Month = month();
-            datetime.Day = day();
+            date_time=now();
+            datetime.Year = CalendarYrToTm(year(date_time));
+            datetime.Month = month(date_time);
+            datetime.Day = day(date_time);
             datetime.Hour = 0;
             datetime.Minute = 0;
             datetime.Second = 0;
@@ -3460,20 +3467,20 @@ void mqtt_task() {
 
       case MQTT_PTR_FOUND:
          // datafile read, reach eof and is today. END.
-         if (is_eof_data_read && year() == year(ptr_time_data) && month() == month(ptr_time_data) && day() == day(ptr_time_data)) {
+	 date_time=now();
+         if (is_eof_data_read && year(date_time) == year(ptr_time_data) && month(date_time) == month(ptr_time_data) && day(date_time) == day(ptr_time_data)) {
             mqtt_state = MQTT_CLOSE_DATA_FILE;
             LOGV(F("MQTT_PTR_FOUND ---> MQTT_CLOSE_DATA_FILE"));
          }
-         // datafile read, reach eof and NOT is today. go to end of this day.
+         // datafile read, reach eof and NOT is today. go to start of next day.
          else if (is_eof_data_read) {
             datetime.Year = CalendarYrToTm(year(ptr_time_data));
             datetime.Month = month(ptr_time_data);
-            datetime.Day = day(ptr_time_data) + 1;
+            datetime.Day = day(ptr_time_data);
             datetime.Hour = 0;
             datetime.Minute = 0;
             datetime.Second = 0;
-            ptr_time_data = makeTime(datetime);
-            ptr_time_data -= readable_configuration.report_seconds;
+            ptr_time_data = makeTime(datetime)+ SECS_PER_DAY;  // add one day
             is_ptr_updated = true;
             mqtt_state = MQTT_PTR_END;
             LOGV(F("MQTT_PTR_FOUND ---> MQTT_PTR_END"));
@@ -3693,13 +3700,14 @@ void mqtt_task() {
          }
          // EOF: End of File
          else {
+	    LOGV(F("SDcard no data read: error or end of file"));
             if (last_correct_ptr_time_data > ptr_time_data) {
                ptr_time_data = last_correct_ptr_time_data;
                is_ptr_updated = true;
-            }
-            is_eof_data_read = true;
-            mqtt_state = MQTT_PTR_FOUND;
-            LOGV(F("MQTT_SD_LOOP ---> MQTT_PTR_FOUND"));
+	    }
+	    is_eof_data_read = true;
+	    mqtt_state = MQTT_PTR_FOUND;
+	    LOGV(F("MQTT_SD_LOOP ---> MQTT_PTR_FOUND"));
          }
       break;
 
@@ -3775,15 +3783,20 @@ void mqtt_task() {
          // open the file that corresponds to the next data to send
          next_ptr_time_data = ptr_time_data + readable_configuration.report_seconds;
          sdcard_make_filename(next_ptr_time_data, file_name);
-
+	 date_time=now();
+	 
          // open file for read data
+	 LOGV(F("SDcard open file: %s"),file_name);
          if (sdcard_open_file(&SD, &read_data_file, file_name, O_READ)) {
             retry = 0;
             mqtt_state = MQTT_SD_LOOP;
             LOGV(F("MQTT_OPEN_DATA_FILE ---> MQTT_SD_LOOP"));
          }
          // error: file doesn't exist but if is today, end.
-         else if (!is_sdcard_error && year(next_ptr_time_data) == year() && month(next_ptr_time_data) == month() && day(next_ptr_time_data) == day()) {
+         else if (!is_sdcard_error &&
+		  year(next_ptr_time_data) == year(date_time) &&
+		  month(next_ptr_time_data) == month(date_time) &&
+		  day(next_ptr_time_data) == day(date_time)) {
             mqtt_state = MQTT_PTR_UPDATE;
             LOGV(F("MQTT_OPEN_DATA_FILE ---> MQTT_PTR_UPDATE"));
          }
@@ -3806,9 +3819,9 @@ void mqtt_task() {
       case MQTT_CLOSE_DATA_FILE:
          if (is_mqtt_processing_sdcard) {
             is_sdcard_error = !read_data_file.close();
-            mqtt_state = MQTT_RPC_DELAY;
-            LOGV(F("MQTT_CLOSE_DATA_FILE ---> MQTT_RPC_DELAY"));
          }
+	 mqtt_state = MQTT_RPC_DELAY;
+	 LOGV(F("MQTT_CLOSE_DATA_FILE ---> MQTT_RPC_DELAY"));
          break;
 
       case MQTT_RPC_DELAY:
