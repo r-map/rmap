@@ -1,43 +1,27 @@
 
-#ifndef STIMAWIFI_H_
-#define STIMAWIFI_H_
-
 #include "Arduino.h"
 #include "stimawifi-config.h"
 #include "typedef.h"
 #include <frtosLog.h>
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <WebServer.h>
-#include <HTTPClient.h>
-//#include <ESP32httpUpdate.h>
-#include <LittleFS.h>
 #include "thread.hpp"
 //#include "critical.hpp"
 #include "ticks.hpp"
 #include "queue.hpp"
-//needed for library
 #include <DNSServer.h>
 //#include <WebSocketsServer.h>
 //#include "EspHtmlTemplateProcessor.h"
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
-#include <PubSubClient.h>
-#include <TimeAlarms.h>
 #include <Wire.h>
-#include <SensorDriverb.h>
 #include <U8g2lib.h>
 #include "time.h"
-#include <LOLIN_I2C_BUTTON.h>
-#include <WiFiUdp.h>
-#include "ozgps.h"
-#include "esp_sntp.h"
-//#include "esp_netif_sntp.h"
+
 #include "udp_thread.h"
 #include "measure_thread.h"
 #include "publish_thread.h"
 #include "arduino_thread.h"
-#include "USB.h"
+
+#ifndef STIMAWIFI_H_
+#define STIMAWIFI_H_
 
 //////////////// REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 extern String readconfig_rmap();

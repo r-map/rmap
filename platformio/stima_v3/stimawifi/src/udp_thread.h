@@ -1,4 +1,5 @@
-#include "stimawifi.h"
+#include <WiFiUdp.h>
+#include "ozgps.h"
 
 #ifndef UDP_THREAD_H_
 #define UDP_THREAD_H_

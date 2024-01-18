@@ -1,4 +1,4 @@
-#include "stimawifi.h"
+#include <SensorDriverb.h>
 
 #ifndef MEASURE_THREAD_H_
 #define MEASURE_THREAD_H_

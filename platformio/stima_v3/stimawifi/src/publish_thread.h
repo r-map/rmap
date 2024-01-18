@@ -1,4 +1,4 @@
-#include "stimawifi.h"
+#include <PubSubClient.h>
 
 #ifndef PUBLISH_THREAD_H_
 #define PUBLISH_THREAD_H_

@@ -1,4 +1,22 @@
-#include "arduino_thread.h"
+//#include "arduino_thread.h"
+#include "stimawifi.h"
+
+void printLocalTime()
+{
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    LOGE("No time available (yet)");
+    return;
+  }
+  Serial.println(&timeinfo, "%y %m %d  %H:%M:%S");
+}
+
+// Callback function (get's called when time adjusts via NTP)
+void timeavailable(struct timeval *t)
+{
+  LOGN("Got time adjustment from NTP!");
+  printLocalTime();
+}
 
 void analogWriteFreq(const double frequency){
   //analogWriteFrequency(frequency);
@@ -180,7 +198,6 @@ String  rmap_get_remote_config(){
   url+="/default/json/";     // get one station, default boards
 
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
-  //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
   http.begin(espClient,url.c_str());
 
   int httpCode = http.GET();
@@ -329,7 +346,6 @@ int  rmap_config(const String payload){
   int ii = 0;
 
   if (! (payload == String())) {
-    //StaticJsonDocument<2900> jsonBuffer;
     DynamicJsonDocument doc(4000);
     status = 3;
     DeserializationError error = deserializeJson(doc,payload);
@@ -974,8 +990,19 @@ void setup() {
   
   sntp_setoperatingmode(SNTP_OPMODE_POLL);
   sntp_setservername(0, ntp_server);
-  sntp_init();
+  // set notification call-back function
+  sntp_set_time_sync_notification_cb( timeavailable );
+  
+  configTime(3600, 0, ntp_server);
+
+  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(30000)) != ESP_OK) {
+    LOGE("Failed to update system time within 30s timeout");
+  }
+  printLocalTime();
+  
+  //sntp_init();
   // wait for time to be set
+  /*
   time_t now = 0;
   struct tm timeinfo = { 0 };
   int retry = 0;
@@ -986,7 +1013,7 @@ void setup() {
     time(&now);
     localtime_r(&now, &timeinfo);
   }
-
+  
   if(retry >= retry_count) {
     if (oledpresent){
       u8g2.clearBuffer();
@@ -1003,10 +1030,11 @@ void setup() {
     delay(1000);
     reboot(); //300 seconds timeout - reset board
   }
-    
-  frtosLog.notice(F("Time: %s"),ctime(&now));
-  setTime(now);
-  
+  */
+
+  time_t datetime = now();
+  frtosLog.notice(F("Time: %s"),ctime(&datetime));
+
   frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
 
   mqttclient.setServer(rmap_mqtt_server, 1883);
