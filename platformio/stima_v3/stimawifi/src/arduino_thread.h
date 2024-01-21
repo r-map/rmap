@@ -1,16 +1,3 @@
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <WebServer.h>
-#include <HTTPClient.h>
-//#include <ESP32httpUpdate.h>
-#include <LittleFS.h>
-#include "esp_netif_sntp.h"
-#include "esp_netif.h"
-#include "esp_sntp.h"
-#include <TimeAlarms.h>
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <LOLIN_I2C_BUTTON.h>
-
 #ifndef ARDUINO_THREAD_H_
 #define ARDUINO_THREAD_H_
 

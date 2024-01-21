@@ -33,7 +33,7 @@ void doUdp(void){
 using namespace cpp_freertos;
 
 udpThread::udpThread(udp_data_t &udp_data)
-  : Thread("UDP", 20000, 1),
+  : Thread("UDP", 50000, 1),
     data(udp_data)
 {
   data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);

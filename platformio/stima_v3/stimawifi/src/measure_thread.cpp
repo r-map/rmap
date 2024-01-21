@@ -1,4 +1,5 @@
 #include "stimawifi.h"
+#include "measure_thread.h"
 
 void enqueueMqttMessage(char* values, const char* timerange, const char* level, Queue* MqttQueue ) {
   
@@ -106,8 +107,8 @@ void doMeasure( Queue &MqttQueue ) {
 
   while ((millis()-now) < maxwaittime) {
     //frtosLog.notice(F("delay"));
-    mqttclient.loop();;
-    webserver.handleClient();
+    //mqttclient.loop();;
+    //webserver.handleClient();
     yield();
   }
 
@@ -147,7 +148,7 @@ void doMeasure( Queue &MqttQueue ) {
 
 
 measureThread::measureThread(measure_data_t &measure_data)
-  : Thread("measure", 20000, 1),
+  : Thread("measure", 50000, 1),
     data(measure_data)
 {
   data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
