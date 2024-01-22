@@ -173,15 +173,15 @@ typedef union {
 
 /*************************************************************/
 /* error codes */
-#define ERR_OK          0x00
-#define ERR_DATALENGTH  0X01
-#define ERR_UNKNOWNCMD  0x02
-#define ERR_ACCESSRIGHT 0x03
-#define ERR_PARAMETER   0x04
-#define ERR_OUTOFRANGE  0x28
-#define ERR_CMDSTATE    0x43
-#define ERR_TIMEOUT     0x50
-#define ERR_PROTOCOL    0x51
+#define SPS30ERR_OK          0x00
+#define SPS30ERR_DATALENGTH  0X01
+#define SPS30ERR_UNKNOWNCMD  0x02
+#define SPS30ERR_ACCESSRIGHT 0x03
+#define SPS30ERR_PARAMETER   0x04
+#define SPS30ERR_OUTOFRANGE  0x28
+#define SPS30ERR_CMDSTATE    0x43
+#define SPS30ERR_TIMEOUT     0x50
+#define SPS30ERR_PROTOCOL    0x51
 
 
 #if not defined SMALLFOOTPRINT
@@ -194,15 +194,15 @@ typedef struct Description {
 /* error descripton */
 struct Description ERR_desc[10] =
 {
-  {ERR_OK, "All good"},
-  {ERR_DATALENGTH, "Wrong data length for this command (too much or little data)"},
-  {ERR_UNKNOWNCMD, "Unknown command"},
-  {ERR_ACCESSRIGHT, "No access right for command"},
-  {ERR_PARAMETER, "Illegal command parameter or parameter out of allowed range"},
-  {ERR_OUTOFRANGE, "Internal function argument out of range"},
-  {ERR_CMDSTATE, "Command not allowed in current state"},
-  {ERR_TIMEOUT, "No response received within timeout period"},
-  {ERR_PROTOCOL, "Protocol error"},
+  {SPS30ERR_OK, "All good"},
+  {SPS30ERR_DATALENGTH, "Wrong data length for this command (too much or little data)"},
+  {SPS30ERR_UNKNOWNCMD, "Unknown command"},
+  {SPS30ERR_ACCESSRIGHT, "No access right for command"},
+  {SPS30ERR_PARAMETER, "Illegal command parameter or parameter out of allowed range"},
+  {SPS30ERR_OUTOFRANGE, "Internal function argument out of range"},
+  {SPS30ERR_CMDSTATE, "Command not allowed in current state"},
+  {SPS30ERR_TIMEOUT, "No response received within timeout period"},
+  {SPS30ERR_PROTOCOL, "Protocol error"},
   {0xff, "Unknown Error"}
 };
 #endif // SMALLFOOTPRINT
