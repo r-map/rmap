@@ -280,7 +280,8 @@ boolean WiFiManager::autoConnect(char const *apName, char const *apPassword) {
   DEBUG_WM(F("AutoConnect"));
   #endif
 
-  bool wifiIsSaved = getWiFiIsSaved();
+  // bool wifiIsSaved = getWiFiIsSaved();
+  bool wifiIsSaved = true; // workaround until I can check esp32 wifiisinit and has nvs
 
   #ifdef ESP32
   setupHostname(true);
@@ -3755,7 +3756,8 @@ String WiFiManager::WiFi_SSID(bool persistent) const{
     return String(reinterpret_cast<char*>(tmp));
     
     #elif defined(ESP32)
-    // wifiLowLevelInit(persistent); // @todo fix for S3, not found
+    // bool res = WiFi.wifiLowLevelInit(true); // @todo fix for S3, not found
+    // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     if(persistent){
       wifi_config_t conf;
       esp_wifi_get_config(WIFI_IF_STA, &conf);
