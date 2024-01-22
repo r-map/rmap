@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023  Paolo Patruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2024  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -29,6 +29,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 */
 
 #include "stimawifi.h"
+#include "esp_task_wdt.h"
 
 sensor_t  sensors[SENSORS_LEN];
 SensorDriver* sd[SENSORS_LEN];
@@ -107,6 +108,7 @@ void timeavailable(struct timeval *t)
   time_t tnow;
   time(&tnow);
   setTime(tnow);              // resync from sntp
+  esp_task_wdt_reset();
   printLocalTime();
 }
 
@@ -291,6 +293,8 @@ String  rmap_get_remote_config(){
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
   http.begin(espClient,url.c_str());
 
+  esp_task_wdt_reset();
+
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
     payload = http.getString();
@@ -300,7 +304,9 @@ String  rmap_get_remote_config(){
     frtosLog.error(F("Error http: %s"),http.errorToString(httpCode).c_str());
     payload=String();
   }
+  esp_task_wdt_reset();
   http.end();
+  esp_task_wdt_reset();
   return payload;
 }
 
@@ -754,19 +760,21 @@ void logSuffix(Print* _logOutput) {
 void setup() {
   // put your setup code here, to run once:
 
-  //#include "soc/soc.h"
-  //#include "soc/rtc_cntl_reg.h"
-  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
-
-  //pinMode(RESET_PIN, INPUT_PULLUP);
-  //pinMode(LED_PIN, OUTPUT);
-  //analogWriteFreq(1);
-  //digitalWrite(LED_PIN,HIGH);
-  //pinMode(PMS_RESET, OUTPUT);
-  ////reset pin for sensor
-  //digitalWrite(PMS_RESET,LOW); // reset low
-  //delay(500);
-  //digitalWrite(PMS_RESET,HIGH);
+  /*
+  #include "soc/soc.h"
+  #include "soc/rtc_cntl_reg.h"
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
+  */
+  
+  pinMode(RESET_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  analogWriteFreq(1);
+  digitalWrite(LED_PIN,HIGH);
+  pinMode(PMS_RESET, OUTPUT);
+  //reset pin for sensor
+  digitalWrite(PMS_RESET,LOW); // reset low
+  delay(500);
+  digitalWrite(PMS_RESET,HIGH);
 
   //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
   Serial.begin(115200);
@@ -913,7 +921,6 @@ void setup() {
   WiFiManagerParameter custom_rmap_password("password", "station password", rmap_password, 31, "type = \"password\"");
   WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 31);
 
-  /*  
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
   wifiManager.addParameter(&custom_rmap_user);
@@ -961,7 +968,6 @@ void setup() {
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
   wifiManager.setDebugOutput(true);
-  */
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
@@ -993,7 +999,19 @@ void setup() {
     }
     
   }
-
+  
+  /*
+  WiFi.begin("pat1", "comodinacomodino");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  */
+  esp_task_wdt_reset();
+  
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(rmap_server, custom_rmap_server.getValue());
@@ -1009,24 +1027,27 @@ void setup() {
       u8g2.setCursor(0, 20); 
       u8g2.print(F("saved"));
       u8g2.sendBuffer();
-      yield();
+      esp_task_wdt_reset();
     }
   }
   
+  esp_task_wdt_reset();
   String remote_config= rmap_get_remote_config();
+  esp_task_wdt_reset();
 
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
-    analogWrite(LED_PIN,50);
-    delay(5000);
-    digitalWrite(LED_PIN,HIGH);    
+    //analogWrite(LED_PIN,50);
+    //delay(5000);
+    //digitalWrite(LED_PIN,HIGH);    
     remote_config=readconfig_rmap();
   }else{
     writeconfig_rmap(remote_config);
   }
 
-
+  esp_task_wdt_reset();
   firmware_upgrade();
+  esp_task_wdt_reset();
   
   if (!rmap_config(remote_config) == 0) {
     frtosLog.notice(F("station not configurated ! restart"));
@@ -1059,6 +1080,7 @@ void setup() {
   }
   frtosLog.notice(F("mDNS responder started"));
 
+  esp_task_wdt_reset();
 
   // setup web server
   webserver.on("/", handle_FullPage);

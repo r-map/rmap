@@ -36,7 +36,7 @@ udpThread::udpThread(udp_data_t &udp_data)
   : Thread("UDP", 50000, 1),
     data(udp_data)
 {
-  data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
   //Start();
 };
   

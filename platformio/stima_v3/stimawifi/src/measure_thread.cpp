@@ -151,7 +151,7 @@ measureThread::measureThread(measure_data_t &measure_data)
   : Thread("measure", 50000, 1),
     data(measure_data)
 {
-  data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
   //Start();
 };
 

@@ -180,7 +180,7 @@ publishThread::publishThread(publish_data_t &publish_data)
   : Thread("publish", 50000, 1),
     data(publish_data)
 {
-  data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
   //Start();
 };
 

@@ -57,10 +57,6 @@ extern OZGPS gps;
 extern MGPS mgps;
 extern MutexStandard loggingmutex;
 
-//flag for saving data
-extern bool shouldSaveConfig;
-extern bool pmspresent;
-
 //define your default values here, if there are different values in config.json, they are overwritten.
 extern char rmap_longitude[11];
 extern char rmap_latitude[11];
