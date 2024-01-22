@@ -29,10 +29,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 */
 
 #include "stimawifi.h"
-//#include "arduino_thread.h"
-//#include "udp_thread.h"
-//#include "measure_thread.h"
-//#include "publish_thread.h"
 
 sensor_t  sensors[SENSORS_LEN];
 SensorDriver* sd[SENSORS_LEN];
@@ -40,6 +36,7 @@ SensorDriver* sd[SENSORS_LEN];
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
 const uint16_t update_port = 80;
 
+WiFiManager wifiManager;
 WebServer webserver(STIMAHTTP_PORT);
 
 WiFiClient espClient;
@@ -250,7 +247,6 @@ String FullPage(){
   return ptr;
 }
 
-void writeconfig();
 
 // web server response function
 void handle_FullPage() {
@@ -789,7 +785,6 @@ void setup() {
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
 
-  
   espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   
   Wire.begin();
@@ -836,11 +831,6 @@ void setup() {
   itoa(ESP.getChipId(),esp_chipid,10);
   frtosLog.notice(F("esp_chipid: %s "),esp_chipid );
   */
-
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
-  WiFiManager wifiManager;
-
 
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   bool reset=digitalRead(RESET_PIN) == LOW;
@@ -907,6 +897,14 @@ void setup() {
     wifiManager.resetSettings();
   }
 
+  //sntp_init();
+  //sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  //sntp_setservername(0, ntp_server);
+  // set notification call-back function
+  sntp_set_time_sync_notification_cb( timeavailable );
+  sntp_servermode_dhcp(1);
+  configTime(0, 0, ntp_server);
+
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
@@ -915,25 +913,19 @@ void setup() {
   WiFiManagerParameter custom_rmap_password("password", "station password", rmap_password, 31, "type = \"password\"");
   WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 31);
 
-  //sntp_init();
-  //sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  //sntp_setservername(0, ntp_server);
-  // set notification call-back function
-  sntp_set_time_sync_notification_cb( timeavailable );
-  sntp_servermode_dhcp(1);
-  configTime(0, 0, ntp_server);
-    //set config save notify callback
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
-
-  //set static ip
-  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-  
+  /*  
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
   wifiManager.addParameter(&custom_rmap_user);
   wifiManager.addParameter(&custom_rmap_password);
   wifiManager.addParameter(&custom_rmap_slug);
 
+  //set config save notify callback
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  //set static ip
+  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+  
   //set minimum quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
@@ -968,7 +960,8 @@ void setup() {
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
-  //wifiManager.setDebugOutput(false);
+  wifiManager.setDebugOutput(true);
+  */
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
@@ -985,7 +978,6 @@ void setup() {
     frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
     digitalWrite(LED_PIN,HIGH);
 
-    yield();
     
     if (oledpresent) {
       u8g2.clearBuffer();
@@ -999,7 +991,6 @@ void setup() {
       u8g2.setFont(u8g2_font_5x7_tf);
       u8g2.sendBuffer();
     }
-    yield();
     
   }
 
@@ -1020,7 +1011,6 @@ void setup() {
       u8g2.sendBuffer();
       yield();
     }
-    
   }
   
   String remote_config= rmap_get_remote_config();
