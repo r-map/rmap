@@ -123,11 +123,11 @@ void doPublish(const mqttMessage_t* mqtt_message) {
     if (!publish_maint()) {
       frtosLog.error(F("Error in publish maint"));
       if (oledpresent) {
-	u8g2.clearBuffer();
-	u8g2.setCursor(0, 20); 
+	u8g2.setCursor(0, 1*CH); 
+	u8g2.print(F("                "));
+	u8g2.setCursor(0, 1*CH); 
 	u8g2.print(F("MQTT Error maint"));
 	u8g2.sendBuffer();
-	u8g2.clearBuffer();
 	delay(3000);
       }else{
 	// if we do not have display terminate (we do not display values)
@@ -141,11 +141,11 @@ void doPublish(const mqttMessage_t* mqtt_message) {
     if (!publish_constantdata()) {
       frtosLog.error(F("Error in publish constant data"));
       if (oledpresent) {
-	u8g2.clearBuffer();
-	u8g2.setCursor(0, 20); 
+	u8g2.setCursor(0, 1*CH); 
+	u8g2.print(F("                   "));
+	u8g2.setCursor(0, 1*CH); 
 	u8g2.print(F("MQTT Error constant"));
 	u8g2.sendBuffer();
-	u8g2.clearBuffer();
 	delay(3000);
       }else{
 	// if we do not have display terminate (we do not display values)
@@ -165,12 +165,14 @@ void doPublish(const mqttMessage_t* mqtt_message) {
     mqttclient.disconnect(); ////////////////////////////////////// do to ?
     frtosLog.error(F("Error in publish data"));
     if (oledpresent) {
-      u8g2.setCursor(0, (displaypos++)*CH); 
+      u8g2.setCursor(0, 1*CH); 
+      u8g2.print(F("                  "));
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("MQTT error publish"));
-    }else{
-      analogWrite(LED_PIN,973);
-      delay(5000);
+      u8g2.sendBuffer();
     }
+    analogWrite(LED_PIN,973);
+    delay(5000);
   }
 }
 

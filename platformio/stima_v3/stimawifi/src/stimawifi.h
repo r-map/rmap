@@ -73,7 +73,6 @@ extern char rmap_mqttmaintpath[10];
 
 extern U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2;
 extern bool oledpresent;
-extern unsigned short int displaypos;
 
 // i2c button for wemos OLED version 2.1.0
 extern I2C_BUTTON button; //I2C address 0x31

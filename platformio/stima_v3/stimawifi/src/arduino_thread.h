@@ -23,7 +23,6 @@ int  rmap_config(const String payload);
 void readconfig();
 void writeconfig();
 void web_values(const char* values);
-void display_values(const char* values);
 void measureAndPublish();
 void reboot();
 void logPrefix(Print* _logOutput);

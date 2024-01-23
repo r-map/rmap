@@ -69,7 +69,6 @@ char rmap_mqttmaintpath[10] = "maint";
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
-unsigned short int displaypos;
 
 // i2c button for wemos OLED version 2.1.0
 I2C_BUTTON button; //I2C address 0x31
@@ -104,12 +103,19 @@ void printLocalTime()
 // Callback function (get's called when time adjusts via NTP)
 void timeavailable(struct timeval *t)
 {
-  frtosLog.notice("Got time adjustment from NTP!");
+  frtosLog.notice("Got time from NTP!");
   time_t tnow;
   time(&tnow);
   setTime(tnow);              // resync from sntp
   esp_task_wdt_reset();
   printLocalTime();
+
+  if (oledpresent){
+    u8g2.setCursor(0, 30);
+    u8g2.print(F("                "));
+    u8g2.print(F("Time OK"));
+    u8g2.sendBuffer();
+  }
 }
 
 void analogWriteFreq(const double frequency){
@@ -686,53 +692,6 @@ void web_values(const char* values) {
 }
 
 
-void display_values(const char* values) {
-  
-  StaticJsonDocument<500> doc;
-
-  DeserializationError error = deserializeJson(doc,values);
-  if (!error) {
-    JsonObject obj = doc.as<JsonObject>();
-    for (JsonPair pair : obj) {
-
-      if (pair.value().isNull()) continue;
-      float val=pair.value().as<float>();
-
-      u8g2.setCursor(0, (displaypos)*CH); 
-      
-      if (strcmp(pair.key().c_str(),"B12101")==0){
-	u8g2.print(F("T   : "));
-	u8g2.print(round((val-27315)/10.)/10,1);
-	u8g2.print(F(" C"));
-	displaypos++;	
-      }
-      if (strcmp(pair.key().c_str(),"B13003")==0){
-	u8g2.print(F("U   : "));
-	u8g2.print(round(val),0);
-	u8g2.print(F(" %"));
-	displaypos++;	
-      }
-      if (strcmp(pair.key().c_str(),"B15198")==0){
-	u8g2.print(F("PM2 : "));
-	u8g2.print(round(val/10.),0);
-	u8g2.print(F(" ug/m3"));
-	displaypos++;	
-      }
-      if (strcmp(pair.key().c_str(),"B15195")==0){
-	u8g2.print(F("PM10: "));
-	u8g2.print(round(val/10.),0);
-	u8g2.print(F(" ug/m3"));
-	displaypos++;	
-      }
-      if (strcmp(pair.key().c_str(),"B15242")==0){
-	u8g2.print(F("CO2 : "));
-	u8g2.print(round(val/1.8),0);
-	u8g2.print(F(" ppm"));
-	displaypos++;	
-      }
-    }
-  }
-}
 
 void measureAndPublish() {
   threadMeasure.Notify();
@@ -1001,7 +960,7 @@ void setup() {
   }
   
   /*
-  WiFi.begin("pat1", "comodinacomodino");
+  WiFi.begin("ssid", "password");
   
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -1010,6 +969,7 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   */
+  
   esp_task_wdt_reset();
   
   if (shouldSaveConfig){
@@ -1092,52 +1052,60 @@ void setup() {
   frtosLog.notice(F("HTTP server started"));
 
   if (oledpresent){
-    u8g2.setCursor(0, 30);
+    u8g2.setCursor(0, 20);
+    u8g2.print(F("                 "));
+    u8g2.setCursor(0, 20);
     u8g2.print(F("Setting time"));
+    u8g2.setCursor(0, 30);
+    u8g2.print(F("                 "));
     u8g2.sendBuffer();
   }
-  
-  //if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
-  //  frtosLog.error("Failed to update system time within 30s timeout");
-  //}
-  
-  printLocalTime();
-  
-  //sntp_init();
-  // wait for time to be set
+
   /*
-  time_t now = 0;
-  struct tm timeinfo = { 0 };
+  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
+    frtosLog.error("Failed to update system time within 30s timeout");
+  }  
+  sntp_init();
+  // wait for time to be set
+  */
+  
   int retry = 0;
-  const int retry_count = 10;
+  const int retry_count = 60;
+  time_t datetime = 0;
+  struct tm timeinfo = { 0 };
   while(timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
     frtosLog.notice(F("Waiting for system time to be set... (%d/%d)"), retry, retry_count);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    time(&now);
-    localtime_r(&now, &timeinfo);
+    delay(1000);
+    datetime=now();
+    localtime_r(&datetime, &timeinfo);
   }
-  
+
   if(retry >= retry_count) {
+    frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
     if (oledpresent){
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
-      u8g2.print(F("Time not"));
       u8g2.setCursor(0, 20); 
-      u8g2.print(F("configurated!"));
+      u8g2.print(F("                "));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("Time Error"));
+      u8g2.setCursor(0, 30);
+      u8g2.print(F("                "));
       u8g2.setCursor(0, 30);
       u8g2.print(F("RESTART"));
       u8g2.sendBuffer();
-      delay(5000);
     }
-    frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
-    delay(1000);
-    reboot(); //300 seconds timeout - reset board
+    delay(5000);
+    reboot(); //timeout - reset board
   }
-  */
 
-  time_t datetime = now();
+  if (oledpresent){
+    u8g2.setCursor(0, 30);
+    u8g2.print(F("Time OK"));
+    u8g2.sendBuffer();
+  }
+  
   frtosLog.notice(F("Time: %s"),ctime(&datetime));
-
+  
   frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
 
   mqttclient.setServer(rmap_mqtt_server, 1883);

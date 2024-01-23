@@ -3,6 +3,10 @@
 #ifndef PUBLISH_THREAD_H_
 #define PUBLISH_THREAD_H_
 
+bool publish_maint();
+bool publish_constantdata();
+void doPublish(const mqttMessage_t* mqtt_message);
+
 struct publish_data_t {
   int id;
   frtosLogging logger;

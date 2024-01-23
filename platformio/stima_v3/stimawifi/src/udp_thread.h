@@ -4,6 +4,7 @@
 #ifndef UDP_THREAD_H_
 #define UDP_THREAD_H_
 
+void doUdp(void);
 
 struct udp_data_t {
   int id;
