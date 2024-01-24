@@ -8,7 +8,9 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, PIN, NEO_GRB + NEO_KHZ800);
  
 void setup()
 {
-  pixels.begin(); // Si inizializza la libreria NeoPixel.
+  pixels.begin();            //INITIALIZE NeoPixel strip object (REQUIRED)
+  pixels.clear();            // Turn OFF all pixels ASAP
+  pixels.setBrightness(125); // Set BRIGHTNESS (max = 255)
 }
  
 void loop()
