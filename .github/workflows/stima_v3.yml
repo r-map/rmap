@@ -119,9 +119,9 @@ jobs:
           cd platformio/test/fakewindsonic
           platformio run
 
-      - name: Build Stima devel
+      - name: Build Stima v3 devel
         run: |
-          cd platformio/stima_devel/stima
+          cd platformio/stima_v3_devel/stima
           platformio run
 
 
