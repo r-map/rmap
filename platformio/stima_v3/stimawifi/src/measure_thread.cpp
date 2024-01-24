@@ -1,13 +1,64 @@
 #include "stimawifi.h"
 #include "measure_thread.h"
 
-void enqueueMqttMessage(char* values, const char* timerange, const char* level, Queue* MqttQueue ) {
+unsigned short int displaypos;
+
+void display_values(const char* values) {
+  
+  StaticJsonDocument<500> doc;
+
+  frtosLog.notice(F("display_values: %s"),values);
+  
+  DeserializationError error = deserializeJson(doc,values);
+  if (!error) {
+    frtosLog.notice(F("display_values OK"));
+    JsonObject obj = doc.as<JsonObject>();
+    for (JsonPair pair : obj) {
+
+      if (pair.value().isNull()) continue;
+      float val=pair.value().as<float>();
+
+      u8g2.setCursor(0, (displaypos++)*CH); 
+      
+      if (strcmp(pair.key().c_str(),"B12101")==0){
+	frtosLog.notice(F("Temperature: %D"),val);
+	u8g2.print(F("T   : "));
+	u8g2.print(round((val-27315)/10.)/10,1);
+	u8g2.print(F(" C"));
+      }
+      if (strcmp(pair.key().c_str(),"B13003")==0){
+	frtosLog.notice(F("Humidity: %D"),val);
+	u8g2.print(F("U   : "));
+	u8g2.print(round(val),0);
+	u8g2.print(F(" %"));
+      }
+      if (strcmp(pair.key().c_str(),"B15198")==0){
+	frtosLog.notice(F("PM2: %D"),val);
+	u8g2.print(F("PM2 : "));
+	u8g2.print(round(val/10.),0);
+	u8g2.print(F(" ug/m3"));
+      }
+      if (strcmp(pair.key().c_str(),"B15195")==0){
+	frtosLog.notice(F("PM10: %D"),val);
+	u8g2.print(F("PM10: "));
+	u8g2.print(round(val/10.),0);
+	u8g2.print(F(" ug/m3"));
+      }
+      if (strcmp(pair.key().c_str(),"B15242")==0){
+	frtosLog.notice(F("CO2: %D"),val);
+	u8g2.print(F("CO2 : "));
+	u8g2.print(round(val/1.8),0);
+	u8g2.print(F(" ppm"));
+      }
+    }
+  }
+}
+
+void enqueueMqttMessage(const char* values, const char* timerange, const char* level, Queue* MqttQueue ) {
   
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
-  strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
-  
   frtosLog.notice(F("have to publish: %s"),values);
   DeserializationError error = deserializeJson(doc,values);
   if (error) {
@@ -25,6 +76,11 @@ void enqueueMqttMessage(char* values, const char* timerange, const char* level, 
 	delay(1000);
 	digitalWrite(LED_PIN,LOW);      
       */
+
+      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+      pixels.show();
+      delay(3000);
+       
       continue;
     }
         
@@ -51,7 +107,7 @@ void enqueueMqttMessage(char* values, const char* timerange, const char* level, 
     strcat(mqtt_message.payload,value);
     strcat(mqtt_message.payload,"}");
 
-    frtosLog.notice(F("Measure: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    frtosLog.notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
     MqttQueue->Enqueue(&mqtt_message);
     
@@ -66,11 +122,12 @@ void doMeasure( Queue &MqttQueue ) {
   size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
   //  long values[MAX_VALUES_FOR_SENSOR];
   //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
-  displaypos=1;
-  u8g2.clearBuffer();
 
-  digitalWrite(LED_PIN,LOW);
-
+  //digitalWrite(LED_PIN,LOW);
+  pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+  pixels.show();
+  delay(3000);
+ 
   time_t tnow;
   time(&tnow);
   setTime(tnow);              // resync from sntp
@@ -94,41 +151,37 @@ void doMeasure( Queue &MqttQueue ) {
   //wait sensors to go ready
   frtosLog.notice(F("wait sensors for ms: %d"),maxwaittime);
   uint32_t now=millis();
+  int32_t delayt;
 
 
   if (oledpresent) {
-    u8g2.clearBuffer();
-    u8g2.setCursor(0, 20); 
-    u8g2.print(F("Measure!"));
-    u8g2.sendBuffer();
     displaypos=1;
     u8g2.clearBuffer();
+    u8g2.setCursor(0, 1*CH); 
+    u8g2.print(F("Measure!"));
+    u8g2.sendBuffer();
+  }
+  delayt= maxwaittime -(millis()-now);
+  if(delayt > 0) {
+    frtosLog.notice(F("delay"));
+    delay(delayt);
   }
 
-  while ((millis()-now) < maxwaittime) {
-    //frtosLog.notice(F("delay"));
-    //mqttclient.loop();;
-    //webserver.handleClient();
-    yield();
-  }
-
-  temperature= NAN;
-  humidity=-999;
-  pm2=-999;
-  pm10=-999;
-  co2=-999;
-  
+  if (oledpresent) {
+    displaypos=2;
+    u8g2.clearBuffer();
+    u8g2.sendBuffer();
+  }  
   for (int i = 0; i < SENSORS_LEN; i++) {
     yield();
     if (!sd[i] == 0){
       frtosLog.notice(F("getJson sd %d"),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
-	
+	//strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
 	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, &MqttQueue );
-	
         web_values(values);
-        if (oledpresent) {
-          display_values(values);
+	if (oledpresent) {
+	  display_values(values);
         }
 
       }else{
@@ -136,13 +189,21 @@ void doMeasure( Queue &MqttQueue ) {
 	if (oledpresent) {
 	  u8g2.setCursor(0, (displaypos++)*CH); 
 	  u8g2.print(F("Sensor error"));
+	  u8g2.sendBuffer();
 	}
+	//digitalWrite(LED_PIN,HIGH);
+	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+	pixels.show();
+	delay(3000);
       }
     }
   }
 
   if (oledpresent) u8g2.sendBuffer();
-  digitalWrite(LED_PIN,HIGH);
+  //digitalWrite(LED_PIN,HIGH);
+  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+  pixels.show();
+  delay(3000);
 
 }
 

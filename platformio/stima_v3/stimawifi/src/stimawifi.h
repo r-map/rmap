@@ -26,6 +26,7 @@
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <LOLIN_I2C_BUTTON.h>
 #include <ESP32httpUpdate.h>
+#include <Adafruit_NeoPixel.h>
 
 #include "udp_thread.h"
 #include "measure_thread.h"
@@ -82,6 +83,7 @@ extern I2C_BUTTON button; //I2C address 0x31
 extern float temperature;
 extern int humidity,pm2,pm10,co2;
 
+extern Adafruit_NeoPixel pixels;
 
 extern udp_data_t udp_data;
 extern udpThread threadUdp;

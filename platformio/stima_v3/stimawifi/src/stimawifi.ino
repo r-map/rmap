@@ -42,7 +42,6 @@ WebServer webserver(STIMAHTTP_PORT);
 
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
-//WebSocketsServer webSocket(WS_PORT);
 //EspHtmlTemplateProcessor templateProcessor(&server);
 WiFiUDP UDP;
 OZGPS gps;
@@ -89,6 +88,7 @@ measureThread threadMeasure(measure_data);
 publish_data_t publish_data={1,frtosLog,mqttQueue};
 publishThread threadPublish(publish_data);
 
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 void printLocalTime()
 {
@@ -328,9 +328,11 @@ void firmware_upgrade() {
   frtosLog.notice(F("url for firmware update: %s"),update_url);
   frtosLog.notice(F("version for firmware update: %s"),buffer);
 
-  analogWriteFreq(4);
-  analogWrite(LED_PIN,512);  
-
+  //analogWriteFreq(4);
+  //analogWrite(LED_PIN,512);  
+  pixels.setPixelColor(0, pixels.Color(0, 0, 255));
+  pixels.show();
+  delay(3000);
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(String(rmap_server), update_port, String(update_url), String(buffer));
 
@@ -346,12 +348,17 @@ void firmware_upgrade() {
 	u8g2.print(F("Failed"));
 	u8g2.sendBuffer();
       }
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
+
+      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+      pixels.show();
+      delay(3000);
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,HIGH);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
+      
     break;
     case HTTP_UPDATE_NO_UPDATES:
       frtosLog.notice(F("[update] No Update."));
@@ -362,8 +369,12 @@ void firmware_upgrade() {
 	u8g2.print(F("Update"));
 	u8g2.sendBuffer();
       }
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
+      pixels.setPixelColor(0, pixels.Color(0, 0, 255));
+      pixels.show();
+      delay(3000);
+      
       break;
     case HTTP_UPDATE_OK:
       frtosLog.notice(F("[update] Update ok.")); // may not called we reboot the ESP
@@ -373,24 +384,32 @@ void firmware_upgrade() {
 	u8g2.print(F("FW Updated!"));
 	u8g2.sendBuffer();
       }
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
-      digitalWrite(LED_PIN,HIGH);      
-      delay(1000);
-      digitalWrite(LED_PIN,LOW);      
-      delay(1000);
+
+      pixels.setPixelColor(0, pixels.Color(0, 255, 255));
+      pixels.show();
+      delay(3000);
+      
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,HIGH);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,HIGH);      
+      //delay(1000);
+      //digitalWrite(LED_PIN,LOW);      
+      //delay(1000);
 
       break;
     }
 
   //#endif
 
-  analogWriteFreq(1);
-  digitalWrite(LED_PIN,HIGH);
+  //analogWriteFreq(1);
+  //digitalWrite(LED_PIN,HIGH);
+  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+  pixels.show();
+  delay(3000);
 }
 
 String readconfig_rmap() {
@@ -553,7 +572,9 @@ int  rmap_config(const String payload){
 	      }else{		
 		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
 		  frtosLog.error(F("sensor not present or broken"));
-		  analogWrite(LED_PIN,750);
+		  //analogWrite(LED_PIN,750);
+		  pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+		  pixels.show();
 		  delay(5000);
 		}		
 	      }
@@ -566,7 +587,9 @@ int  rmap_config(const String payload){
       status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors);
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
-      analogWrite(LED_PIN,973);
+      //analogWrite(LED_PIN,973);
+      pixels.setPixelColor(0, pixels.Color(255, 0, 0));      
+      pixels.show();
       delay(5000);
       status = 2;
     }
@@ -726,9 +749,15 @@ void setup() {
   */
   
   pinMode(RESET_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  analogWriteFreq(1);
-  digitalWrite(LED_PIN,HIGH);
+  
+  //pinMode(LED_PIN, OUTPUT);
+  //analogWriteFreq(1);
+  //digitalWrite(LED_PIN,HIGH);
+
+  pixels.begin();            //INITIALIZE NeoPixel strip object (REQUIRED)
+  pixels.clear();            // Turn OFF all pixels ASAP
+  pixels.setBrightness(125); // Set BRIGHTNESS (max = 255)
+  
   pinMode(PMS_RESET, OUTPUT);
   //reset pin for sensor
   digitalWrite(PMS_RESET,LOW); // reset low
@@ -780,19 +809,24 @@ void setup() {
   }else{
         frtosLog.notice(F("OLED NOT Found"));
   }
-  
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
 
+  pixels.setPixelColor(0, pixels.Color(255, 0, 255));
+  pixels.show();
+  delay(3000);
+  
+  /*
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+  delay(1000);
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+  delay(1000);
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+  */
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
@@ -941,8 +975,10 @@ void setup() {
     //if you get here you have connected to the WiFi
     frtosLog.notice(F("connected... good!"));
     frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
-    digitalWrite(LED_PIN,HIGH);
-
+    //digitalWrite(LED_PIN,HIGH);
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.show();
+    delay(3000);
     
     if (oledpresent) {
       u8g2.clearBuffer();

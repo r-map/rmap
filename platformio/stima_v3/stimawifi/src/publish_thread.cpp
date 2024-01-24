@@ -105,8 +105,11 @@ bool publish_constantdata() {
       }
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
-      analogWrite(LED_PIN,973);
-      delay(5000);
+      //analogWrite(LED_PIN,973);
+      //delay(5000);
+      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+      pixels.show();
+      delay(3000);
       return false;
     }
     
@@ -128,12 +131,17 @@ void doPublish(const mqttMessage_t* mqtt_message) {
 	u8g2.setCursor(0, 1*CH); 
 	u8g2.print(F("MQTT Error maint"));
 	u8g2.sendBuffer();
+	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+	pixels.show();
 	delay(3000);
       }else{
 	// if we do not have display terminate (we do not display values)
-	analogWrite(LED_PIN,512);
-	delay(5000);
-	digitalWrite(LED_PIN,HIGH);
+	//analogWrite(LED_PIN,512);
+	//delay(5000);
+	//digitalWrite(LED_PIN,HIGH);
+	pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+	pixels.show();
+	delay(3000);	
 	//return;
       }
     }
@@ -146,12 +154,17 @@ void doPublish(const mqttMessage_t* mqtt_message) {
 	u8g2.setCursor(0, 1*CH); 
 	u8g2.print(F("MQTT Error constant"));
 	u8g2.sendBuffer();
+	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+	pixels.show();
 	delay(3000);
       }else{
 	// if we do not have display terminate (we do not display values)
-	analogWrite(LED_PIN,512);
-	delay(5000);
-	digitalWrite(LED_PIN,HIGH);
+	//analogWrite(LED_PIN,512);
+	//delay(5000);
+	//digitalWrite(LED_PIN,HIGH);
+	pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+	pixels.show();
+	delay(3000);	
 	//return;
       }
     }    
@@ -161,6 +174,9 @@ void doPublish(const mqttMessage_t* mqtt_message) {
   if(mqttclient.publish(mqtt_message->topic, mqtt_message->payload)){
     //if(publish_data(values,sensors[i].timerange,sensors[i].level)){
     frtosLog.notice(F("Data published"));    
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.show();
+    delay(3000);
   }else{
     mqttclient.disconnect(); ////////////////////////////////////// do to ?
     frtosLog.error(F("Error in publish data"));
@@ -171,8 +187,12 @@ void doPublish(const mqttMessage_t* mqtt_message) {
       u8g2.print(F("MQTT error publish"));
       u8g2.sendBuffer();
     }
-    analogWrite(LED_PIN,973);
-    delay(5000);
+    //analogWrite(LED_PIN,973);
+    //delay(5000);
+    pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+    pixels.show();
+    delay(3000);
+    
   }
 }
 

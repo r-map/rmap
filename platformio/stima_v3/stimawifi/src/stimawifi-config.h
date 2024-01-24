@@ -21,27 +21,20 @@
 #define DATE_TIME_STRING_LENGTH                       (25)
 
 #define STIMAHTTP_PORT 80
-#define WS_PORT 81
 
-// set the frequency
-// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
+// set the I2c clock frequency
 #define I2C_CLOCK 10000
 
-//disable debug at compile time but call function anyway
-//#define DISABLE_LOGGING disable
-
-#define FIRMWARE_TYPE "WEMOS_D1_MINI32"
+#define FIRMWARE_TYPE "LOLIN_C3_MINI"
 #define PMS_RESET 0
 
 #define SCL_PIN SCL
 #define SDA_PIN SDA
 
 #define RESET_PIN 4    // pin to connect to ground for reset wifi configuration
-// Set LED_BUILTIN if it is not defined by Arduino framework
-#ifndef LED_BUILTIN
-    #define LED_BUILTIN 2
-#endif
-#define LED_PIN LED_BUILTIN
+#define LED_PIN 7      // C3
+//#define LED_PIN 47    // S3
+
 // for sensor_t
 #define SENSORS_LEN 5
 #define SENSORDRIVER_DRIVER_LEN 5
@@ -49,6 +42,6 @@
 #define SENSORDRIVER_META_LEN 30
 #define MAX_VALUES_FOR_SENSOR 9
 
-#define CH 9            // character height px
+#define CH 9            // character height px for display
 
 #endif
