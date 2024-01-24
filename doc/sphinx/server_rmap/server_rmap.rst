@@ -167,7 +167,34 @@ singola funzionalità che dipende dalle app Django richieste.
    :height: 9.102cm
 
 
+Porte utilizzate
+................
 
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| porta   | protocollo                    | server    | servizio                               |RMAP server | RMAP data ingestion | RMAP backend |
++=========+===============================+===========+========================================+============+=====================+==============+
+| 80      | HTTP                          | apache    | download conf e firmware (Stima V3)    |     X      |                     |      X       |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 442     | HTTPS TLS con pre shared Key  | stunnel   | download conf e firmware (Stima v4)    |     X      |                     |      X       |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 444     | HTTPS  (SSL/TLS)              | apache    | gestione backend e visualizzazione dati|     X      |                     |      X       |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 5925    | HTTP                          | monit     | monitoraggio daemoni RMAP              |     X      |                     |      X       |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 1883    | MQTT                          | mosquitto | pubblicazioni dati stazione (Stima V3) |     X      |         X           |              |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 5671    | AMQPS  (SSL/TLS)              | rabbit-mq | pubblicazione e distribuzione dati     |     X      |         X           |              |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 5672    | AMQP                          | rabbit-mq | pubblicazione e distribuzione dati     |     X      |         X           |              |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 8883    | MQTTS TLS con pre shared Key  | mosquitto | pubblicazione stazioni (Stima V4)      |     X      |         X           |              |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 8884    | MQTTS (SSL/TLS) WEBSOCKET     | mosquitto | monitoraggio MQTT da web               |     X      |         X           |              |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+| 15672   | HTTP                          | rabbit-mq | Management Plugin                      |     X      |         X           |      X       |
++---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
+
+	    
 Installazione server completo basato su  Rocky Linux 8
 ------------------------------------------------------
 
@@ -289,8 +316,8 @@ Collect static files from django apps:
    rmdir /root/global_static
 
    dnf install python3-mod_wsgi
-   dnf install mod_security
-   
+   dnf install mod_security mod_security_crs
+
    useradd -r rmap
    mkdir /home/rmap
    chown rmap:rmap /home/rmap
@@ -303,6 +330,8 @@ Collect static files from django apps:
 `/etc/httpd/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.conf>`_
 
 `/etc/httpd/conf.d/rmap.inc <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.inc>`_
+
+`/etc/httpd/modsecurity.d/crs-setup.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/modsecurity.d/crs-setup.conf>`_
 
 ::
    
@@ -649,9 +678,15 @@ Installare il certificato ssl/tls per il dominio del server in:
 
 ::
    
-   /etc/arpaecert/arpae_it.pem
+   /etc/arpaecert/arpae_it-rabbitmq.pem
+   /etc/arpaecert/arpae_it-mosquitto.pem
 
 e impostare gli opportuni privilegi di lettura/scrittura.
+
+::
+   
+   -rw------- 1 mosquitto mosquitto 6849  1 dic 14.23 arpae_it-mosquitto.pem
+   -rw------- 1 rabbitmq  rabbitmq  6849 20 nov 10.49 arpae_it-rabbitmq.pem
 
 ::
 
@@ -686,10 +721,10 @@ scaricare il file `/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rm
  chown root:root /etc/monitrc /etc/monit.d/rmap
  systemctl enable monit
  systemctl start monit
+ 
 
-
-Sincronizzazione file statici per autenticazione e autorizzazione da un server RMAP completo
-............................................................................................
+Sincronizzazione file statici per autenticazione e autorizzazione da un server RMAP backend
+...........................................................................................
 
 Server di origine
 ~~~~~~~~~~~~~~~~~
@@ -715,5 +750,15 @@ Imparire il comando:
    /bin/systemctl reload mosquitto.service
 
 
+Installazione server RMAP solo funzionalità BACKEND basato su Rocky Linux 8 (a seervizio per la data ingestion su un'altra macchina)
+------------------------------------------------------------------------------------------------------------------------------------
 
-   
+Questi file sono specializzati per un server di solo backend
+
+`/etc/httpd/conf.d/rmap.inc <https://raw.githubusercontent.com/r-map/rmap/master/server-backend/etc/httpd/conf.d/rmap.inc>`__
+
+`/etc/httpd/modsecurity.d/crs-setup.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-backend/etc/httpd/modsecurity.d/crs-setup.conf>`__
+
+
+In questi due file sostituire la stringa <insert IP of data-ingestion machine> con quanto indicato.
+
