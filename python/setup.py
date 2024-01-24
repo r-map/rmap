@@ -477,7 +477,8 @@ setup(name='rmap',
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson"
                           ,"requests","pyserial","django-leaflet","jsonfield","django-geojson"
                           ,"Pillow","django-imagekit","django-appconf","nominatim","django-hosts"
-                          ,"iso8601","django-cookie-law","django-tagging","pytz","six","paho-mqtt","sslpsk","django-hijack"],
+                          ,"iso8601","django-cookie-law","django-tagging","pytz","six","paho-mqtt","sslpsk","django-hijack"
+                          ,"fasteners"],
       extras_require = {
           'borinud': ['dballe>=8.4', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'classytags','cookielaw','numpy']

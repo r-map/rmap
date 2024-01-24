@@ -25,6 +25,7 @@ import logging
 import argparse
 import datetime
 import dballe
+import fasteners
 
 _version=1.0
 stderr=sys.stderr
@@ -42,6 +43,9 @@ parser.add_argument('-a', '--arkiconf', dest='arkiconf', action='store',
 parser.add_argument('-r', '--explorer', dest='explorer', action='store',
                     default=None,
                     help='explorer to update with data migrated to arkimet. Default: %(default)s')
+parser.add_argument('-l', '--lockfile', dest='lockfile', action='store',
+                    default=None,
+                    help='lock file to use to prevent inter process conflict in write mode on DB. Default: %(default)s')
 parser.add_argument('-d', '--dsn', dest='dsn', action='store',
                     default="mysql:///rmap?user=rmap&password=rmap",
                     help='arkiserver to contact. Default: %(default)s')
@@ -200,7 +204,15 @@ def main():
 
     try:
         logger.info( "start dballe2arkimet" )
-        dballe2arkimet(date)
+
+        if opts.lockfile is not None:
+            rw_lock = fasteners.InterProcessReaderWriterLock(opts.lockfile)
+            logging.info("Acquire lock on DB")
+            with rw_lock.write_lock():
+                logging.info("Lock on DB acquired")
+                dballe2arkimet(date)
+        else:
+            dballe2arkimet(date)
 
     except :
         logger.exception("Error happen" )

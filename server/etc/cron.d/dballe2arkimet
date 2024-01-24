@@ -2,10 +2,10 @@
 
 MAILTO=root
 
-15 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_fixed"  --arkiconf=/rmap/arkimet/sample_fixed.conf  --explorer="/rmap/arkimet/sample_fixed.json"  > /dev/null ;/usr/bin/dbadb cleanup --url="postgresql://rmap:rmap@localhost/sample_fixed"
+15 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_fixed"  --arkiconf=/rmap/arkimet/sample_fixed.conf  --explorer="/rmap/arkimet/sample_fixed.json"  --lockfile="/rmap/arkimet/sample_fixed.lock"  > /dev/null ;/usr/bin/dbadb cleanup --url="postgresql://rmap:rmap@localhost/sample_fixed"
 
-45 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_mobile" --arkiconf=/rmap/arkimet/sample_mobile.conf --explorer="/rmap/arkimet/sample_mobile.json"  > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/sample_mobile"
+45 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_mobile" --arkiconf=/rmap/arkimet/sample_mobile.conf --explorer="/rmap/arkimet/sample_mobile.json" --lockfile="/rmap/arkimet/sample_mobile.lock" > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/sample_mobile"
 
-15 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_fixed"  --arkiconf=/rmap/arkimet/report_fixed.conf  --explorer="/rmap/arkimet/report_fixed.json"  > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_fixed"
+15 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_fixed"  --arkiconf=/rmap/arkimet/report_fixed.conf  --explorer="/rmap/arkimet/report_fixed.json"  --lockfile="/rmap/arkimet/report_fixed.lock"  > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_fixed"
 
-45 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_mobile" --arkiconf=/rmap/arkimet/report_mobile.conf --explorer="/rmap/arkimet/report_mobile.json" > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_mobile"
+45 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_mobile" --arkiconf=/rmap/arkimet/report_mobile.conf --explorer="/rmap/arkimet/report_mobile.json" --lockfile="/rmap/arkimet/report_mobile.lock" > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_mobile"

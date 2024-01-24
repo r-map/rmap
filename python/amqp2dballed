@@ -34,6 +34,7 @@ import threading,queue,time
 import dballe
 from rmap.rmap_core import amqpConsumerProducer
 from rmap.rmap_core import Message
+import fasteners
 
 
 #add option for topic and dsn
@@ -77,14 +78,15 @@ class GracefulKiller:
 
 class Threaded_bufr2dballe(threading.Thread):
 
-    def __init__(self,dsn,receive_queue,send_queue,logging=logging):
+    def __init__(self,dsn,lockfile,receive_queue,send_queue,logging=logging):
         threading.Thread.__init__(self)
         self._logging=logging
         self._dsn=dsn
         self._receive_queue=receive_queue
         self._send_queue=send_queue
         self._terminate_event = threading.Event()
-
+        self._lockfile=lockfile
+        
     def terminate(self):
         self._logging.info('Threaded_bufr2dballe Terminated')
         self._terminate_event.set()
@@ -96,6 +98,7 @@ class Threaded_bufr2dballe(threading.Thread):
 
         self._logging.info('Threaded_bufr2dballe Started')
         timestart=time.time()
+        rw_lock = fasteners.InterProcessReaderWriterLock(self._lockfile)  # for processes
         while True:
 
             if(self.have_to_terminate()):
@@ -142,14 +145,18 @@ class Threaded_bufr2dballe(threading.Thread):
                     # Connect to the database
                     db = dballe.DB.connect(self._dsn)
                     importer = dballe.Importer("BUFR")
-                    # Start a transaction
-                    with db.transaction() as tr:
-                        with importer.from_file(totalbodyfile) as f:
-                            for dballemessage in f:
-                                try:
-                                    tr.import_messages(dballemessage,overwrite=True, update_station=True,import_attributes=True)
-                                except KeyError:
-                                    self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+
+                    self._logging.debug("acquire lock on DB for write")
+                    with rw_lock.write_lock():                    
+                        self._logging.debug("lock acquired")
+                        # Start a transaction
+                        with db.transaction() as tr:
+                            with importer.from_file(totalbodyfile) as f:
+                                for dballemessage in f:
+                                    try:
+                                        tr.import_messages(dballemessage,overwrite=True, update_station=True,import_attributes=True)
+                                    except KeyError:
+                                        self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
                     status=True
                             
                 except Exception as exception:
@@ -194,6 +201,12 @@ def main(self):
     dsndict["report"]["fixed"]=rmap.settings.dsnreport_fixed
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
+    lockfiledict={"sample":{},"report":{}}
+    lockfiledict["sample"]["fixed"]=rmap.settings.lockfilesample_fixed
+    lockfiledict["sample"]["mobile"]=rmap.settings.lockfilesample_mobile
+    lockfiledict["report"]["fixed"]=rmap.settings.lockfilereport_fixed
+    lockfiledict["report"]["mobile"]=rmap.settings.lockfilereport_mobile
+    
     if (not self.options.datalevel is None):
         if not (self.options.datalevel in list(dsndict.keys())):
             logging.error('Invalid dsn')
@@ -214,12 +227,15 @@ def main(self):
     if (self.options.stationtype is None and self.options.datalevel is None ):
         inqueue="rmap.dae.bufr.report_fixed_validated"
         dsn=rmap.settings.dsn
+        lockfile=rmap.settings.lockfile
     else:        
         inqueue="rmap..bufr."+self.options.datalevel+"_"+self.options.stationtype
         dsn   = dsndict[self.options.datalevel][self.options.stationtype]
-
+        lockfile=lockfiledict[self.options.datalevel][self.options.stationtype]
+        
     logging.info('Queue: %s' % inqueue)
     logging.info('DSN: %s'% dsn)
+    logging.info('Lockfile: %s'% lockfile)
     logging.info("Start version: "+rmap.__version__)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
@@ -232,7 +248,7 @@ def main(self):
     send_queue = queue.Queue()
     receive_queue = queue.Queue()
 
-    bufr2dballe=Threaded_bufr2dballe(dsn,receive_queue,send_queue,logging=logging)
+    bufr2dballe=Threaded_bufr2dballe(dsn,lockfile,receive_queue,send_queue,logging=logging)
     amqp=amqpConsumerProducer(host=host,queue=inqueue,user=user,password=password,
                               receive_queue=receive_queue,send_queue=send_queue,
                               logging=logging)

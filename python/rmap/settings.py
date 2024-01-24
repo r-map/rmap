@@ -335,6 +335,11 @@ dsnsample_fixed                  = config['amqp2dballed']['dsnsample_fixed']
 dsnsample_mobile                 = config['amqp2dballed']['dsnsample_mobile']
 dsnreport_fixed                  = config['amqp2dballed']['dsnreport_fixed']
 dsnreport_mobile                 = config['amqp2dballed']['dsnreport_mobile']
+lockfile                         = "/rmap/arkimet/report_fixed.lock"
+lockfilesample_fixed             = "/rmap/arkimet/sample_fixed.lock"
+lockfilesample_mobile            = "/rmap/arkimet/sample_mobile.lock"
+lockfilereport_fixed             = "/rmap/arkimet/report_fixed.lock"
+lockfilereport_mobile            = "/rmap/arkimet/report_mobile.lock"
 
 # section amqp2amqp_identvalidationd
 logfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidationd']['logfile']
