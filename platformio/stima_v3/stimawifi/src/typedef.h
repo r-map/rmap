@@ -26,4 +26,41 @@ struct mqttMessage_t
   char payload[100];
 };
 
+
+//enum sensorNovalue_e { unknown, ok, error };
+//enum sensorMeasure_e { unknown, ok, error };
+enum status_e { unknown, ok, error };
+struct measureStatus_t
+{
+  //sensorNovalue_e novalue;
+  //sensorMeasure_e sensor;
+  status_e novalue;
+  status_e sensor;
+};
+
+//enum mqttConnect_e { unknown, ok, error };
+//enum mqttPublish_e { unknown, ok, error };
+struct publishStatus_t
+{
+  //mqttConnect_e connect;
+  //mqttPublish_e publish;
+  status_e connect;
+  status_e publish;
+};
+
+//enum udpReceive_e { unknown, ok, error };
+struct udpStatus_t
+{
+  //udpreceive_e receive;
+  status_e receive;
+};
+
+struct stimawifiStatus_t
+{
+  measureStatus_t measure;
+  publishStatus_t publish;
+  udpStatus_t udp;
+};
+
+
 #endif

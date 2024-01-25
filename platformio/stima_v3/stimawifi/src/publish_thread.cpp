@@ -1,13 +1,8 @@
 #include "stimawifi.h"
 
-bool publish_maint() {
+bool publish_maint(publish_data_t* data) {
 
-  const String data;  
-  
-  //String clientId = "ESP8266Client-";
-  //clientId += String(random(0xffff), HEX);
-    
-  frtosLog.notice(F("Connet to mqtt broker"));
+  data->logger.notice(F("Connet to mqtt broker"));
 
   char mqttid[100]="";
   strcat(mqttid,rmap_user);
@@ -15,7 +10,7 @@ bool publish_maint() {
   strcat(mqttid,rmap_slug);
   strcat(mqttid,"/default");
   
-  frtosLog.notice(F("mqttid: %s"),mqttid);
+  data->logger.notice(F("mqttid: %s"),mqttid);
   
   char mainttopic[100]="1/";
   strcat(mainttopic,rmap_mqttmaintpath);
@@ -28,53 +23,55 @@ bool publish_maint() {
   strcat(mainttopic,"/");
   strcat(mainttopic,rmap_network);
   strcat(mainttopic,"/254,0,0/265,0,-,-/B01213");
-  frtosLog.notice(F("MQTT maint topic: %s"),mainttopic);
+  data->logger.notice(F("MQTT maint topic: %s"),mainttopic);
     
   if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
-    frtosLog.error(F("Error connecting MQTT"));
-    frtosLog.error(F("Error status %d"),mqttclient.state());
+    data->logger.error(F("Error connecting MQTT"));
+    data->logger.error(F("Error status %d"),mqttclient.state());
+    data->status.connect=error;
     return false;
   }
-  frtosLog.notice(F("MQTT connected"));
-  yield();
+  data->logger.notice(F("MQTT connected"));
+  data->status.connect=ok;
   if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\",\"s\":" MAJOR_VERSION ",\"m\":" MINOR_VERSION "}   ", 34,1)){ //padded 3 blank char for time
     //if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-    frtosLog.error(F("MQTT maint not published"));
+    data->logger.error(F("MQTT maint not published"));
+    data->status.publish=error;
     mqttclient.disconnect();
     return false;
   }
-  frtosLog.notice(F("MQTT maint published"));
+  data->logger.notice(F("MQTT maint published"));
   return true;
 }
 
 
-bool publish_constantdata() {
+bool publish_constantdata(publish_data_t* data) {
 
   char topic[100];
 
-  /////////////////////////////////////// remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  /////////////////////////////////////// remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   String payload=readconfig_rmap();
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////
 
   if (! (payload == String())) {
     //StaticJsonDocument<2900> doc;
     DynamicJsonDocument doc(4000);
-    DeserializationError error = deserializeJson(doc,payload);
-    if (!error) {
+    DeserializationError deerror = deserializeJson(doc,payload);
+    if (!deerror) {
       JsonArrayConst array = doc.as<JsonArray>();
       //for (uint8_t i = 0; i < array.size(); i++) {
       for(JsonObjectConst element: array){ 
 	if  (element["model"] == "stations.stationconstantdata"){
 	  if (element["fields"]["active"]){
-	    frtosLog.notice(F("station constant data found!"));
+	    data->logger.notice(F("station constant data found!"));
 	    char btable[7];
 	    strncpy (btable, element["fields"]["btable"].as< const char*>(),6);
 	    btable[6]='\0';
-	    frtosLog.notice(F("btable: %s"),btable);
+	    data->logger.notice(F("btable: %s"),btable);
 	    char value[31];
 	    strncpy (value, element["fields"]["value"].as< const char*>(),30);
 	    value[30]='\0';
-	    frtosLog.notice(F("value: %s"),value);
+	    data->logger.notice(F("value: %s"),value);
 
 	    char payload[100]="{\"v\":\"";
 	    strcat(payload,value);
@@ -93,23 +90,21 @@ bool publish_constantdata() {
 	    strcat(topic,"/-,-,-/-,-,-,-/");
 	    strcat(topic,btable);
 
-	    frtosLog.notice(F("mqtt publish: %s %s"),topic,payload);
+	    data->logger.notice(F("mqtt publish: %s %s"),topic,payload);
 	    if (!mqttclient.publish(topic, payload)){
-	      frtosLog.error(F("MQTT data not published"));
+	      data->logger.error(F("MQTT data not published"));
 	      mqttclient.disconnect();
+	      data->status.publish=error;
 	      return false;
 	    }
-	    frtosLog.notice(F("MQTT data published"));
+	    data->logger.notice(F("MQTT data published"));
+	    data->status.publish=ok;
 	  }
 	}
       }
     } else {
-      frtosLog.error(F("error parsing array: %s"),error.c_str());
-      //analogWrite(LED_PIN,973);
-      //delay(5000);
-      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-      pixels.show();
-      delay(3000);
+      data->logger.error(F("error parsing array: %s"),deerror.c_str());
+      data->status.publish=error;
       return false;
     }
     
@@ -119,96 +114,54 @@ bool publish_constantdata() {
   return true;
 }
 
-void doPublish(const mqttMessage_t* mqtt_message) {
+void doPublish(publish_data_t* data, const mqttMessage_t* mqtt_message) {
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.connected()){
-    if (!publish_maint()) {
-      frtosLog.error(F("Error in publish maint"));
-      if (oledpresent) {
-	u8g2.setCursor(0, 1*CH); 
-	u8g2.print(F("                "));
-	u8g2.setCursor(0, 1*CH); 
-	u8g2.print(F("MQTT Error maint"));
-	u8g2.sendBuffer();
-	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-	pixels.show();
-	delay(3000);
-      }else{
-	// if we do not have display terminate (we do not display values)
-	//analogWrite(LED_PIN,512);
-	//delay(5000);
-	//digitalWrite(LED_PIN,HIGH);
-	pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-	pixels.show();
-	delay(3000);	
-	//return;
-      }
+    if (!publish_maint(data)) {
+      data->logger.error(F("Error in publish maint"));
+      data->status.publish=error;
+    }else{
+      data->logger.error(F("Published maint"));
+      data->status.publish=ok;      
     }
 
-    if (!publish_constantdata()) {
-      frtosLog.error(F("Error in publish constant data"));
-      if (oledpresent) {
-	u8g2.setCursor(0, 1*CH); 
-	u8g2.print(F("                   "));
-	u8g2.setCursor(0, 1*CH); 
-	u8g2.print(F("MQTT Error constant"));
-	u8g2.sendBuffer();
-	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-	pixels.show();
-	delay(3000);
-      }else{
-	// if we do not have display terminate (we do not display values)
-	//analogWrite(LED_PIN,512);
-	//delay(5000);
-	//digitalWrite(LED_PIN,HIGH);
-	pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-	pixels.show();
-	delay(3000);	
-	//return;
-      }
+    if (!publish_constantdata(data)) {
+      data->logger.error(F("Error in publish constant data"));
+      data->status.publish=error;
+    }else{
+      data->logger.error(F("Published constant data"));
+      data->status.publish=ok;
     }    
   }
 
-  frtosLog.notice(F("Publish: %s ; %s"),  mqtt_message->topic, mqtt_message->payload);
+  data->logger.notice(F("Publish: %s ; %s"),  mqtt_message->topic, mqtt_message->payload);
   if(mqttclient.publish(mqtt_message->topic, mqtt_message->payload)){
     //if(publish_data(values,sensors[i].timerange,sensors[i].level)){
-    frtosLog.notice(F("Data published"));    
-    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-    pixels.show();
-    delay(3000);
+    data->logger.notice(F("Data published"));    
+    data->status.publish=ok;
   }else{
     mqttclient.disconnect(); ////////////////////////////////////// do to ?
-    frtosLog.error(F("Error in publish data"));
-    if (oledpresent) {
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("                  "));
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("MQTT error publish"));
-      u8g2.sendBuffer();
-    }
-    //analogWrite(LED_PIN,973);
-    //delay(5000);
-    pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-    pixels.show();
-    delay(3000);
-    
+    data->logger.error(F("Error in publish data"));
+    data->status.publish=error;
   }
 }
 
-
-
 publishThread::publishThread(publish_data_t &publish_data)
   : Thread("publish", 50000, 1),
-    data(publish_data)
+    data(&publish_data)
 {
-  //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  //data->logger.notice("Create Thread %s %d", GetName().c_str(), data->id);
+  data->status.connect=unknown;
+  data->status.publish=unknown;
   //Start();
 };
 
 publishThread::~publishThread()
 {
-  data.logger.notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data->logger.notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  data->status.connect=unknown;
+  data->status.publish=unknown;
 }
   
 void publishThread::Cleanup()
@@ -217,10 +170,10 @@ void publishThread::Cleanup()
 }
   
 void publishThread::Run() {
-  data.logger.notice("Starting Thread %s %d", GetName().c_str(), data.id);
+  data->logger.notice("Starting Thread %s %d", GetName().c_str(), data->id);
   for(;;){
     mqttMessage_t mqttMessage;
-    data.mqttqueue.Dequeue(&mqttMessage);     
-    doPublish(&mqttMessage);
+    data->mqttqueue.Dequeue(&mqttMessage);     
+    doPublish(data,&mqttMessage);
   }
 };

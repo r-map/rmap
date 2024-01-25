@@ -11,6 +11,7 @@ struct publish_data_t {
   int id;
   frtosLogging logger;
   Queue mqttqueue;
+  publishStatus_t status;
 };
 
 using namespace cpp_freertos;
@@ -26,7 +27,7 @@ class publishThread : public Thread {
   virtual void Run();
     
  private:
-  publish_data_t data;
+  publish_data_t* data;
 };
 
 #endif

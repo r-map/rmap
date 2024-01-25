@@ -9,6 +9,7 @@ void doUdp(void);
 struct udp_data_t {
   int id;
   frtosLogging logger;
+  udpStatus_t status;
 };
 
 
@@ -24,6 +25,8 @@ class udpThread : public Thread {
    */
   
   udpThread(udp_data_t &udp_data);
+  ~udpThread();
+  virtual void Cleanup();
   
  protected:
   virtual void Run();

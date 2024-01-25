@@ -37,9 +37,21 @@ udpThread::udpThread(udp_data_t &udp_data)
     data(udp_data)
 {
   //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  data.status.receive=unknown;
   //Start();
 };
+
+udpThread::~udpThread()
+{
+  data.logger.notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data.status.receive=unknown;
+}
   
+void udpThread::Cleanup()
+{
+  delete this;
+}
+
 void udpThread::Run() {
   data.logger.notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){

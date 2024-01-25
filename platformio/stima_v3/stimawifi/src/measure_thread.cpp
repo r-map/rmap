@@ -54,33 +54,20 @@ void display_values(const char* values) {
   }
 }
 
-void enqueueMqttMessage(const char* values, const char* timerange, const char* level, Queue* MqttQueue ) {
+void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t* data ) {
   
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
   frtosLog.notice(F("have to publish: %s"),values);
-  DeserializationError error = deserializeJson(doc,values);
-  if (error) {
-    frtosLog.error(F("reading json data: %s"),error.c_str());
+  DeserializationError deerror = deserializeJson(doc,values);
+  if (deerror) {
+    frtosLog.error(F("reading json data: %s"),deerror.c_str());
     return;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
-      /*
-	analogWriteFreq(2);
-	analogWrite(LED_PIN,512);
-	delay(1000);
-	digitalWrite(LED_PIN,HIGH);      
-	analogWriteFreq(1);
-	delay(1000);
-	digitalWrite(LED_PIN,LOW);      
-      */
-
-      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-      pixels.show();
-      delay(3000);
-       
+      data->status.novalue=error;
       continue;
     }
         
@@ -109,30 +96,22 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 
     frtosLog.notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
-    MqttQueue->Enqueue(&mqtt_message);
+    data->mqttqueue.Enqueue(&mqtt_message);
     
   }
 }
 
-void doMeasure( Queue &MqttQueue ) {
+void doMeasure( measure_data_t *data ) {
 
   uint32_t waittime,maxwaittime=0;
 
   char values[MAX_VALUES_FOR_SENSOR*20];
   size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
   //  long values[MAX_VALUES_FOR_SENSOR];
-  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
-
-  //digitalWrite(LED_PIN,LOW);
-  pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-  pixels.show();
-  delay(3000);
- 
-  time_t tnow;
-  time(&tnow);
-  setTime(tnow);              // resync from sntp
+  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR; 
   
-  frtosLog.notice(F("Time: %s"),ctime(&tnow));
+  data->status.novalue=unknown;
+  data->status.sensor=unknown;
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -142,12 +121,11 @@ void doMeasure( Queue &MqttQueue ) {
 	maxwaittime=_max(maxwaittime,waittime);
       }else{
 	frtosLog.error(F("%s: prepare failed !"),sensors[i].driver);
+	data->status.sensor=error;
       }
     }
   }
 
-  yield();
-  
   //wait sensors to go ready
   frtosLog.notice(F("wait sensors for ms: %d"),maxwaittime);
   uint32_t now=millis();
@@ -171,14 +149,13 @@ void doMeasure( Queue &MqttQueue ) {
     displaypos=2;
     u8g2.clearBuffer();
     u8g2.sendBuffer();
-  }  
+  }
   for (int i = 0; i < SENSORS_LEN; i++) {
-    yield();
     if (!sd[i] == 0){
       frtosLog.notice(F("getJson sd %d"),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 	//strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
-	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, &MqttQueue );
+	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, data );
         web_values(values);
 	if (oledpresent) {
 	  display_values(values);
@@ -191,34 +168,30 @@ void doMeasure( Queue &MqttQueue ) {
 	  u8g2.print(F("Sensor error"));
 	  u8g2.sendBuffer();
 	}
-	//digitalWrite(LED_PIN,HIGH);
-	pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-	pixels.show();
-	delay(3000);
+	data->status.sensor=error;
       }
     }
   }
-
   if (oledpresent) u8g2.sendBuffer();
-  //digitalWrite(LED_PIN,HIGH);
-  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-  pixels.show();
-  delay(3000);
-
 }
 
 
 measureThread::measureThread(measure_data_t &measure_data)
   : Thread("measure", 50000, 1),
-    data(measure_data)
+    data(&measure_data)
 {
   //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
+  data->status.novalue=unknown;
+  data->status.sensor=unknown;
   //Start();
 };
 
 measureThread::~measureThread()
 {
-  data.logger.notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data->logger.notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  // todo disconnect and others
+  data->status.novalue=unknown;
+  data->status.sensor=unknown;
 }
 
 void measureThread::Cleanup()
@@ -227,10 +200,10 @@ void measureThread::Cleanup()
 }
 
 void measureThread::Run() {
-  data.logger.notice("Starting Thread %s %d", GetName().c_str(), data.id);
+  data->logger.notice("Starting Thread %s %d", GetName().c_str(), data->id);
   for(;;){
     WaitForNotification();
-    doMeasure(data.mqttqueue);
+    doMeasure(data);
   }
 };
   

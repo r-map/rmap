@@ -77,18 +77,22 @@ I2C_BUTTON button; //I2C address 0x31
 float temperature=NAN;
 int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 
-udp_data_t udp_data={1,frtosLog};
+stimawifiStatus_t stimawifiStatus;
+
+
+udp_data_t udp_data={1,frtosLog,stimawifiStatus.udp};
 udpThread threadUdp(udp_data);
 
 Queue mqttQueue(10,sizeof(mqttMessage_t));
 
-measure_data_t measure_data={1,frtosLog,mqttQueue};
+measure_data_t measure_data={1,frtosLog,mqttQueue,stimawifiStatus.measure};
 measureThread threadMeasure(measure_data);
 
-publish_data_t publish_data={1,frtosLog,mqttQueue};
+publish_data_t publish_data={1,frtosLog,mqttQueue,stimawifiStatus.publish};
 publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
+
 
 void printLocalTime()
 {
@@ -715,8 +719,31 @@ void web_values(const char* values) {
 }
 
 
+void displayStatus()
+{
+
+  /*
+  if (stimawifiStatus.measure.novalue==unknown)
+  if (stimawifiStatus.measure.sensor=unknown)
+
+  if (stimawifiStatus.publish.connect=unknown)
+  if (stimawifiStatus.publish.publish=unknown)
+  */
+
+  pixels.setPixelColor(0, pixels.Color(255, 255, 255));
+  pixels.show();
+     
+}
 
 void measureAndPublish() {
+  time_t tnow;
+  time(&tnow);
+  setTime(tnow);              // resync from sntp   /////    TODO !
+  frtosLog.notice(F("Time: %s"),ctime(&tnow));
+
+  stimawifiStatus.publish.connect=unknown;
+  stimawifiStatus.publish.publish=unknown;
+
   threadMeasure.Notify();
 }
 
@@ -1147,6 +1174,7 @@ void setup() {
   mqttclient.setServer(rmap_mqtt_server, 1883);
   
   Alarm.timerRepeat(rmap_sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(3,displayStatus);                                // display status every 3 seconds
 
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
