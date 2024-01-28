@@ -29,7 +29,6 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 */
 
 #include "stimawifi.h"
-#include "esp_task_wdt.h"
 
 sensor_t  sensors[SENSORS_LEN];
 SensorDriver* sd[SENSORS_LEN];
@@ -80,15 +79,15 @@ int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 stimawifiStatus_t stimawifiStatus;
 
 
-udp_data_t udp_data={1,frtosLog,stimawifiStatus.udp};
+udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp};
 udpThread threadUdp(udp_data);
 
 Queue mqttQueue(10,sizeof(mqttMessage_t));
 
-measure_data_t measure_data={1,frtosLog,mqttQueue,stimawifiStatus.measure};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure};
 measureThread threadMeasure(measure_data);
 
-publish_data_t publish_data={1,frtosLog,mqttQueue,stimawifiStatus.publish};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish};
 publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -111,7 +110,6 @@ void timeavailable(struct timeval *t)
   time_t tnow;
   time(&tnow);
   setTime(tnow);              // resync from sntp
-  esp_task_wdt_reset();
   printLocalTime();
 
   if (oledpresent){
@@ -120,10 +118,6 @@ void timeavailable(struct timeval *t)
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
   }
-}
-
-void analogWriteFreq(const double frequency){
-  //analogWriteFrequency(frequency);
 }
 
 String Json(){
@@ -303,8 +297,6 @@ String  rmap_get_remote_config(){
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
   http.begin(espClient,url.c_str());
 
-  esp_task_wdt_reset();
-
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
     payload = http.getString();
@@ -314,9 +306,7 @@ String  rmap_get_remote_config(){
     frtosLog.error(F("Error http: %s"),http.errorToString(httpCode).c_str());
     payload=String();
   }
-  esp_task_wdt_reset();
   http.end();
-  esp_task_wdt_reset();
   return payload;
 }
 
@@ -588,7 +578,7 @@ int  rmap_config(const String payload){
 	  }
 	}
       }
-      status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors);
+      status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
       //analogWrite(LED_PIN,973);
@@ -1033,8 +1023,6 @@ void setup() {
   Serial.println(WiFi.localIP());
   */
   
-  esp_task_wdt_reset();
-  
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(rmap_server, custom_rmap_server.getValue());
@@ -1050,13 +1038,10 @@ void setup() {
       u8g2.setCursor(0, 20); 
       u8g2.print(F("saved"));
       u8g2.sendBuffer();
-      esp_task_wdt_reset();
     }
   }
   
-  esp_task_wdt_reset();
   String remote_config= rmap_get_remote_config();
-  esp_task_wdt_reset();
 
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
@@ -1068,9 +1053,7 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
-  esp_task_wdt_reset();
   firmware_upgrade();
-  esp_task_wdt_reset();
   
   if (!rmap_config(remote_config) == 0) {
     frtosLog.notice(F("station not configurated ! restart"));
@@ -1102,8 +1085,6 @@ void setup() {
     delay(1000);
   }
   frtosLog.notice(F("mDNS responder started"));
-
-  esp_task_wdt_reset();
 
   // setup web server
   webserver.on("/", handle_FullPage);
@@ -1200,7 +1181,7 @@ void setup() {
   frtosLog.notice(F("Listening on UDP port %d"),UDP_PORT);
   //UDP.stop();
   //frtosLog.notice(F("Stop listening on UDP port %d"),UDP_PORT);
-  
+
   gps.init(&mgps);
   gps.set_filter(0xE); // "RMC","GGA","GLL"
 

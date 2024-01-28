@@ -3,31 +3,31 @@
 #ifndef PUBLISH_THREAD_H_
 #define PUBLISH_THREAD_H_
 
-bool publish_maint();
-bool publish_constantdata();
-void doPublish(const mqttMessage_t* mqtt_message);
-
 struct publish_data_t {
   int id;
-  frtosLogging logger;
-  Queue mqttqueue;
-  publishStatus_t status;
+  frtosLogging* logger;
+  Queue* mqttqueue;
+  publishStatus_t* status;
 };
+
+bool publish_maint(publish_data_t& data);
+bool publish_constantdata(publish_data_t& data);
+void doPublish(publish_data_t& data, const mqttMessage_t* mqtt_message);
 
 using namespace cpp_freertos;
 
 class publishThread : public Thread {
   
- public:
+public:
   publishThread(publish_data_t &publish_data);
   ~publishThread();
   virtual void Cleanup();
-    
+  
  protected:  
   virtual void Run();
     
  private:
-  publish_data_t* data;
+  publish_data_t data;
 };
 
 #endif

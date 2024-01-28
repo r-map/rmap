@@ -3,15 +3,15 @@
 
 unsigned short int displaypos;
 
-void display_values(const char* values) {
+void display_values(const char* values,measure_data_t &data) {
   
   StaticJsonDocument<500> doc;
 
-  frtosLog.notice(F("display_values: %s"),values);
+  data.logger->notice(F("display_values: %s"),values);
   
   DeserializationError error = deserializeJson(doc,values);
   if (!error) {
-    frtosLog.notice(F("display_values OK"));
+    data.logger->notice(F("display_values OK"));
     JsonObject obj = doc.as<JsonObject>();
     for (JsonPair pair : obj) {
 
@@ -21,31 +21,31 @@ void display_values(const char* values) {
       u8g2.setCursor(0, (displaypos++)*CH); 
       
       if (strcmp(pair.key().c_str(),"B12101")==0){
-	frtosLog.notice(F("Temperature: %D"),val);
+	data.logger->notice(F("Temperature: %D"),val);
 	u8g2.print(F("T   : "));
 	u8g2.print(round((val-27315)/10.)/10,1);
 	u8g2.print(F(" C"));
       }
       if (strcmp(pair.key().c_str(),"B13003")==0){
-	frtosLog.notice(F("Humidity: %D"),val);
+	data.logger->notice(F("Humidity: %D"),val);
 	u8g2.print(F("U   : "));
 	u8g2.print(round(val),0);
 	u8g2.print(F(" %"));
       }
       if (strcmp(pair.key().c_str(),"B15198")==0){
-	frtosLog.notice(F("PM2: %D"),val);
+	data.logger->notice(F("PM2: %D"),val);
 	u8g2.print(F("PM2 : "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
       }
       if (strcmp(pair.key().c_str(),"B15195")==0){
-	frtosLog.notice(F("PM10: %D"),val);
+	data.logger->notice(F("PM10: %D"),val);
 	u8g2.print(F("PM10: "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
       }
       if (strcmp(pair.key().c_str(),"B15242")==0){
-	frtosLog.notice(F("CO2: %D"),val);
+	data.logger->notice(F("CO2: %D"),val);
 	u8g2.print(F("CO2 : "));
 	u8g2.print(round(val/1.8),0);
 	u8g2.print(F(" ppm"));
@@ -54,20 +54,20 @@ void display_values(const char* values) {
   }
 }
 
-void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t* data ) {
+void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data ) {
   
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
-  frtosLog.notice(F("have to publish: %s"),values);
+  data.logger->notice(F("have to publish: %s"),values);
   DeserializationError deerror = deserializeJson(doc,values);
   if (deerror) {
-    frtosLog.error(F("reading json data: %s"),deerror.c_str());
+    data.logger->error(F("reading json data: %s"),deerror.c_str());
     return;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
-      data->status.novalue=error;
+      data.status->novalue=error;
       continue;
     }
         
@@ -94,14 +94,14 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     strcat(mqtt_message.payload,value);
     strcat(mqtt_message.payload,"}");
 
-    frtosLog.notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
-    data->mqttqueue.Enqueue(&mqtt_message);
+    data.mqttqueue->Enqueue(&mqtt_message);
     
   }
 }
 
-void doMeasure( measure_data_t *data ) {
+void doMeasure( measure_data_t &data ) {
 
   uint32_t waittime,maxwaittime=0;
 
@@ -110,24 +110,24 @@ void doMeasure( measure_data_t *data ) {
   //  long values[MAX_VALUES_FOR_SENSOR];
   //  size_t lenvalues=MAX_VALUES_FOR_SENSOR; 
   
-  data->status.novalue=unknown;
-  data->status.sensor=unknown;
+  data.status->novalue=unknown;
+  data.status->sensor=unknown;
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == 0){
-      frtosLog.notice(F("prepare sd %d"),i);
+      data.logger->notice(F("prepare sd %d"),i);
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=_max(maxwaittime,waittime);
       }else{
-	frtosLog.error(F("%s: prepare failed !"),sensors[i].driver);
-	data->status.sensor=error;
+	data.logger->error(F("%s: prepare failed !"),sensors[i].driver);
+	data.status->sensor=error;
       }
     }
   }
 
   //wait sensors to go ready
-  frtosLog.notice(F("wait sensors for ms: %d"),maxwaittime);
+  data.logger->notice(F("wait sensors for ms: %d"),maxwaittime);
   uint32_t now=millis();
   int32_t delayt;
 
@@ -141,7 +141,7 @@ void doMeasure( measure_data_t *data ) {
   }
   delayt= maxwaittime -(millis()-now);
   if(delayt > 0) {
-    frtosLog.notice(F("delay"));
+    data.logger->notice(F("delay"));
     delay(delayt);
   }
 
@@ -152,23 +152,23 @@ void doMeasure( measure_data_t *data ) {
   }
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == 0){
-      frtosLog.notice(F("getJson sd %d"),i);
+      data.logger->notice(F("getJson sd %d"),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 	//strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
 	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, data );
         web_values(values);
 	if (oledpresent) {
-	  display_values(values);
+	  display_values(values,data);
         }
 
       }else{
-	frtosLog.error(F("Error getting json from sensor"));
+	data.logger->error(F("Error getting json from sensor"));
 	if (oledpresent) {
 	  u8g2.setCursor(0, (displaypos++)*CH); 
 	  u8g2.print(F("Sensor error"));
 	  u8g2.sendBuffer();
 	}
-	data->status.sensor=error;
+	data.status->sensor=error;
       }
     }
   }
@@ -177,21 +177,21 @@ void doMeasure( measure_data_t *data ) {
 
 
 measureThread::measureThread(measure_data_t &measure_data)
-  : Thread("measure", 50000, 1),
-    data(&measure_data)
+  : Thread{"measure", 50000, 1},
+    data{measure_data}
 {
-  //data.logger.notice("Create Thread %s %d", GetName().c_str(), data.id);
-  data->status.novalue=unknown;
-  data->status.sensor=unknown;
+  //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
+  data.status->novalue=unknown;
+  data.status->sensor=unknown;
   //Start();
 };
 
 measureThread::~measureThread()
 {
-  data->logger.notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
   // todo disconnect and others
-  data->status.novalue=unknown;
-  data->status.sensor=unknown;
+  data.status->novalue=unknown;
+  data.status->sensor=unknown;
 }
 
 void measureThread::Cleanup()
@@ -200,7 +200,8 @@ void measureThread::Cleanup()
 }
 
 void measureThread::Run() {
-  data->logger.notice("Starting Thread %s %d", GetName().c_str(), data->id);
+  Serial.println("Start measure");
+  data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){
     WaitForNotification();
     doMeasure(data);

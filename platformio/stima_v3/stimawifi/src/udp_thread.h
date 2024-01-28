@@ -4,14 +4,14 @@
 #ifndef UDP_THREAD_H_
 #define UDP_THREAD_H_
 
-void doUdp(void);
 
 struct udp_data_t {
   int id;
-  frtosLogging logger;
-  udpStatus_t status;
+  frtosLogging* logger;
+  udpStatus_t* status;
 };
 
+void doUdp(udp_data_t& data);
 
 using namespace cpp_freertos;
 
@@ -24,7 +24,7 @@ class udpThread : public Thread {
    *  @param udp_data data used by thread.
    */
   
-  udpThread(udp_data_t &udp_data);
+  udpThread(udp_data_t& udp_data);
   ~udpThread();
   virtual void Cleanup();
   

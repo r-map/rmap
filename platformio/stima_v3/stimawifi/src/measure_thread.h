@@ -5,14 +5,14 @@
 
 struct measure_data_t {
   int id;
-  frtosLogging logger;
-  Queue mqttqueue;
-  measureStatus_t status;
+  frtosLogging* logger;
+  Queue* mqttqueue;
+  measureStatus_t* status;
 };
 
 void display_values(const char* values);
-void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t* data );
-void doMeasure( measure_data_t &data );
+void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data );
+void doMeasure( measure_data_t& data );
 
 using namespace cpp_freertos;
 
@@ -27,7 +27,7 @@ protected:
   virtual void Run();
     
 private:
-  measure_data_t* data;
+  measure_data_t data;
 };
 
 #endif
