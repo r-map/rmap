@@ -55,7 +55,6 @@ void udpThread::Cleanup()
 void udpThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){
-    data.logger->notice("Running Thread %s %d", GetName().c_str(), data.id);
     doUdp(data);
     Delay(Ticks::SecondsToTicks(1));
   }

@@ -200,7 +200,6 @@ void measureThread::Cleanup()
 }
 
 void measureThread::Run() {
-  Serial.println("Start measure");
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){
     WaitForNotification();

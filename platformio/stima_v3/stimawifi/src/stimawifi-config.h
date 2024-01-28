@@ -31,10 +31,13 @@
 #define SCL_PIN SCL
 #define SDA_PIN SDA
 
-//#define RESET_PIN 25     // pin to connect to ground for reset wifi configuration
-#define RESET_PIN 4    // pin to connect to ground for reset wifi configuration
+// pin to connect to ground for reset wifi configuration
+#define RESET_PIN 4       // C3 and S3
+
 #define LED_PIN 7      // C3
 //#define LED_PIN 47     // S3
+
+//#define RESET_PIN 25     // wrom
 //#define LED_PIN 27     // wrom
 
 // for sensor_t

@@ -170,7 +170,6 @@ void publishThread::Cleanup()
 }
   
 void publishThread::Run() {
-  Serial.println("Start publish");
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){
     mqttMessage_t mqttMessage;
