@@ -73,8 +73,15 @@ I2C_BUTTON button; //I2C address 0x31
 float temperature=NAN;
 int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 
+/*
+If the variable can be updated atomically (for example it is not a
+32-bit variable on a 16-bit architecture, which would take two writes to
+update all 32-bits), and there is only one task that ever writes to the
+variable (although many can read from it), then a global variable should
+not cause a problem.
+This is the case for stimawifiStatus
+*/
 stimawifiStatus_t stimawifiStatus;
-
 
 udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp};
 udpThread threadUdp(udp_data);
@@ -110,7 +117,7 @@ void timeavailable(struct timeval *t)
   printLocalTime();
 
   if (oledpresent){
-    u8g2.setCursor(0, 30);
+    u8g2.setCursor(0, 3*CH);
     u8g2.print(F("                "));
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
@@ -333,9 +340,9 @@ void firmware_upgrade() {
       frtosLog.error(F("[update] Update failed with message:"));
       frtosLog.error(F("%s"),ESPhttpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
-	u8g2.setCursor(0, 20); 
+	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("FW Update"));
-	u8g2.setCursor(0, 30); 
+	u8g2.setCursor(0, 3*CH); 
 	u8g2.print(F("Failed"));
 	u8g2.sendBuffer();
       }
@@ -354,9 +361,9 @@ void firmware_upgrade() {
     case HTTP_UPDATE_NO_UPDATES:
       frtosLog.notice(F("[update] No Update."));
       if (oledpresent) {
-	u8g2.setCursor(0, 20); 
+	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("NO Firmware"));
-	u8g2.setCursor(0, 30); 
+	u8g2.setCursor(0, 3*CH); 
 	u8g2.print(F("Update"));
 	u8g2.sendBuffer();
       }
@@ -371,7 +378,7 @@ void firmware_upgrade() {
       frtosLog.notice(F("[update] Update ok.")); // may not called we reboot the ESP
       
       if (oledpresent) {
-	u8g2.setCursor(0, 20); 
+	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("FW Updated!"));
 	u8g2.sendBuffer();
       }
@@ -705,21 +712,71 @@ void web_values(const char* values) {
   }
 }
 
+/*
+typedef color_t{
+  uint8_t reed;
+  uint8_t green;
+  uit8_t blue;
+}
+*/
 
 void displayStatus()
 {
 
-  /*
-  if (stimawifiStatus.measure.novalue==unknown)
-  if (stimawifiStatus.measure.sensor=unknown)
+  static bool light{true};
+  char status[15];
+  
+  frtosLog.notice(F("status measure: %d, %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor);
+  frtosLog.notice(F("status publish: %d, %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
+  frtosLog.notice(F("status udp: %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
+  
+  // start with unknown BLACK
+  strcpy(status,"unknown");
+  uint32_t color = pixels.Color(0,0,0);
 
-  if (stimawifiStatus.publish.connect=unknown)
-  if (stimawifiStatus.publish.publish=unknown)
-  */
+  // if one not unknown then BLUE
+  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor != unknown
+      &&  stimawifiStatus.publish.connect != unknown && stimawifiStatus.publish.publish != unknown)
+    {
+      strcpy(status,"working");
+      color = pixels.Color(0,0,255);
+      light=true;
+    }
+  // if all OK then GREEN
+  if (    stimawifiStatus.measure.novalue==ok && stimawifiStatus.measure.sensor==ok
+      &&  stimawifiStatus.publish.connect==ok && stimawifiStatus.publish.publish==ok)
+    {
+      strcpy(status,"ok");
+      color = pixels.Color(0,255,0);
+      light=true;
+    }
+  // if one is error then RED and flash 
+  if (      stimawifiStatus.measure.novalue==error
+	 || stimawifiStatus.measure.sensor==error
+	 || stimawifiStatus.publish.connect==error
+	 || stimawifiStatus.publish.publish==error)
+    {
+      strcpy(status,"error");
+      color = pixels.Color(255,0,0);
+      light=!light;
+    }
 
-  pixels.setPixelColor(0, pixels.Color(255, 255, 255));
+  if (oledpresent) { // message on display
+      u8g2.setCursor(0, 1*CH); 
+      u8g2.setDrawColor(0);
+      u8g2.drawBox( 0, 0*CH,300, CH);
+      u8g2.setDrawColor(1);
+      u8g2.setCursor(0, 1*CH); 
+      u8g2.print(status);
+      u8g2.sendBuffer();
+  }
+
+  if (light){   // set neopixel
+    pixels.setPixelColor(0, color);
+  }else{
+    pixels.setPixelColor(0, pixels.Color(0,0,0));    
+  }
   pixels.show();
-     
 }
 
 void measureAndPublish() {
@@ -727,9 +784,6 @@ void measureAndPublish() {
   time(&tnow);
   setTime(tnow);              // resync from sntp   /////    TODO !
   frtosLog.notice(F("Time: %s"),ctime(&tnow));
-
-  stimawifiStatus.publish.connect=unknown;
-  stimawifiStatus.publish.publish=unknown;
 
   threadMeasure.Notify();
 }
@@ -813,11 +867,11 @@ void setup() {
     u8g2.setFont(u8g2_font_5x7_tf);
     u8g2.setFontMode(0); // enable transparent mode, which is faster
     u8g2.clearBuffer();
-    u8g2.setCursor(0, 10); 
+    u8g2.setCursor(0, 1*CH); 
     u8g2.print(F("Starting up!"));
-    u8g2.setCursor(0, 20); 
+    u8g2.setCursor(0, 2*CH); 
     u8g2.print(F("Version:"));
-    u8g2.setCursor(0, 30); 
+    u8g2.setCursor(0, 3*CH); 
     u8g2.print(F(SOFTWARE_VERSION));
     u8g2.sendBuffer();
   }else{
@@ -863,11 +917,11 @@ void setup() {
     frtosLog.notice(F("clean FS"));
     if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Clean FS"));
-      u8g2.setCursor(0, 20); 
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("Reset wifi"));
-      u8g2.setCursor(0, 30); 
+      u8g2.setCursor(0, 3*CH); 
       u8g2.print(F("configuration"));
       u8g2.sendBuffer();
       delay(3000);
@@ -893,13 +947,13 @@ void setup() {
     
     if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Mount FS"));
-      u8g2.setCursor(0, 20); 
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("Failed"));
-      u8g2.setCursor(0, 30); 
+      u8g2.setCursor(0, 3*CH); 
       u8g2.print(F("RESET"));
-      u8g2.setCursor(0, 40); 
+      u8g2.setCursor(0, 4*CH); 
       u8g2.print(F("CONFIGURATION"));
       u8g2.sendBuffer();
       delay(3000);
@@ -957,13 +1011,13 @@ void setup() {
     
   if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("ssed:"));
-      u8g2.setCursor(0, 20); 
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F(WIFI_SSED));
-      u8g2.setCursor(0, 35); 
+      u8g2.setCursor(0, 3*CH); 
       u8g2.print(F("password:"));
-      u8g2.setCursor(0, 45); 
+      u8g2.setCursor(0, 4*CH); 
       u8g2.print(F(WIFI_PASSWORD));
       u8g2.sendBuffer();
     }
@@ -979,7 +1033,7 @@ void setup() {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("WIFI KO"));
       u8g2.sendBuffer();
     }
@@ -996,10 +1050,10 @@ void setup() {
     
     if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("WIFI OK"));
       u8g2.sendBuffer();
-      u8g2.setCursor(0, 40); 
+      u8g2.setCursor(0, 4*CH); 
       u8g2.print(F("IP:"));
       u8g2.setFont(u8g2_font_u8glib_4_tf);
       u8g2.print(WiFi.localIP().toString().c_str());
@@ -1030,9 +1084,9 @@ void setup() {
     writeconfig();
     if (oledpresent) {
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("NEW configuration"));
-      u8g2.setCursor(0, 20); 
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("saved"));
       u8g2.sendBuffer();
     }
@@ -1059,11 +1113,11 @@ void setup() {
 
     if (oledpresent){
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
+      u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Station not"));
-      u8g2.setCursor(0, 20); 
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("configurated!"));
-      u8g2.setCursor(0, 30);
+      u8g2.setCursor(0, 3*CH);
       u8g2.print(F("RESTART"));
       u8g2.sendBuffer();
     }
@@ -1093,12 +1147,14 @@ void setup() {
   frtosLog.notice(F("HTTP server started"));
 
   if (oledpresent){
-    u8g2.setCursor(0, 20);
-    u8g2.print(F("                 "));
-    u8g2.setCursor(0, 20);
+    u8g2.setDrawColor(0);
+    u8g2.drawBox( 0, 1*CH,300, CH);
+    u8g2.setDrawColor(1);
+    u8g2.setCursor(0, 2*CH);
     u8g2.print(F("Setting time"));
-    u8g2.setCursor(0, 30);
-    u8g2.print(F("                 "));
+    u8g2.setDrawColor(0);
+    u8g2.drawBox( 0, 2*CH,300, CH);
+    u8g2.setDrawColor(1);
     u8g2.sendBuffer();
   }
 
@@ -1125,13 +1181,15 @@ void setup() {
     frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
     if (oledpresent){
       u8g2.clearBuffer();
-      u8g2.setCursor(0, 20); 
-      u8g2.print(F("                "));
-      u8g2.setCursor(0, 20); 
+      u8g2.setDrawColor(0);
+      u8g2.drawBox( 0, 1*CH,300, CH);
+      u8g2.setDrawColor(1);
+      u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("Time Error"));
-      u8g2.setCursor(0, 30);
-      u8g2.print(F("                "));
-      u8g2.setCursor(0, 30);
+      u8g2.setDrawColor(0);
+      u8g2.drawBox( 0, 2*CH,300, CH);
+      u8g2.setDrawColor(1);
+      u8g2.setCursor(0, 3*CH);
       u8g2.print(F("RESTART"));
       u8g2.sendBuffer();
     }
@@ -1140,7 +1198,7 @@ void setup() {
   }
 
   if (oledpresent){
-    u8g2.setCursor(0, 30);
+    u8g2.setCursor(0, 3*CH);
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
   }

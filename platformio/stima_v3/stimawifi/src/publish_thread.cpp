@@ -36,7 +36,6 @@ bool publish_maint(publish_data_t& data) {
   if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\",\"s\":" MAJOR_VERSION ",\"m\":" MINOR_VERSION "}   ", 34,1)){ //padded 3 blank char for time
     //if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
     data.logger->error(F("MQTT maint not published"));
-    data.status->publish=error;
     mqttclient.disconnect();
     return false;
   }
@@ -94,17 +93,14 @@ bool publish_constantdata(publish_data_t& data) {
 	    if (!mqttclient.publish(topic, payload)){
 	      data.logger->error(F("MQTT data not published"));
 	      mqttclient.disconnect();
-	      data.status->publish=error;
 	      return false;
 	    }
 	    data.logger->notice(F("MQTT data published"));
-	    data.status->publish=ok;
 	  }
 	}
       }
     } else {
       data.logger->error(F("error parsing array: %s"),deerror.c_str());
-      data.status->publish=error;
       return false;
     }
     

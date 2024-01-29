@@ -11,47 +11,51 @@ void display_values(const char* values,measure_data_t &data) {
   
   DeserializationError error = deserializeJson(doc,values);
   if (!error) {
-    data.logger->notice(F("display_values OK"));
     JsonObject obj = doc.as<JsonObject>();
     for (JsonPair pair : obj) {
 
       if (pair.value().isNull()) continue;
       float val=pair.value().as<float>();
-
-      u8g2.setCursor(0, (displaypos++)*CH); 
       
       if (strcmp(pair.key().c_str(),"B12101")==0){
 	data.logger->notice(F("Temperature: %D"),val);
+	u8g2.setCursor(0, (displaypos++)*CH); 
 	u8g2.print(F("T   : "));
 	u8g2.print(round((val-27315)/10.)/10,1);
 	u8g2.print(F(" C"));
       }
       if (strcmp(pair.key().c_str(),"B13003")==0){
 	data.logger->notice(F("Humidity: %D"),val);
+	u8g2.setCursor(0, (displaypos++)*CH); 
 	u8g2.print(F("U   : "));
 	u8g2.print(round(val),0);
 	u8g2.print(F(" %"));
       }
       if (strcmp(pair.key().c_str(),"B15198")==0){
 	data.logger->notice(F("PM2: %D"),val);
+	u8g2.setCursor(0, (displaypos++)*CH); 
 	u8g2.print(F("PM2 : "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
       }
       if (strcmp(pair.key().c_str(),"B15195")==0){
 	data.logger->notice(F("PM10: %D"),val);
+	u8g2.setCursor(0, (displaypos++)*CH); 
 	u8g2.print(F("PM10: "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
       }
       if (strcmp(pair.key().c_str(),"B15242")==0){
 	data.logger->notice(F("CO2: %D"),val);
+	u8g2.setCursor(0, (displaypos++)*CH); 
 	u8g2.print(F("CO2 : "));
 	u8g2.print(round(val/1.8),0);
 	u8g2.print(F(" ppm"));
       }
     }
-  }
+  }else{
+    data.logger->error(F("display_values deserialization ERROR"));
+  }  
 }
 
 void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data ) {
@@ -67,6 +71,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
+      data.logger->error(F("novalue error"));
       data.status->novalue=error;
       continue;
     }
@@ -110,7 +115,6 @@ void doMeasure( measure_data_t &data ) {
   //  long values[MAX_VALUES_FOR_SENSOR];
   //  size_t lenvalues=MAX_VALUES_FOR_SENSOR; 
   
-  data.status->novalue=unknown;
   data.status->sensor=unknown;
   
   // prepare sensors to measure
@@ -150,6 +154,9 @@ void doMeasure( measure_data_t &data ) {
     u8g2.clearBuffer();
     u8g2.sendBuffer();
   }
+
+  data.status->novalue=unknown;
+
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == 0){
       data.logger->notice(F("getJson sd %d"),i);
@@ -172,6 +179,10 @@ void doMeasure( measure_data_t &data ) {
       }
     }
   }
+
+  if(data.status->novalue==unknown) data.status->novalue=ok;
+  if(data.status->sensor==unknown) data.status->sensor=ok;
+
   if (oledpresent) u8g2.sendBuffer();
 }
 

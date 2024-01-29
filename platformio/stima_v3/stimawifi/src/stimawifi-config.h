@@ -60,6 +60,6 @@
 #define SENSORDRIVER_META_LEN 30
 #define MAX_VALUES_FOR_SENSOR 9
 
-#define CH 9            // character height px for display
+#define CH 8            // character height px for display
 
 #endif
