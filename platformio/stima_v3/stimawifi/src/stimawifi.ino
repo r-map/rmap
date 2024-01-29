@@ -18,14 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-TODO PORTING TO ESP32 WeMos-D1-Mini-ESP32
-https://www.dropbox.com/s/4phxfx75hje5eu4/Board-de-desarrollo-WeMos-D1-Mini-ESP32-WiFiBluetooth-BLE-Pines.jpg
-https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
+TODO PORTING TO ESP32
 
 * implementing OTA firmware updater for ESP32 (https): now I use a old simple porting of ESP8266httpUpdate
-* change second serial port from software to hardware (but it seems implemented in not wemos connector)
 * check if LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED) default to do not autoformat littlefs
 * wait for new LittleFS release for esp8266 API compatibility  https://github.com/espressif/arduino-esp32/pull/5396
+* porting the use of Sensordriver library to Stima V3 non bloking library with restart of sensors
+* do not share data in global variables
+* protect I2C with lock
+* implement the use of GPS
+* implement timestamp with SDcard storage
 */
 
 #include "stimawifi.h"
@@ -68,7 +70,6 @@ bool oledpresent=false;
 // i2c button for wemos OLED version 2.1.0
 I2C_BUTTON button; //I2C address 0x31
 // I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
-// I2C_BUTTON button(your_address); //using customize I2C address
 
 float temperature=NAN;
 int humidity=-999,pm2=-999,pm10=-999,co2=-999;
@@ -326,8 +327,6 @@ void firmware_upgrade() {
   frtosLog.notice(F("url for firmware update: %s"),update_url);
   frtosLog.notice(F("version for firmware update: %s"),buffer);
 
-  //analogWriteFreq(4);
-  //analogWrite(LED_PIN,512);  
   pixels.setPixelColor(0, pixels.Color(0, 0, 255));
   pixels.show();
   delay(3000);
@@ -350,12 +349,6 @@ void firmware_upgrade() {
       pixels.setPixelColor(0, pixels.Color(255, 0, 0));
       pixels.show();
       delay(3000);
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,HIGH);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
       
     break;
     case HTTP_UPDATE_NO_UPDATES:
@@ -367,8 +360,6 @@ void firmware_upgrade() {
 	u8g2.print(F("Update"));
 	u8g2.sendBuffer();
       }
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
       pixels.setPixelColor(0, pixels.Color(0, 0, 255));
       pixels.show();
       delay(3000);
@@ -386,25 +377,11 @@ void firmware_upgrade() {
       pixels.setPixelColor(0, pixels.Color(0, 255, 255));
       pixels.show();
       delay(3000);
-      
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,HIGH);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,HIGH);      
-      //delay(1000);
-      //digitalWrite(LED_PIN,LOW);      
-      //delay(1000);
-
       break;
     }
 
   //#endif
 
-  //analogWriteFreq(1);
-  //digitalWrite(LED_PIN,HIGH);
   pixels.setPixelColor(0, pixels.Color(0, 255, 0));
   pixels.show();
   delay(3000);
@@ -680,50 +657,10 @@ void writeconfig() {;
   frtosLog.notice(F("saved config parameter"));
 }
 
-
-void web_values(const char* values) {
-  
-  StaticJsonDocument<500> doc;
-
-  DeserializationError error =deserializeJson(doc,values);
-  if (!error) {
-    JsonObject obj = doc.as<JsonObject>();
-    for (JsonPair pair : obj) {
-
-      if (pair.value().isNull()) continue;
-      float val=pair.value().as<float>();
-
-      if (strcmp(pair.key().c_str(),"B12101")==0){
-	temperature=round((val-27315)/10.)/10;
-      }
-      if (strcmp(pair.key().c_str(),"B13003")==0){
-	humidity=round(val);
-      }
-      if (strcmp(pair.key().c_str(),"B15198")==0){
-	pm2=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15195")==0){
-	pm10=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15242")==0){
-	co2=round(val/1.8);
-      }
-    }
-  }
-}
-
-/*
-typedef color_t{
-  uint8_t reed;
-  uint8_t green;
-  uit8_t blue;
-}
-*/
-
 void displayStatus()
 {
 
-  static bool light{true};
+  static bool light=true;
   char status[15];
   
   frtosLog.notice(F("status measure: %d, %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor);
@@ -731,46 +668,48 @@ void displayStatus()
   frtosLog.notice(F("status udp: %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
   
   // start with unknown BLACK
-  strcpy(status,"unknown");
+  strcpy(status,"Stat: unknown");
   uint32_t color = pixels.Color(0,0,0);
 
   // if one not unknown then BLUE
-  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor != unknown
+  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor  != unknown
       &&  stimawifiStatus.publish.connect != unknown && stimawifiStatus.publish.publish != unknown)
     {
-      strcpy(status,"working");
+      strcpy(status,"Stat: working");
       color = pixels.Color(0,0,255);
       light=true;
     }
   // if all OK then GREEN
-  if (    stimawifiStatus.measure.novalue==ok && stimawifiStatus.measure.sensor==ok
-      &&  stimawifiStatus.publish.connect==ok && stimawifiStatus.publish.publish==ok)
+  if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok
+      &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok)
     {
-      strcpy(status,"ok");
+      strcpy(status,"Stat: ok");
       color = pixels.Color(0,255,0);
       light=true;
     }
   // if one is error then RED and flash 
-  if (      stimawifiStatus.measure.novalue==error
-	 || stimawifiStatus.measure.sensor==error
-	 || stimawifiStatus.publish.connect==error
-	 || stimawifiStatus.publish.publish==error)
-    {
-      strcpy(status,"error");
-      color = pixels.Color(255,0,0);
-      light=!light;
-    }
+  if (      stimawifiStatus.measure.novalue == error
+	 || stimawifiStatus.measure.sensor  == error
+	 || stimawifiStatus.publish.connect == error
+	 || stimawifiStatus.publish.publish == error){
+    strcpy(status,"Stat: error");
+    color = pixels.Color(255,0,0);
+    frtosLog.notice(F("light pre: %T"),light);
+    light= not light;
+  }
 
   if (oledpresent) { // message on display
       u8g2.setCursor(0, 1*CH); 
       u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 0*CH,300, CH);
+      u8g2.drawBox( 0, 0*CH,64, CH);
       u8g2.setDrawColor(1);
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(status);
       u8g2.sendBuffer();
   }
 
+  frtosLog.notice(F("light post: %T"),light);
+  
   if (light){   // set neopixel
     pixels.setPixelColor(0, color);
   }else{
@@ -808,7 +747,7 @@ void logSuffix(Print* _logOutput) {
 }
 
 void setup() {
-  // put your setup code here, to run once:
+  // put your setup code here, to run once in Arduin task:
 
   /*
   #include "soc/soc.h"
@@ -818,10 +757,6 @@ void setup() {
   
   pinMode(RESET_PIN, INPUT_PULLUP);
   
-  //pinMode(LED_PIN, OUTPUT);
-  //analogWriteFreq(1);
-  //digitalWrite(LED_PIN,HIGH);
-
   pixels.begin();            //INITIALIZE NeoPixel strip object (REQUIRED)
   pixels.clear();            // Turn OFF all pixels ASAP
   pixels.setBrightness(125); // Set BRIGHTNESS (max = 255)
@@ -882,19 +817,6 @@ void setup() {
   pixels.show();
   delay(3000);
   
-  /*
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN,LOW);
-  delay(1000);
-  digitalWrite(LED_PIN,HIGH);
-  */
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
@@ -1022,8 +944,6 @@ void setup() {
       u8g2.sendBuffer();
     }
 
-  //analogWrite(LED_PIN,512);
-
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
@@ -1043,7 +963,6 @@ void setup() {
     //if you get here you have connected to the WiFi
     frtosLog.notice(F("connected... good!"));
     frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
-    //digitalWrite(LED_PIN,HIGH);
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
     delay(3000);
@@ -1059,13 +978,11 @@ void setup() {
       u8g2.print(WiFi.localIP().toString().c_str());
       u8g2.setFont(u8g2_font_5x7_tf);
       u8g2.sendBuffer();
-    }
-    
+    }    
   }
   
   /*
   WiFi.begin("ssid", "password");
-  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -1096,9 +1013,6 @@ void setup() {
 
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
-    //analogWrite(LED_PIN,50);
-    //delay(5000);
-    //digitalWrite(LED_PIN,HIGH);    
     remote_config=readconfig_rmap();
   }else{
     writeconfig_rmap(remote_config);
@@ -1148,12 +1062,12 @@ void setup() {
 
   if (oledpresent){
     u8g2.setDrawColor(0);
-    u8g2.drawBox( 0, 1*CH,300, CH);
+    u8g2.drawBox( 0, 1*CH,64, CH);
     u8g2.setDrawColor(1);
     u8g2.setCursor(0, 2*CH);
     u8g2.print(F("Setting time"));
     u8g2.setDrawColor(0);
-    u8g2.drawBox( 0, 2*CH,300, CH);
+    u8g2.drawBox( 0, 2*CH,64, CH);
     u8g2.setDrawColor(1);
     u8g2.sendBuffer();
   }
@@ -1182,12 +1096,12 @@ void setup() {
     if (oledpresent){
       u8g2.clearBuffer();
       u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 1*CH,300, CH);
+      u8g2.drawBox( 0, 1*CH,64, CH);
       u8g2.setDrawColor(1);
       u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("Time Error"));
       u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 2*CH,300, CH);
+      u8g2.drawBox( 0, 2*CH,64, CH);
       u8g2.setDrawColor(1);
       u8g2.setCursor(0, 3*CH);
       u8g2.print(F("RESTART"));
@@ -1203,8 +1117,7 @@ void setup() {
     u8g2.sendBuffer();
   }
   
-  frtosLog.notice(F("Time: %s"),ctime(&datetime));
-  
+  frtosLog.notice(F("Time: %s"),ctime(&datetime));  
   frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
 
   mqttclient.setServer(rmap_mqtt_server, 1883);
@@ -1212,9 +1125,7 @@ void setup() {
   Alarm.timerRepeat(rmap_sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                                // display status every 3 seconds
 
-  // millis() and other can have overflow problem
-  // so we reset everythings one time a week
-  //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
+  // we reset everythings one time a week
   time_t reboottime;
   if (pmspresent){
     reboottime=3600*24;            // pms stall sometime

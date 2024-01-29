@@ -38,22 +38,14 @@
 
 //////////////// REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 extern String readconfig_rmap();
-extern void web_values(const char* values);
 ///////////////////////////////////////////////////////////
 
 extern sensor_t  sensors[SENSORS_LEN];
 extern SensorDriver* sd[SENSORS_LEN];
-
-extern const char* update_url;
-extern const uint16_t update_port;
-
 extern WebServer webserver;
-
-extern WiFiClient espClient;
 extern PubSubClient mqttclient;
 //extern WebSocketsServer webSocket;
 //extern EspHtmlTemplateProcessor templateProcessor;
-extern MutexStandard loggingmutex;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 extern char rmap_longitude[11];
@@ -72,15 +64,8 @@ extern char rmap_mqttmaintpath[10];
 extern U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2;
 extern bool oledpresent;
 
-// i2c button for wemos OLED version 2.1.0
-extern I2C_BUTTON button; //I2C address 0x31
-// extern I2C_BUTTON button; //I2C address 0x31
-// extern I2C_BUTTON button; //using customize I2C address
-
 extern float temperature;
 extern int humidity,pm2,pm10,co2;
-
-extern Adafruit_NeoPixel pixels;
 
 extern udp_data_t udp_data;
 extern udpThread threadUdp;

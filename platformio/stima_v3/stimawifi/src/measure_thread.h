@@ -13,6 +13,7 @@ struct measure_data_t {
 void display_values(const char* values);
 void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data );
 void doMeasure( measure_data_t& data );
+void web_values(const char* values);
 
 using namespace cpp_freertos;
 

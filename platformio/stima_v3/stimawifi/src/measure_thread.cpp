@@ -3,6 +3,37 @@
 
 unsigned short int displaypos;
 
+void web_values(const char* values) {
+  
+  StaticJsonDocument<500> doc;
+
+  DeserializationError error =deserializeJson(doc,values);
+  if (!error) {
+    JsonObject obj = doc.as<JsonObject>();
+    for (JsonPair pair : obj) {
+
+      if (pair.value().isNull()) continue;
+      float val=pair.value().as<float>();
+
+      if (strcmp(pair.key().c_str(),"B12101")==0){
+	temperature=round((val-27315)/10.)/10;
+      }
+      if (strcmp(pair.key().c_str(),"B13003")==0){
+	humidity=round(val);
+      }
+      if (strcmp(pair.key().c_str(),"B15198")==0){
+	pm2=round(val/10.);
+      }
+      if (strcmp(pair.key().c_str(),"B15195")==0){
+	pm10=round(val/10.);
+      }
+      if (strcmp(pair.key().c_str(),"B15242")==0){
+	co2=round(val/1.8);
+      }
+    }
+  }
+}
+
 void display_values(const char* values,measure_data_t &data) {
   
   StaticJsonDocument<500> doc;
@@ -80,7 +111,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     strcat(mqtt_message.topic,rmap_mqttrootpath);
     strcat(mqtt_message.topic,"/");
     strcat(mqtt_message.topic,rmap_user);
-    strcat(mqtt_message.topic,"//");  
+    strcat(mqtt_message.topic,"//");
     strcat(mqtt_message.topic,rmap_longitude);
     strcat(mqtt_message.topic,",");
     strcat(mqtt_message.topic,rmap_latitude);
