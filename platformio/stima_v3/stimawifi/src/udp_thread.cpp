@@ -1,5 +1,9 @@
 #include "stimawifi.h"
 
+WiFiUDP UDP;
+OZGPS gps;
+MGPS mgps;
+
 void doUdp(udp_data_t& data){
   
   // If UDP packet received...
@@ -49,11 +53,21 @@ udpThread::~udpThread()
   
 void udpThread::Cleanup()
 {
+  UDP.stop();
+  frtosLog.notice(F("Stop listening on UDP port %d"),UDP_PORT);
   delete this;
 }
 
 void udpThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
+
+  gps.init(&mgps);
+  gps.set_filter(0xE); // "RMC","GGA","GLL"
+
+  // Begin listening to UDP port
+  UDP.begin(UDP_PORT);
+  data.logger->notice(F("Listening on UDP port %d"),UDP_PORT);
+  
   for(;;){
     doUdp(data);
     Delay(Ticks::SecondsToTicks(1));

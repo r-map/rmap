@@ -53,9 +53,6 @@ extern WiFiClient espClient;
 extern PubSubClient mqttclient;
 //extern WebSocketsServer webSocket;
 //extern EspHtmlTemplateProcessor templateProcessor;
-extern WiFiUDP UDP;
-extern OZGPS gps;
-extern MGPS mgps;
 extern MutexStandard loggingmutex;
 
 //define your default values here, if there are different values in config.json, they are overwritten.

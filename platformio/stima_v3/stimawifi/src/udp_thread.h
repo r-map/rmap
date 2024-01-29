@@ -4,7 +4,6 @@
 #ifndef UDP_THREAD_H_
 #define UDP_THREAD_H_
 
-
 struct udp_data_t {
   int id;
   frtosLogging* logger;

@@ -31,14 +31,27 @@
 #define SCL_PIN SCL
 #define SDA_PIN SDA
 
+#if defined(ARDUINO_LOLIN_C3_MINI)
+//C3 mini
+// https://www.wemos.cc/en/latest/_static/files/sch_c3_mini_v2.1.0.pdf
 // pin to connect to ground for reset wifi configuration
-#define RESET_PIN 4       // C3 and S3
+#define RESET_PIN 4
+#define LED_PIN 7
+#endif
 
-#define LED_PIN 7      // C3
-//#define LED_PIN 47     // S3
+#if defined(ARDUINO_LOLIN_S3_MINI)
+//S3 mini
+// https://www.wemos.cc/en/latest/_static/files/sch_s3_mini_v1.0.0.pdf
+#define RESET_PIN 11
+#define LED_PIN 47
+#endif
 
-//#define RESET_PIN 25     // wrom
-//#define LED_PIN 27     // wrom
+#if defined(ARDUINO_D1_MINI32)
+// D1 mini ESP32
+// https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf?v=1604068668
+#define RESET_PIN 23
+#define LED_PIN 34       // not connected to neopixel
+#endif
 
 // for sensor_t
 #define SENSORS_LEN 5

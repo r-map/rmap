@@ -42,9 +42,6 @@ WebServer webserver(STIMAHTTP_PORT);
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
 //EspHtmlTemplateProcessor templateProcessor(&server);
-WiFiUDP UDP;
-OZGPS gps;
-MGPS mgps;
 MutexStandard loggingmutex;
 
 //flag for saving data
@@ -1175,15 +1172,6 @@ void setup() {
 
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
-
-  // Begin listening to UDP port
-  UDP.begin(UDP_PORT);
-  frtosLog.notice(F("Listening on UDP port %d"),UDP_PORT);
-  //UDP.stop();
-  //frtosLog.notice(F("Stop listening on UDP port %d"),UDP_PORT);
-
-  gps.init(&mgps);
-  gps.set_filter(0xE); // "RMC","GGA","GLL"
 
   threadUdp.Start();
   threadMeasure.Start();
