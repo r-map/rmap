@@ -5,32 +5,44 @@ OZGPS gps;
 MGPS mgps;
 
 void doUdp(udp_data_t& data){
+
+  int packetSize = 1;
+  memset(&mgps,0,sizeof(mgps));
+  bool updated=false;
   
-  // If UDP packet received...
-  int packetSize = UDP.parsePacket();
-  if (packetSize) {
-    data.logger->notice(F("Received packet! Size: %d"),packetSize);
-    
-    uint8_t gpsflag;
-    while(UDP.available()) {
-      char c=UDP.read();
-      gpsflag = gps.encode(c);
-      if(gps.valid){
-	data.logger->notice("RMC latitude : %D", mgps.rmc.dms.latitude);
-	data.logger->notice("RMC longitude: %D", mgps.rmc.dms.longitude);
-	data.logger->notice("GGA latitude : %D", mgps.gga.dms.latitude);
-	data.logger->notice("GGA longitude: %D", mgps.gga.dms.longitude);
-	data.logger->notice("GLL latitude : %D", mgps.gll.dms.latitude);
-	data.logger->notice("GLL longitude: %D", mgps.gll.dms.longitude);
-	data.logger->notice("RMC datetime: %d %d %d %d %d %d", mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
-			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
-	//UDP.flush();
-      }else{
-	data.logger->notice("gps_error: %d", gpsflag);
+  while (packetSize){
+    // If UDP packet received...
+    packetSize = UDP.parsePacket();
+    if (packetSize) {
+      data.logger->verbose(F("Received packet! Size: %d"),packetSize);
+      //Serial.print("message: ");
+      uint8_t gpsflag;
+      while(UDP.available()) {
+	char c=UDP.read();
+	//Serial.print(c);
+	gpsflag = gps.encode(c);
+	if(gps.valid){
+	  updated=true;
+	  //UDP.flush();
+	  //}else{
+	  //data.logger->notice("gps_error: %d", gpsflag);
+	}
       }
+      //Serial.println(" ");
+      //}else{
+      //data.logger->notice(F("No Received packet!"));
     }
-  }else{
-    data.logger->notice(F("No Received packet!"));
+  }
+
+  if (updated){
+    data.logger->notice(F("RMC latitude : %5"), mgps.rmc.dms.latitude);
+    data.logger->notice(F("RMC longitude: %5"), mgps.rmc.dms.longitude);
+    data.logger->notice(F("GGA latitude : %5"), mgps.gga.dms.latitude);
+    data.logger->notice(F("GGA longitude: %5"), mgps.gga.dms.longitude);
+    data.logger->notice(F("GLL latitude : %5"), mgps.gll.dms.latitude);
+    data.logger->notice(F("GLL longitude: %5"), mgps.gll.dms.longitude);
+    data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
+			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
   }
 }
 

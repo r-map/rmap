@@ -694,7 +694,6 @@ void displayStatus()
 	 || stimawifiStatus.publish.publish == error){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
-    frtosLog.notice(F("light pre: %T"),light);
     light= not light;
   }
 
@@ -708,8 +707,6 @@ void displayStatus()
       u8g2.sendBuffer();
   }
 
-  frtosLog.notice(F("light post: %T"),light);
-  
   if (light){   // set neopixel
     pixels.setPixelColor(0, color);
   }else{
