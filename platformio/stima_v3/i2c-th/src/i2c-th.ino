@@ -372,7 +372,7 @@ void init_sensors () {
   
   for (uint8_t i=0; i < SENSORS_MAX; i++){
     if (strlen(configuration.sensors[i].type) == 3){
-      SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, &sensors_count);
+      SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, sensors_count);
       LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, configuration.sensors[i].type, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
     }
   }

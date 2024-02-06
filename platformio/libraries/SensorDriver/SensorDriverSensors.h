@@ -29,6 +29,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SENSOR_DRIVER_I2C         ("I2C")
 
+
+
+/*!
+\def SENSOR_TYPE_SPS
+\brief Sensor driver's SPS sensor type for SPS30 Sensirion PM sensor.
+*/
+#define SENSOR_TYPE_SPS           ("SPS")
+
+/*!
+\def SENSOR_TYPE_SCD
+\brief Sensor driver's SCD sensor type for SCD30 Sensirion NDIR CO2 sensor.
+*/
+#define SENSOR_TYPE_SCD           ("SCD")
+
 /*!
 \def SENSOR_TYPE_ADT
 \brief Sensor driver's ADT sensor type for ADT7420.

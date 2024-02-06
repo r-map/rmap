@@ -44,6 +44,18 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 #define USE_JSON                    (true)
 
 /*!
+\def USE_SENSOR_SPS
+\brief Enable if you want use Sensirion SPS30 PM sensor.
+*/
+#define USE_SENSOR_SPS              (false)
+
+/*!
+\def USE_SENSOR_SCD
+\brief Enable if you want use Sensiorion SCD30 CO2 sensor.
+*/
+#define USE_SENSOR_SCD              (false)
+
+/*!
 \def USE_SENSOR_ADT
 \brief Enable if you want use ADT7420 sensor.
 */
@@ -78,6 +90,79 @@ Supported sensors:
 \brief Enable if you want use DigitEco Power sensor.
 */
 #define USE_SENSOR_DEP              (false)
+
+/*!
+\def USE_SENSOR_POW
+\brief Enable if you want use Power panel and battery sensor.
+*/
+#define USE_SENSOR_POW              (false)
+
+/*!
+\def USE_SENSOR_DES
+\brief Enable if you want use DigitEco Wind Speed sensor.
+*/
+#define USE_SENSOR_DES              (false)
+
+/*!
+\def USE_SENSOR_DED
+\brief Enable if you want use DigitEco Wind Direction sensor.
+*/
+#define USE_SENSOR_DED              (false)
+
+/*!
+\def USE_SENSOR_DSR
+\brief Enable if you want use DigitEco Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSR              (false)
+
+/*!
+\def USE_SENSOR_VSR
+\brief Enable if you want use 0-5V High Resolution Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_VSR              (false)
+
+/*!
+\def USE_SENSOR_DSA
+\brief Enable if you want average Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSA              (false)
+
+/*!
+\def USE_SENSOR_DWA
+\brief Enable if you want vectorial average Wind Speed and Direction over 10' (WMO).
+*/
+#define USE_SENSOR_DWA              (false)
+
+/*!
+\def USE_SENSOR_DWB
+\brief Enable if you want vectorial average Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWB              (false)
+
+/*!
+\def USE_SENSOR_DWC
+\brief Enable if you want gust and long gust Wind Speed over report time.
+*/
+#define USE_SENSOR_DWC              (false)
+
+/*!
+\def USE_SENSOR_DWD
+\brief Enable if you want average Wind Speed over report time.
+*/
+#define USE_SENSOR_DWD              (false)
+
+/*!
+\def USE_SENSOR_DWE
+\brief Enable if you want frequency class Wind Speed over report time.
+*/
+#define USE_SENSOR_DWE              (false)
+
+/*!
+\def USE_SENSOR_DWF
+\brief Enable if you want gust and long gust Wind Direction over report time.
+*/
+#define USE_SENSOR_DWF              (false)
+
 
 /*!
 \def USE_SENSOR_OA2
@@ -244,12 +329,6 @@ Supported sensors:
 \brief Enable if you want use Radio RF24 sensor.
 */
 #define USE_SENSOR_RF24             (false)
-
-/*!
-\def RAIN_FOR_TIP
-\brief How much mm of rain for one tip of tipping bucket rain gauge.
-*/
-#define RAIN_FOR_TIP                (1)
 
 /*!
 \def VALUES_TO_READ_FROM_SENSOR_COUNT

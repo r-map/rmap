@@ -83,17 +83,17 @@ public:
    static SensorDriver *create(const char* driver, const char* type);
 
    /*!
-   \fn void createAndSetup(const char* driver, const char* type, uint8_t address, SensorDriver *sensors[], uint8_t *sensors_count)
+   \fn void createAndSetup(const char* driver, const char* type, uint8_t address, SensorDriver *sensors[], uint8_t& sensors_count)
    \brief Create and setup the specified sensor.
    \param[in] *driver driver's type.
    \param[in] *type sensor's type.
    \param[in] address sensor's address.
    \param[in] node sensor's node.
    \param[in] *sensors[] array of sensors.
-   \param[in] *sensors_count setted sensors count.
+   \param[in] sensors_count setted sensors count.
    \return void.
    */
-   static void createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count);
+   static void createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t& sensors_count);
 
 
    /*!
@@ -105,7 +105,7 @@ public:
    \param[in] *is_prepared sensor's status.
    \return void.
    */
-   void init(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void init(const uint8_t address, const uint8_t node, bool& is_setted, bool& is_prepared);
 
    /*!
    \fn void setup()
@@ -318,8 +318,8 @@ protected:
    uint16_t _error_count;
   
    bool _is_test;
-   bool *_is_setted;
-   bool *_is_prepared;
+   bool _is_setted;
+   bool _is_prepared;
    bool _is_previous_prepared;
    bool _is_current_prepared;
 
@@ -844,4 +844,74 @@ protected:
     END
   } _get_state;
 };
+#endif
+
+
+#if (USE_SENSOR_SPS)
+#include "sps30.h"
+
+class SensorDriverSps : public SensorDriver {
+public:
+   SensorDriverSps(const char* driver, const char* type) : SensorDriver(driver, type) {
+      SensorDriver::printInfo();
+      LOGT(F("sps create... [ %s ]"), OK_STRING);
+   };
+   void setup();
+   void prepare(bool is_test = false);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
+
+   #if (USE_JSON)
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   #endif
+
+   void resetPrepared(bool is_test = false);
+
+protected:
+
+   enum {
+      INIT,
+      READ,
+      END
+   } _get_state;
+
+  private:
+  SPS30 _sps30;
+  sps_values val;
+
+};
+
+#endif
+
+#if (USE_SENSOR_SCD)
+#include "SparkFun_SCD30_Arduino_Library.h" 
+
+class SensorDriverScd : public SensorDriver {
+public:
+   SensorDriverScd(const char* driver, const char* type) : SensorDriver(driver, type) {
+      SensorDriver::printInfo();
+      LOGT(F("scd create... [ %s ]"), OK_STRING);
+   };
+   void setup();
+   void prepare(bool is_test = false);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
+
+   #if (USE_JSON)
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   #endif
+
+   void resetPrepared(bool is_test = false);
+
+protected:
+
+   enum {
+      INIT,
+      READ,
+      END
+   } _get_state;
+
+  private:
+  SCD30 _scd30;
+
+};
+
 #endif

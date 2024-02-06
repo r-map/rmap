@@ -58,55 +58,67 @@ void init_sensors () {
 
   #if (USE_SENSOR_ADT)
   address = 0x48;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_HIH)
   address = 0x27;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_HYT)
   address = 0x28;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_SHT)
   address = 0x44;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensors, sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif
+
+  #if (USE_SENSOR_SPS)
+  address = SPS30_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SPS, address, 1, sensors, sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif
+
+  #if (USE_SENSOR_SCD)
+  address = 97;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SCD, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
   
   #if (USE_SENSOR_ITH)
   address = I2C_TH_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ITH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ITH, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_MTH)
   address = I2C_TH_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_MTH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_MTH, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_NTH)
   address = I2C_TH_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_NTH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_NTH, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_XTH)
   address = I2C_TH_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_XTH, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_XTH, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_TBR)
   address = 0x21;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_TBR, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_TBR, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
@@ -114,75 +126,75 @@ void init_sensors () {
   // 0x25 for windsonic
   #if (USE_SENSOR_DW1)
   address = 0x25;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DW1, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DW1, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_DEP)
   address = 0x30;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DEP, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DEP, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_POW)
   address = I2C_POWER_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_POW, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_POW, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
   
   #if (USE_SENSOR_DSA)
   #include <registers-radiation.h>
   address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSA, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSA, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_DWA)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWA, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWA, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DWB)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWB, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWB, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DWC)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWC, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWC, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DWD)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWD, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWD, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DWE)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWE, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWE, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DWF)
   #include <registers-wind.h>
   address = I2C_WIND_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWF, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DWF, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif  
 
   #if (USE_SENSOR_DSR)
   #include <registers-radiation.h>
   address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSR, address, 1, sensors, &sensors_count);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSR, address, 1, sensors, sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif    
 }
@@ -461,16 +473,19 @@ void init_wire() {
   Wire.setClock(I2C_BUS_CLOCK);
   //digitalWrite(SDA, HIGH);
   //digitalWrite(SCL, HIGH);
+#ifdef ARDUINO_ARCH_AVR
   pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
   pinMode(SCL, INPUT_PULLUP);
-
+#endif
 }
 
 void check_i2c_bus () {
   if (i2c_error > I2C_MAX_ERROR_COUNT) {
     LOGE(F("Restart I2C BUS"));
     // 
+#ifdef ARDUINO_ARCH_AVR
     reset_wire();
+#endif
     init_wire();
   }
 }
@@ -490,6 +505,7 @@ void logSuffix(Print* _logOutput) {
 
 void setup() {
   Serial.begin(115200);
+  delay(5000);
   Log.begin(LOG_LEVEL, &Serial);
   Log.setPrefix(logPrefix);
   Log.setSuffix(logSuffix);

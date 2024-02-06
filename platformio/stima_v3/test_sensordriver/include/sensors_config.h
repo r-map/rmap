@@ -46,6 +46,18 @@ Max value here is 10
 #define USE_JSON                    (true)
 
 /*!
+\def USE_SENSOR_SPS
+\brief Enable if you want use Sensirion SPS30 PM sensor.
+*/
+#define USE_SENSOR_SPS              (true)
+
+/*!
+\def USE_SENSOR_SCD
+\brief Enable if you want use Sensiorion SCD30 CO2 sensor.
+*/
+#define USE_SENSOR_SCD              (true)
+
+/*!
 \def USE_SENSOR_ADT
 \brief Enable if you want use ADT7420 sensor.
 */
@@ -73,7 +85,7 @@ Supported sensors:
 - SHT3x-DIS (I2C)
 - SHT3x-ARP (ratiometric analog voltage output)
 */
-#define USE_SENSOR_SHT              (false)
+#define USE_SENSOR_SHT              (true)
 
 /*!
 \def USE_SENSOR_DEP
@@ -85,7 +97,7 @@ Supported sensors:
 \def USE_SENSOR_POW
 \brief Enable if you want use Power panel and battery sensor.
 */
-#define USE_SENSOR_POW              (true)
+#define USE_SENSOR_POW              (false)
 
 /*!
 \def USE_SENSOR_DES
@@ -324,7 +336,7 @@ Supported sensors:
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (6)
-#define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (9)
+#define JSONS_TO_READ_FROM_SENSOR_COUNT       (9)
 
 #endif

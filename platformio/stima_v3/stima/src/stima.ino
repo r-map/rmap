@@ -724,7 +724,7 @@ void init_sensors () {
 				   readable_configuration.sensors[i].type,
 				   readable_configuration.sensors[i].address,
 				   readable_configuration.sensors[i].node,
-				   sensors, &sensors_count);
+				   sensors, sensors_count);
       wdt_reset();
     }
 

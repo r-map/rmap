@@ -46,6 +46,18 @@ Max value here is 10
 #define USE_JSON                    (true)
 
 /*!
+\def USE_SENSOR_SPS
+\brief Enable if you want use Sensirion SPS30 PM sensor.
+*/
+#define USE_SENSOR_SPS              (false)
+
+/*!
+\def USE_SENSOR_SCD
+\brief Enable if you want use Sensiorion SCD30 CO2 sensor.
+*/
+#define USE_SENSOR_SCD              (false)
+
+/*!
 \def USE_SENSOR_ADT
 \brief Enable if you want use ADT7420 sensor.
 */
@@ -62,6 +74,18 @@ Max value here is 10
 \brief Enable if you want use HYT271 or HYT221 sensor.
 */
 #define USE_SENSOR_HYT              (false)
+
+/*!
+\def SENSOR_TYPE_SHT
+\brief Enable if you want use Sensirion humidity and temperature sensor support
+Supported sensors:
+- SHTC1
+- SHTW1
+- SHTW2
+- SHT3x-DIS (I2C)
+- SHT3x-ARP (ratiometric analog voltage output)
+*/
+#define USE_SENSOR_SHT              (false)
 
 /*!
 \def USE_SENSOR_DEP
@@ -107,7 +131,7 @@ Max value here is 10
 
 /*!
 \def USE_SENSOR_DWA
-\brief Enable if you want vectorial average Wind Speed and Direction over 10'.
+\brief Enable if you want vectorial average Wind Speed and Direction over 10' (WMO).
 */
 #define USE_SENSOR_DWA              (true)
 
@@ -119,7 +143,7 @@ Max value here is 10
 
 /*!
 \def USE_SENSOR_DWC
-\brief Enable if you want gust Wind Speed and Direction over report time.
+\brief Enable if you want gust and long gust Wind Speed over report time.
 */
 #define USE_SENSOR_DWC              (true)
 
@@ -131,13 +155,13 @@ Max value here is 10
 
 /*!
 \def USE_SENSOR_DWE
-\brief Enable if you want class Wind Speed over report time.
+\brief Enable if you want frequency class Wind Speed over report time.
 */
 #define USE_SENSOR_DWE              (true)
 
 /*!
 \def USE_SENSOR_DWF
-\brief Enable if you want maximum wind gust speed and direction over report time.
+\brief Enable if you want gust and long gust Wind Direction over report time.
 */
 #define USE_SENSOR_DWF              (true)
 
