@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "frtosLog.h"
 
-void frtosLogging::begin(int level, Print* logOutput, MutexStandard &semaphore, bool showLevel){
+void frtosLogging::begin(int level, Print* logOutput, MutexStandard &semaphore, const bool showLevel){
   _semaphore = semaphore;
   _logging.begin(level, logOutput, showLevel);
 }

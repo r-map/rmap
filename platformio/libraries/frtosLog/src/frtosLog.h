@@ -119,7 +119,7 @@ public:
     *
     */
   
-  void begin(int level, Print *output, MutexStandard &semaphore, bool showLevel=true);
+  void begin(int level, Print *output, MutexStandard &semaphore, const bool showLevel=true);
   
   /**
    * Sets a function to be called before each log command.
