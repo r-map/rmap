@@ -12,6 +12,7 @@ on:
     - 'libraries/**'
   #  branches: [ master ]
   pull_request:
+  workflow_call:
 
 jobs:
   main:
