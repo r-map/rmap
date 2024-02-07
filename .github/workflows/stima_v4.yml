@@ -12,6 +12,7 @@ on:
     - '**stima_v4.yml'
   #  branches: [ master ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   main:
