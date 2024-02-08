@@ -97,12 +97,12 @@ public:
 
 
    /*!
-   \fn void init(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared)
+   \fn void init(const uint8_t address, const uint8_t node, bool is_setted, bool is_prepared)
    \brief Initialize sensor.
    \param[in] address sensor's address.
    \param[in] node sensor's node.
-   \param[in] *is_setted sensor's status.
-   \param[in] *is_prepared sensor's status.
+   \param[in] is_setted sensor's status.
+   \param[in] is_prepared sensor's status.
    \return void.
    */
    void init(const uint8_t address, const uint8_t node, bool& is_setted, bool& is_prepared);
@@ -112,8 +112,8 @@ public:
    \brief Setup sensor.
    \param[in] address sensor's address.
    \param[in] node sensor's node.
-   \param[in] *is_setted sensor's status.
-   \param[in] *is_prepared sensor's status.
+   \param[in] is_setted sensor's status.
+   \param[in] is_prepared sensor's status.
    \return void.
    */
    virtual void setup();
@@ -318,8 +318,8 @@ protected:
    uint16_t _error_count;
   
    bool _is_test;
-   bool _is_setted;
-   bool _is_prepared;
+   bool* _is_setted;
+   bool* _is_prepared;
    bool _is_previous_prepared;
    bool _is_current_prepared;
 

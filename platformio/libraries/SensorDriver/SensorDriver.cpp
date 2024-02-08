@@ -129,9 +129,9 @@ void SensorDriver::init(const uint8_t address, const uint8_t node, bool& is_sett
   _address = address;
   _node = node;
   _start_time_ms = 0;
-  _is_setted = is_setted;
+  _is_setted = &is_setted;
   _is_previous_prepared = false;  
-  _is_prepared = is_prepared;
+  _is_prepared = &is_prepared;
   _error_count = 0;
 }
 
@@ -154,7 +154,7 @@ void SensorDriver::resetPrepared(bool is_test){
 }
 
 void SensorDriver::resetSetted(){
-  _is_setted = false;
+  *_is_setted = false;
 }
 
 const char *SensorDriver::getDriver() {
@@ -194,11 +194,11 @@ bool SensorDriver::isReaded() {
 }
 
 bool SensorDriver::isSetted() {
-  return _is_setted;
+  return *_is_setted;
 }
 
 bool SensorDriver::isPrepared() {
-  return _is_prepared;
+  return *_is_prepared;
 }
 
 uint16_t SensorDriver::getErrorCount() {
@@ -264,7 +264,7 @@ void SensorDriver::printInfo() {
 
 void SensorDriverAdt7420::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverAdt7420::setup() {
@@ -272,7 +272,7 @@ void SensorDriverAdt7420::setup() {
 
   _delay_ms = 0;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     Wire.beginTransmission(_address);
     Wire.write(0x03); // Set the register pointer to (0x01)
     Wire.write(0x20); // Set resolution and one shot
@@ -283,7 +283,7 @@ void SensorDriverAdt7420::setup() {
       return;
     }
     LOGT(F("adt7420 setup... [ %s ]"), OK_STRING);
-    _is_setted = true;
+    *_is_setted = true;
     _error_count = 0;
   }
   else {
@@ -295,7 +295,7 @@ void SensorDriverAdt7420::setup() {
 void SensorDriverAdt7420::prepare(bool is_test) {
   SensorDriver::printInfo();
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
     Wire.write(0x03); // Set the register pointer to (0x01)
     Wire.write(0x20); // Set resolution and one shot
@@ -306,7 +306,7 @@ void SensorDriverAdt7420::prepare(bool is_test) {
       return;
     }
 
-    _is_prepared = true;
+    *_is_prepared = true;
     _delay_ms = 250;
     _error_count = 0;
 
@@ -335,7 +335,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       Wire.beginTransmission(_address);
       Wire.write(0x00); // Set the register pointer to (0x00)
 
@@ -459,7 +459,7 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
 
 void SensorDriverHih6100::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverHih6100::setup() {
@@ -468,12 +468,12 @@ void SensorDriverHih6100::setup() {
 
   _delay_ms = 0;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
   
     Wire.beginTransmission(_address);
     
     if (Wire.endTransmission() == 0) {
-      _is_setted = true;
+      *_is_setted = true;
       _error_count = 0;
       LOGT(F("hih6100 setup... [ %s ]"), OK_STRING);
     }else{
@@ -488,7 +488,7 @@ void SensorDriverHih6100::setup() {
 void SensorDriverHih6100::prepare(bool is_test) {
   SensorDriver::printInfo();
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
 
     if (Wire.endTransmission()) {
@@ -497,7 +497,7 @@ void SensorDriverHih6100::prepare(bool is_test) {
       return;
     }
 
-    _is_prepared = true;
+    *_is_prepared = true;
     _delay_ms = 40;
     _error_count = 0;
 
@@ -528,7 +528,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _get_state = READ;
     }
     else {
@@ -683,7 +683,7 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
 
 void SensorDriverHyt2X1::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverHyt2X1::setup() {
@@ -691,11 +691,11 @@ void SensorDriverHyt2X1::setup() {
 
   _delay_ms = 0;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     Wire.beginTransmission(_address);
 
     if (Wire.endTransmission() == 0) {
-      _is_setted = true;
+      *_is_setted = true;
       _error_count = 0;
       LOGT(F("hyt2x1 setup... [ %s ]"), OK_STRING);
     }else{
@@ -709,8 +709,8 @@ void SensorDriverHyt2X1::setup() {
 
 void SensorDriverHyt2X1::prepare(bool is_test) {
   SensorDriver::printInfo();
-  _is_prepared = Hyt2X1::hyt_initRead(_address);
-  if (_is_prepared){
+  *_is_prepared = Hyt2X1::hyt_initRead(_address);
+  if (*_is_prepared){
     _error_count = 0;
     LOGT(F("hyt2x1 prepare... [ %s ]"), OK_STRING);
   }else{
@@ -738,7 +738,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = READ;
     }
@@ -884,7 +884,7 @@ SHTI2cSensor _sht;
 
 void SensorDriverSht::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverSht::setup() {
@@ -892,7 +892,7 @@ void SensorDriverSht::setup() {
 
   _delay_ms = 0;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
 
     //  WARNING !!!!! address is not used; sensirion have only one address
     if (_address == 0x44) {
@@ -906,7 +906,7 @@ void SensorDriverSht::setup() {
 
     if(_sht.clearStatusRegister() == true) {  //Start continuous measurements      
       
-      _is_setted = true;
+      *_is_setted = true;
       _error_count = 0;
       LOGT(F("sht setup... [ %s ]"), OK_STRING);
     } else {
@@ -921,8 +921,8 @@ void SensorDriverSht::setup() {
 void SensorDriverSht::prepare(bool is_test) {
   SensorDriver::printInfo();
   
-  _is_prepared = _sht.singleShotDataAcquisition();
-  if (_is_prepared){
+  *_is_prepared = _sht.singleShotDataAcquisition();
+  if (*_is_prepared){
     _error_count = 0;
     LOGT(F("SHT prepare... [ %s ]"), OK_STRING);
   }else{
@@ -945,7 +945,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
     
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = READ;
     }
@@ -1062,7 +1062,7 @@ void SensorDriverDw1::getSDfromUV(int32_t u, int32_t v, double *speed, double *d
 
 void SensorDriverDw1::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverDw1::setup() {
@@ -1074,7 +1074,7 @@ void SensorDriverDw1::setup() {
 
   if (Wire.endTransmission() == 0) {
     _error_count = 0;
-    _is_setted = true;
+    *_is_setted = true;
     LOGT(F("dw1 setup... [ %s ]"), OK_STRING);
   }else{
     _error_count++;
@@ -1085,7 +1085,7 @@ void SensorDriverDw1::setup() {
 void SensorDriverDw1::prepare(bool is_test) {
   SensorDriver::printInfo();
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
     Wire.write(I2C_WINDSONIC_COMMAND);
     Wire.write(I2C_WINDSONIC_COMMAND_STOP);
@@ -1097,7 +1097,7 @@ void SensorDriverDw1::prepare(bool is_test) {
       return;
     }
 
-    _is_prepared = true;
+    *_is_prepared = true;
     _error_count = 0;
 
     LOGT(F("dw1 prepare... [ %s ]"), OK_STRING);
@@ -1125,7 +1125,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = SET_MEANU_ADDRESS;
     }
@@ -1341,7 +1341,7 @@ void SensorDriverRain::resetPrepared(bool is_test) {
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
   }
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverRain::setup() {
@@ -1353,7 +1353,7 @@ void SensorDriverRain::setup() {
 
   if (Wire.endTransmission() == 0) {
     _error_count = 0;
-    _is_setted = true;
+    *_is_setted = true;
     LOGT(F("rain setup... [ %s ]"), OK_STRING);
   }else{
     _error_count++;
@@ -1366,7 +1366,7 @@ void SensorDriverRain::prepare(bool is_test) {
   bool is_i2c_write;
   uint8_t i;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -1390,7 +1390,7 @@ void SensorDriverRain::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
 	_is_success = false;
@@ -1402,7 +1402,7 @@ void SensorDriverRain::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  if(!is_test)_is_current_prepared = _is_prepared;
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
@@ -1423,7 +1423,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if ( _is_prepared && length >= 1) {
+    if ( *_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = SET_RAIN_ADDRESS;
     }
@@ -1579,7 +1579,7 @@ void SensorDriverTh::resetPrepared(bool is_test) {
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
   }
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverTh::setup() {
@@ -1589,7 +1589,7 @@ void SensorDriverTh::setup() {
   _delay_ms = 0;
   _is_success = false;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -1608,7 +1608,7 @@ void SensorDriverTh::setup() {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_setted = true;
+        *_is_setted = true;
       }else{
 	_error_count++;
       }
@@ -1627,7 +1627,7 @@ void SensorDriverTh::prepare(bool is_test) {
   uint8_t i;
   _is_success = false;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -1651,7 +1651,7 @@ void SensorDriverTh::prepare(bool is_test) {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 50;
+      _delay_ms = 150;
     }
 
     if (is_i2c_write) {
@@ -1661,7 +1661,7 @@ void SensorDriverTh::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
 	LOGE(F("th prepare... endTransmission"));
@@ -1673,7 +1673,7 @@ void SensorDriverTh::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  if(!is_test)_is_current_prepared = _is_prepared;
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
@@ -1696,7 +1696,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
 
-    if ( _is_prepared && length >= 1) {
+    if ( *_is_prepared && length >= 1) {
       LOGT(F("th get INIT"));
       _is_success = true;
       _get_state = SET_TEMPERATURE_ADDRESS;
@@ -2033,7 +2033,7 @@ void SensorDriverPower::resetPrepared(bool is_test) {
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
   }
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverPower::setup() {
@@ -2043,7 +2043,7 @@ void SensorDriverPower::setup() {
   _delay_ms = 0;
   _is_success = false;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -2062,7 +2062,7 @@ void SensorDriverPower::setup() {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_setted = true;
+        *_is_setted = true;
       }else{
 	_error_count++;
       }	
@@ -2081,7 +2081,7 @@ void SensorDriverPower::prepare(bool is_test) {
   uint8_t i;
   _is_success = false;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -2106,7 +2106,7 @@ void SensorDriverPower::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
 	LOGE(F("power prepare... endTransmission"));
@@ -2118,7 +2118,7 @@ void SensorDriverPower::prepare(bool is_test) {
     _delay_ms = 0;
   }
   
-  if(!is_test)_is_current_prepared = _is_prepared;
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F("power prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
@@ -2141,7 +2141,7 @@ void SensorDriverPower::get(int32_t *values, uint8_t length, bool is_test) {
       _is_readed = false;
       _is_end = false;
 
-      if ( _is_prepared && length >= 1) {
+      if ( *_is_prepared && length >= 1) {
 	LOGT(F("power get INIT"));
 	_is_success = true;
 	_get_state = SET_PANEL_ADDRESS;
@@ -2415,7 +2415,7 @@ void SensorDriverPower::getJson(int32_t *values, uint8_t length, char *json_buff
 
 void SensorDriverDigitecoPower::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverDigitecoPower::setup() {
@@ -2426,7 +2426,7 @@ void SensorDriverDigitecoPower::setup() {
   Wire.beginTransmission(_address);
 
   if (Wire.endTransmission() == 0) {
-    _is_setted = true;
+    *_is_setted = true;
     _error_count = 0;
     LOGT(F("digitecopower setup... [ %s ]"), OK_STRING);
   }else{
@@ -2438,7 +2438,7 @@ void SensorDriverDigitecoPower::setup() {
 void SensorDriverDigitecoPower::prepare(bool is_test) {
   SensorDriver::printInfo();
   _delay_ms = 0;
-  _is_prepared = true;
+  *_is_prepared = true;
   _start_time_ms = millis();
   LOGT(F("DEP prepare... [ %s ]"), OK_STRING);
 }
@@ -2462,7 +2462,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length, bool is_tes
     _is_end = false;
     _error_count = 0;
     
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
     } else {
@@ -2844,7 +2844,7 @@ void SensorDriverWind::resetPrepared(bool is_test) {
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
   }
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverWind::setup() {
@@ -2854,7 +2854,7 @@ void SensorDriverWind::setup() {
   _delay_ms = 0;
   _is_success = false;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -2872,7 +2872,7 @@ void SensorDriverWind::setup() {
 	LOGV("wind setup I2C %d, %d",_address,i+1);      
 	_error_count = 0;
         _is_success = true;
-        _is_setted = true;
+        *_is_setted = true;
       }else{
 	LOGE("wind setup error writing I2C");
 	_error_count++;
@@ -2894,7 +2894,7 @@ void SensorDriverWind::prepare(bool is_test) {
   _is_test = is_test;
   _delay_ms = 0;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -2916,7 +2916,7 @@ void SensorDriverWind::prepare(bool is_test) {
 	_delay_ms = 600;   // no less then 550 ms
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
       }
@@ -2926,7 +2926,7 @@ void SensorDriverWind::prepare(bool is_test) {
     _is_success = true;
   }
 
-  if(!is_test)_is_current_prepared = _is_prepared;  
+  if(!is_test)_is_current_prepared = *_is_prepared;  
   LOGT(F("wind prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
@@ -2976,7 +2976,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
       _is_readed = false;
       _is_end = false;
 
-      if (_is_prepared && length >= 1) {
+      if (*_is_prepared && length >= 1) {
         _is_success = true;
         _get_state = SET_ADDRESS;
       }
@@ -3316,7 +3316,7 @@ void SensorDriverSolarRadiation::resetPrepared(bool is_test) {
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
   }
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverSolarRadiation::setup() {
@@ -3326,7 +3326,7 @@ void SensorDriverSolarRadiation::setup() {
   _delay_ms = 0;
   _is_success = false;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -3345,7 +3345,7 @@ void SensorDriverSolarRadiation::setup() {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_setted = true;
+        *_is_setted = true;
       }else{
 	_error_count++;
       }	
@@ -3364,7 +3364,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
   uint8_t i;
   _is_success = false;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -3389,7 +3389,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
 	LOGE(F("radiation prepare... endTransmission"));
@@ -3401,7 +3401,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     _delay_ms = 0;
   }
   
-  if(!is_test)_is_current_prepared = _is_prepared;
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F("solarradiation prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
@@ -3423,7 +3423,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
       _is_readed = false;
       _is_end = false;
 
-      if ( _is_prepared && length >= 1) {
+      if ( *_is_prepared && length >= 1) {
 	LOGT(F("radiation get INIT"));
 	_is_success = true;
 	_get_state = SET_ADDRESS;
@@ -3592,7 +3592,7 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
 
 void SensorDriverOpc::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverOpc::setup() {
@@ -3602,7 +3602,7 @@ void SensorDriverOpc::setup() {
   _delay_ms = 0;
   _is_success = false;
 
-  if (!_is_setted) {
+  if (!*_is_setted) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -3621,7 +3621,7 @@ void SensorDriverOpc::setup() {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_setted = true;
+        *_is_setted = true;
       }else{
 	_error_count++;
       }
@@ -3641,7 +3641,7 @@ void SensorDriverOpc::prepare(bool is_test) {
   _is_success = false;
   _is_test = is_test;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -3661,7 +3661,7 @@ void SensorDriverOpc::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
       }
@@ -3710,7 +3710,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
       _is_readed = false;
       _is_end = false;
 
-      if (_is_prepared && length >= 1) {
+      if (*_is_prepared && length >= 1) {
         _is_success = true;
         _get_state = SET_ADDRESS;
       }
@@ -4220,12 +4220,12 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
 
 void SensorDriverLeaf::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverLeaf::setup() {
   SensorDriver::printInfo();
-  _is_setted = true;
+  *_is_setted = true;
   _delay_ms = 0;
   LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
@@ -4236,7 +4236,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
   uint8_t i = 0;
   _is_success = false;
 
-  if (!_is_prepared) {
+  if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
     is_i2c_write = false;
     i = 0;
@@ -4263,7 +4263,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
 	_error_count = 0;
         _is_success = true;
-        _is_prepared = true;
+        *_is_prepared = true;
       }else{
 	_error_count++;
       }
@@ -4304,7 +4304,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
       _is_readed = false;
       _is_end = false;
 
-      if (_is_prepared && length >= 1) {
+      if (*_is_prepared && length >= 1) {
         _is_success = true;
         _get_state = SET_ADDRESS;
       }
@@ -4484,14 +4484,14 @@ void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffe
 
 void SensorDriverSps::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverSps::setup() {
   SensorDriver::printInfo();
 
   _delay_ms = 0;
-  if (!_is_setted) {
+  if (!*_is_setted) {
 
     //  WARNING !!!!! address is not used; sensirion have only one address
     if (_address != SPS30_ADDRESS) {
@@ -4532,7 +4532,7 @@ void SensorDriverSps::setup() {
       LOGE(F("sps setup... [ %s ]"), ERROR_STRING);
     }
 
-    _is_setted = true;
+    *_is_setted = true;
     _error_count = 0;
     LOGT(F("sps setup... [ %s ]"), YES_STRING);
   } 
@@ -4541,8 +4541,8 @@ void SensorDriverSps::setup() {
 void SensorDriverSps::prepare(bool is_test) {
   SensorDriver::printInfo();
   
-  _is_prepared =_sps30.start();
-  if (_is_prepared){
+  *_is_prepared =_sps30.start();
+  if (*_is_prepared){
     _error_count = 0;
     LOGT(F("SPS prepare... [ %s ]"), OK_STRING);
   }else{
@@ -4565,7 +4565,7 @@ void SensorDriverSps::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
     
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = READ;
     }
@@ -4836,14 +4836,14 @@ void SensorDriverSps::getJson(int32_t *values, uint8_t length, char *json_buffer
 
 void SensorDriverScd::resetPrepared(bool is_test) {
   _get_state = INIT;
-  _is_prepared = false;
+  *_is_prepared = false;
 }
 
 void SensorDriverScd::setup() {
   SensorDriver::printInfo();
 
   _delay_ms = 0;
-  if (!_is_setted) {
+  if (!*_is_setted) {
     _scd30.begin(_address);  //This will cause readings to occur every two seconds
 
     /*
@@ -4878,7 +4878,7 @@ void SensorDriverScd::setup() {
       return;
     }	  
 
-    _is_setted = true;
+    *_is_setted = true;
     _error_count = 0;
     LOGT(F("SCD setup... [ %s ]"), YES_STRING);
   } 
@@ -4893,12 +4893,12 @@ void SensorDriverScd::prepare(bool is_test) {
   _scd30.getHumidity();
   
   //_scd30->beginMeasuring();
-  _is_prepared =true;
+  *_is_prepared =true;
   _error_count = 0;
   LOGT(F("SCD prepare... [ %s ]"), OK_STRING);
 
   /*
-  if (_is_prepared){
+  if (*_is_prepared){
     _error_count = 0;
     LOGT(F("SCD prepare... [ %s ]"), OK_STRING);
   }else{
@@ -4922,7 +4922,7 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
     _is_readed = false;
     _is_end = false;
     
-    if (_is_prepared && length >= 1) {
+    if (*_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = READ;
     }
