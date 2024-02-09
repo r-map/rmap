@@ -923,7 +923,7 @@ void SensorDriverSht::prepare(bool is_test) {
   
   *_is_prepared = _sht.singleShotDataAcquisition();
   if (*_is_prepared){
-    _error_count = 0;
+    //_error_count = 0;          // prepare ok is not enough to say sensor is in a good state
     LOGT(F("SHT prepare... [ %s ]"), OK_STRING);
   }else{
     _error_count++;    
