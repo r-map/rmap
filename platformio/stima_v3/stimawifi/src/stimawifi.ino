@@ -32,9 +32,6 @@ TODO PORTING TO ESP32
 
 #include "stimawifi.h"
 
-sensor_t  sensors[SENSORS_LEN];
-SensorDriver* sd[SENSORS_LEN];
-
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
 const uint16_t update_port = 80;
 
@@ -90,7 +87,7 @@ udpThread threadUdp(udp_data);
 Queue mqttQueue(10,sizeof(mqttMessage_t));
 
 measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure};
-measureThread threadMeasure(measure_data);
+measureThread threadMeasure(&measure_data);
 
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish};
 publishThread threadPublish(publish_data);
@@ -436,8 +433,8 @@ int  rmap_config(const String payload){
   bool status_board_tcpip = false;
   bool status_sensors = false;
   int status = 0;
-  int ii = 0;
-
+  measure_data.sensors_count=0;
+  
   if (! (payload == String())) {
     DynamicJsonDocument doc(4000);
     status = 3;
@@ -526,34 +523,22 @@ int  rmap_config(const String payload){
 	
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
-	    if (ii < SENSORS_LEN) {
+	    if (measure_data.sensors_count < SENSORS_LEN) {
 	      frtosLog.notice(F("station sensor found!"));
-	      strncpy (sensors[ii].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
-	      frtosLog.notice(F("driver: %s"),sensors[ii].driver);
-	      strncpy (sensors[ii].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
-	      frtosLog.notice(F("type: %s"),sensors[ii].type);
-	      strncpy (sensors[ii].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("timerange: %s"),sensors[ii].timerange);
-	      strncpy (sensors[ii].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("level: %s"),sensors[ii].level);
-	      sensors[ii].address = element["fields"]["address"];	    
-	      frtosLog.notice(F("address: %d"),sensors[ii].address);
+	      strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
+	      frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);
+	      strncpy (measure_data.sensors[measure_data.sensors_count].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
+	      frtosLog.notice(F("type: %s"),measure_data.sensors[measure_data.sensors_count].type);
+	      strncpy (measure_data.sensors[measure_data.sensors_count].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
+	      frtosLog.notice(F("timerange: %s"),measure_data.sensors[measure_data.sensors_count].timerange);
+	      strncpy (measure_data.sensors[measure_data.sensors_count].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
+	      frtosLog.notice(F("level: %s"),measure_data.sensors[measure_data.sensors_count].level);
+	      measure_data.sensors[measure_data.sensors_count].address = element["fields"]["address"];	    
+	      frtosLog.notice(F("address: %d"),measure_data.sensors[measure_data.sensors_count].address);
 
-	      if (strcmp(sensors[ii].type,"PMS")==0) pmspresent=true;
+	      if (strcmp(measure_data.sensors[measure_data.sensors_count].type,"PMS")==0) pmspresent=true;
 	      
-	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
-	      if (sd[ii] == 0){
-		frtosLog.error(F("%s:%s driver not created !"),sensors[ii].driver,sensors[ii].type);
-	      }else{		
-		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
-		  frtosLog.error(F("sensor not present or broken"));
-		  //analogWrite(LED_PIN,750);
-		  pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-		  pixels.show();
-		  delay(5000);
-		}		
-	      }
-	      ii++;
+	      measure_data.sensors_count++;
 	    }
 	    status_sensors = true;
 	  }
@@ -1037,6 +1022,8 @@ void setup() {
     reboot();
   }
 
+  threadMeasure.Begin();
+  
  // Set up mDNS responder:
   // - first argument is the domain name, in this example
   //   the fully-qualified domain name is "stimawifi.local"

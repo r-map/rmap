@@ -137,77 +137,56 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
   }
 }
 
-void doMeasure( measure_data_t &data ) {
+void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
-  uint32_t waittime,maxwaittime=0;
-
-  char values[MAX_VALUES_FOR_SENSOR*20];
-  size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
-  //  long values[MAX_VALUES_FOR_SENSOR];
-  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR; 
-  
-  data.status->sensor=unknown;
-  
-  // prepare sensors to measure
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      data.logger->notice(F("prepare sd %d"),i);
-      if (sd[i]->prepare(waittime) == SD_SUCCESS){
-	maxwaittime=_max(maxwaittime,waittime);
-      }else{
-	data.logger->error(F("%s: prepare failed !"),sensors[i].driver);
-	data.status->sensor=error;
-      }
-    }
-  }
-
-  //wait sensors to go ready
-  data.logger->notice(F("wait sensors for ms: %d"),maxwaittime);
-  uint32_t now=millis();
-  int32_t delayt;
-
-
-  if (oledpresent) {
-    displaypos=1;
-    u8g2.clearBuffer();
-    u8g2.setCursor(0, 1*CH); 
-    u8g2.print(F("Measure!"));
-    u8g2.sendBuffer();
-  }
-  delayt= maxwaittime -(millis()-now);
-  if(delayt > 0) {
-    data.logger->notice(F("delay"));
-    delay(delayt);
-  }
-
-  if (oledpresent) {
-    displaypos=2;
-    u8g2.clearBuffer();
-    u8g2.sendBuffer();
-  }
-
+  data.status->sensor=unknown;  
   data.status->novalue=unknown;
 
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      data.logger->notice(F("getJson sd %d"),i);
-      if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
-	//strcpy(values,"{\"B12101\":27315,\"B13003\":88}");
-	enqueueMqttMessage(values,sensors[i].timerange,sensors[i].level, data );
-        web_values(values);
+  data.logger->notice(F("doMeasure --> sensors_count: %d"),data.sensors_count);
+  for (uint8_t i = 0; i < data.sensors_count; i++) {
+    sensorm[i].setTest(false);
+    sensorm[i].setEventRead();
+  }
+  
+  while (true){
+    for (uint8_t i = 0; i < data.sensors_count; i++) {
+      //data.logger->notice(F("doMeasure --> run sensor: %d"),i);
+      sensorm[i].run();
+      if (sensorm[i].getDataReady()){
+	data.logger->notice(F("JSON %s %s %d -> %s"),
+			    sensorm[i].getSensorDriver()->getDriver(),
+			    sensorm[i].getSensorDriver()->getType(),
+			    sensorm[i].getSensorDriver()->getAddress(),
+			    sensorm[i].json_values);
+	  
+	enqueueMqttMessage(sensorm[i].json_values,data.sensors[i].timerange,data.sensors[i].level, data );
+        web_values(sensorm[i].json_values);
 	if (oledpresent) {
-	  display_values(values,data);
+	  display_values(sensorm[i].json_values,data);
         }
-
-      }else{
-	data.logger->error(F("Error getting json from sensor"));
-	if (oledpresent) {
-	  u8g2.setCursor(0, (displaypos++)*CH); 
-	  u8g2.print(F("Sensor error"));
-	  u8g2.sendBuffer();
+	sensorm[i].setDataReady(false);      
+      }    
+    }
+    
+    bool reading = false;
+    for (uint8_t i = 0; i < data.sensors_count; i++) {
+      reading |= sensorm[i].getEventRead();
+    }
+    
+    if (!reading){
+      for (uint8_t i = 0; i < data.sensors_count; i++) {
+	if(sensorm[i].getErrorStatus()){
+	  data.logger->error(F("sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
+	  data.status->sensor=error;
+	  if (oledpresent) {
+	    u8g2.setCursor(0, (displaypos++)*CH); 
+	    u8g2.print(F("Sensor error"));
+	    u8g2.sendBuffer();
+	  }
 	}
-	data.status->sensor=error;
+	sensorm[i].newMeasure();
       }
+      break;
     }
   }
 
@@ -218,22 +197,44 @@ void doMeasure( measure_data_t &data ) {
 }
 
 
-measureThread::measureThread(measure_data_t &measure_data)
+measureThread::measureThread(measure_data_t* measure_data)
   : Thread{"measure", 50000, 1},
     data{measure_data}
 {
   //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
-  data.status->novalue=unknown;
-  data.status->sensor=unknown;
+  data->status->novalue=unknown;
+  data->status->sensor=unknown;
+    
   //Start();
+  
 };
 
 measureThread::~measureThread()
 {
-  data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   // todo disconnect and others
-  data.status->novalue=unknown;
-  data.status->sensor=unknown;
+  data->status->novalue=unknown;
+  data->status->sensor=unknown;
+}
+
+
+void measureThread::Begin()
+{
+  uint8_t tmp_count=0;
+  for (uint8_t i = 0; i < data->sensors_count; i++) {
+    //data.logger->notice(F("create --> %d: %s-%s [ 0x%x ]"), i,sensors[i].driver,sensors[i].type, sensors[i].address);
+    SensorDriver::createAndSetup(data->sensors[i].driver,data->sensors[i].type, data->sensors[i].address, 1, sd, tmp_count);
+    if (sd[i]){
+      data->logger->notice(F("created --> %d: %s-%s [ 0x%x ]: [ %s ]"), i,
+			   sd[i]->getDriver(),
+			   sd[i]->getType(),
+			   sd[i]->getAddress(),
+			   sd[i]->isSetted() ? OK_STRING : FAIL_STRING);
+    }else{
+      data->logger->error(F("sensor driver not created"));
+    }
+    sensorm[i].begin(sd[i]);
+  }
 }
 
 void measureThread::Cleanup()
@@ -242,10 +243,10 @@ void measureThread::Cleanup()
 }
 
 void measureThread::Run() {
-  data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
+  data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
   for(;;){
     WaitForNotification();
-    doMeasure(data);
+    doMeasure(sensorm,*data);
   }
 };
   

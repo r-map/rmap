@@ -40,12 +40,9 @@
 extern String readconfig_rmap();
 ///////////////////////////////////////////////////////////
 
-extern sensor_t  sensors[SENSORS_LEN];
-extern SensorDriver* sd[SENSORS_LEN];
+
 extern WebServer webserver;
 extern PubSubClient mqttclient;
-//extern WebSocketsServer webSocket;
-//extern EspHtmlTemplateProcessor templateProcessor;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 extern char rmap_longitude[11];

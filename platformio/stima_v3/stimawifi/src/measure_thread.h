@@ -1,4 +1,4 @@
-#include <SensorDriverb.h>
+#include "SensorManager.h"
 
 #ifndef MEASURE_THREAD_H_
 #define MEASURE_THREAD_H_
@@ -8,6 +8,8 @@ struct measure_data_t {
   frtosLogging* logger;
   Queue* mqttqueue;
   measureStatus_t* status;
+  sensor_t  sensors[SENSORS_LEN];
+  uint8_t sensors_count;
 };
 
 void display_values(const char* values);
@@ -20,15 +22,19 @@ using namespace cpp_freertos;
 class measureThread : public Thread {
   
 public:
-  measureThread(measure_data_t &measure_data);
+  measureThread(measure_data_t* measure_data);
   ~measureThread();
   virtual void Cleanup();
+  void Begin();
     
 protected:  
   virtual void Run();
     
 private:
-  measure_data_t data;
+  measure_data_t* data;
+  SensorDriver* sd[SENSORS_LEN];
+  sensorManage sensorm[SENSORS_MAX];
+  uint8_t sensors_count;
 };
 
 #endif
