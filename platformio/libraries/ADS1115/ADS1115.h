@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <debug.h>
 
 // 10 millis for ADS1115_REG_CONFIG_DR_128SPS  (for other DR adjust as 1000/DR)
-#define ADS1115_CONVERSION_DELAY_MS     (10)
+#define ADS1115_CONVERSION_DELAY_MS     (150)
 #define ADS1115_CHANNEL_COUNT           (4)
 
 #define ADS1115_CHN_OFF_ID              (0)
@@ -110,8 +110,8 @@ CONFIG REGISTER
 #define ADS1115_REG_CONFIG_CQUE_NONE    (0x0003)  // Disable the comparator and put ALERT/RDY in high state (default)
 /*=========================================================================*/
 
-#define ADC_SET_CHANNEL_RETRY_COUNT_MAX (20)
-#define ADC_SET_CHANNEL_RETRY_DELAY_MS  (2)
+#define ADC_SET_CHANNEL_RETRY_COUNT_MAX (5)
+#define ADC_SET_CHANNEL_RETRY_DELAY_MS  (100)
 
 #define ADC_READ_RETRY_COUNT_MAX        (20)
 #define ADC_READ_RETRY_DELAY_MS         (2)
@@ -122,6 +122,7 @@ CONFIG REGISTER
 
 #define ADC_CHECK_BUFFER_LENGTH         (3)
 #define ADC_CHECK_COUNT                 (3)
+#define ADC_TOLLERANCE                  (2)
 
 typedef enum {
   GAIN_TWOTHIRDS    = ADS1115_REG_CONFIG_PGA_6_144V,

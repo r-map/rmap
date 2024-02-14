@@ -23,9 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
-#include <Wire.h>
-#include <hd44780.h>
-#include <hd44780ioClass/hd44780_I2Cexp.h> // i2c LCD i/o class header
+//#include <Wire.h>
+//#include <hd44780.h>
+//#include <hd44780ioClass/hd44780_I2Cexp.h> // i2c LCD i/o class header
 
 #endif
 

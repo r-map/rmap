@@ -40,7 +40,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gsm_config.h>
 
 #if (USE_LCD)
+#include <Wire.h>
 #include <lcd_config.h>
+#include <hd44780.h>
+#include <hd44780ioClass/hd44780_I2Cexp.h> // i2c LCD i/o class header
 #endif
 
 #ifdef ARDUINO_ARCH_AVR

@@ -61,7 +61,7 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
 
   #if (USE_SENSOR_SHT)
   else if (strcmp(type, SENSOR_TYPE_SHT) == 0)
-  return new SensorDriverSht(driver, type);
+      return new SensorDriverSht(driver, type);
   #endif
 
   #if (USE_SENSOR_SPS)
@@ -252,9 +252,10 @@ void SensorDriver::createAndSetup(const char* driver, const char* type, const ui
 
 void SensorDriver::printInfo() {
   //LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d"), _driver, _type, _address, _address, _node);
-  LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d %T %T"), SensorDriver::getDriver(), SensorDriver::getType(),
-       SensorDriver::getAddress(), SensorDriver::getAddress(), SensorDriver::getNode(),
-       SensorDriver::isSetted(),SensorDriver::isPrepared());
+  //LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d %T %T"), SensorDriver::getDriver(), SensorDriver::getType(),
+  //     SensorDriver::getAddress(), SensorDriver::getAddress(), SensorDriver::getNode(),
+  //     SensorDriver::isSetted(),SensorDriver::isPrepared());
+  LOGV(F("Create SensorDriver"));
 }
 
 //------------------------------------------------------------------------------
@@ -890,26 +891,36 @@ void SensorDriverSht::resetPrepared(bool is_test) {
 void SensorDriverSht::setup() {
   SensorDriver::printInfo();
 
-  _delay_ms = 0;
+  _delay_ms = 1;
 
   if (!*_is_setted) {
 
     //  WARNING !!!!! address is not used; sensirion have only one address
-    if (_address == 0x44) {
-      _sht.softReset();
-      delay(10);
-    } else {
+    if (_address != 0x44) {
       _error_count++;
       LOGE(F("sht setup... wrong i2c address [ %s ]"), ERROR_STRING);
       return;
     }
 
-    if(_sht.clearStatusRegister() == true) {  //Start continuous measurements      
-      
-      *_is_setted = true;
-      _error_count = 0;
-      LOGT(F("sht setup... [ %s ]"), OK_STRING);
+    if (!_sht.softReset()){
+      _error_count++;
+      LOGE(F("sht setup... [ %s ]"), ERROR_STRING);
+      return;
+    }
+    delay(10);
+
+    if(_sht.clearStatusRegister()) {
+      if(_sht.checkStatus()) {
+	*_is_setted = true;
+	_error_count = 0;
+	LOGT(F("sht setup... [ %s ]"), OK_STRING);
+      } else {
+	*_is_setted = false;
+	_error_count++;
+	LOGE(F("sht setup... [ %s ]"), ERROR_STRING);
+      }  
     } else {
+      *_is_setted = false;
       _error_count++;
       LOGE(F("sht setup... [ %s ]"), ERROR_STRING);
     }
@@ -921,12 +932,13 @@ void SensorDriverSht::setup() {
 void SensorDriverSht::prepare(bool is_test) {
   SensorDriver::printInfo();
   
-  *_is_prepared = _sht.singleShotDataAcquisition();
-  if (*_is_prepared){
+  if(_sht.singleShotDataAcquisition()){
+    *_is_prepared = true;
     //_error_count = 0;          // prepare ok is not enough to say sensor is in a good state
     LOGT(F("SHT prepare... [ %s ]"), OK_STRING);
   }else{
-    _error_count++;    
+    *_is_prepared = false;
+    _error_count++;
     LOGE(F("SHT prepare... [ %s ]"), FAIL_STRING);
   }
 
@@ -959,17 +971,25 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
     break;
     
   case READ:
-    
-    if (_sht.getValues() && _sht.checkStatus()){
-      _is_success = true;
-      _error_count = 0;
-      _get_state = END;
+
+    if (_sht.getValues()){
+      if(_sht.checkStatus()){
+	_is_success = true;
+	_error_count = 0;
+	_get_state = END;
+      } else {
+	LOGE(F("sht get read error"));
+	_is_success = false;
+	_error_count++;
+	_get_state = END;
+      }
     } else {
       LOGE(F("sht get read error"));
-      _error_count++;
       _is_success = false;
+      _error_count++;
       _get_state = END;
     }
+  
     _delay_ms = 0;
     _start_time_ms = millis();
     break;
@@ -1006,7 +1026,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
       }
     }
     
-    _delay_ms = 0;
+    _delay_ms = 1;
     _start_time_ms = millis();
     _is_end = true;
     _is_readed = false;

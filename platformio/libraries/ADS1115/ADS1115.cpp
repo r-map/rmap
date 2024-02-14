@@ -39,6 +39,7 @@ whith ADC_BUSY we need to recall initSingleEnded waiting for the other return co
 **********************************************************************/
 
 #include <debug_config.h>
+#include <ArduinoLog.h>
 
 /*!
 \def SERIAL_TRACE_LEVEL
@@ -103,7 +104,7 @@ adc_result_t ADS1115::initSingleEnded(uint8_t channel) {
   ADS1115_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
   ADS1115_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
   ADS1115_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
-  ADS1115_REG_CONFIG_DR_128SPS    | // 128 samples per second (default)
+  ADS1115_REG_CONFIG_DR_8SPS      | // 8 samples per second (128 default)
   ADS1115_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
 
   // Set PGA/voltage range
@@ -153,7 +154,7 @@ adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
       adc_state = ADC_SET_CHANNEL;
       adc_result = ADC_BUSY;
       adc_value_count = 0;
-      // SERIAL_TRACE(F("ADC_INIT --> ADC_SET_CHANNEL\r\n"));
+      LOGV(F("ADC_INIT --> ADC_SET_CHANNEL"));
     break;
 
     case ADC_SET_CHANNEL:
@@ -165,20 +166,22 @@ adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
         delay_ms = ADS1115_CONVERSION_DELAY_MS;
         adc_state = ADC_WAIT_STATE;
         state_after_wait = ADC_READ;
-        // SERIAL_TRACE(F("ADC_SET_CHANNEL --> ADC_READ\r\n"));
+        LOGV(F("ADC_SET_CHANNEL --> ADC_READ"));
       }
       else if ((cmd_result == ADC_ERROR) && ((retry++) < ADC_SET_CHANNEL_RETRY_COUNT_MAX)) {
         // SERIAL_DEBUG(F("ADC_SET_CHANNEL retry %u\r\n"), retry);
+        LOGE(F("ADC_SET_CHANNEL retry %d"),retry);
         start_time_ms = millis();
         delay_ms = ADC_SET_CHANNEL_RETRY_DELAY_MS;
         adc_state = ADC_WAIT_STATE;
         state_after_wait = ADC_SET_CHANNEL;
       }
       else {
+        LOGE(F("ADC_SET_CHANNEL error"));
         retry = 0;
         is_error = true;
         adc_state = ADC_END;
-        // SERIAL_TRACE(F("ADC_SET_CHANNEL --> ADC_END\r\n"));
+        LOGV(F("ADC_SET_CHANNEL --> ADC_END"));
       }
     break;
 
@@ -188,44 +191,50 @@ adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
       if (cmd_result == ADC_OK) {
         adc_state = ADC_CHECK;
         // SERIAL_DEBUG(F("canale %u adc_value_count %u valore %d\r\n"), channel, adc_value_count, adc_value[adc_value_count]);
-        // SERIAL_TRACE(F("ADC_READ --> ADC_CHECK\r\n"));
+        LOGV(F("ADC_READ --> ADC_CHECK"));
       }
       else if ((cmd_result == ADC_ERROR) && ((retry++) < ADC_READ_RETRY_COUNT_MAX)) {
-        // SERIAL_DEBUG(F("ADC_READ retry %u\r\n"), retry);
+        LOGE(F("ADC_READ retry %d"), retry);
         start_time_ms = millis();
         delay_ms = ADC_READ_RETRY_DELAY_MS;
         adc_state = ADC_WAIT_STATE;
         state_after_wait = ADC_READ;
       }
       else {
+        LOGE(F("ADC_READ error"));
         retry = 0;
         is_error = true;
         adc_state = ADC_END;
-        // SERIAL_TRACE(F("ADC_READ --> ADC_END\r\n"));
+        LOGV(F("ADC_READ --> ADC_END"));
       }
     break;
 
     case ADC_CHECK:
-      // OK: 3 valori consecutivi identici
-      if ((adc_value_count >= (ADC_CHECK_COUNT - 1)) && (adc_value[0] == adc_value[1]) && (adc_value[0] == adc_value[2])) {
+      // OK: 3 valori consecutivi +/- identici
+      if ((adc_value_count >= (ADC_CHECK_COUNT - 1))
+	  && (abs((long int)adc_value[0] - (long int)adc_value[1]) < ADC_TOLLERANCE)
+	  && (abs((long int)adc_value[1] - (long int)adc_value[2]) < ADC_TOLLERANCE)
+	  && (abs((long int)adc_value[0] - (long int)adc_value[2]) < ADC_TOLLERANCE)) {
         retry = 0;
-        *value = adc_value[0];
+        *value = adc_value[0]/3+adc_value[1]/3+adc_value[2]/3;  //media
         adc_state = ADC_END;
-        // SERIAL_TRACE(F("ADC_CHECK --> ADC_END\r\n"));
+        LOGV(F("ADC_CHECK --> ADC_END"));
       }
-      // RETRY: 3 valori consecutivi NON identici
+      // RETRY: 3 valori consecutivi NON +/- identici
       else if ((adc_value_count >= (ADC_CHECK_COUNT - 1)) && ((retry++) < ADC_CHECK_RETRY_COUNT_MAX)) {
+        LOGE(F("ADC_CHECK retry %d"), retry);
         start_time_ms = millis();
         delay_ms = ADC_CHECK_RETRY_DELAY_MS;
         adc_state = ADC_WAIT_STATE;
         state_after_wait = ADC_READ;
       }
-      // ERRORE: 3 valori consecutivi NON identici e numero massimo di tentativi raggiunto
+      // ERRORE: 3 valori consecutivi NON +/- identici e numero massimo di tentativi raggiunto
       else if ((adc_value_count >= (ADC_CHECK_COUNT - 1)) && (retry >= ADC_CHECK_RETRY_COUNT_MAX)) {
+        LOGE(F("ADC_CHECK error"));
         retry = 0;
         adc_state = ADC_END;
         is_error = true;
-        // SERIAL_TRACE(F("ADC_CHECK --> ADC_END\r\n"));
+        LOGV(F("ADC_CHECK --> ADC_END"));
       }
       // OK: nuova acquisizione
       else {
@@ -233,7 +242,7 @@ adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
         delay_ms = ADC_READ_DELAY_MS;
         adc_state = ADC_WAIT_STATE;
         state_after_wait = ADC_READ;
-        // SERIAL_TRACE(F("ADC_CHECK --> ADC_READ\r\n"));
+        LOGV(F("ADC_CHECK --> ADC_READ"));
       }
 
       if (adc_value_count < (ADC_CHECK_COUNT - 1)) {
@@ -252,7 +261,7 @@ adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
         adc_result = ADC_OK;
       }
       adc_state = ADC_INIT;
-      // SERIAL_TRACE(F("ADC_END --> ADC_INIT\r\n"));
+      LOGV(F("ADC_END --> ADC_INIT"));
     break;
 
     case ADC_WAIT_STATE:

@@ -808,8 +808,6 @@ protected:
 };
 #endif
 
-#endif
-
 #if (USE_SENSOR_LWT)
 #include "registers-leaf.h"
 class SensorDriverLeaf : public SensorDriver {
@@ -914,4 +912,5 @@ protected:
 
 };
 
+#endif
 #endif
