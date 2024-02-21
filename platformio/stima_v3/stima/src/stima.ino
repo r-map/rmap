@@ -30,24 +30,61 @@ STACK_DECLARE
 
 #include "stima.h"
 
+/*     DO not work
+
+//     MCU status register as global variable read from R2 saved by optiboot bootloader
+uint8_t mcusr __attribute__ ((section (".noinit")));
+void getMCUSR(void) __attribute__((naked)) __attribute__((section(".init0")));
+void getMCUSR(void) {
+  __asm__ __volatile__ ( "mov %0, r2 \n" : "=r" (mcusr) : );
+}
+*/
+
 /*!
 \fn void setup()
 \brief Arduino setup function. Init watchdog, hardware, debug, buffer and load configuration stored in EEPROM.
 \return void.*/
 void setup() {
+
+   /*     DO not work
+   //     MCU status register as local variable read from R2 saved by optiboot bootloader
+   uint8_t mcusr;
+   __asm__ __volatile__ ( "mov %0, r2 \n" : "=r" (mcusr) : );
+   */
+    
    #if (DEBUG_MEMORY)
    #ifdef ARDUINO_ARCH_AVR
    post_StackPaint();
    #endif
    #endif
    init_wdt(WDT_TIMER);
-   Serial.begin(115200);
+   Serial.begin(115200);   
    init_pins();
    init_wire();
    init_spi();
    init_rpc();
    init_tasks();
    init_logging();
+
+   /* read status register: work with fake bootloader that do not change MCUSR
+   LOGV(F("MCUSR: %B"),MCUSR);
+   if(MCUSR & _BV(PORF )) LOGV(F("Power-on reset."));
+   if(MCUSR & _BV(EXTRF)) LOGV(F("External reset!"));
+   if(MCUSR & _BV(BORF )) LOGV(F("Brownout reset!"));
+   if(MCUSR & _BV(WDRF )) LOGV(F("Watchdog reset!"));
+   if(MCUSR & _BV(JTRF )) LOGV(F("JTAG     reset!"));
+   MCUSR=0;
+   */
+   
+   /* read R2 where bottload have saved status register:  Do not work
+   LOGV(F("mcusr: %B"),mcusr);
+   if(mcusr & _BV(PORF )) LOGV(F("Power-on reset."));
+   if(mcusr & _BV(EXTRF)) LOGV(F("External reset!"));
+   if(mcusr & _BV(BORF )) LOGV(F("Brownout reset!"));
+   if(mcusr & _BV(WDRF )) LOGV(F("Watchdog reset!"));
+   if(mcusr & _BV(JTRF )) LOGV(F("JTAG     reset!"));
+   */
+   
    #if (USE_LCD)
    init_lcd();
    wdt_reset();
@@ -96,7 +133,7 @@ void setup() {
    }
    
    #endif
-
+   
    delay(5000);  // wait other board go ready
    wdt_reset();
 
@@ -150,6 +187,16 @@ void loop() {
           wdt_reset();
         }
 
+        if (is_event_sensors_reading) {  // one : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+        if (is_event_sensors_reading) {  // two : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+	
         #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
         if (is_event_ethernet) {
           ethernet_task();
@@ -164,7 +211,12 @@ void loop() {
 
         #endif
 
-        if (is_event_sensors_reading) {
+        if (is_event_sensors_reading) {   // three : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+        if (is_event_sensors_reading) {  // four : repeat task for acquire more priority
           sensors_reading_task();
           wdt_reset();
         }
@@ -176,6 +228,16 @@ void loop() {
         }
         #endif
 
+        if (is_event_sensors_reading) {   // five : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+        if (is_event_sensors_reading) {  // six : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+	
         #if (USE_MQTT)
         if (is_event_mqtt) {
           mqtt_task();
@@ -183,6 +245,17 @@ void loop() {
 	}
         #endif
 
+        if (is_event_sensors_reading) {   // seven : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+        if (is_event_sensors_reading) {  // eight : repeat task for acquire more priority
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+	
         if (is_event_time) {
           time_task();
           wdt_reset();
@@ -1548,6 +1621,7 @@ time_t getSystemTime() {
 
 void realreboot() {
   LOGF(F("bye bye"));
+  noInterrupts();
   init_wdt(WDTO_1S);
   while(true);
 }
@@ -1584,7 +1658,9 @@ void interrupt_task_1s () {
     do_reset_first_run = true;
 
     noInterrupts();
-    if (!is_event_sensors_reading) {
+    if (is_event_sensors_reading) {
+      LOGE(F("Skip sensors reading: sensors reading is running, we lost data"));
+    }else{
       is_test = false;
       is_event_sensors_reading = true;
       ready_tasks_count++;
@@ -1603,10 +1679,14 @@ void interrupt_task_1s () {
   if (is_time_set && now() >= next_ptr_time_for_testing_sensors && next_ptr_time_for_testing_sensors) {
     setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
     noInterrupts();
-    if (!is_event_sensors_reading) {
-      is_test = !is_first_test;
-      is_event_sensors_reading = true;
-      ready_tasks_count++;
+    if (!is_event_sensors_reading){
+      if (is_event_mqtt) {  //  skip sensor reading in test mode if MQTT is working to do not delay real sensor reading
+	LOGW(F("Skip test sensors reading: MQTT is running"));
+      }else{
+	is_test = !is_first_test;
+	is_event_sensors_reading = true;
+	ready_tasks_count++;
+      }
     }
     interrupts();
   }
