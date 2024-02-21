@@ -16,8 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
-TIMESTEP=15             # execute dbadb import everi TIMESTEP seconds
-PACKET_MAX_SIZE= 1000000 # max size in bytes for one dballe import
+TIMESTEP = 15              # execute dbadb import everi TIMESTEP seconds
+PACKET_MAX_SIZE = 1000000  # max size in bytes for one dballe import
+MESSAGES_MAX_NUMBER = 100  # max number of bufr for transaction (with posgresql 100 is the better value by benchmark)
 
 import os,io,signal
 import logging,logging.handlers
@@ -78,9 +79,9 @@ class GracefulKiller:
 
 class Threaded_bufr2dballe(threading.Thread):
 
-    def __init__(self,dsn,lockfile,receive_queue,send_queue,logging=logging):
+    def __init__(self,dsn,lockfile,receive_queue,send_queue):
         threading.Thread.__init__(self)
-        self._logging=logging
+        self._logging=logging.getLogger()
         self._dsn=dsn
         self._receive_queue=receive_queue
         self._send_queue=send_queue
@@ -149,14 +150,31 @@ class Threaded_bufr2dballe(threading.Thread):
                     self._logging.debug("acquire lock on DB for write")
                     with rw_lock.write_lock():                    
                         self._logging.debug("lock acquired")
-                        # Start a transaction
-                        with db.transaction() as tr:
-                            with importer.from_file(totalbodyfile) as f:
-                                for dballemessage in f:
+                        with importer.from_file(totalbodyfile) as f:
+                            count=0
+                            messages=[]
+                            for dballemessage in f:
+                                count+=1
+                                messages.append(dballemessage)
+                                if count > MESSAGES_MAX_NUMBER:
+                                    # Start a transaction for one segment of MESSAGES_MAX_NUMBER messages
+                                    with db.transaction() as tr:
+                                        for message in messages:
+                                            try:
+                                                tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
+                                            except KeyError:
+                                                self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+                                    count=0
+                                    messages=[]
+                        if count >0:                      # send last not completed segment
+                            # Start a transaction
+                            with db.transaction() as tr:
+                                for message in messages:
                                     try:
-                                        tr.import_messages(dballemessage,overwrite=True, update_station=True,import_attributes=True)
+                                        tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
                                     except KeyError:
                                         self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+                        
                     status=True
                             
                 except Exception as exception:
@@ -191,7 +209,7 @@ def main(self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     logging.info('Starting up amqp2dballed')
     
@@ -248,10 +266,9 @@ def main(self):
     send_queue = queue.Queue()
     receive_queue = queue.Queue()
 
-    bufr2dballe=Threaded_bufr2dballe(dsn,lockfile,receive_queue,send_queue,logging=logging)
+    bufr2dballe=Threaded_bufr2dballe(dsn,lockfile,receive_queue,send_queue)
     amqp=amqpConsumerProducer(host=host,queue=inqueue,user=user,password=password,
-                              receive_queue=receive_queue,send_queue=send_queue,
-                              logging=logging)
+                              receive_queue=receive_queue,send_queue=send_queue)
 
     bufr2dballe.start()
     amqp.start()
