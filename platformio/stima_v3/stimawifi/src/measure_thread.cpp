@@ -108,15 +108,15 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     }
         
     strcpy(mqtt_message.topic,"1/");
-    strcat(mqtt_message.topic,rmap_mqttrootpath);
+    strcat(mqtt_message.topic,data.station->mqttrootpath);
     strcat(mqtt_message.topic,"/");
-    strcat(mqtt_message.topic,rmap_user);
+    strcat(mqtt_message.topic,data.station->user);
     strcat(mqtt_message.topic,"//");
-    strcat(mqtt_message.topic,rmap_longitude);
+    strcat(mqtt_message.topic,data.station->longitude);
     strcat(mqtt_message.topic,",");
-    strcat(mqtt_message.topic,rmap_latitude);
+    strcat(mqtt_message.topic,data.station->latitude);
     strcat(mqtt_message.topic,"/");
-    strcat(mqtt_message.topic,rmap_network);
+    strcat(mqtt_message.topic,data.station->network);
     strcat(mqtt_message.topic,"/");
     strcat(mqtt_message.topic,timerange);
     strcat(mqtt_message.topic,"/");

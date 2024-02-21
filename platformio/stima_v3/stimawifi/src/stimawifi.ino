@@ -47,20 +47,6 @@ MutexStandard loggingmutex;
 bool shouldSaveConfig = false;
 bool pmspresent =  false;
 
-//define your default values here, if there are different values in config.json, they are overwritten.
-char rmap_longitude[11] = "";
-char rmap_latitude[11] = "";
-char rmap_network[31] = "";
-char rmap_server[41] = "rmap.cc";
-char ntp_server[41] = "europe.pool.ntp.org";
-char rmap_mqtt_server[41] = "rmap.cc";
-int  rmap_sampletime = DEFAULT_SAMPLETIME;
-char rmap_user[10] = "";
-char rmap_password[31] = "";
-char rmap_slug[31] = "stimawifi";
-char rmap_mqttrootpath[10] = "sample";
-char rmap_mqttmaintpath[10] = "maint";
-
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
 
@@ -86,10 +72,11 @@ udpThread threadUdp(udp_data);
 
 Queue mqttQueue(10,sizeof(mqttMessage_t));
 
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure};
+station_t station;
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station};
 publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -289,11 +276,11 @@ String  rmap_get_remote_config(){
   // Make a HTTP request:
 
   String url="http://";
-  url += rmap_server;
+  url += station.server;
   url+="/stations/";
-  url+=rmap_user;
+  url+=station.user;
   url+="/";
-  url+=rmap_slug;
+  url+=station.slug;
   url+="/default/json/";     // get one station, default boards
 
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
@@ -317,8 +304,8 @@ void firmware_upgrade() {
 
   StaticJsonDocument<200> doc; 
   doc["ver"] = SOFTWARE_VERSION;
-  doc["user"] = rmap_user;
-  doc["slug"] = rmap_slug;
+  doc["user"] = station.user;
+  doc["slug"] = station.slug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
   frtosLog.notice(F("url for firmware update: %s"),update_url);
@@ -328,7 +315,7 @@ void firmware_upgrade() {
   pixels.show();
   delay(3000);
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(String(rmap_server), update_port, String(update_url), String(buffer));
+  t_httpUpdate_return ret = ESPhttpUpdate.update(String(station.server), update_port, String(update_url), String(buffer));
 
   switch(ret)
     {
@@ -448,34 +435,34 @@ int  rmap_config(const String payload){
 	if  (element["model"] == "stations.stationmetadata"){
 	  if (element["fields"]["active"]){
 	    frtosLog.notice(F("station metadata found!"));
-	    strncpy (rmap_mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
-	    rmap_mqttrootpath[9]='\0';
-	    frtosLog.notice(F("mqttrootpath: %s"),rmap_mqttrootpath);
-	    strncpy (rmap_mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
-	    rmap_mqttmaintpath[9]='\0';
-	    frtosLog.notice(F("mqttmaintpath: %s"),rmap_mqttmaintpath);
+	    strncpy (station.mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
+	    station.mqttrootpath[9]='\0';
+	    frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
+	    strncpy (station.mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
+	    station.mqttmaintpath[9]='\0';
+	    frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 
-	    //strncpy (rmap_longitude, element["fields"]["lon"].as<const char*>(),10);
-	    //rmap_longitude[10]='\0';
-	    itoa(int(element["fields"]["lon"].as<float>()*100000),rmap_longitude,10);
-	    frtosLog.notice(F("lon: %s"),rmap_longitude);
+	    //strncpy (station.longitude, element["fields"]["lon"].as<const char*>(),10);
+	    //station.longitude[10]='\0';
+	    itoa(int(element["fields"]["lon"].as<float>()*100000),station.longitude,10);
+	    frtosLog.notice(F("lon: %s"),station.longitude);
 
-	    //strncpy (rmap_latitude , element["fields"]["lat"].as<const char*>(),10);
-	    //rmap_latitude[10]='\0';
-	    itoa(int(element["fields"]["lat"].as<float>()*100000),rmap_latitude,10);
-	    frtosLog.notice(F("lat: %s"),rmap_latitude);
+	    //strncpy (station.latitude , element["fields"]["lat"].as<const char*>(),10);
+	    //station.latitude[10]='\0';
+	    itoa(int(element["fields"]["lat"].as<float>()*100000),station.latitude,10);
+	    frtosLog.notice(F("lat: %s"),station.latitude);
 	    
-	    strncpy (rmap_network , element["fields"]["network"].as< const char*>(),30);
-	    rmap_network[30]='\0';
-	    frtosLog.notice(F("network: %s"),rmap_network);
+	    strncpy (station.network , element["fields"]["network"].as< const char*>(),30);
+	    station.network[30]='\0';
+	    frtosLog.notice(F("network: %s"),station.network);
 
-	    strncpy (rmap_mqttrootpath , element["fields"]["mqttrootpath"].as< const char*>(),9);
-	    rmap_mqttrootpath[9]='\0';
-	    frtosLog.notice(F("rmap_mqttrootpath: %s"),rmap_mqttrootpath);
+	    strncpy (station.mqttrootpath , element["fields"]["mqttrootpath"].as< const char*>(),9);
+	    station.mqttrootpath[9]='\0';
+	    frtosLog.notice(F("station.mqttrootpath: %s"),station.mqttrootpath);
 
-	    strncpy (rmap_mqttmaintpath , element["fields"]["mqttmaintpath"].as< const char*>(),9);
-	    rmap_mqttmaintpath[9]='\0';
-	    frtosLog.notice(F("rmap_mqttmaintpath: %s"),rmap_mqttmaintpath);
+	    strncpy (station.mqttmaintpath , element["fields"]["mqttmaintpath"].as< const char*>(),9);
+	    station.mqttmaintpath[9]='\0';
+	    frtosLog.notice(F("station.mqttmaintpath: %s"),station.mqttmaintpath);
 
 	    status_station = true;
 	  }
@@ -485,19 +472,19 @@ int  rmap_config(const String payload){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
 	      frtosLog.notice(F("board transportmqtt found!"));
-	      rmap_sampletime=element["fields"]["mqttsampletime"];
-	      frtosLog.notice(F("rmap_sampletime: %d"),rmap_sampletime);
+	      station.sampletime=element["fields"]["mqttsampletime"];
+	      frtosLog.notice(F("station.sampletime: %d"),station.sampletime);
 
 	      if (!element["fields"]["mqttserver"].isNull()){
-		strncpy (rmap_mqtt_server, element["fields"]["mqttserver"].as< const char*>(),40);
-		rmap_mqtt_server[40]='\0';
-		frtosLog.notice(F("rmap_mqtt_server: %s"),rmap_mqtt_server);
+		strncpy (station.mqtt_server, element["fields"]["mqttserver"].as< const char*>(),40);
+		station.mqtt_server[40]='\0';
+		frtosLog.notice(F("station.mqtt_server: %s"),station.mqtt_server);
 	      }
 	      
 	      if (!element["fields"]["mqttuser"].isNull()){
-		strncpy (rmap_user, element["fields"]["mqttuser"].as< const char*>(),9);
-		rmap_user[9]='\0';
-		frtosLog.notice(F("rmap_user: %s"),rmap_user);
+		strncpy (station.user, element["fields"]["mqttuser"].as< const char*>(),9);
+		station.user[9]='\0';
+		frtosLog.notice(F("station.user: %s"),station.user);
 	      }
 
 	      status_board_mqtt = true;
@@ -511,9 +498,9 @@ int  rmap_config(const String payload){
 	      frtosLog.notice(F("board transporttcpip found!"));
 
 	      if (!element["fields"]["ntpserver"].isNull()){
-		strncpy (ntp_server, element["fields"]["ntpserver"].as< const char*>(),40);
-		ntp_server[40]='\0';
-		frtosLog.notice(F("ntp_server: %s"),ntp_server);
+		strncpy (station.ntp_server, element["fields"]["ntpserver"].as< const char*>(),40);
+		station.ntp_server[40]='\0';
+		frtosLog.notice(F("ntp_server: %s"),station.ntp_server);
 	      }
 	      status_board_tcpip = true;	      
 	    }
@@ -578,28 +565,28 @@ void readconfig() {
 	if (!error) {
 	  //json.printTo(Serial);
 
-	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
-	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
-          if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
-          if (doc.containsKey("ntp_server")) strcpy(ntp_server, doc["ntp_server"]);
-          if (doc.containsKey("rmap_mqtt_server")) strcpy(rmap_mqtt_server, doc["rmap_mqtt_server"]);
-          if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
-          if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
-          if (doc.containsKey("rmap_slug")) strcpy(rmap_slug, doc["rmap_slug"]);
-	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, doc["rmap_mqttrootpath"]);
-	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, doc["rmap_mqttmaintpath"]);
+	  if (doc.containsKey("rmap_longitude"))strcpy(station.longitude, doc["rmap_longitude"]);
+	  if (doc.containsKey("rmap_latitude")) strcpy(station.latitude, doc["rmap_latitude"]);
+          if (doc.containsKey("rmap_server")) strcpy(station.server, doc["rmap_server"]);
+          if (doc.containsKey("ntp_server")) strcpy(station.ntp_server, doc["ntp_server"]);
+          if (doc.containsKey("rmap_mqtt_server")) strcpy(station.mqtt_server, doc["rmap_mqtt_server"]);
+          if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
+          if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
+          if (doc.containsKey("rmap_slug")) strcpy(station.slug, doc["rmap_slug"]);
+	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(station.mqttrootpath, doc["rmap_mqttrootpath"]);
+	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(station.mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
 	  frtosLog.notice(F("loaded config parameter:"));
-	  frtosLog.notice(F("longitude: %s"),rmap_longitude);
-	  frtosLog.notice(F("latitude: %s"),rmap_latitude);
-	  frtosLog.notice(F("server: %s"),rmap_server);
-	  frtosLog.notice(F("ntp server: %s"),ntp_server);
-	  frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
-	  frtosLog.notice(F("user: %s"),rmap_user);
-	  //frtosLog.notice(F("password: %s"),rmap_password);
-	  frtosLog.notice(F("slug: %s"),rmap_slug);
-	  frtosLog.notice(F("mqttrootpath: %s"),rmap_mqttrootpath);
-	  frtosLog.notice(F("mqttmaintpath: %s"),rmap_mqttmaintpath);
+	  frtosLog.notice(F("longitude: %s"),station.longitude);
+	  frtosLog.notice(F("latitude: %s"),station.latitude);
+	  frtosLog.notice(F("server: %s"),station.server);
+	  frtosLog.notice(F("ntp server: %s"),station.ntp_server);
+	  frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
+	  frtosLog.notice(F("user: %s"),station.user);
+	  //frtosLog.notice(F("password: %s"),station.password);
+	  frtosLog.notice(F("slug: %s"),station.slug);
+	  frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
+	  frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 	  
         } else {
           frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
@@ -620,16 +607,16 @@ void writeconfig() {;
   //DynamicJsonDocument jsonBuffer;
   StaticJsonDocument<500> json;
     
-  json["rmap_longitude"] = rmap_longitude;
-  json["rmap_latitude"] = rmap_latitude;
-  json["rmap_server"] = rmap_server;
-  json["ntp_server"] = ntp_server;
-  json["rmap_mqtt_server"] = rmap_mqtt_server;
-  json["rmap_user"] = rmap_user;
-  json["rmap_password"] = rmap_password;
-  json["rmap_slug"] = rmap_slug;
-  json["rmap_mqttrootpath"] = rmap_mqttrootpath;
-  json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
+  json["rmap_longitude"] = station.longitude;
+  json["rmap_latitude"] = station.latitude;
+  json["rmap_server"] = station.server;
+  json["ntp_server"] = station.ntp_server;
+  json["rmap_mqtt_server"] = station.mqtt_server;
+  json["rmap_user"] = station.user;
+  json["rmap_password"] = station.password;
+  json["rmap_slug"] = station.slug;
+  json["rmap_mqttrootpath"] = station.mqttrootpath;
+  json["rmap_mqttmaintpath"] = station.mqttmaintpath;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -872,19 +859,19 @@ void setup() {
 
   //sntp_init();
   //sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  //sntp_setservername(0, ntp_server);
+  //sntp_setservername(0, station.ntp_server);
   // set notification call-back function
   sntp_set_time_sync_notification_cb( timeavailable );
   sntp_servermode_dhcp(1);
-  configTime(0, 0, ntp_server);
+  configTime(0, 0, station.ntp_server);
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_rmap_server("server", "rmap server", rmap_server, 41);
-  WiFiManagerParameter custom_rmap_user("user", "rmap user", rmap_user, 10);
-  WiFiManagerParameter custom_rmap_password("password", "station password", rmap_password, 31, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 31);
+  WiFiManagerParameter custom_rmap_server("server", "rmap server", station.server, 41);
+  WiFiManagerParameter custom_rmap_user("user", "rmap user", station.user, 10);
+  WiFiManagerParameter custom_rmap_password("password", "station password", station.password, 31, "type = \"password\"");
+  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", station.slug, 31);
 
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
@@ -975,10 +962,10 @@ void setup() {
   
   if (shouldSaveConfig){
     //read updated parameters
-    strcpy(rmap_server, custom_rmap_server.getValue());
-    strcpy(rmap_user, custom_rmap_user.getValue());
-    strcpy(rmap_password, custom_rmap_password.getValue());
-    strcpy(rmap_slug, custom_rmap_slug.getValue());
+    strcpy(station.server, custom_rmap_server.getValue());
+    strcpy(station.user, custom_rmap_user.getValue());
+    strcpy(station.password, custom_rmap_password.getValue());
+    strcpy(station.slug, custom_rmap_slug.getValue());
 
     writeconfig();
     if (oledpresent) {
@@ -1029,7 +1016,7 @@ void setup() {
   //   the fully-qualified domain name is "stimawifi.local"
   // - second argument is the IP address to advertise
   //   we send our IP address on the WiFi network
-  while (!MDNS.begin(rmap_slug)) {
+  while (!MDNS.begin(station.slug)) {
     frtosLog.error(F("Error setting up MDNS responder!"));
     delay(1000);
   }
@@ -1102,11 +1089,11 @@ void setup() {
   }
   
   frtosLog.notice(F("Time: %s"),ctime(&datetime));  
-  frtosLog.notice(F("mqtt server: %s"),rmap_mqtt_server);
+  frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
-  mqttclient.setServer(rmap_mqtt_server, 1883);
+  mqttclient.setServer(station.mqtt_server, 1883);
   
-  Alarm.timerRepeat(rmap_sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(station.sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                                // display status every 3 seconds
 
   // we reset everythings one time a week

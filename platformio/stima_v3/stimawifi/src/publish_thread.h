@@ -8,6 +8,7 @@ struct publish_data_t {
   frtosLogging* logger;
   Queue* mqttqueue;
   publishStatus_t* status;
+  station_t* station;
 };
 
 bool publish_maint(publish_data_t& data);

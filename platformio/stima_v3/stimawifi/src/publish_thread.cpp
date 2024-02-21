@@ -5,27 +5,27 @@ bool publish_maint(publish_data_t& data) {
   data.logger->notice(F("Connet to mqtt broker"));
 
   char mqttid[100]="";
-  strcat(mqttid,rmap_user);
+  strcat(mqttid,data.station->user);
   strcat(mqttid,"/");
-  strcat(mqttid,rmap_slug);
+  strcat(mqttid,data.station->slug);
   strcat(mqttid,"/default");
   
   data.logger->notice(F("mqttid: %s"),mqttid);
   
   char mainttopic[100]="1/";
-  strcat(mainttopic,rmap_mqttmaintpath);
+  strcat(mainttopic,data.station->mqttmaintpath);
   strcat(mainttopic,"/");
-  strcat(mainttopic,rmap_user);
+  strcat(mainttopic,data.station->user);
   strcat(mainttopic,"//");  
-  strcat(mainttopic,rmap_longitude);
+  strcat(mainttopic,data.station->longitude);
   strcat(mainttopic,",");
-  strcat(mainttopic,rmap_latitude);
+  strcat(mainttopic,data.station->latitude);
   strcat(mainttopic,"/");
-  strcat(mainttopic,rmap_network);
+  strcat(mainttopic,data.station->network);
   strcat(mainttopic,"/254,0,0/265,0,-,-/B01213");
   data.logger->notice(F("MQTT maint topic: %s"),mainttopic);
     
-  if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
+  if (!mqttclient.connect(mqttid,mqttid,data.station->password,mainttopic,1,1,"{\"v\":\"error01\"}")){
     data.logger->error(F("Error connecting MQTT"));
     data.logger->error(F("Error status %d"),mqttclient.state());
     data.status->connect=error;
@@ -77,15 +77,15 @@ bool publish_constantdata(publish_data_t& data) {
 	    strcat(payload,"\"}");
       
 	    strcpy(topic,"1/");
-	    strcat(topic,rmap_mqttrootpath);
+	    strcat(topic,data.station->mqttrootpath);
 	    strcat(topic,"/");
-	    strcat(topic,rmap_user);
+	    strcat(topic,data.station->user);
 	    strcat(topic,"//");  
-	    strcat(topic,rmap_longitude);
+	    strcat(topic,data.station->longitude);
 	    strcat(topic,",");
-	    strcat(topic,rmap_latitude);
+	    strcat(topic,data.station->latitude);
 	    strcat(topic,"/");
-	    strcat(topic,rmap_network);
+	    strcat(topic,data.station->network);
 	    strcat(topic,"/-,-,-/-,-,-,-/");
 	    strcat(topic,btable);
 

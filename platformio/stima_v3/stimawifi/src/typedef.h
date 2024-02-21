@@ -2,6 +2,39 @@
 #define TYPEDEF_H_
 
 // sensor information
+struct station_t
+{
+  char longitude[11];
+  char latitude[11];
+  char network[31];
+  char server[41];
+  char ntp_server[41];
+  char mqtt_server[41];
+  int  sampletime;
+  char user[10];
+  char password[31];
+  char slug[31];
+  char mqttrootpath[10];
+  char mqttmaintpath[10];
+
+  //define your default values here, if there are different values in config.json, they are overwritten.
+  station_t() {
+  longitude[0] = '\0';
+  latitude[0] = '\0';
+  network[0] = '\0';
+  strcpy(server,"rmap.cc");
+  strcpy(ntp_server, "europe.pool.ntp.org");
+  strcpy(mqtt_server, "rmap.cc");
+  sampletime = DEFAULT_SAMPLETIME;
+  user[0] = '\0';
+  password[0] = '\0';
+  strcpy(slug, "stimawifi");
+  strcpy(mqttrootpath, "sample");
+  strcpy(mqttmaintpath,"maint");
+  }
+};
+
+// sensor information
 struct sensor_t
 {
   char driver[SENSORDRIVER_DRIVER_LEN];     // driver name

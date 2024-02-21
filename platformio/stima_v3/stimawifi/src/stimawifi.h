@@ -40,23 +40,8 @@
 extern String readconfig_rmap();
 ///////////////////////////////////////////////////////////
 
-
 extern WebServer webserver;
 extern PubSubClient mqttclient;
-
-//define your default values here, if there are different values in config.json, they are overwritten.
-extern char rmap_longitude[11];
-extern char rmap_latitude[11];
-extern char rmap_network[31];
-extern char rmap_server[41];
-extern char ntp_server[41];
-extern char rmap_mqtt_server[41];
-extern int  rmap_sampletime;
-extern char rmap_user[10];
-extern char rmap_password[31];
-extern char rmap_slug[31];
-extern char rmap_mqttrootpath[10];
-extern char rmap_mqttmaintpath[10];
 
 extern U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2;
 extern bool oledpresent;

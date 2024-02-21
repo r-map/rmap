@@ -8,6 +8,7 @@ struct measure_data_t {
   frtosLogging* logger;
   Queue* mqttqueue;
   measureStatus_t* status;
+  station_t* station;
   sensor_t  sensors[SENSORS_LEN];
   uint8_t sensors_count;
 };
