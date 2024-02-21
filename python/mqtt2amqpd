@@ -177,9 +177,6 @@ class MyMQTTClass(mqtt.Client):
 
     def on_message(self,client, userdata, message):
 
-        if userdata["logging"]:
-            logging=userdata["logging"]
-
         if userdata["send_queue"]:
             send_queue=userdata["send_queue"]
 
@@ -324,7 +321,7 @@ def main(self):
     exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
     send_queue = queue.Queue(maxsize=1000000)
 
-    amqp=amqpConsumerProducer(host=amqphost,exchange=exchange,user=amqpuser,password=amqppassword,send_queue=send_queue,logging=logging)
+    amqp=amqpConsumerProducer(host=amqphost,exchange=exchange,user=amqpuser,password=amqppassword,send_queue=send_queue)
     amqp.start()
 
     # If you want to use a specific client id, use
@@ -336,7 +333,6 @@ def main(self):
         userdata=
         {
             "topics": [topic],
-            "logging": logging,
             "send_queue": send_queue,
             "qos":1,
             "version":self.options.rmapversion,
@@ -351,7 +347,7 @@ def main(self):
     if mqttuser:
         mqttclient.username_pw_set(mqttuser, mqttpassword)
 
-    mqttclient.enable_logger(logging)
+    mqttclient.enable_logger()
     mqttclient.loop_start()
     mqttclient.connect(host=mqtthost)
 

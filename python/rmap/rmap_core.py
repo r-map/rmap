@@ -2266,7 +2266,7 @@ class amqpConsumerProducer(threading.Thread):
     def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",
                  send_queue=None,receive_queue=None,
                  pipefunction=None,prefetch_count=50,
-                 logging=logging):
+                 ):
         """Create a new instance of the producer consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -2284,7 +2284,7 @@ class amqpConsumerProducer(threading.Thread):
         self._exchange=exchange
         self._user=user
         self._password=password
-        self._logging=logging
+        self._logging=logging.getLogger(__name__)
         self._running = False
         self.send_queue=send_queue
         self.receive_queue=receive_queue

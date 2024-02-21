@@ -113,7 +113,7 @@ def main(self):
     outexchange="..bufr.report_fixed"
 
     
-    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,logging=logging,pipefunction=jsonline2bufr)
+    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,pipefunction=jsonline2bufr)
     amqp.start()
     
     # infinite loop

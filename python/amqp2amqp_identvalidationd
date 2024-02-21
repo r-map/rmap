@@ -133,8 +133,7 @@ def main(self):
     
     amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,
                               receive_queue=receive_queue,send_queue=send_queue,
-                              pipefunction=identvalidation,
-                              logging=logging)
+                              pipefunction=identvalidation)
     amqp.start()
     
     # infinite loop
