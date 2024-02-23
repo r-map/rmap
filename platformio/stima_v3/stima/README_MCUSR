@@ -1,0 +1,36 @@
+how to debug restart status
+
+in digiteco boot uncomment line:
+
+// uncomment this to debug MCUSR in your application (do it with R2 register do not work)
+  appStart(ch);
+
+compile and load bootloader with external programmer.
+
+uncomment those line in stima.ino at beginning of setup routine:
+
+   LOGV(F("MCUSR: %B"),MCUSR);
+   if(MCUSR & _BV(PORF )) LOGV(F("Power-on reset."));
+   if(MCUSR & _BV(EXTRF)) LOGV(F("External reset!"));
+   if(MCUSR & _BV(BORF )) LOGV(F("Brownout reset!"));
+   if(MCUSR & _BV(WDRF )) LOGV(F("Watchdog reset!"));
+   if(MCUSR & _BV(JTRF )) LOGV(F("JTAG     reset!"));
+   MCUSR=0;
+
+
+in debug_config.h set:
+
+#define ENABLE_SDCARD_LOGGING              (1)
+#define LOG_LEVEL   LOG_LEVEL_VERBOSE
+
+load stima firmware with external programmer and command:
+
+~/.platformio/packages/tool-avrdude/avrdude -C ~/.platformio/packages/tool-avrdude/avrdude.conf -F -v -c stk500v1 -P /dev/ttyUSB0 -b19200 -p atmega1284p  -U flash:w:.pio/build/1284p16m/firmware.hex:i
+
+set jumper for configuration on the stima (master) module and configure station:
+
+rmap-configure --config_station --station_slug="<slug>" --username="user"  --baudrate=115200 --device=/dev/ttyUSB0
+
+set sdcard on the stima module and boot the station.
+
+power down the station and look al stima.log file on the sdcard

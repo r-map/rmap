@@ -70,8 +70,8 @@ void setup() {
    LOGV(F("MCUSR: %B"),MCUSR);
    if(MCUSR & _BV(PORF )) LOGV(F("Power-on reset."));
    if(MCUSR & _BV(EXTRF)) LOGV(F("External reset!"));
-   if(MCUSR & _BV(BORF )) LOGV(F("Brownout reset!"));
-   if(MCUSR & _BV(WDRF )) LOGV(F("Watchdog reset!"));
+   if(MCUSR & _BV(BORF )) LOGE(F("Brownout reset!"));
+   if(MCUSR & _BV(WDRF )) LOGE(F("Watchdog reset!"));
    if(MCUSR & _BV(JTRF )) LOGV(F("JTAG     reset!"));
    MCUSR=0;
    */
@@ -145,6 +145,7 @@ void setup() {
 \return void.
 */
 void loop() {
+   wdt_reset();
    switch (state) {
       case INIT:
          init_sensors();
@@ -370,8 +371,8 @@ void init_logging(){
 }
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
-	if (millis() - *time_ms > debouncing_ms) {
-		*time_ms = millis();
+  if (millis() - *time_ms > debouncing_ms) {
+    *time_ms = millis();
 
     power_adc_disable();
     power_spi_disable();
@@ -381,22 +382,22 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
     #endif
     power_timer2_disable();
 
-		noInterrupts ();
-		sleep_enable();
+    noInterrupts ();
+    sleep_enable();
 
-		interrupts ();
+    interrupts ();
 
-		sleep_cpu();
-		sleep_disable();
+    sleep_cpu();
+    sleep_disable();
 
-		power_adc_enable();
+    power_adc_enable();
     power_spi_enable();
     power_timer0_enable();
     #if (USE_TIMER_1 == false)
     power_timer1_enable();
     #endif
     power_timer2_enable();
-	}
+  }
 }
 
 void init_buffers() {
@@ -1640,6 +1641,7 @@ int reboot(JsonObject params, JsonObject result) {
 #endif
 
 void interrupt_task_1s () {
+  wdt_reset();
   system_time++;
   setTime(system_time);
 
@@ -1657,9 +1659,8 @@ void interrupt_task_1s () {
     is_time_for_sensors_reading_updated = true;
     do_reset_first_run = true;
 
-    noInterrupts();
     if (is_event_sensors_reading) {
-      LOGE(F("Skip sensors reading: sensors reading is running, we lost data"));
+      //LOGE(F("Skip sensors reading: sensors reading is running, we lost data"));  // no print inside interrupt
     }else{
       is_test = false;
       is_event_sensors_reading = true;
@@ -1673,31 +1674,26 @@ void interrupt_task_1s () {
       ready_tasks_count--;
     }
     #endif
-    interrupts();
   }
 
   if (is_time_set && now() >= next_ptr_time_for_testing_sensors && next_ptr_time_for_testing_sensors) {
     setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
-    noInterrupts();
     if (!is_event_sensors_reading){
       if (is_event_mqtt) {  //  skip sensor reading in test mode if MQTT is working to do not delay real sensor reading
-	LOGW(F("Skip test sensors reading: MQTT is running"));
+	//LOGW(F("Skip test sensors reading: MQTT is running"));    // no print inside interrupt
       }else{
 	is_test = !is_first_test;
 	is_event_sensors_reading = true;
 	ready_tasks_count++;
       }
     }
-    interrupts();
   }
   #endif
 
-  noInterrupts();
   if (!is_event_rtc) {
     is_event_rtc = true;
     ready_tasks_count++;
   }
-  interrupts();
 }
 
 void supervisor_task() {
