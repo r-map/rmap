@@ -48,13 +48,4 @@ extern bool oledpresent;
 extern float temperature;
 extern int humidity,pm2,pm10,co2;
 
-extern udp_data_t udp_data;
-extern udpThread threadUdp;
-extern Queue mqttQueue;
-extern measure_data_t measure_data;
-extern measureThread threadMeasure;
-extern publish_data_t publish_data;
-extern publishThread threadPublish;
-
-
 #endif
