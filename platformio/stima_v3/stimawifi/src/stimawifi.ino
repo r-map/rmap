@@ -23,7 +23,6 @@ TODO PORTING TO ESP32
 * implementing OTA firmware updater for ESP32 (https): now I use a old simple porting of ESP8266httpUpdate
 * check if LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED) default to do not autoformat littlefs
 * wait for new LittleFS release for esp8266 API compatibility  https://github.com/espressif/arduino-esp32/pull/5396
-* porting the use of Sensordriver library to Stima V3 non bloking library with restart of sensors
 * do not share data in global variables
 * protect I2C with lock
 * implement the use of GPS
@@ -38,8 +37,8 @@ const uint16_t update_port = 80;
 WiFiManager wifiManager;
 WebServer webserver(STIMAHTTP_PORT);
 
-WiFiClient espClient;
-PubSubClient mqttclient(espClient);
+WiFiClient httpClient;
+WiFiClient mqttClient;
 //EspHtmlTemplateProcessor templateProcessor(&server);
 MutexStandard loggingmutex;
 
@@ -76,7 +75,7 @@ station_t station;
 measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station,&mqttClient};
 publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -128,11 +127,17 @@ String Json(){
   str +=co2;
   str +="\","
     "\"STAT\":\"";
+
+  /*
+    GET connect status
+  
   if (mqttclient.connected()){
     str +="Connected";
   }else{
     str +="Not connected";
   }
+  */
+  
   str +="\"}";
   
   return str;
@@ -280,11 +285,13 @@ String  rmap_get_remote_config(){
   url+="/stations/";
   url+=station.user;
   url+="/";
-  url+=station.slug;
-  url+="/default/json/";     // get one station, default boards
+  url+=station.stationslug;
+  url+="/";
+  url+=station.boardslug;
+  url+="/json/";     // get one station, default boards
 
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
-  http.begin(espClient,url.c_str());
+  http.begin(httpClient,url.c_str());
 
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
@@ -305,7 +312,7 @@ void firmware_upgrade() {
   StaticJsonDocument<200> doc; 
   doc["ver"] = SOFTWARE_VERSION;
   doc["user"] = station.user;
-  doc["slug"] = station.slug;
+  doc["stationslug"] = station.stationslug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
   frtosLog.notice(F("url for firmware update: %s"),update_url);
@@ -469,7 +476,7 @@ int  rmap_config(const String payload){
 	}
 
 	if  (element["model"] == "stations.transportmqtt"){
-	  if (element["fields"]["board"][0] == "default"){
+	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
 	      frtosLog.notice(F("board transportmqtt found!"));
 	      station.sampletime=element["fields"]["mqttsampletime"];
@@ -493,7 +500,7 @@ int  rmap_config(const String payload){
 	}
 
 	if  (element["model"] == "stations.transporttcpip"){
-	  if (element["fields"]["board"][0] == "default"){
+	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
 	      frtosLog.notice(F("board transporttcpip found!"));
 
@@ -530,6 +537,24 @@ int  rmap_config(const String payload){
 	    status_sensors = true;
 	  }
 	}
+
+	if  (element["model"] == "stations.stationconstantdata"){
+	  if (element["fields"]["active"]){
+	    frtosLog.notice(F("station constant data found!"));
+	    char btable[7];
+	    strncpy (btable, element["fields"]["btable"].as< const char*>(),6);
+	    btable[6]='\0';
+	    frtosLog.notice(F("btable: %s"),btable);
+	    char value[31];
+	    strncpy (value, element["fields"]["value"].as< const char*>(),30);
+	    value[30]='\0';
+	    frtosLog.notice(F("value: %s"),value);
+	
+	    strcpy(station.constantdata[station.constantdata_count].btable,btable);
+	    strcpy(station.constantdata[station.constantdata_count].value,value);
+	    station.constantdata_count++;
+	  }
+	}
       }
       status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
     } else {
@@ -540,7 +565,7 @@ int  rmap_config(const String payload){
       delay(5000);
       status = 2;
     }
-    
+
   }else{
     status=1;
   }
@@ -572,7 +597,7 @@ void readconfig() {
           if (doc.containsKey("rmap_mqtt_server")) strcpy(station.mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
-          if (doc.containsKey("rmap_slug")) strcpy(station.slug, doc["rmap_slug"]);
+          if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
 	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(station.mqttrootpath, doc["rmap_mqttrootpath"]);
 	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(station.mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
@@ -584,7 +609,7 @@ void readconfig() {
 	  frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 	  frtosLog.notice(F("user: %s"),station.user);
 	  //frtosLog.notice(F("password: %s"),station.password);
-	  frtosLog.notice(F("slug: %s"),station.slug);
+	  frtosLog.notice(F("stationslug: %s"),station.stationslug);
 	  frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
 	  frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 	  
@@ -614,7 +639,7 @@ void writeconfig() {;
   json["rmap_mqtt_server"] = station.mqtt_server;
   json["rmap_user"] = station.user;
   json["rmap_password"] = station.password;
-  json["rmap_slug"] = station.slug;
+  json["rmap_stationslug"] = station.stationslug;
   json["rmap_mqttrootpath"] = station.mqttrootpath;
   json["rmap_mqttmaintpath"] = station.mqttmaintpath;
   
@@ -753,7 +778,7 @@ void setup() {
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
 
-  espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
+  httpClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   
   Wire.begin();
   //Wire.begin(SDA_PIN,SCL_PIN);
@@ -871,13 +896,13 @@ void setup() {
   WiFiManagerParameter custom_rmap_server("server", "rmap server", station.server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", station.user, 10);
   WiFiManagerParameter custom_rmap_password("password", "station password", station.password, 31, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", station.slug, 31);
+  WiFiManagerParameter custom_rmap_stationslug("slug", "rmap station slug", station.stationslug, 31);
 
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
   wifiManager.addParameter(&custom_rmap_user);
   wifiManager.addParameter(&custom_rmap_password);
-  wifiManager.addParameter(&custom_rmap_slug);
+  wifiManager.addParameter(&custom_rmap_stationslug);
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -965,7 +990,7 @@ void setup() {
     strcpy(station.server, custom_rmap_server.getValue());
     strcpy(station.user, custom_rmap_user.getValue());
     strcpy(station.password, custom_rmap_password.getValue());
-    strcpy(station.slug, custom_rmap_slug.getValue());
+    strcpy(station.stationslug, custom_rmap_stationslug.getValue());
 
     writeconfig();
     if (oledpresent) {
@@ -1016,7 +1041,7 @@ void setup() {
   //   the fully-qualified domain name is "stimawifi.local"
   // - second argument is the IP address to advertise
   //   we send our IP address on the WiFi network
-  while (!MDNS.begin(station.slug)) {
+  while (!MDNS.begin(station.stationslug)) {
     frtosLog.error(F("Error setting up MDNS responder!"));
     delay(1000);
   }
@@ -1091,7 +1116,6 @@ void setup() {
   frtosLog.notice(F("Time: %s"),ctime(&datetime));  
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
-  mqttclient.setServer(station.mqtt_server, 1883);
   
   Alarm.timerRepeat(station.sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                                // display status every 3 seconds

@@ -59,14 +59,14 @@ udpThread::udpThread(udp_data_t& udp_data)
 
 udpThread::~udpThread()
 {
-  data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
-  data.status->receive=unknown;
 }
   
 void udpThread::Cleanup()
 {
   UDP.stop();
   frtosLog.notice(F("Stop listening on UDP port %d"),UDP_PORT);
+  data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data.status->receive=unknown;
   delete this;
 }
 

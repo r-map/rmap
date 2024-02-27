@@ -1,6 +1,26 @@
 #ifndef TYPEDEF_H_
 #define TYPEDEF_H_
 
+/*!
+\def CONSTANTDATA_BTABLE_LENGTH
+\brief Maximum lenght of btable code plus terminator that describe one constant data.
+*/
+#define CONSTANTDATA_BTABLE_LENGTH                    (7)
+
+/*!
+\def CONSTANTDATA_VALUE_LENGTH
+\brief Maximum lenght of value plus terminator for one constant data.
+*/
+#define CONSTANTDATA_VALUE_LENGTH                    (33)
+
+#define MAX_CONSTANTDATA_COUNT                       (5)
+
+
+typedef struct {
+   char btable[CONSTANTDATA_BTABLE_LENGTH];                 //!< table B code for constant station data
+   char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data
+} constantdata_t;
+
 // sensor information
 struct station_t
 {
@@ -13,10 +33,13 @@ struct station_t
   int  sampletime;
   char user[10];
   char password[31];
-  char slug[31];
+  char stationslug[31];
+  char boardslug[31];
   char mqttrootpath[10];
   char mqttmaintpath[10];
-
+  constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter
+  uint8_t constantdata_count;                              //!< configured constantdata number
+  
   //define your default values here, if there are different values in config.json, they are overwritten.
   station_t() {
   longitude[0] = '\0';
@@ -28,9 +51,11 @@ struct station_t
   sampletime = DEFAULT_SAMPLETIME;
   user[0] = '\0';
   password[0] = '\0';
-  strcpy(slug, "stimawifi");
+  strcpy(stationslug, "stimawifi");
+  strcpy(boardslug, "default");
   strcpy(mqttrootpath, "sample");
   strcpy(mqttmaintpath,"maint");
+  constantdata_count=0;
   }
 };
 

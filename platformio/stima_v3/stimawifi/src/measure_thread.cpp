@@ -211,10 +211,6 @@ measureThread::measureThread(measure_data_t* measure_data)
 
 measureThread::~measureThread()
 {
-  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
-  // todo disconnect and others
-  data->status->novalue=unknown;
-  data->status->sensor=unknown;
 }
 
 
@@ -239,6 +235,10 @@ void measureThread::Begin()
 
 void measureThread::Cleanup()
 {
+  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  // todo disconnect and others
+  data->status->novalue=unknown;
+  data->status->sensor=unknown;
   delete this;
 }
 

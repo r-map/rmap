@@ -3,7 +3,6 @@
 
 
 void loop() {
-  mqttclient.loop();
   webserver.handleClient();
   //MDNS.update();
   // sometimes ESP32 do not reconnect and we need a restart

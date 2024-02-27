@@ -41,7 +41,6 @@ extern String readconfig_rmap();
 ///////////////////////////////////////////////////////////
 
 extern WebServer webserver;
-extern PubSubClient mqttclient;
 
 extern U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2;
 extern bool oledpresent;
