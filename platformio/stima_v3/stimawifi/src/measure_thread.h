@@ -9,11 +9,12 @@ struct measure_data_t {
   Queue* mqttqueue;
   measureStatus_t* status;
   station_t* station;
+  summarydata_t* summarydata;
+  MutexStandard* i2cmutex;
   sensor_t  sensors[SENSORS_LEN];
   uint8_t sensors_count;
 };
 
-void display_values(const char* values);
 void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data );
 void doMeasure( measure_data_t& data );
 void web_values(const char* values);

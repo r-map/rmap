@@ -16,6 +16,21 @@
 #define MAX_CONSTANTDATA_COUNT                       (5)
 
 
+struct summarydata_t{
+  float temperature;
+  int humidity;
+  int pm2;
+  int pm10;
+  int co2;
+  summarydata_t() {
+    temperature=NAN;
+    humidity=-999;
+    pm2=-999;
+    pm10=-999;
+    co2=-999;
+  }
+};
+
 typedef struct {
    char btable[CONSTANTDATA_BTABLE_LENGTH];                 //!< table B code for constant station data
    char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data

@@ -41,6 +41,7 @@ WiFiClient httpClient;
 WiFiClient mqttClient;
 //EspHtmlTemplateProcessor templateProcessor(&server);
 MutexStandard loggingmutex;
+MutexStandard i2cmutex;
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -53,8 +54,7 @@ bool oledpresent=false;
 I2C_BUTTON button; //I2C address 0x31
 // I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
 
-float temperature=NAN;
-int humidity=-999,pm2=-999,pm10=-999,co2=-999;
+summarydata_t summarydata;
 
 /*
 If the variable can be updated atomically (for example it is not a
@@ -72,7 +72,7 @@ udpThread threadUdp(udp_data);
 Queue mqttQueue(10,sizeof(mqttMessage_t));
 
 station_t station;
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex};
 measureThread threadMeasure(&measure_data);
 
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station,&mqttClient};
@@ -80,6 +80,64 @@ publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+
+void display_summary_data(char* status) {
+  
+  StaticJsonDocument<500> doc;
+
+  frtosLog.notice(F("display_values"));
+
+  uint8_t displaypos=1;
+
+  LockGuard guard(i2cmutex);
+  u8g2.clearBuffer();
+
+  //u8g2.setCursor(0, 1*CH); 
+  //u8g2.setDrawColor(0);
+  //u8g2.drawBox( 0, 0*CH,64, CH);
+  //u8g2.setDrawColor(1);
+  
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(status);
+
+  frtosLog.notice(F("display Temperature: %D"),summarydata.temperature);
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(F("T   : "));
+  u8g2.print(summarydata.temperature,1);
+  u8g2.print(F(" C"));
+
+  frtosLog.notice(F("display Humidity: %d"),summarydata.humidity);
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(F("U   : "));
+  u8g2.print(summarydata.humidity,0);
+  u8g2.print(F(" %"));
+
+  frtosLog.notice(F("display PM2: %d"),summarydata.pm2);
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(F("PM2 : "));
+  u8g2.print(summarydata.pm2,0);
+  u8g2.print(F(" ug/m3"));
+
+  frtosLog.notice(F("display PM10: %d"),summarydata.pm10);
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(F("PM10: "));
+  u8g2.print(summarydata.pm10,0);
+  u8g2.print(F(" ug/m3"));
+
+  frtosLog.notice(F("display CO2: %d"),summarydata.co2);
+  u8g2.setCursor(0, (displaypos++)*CH); 
+  u8g2.print(F("CO2 : "));
+  u8g2.print(summarydata.co2,0);
+  u8g2.print(F(" ppm"));
+
+  /*
+  u8g2.clearBuffer();
+  u8g2.setCursor(0, 20); 
+  u8g2.print(F("WIFI KO"));
+  u8g2.sendBuffer();
+  */
+  u8g2.sendBuffer(); 
+}
 
 void printLocalTime()
 {
@@ -112,19 +170,19 @@ String Json(){
 
   String str ="{"
     "\"TEMP\":\"";
-  str +=temperature;
+  str +=summarydata.temperature;
   str +="\","
     "\"HUMID\":\"";
-  str +=humidity;
+  str +=summarydata.humidity;
   str +="\","
     "\"PM2\":\"";
-  str +=pm2;
+  str +=summarydata.pm2;
   str +="\","
     "\"PM10\":\"";
-  str +=pm10;
+  str +=summarydata.pm10;
   str +="\","
     "\"CO2\":\"";
-  str +=co2;
+  str +=summarydata.co2;
   str +="\","
     "\"STAT\":\"";
 
@@ -161,7 +219,7 @@ String Data(){
     "</div>\n"
     "<div class=\"side-by-side temperature-text\">Temperature</div>\n"
     "<div class=\"side-by-side temperature\">";
-  str +=temperature;
+  str +=summarydata.temperature;
   str +="<span class=\"superscript\">°C</span></div>\n"
     "</div>\n"
     "<div class=\"data\">\n"
@@ -174,28 +232,28 @@ String Data(){
     "</div>\n"
     "<div class=\"side-by-side humidity-text\">Humidity</div>\n"
     "<div class=\"side-by-side humidity\">";
-  str +=humidity;
+  str +=summarydata.humidity;
   str +="<span class=\"superscript\">%</span></div>\n"
     "</div>\n"
   
     "<div class=\"data\">\n"
     "<div class=\"side-by-side temperature-text\">PM2.5</div>\n"
     "<div class=\"side-by-side temperature\">";
-  str +=pm2;
+  str +=summarydata.pm2;
   str +="<span class=\"superscript\">ug/m3</span></div>\n"
     "</div>\n"
 
     "<div class=\"data\">\n"
     "<div class=\"side-by-side temperature-text\">PM10</div>\n"
     "<div class=\"side-by-side temperature\">";
-  str +=pm10;
+  str +=summarydata.pm10;
   str +="<span class=\"superscript\">ug/m3</span></div>\n"
     "</div>\n"
     
     "<div class=\"data\">\n"
     "<div class=\"side-by-side temperature-text\">CO2</div>\n"
     "<div class=\"side-by-side temperature\">";
-  str +=co2;
+  str +=summarydata.co2;
   str +="<span class=\"superscript\">ppm</span></div>\n"
     "</div>\n";
 
@@ -590,34 +648,34 @@ void readconfig() {
 	if (!error) {
 	  //json.printTo(Serial);
 
-	  if (doc.containsKey("rmap_longitude"))strcpy(station.longitude, doc["rmap_longitude"]);
-	  if (doc.containsKey("rmap_latitude")) strcpy(station.latitude, doc["rmap_latitude"]);
+	  //if (doc.containsKey("rmap_longitude"))strcpy(station.longitude, doc["rmap_longitude"]);
+	  //if (doc.containsKey("rmap_latitude")) strcpy(station.latitude, doc["rmap_latitude"]);
           if (doc.containsKey("rmap_server")) strcpy(station.server, doc["rmap_server"]);
-          if (doc.containsKey("ntp_server")) strcpy(station.ntp_server, doc["ntp_server"]);
-          if (doc.containsKey("rmap_mqtt_server")) strcpy(station.mqtt_server, doc["rmap_mqtt_server"]);
+          //if (doc.containsKey("ntp_server")) strcpy(station.ntp_server, doc["ntp_server"]);
+          //if (doc.containsKey("rmap_mqtt_server")) strcpy(station.mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
           if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
-	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(station.mqttrootpath, doc["rmap_mqttrootpath"]);
-	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(station.mqttmaintpath, doc["rmap_mqttmaintpath"]);
+	  //if (doc.containsKey("rmap_mqttrootpath")) strcpy(station.mqttrootpath, doc["rmap_mqttrootpath"]);
+	  //if (doc.containsKey("rmap_mqttmaintpath")) strcpy(station.mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
 	  frtosLog.notice(F("loaded config parameter:"));
-	  frtosLog.notice(F("longitude: %s"),station.longitude);
-	  frtosLog.notice(F("latitude: %s"),station.latitude);
+	  //frtosLog.notice(F("longitude: %s"),station.longitude);
+	  //frtosLog.notice(F("latitude: %s"),station.latitude);
 	  frtosLog.notice(F("server: %s"),station.server);
-	  frtosLog.notice(F("ntp server: %s"),station.ntp_server);
-	  frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
+	  //frtosLog.notice(F("ntp server: %s"),station.ntp_server);
+	  //frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 	  frtosLog.notice(F("user: %s"),station.user);
 	  //frtosLog.notice(F("password: %s"),station.password);
 	  frtosLog.notice(F("stationslug: %s"),station.stationslug);
-	  frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
-	  frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
+	  //frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
+	  //frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 	  
         } else {
           frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
         }
       } else {
-	frtosLog.error(F("erro reading config file"));	
+	frtosLog.error(F("error reading config file"));	
       }
     } else {
       frtosLog.warning(F("config file do not exist"));
@@ -632,16 +690,16 @@ void writeconfig() {;
   //DynamicJsonDocument jsonBuffer;
   StaticJsonDocument<500> json;
     
-  json["rmap_longitude"] = station.longitude;
-  json["rmap_latitude"] = station.latitude;
+  //json["rmap_longitude"] = station.longitude;
+  //json["rmap_latitude"] = station.latitude;
   json["rmap_server"] = station.server;
-  json["ntp_server"] = station.ntp_server;
-  json["rmap_mqtt_server"] = station.mqtt_server;
+  //json["ntp_server"] = station.ntp_server;
+  //json["rmap_mqtt_server"] = station.mqtt_server;
   json["rmap_user"] = station.user;
   json["rmap_password"] = station.password;
   json["rmap_stationslug"] = station.stationslug;
-  json["rmap_mqttrootpath"] = station.mqttrootpath;
-  json["rmap_mqttmaintpath"] = station.mqttmaintpath;
+  //json["rmap_mqttrootpath"] = station.mqttrootpath;
+  //json["rmap_mqttmaintpath"] = station.mqttmaintpath;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -657,8 +715,8 @@ void writeconfig() {;
 void displayStatus()
 {
 
-  static bool light=true;
   char status[15];
+  bool light=true;
   
   frtosLog.notice(F("status measure: %d, %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor);
   frtosLog.notice(F("status publish: %d, %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
@@ -684,24 +742,18 @@ void displayStatus()
       color = pixels.Color(0,255,0);
       light=true;
     }
-  // if one is error then RED and flash 
+  // if one is error then RED
   if (      stimawifiStatus.measure.novalue == error
 	 || stimawifiStatus.measure.sensor  == error
 	 || stimawifiStatus.publish.connect == error
 	 || stimawifiStatus.publish.publish == error){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
-    light= not light;
+    light = true;
   }
 
   if (oledpresent) { // message on display
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 0*CH,64, CH);
-      u8g2.setDrawColor(1);
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(status);
-      u8g2.sendBuffer();
+    display_summary_data(status);
   }
 
   if (light){   // set neopixel
@@ -1117,15 +1169,14 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
-  Alarm.timerRepeat(station.sampletime, measureAndPublish);             // timer for every SAMPLETIME seconds
-  Alarm.timerRepeat(3,displayStatus);                                // display status every 3 seconds
+  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
-  // we reset everythings one time a week
-  time_t reboottime;
+  time_t reboottime;                                    // we reset everythings one time a week
   if (pmspresent){
-    reboottime=3600*24;            // pms stall sometime
+    reboottime=3600*24;                                 // pms stall sometime
   }else{
-    reboottime=3600*24*7;          // every week
+    reboottime=3600*24*7;                               // every week
   }
   frtosLog.notice(F("reboot every: %d"),reboottime);
   Alarm.timerRepeat(reboottime,reboot);                 // reboot
@@ -1141,4 +1192,17 @@ void setup() {
   threadMeasure.Start();
   threadPublish.Start();
 
+}
+
+void loop() {
+  webserver.handleClient();
+  //MDNS.update();
+  // sometimes ESP32 do not reconnect and we need a restart
+  uint16_t counter=0;
+  while (WiFi.status() != WL_CONNECTED) { //lost connection
+    frtosLog.error(F("WIFI disconnected!"));
+    if(counter++>=300) reboot(); //300 seconds timeout - reset board
+    delay(1000);
+  }
+  Alarm.delay(0);
 }

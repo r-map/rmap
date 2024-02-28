@@ -245,6 +245,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.isConnected()){
     if (mqttConnect(ipstack,mqttclient, data, true)) {
+      data.status->connect=ok;
       if (!publish_maint(mqttclient,data)) {
 	data.logger->error(F("Error in publish maint"));
 	data.status->publish=error;
@@ -260,6 +261,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 	data.status->publish=ok;
       }
     } else {
+      data.status->connect=error;
       data.logger->error(F("MQTT connect failed"));
       data.status->publish=error;
     }

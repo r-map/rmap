@@ -3,90 +3,72 @@
 
 unsigned short int displaypos;
 
-void web_values(const char* values) {
-  
-  StaticJsonDocument<500> doc;
-
-  DeserializationError error =deserializeJson(doc,values);
-  if (!error) {
-    JsonObject obj = doc.as<JsonObject>();
-    for (JsonPair pair : obj) {
-
-      if (pair.value().isNull()) continue;
-      float val=pair.value().as<float>();
-
-      if (strcmp(pair.key().c_str(),"B12101")==0){
-	temperature=round((val-27315)/10.)/10;
-      }
-      if (strcmp(pair.key().c_str(),"B13003")==0){
-	humidity=round(val);
-      }
-      if (strcmp(pair.key().c_str(),"B15198")==0){
-	pm2=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15195")==0){
-	pm10=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15242")==0){
-	co2=round(val/1.8);
-      }
-    }
-  }
+void reset_summary_data(measure_data_t &data) {
+  data.summarydata->temperature=NAN;
+  data.summarydata->humidity=-999;
+  data.summarydata->pm2=-999;
+  data.summarydata->pm10=-999;
+  data.summarydata->co2=-999;
 }
 
-void display_values(const char* values,measure_data_t &data) {
-  
+void get_summary_data(sensorManage sensorm,measure_data_t &data) {
+ 
   StaticJsonDocument<500> doc;
-
-  data.logger->notice(F("display_values: %s"),values);
-  
-  DeserializationError error = deserializeJson(doc,values);
+  DeserializationError error = deserializeJson(doc,sensorm.json_values);
   if (!error) {
     JsonObject obj = doc.as<JsonObject>();
     for (JsonPair pair : obj) {
-
-      if (pair.value().isNull()) continue;
+      if (pair.value().isNull()) {
+	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
+	if (strcmp(pair.key().c_str(),"B12101")==0){
+	  data.summarydata->temperature=NAN;
+	}
+	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
+	if (strcmp(pair.key().c_str(),"B13003")==0){
+	  data.summarydata->humidity=-999;
+	}
+	if (strcmp(pair.key().c_str(),"B15198")==0){
+	  data.summarydata->pm2=-999;
+	}
+	if (strcmp(pair.key().c_str(),"B15195")==0){
+	  data.summarydata->pm10=-999;
+	}
+	if (strcmp(pair.key().c_str(),"B15242")==0){
+	  data.summarydata->co2=-999;
+	}
+	continue;
+      }
+      
       float val=pair.value().as<float>();
       
+      //if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
       if (strcmp(pair.key().c_str(),"B12101")==0){
-	data.logger->notice(F("Temperature: %D"),val);
-	u8g2.setCursor(0, (displaypos++)*CH); 
-	u8g2.print(F("T   : "));
-	u8g2.print(round((val-27315)/10.)/10,1);
-	u8g2.print(F(" C"));
+	data.summarydata->temperature=round((val-27315)/10.)/10;
       }
+      //if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
       if (strcmp(pair.key().c_str(),"B13003")==0){
-	data.logger->notice(F("Humidity: %D"),val);
-	u8g2.setCursor(0, (displaypos++)*CH); 
-	u8g2.print(F("U   : "));
-	u8g2.print(round(val),0);
-	u8g2.print(F(" %"));
+	data.summarydata->humidity=round(val);
       }
       if (strcmp(pair.key().c_str(),"B15198")==0){
-	data.logger->notice(F("PM2: %D"),val);
-	u8g2.setCursor(0, (displaypos++)*CH); 
-	u8g2.print(F("PM2 : "));
-	u8g2.print(round(val/10.),0);
-	u8g2.print(F(" ug/m3"));
+	data.summarydata->pm2=round(val/10.);
       }
       if (strcmp(pair.key().c_str(),"B15195")==0){
-	data.logger->notice(F("PM10: %D"),val);
-	u8g2.setCursor(0, (displaypos++)*CH); 
-	u8g2.print(F("PM10: "));
-	u8g2.print(round(val/10.),0);
-	u8g2.print(F(" ug/m3"));
+	data.summarydata->pm10=round(val/10.);
       }
       if (strcmp(pair.key().c_str(),"B15242")==0){
-	data.logger->notice(F("CO2: %D"),val);
-	u8g2.setCursor(0, (displaypos++)*CH); 
-	u8g2.print(F("CO2 : "));
-	u8g2.print(round(val/1.8),0);
-	u8g2.print(F(" ppm"));
+	data.summarydata->co2=round(val/1.8);
       }
     }
   }else{
     data.logger->error(F("display_values deserialization ERROR"));
-  }  
+  }
+
+  data.logger->notice(F("get temperature: %D"),data.summarydata->temperature);
+  data.logger->notice(F("get humidity: %d"),data.summarydata->humidity);
+  data.logger->notice(F("get PM2: %d"),data.summarydata->pm2);
+  data.logger->notice(F("get PM10: %d"),data.summarydata->pm10);
+  data.logger->notice(F("get CO2: %d"),data.summarydata->co2);
+
 }
 
 void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data ) {
@@ -139,6 +121,10 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 
 void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
+  //LockGuard guard(*data.i2cmutex);
+
+  reset_summary_data(data);
+  
   data.status->sensor=unknown;  
   data.status->novalue=unknown;
 
@@ -151,7 +137,10 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   while (true){
     for (uint8_t i = 0; i < data.sensors_count; i++) {
       //data.logger->notice(F("doMeasure --> run sensor: %d"),i);
+      data.i2cmutex->Lock();
       sensorm[i].run();
+      data.i2cmutex->Unlock();
+     
       if (sensorm[i].getDataReady()){
 	data.logger->notice(F("JSON %s %s %d -> %s"),
 			    sensorm[i].getSensorDriver()->getDriver(),
@@ -160,10 +149,9 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 			    sensorm[i].json_values);
 	  
 	enqueueMqttMessage(sensorm[i].json_values,data.sensors[i].timerange,data.sensors[i].level, data );
-        web_values(sensorm[i].json_values);
-	if (oledpresent) {
-	  display_values(sensorm[i].json_values,data);
-        }
+	data.i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
+	get_summary_data(sensorm[i],data);
+	data.i2cmutex->Unlock();
 	sensorm[i].setDataReady(false);      
       }    
     }
@@ -178,11 +166,6 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 	if(sensorm[i].getErrorStatus()){
 	  data.logger->error(F("sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
 	  data.status->sensor=error;
-	  if (oledpresent) {
-	    u8g2.setCursor(0, (displaypos++)*CH); 
-	    u8g2.print(F("Sensor error"));
-	    u8g2.sendBuffer();
-	  }
 	}
 	sensorm[i].newMeasure();
       }
@@ -193,7 +176,6 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   if(data.status->novalue==unknown) data.status->novalue=ok;
   if(data.status->sensor==unknown) data.status->sensor=ok;
 
-  if (oledpresent) u8g2.sendBuffer();
 }
 
 

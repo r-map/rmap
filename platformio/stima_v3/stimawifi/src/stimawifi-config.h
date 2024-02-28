@@ -23,7 +23,7 @@
 #define STIMAHTTP_PORT 80
 
 // set the I2c clock frequency
-#define I2C_CLOCK 10000
+#define I2C_CLOCK 50000
 
 #define FIRMWARE_TYPE "LOLIN_C3_MINI"
 #define PMS_RESET 0
@@ -61,5 +61,39 @@
 #define MAX_VALUES_FOR_SENSOR 9
 
 #define CH 8            // character height px for display
+
+/*!
+\def MQTT_TIMEOUT_MS
+\brief Timeout in milliseconds for mqtt stack.
+*/
+#define MQTT_TIMEOUT_MS                (6000)
+
+/*!
+\def IP_STACK_TIMEOUT_MS
+\brief IPStack timeout.
+*/
+#define IP_STACK_TIMEOUT_MS            (MQTT_TIMEOUT_MS)
+
+/*!
+\def MQTT_PACKET_SIZE
+\brief Length in bytes for max mqtt packet size.
+*/
+#define MQTT_PACKET_SIZE               (220)
+
+# define MQTT_SERVER_PORT (1883)
+
+
+/*!
+\def CONSTANTDATA_BTABLE_LENGTH
+\brief Maximum lenght of btable code plus terminator that describe one constant data.
+*/
+#define CONSTANTDATA_BTABLE_LENGTH                    (7)
+
+/*!
+\def CONSTANTDATA_VALUE_LENGTH
+\brief Maximum lenght of value plus terminator for one constant data.
+*/
+#define CONSTANTDATA_VALUE_LENGTH                    (33)
+
 
 #endif

@@ -4972,6 +4972,8 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
 	
 	values[0] =  _scd30.getCO2()* 1.8;
       }
+
+      /* // do not use temperature and humidity from this sensor    
       
       // get temperature
       if (length >= 2) {
@@ -4982,7 +4984,8 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
       if (length >= 3) {
 	values[2] = _scd30.getHumidity() ;
       }
-
+      */
+      
       //_scd30.sendCommand(COMMAND_STOP_CONTINUOS_MEASUREMENT);
       
       _is_success = true;
@@ -5015,6 +5018,8 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
 	LOGT(F("SCD--> CO2: ---"));
       }
     }
+
+    /* // do not use temperature and humidity from this sensor    
     
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
@@ -5031,6 +5036,7 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
 	LOGT(F("SCD--> humid: ---"));
       }
     }
+    */
     
     _delay_ms = 0;
     _start_time_ms = millis();
@@ -5056,6 +5062,8 @@ void SensorDriverScd::getJson(int32_t *values, uint8_t length, char *json_buffer
       else json["B15242"] = nullptr;
     }
 
+    /* // do not use temperature and humidity from this sensor    
+    
     if (length >= 2) {
       if (ISVALID_INT32(values[1])) {
         json["B12101"] = values[1];
@@ -5069,6 +5077,7 @@ void SensorDriverScd::getJson(int32_t *values, uint8_t length, char *json_buffer
       }
       else json["B13003"] = nullptr;
     }
+    */
     
     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
       json_buffer[0]='\0';
