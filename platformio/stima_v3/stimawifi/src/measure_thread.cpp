@@ -114,7 +114,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 
     data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
-    data.mqttqueue->Enqueue(&mqtt_message);
+    data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(100));
     
   }
 }

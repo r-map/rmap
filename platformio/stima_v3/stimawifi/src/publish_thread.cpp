@@ -240,7 +240,7 @@ bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >
 }
 
 
-void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const mqttMessage_t& mqtt_message) {
+void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, mqttMessage_t& mqtt_message) {
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.isConnected()){
@@ -271,6 +271,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
     if(mqttPublish( mqttclient, data, mqtt_message,false)){
       data.logger->notice(F("Data published"));    
       data.status->publish=ok;
+      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message
     }else{
       //mqttclient.disconnect(); ////////////////////////////////////// do to ?
       data.logger->error(F("Error in publish data"));
@@ -307,7 +308,7 @@ void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
   for(;;){
     mqttMessage_t mqttMessage;
-    while (data.mqttqueue->Dequeue(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
+    while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
       doPublish(ipstack,mqttclient, data, mqttMessage);
     }
     data.logger->notice(F("mqtt yield"));
