@@ -80,6 +80,7 @@ publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+char status[15]="";     // status message for web and display
 
 void display_summary_data(char* status) {
   
@@ -185,19 +186,9 @@ String Json(){
   str +=summarydata.co2;
   str +="\","
     "\"STAT\":\"";
-
-  /*
-    GET connect status
-  
-  if (mqttclient.connected()){
-    str +="Connected";
-  }else{
-    str +="Not connected";
-  }
-  */
-  
+  str +=status;
   str +="\"}";
-  
+
   return str;
 }
 
@@ -715,7 +706,6 @@ void writeconfig() {;
 void displayStatus()
 {
 
-  char status[15];
   bool light=true;
   
   frtosLog.notice(F("status measure: %d, %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor);
