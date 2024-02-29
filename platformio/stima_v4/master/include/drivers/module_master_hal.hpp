@@ -49,7 +49,7 @@
   #define Spi1  SPI
 #endif
 #if (ENABLE_SPI2)
-#include <Spi.h>
+#include <SPI.h>
 extern SPIClass Spi2;
 #endif
 
