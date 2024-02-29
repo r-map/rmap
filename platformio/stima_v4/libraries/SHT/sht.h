@@ -1,9 +1,9 @@
 /**@file sht.h */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+<h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 
 This is based on popular lib "arduino-sht"
 <https://github.com/Sensirion/arduino-sht>

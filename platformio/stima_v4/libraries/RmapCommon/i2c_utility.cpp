@@ -1,9 +1,9 @@
 /**@file i2c_utility.cpp */
 
 /*********************************************************************
-Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+<h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Marco Baldinetti <marco.baldinetti@alling.it>
+Marco Baldinetti <marco.baldinetti@digiteco.it>
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
