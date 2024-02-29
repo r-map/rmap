@@ -69,7 +69,7 @@ stimawifiStatus_t stimawifiStatus;
 udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp};
 udpThread threadUdp(udp_data);
 
-Queue mqttQueue(60,sizeof(mqttMessage_t));   // 3 minutes queue
+Queue mqttQueue((12*5*60)/30,sizeof(mqttMessage_t));   // ~ 5 minutes queue
 
 station_t station;
 measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex};

@@ -1,5 +1,6 @@
 #ifndef TYPEDEF_H_
 #define TYPEDEF_H_
+#include <mqtt_config.h>
 
 /*!
 \def CONSTANTDATA_BTABLE_LENGTH
@@ -95,8 +96,8 @@ struct sensor_t
 
 struct mqttMessage_t
 {
-  char topic[100];
-  char payload[100];
+  char topic[MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH];
+  char payload[MQTT_MESSAGE_LENGTH];
 };
 
 

@@ -48,12 +48,12 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
     return returnstatus;
   }
   
-  char username[100];
-  strcpy(username, data.station->user);
-  strcat(username, "/");
-  strcat(username, data.station->stationslug);
-  strcat(username, "/");
-  strcat(username, data.station->boardslug);
+  char unique_id[MQTT_CLIENT_ID_LENGTH];
+  strcpy(unique_id, data.station->user);
+  strcat(unique_id, "/");
+  strcat(unique_id, data.station->stationslug);
+  strcat(unique_id, "/");
+  strcat(unique_id, data.station->boardslug);
 
   mqttMessage_t mqtt_message;
   strcpy(mqtt_message.payload,"ERROR 01");
@@ -81,8 +81,8 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   options.will.retained = true;
   options.will.qos = MQTT::QOS1;
   options.willFlag = true;
-  options.clientID.cstring = username;
-  options.username.cstring = username;
+  options.clientID.cstring = unique_id;
+  options.username.cstring = unique_id;
   options.password.cstring = data.station->password;
   options.cleansession = cleanSession;
   options.keepAliveInterval = 60;

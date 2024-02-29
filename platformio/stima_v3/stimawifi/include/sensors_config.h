@@ -336,7 +336,7 @@ Supported sensors:
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (6)
-#define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (9)
+#define JSONS_TO_READ_FROM_SENSOR_COUNT       (9)
 
 #endif

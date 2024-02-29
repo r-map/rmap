@@ -110,8 +110,17 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     char value[33];
     itoa(pair.value().as<uint32_t>(),value,10);
     strcat(mqtt_message.payload,value);
-    strcat(mqtt_message.payload,"}");
-
+    if (timeStatus() == timeSet){
+      char jsontime[30];
+      time_t messagetime=now();
+      snprintf(jsontime,30,",\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"}",
+	       year(messagetime), month(messagetime), day(messagetime),
+	       hour(messagetime), minute(messagetime), second(messagetime));
+      strcat(mqtt_message.payload,jsontime);
+    }else{
+      data.logger->error(F("time not set or needs sync"));
+      strcat(mqtt_message.payload,"}");
+    }
     data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
     data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(100));
