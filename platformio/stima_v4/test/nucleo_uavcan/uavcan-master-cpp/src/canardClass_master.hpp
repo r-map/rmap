@@ -5,9 +5,8 @@
 // This software is distributed under the terms of the MIT License.
 // Progetto RMAP - STIMA V4
 // canardClass Master, Rev.1.00 del 30/09/2022
-// Copyright (C) 2022 Digiteco s.r.l.
-// Author: Gasperini Moreno <m.gasperini@digiteco.it>
-
+// This software is distributed under the terms of the MIT License.
+// <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 // Arduino
 #include <Arduino.h>
 // Libcanard

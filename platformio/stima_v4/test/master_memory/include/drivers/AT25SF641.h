@@ -6,8 +6,8 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (C) 2022  Moreno Gasperini <m.gasperini@digiteco.it>
-  * All rights reserved.</center></h2>
+  * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
+  * <h2><center>All rights reserved.</center></h2>
   *
   * This program is free software; you can redistribute it and/or
   * modify it under the terms of the GNU General Public License
@@ -162,4 +162,4 @@
 
 #endif /* __AT25SF641_H */
 
-/************************ (C) COPYRIGHT Digiteco s.r.l. *****END OF FILE****/
+
