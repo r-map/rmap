@@ -35,7 +35,7 @@
 #include <Update.h>
 
 #include "FS.h"
-#include "SPIFFS.h"
+//#include "SPIFFS.h"
 
 #ifdef DEBUG_ESP_HTTP_UPDATE
 #ifdef DEBUG_ESP_PORT
@@ -92,12 +92,13 @@ public:
     t_httpUpdate_return update(const String& host, uint16_t port, const String& url,
                                const String& currentVersion, const String& httpsCertificate);
 
+  /*
     // This function is deprecated, use rebootOnUpdate and the next one instead
     t_httpUpdate_return updateSpiffs(const String& url, const String& currentVersion,
                                      const String& httpsCertificate, bool reboot) __attribute__((deprecated));
     t_httpUpdate_return updateSpiffs(const String& url, const String& currentVersion = "");
     t_httpUpdate_return updateSpiffs(const String& url, const String& currentVersion, const String& httpsCertificate);
-
+  */
 
     int getLastError(void);
     String getLastErrorString(void);

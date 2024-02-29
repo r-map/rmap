@@ -56,7 +56,7 @@ HTTPUpdateResult ESP32HTTPUpdate::update(const String& url, const String& curren
     http.begin(url, cacert);
     return handleUpdate(http, currentVersion, false);
 }
-
+/*
 HTTPUpdateResult ESP32HTTPUpdate::updateSpiffs(const String& url, const String& currentVersion, const String& httpsCertificate)
 {
     HTTPClient http;
@@ -71,7 +71,7 @@ HTTPUpdateResult ESP32HTTPUpdate::updateSpiffs(const String& url, const String& 
     http.begin(url);
     return handleUpdate(http, currentVersion, true);
 }
-
+*/
 HTTPUpdateResult ESP32HTTPUpdate::update(const String& host, uint16_t port, const String& uri, const String& currentVersion,
         bool https, const String& httpsCertificate, bool reboot)
 {
@@ -181,7 +181,8 @@ HTTPUpdateResult ESP32HTTPUpdate::handleUpdate(HTTPClient& http, const String& c
     http.addHeader(F("x-ESP8266-sdk-version"), ESP.getSdkVersion());
 
     if(spiffs) {
-        http.addHeader(F("x-ESP8266-mode"), F("spiffs"));
+        //http.addHeader(F("x-ESP8266-mode"), F("spiffs"));
+	return ret;
     } else {
         http.addHeader(F("x-ESP8266-mode"), F("sketch"));
     }
@@ -225,6 +226,7 @@ HTTPUpdateResult ESP32HTTPUpdate::handleUpdate(HTTPClient& http, const String& c
     case HTTP_CODE_OK:  ///< OK (Start Update)
         if(len > 0) {
             bool startUpdate = true;
+	    /*
             if(spiffs) {
                 size_t spiffsSize = ((size_t) SPIFFS.totalBytes() - (size_t) SPIFFS.usedBytes());
                 if(len > (int) spiffsSize) {
@@ -237,7 +239,7 @@ HTTPUpdateResult ESP32HTTPUpdate::handleUpdate(HTTPClient& http, const String& c
                 //    startUpdate = false;
                 //}
             }
-
+	    */
             if(!startUpdate) {
                 _lastError = HTTP_UE_TOO_LESS_SPACE;
                 ret = HTTP_UPDATE_FAILED;
