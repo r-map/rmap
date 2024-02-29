@@ -355,7 +355,7 @@ String  rmap_get_remote_config(){
   return payload;
 }
 
-
+#ifdef FIRMWARE_UPGRADE
 void firmware_upgrade() {
 
   StaticJsonDocument<200> doc; 
@@ -426,6 +426,7 @@ void firmware_upgrade() {
   pixels.show();
   delay(3000);
 }
+#endif
 
 String readconfig_rmap() {
 
@@ -1054,7 +1055,10 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
+  
+  #ifdef FIRMWARE_UPGRADE
   firmware_upgrade();
+  #endif
   
   if (!rmap_config(remote_config) == 0) {
     frtosLog.notice(F("station not configurated ! restart"));
@@ -1173,8 +1177,11 @@ void setup() {
 
   // upgrade firmware
   //Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
-  Alarm.timerRepeat(3600*24,firmware_upgrade);          // every day  
 
+  #ifdef FIRMWARE_UPGRADE
+  Alarm.timerRepeat(3600*24,firmware_upgrade);          // every day  
+  #endif
+  
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
