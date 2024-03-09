@@ -25,7 +25,7 @@
 #include <TimeAlarms.h>
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <LOLIN_I2C_BUTTON.h>
-#include <ESP32httpUpdate.h>
+#include <HTTPUpdate.h>
 #include <Adafruit_NeoPixel.h>
 
 #include "udp_thread.h"

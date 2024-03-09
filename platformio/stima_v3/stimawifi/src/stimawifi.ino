@@ -18,15 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-TODO PORTING TO ESP32
-
-* implementing OTA firmware updater for ESP32 (https): now I use a old simple porting of ESP8266httpUpdate
-* check if LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED) default to do not autoformat littlefs
-* wait for new LittleFS release for esp8266 API compatibility  https://github.com/espressif/arduino-esp32/pull/5396
-* do not share data in global variables
-* protect I2C with lock
+TODO
 * implement the use of GPS
-* implement timestamp with SDcard storage
+* implement SDcard storage
 */
 
 #include "stimawifi.h"
@@ -360,7 +354,7 @@ void firmware_upgrade() {
   StaticJsonDocument<200> doc; 
   doc["ver"] = SOFTWARE_VERSION;
   doc["user"] = station.user;
-  doc["stationslug"] = station.stationslug;
+  doc["slug"] = station.stationslug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
   frtosLog.notice(F("url for firmware update: %s"),update_url);
@@ -369,14 +363,13 @@ void firmware_upgrade() {
   pixels.setPixelColor(0, pixels.Color(0, 0, 255));
   pixels.show();
   delay(3000);
-  //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(String(station.server), update_port, String(update_url), String(buffer));
-
+    t_httpUpdate_return ret = httpUpdate.update(httpClient,String(station.server), update_port, String(update_url), String(buffer));
+  
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
       frtosLog.error(F("[update] Update failed with message:"));
-      frtosLog.error(F("%s"),ESPhttpUpdate.getLastErrorString().c_str());
+      frtosLog.error(F("%s"),httpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
 	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("FW Update"));
