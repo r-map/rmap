@@ -45,9 +45,67 @@
               $("#nodata").show(); //mostro il warning
               $("#data").hide(); //nascondo i dati
           });
+
+      getLocation();      
   };
   window.onload = hideNodata;
-  setInterval(loadData,10000);      
+  setInterval(loadData,10000);
+
+
+  // browser location starts when this function is called
+  function getLocation() {
+      
+      // check to make sure geolocation is possible
+      if (navigator.geolocation) {
+	  var options = {
+	      enableHighAccuracy: true,
+	      timeout: 5000,
+	      maximumAge: 0
+	  };
+	  navigator.geolocation.getCurrentPosition(success, error, options);
+      } else {
+	  console.log('Geolocation is not supported');
+      }
+  }
+  
+  function error(err) {
+      console.warn(`ERROR(${err.code}): ${err.message}`);
+  }
+
+  function success(pos) {
+      
+      console.log('lat: ' + pos.coords.latitude + '  lon: ' + pos.coords.longitude);
+      console.log('accuracy: ' + pos.coords.accuracy + ' meters.');
+      
+      // now we have coordinates, it is time to use them to
+      var request_url = 'http://{{ object.slug }}/geo'
+	  + '?'
+	  + 'lat=' + encodeURIComponent(pos.coords.latitude)
+	  + '&lon=' + encodeURIComponent(pos.coords.longitude);
+      
+      var request = new XMLHttpRequest();
+      request.open('GET', request_url, true);
+
+      request.onload = function() {
+	  // see full list of possible response codes:
+	  // https://opencagedata.com/api#codes
+	  
+	  if (request.status === 200){  // Success!
+	      console.log(request.responseText);	      
+	  } else if (request.status <= 500){
+	      // We reached our target server, but it returned an error
+	      console.log("unable to send geo information to station! Response code: " + request.status);
+	  } else {
+	      console.log("server error");
+	  }
+      };
+      request.onerror = function() {
+	  // There was a connection error of some sort
+	  console.log("unable to connect to station");
+      };
+      request.send();  // make the request
+  }
+  
 </script>
 
 {% endblock %}

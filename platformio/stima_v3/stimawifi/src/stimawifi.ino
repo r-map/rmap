@@ -186,6 +186,17 @@ String Json(){
   return str;
 }
 
+String Geo(){
+  if (webserver.method() == HTTP_GET){
+    frtosLog.notice(F("geo get N arguments: %d"),webserver.args());
+    for (uint8_t i = 0; i < webserver.args(); i++) {
+      frtosLog.notice(F("geo get argument %s: %s"),webserver.argName(i),webserver.arg(i));
+    }
+    return "OK";
+  }
+  return "KO";
+}
+
 // function to prepare HTML response
 //https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
 
@@ -304,6 +315,12 @@ void handle_Json() {
   webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
   webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
   webserver.send(200, "application/json", Json()); 
+}
+
+void handle_Geo() {
+  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
+  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
+  webserver.send(200, "text/plain", Geo()); 
 }
 
 void handle_NotFound(){
@@ -1085,6 +1102,7 @@ void setup() {
   webserver.on("/", handle_FullPage);
   webserver.on("/data", handle_Data);
   webserver.on("/data.json", handle_Json);
+  webserver.on("/geo", handle_Geo);
   webserver.onNotFound(handle_NotFound);
   
   webserver.begin();
