@@ -11,6 +11,7 @@ struct measure_data_t {
   station_t* station;
   summarydata_t* summarydata;
   MutexStandard* i2cmutex;
+  georef_t* georef;
   sensor_t  sensors[SENSORS_LEN];
   uint8_t sensors_count;
 };

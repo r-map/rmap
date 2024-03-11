@@ -1,6 +1,7 @@
 #ifndef TYPEDEF_H_
 #define TYPEDEF_H_
 #include <mqtt_config.h>
+#include <mutex.hpp>
 
 /*!
 \def CONSTANTDATA_BTABLE_LENGTH
@@ -37,12 +38,22 @@ typedef struct {
    char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data
 } constantdata_t;
 
+
+struct georef_t
+{
+  char lon[11];
+  char lat[11];
+  time_t timestamp;
+  cpp_freertos::MutexStandard* mutex;
+};
+  
 // sensor information
 struct station_t
 {
   char longitude[11];
   char latitude[11];
   char network[31];
+  char ident[10];
   char server[41];
   char ntp_server[41];
   char mqtt_server[41];

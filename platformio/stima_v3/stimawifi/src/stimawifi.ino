@@ -36,6 +36,7 @@ WiFiClient mqttClient;
 //EspHtmlTemplateProcessor templateProcessor(&server);
 MutexStandard loggingmutex;
 MutexStandard i2cmutex;
+MutexStandard geomutex;
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -50,6 +51,9 @@ I2C_BUTTON button; //I2C address 0x31
 
 summarydata_t summarydata;
 
+georef_t georef={"","",0,&geomutex};
+
+
 /*
 If the variable can be updated atomically (for example it is not a
 32-bit variable on a 16-bit architecture, which would take two writes to
@@ -60,13 +64,13 @@ This is the case for stimawifiStatus
 */
 stimawifiStatus_t stimawifiStatus;
 
-udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp};
+udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef};
 udpThread threadUdp(udp_data);
 
 Queue mqttQueue((12*5*60)/30,sizeof(mqttMessage_t));   // ~ 5 minutes queue
 
 station_t station;
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
 measureThread threadMeasure(&measure_data);
 
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station,&mqttClient};
@@ -189,9 +193,15 @@ String Json(){
 String Geo(){
   if (webserver.method() == HTTP_GET){
     frtosLog.notice(F("geo get N arguments: %d"),webserver.args());
+    georef.mutex->Lock();
     for (uint8_t i = 0; i < webserver.args(); i++) {
       frtosLog.notice(F("geo get argument %s: %s"),webserver.argName(i),webserver.arg(i));
+      if (strcmp(webserver.argName(i).c_str(),"lat") == 0) strcpy(georef.lat,webserver.arg(i).c_str());
+      if (strcmp(webserver.argName(i).c_str(),"lon") == 0) strcpy(georef.lon,webserver.arg(i).c_str());
     }
+    georef.timestamp=now();
+    georef.mutex->Unlock();
+
     return "OK";
   }
   return "KO";
@@ -516,6 +526,10 @@ int  rmap_config(const String payload){
 	    //station.latitude[10]='\0';
 	    itoa(int(element["fields"]["lat"].as<float>()*100000),station.latitude,10);
 	    frtosLog.notice(F("lat: %s"),station.latitude);
+
+	    strncpy (station.ident , element["fields"]["ident"].as< const char*>(),10);
+	    station.network[10]='\0';
+	    frtosLog.notice(F("ident: %s"),station.ident);
 	    
 	    strncpy (station.network , element["fields"]["network"].as< const char*>(),30);
 	    station.network[30]='\0';

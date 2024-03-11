@@ -1,4 +1,5 @@
 #include "stimawifi.h"
+#include <cmath>
 
 WiFiUDP UDP;
 OZGPS gps;
@@ -43,6 +44,23 @@ void doUdp(udp_data_t& data){
     data.logger->notice(F("GLL longitude: %5"), mgps.gll.dms.longitude);
     data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
 			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
+
+    /*
+      If you just need “GPS” coordinates, any of the GGA, RMC, or GLL
+      sentences will do the job. However, if you need specific
+      information, like an object’s altitude, you will need to use GGA
+      sentences. Similar to this, if you need information about the
+      object’s speed, you will have to use RMC sentences. That said,
+      NMEA sentences should be chosen according to the additional
+      information that you need.
+    */
+
+    data.georef->mutex->Lock();    
+    itoa(int(std::round(mgps.rmc.dms.latitude*100000)),data.georef->lat,10);
+    itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data.georef->lon,10);
+    data.georef->timestamp=now();           // TODO create datetime from RMC datetime
+    data.georef->mutex->Unlock();
+
   }
 }
 

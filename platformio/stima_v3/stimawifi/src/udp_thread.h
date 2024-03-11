@@ -8,6 +8,7 @@ struct udp_data_t {
   int id;
   frtosLogging* logger;
   udpStatus_t* status;
+  georef_t* georef;
 };
 
 void doUdp(udp_data_t& data);

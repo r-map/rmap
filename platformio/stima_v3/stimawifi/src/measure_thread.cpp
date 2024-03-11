@@ -93,11 +93,27 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     strcat(mqtt_message.topic,data.station->mqttrootpath);
     strcat(mqtt_message.topic,"/");
     strcat(mqtt_message.topic,data.station->user);
-    strcat(mqtt_message.topic,"//");
-    strcat(mqtt_message.topic,data.station->longitude);
-    strcat(mqtt_message.topic,",");
-    strcat(mqtt_message.topic,data.station->latitude);
-    strcat(mqtt_message.topic,"/");
+
+    if (strcmp(data.station->ident,"") == 0){
+      strcat(mqtt_message.topic,"//");
+      strcat(mqtt_message.topic,data.station->longitude);
+      strcat(mqtt_message.topic,",");
+      strcat(mqtt_message.topic,data.station->latitude);
+      strcat(mqtt_message.topic,"/");
+    } else if (abs(now()-data.georef->timestamp) < (data.station->sampletime/2*1000)) {
+      data.georef->mutex->Lock();
+      strcat(mqtt_message.topic,"/");
+      strcat(mqtt_message.topic,data.station->ident);
+      strcat(mqtt_message.topic,"/");
+      strcat(mqtt_message.topic,data.georef->lon);
+      strcat(mqtt_message.topic,",");
+      strcat(mqtt_message.topic,data.georef->lat);
+      strcat(mqtt_message.topic,"/");
+      data.georef->mutex->Unlock();      
+    } else {
+      return;
+    }
+      
     strcat(mqtt_message.topic,data.station->network);
     strcat(mqtt_message.topic,"/");
     strcat(mqtt_message.topic,timerange);

@@ -76,11 +76,13 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
-  options.will.topicName.cstring = mqtt_message.topic;
-  options.will.message.cstring=mqtt_message.payload;
-  options.will.retained = true;
-  options.will.qos = MQTT::QOS1;
-  options.willFlag = true;
+  if (strcmp(data.station->ident,"") == 0){
+    options.will.topicName.cstring = mqtt_message.topic;
+    options.will.message.cstring=mqtt_message.payload;
+    options.will.retained = true;
+    options.will.qos = MQTT::QOS1;
+    options.willFlag = true;
+  }
   options.clientID.cstring = unique_id;
   options.username.cstring = unique_id;
   options.password.cstring = data.station->password;
@@ -246,19 +248,21 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
   if (!mqttclient.isConnected()){
     if (mqttConnect(ipstack,mqttclient, data, true)) {
       data.status->connect=ok;
-      if (!publish_maint(mqttclient,data)) {
-	data.logger->error(F("Error in publish maint"));
-	data.status->publish=error;
-      }else{
-	data.logger->notice(F("Published maint"));
-	data.status->publish=ok;      
-      }
-      if (!publish_constantdata(mqttclient,data)) {
-	data.logger->error(F("Error in publish constant data"));
-	data.status->publish=error;
-      }else{
-	data.logger->notice(F("Published constant data"));
-	data.status->publish=ok;
+      if (strcmp(data.station->ident,"") == 0){
+	if (!publish_maint(mqttclient,data)) {
+	  data.logger->error(F("Error in publish maint"));
+	  data.status->publish=error;
+	}else{
+	  data.logger->notice(F("Published maint"));
+	  data.status->publish=ok;      
+	}
+	if (!publish_constantdata(mqttclient,data)) {
+	  data.logger->error(F("Error in publish constant data"));
+	  data.status->publish=error;
+	}else{
+	  data.logger->notice(F("Published constant data"));
+	  data.status->publish=ok;
+	}
       }
     } else {
       data.status->connect=error;
