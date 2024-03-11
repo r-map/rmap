@@ -37,12 +37,17 @@ If you change the hardware in the module you need to recreate the station on the
 def update(request,name):
 
     sta_mac    = request.META.get('HTTP_X_ESP8266_STA_MAC')
-    ap_mac     = request.META.get('HTTP_X_ESP8266_AP_MAC' )
+    if ap_mac is None: ap_mac     = request.META.get('HTTP_X_ESP32_AP_MAC' )
     free_space = request.META.get('HTTP_X_ESP8266_FREE_SPACE')
+    if free_space is None: free_space = request.META.get('HTTP_X_ESP32_FREE_SPACE')
     sketch_size= request.META.get('HTTP_X_ESP8266_SKETCH_SIZE')
+    if sketch_size is None: sketch_size= request.META.get('HTTP_X_ESP32_SKETCH_SIZE')
     sketch_md5 = request.META.get('HTTP_X_ESP8266_SKETCH_MD5')
+    if sketch_md5 is None: sketch_md5 = request.META.get('HTTP_X_ESP32_SKETCH_MD5')
     chip_size  = request.META.get('HTTP_X_ESP8266_CHIP_SIZE')
+    if chip_size is None: chip_size  = request.META.get('HTTP_X_ESP32_CHIP_SIZE')
     sdk_version= request.META.get('HTTP_X_ESP8266_SDK_VERSION')
+    if sdk_version is None: sdk_version= request.META.get('HTTP_X_ES32_SDK_VERSION')
 
     print("firmware name:",name)
     print("sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version")
@@ -56,12 +61,13 @@ def update(request,name):
        or sdk_version is None :
         #       or sketch_md5 is None\
 
-        return HttpResponse("403 Forbidden only for ESP8266 updater! (header)",status=403)
+        return HttpResponse("403 Forbidden only for ESP8266/ESP32 updater! (header)",status=403)
         
 
-    if request.META.get('HTTP_USER_AGENT') != 'ESP8266-http-Update':
-        print("403 Forbidden only for ESP8266 updater!")
-        return HttpResponse("403 Forbidden only for ESP8266 updater!",status=403)
+    if (request.META.get('HTTP_USER_AGENT') != 'ESP8266-http-Update'
+        or request.META.get('HTTP_USER_AGENT') != 'ESP32-http-Update'):
+        print("403 Forbidden only for ESP8266/ESP32 updater!")
+        return HttpResponse("403 Forbidden only for ESP8266/ESP32 updater!",status=403)
 
     try:
         firmware=Firmware.objects.filter(firmware__name=name,active=True,).order_by('date').reverse()[0]
@@ -72,6 +78,7 @@ def update(request,name):
     try:
         #check date (version)
         swversion=json.loads(request.META.get('HTTP_X_ESP8266_VERSION'))
+        if swversion is None: swversion=json.loads(request.META.get('HTTP_X_ESP32_VERSION'))
         swdate = dateutil.parser.parse(swversion["ver"])
     except:
         print(' 300 No valid version!')
