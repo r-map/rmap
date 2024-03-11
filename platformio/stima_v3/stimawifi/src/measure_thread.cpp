@@ -100,7 +100,8 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       strcat(mqtt_message.topic,",");
       strcat(mqtt_message.topic,data.station->latitude);
       strcat(mqtt_message.topic,"/");
-    } else if (abs(now()-data.georef->timestamp) < (data.station->sampletime/2*1000)) {
+      data.status->geodef=ok;
+    } else if (abs(now()-data.georef->timestamp) < (data.station->sampletime/2)) {
       data.georef->mutex->Lock();
       strcat(mqtt_message.topic,"/");
       strcat(mqtt_message.topic,data.station->ident);
@@ -110,7 +111,9 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       strcat(mqtt_message.topic,data.georef->lat);
       strcat(mqtt_message.topic,"/");
       data.georef->mutex->Unlock();      
+      data.status->geodef=ok;
     } else {
+      data.status->geodef=error;      
       return;
     }
       
@@ -152,6 +155,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   
   data.status->sensor=unknown;  
   data.status->novalue=unknown;
+  data.status->geodef=unknown;
 
   data.logger->notice(F("doMeasure --> sensors_count: %d"),data.sensors_count);
   for (uint8_t i = 0; i < data.sensors_count; i++) {

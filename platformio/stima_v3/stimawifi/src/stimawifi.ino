@@ -731,16 +731,16 @@ void displayStatus()
 
   bool light=true;
   
-  frtosLog.notice(F("status measure: %d, %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor);
-  frtosLog.notice(F("status publish: %d, %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
-  frtosLog.notice(F("status udp: %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
+  frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
+  frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
+  frtosLog.notice(F("status udp    : receive %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
   
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
   uint32_t color = pixels.Color(0,0,0);
 
   // if one not unknown then BLUE
-  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor  != unknown
+  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor  != unknown && stimawifiStatus.measure.geodef  != unknown
       &&  stimawifiStatus.publish.connect != unknown && stimawifiStatus.publish.publish != unknown)
     {
       strcpy(status,"Stat: working");
@@ -748,7 +748,7 @@ void displayStatus()
       light=true;
     }
   // if all OK then GREEN
-  if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok
+  if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok && stimawifiStatus.measure.geodef  == ok
       &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok)
     {
       strcpy(status,"Stat: ok");
@@ -758,6 +758,7 @@ void displayStatus()
   // if one is error then RED
   if (      stimawifiStatus.measure.novalue == error
 	 || stimawifiStatus.measure.sensor  == error
+	 || stimawifiStatus.measure.geodef  == error
 	 || stimawifiStatus.publish.connect == error
 	 || stimawifiStatus.publish.publish == error){
     strcpy(status,"Stat: error");

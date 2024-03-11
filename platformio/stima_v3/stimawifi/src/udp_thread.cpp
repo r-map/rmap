@@ -60,8 +60,12 @@ void doUdp(udp_data_t& data){
     itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data.georef->lon,10);
     data.georef->timestamp=now();           // TODO create datetime from RMC datetime
     data.georef->mutex->Unlock();
+    data.status->receive=ok;
 
   }
+
+  if ((now()-data.georef->timestamp) > 30) data.status->receive=error;
+ 
 }
 
 using namespace cpp_freertos;

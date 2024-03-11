@@ -121,6 +121,7 @@ struct measureStatus_t
   //sensorMeasure_e sensor;
   status_e novalue;
   status_e sensor;
+  status_e geodef;
 };
 
 //enum mqttConnect_e { unknown, ok, error };
