@@ -27,16 +27,17 @@ bool mqttSubscribeRpc(publish_data_t& data, MQTT::connackData& data) {
   return returnstatus;
 }
 
-bool mqttDisconnect(publish_data_t& data, MQTT::connackData& data) {
+*/
 
-  mqtt_client.disconnect();
-  mqtt_client.setMessageHandler(comtopic, NULL); // remove handler setted
+bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data) {
+
+  mqttclient.disconnect();
+  //mqttclient.setMessageHandler(comtopic, NULL); // remove handler setted
   ipstack.disconnect();
-  data.logger->notice(F("MQTT Disconnect... [ %s ]"), OK_STRING);
+  data.logger->notice(F("MQTT Disconnectted"));
   return true;
 }
 
-*/
 
 bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const bool cleanSession=true) {
 
@@ -246,6 +247,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 
   // manage mqtt reconnect as RMAP standard
   if (!mqttclient.isConnected()){
+    mqttDisconnect(ipstack,mqttclient, data);
     if (mqttConnect(ipstack,mqttclient, data, true)) {
       data.status->connect=ok;
       if (strcmp(data.station->ident,"") == 0){
@@ -285,7 +287,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
-  : Thread{"publish", 50000, 1},
+  : Thread{"publish", 20000, 1},
     data{publish_data},
     ipstack{*data.mqttClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}

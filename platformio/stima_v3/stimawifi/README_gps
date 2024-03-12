@@ -1,3 +1,12 @@
+systemctl stop gpsd.socket
 gpsd -N udp://*:8888 --debug 10
 gpsmon
-gps forwarder 192.168.253.255
+
+git clone https://github.com/tiagoshibata/Android-GPSd-Forwarder.git
+cd Android-GPSd-Forwarder
+./gradlew build
+ls app/build/outputs/apk/release/app-release-unsigned.apk
+
+gps forwarder ->
+192.168.253.255
+8888

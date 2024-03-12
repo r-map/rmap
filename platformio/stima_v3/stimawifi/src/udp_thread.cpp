@@ -38,10 +38,10 @@ void doUdp(udp_data_t& data){
   if (updated){
     data.logger->notice(F("RMC latitude : %5"), mgps.rmc.dms.latitude);
     data.logger->notice(F("RMC longitude: %5"), mgps.rmc.dms.longitude);
-    data.logger->notice(F("GGA latitude : %5"), mgps.gga.dms.latitude);
-    data.logger->notice(F("GGA longitude: %5"), mgps.gga.dms.longitude);
-    data.logger->notice(F("GLL latitude : %5"), mgps.gll.dms.latitude);
-    data.logger->notice(F("GLL longitude: %5"), mgps.gll.dms.longitude);
+    //data.logger->notice(F("GGA latitude : %5"), mgps.gga.dms.latitude);
+    //data.logger->notice(F("GGA longitude: %5"), mgps.gga.dms.longitude);
+    //data.logger->notice(F("GLL latitude : %5"), mgps.gll.dms.latitude);
+    //data.logger->notice(F("GLL longitude: %5"), mgps.gll.dms.longitude);
     data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
 			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
 
@@ -71,7 +71,7 @@ void doUdp(udp_data_t& data){
 using namespace cpp_freertos;
 
 udpThread::udpThread(udp_data_t& udp_data)
-  : Thread{"UDP", 10000, 1}
+  : Thread{"UDP", 20000, 1}
     ,data{udp_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -96,7 +96,8 @@ void udpThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
   gps.init(&mgps);
-  gps.set_filter(0xE); // "RMC","GGA","GLL"
+  //gps.set_filter(0xE); // "RMC","GGA","GLL"
+  gps.set_filter(0x2); // "RMC"
 
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
