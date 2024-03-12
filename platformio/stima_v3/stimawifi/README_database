@@ -1,0 +1,15 @@
+https://github.com/siara-cc/esp32_arduino_sqlite3_lib
+sqlite completo
+impronta molto grande, funziona solo con arduino core V2
+
+https://github.com/siara-cc/sqlite_micro_logger_c
+genera file sqlite compatibili con API specializzate
+https://github.com/siara-cc/sqlite_micro_logger_c?tab=readme-ov-file#api
+
+https://armink.github.io/FlashDB/
+no sqlite, API:
+https://armink.github.io/FlashDB/#/api?id=tsdb
+nell'ultima versione c'è una versione di
+https://armink.github.io/FlashDB/#/api?id=append-tsl
+che accetta in ingresso timestamp
+

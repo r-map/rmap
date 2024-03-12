@@ -1203,7 +1203,9 @@ void setup() {
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
-  threadUdp.Start();
+  if (strcmp(station.ident,"") != 0){
+    threadUdp.Start();
+  }
   threadMeasure.Start();
   threadPublish.Start();
 
