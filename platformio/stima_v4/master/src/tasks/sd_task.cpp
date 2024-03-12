@@ -475,6 +475,44 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir bkp\r\n"));
       }
+      // Create info.dat archive backup ditectory info record data structure
+      if(!SD.exists("/bkp/info.dat")) {
+        // Rewrite Info Dat File (Open only at startup for Rewrite Info on BKP\SD)
+        tmpFile = SD.open("/bkp/info.dat", O_RDWR | O_CREAT);
+        if(tmpFile) {
+          // Open File High LED
+          #ifdef PIN_SD_LED
+          digitalWrite(PIN_SD_LED, HIGH);
+          #endif
+          bWriteErr = false;
+          // Create Default Base Topic from E2Prom archived configuration (Rewrite at startup, changed firmware, configuration, ecc...)
+          memset(logBuffer, 0, sizeof(logBuffer));
+          snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%07d,%07d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+          bWriteErr |= !tmpFile.print(param.configuration->stationslug);
+          bWriteErr |= !tmpFile.print(param.configuration->module_main_version);
+          bWriteErr |= !tmpFile.print(param.configuration->module_minor_version);
+          bWriteErr |= !tmpFile.print(logBuffer);
+          bWriteErr |= !tmpFile.print(RMAP_BACKUP_DATA_LEN_TOPIC_SIZE);
+          bWriteErr |= !tmpFile.print(RMAP_BACKUP_DATA_LEN_MESSAGE_SIZE);
+          tmpFile.close();
+          // Close File Low LED
+          #ifdef PIN_SD_LED
+          digitalWrite(PIN_SD_LED, LOW);
+          #endif
+          if (bWriteErr) {
+            // SD Pointer Error, general Write on first File...
+            // Error. Send to system_state and retry OPEN INIT SD
+            state = SD_STATE_INIT;
+            break;
+          }
+        } else {
+          // SD Pointer Error, general Open on first File...
+          // Error. Send to system_state and retry OPEN INIT SD
+          state = SD_STATE_INIT;
+          break;
+        }
+        TRACE_INFO_F(F("SD: created file info.dat record structure data bkp\r\n"));
+      }
 
       // ***************************************************
       // SD Was Ready... for System Structure and Pointer OK
@@ -529,13 +567,13 @@ void SdTask::Run()
           } else {
             // Pointer file not coerent, Remove and new creation starting
             SD.remove("/data/pointer.dat");
-            // SD Pointer Error, general Openon first File...
+            // SD Pointer Error, general Open on first File...
             // Error. Send to system_state and retry OPEN INIT SD (Exit and restart UP...)
             break;
           }
         } else {
-          // SD Pointer Error, general Openon first File...
-          // Error. Send to system_stae and retry OPEN INIT SD
+          // SD Pointer Error, general Open on first File...
+          // Error. Send to system_state and retry OPEN INIT SD
           state = SD_STATE_INIT;
           break;
         }
@@ -871,7 +909,7 @@ void SdTask::Run()
           // All correct... Write Block of data
 
           // Put to SD ( APPEND File Always Opened with Flush Data )
-          if(rmapBkpFile) {          
+          if(rmapBkpFile) {
             // Open File High LED
             #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);

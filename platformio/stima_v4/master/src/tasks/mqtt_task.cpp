@@ -1066,7 +1066,7 @@ error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bva
   return error;
 }
 
-error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length)
+error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, char *sensors_topic, size_t topic_length)
 {
   error_t error = NO_ERROR;
 
@@ -1092,16 +1092,16 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
 }
 
 // Put data into queue to create File Data Backup Older Format
-void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *topic, char *message)
+void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, char *localMessage)
 {
   rmap_backup_data_t archive_backup_data_line = {0};
-  size_t lenTopic = strlen(topic);
-  size_t lenMessage = strlen(message);
+  size_t lenTopic = strlen(localTopic);
+  size_t lenMessage = strlen(localMessage);
   // Prepare message
   archive_backup_data_line.date_time = convertDateToUnixTime(&dateTime);
   // Check security Len Message before push queue message data
-  strcpy((char*)archive_backup_data_line.block, topic);
-  strcpy((char*)(archive_backup_data_line.block + RMAP_BACKUP_DATA_LEN_TOPIC_SIZE), message);
+  strcpy((char*)archive_backup_data_line.block, localTopic);
+  strcpy((char*)(archive_backup_data_line.block + RMAP_BACKUP_DATA_LEN_TOPIC_SIZE), localMessage);
   // Send to queue with waiting Queue empty from SD Task if Full
   param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
 }
@@ -1124,10 +1124,9 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  // publish temperature value
   if (!error)
   {
     error_count = 0;
@@ -1139,7 +1138,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish temperature value
@@ -1173,10 +1172,9 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  // publish humidity value
   if (!error)
   {
     error_count = 0;
@@ -1188,7 +1186,7 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish humidity value
@@ -1499,7 +1497,7 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1513,7 +1511,7 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish rain value
@@ -1552,7 +1550,7 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1566,10 +1564,10 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
-  // publish rain value
+  // publish rain short rate value
   do
   {
     TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -1600,7 +1598,7 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1614,10 +1612,10 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
-  // publish rain value
+  // publish rain long rate value
   do
   {
     TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -1707,7 +1705,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1721,7 +1719,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish radiation value
@@ -1760,7 +1758,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1774,7 +1772,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish speed value
@@ -1808,7 +1806,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1822,7 +1820,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish direction value
@@ -1861,7 +1859,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1875,7 +1873,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish speed value
@@ -1909,12 +1907,12 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish direction value
@@ -1953,7 +1951,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -1967,7 +1965,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish speed peak value
@@ -2001,7 +1999,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2015,7 +2013,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish speed long value
@@ -2054,7 +2052,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2068,7 +2066,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish speed peak value
@@ -2107,7 +2105,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2121,7 +2119,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish class speed value
@@ -2160,7 +2158,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2174,7 +2172,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish peak value
@@ -2208,7 +2206,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2222,7 +2220,7 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish direction long value
@@ -2740,7 +2738,7 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2754,7 +2752,7 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish soil value
@@ -2847,7 +2845,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2861,7 +2859,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish input voltage value
@@ -2895,7 +2893,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2909,7 +2907,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish battery current value
@@ -2943,7 +2941,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   // make common topic
   if (!error)
   {
-    error = makeCommonTopic(configuration, topic, topic_length, sensors_topic, sensors_topic_length);
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
   if (!error)
@@ -2957,7 +2955,7 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
-    putRmapBackupArchiveData(dateTime, topic, message);
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
 
   // publish battery charge value

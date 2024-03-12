@@ -278,16 +278,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DECIMALS_ONE   1
 #define STIMA_LCD_DECIMALS_TWO   2
 
-//
+// AVAILABLE LEVEL
 #define DATA_LEVEL_SAMPLE  ("sample")
 #define DATA_LEVEL_REPORT  ("report")
 #define DATA_LEVEL_MAINT   ("maint")
 #define DATA_LEVEL_RPC     ("rpc")
 
-//
+// AVAILABLE NETWORK
 #define NETWORK_FIXED      ("fixed")
 #define NETWORK_MOBILE     ("mobile")
-#define NETWORK_TEST       ("test")
 
 /*!
 \brief Max length of strings used to take the information
