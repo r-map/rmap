@@ -1,4 +1,4 @@
-#include "stimawifi.h"
+#include "common.h"
 #include "measure_thread.h"
 
 unsigned short int displaypos;

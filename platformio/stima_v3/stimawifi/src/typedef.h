@@ -15,9 +15,17 @@
 */
 #define CONSTANTDATA_VALUE_LENGTH                    (33)
 
+/*!
+\def MAX_CONSTANTDATA_COUNT
+\brief Numero massimo di dati costanti di stazione (metadati).
+*/
 #define MAX_CONSTANTDATA_COUNT                       (5)
 
 
+/*!
+\def struct summarydata_t
+\brief Dati di sintesi utili per la visualizzazione su display.
+*/
 struct summarydata_t{
   float temperature;
   int humidity;
@@ -33,38 +41,48 @@ struct summarydata_t{
   }
 };
 
+/*!
+\def struct constantdata_t
+\brief Descrittori e valori per i dati costanti di stazione (metadati).
+*/
 typedef struct {
    char btable[CONSTANTDATA_BTABLE_LENGTH];                 //!< table B code for constant station data
    char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data
 } constantdata_t;
 
-
+/*!
+\def struct georef_t
+\brief Dati per la georeferenziazione.
+*/
 struct georef_t
 {
-  char lon[11];
-  char lat[11];
-  time_t timestamp;
-  cpp_freertos::MutexStandard* mutex;
+  char lon[11];                                     //!< longitudine in sessadecimale 5 decimali rappresentazione intera
+  char lat[11];                                     //!< latitudine in sessadecimale 5 decimali rappresentazione intera
+  time_t timestamp;                                 //!< timestamp delle coordinate
+  cpp_freertos::MutexStandard* mutex;               //!< mutex per l'accesso ai dati
 };
   
-// sensor information
+/*!
+\def struct station_t
+\brief Metadati di stazione.
+*/
 struct station_t
 {
-  char longitude[11];
-  char latitude[11];
-  char network[31];
-  char ident[10];
-  char server[41];
-  char ntp_server[41];
-  char mqtt_server[41];
-  int  sampletime;
-  char user[10];
-  char password[31];
-  char stationslug[31];
-  char boardslug[31];
-  char mqttrootpath[10];
-  char mqttmaintpath[10];
-  constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter
+  char longitude[11];                  //!< longitudine in sessadecimale 5 decimali rappresentazione intera
+  char latitude[11];                   //!< latitudine in sessadecimale 5 decimali rappresentazione intera
+  char network[31];                    //!< rete osservativa della stazione
+  char ident[10];                      //!< identificativo per stazioni mobili
+  char server[41];                     //!< server RMAP
+  char ntp_server[41];                 //!< server NTP
+  char mqtt_server[41];                //!< broker MQTT
+  int  sampletime;                     //!< intervallo tra le misurazioni in secondi
+  char user[10];                       //!< utente
+  char password[31];                   //!< password
+  char stationslug[31];                //!< nome sintetico della stazione
+  char boardslug[31];                  //!< nome sintetico della board
+  char mqttrootpath[10];               //!< radice del topic MQTT per i dati
+  char mqttmaintpath[10];              //!< radice del topic MQTT per i dati amministrativi
+  constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter (metadati)
   uint8_t constantdata_count;                              //!< configured constantdata number
   
   //define your default values here, if there are different values in config.json, they are overwritten.
@@ -86,11 +104,14 @@ struct station_t
   }
 };
 
-// sensor information
+/*!
+\def struct sensor_t
+\brief Metadati dei sensori.
+*/
 struct sensor_t
 {
   char driver[SENSORDRIVER_DRIVER_LEN];     // driver name
-  int node;                                 // RF24Nework node id
+  int node;                                 // RF24Nework node id (radio driver)
   char type[SENSORDRIVER_TYPE_LEN];         // sensor type name
   int address;                              // i2c address
   char timerange[SENSORDRIVER_META_LEN];    // timerange for mqtt pubblish
@@ -105,48 +126,62 @@ struct sensor_t
   }
 };
 
+/*!
+\def struct mqttMessage_t
+\brief dati per la pubblicazione MQTT (topic e payload).
+*/
 struct mqttMessage_t
 {
   char topic[MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH];
   char payload[MQTT_MESSAGE_LENGTH];
 };
 
-
-//enum sensorNovalue_e { unknown, ok, error };
-//enum sensorMeasure_e { unknown, ok, error };
+/*!
+\def enum status_e
+\brief Le varie operazioni vengono monitore e desscitte tramite uno stato
+\ queste sono le varie condizioni possibili
+*/
 enum status_e { unknown, ok, error };
+
+/*!
+\def struct measureStatus_t
+\brief Stati relativi al thread di misura dei dati.
+*/
 struct measureStatus_t
 {
-  //sensorNovalue_e novalue;
-  //sensorMeasure_e sensor;
-  status_e novalue;
-  status_e sensor;
-  status_e geodef;
+  status_e novalue;    //!< stato delle misurazioni
+  status_e sensor;     //!< stato dei sensori
+  status_e geodef;     //!< stato dei dati di georefenzazione per la pubblicazione
 };
 
-//enum mqttConnect_e { unknown, ok, error };
-//enum mqttPublish_e { unknown, ok, error };
+/*!
+\def struct publishStatus_t
+\brief Stati relativi al thread di pubblicazione dei dati.
+*/
 struct publishStatus_t
 {
-  //mqttConnect_e connect;
-  //mqttPublish_e publish;
-  status_e connect;
-  status_e publish;
+  status_e connect;    //!< stato della connessione MQTT
+  status_e publish;    //!< stato della pubblicazione dati MQTT
 };
 
-//enum udpReceive_e { unknown, ok, error };
+/*!
+\def struct udpStatus_t
+\brief Stati relativi al thread di ricezione dei dati UDP per la georefenziazione.
+*/
 struct udpStatus_t
 {
-  //udpreceive_e receive;
-  status_e receive;
+  status_e receive;    //!< stato della ricezione dei dati per georeferenziazione  
 };
 
+/*!
+\def struct stimawifiStatus_t
+\brief Stati relativi all'intera stazione.
+*/
 struct stimawifiStatus_t
 {
-  measureStatus_t measure;
-  publishStatus_t publish;
-  udpStatus_t udp;
+  measureStatus_t measure;     //!< Stati relativi al thread di misura
+  publishStatus_t publish;     //!< Stati relativi al thread di pubblicazione
+  udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
 };
-
 
 #endif

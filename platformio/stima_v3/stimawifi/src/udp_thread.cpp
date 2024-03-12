@@ -1,5 +1,4 @@
-#include "stimawifi.h"
-#include <cmath>
+#include "common.h"
 
 /*
 Android-GPSd-Forwarder send a burst of UDP packets > 6

@@ -25,61 +25,6 @@ TODO
 
 #include "stimawifi.h"
 
-const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
-const uint16_t update_port = 80;
-
-WiFiManager wifiManager;
-WebServer webserver(STIMAHTTP_PORT);
-
-WiFiClient httpClient;
-WiFiClient mqttClient;
-//EspHtmlTemplateProcessor templateProcessor(&server);
-MutexStandard loggingmutex;
-MutexStandard i2cmutex;
-MutexStandard geomutex;
-
-//flag for saving data
-bool shouldSaveConfig = false;
-bool pmspresent =  false;
-
-U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
-bool oledpresent=false;
-
-// i2c button for wemos OLED version 2.1.0
-I2C_BUTTON button; //I2C address 0x31
-// I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
-
-summarydata_t summarydata;
-
-georef_t georef={"","",0,&geomutex};
-
-
-/*
-If the variable can be updated atomically (for example it is not a
-32-bit variable on a 16-bit architecture, which would take two writes to
-update all 32-bits), and there is only one task that ever writes to the
-variable (although many can read from it), then a global variable should
-not cause a problem.
-This is the case for stimawifiStatus
-*/
-stimawifiStatus_t stimawifiStatus;
-
-udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef};
-udpThread threadUdp(udp_data);
-
-Queue mqttQueue((12*5*60)/30,sizeof(mqttMessage_t));   // ~ 5 minutes queue
-
-station_t station;
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
-measureThread threadMeasure(&measure_data);
-
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station,&mqttClient};
-publishThread threadPublish(publish_data);
-
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
-
-char status[15]="";     // status message for web and display
-
 void display_summary_data(char* status) {
   
   StaticJsonDocument<500> doc;
