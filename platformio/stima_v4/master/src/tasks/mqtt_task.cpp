@@ -1157,14 +1157,14 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Humidity
   // ----------------------------------------------------------------------------
   // make humidity topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B13003", sensors_topic, sensors_topic_length);
   // make humidity message
   if (!error)
   {
@@ -1584,6 +1584,9 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Rain Rate 5' longRate
   // ----------------------------------------------------------------------------
@@ -1789,14 +1792,14 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Direction
   // ----------------------------------------------------------------------------
   // make direction topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
   // make direction message
   if (!error)
   {
@@ -1890,14 +1893,14 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Direction
   // ----------------------------------------------------------------------------
   // make direction topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B11001", sensors_topic, sensors_topic_length);
   // make direction message
   if (!error)
   {
@@ -1982,14 +1985,14 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Speed Long
   // ----------------------------------------------------------------------------
   // make speed long topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B11209", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B11209", sensors_topic, sensors_topic_length);
   // make speed long message
   if (!error)
   {
@@ -2189,14 +2192,14 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // Direction Long
   // ----------------------------------------------------------------------------
   // make direction long topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B11210", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B11210", sensors_topic, sensors_topic_length);
   // make direction long message
   if (!error)
   {
@@ -2876,14 +2879,14 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // BatteryCurrent
   // ----------------------------------------------------------------------------
   // make battery current topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B25193", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B25193", sensors_topic, sensors_topic_length);
   // make battery current message
   if (!error)
   {
@@ -2924,14 +2927,14 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
   TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+
   // ----------------------------------------------------------------------------
   // BatteryCharge
   // ----------------------------------------------------------------------------
   // make battery charge topic
-  if (!error)
-  {
-    error = makeSensorTopic(sensor.metadata, "B25192", sensors_topic, sensors_topic_length);
-  }
+  error = makeSensorTopic(sensor.metadata, "B25192", sensors_topic, sensors_topic_length);
   // make battery charge message
   if (!error)
   {
