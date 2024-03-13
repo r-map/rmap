@@ -475,43 +475,41 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir bkp\r\n"));
       }
-      // Create info.dat archive backup ditectory info record data structure
-      if(!SD.exists("/bkp/info.dat")) {
-        // Rewrite Info Dat File (Open only at startup for Rewrite Info on BKP\SD)
-        tmpFile = SD.open("/bkp/info.dat", O_RDWR | O_CREAT);
-        if(tmpFile) {
-          // Open File High LED
-          #ifdef PIN_SD_LED
-          digitalWrite(PIN_SD_LED, HIGH);
-          #endif
-          bWriteErr = false;
-          // Create Default Base Topic from E2Prom archived configuration (Rewrite at startup, changed firmware, configuration, ecc...)
-          memset(logBuffer, 0, sizeof(logBuffer));
-          snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%07d,%07d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-          bWriteErr |= !tmpFile.print(param.configuration->stationslug);
-          bWriteErr |= !tmpFile.print(param.configuration->module_main_version);
-          bWriteErr |= !tmpFile.print(param.configuration->module_minor_version);
-          bWriteErr |= !tmpFile.print(logBuffer);
-          bWriteErr |= !tmpFile.print(RMAP_BACKUP_DATA_LEN_TOPIC_SIZE);
-          bWriteErr |= !tmpFile.print(RMAP_BACKUP_DATA_LEN_MESSAGE_SIZE);
-          tmpFile.close();
-          // Close File Low LED
-          #ifdef PIN_SD_LED
-          digitalWrite(PIN_SD_LED, LOW);
-          #endif
-          if (bWriteErr) {
-            // SD Pointer Error, general Write on first File...
-            // Error. Send to system_state and retry OPEN INIT SD
-            state = SD_STATE_INIT;
-            break;
-          }
-        } else {
-          // SD Pointer Error, general Open on first File...
+
+      // Create Info Dat File (Crteated at startup Info on BKP\SD)
+      tmpFile = SD.open("/bkp/info.dat", O_RDWR | O_CREAT);
+      if(tmpFile) {
+        // Open File High LED
+        #ifdef PIN_SD_LED
+        digitalWrite(PIN_SD_LED, HIGH);
+        #endif
+        bWriteErr = false;
+        // Create Default Base Topic from E2Prom archived configuration (Rewrite at startup, changed firmware, configuration, ecc...)
+        memset(logBuffer, 0, sizeof(logBuffer));
+        snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%07d,%07d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+        bWriteErr |= !tmpFile.println(param.configuration->stationslug);
+        bWriteErr |= !tmpFile.println(param.configuration->module_main_version);
+        bWriteErr |= !tmpFile.println(param.configuration->module_minor_version);
+        bWriteErr |= !tmpFile.println(logBuffer);
+        bWriteErr |= !tmpFile.println(RMAP_BACKUP_DATA_LEN_TOPIC_SIZE);
+        bWriteErr |= !tmpFile.println(RMAP_BACKUP_DATA_LEN_MESSAGE_SIZE);
+        tmpFile.close();
+        // Close File Low LED
+        #ifdef PIN_SD_LED
+        digitalWrite(PIN_SD_LED, LOW);
+        #endif
+        if (bWriteErr) {
+          // SD Pointer Error, general Write on first File...
           // Error. Send to system_state and retry OPEN INIT SD
           state = SD_STATE_INIT;
           break;
         }
         TRACE_INFO_F(F("SD: created file info.dat record structure data bkp\r\n"));
+      } else {
+        // SD Pointer Error, general Open on first File...
+        // Error. Send to system_state and retry OPEN INIT SD
+        state = SD_STATE_INIT;
+        break;
       }
 
       // ***************************************************
