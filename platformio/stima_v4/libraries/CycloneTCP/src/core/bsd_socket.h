@@ -350,17 +350,18 @@ typedef struct addrinfo
 } ADDRINFO, *PADDRINFO;
 
 
-#ifndef _TIMEVAL_DEFINED
+#ifndef _TIMEVAL32_DEFINED
+#define _TIMEVAL32_DEFINED
 
 /**
  * @brief Timeout structure
  **/
 
-typedef struct timeval
+typedef struct timeval32
 {
    int32_t tv_sec;
    int32_t tv_usec;
-} TIMEVAL, *PTIMEVAL;
+} TIMEVAL32, *PTIMEVAL32;
 
 #endif
 
@@ -413,7 +414,7 @@ int_t shutdown(int_t s, int_t how);
 int_t closesocket(int_t s);
 
 int_t select(int_t nfds, fd_set *readfds, fd_set *writefds,
-   fd_set *exceptfds, const struct timeval *timeout);
+   fd_set *exceptfds, const struct timeval32 *timeout);
 
 int_t gethostname(char_t *name, size_t len);
 struct hostent *gethostbyname(const char_t *name);

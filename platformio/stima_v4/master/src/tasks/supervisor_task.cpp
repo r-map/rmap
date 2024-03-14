@@ -830,19 +830,11 @@ void SupervisorTask::printConfiguration()
     
     for (uint8_t i = 0; i < param.configuration->constantdata_count; i++)
     {
-      TRACE_INFO_F(F("--> cd %d:/t%s : %s"), i, param.configuration->constantdata[i].btable, param.configuration->constantdata[i].value);
+      TRACE_INFO_F(F("--> cd %d:%s : %s"), i, param.configuration->constantdata[i].btable, param.configuration->constantdata[i].value);
     }
-
-    // TRACE_INFO_F(F("-> %u configured sensors:\r\n"), configuration->sensors_count);
-
-    // for (uint8_t i = 0; i < configuration->sensors_count; i++)
-    // {
-    //   TRACE_INFO_F(F("--> %u: %s-%s\r\n"), i + 1, configuration->sensors[i].driver, configuration->sensors[i].type);
-    // }
 
     TRACE_INFO_F(F("-> data report every %d seconds\r\n"), param.configuration->report_s);
     TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), param.configuration->observation_s);
-    // TRACE_INFO_F(F("-> data level: %s\r\n"), param.configuration->data_level);
     TRACE_INFO_F(F("-> ident: %s\r\n"), param.configuration->ident);
     TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), param.configuration->longitude, param.configuration->latitude);
     TRACE_INFO_F(F("-> network: %s\r\n"), param.configuration->network);
@@ -881,7 +873,7 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> mqtt rpc topic: %s/%s/%s/%07d,%07d/%s/\r\n"),
       param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-#endif
+    #endif
 
     param.configurationLock->Give();
   }
@@ -985,12 +977,9 @@ bool SupervisorTask::saveConfiguration(bool is_default)
     //! write configuration to eeprom
     status = param.eeprom->Write(CONFIGURATION_EEPROM_ADDRESS, (uint8_t *)(param.configuration), sizeof(configuration_t));
 
-    if (is_default)
-    {
+    if (is_default) {
       TRACE_INFO_F(F("Save default configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
-    }
-    else
-    {
+    } else {
       TRACE_INFO_F(F("Save configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
     }
 

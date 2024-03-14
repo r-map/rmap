@@ -975,7 +975,7 @@ int_t setsockopt(int_t s, int_t level, int_t optname, const void *optval,
 {
    int_t ret;
    int_t *val;
-   TIMEVAL *t;
+   TIMEVAL32 *t;
    Socket *sock;
 
    //Make sure the socket descriptor is valid
@@ -1007,10 +1007,10 @@ int_t setsockopt(int_t s, int_t level, int_t optname, const void *optval,
          else if(optname == SO_SNDTIMEO || optname == SO_RCVTIMEO)
          {
             //Check the length of the option
-            if(optlen >= (socklen_t) sizeof(TIMEVAL))
+            if(optlen >= (socklen_t) sizeof(TIMEVAL32))
             {
                //Cast the option value to the relevant type
-               t = (TIMEVAL *) optval;
+               t = (TIMEVAL32 *) optval;
 
                //If the specified value is of zero, I/O operations shall not
                //time out
@@ -1280,7 +1280,7 @@ int_t getsockopt(int_t s, int_t level, int_t optname, void *optval,
 {
    int_t ret;
    int_t *val;
-   TIMEVAL *t;
+   TIMEVAL32 *t;
    Socket *sock;
 
    //Make sure the socket descriptor is valid
@@ -1305,10 +1305,10 @@ int_t getsockopt(int_t s, int_t level, int_t optname, void *optval,
          if(optname == SO_SNDTIMEO || optname == SO_RCVTIMEO)
          {
             //Check the length of the option
-            if(*optlen >= (socklen_t) sizeof(TIMEVAL))
+            if(*optlen >= (socklen_t) sizeof(TIMEVAL32))
             {
                //Cast the option value to the relevant type
-               t = (TIMEVAL *) optval;
+               t = (TIMEVAL32 *) optval;
 
                //Return the timeout value
                if(sock->timeout == INFINITE_DELAY)
@@ -1323,7 +1323,7 @@ int_t getsockopt(int_t s, int_t level, int_t optname, void *optval,
                }
 
                //Return the actual length of the option
-               *optlen = sizeof(TIMEVAL);
+               *optlen = sizeof(TIMEVAL32);
                //Successful processing
                ret = SOCKET_SUCCESS;
             }
@@ -1382,7 +1382,7 @@ int_t getsockopt(int_t s, int_t level, int_t optname, void *optval,
          else if(optname == SO_KEEPALIVE)
          {
             //Check the length of the option
-            if(*optlen >= (socklen_t) sizeof(TIMEVAL))
+            if(*optlen >= (socklen_t) sizeof(TIMEVAL32))
             {
                //Cast the option value to the relevant type
                val = (int_t *) optval;
@@ -1863,7 +1863,7 @@ int_t closesocket(int_t s)
  **/
 
 int_t select(int_t nfds, fd_set *readfds, fd_set *writefds,
-   fd_set *exceptfds, const struct timeval *timeout)
+   fd_set *exceptfds, const struct timeval32 *timeout)
 {
    int_t i;
    int_t j;

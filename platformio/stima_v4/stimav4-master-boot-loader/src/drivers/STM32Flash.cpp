@@ -314,7 +314,12 @@ void STM32Flash_JumpToApplication(uint32_t address)
     Serial.flush();
     Serial.end();
     #endif
+#if (ENABLE_I2C1)
     Wire.end();
+#endif
+#if (ENABLE_I2C2)
+    Wire2.end();
+#endif
     HAL_QSPI_MspDeInit(&hqspi);
     HAL_RCC_DeInit();
     HAL_DeInit();

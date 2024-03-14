@@ -83,6 +83,11 @@ extern CAN_HandleTypeDef hcan1;
 #define PIN_IN1         PA8
 #define PIN_IN2         PB8
 
+// INPUT BUTTON
+#ifdef STIMAV4_SLAVE_HW_VER_01_01
+#define PIN_BTN         PH0     // INPUT BUTTON (RESET PARAMETERS)
+#endif
+
 // I2C
 #define PIN_I2C2_EN     PC11
 #define PIN_I2C2_SDA    PB14
@@ -168,6 +173,10 @@ extern CAN_HandleTypeDef hcan1;
 #define IN2_GPIO_Port     GPIOB
 #define EN_5VA_Pin        GPIO_PIN_9
 #define EN_5VA_GPIO_Port  GPIOB
+#ifdef STIMAV4_SLAVE_HW_VER_01_01
+#define IN_BTN_Pin        GPIO_PIN_0
+#define IN_BTN_GPIO_Port  GPIOH
+#endif
 
 // ******************************************************************************
 

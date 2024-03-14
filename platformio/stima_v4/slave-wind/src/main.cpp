@@ -4,6 +4,9 @@
 
 void setup() {
 
+  // Reset param (Flag Fixed or on Button reset operation)
+  bool init_parameter = INIT_PARAMETER;
+
   // Semaphore, Queue && Param Config for TASK
 #if (ENABLE_I2C1)
   static BinarySemaphore *wireLock;       // Access I2C internal EEprom, Accelerometer
@@ -43,8 +46,11 @@ void setup() {
   SetupSystemPeripheral();
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
-  init_pins();
-  init_rtc(INIT_PARAMETER);
+  init_pins();  
+  // Check Reset default PIN pression button if enabled
+#ifdef STIMAV4_SLAVE_HW_VER_01_01
+  if(!digitalRead(PIN_BTN)) init_parameter = true;
+#endif
 
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
@@ -124,19 +130,19 @@ void setup() {
   // Load Info from E2 boot_check flag and send to Config
   static EEprom  memEprom(&Wire, wireLock);
   static bootloader_t boot_check = {0};
-  #if INIT_PARAMETER
-  boot_check.app_executed_ok = true;
-  memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  #else
-  memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
-  #endif
+  // Reset to defaults?
+  if(init_parameter) {
+    boot_check.app_executed_ok = true;
+    memEprom.Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  } else {
+    memEprom.Read(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) &boot_check, sizeof(boot_check));
+  }
   // Optional send other InfoParm Boot (Uploaded, rollback, error fail ecc.. to config)
 #endif
   // Reset Factory register value
   static EERegister clRegister(&Wire, wireLock);
-  #if INIT_PARAMETER
-  clRegister.doFactoryReset();
-  #endif
+  // Reset to defaults?
+  if(init_parameter) clRegister.doFactoryReset();
   // Init access Flash istance object
   static Flash memFlash(&hqspi);
 
@@ -250,10 +256,10 @@ void loop() {
 
 /// @brief Init Pin (Diag and configuration)
 void init_pins() {
-  #if (ENABLE_DIAG_PIN)
   // *****************************************************
   //     STARTUP LED E PIN DIAGNOSTICI (SE UTILIZZATI)
   // *****************************************************
+  #if (ENABLE_DIAG_PIN)
   // Output mode for LED(1/2) BLINK SW LOOP (High per Setup)
   // Input mode for test button
   #ifdef LED1_PIN
@@ -296,7 +302,7 @@ void init_rtc(bool init)
   if(init) {
     // Set the date && Time Init Value
     rtc.setHours(0);rtc.setMinutes(0);rtc.setSeconds(0);
-    rtc.setWeekDay(0);rtc.setDay(1);rtc.setMonth(1);rtc.setYear(23);
+    rtc.setWeekDay(0);rtc.setDay(1);rtc.setMonth(1);rtc.setYear(24);
   }
   // Start LowPower configuration
   LowPower.begin();
