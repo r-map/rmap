@@ -728,6 +728,16 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       }
       else error_command = true;
     }
+    else if (strcmp(it.key().c_str(), "mqttport") == 0)
+    {
+      // mqtt_port
+      if(isMasterConfigure) {
+        param.configurationLock->Take();
+        param.configuration->mqtt_port = it.value().as<unsigned int>();
+        param.configurationLock->Give();
+      }
+      else error_command = true;
+    }
     else if (strcmp(it.key().c_str(), "mqttsampletime") == 0)
     {
       // report_s
@@ -1311,6 +1321,9 @@ void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
   #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
   strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
+  #endif
+  #if (USE_MQTT)
+  param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
   #endif
 
   param.configuration->board_master.serial_number = StimaV4GetSerialNumber();

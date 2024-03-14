@@ -794,6 +794,11 @@ bool SupervisorTask::loadConfiguration()
     param.configurationLock->Give();
   }
 
+  // Check if port isn't assigned (try with default value)
+  if((param.configuration->mqtt_port == 0)||(param.configuration->mqtt_port == 0xFFFFu)) {
+    param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
+  }
+
   // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
   param.configuration->module_main_version = MODULE_MAIN_VERSION;
   param.configuration->module_minor_version = MODULE_MINOR_VERSION;
@@ -953,7 +958,6 @@ bool SupervisorTask::saveConfiguration(bool is_default)
 
       strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
       strSafeCopy(param.configuration->stationslug, "verifica", STATIONSLUG_LENGTH);
-      strSafeCopy(param.configuration->boardslug, "stimav4", BOARDSLUG_LENGTH);
 
       param.configuration->latitude = 4512345;
       param.configuration->longitude = 1212345;
