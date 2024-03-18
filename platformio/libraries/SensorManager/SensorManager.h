@@ -7,6 +7,9 @@
 #define SENSOR_RETRY_DELAY_MS                   (50)
 #define SENSOR_ERROR_COUNT_MAX                  (10)
 
+#ifndef SENSOR_MANAGE_H
+#define SENSOR_MANAGE_H
+
 class sensorManage {
 
 public:
@@ -14,8 +17,11 @@ public:
   sensorManage();
   ~sensorManage();
   void begin (SensorDriver* sds);
+  void newMeasure();
   void run();
   void setTest(bool test);
+  SensorDriver* getSensorDriver();
+  bool getErrorStatus();
   bool getTest();
   void setEventRead();
   bool getEventRead();
@@ -45,6 +51,7 @@ private:
   sensor_reading_state_t state_after_wait;
   uint32_t delay_ms;
   uint32_t start_time_ms;
+  bool is_error;
   bool is_test;
   bool is_reading;
   bool is_data_ready;
@@ -52,3 +59,4 @@ private:
   SensorDriver* sensor;
 };
 
+#endif

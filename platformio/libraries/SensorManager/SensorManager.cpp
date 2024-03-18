@@ -4,6 +4,14 @@ sensorManage::sensorManage(){}
 
 sensorManage::~sensorManage(){}
 
+SensorDriver* sensorManage::getSensorDriver(){
+  return sensor;
+}
+
+bool sensorManage::getErrorStatus(){
+  return is_error;
+}
+
 void sensorManage::setTest (bool test) {
   if (!sensorManage::getEventRead()) is_test=test;
 }
@@ -29,11 +37,28 @@ bool sensorManage::getDataReady(){
   return is_data_ready;
 }
 
+void sensorManage::newMeasure(){
+  LOGV(F("Sensor error count: %d"),sensor->getErrorCount());
+
+  if (sensor->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
+    LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
+    sensor->resetSetted();
+  }
+  if (!sensor->isSetted()) {
+    LOGE(F("Redo setup"));
+    sensor->setup();
+  }
+
+  is_error=false;
+  
+}
+
 void sensorManage::begin (SensorDriver* sds) {
   sensor=sds; 
   is_reading = false;
   is_test = false;
   is_data_ready = false;
+  is_error=false;
   sensor_reading_state = SENSOR_READING_NONE; 
 }
 
@@ -57,27 +82,15 @@ void sensorManage::run () {
 
    case SENSOR_READING_SETUP_CHECK:
 
-        LOGN(F("Sensor error count: %d"),sensor->getErrorCount());
+     if (sensor->isSetted()) {
+       sensor_reading_state = SENSOR_READING_PREPARE;
+     }else{
+       LOGE(F("Skip failed Sensor"));
+       is_error=true;
+       sensor_reading_state = SENSOR_READING_END;
+     } 
      
-	if (sensor->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
-	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
-	  sensor->resetSetted();
-	}
-	
-	if (!sensor->isSetted()) {
-	  LOGE(F("ESEGUO SETUP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-	  sensor->setup();
-	  LOGN(F("Sensor error count: %d"),sensor->getErrorCount());
-	}
-
-        if (sensor->isSetted()) {
-	  sensor_reading_state = SENSOR_READING_PREPARE;
-	}else{
-	  LOGE(F("Skip failed Sensor"));
-	  sensor_reading_state = SENSOR_READING_END;
-	} 
-
-	break;
+     break;
     
   case SENSOR_READING_PREPARE:
     sensor->prepare(is_test);
@@ -117,6 +130,7 @@ void sensorManage::run () {
       LOGE("is prepared ERROR");	
       sensor_reading_state = SENSOR_READING_END;
       LOGV(F("SENSOR_READING_IS_PREPARED ---> SENSOR_READING_END"));
+      is_error=true;
       retry = 0;
     }
     break;
@@ -164,6 +178,7 @@ void sensorManage::run () {
       }
       // fail
       else {
+	is_error=true;
 	retry = 0;
 	LOGE("is getted ERROR");	
 	sensor_reading_state = SENSOR_READING_END;
