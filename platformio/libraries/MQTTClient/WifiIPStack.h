@@ -21,58 +21,58 @@ class IPStack
 {
 public:    
 
-    IPStack(WiFiClient& client) : iface(&client)
-    {
-      //iface->setSync(true);
-      iface->setNoDelay(true);
-      //WiFi.begin();              // Use DHCP
-      //iface->setTimeout(1000);    // 1 second Timeout 
+  IPStack(WiFiClient& client) : iface(&client)
+  {
+    //iface->setSync(true);
+    //iface->setNoDelay(true);
+    //WiFi.begin();              // Use DHCP
+    //iface->setTimeout(1000);    // 1 second Timeout 
     }
-    
-    int connect(char* hostname, int port)
-    {
-        return iface->connect(hostname, port);
-    }
-
+  
+  int connect(char* hostname, int port)
+  {
+    return iface->connect(hostname, port);
+  }
+  
     int connect(uint32_t hostname, int port)
-    {
-        return iface->connect(hostname, port);
-    }
+  {
+    return iface->connect(hostname, port);
+  }
+  
+  int read(unsigned char* buffer, int len, int timeout)
+  {
 
-    int read(unsigned char* buffer, int len, int timeout)
-    {
-
-      int interval = 10;  // all times are in milliseconds
-      int total = 0, rc = -1;
-      
-      if (timeout < 30)
+    int interval = 10;  // all times are in milliseconds
+    int total = 0, rc = -1;
+    
+    if (timeout < 30)
 	interval = 2;
-      while (iface->available() < len && total < timeout)
-	{
-	  delay(interval);
-	  total += interval;
-	}
-      if (iface->available() >= len)
-	rc = iface->readBytes((char*)buffer, len);
-      return rc;
+    while (iface->available() < len && total < timeout)
+      {
+	delay(interval);
+	total += interval;
+      }
+    if (iface->available() >= len)
+      rc = iface->readBytes((char*)buffer, len);
+    return rc;
 
-    }
-    
-    int write(unsigned char* buffer, int len, int timeout)
-    {
-        iface->setTimeout(timeout);  
-        return iface->write((uint8_t*)buffer, len);
-    }
-    
-    int disconnect()
-    {
-        iface->stop();
-        return 0;
-    }
-    
+  }
+  
+  int write(unsigned char* buffer, int len, int timeout)
+  {
+    iface->setTimeout(timeout);  
+    return iface->write((uint8_t*)buffer, len);
+  }
+  
+  int disconnect()
+  {
+    iface->stop();
+    return 0;
+  }
+  
 private:
-
-    WiFiClient* iface;
+  
+  WiFiClient* iface;
     
 };
 
