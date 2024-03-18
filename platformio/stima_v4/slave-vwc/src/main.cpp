@@ -52,6 +52,9 @@ void setup() {
   if(!digitalRead(PIN_BTN)) init_parameter = true;
 #endif
 
+  // Init RTC
+  init_rtc(init_parameter);
+
   // Init SystemStatus Parameter !=0 ... For Check control Value
   // Task check init data (Wdt = True, TaskStack Max, TaskReady = False)
   // TOTAL_INFO_TASK Number of Task checked

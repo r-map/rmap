@@ -427,7 +427,9 @@ extern "C" void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+#ifdef STIMAV4_SLAVE_HW_VER_01_01
   __HAL_RCC_GPIOH_CLK_ENABLE();
+#endif
 
   /*Configure GPIO pins : DEN_Pin DSEL0_Pin DSEL1_Pin PW0_Pin
                            PW1_Pin PW2_Pin PW3_Pin I2C2_EN_Pin
