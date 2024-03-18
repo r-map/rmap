@@ -203,7 +203,7 @@ Supported sensors:
 \def USE_SENSOR_LWT
 \brief Enable if you want use leaf wetness time continuous value.
 */
-#define USE_SENSOR_LWT              (false)
+#define USE_SENSOR_LWT              (true)
 
 /*!
 \def USE_SENSOR_HI7
