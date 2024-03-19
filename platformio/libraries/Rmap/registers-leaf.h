@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_LEAF_DEFAULT_ADDRESS                  (0x65)
 
 /*!
+\def I2C_LEAF_COMMAND_NONE
+\brief NO command for i2c-th module.
+*/
+#define I2C_LEAF_COMMAND_NONE                     (0x00)
+
+/*!
 \def I2C_LEAF_COMMAND_SAVE
 \brief Save command for i2c-leaf module.
 */
@@ -95,34 +101,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_LEAF_TYPE_ADDRESS                     (I2C_READ_REGISTER_START_ADDRESS)
 
 /*!
-\def I2C_LEAF_VERSION_LENGTH
-\brief length of the version variable for i2c-leaf module.
+\def I2C_LEAF_MAIN_VERSION_LENGTH
+\brief length of the main version variable for i2c-th module.
 */
-#define I2C_LEAF_VERSION_LENGTH                   (0x01)
+#define I2C_LEAF_MAIN_VERSION_LENGTH                   (0x01)
 
 /*!
-\def I2C_LEAF_VERSION_ADDRESS
-\brief address of the version variable for i2c-leaf module.
+\def I2C_LEAF_MAIN_VERSION_ADDRESS
+\brief address of the main version variable for i2c-th module.
 */
-#define I2C_LEAF_VERSION_ADDRESS                  (I2C_LEAF_TYPE_ADDRESS + I2C_LEAF_TYPE_LENGTH)
+#define I2C_LEAF_MAIN_VERSION_ADDRESS                  (I2C_LEAF_TYPE_ADDRESS + I2C_LEAF_TYPE_LENGTH)
 
 /*!
-\def I2C_LEAF_TIMER_LENGTH
-\brief length of the leaf wetness timer variable for i2c-leaf module.
+\def I2C_LEAF_MINOR_VERSION_LENGTH
+\brief length of the minor version variable for i2c-th module.
 */
-#define I2C_LEAF_TIMER_LENGTH                     (0x04)
+#define I2C_LEAF_MINOR_VERSION_LENGTH                   (0x01)
 
 /*!
-\def I2C_LEAF_TIMER_ADDRESS
-\brief address of the leaf wetness timer variable for i2c-leaf module.
+\def I2C_LEAF_MINOR_VERSION_ADDRESS
+\brief address of the minor version variable for i2c-th module.
 */
-#define I2C_LEAF_TIMER_ADDRESS                    (I2C_LEAF_VERSION_ADDRESS + I2C_LEAF_VERSION_LENGTH)
+#define I2C_LEAF_MINOR_VERSION_ADDRESS                  (I2C_LEAF_MAIN_VERSION_ADDRESS + I2C_LEAF_MAIN_VERSION_LENGTH)
+
+/*!
+\def I2C_LEAF_TIME_LENGTH
+\brief length of the leaf wetness time variable for i2c-leaf module.
+*/
+#define I2C_LEAF_TIME_LENGTH                     (0x04)
+
+/*!
+\def I2C_LEAF_TIME_ADDRESS
+\brief address of the leaf wetness time variable for i2c-leaf module.
+*/
+#define I2C_LEAF_TIME_ADDRESS                    (I2C_LEAF_MINOR_VERSION_ADDRESS + I2C_LEAF_MINOR_VERSION_LENGTH)
 
 /*!
 \def I2C_LEAF_READABLE_DATA_LENGTH
 \brief length of the readable variables for i2c-leaf module. Need to be update with with last 2 define!!!
 */
-#define I2C_LEAF_READABLE_DATA_LENGTH             (I2C_LEAF_TIMER_ADDRESS + I2C_LEAF_TIMER_LENGTH - I2C_READ_REGISTER_START_ADDRESS)
+#define I2C_LEAF_READABLE_DATA_LENGTH             (I2C_LEAF_TIME_ADDRESS + I2C_LEAF_TIME_LENGTH - I2C_READ_REGISTER_START_ADDRESS)
 
 /*********************************************************************
 * Writable registers: Specifying the length in bytes of the data by I2C_{MODULE_NAME}_{DATA_NAME}_LENGTH, the corresponding address is calculated automatically
@@ -151,23 +169,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_LEAF_ONESHOT_ADDRESS                  (I2C_LEAF_ADDRESS_ADDRESS + I2C_LEAF_ADDRESS_LENGTH)
 
-/*!
-\def I2C_LEAF_CONTINUOUS_LENGTH
-\brief length of the continuous variable for i2c-leaf module.
-*/
-#define I2C_LEAF_CONTINUOUS_LENGTH                (0x01)
 
 /*!
-\def I2C_LEAF_CONTINUOUS_ADDRESS
-\brief address of the continuous variable for i2c-leaf module.
+\def I2C_LEAF_CALIBRATION_THRESHOLD_LENGTH
+\brief length of the calibration variable for i2c-leaf module.
 */
-#define I2C_LEAF_CONTINUOUS_ADDRESS               (I2C_LEAF_ONESHOT_ADDRESS + I2C_LEAF_ONESHOT_LENGTH)
+#define I2C_LEAF_CALIBRATION_THRESHOLD_LENGTH     (0x02)
+
+/*!
+\def I2C_LEAF_CALIBRATION_THRESHOLD_ADDRESS
+\brief address of the CALIBRATION variable for i2c-leaf module.
+*/
+#define I2C_LEAF_CALIBRATION_THRESHOLD_ADDRESS    (I2C_LEAF_ONESHOT_ADDRESS + I2C_LEAF_ONESHOT_LENGTH)
+
 
 /*!
 \def I2C_LEAF_WRITABLE_DATA_LENGTH
 \brief length of the writable variables for i2c-leaf module.
 */
-#define I2C_LEAF_WRITABLE_DATA_LENGTH             (I2C_LEAF_CONTINUOUS_ADDRESS + I2C_LEAF_CONTINUOUS_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
+#define I2C_LEAF_WRITABLE_DATA_LENGTH             (I2C_LEAF_CALIBRATION_THRESHOLD_ADDRESS + I2C_LEAF_CALIBRATION_THRESHOLD_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
 
 // Readable registers errors checking

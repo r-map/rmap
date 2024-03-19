@@ -29,10 +29,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * MODULE
 *********************************************************************/
 /*!
-\def MODULE_VERSION
-\brief Module version.
+\def MODULE_MAIN_VERSION
+\brief Module major version.
 */
-#define MODULE_VERSION                                (3)
+#define MODULE_MAIN_VERSION                                (3)
+
+/*!
+\def MODULE_MINOR_VERSION
+\brief Module major version.
+*/
+#define MODULE_MINOR_VERSION                               (18)
+
+/*!
+\def MODULE_CONFIGURATION_VERSION
+\brief Module version of compatibile configuration. If you change it, you have to reconfigure.
+*/
+#define MODULE_CONFIGURATION_VERSION                       (1)
 
 /*!
 \def MODULE_TYPE
@@ -47,19 +59,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def CONFIGURATION_DEFAULT_IS_ONESHOT
 \brief Oneshot mode for default.
 */
-#define CONFIGURATION_DEFAULT_IS_ONESHOT              (true)
+#define CONFIGURATION_DEFAULT_IS_ONESHOT              (false)
 
 /*!
 \def CONFIGURATION_DEFAULT_IS_CONTINUOUS
 \brief Continuous mode for default.
 */
-#define CONFIGURATION_DEFAULT_IS_CONTINUOUS           (false)
+#define CONFIGURATION_DEFAULT_IS_CONTINUOUS           (true)
 
 /*!
 \def CONFIGURATION_DEFAULT_I2C_ADDRESS
 \brief Default i2c address.
 */
 #define CONFIGURATION_DEFAULT_I2C_ADDRESS             (I2C_LEAF_DEFAULT_ADDRESS)
+
+/*!
+\def CONFIGURATION_DEFAULT_LEAF_CALIBRATION_THRESHOLD
+\brief Default threshold for ADC wet/dry (0-1023).
+*/
+#define CONFIGURATION_DEFAULT_LEAF_CALIBRATION_THRESHOLD   (512)
 
 /*!
 \def CONFIGURATION_RESET_PIN
@@ -79,7 +97,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define LEAF_ANALOG_PIN                               (A0)
 
-
 /*!
 \def SDCARD_CHIP_SELECT_PIN
 \brief Chip select for SDcard SPI.
@@ -91,6 +108,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Clock speed for SPI and SDcard.
 */
 #define SPI_SPEED SD_SCK_MHZ(4)
+
+/*!
+\def I2C_MAX_TIME
+\brief Max i2c time in seconds before i2c restart.
+*/
+#define I2C_MAX_TIME             (600)
 
 /*********************************************************************
 * POWER DOWN
@@ -142,43 +165,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def SENSORS_SAMPLE_TIME_MS
 \brief Milliseconds for sampling sensors: 1000 - 60000 [ms] must be integer multiple of TIMER1_INTERRUPT_TIME_MS !!!
 */
-#define SENSORS_SAMPLE_TIME_MS                        (8000)
-
-/*!
-\def SENSORS_SAMPLE_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MIN                      ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
-
-#if ((OBSERVATIONS_MINUTES * 60) % (SENSORS_SAMPLE_TIME_MS / 1000) == 0)
-/*!
-\def SENSORS_SAMPLE_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MAX                      (SENSORS_SAMPLE_COUNT_MIN)
-#else
-/*!
-\def SENSORS_SAMPLE_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MAX                      (SENSORS_SAMPLE_COUNT_MIN + 1)
-#endif
-
-/*!
-\def SENSORS_SAMPLE_COUNT_TOLERANCE
-\brief Maximum invalid sample count for generate a valid observations.
-*/
-#define SENSORS_SAMPLE_COUNT_TOLERANCE                (2)
-
-/*!
-\def USE_SENSORS_COUNT
-\brief Sensors count.
-*/
-#define USE_SENSORS_COUNT                             (1)
-
-#if (USE_SENSORS_COUNT == 0)
-#error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
-#endif
+#define SENSORS_SAMPLE_TIME_MS                        (4000)
 
 /*********************************************************************
 * TIMER1
@@ -210,45 +197,27 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Maximum timer1 counter value for timed tasks.
 */
 #define TIMER_COUNTER_VALUE_MAX_MS                    (SENSORS_SAMPLE_TIME_MS)
-#define TIMER_COUNTER_VALUE_MAX_S                     (60)
 
 /*********************************************************************
 * TASKS
 *********************************************************************/
-/*!
-\def LEAF_READ_DELAY_MS
-\brief Reading delay.
-*/
-#define LEAF_READ_DELAY_MS                            (100)
 
 /*!
 \def LEAF_VALUES_READ_DELAY_MS
-\brief Reading delay.
+\brief Reading delay from measure to get one data.
 */
 #define LEAF_VALUES_READ_DELAY_MS                     (2)
 
 /*!
-\def LEAF_CALIBRATION_READ_COUNT
-\brief Maximum number of retry for leaf reading.
-*/
-#define LEAF_CALIBRATION_READ_COUNT                   (100)
-
-/*!
-\def LEAF_RETRY_COUNT_MAX
-\brief Maximum number of retry for leaf reading.
+\def LEAF_READ_COUNT
+\brief Maximum number of leaf reading to get one data.
 */
 #define LEAF_READ_COUNT                               (10)
-
-/*!
-\def LEAF_RETRY_COUNT_MAX
-\brief Maximum number of retry for leaf reading.
-*/
-#define LEAF_CALIBRATION_OFFSET                       (5)
 
 /*!
 \def TRANSACTION_TIMEOUT_MS
 \brief Timeout for command transaction.
 */
-#define TRANSACTION_TIMEOUT_MS                       (12000)
+#define TRANSACTION_TIMEOUT_MS                       (5000)
 
 #endif

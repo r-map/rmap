@@ -70,7 +70,7 @@ typedef struct {
    uint8_t module_type;                //!< module type
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   bool is_continuous;                 //!< enable or disable continuous mode
+   bool is_continuous;                 //!< NOT USED enable or disable continuous mode
    sensor_conf_t sensors[2];           //!< sensors configurations
 } configuration_t;
 

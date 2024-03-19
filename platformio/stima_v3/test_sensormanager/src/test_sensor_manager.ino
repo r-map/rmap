@@ -1,13 +1,13 @@
 #include <SensorManager.h>
 
 #define DELAY_ACQ_MS          (60000)
-#define DELAY_TEST_MS         (10000)
+#define DELAY_TEST_MS         (1000)
 
 sensorManage sensorm[SENSORS_MAX];
 uint32_t acquiring_sensor_delay_ms;
 uint32_t testing_sensor_delay_ms;  
 uint8_t sensors_count;
-SensorDriver* sensor[SENSORS_MAX];
+SensorDriver* sensors[SENSORS_MAX];
 
 void logPrefix(Print* _logOutput) {
   char m[12];
@@ -38,24 +38,24 @@ void setup() {
 
   #if (USE_SENSOR_SHT)
   address = 0x44;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensor, sensors_count);
-  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensor[sensors_count-1]->getDriver(), sensor[sensors_count-1]->getType(), sensor[sensors_count-1]->getAddress(), sensor[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SHT, address, 1, sensors, sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
   
   #if (USE_SENSOR_SPS)
   address = SPS30_ADDRESS;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SPS, address, 1, sensor, sensors_count);
-  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensor[sensors_count-1]->getDriver(), sensor[sensors_count-1]->getType(), sensor[sensors_count-1]->getAddress(), sensor[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SPS, address, 1, sensors, sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_SCD)
   address = 97;
-  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SCD, address, 1, sensor, sensors_count);
-  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensor[sensors_count-1]->getDriver(), sensor[sensors_count-1]->getType(), sensor[sensors_count-1]->getAddress(), sensor[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_SCD, address, 1, sensors, sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
-  
+
   for (uint8_t i = 0; i < sensors_count; i++) {
-    sensorm[i].begin(sensor[i]);
+    sensorm[i].begin(sensors[i]);
   }
   acquiring_sensor_delay_ms = 0;
   testing_sensor_delay_ms = 0;
@@ -66,7 +66,7 @@ void loop() {
   for (uint8_t i = 0; i < sensors_count; i++) {
     sensorm[i].run();
     if (sensorm[i].getDataReady()){
-      LOGN(F("sensor mode:%s %s-%s:"), sensorm[i].getTest() ? "Test" : "Report",sensor[i]->getDriver(),sensor[i]->getType());	
+      LOGN(F("sensor mode:%s %s-%s:"), sensorm[i].getTest() ? "Test" : "Report",sensors[i]->getDriver(),sensors[i]->getType());	
       for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
 	LOGN(F("value %d: %l"), v,sensorm[i].values[v]);
       }    
@@ -78,19 +78,34 @@ void loop() {
     }    
   }
 
-  if ((millis() - testing_sensor_delay_ms) >= DELAY_TEST_MS) {
-    testing_sensor_delay_ms = millis();
-    for (uint8_t i = 0; i < sensors_count; i++) {
-      sensorm[i].setTest(true);
-      sensorm[i].setEventRead();
-    }
+  
+  bool reading = false;
+  for (uint8_t i = 0; i < sensors_count; i++) {
+    reading |= sensorm[i].getEventRead();
   }
-
-  if ((millis() - acquiring_sensor_delay_ms) >= DELAY_ACQ_MS) {
-    acquiring_sensor_delay_ms = millis();
+  
+  if (!reading){
     for (uint8_t i = 0; i < sensors_count; i++) {
-      sensorm[i].setTest(false);
-      sensorm[i].setEventRead();
+      if(sensorm[i].getErrorStatus()){
+	LOGE(F("sensor ERROR: %s-%s:"), sensors[i]->getDriver(),sensors[i]->getType());	
+      }
+      sensorm[i].newMeasure();
+    }
+  
+    if ((millis() - testing_sensor_delay_ms) >= DELAY_TEST_MS) {
+      testing_sensor_delay_ms = millis();
+      for (uint8_t i = 0; i < sensors_count; i++) {
+	sensorm[i].setTest(true);
+	sensorm[i].setEventRead();
+      }
+    }
+    
+    if ((millis() - acquiring_sensor_delay_ms) >= DELAY_ACQ_MS) {
+      acquiring_sensor_delay_ms = millis();
+      for (uint8_t i = 0; i < sensors_count; i++) {
+	sensorm[i].setTest(false);
+	sensorm[i].setEventRead();
+      }
     }
   }
 }

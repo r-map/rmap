@@ -62,8 +62,24 @@ void loop() {
 
     #if (USE_POWER_DOWN)
     case ENTER_POWER_DOWN:
+
+      #if (ENABLE_SDCARD_LOGGING)
+      logFile.flush();
+      power_spi_disable();
+      #endif
+      Serial.flush();
+      // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
+      wdt_disable();
+
       //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
       init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+
+      // enable watchdog
+      init_wdt(WDT_TIMER);
+      #if (ENABLE_SDCARD_LOGGING)
+      power_spi_enable();
+      #endif
+      
       state = TASKS_EXECUTION;
     break;
     #endif
@@ -76,6 +92,12 @@ void loop() {
         wdt_reset();
       }
 
+      if (i2c_time >= I2C_MAX_TIME) {
+	LOGN(F("Restart I2C BUS"));
+	init_wire();
+	wdt_reset();
+      }
+      
       if (is_event_leaf_reading) {
         leaf_reading_task();
         wdt_reset();
@@ -113,7 +135,7 @@ void logPrefix(Print* _logOutput) {
 
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
-  //_logOutput->flush();  // we use this to flush every log message
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 void init_logging(){
@@ -162,10 +184,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 
     noInterrupts ();
     sleep_enable();
-
-    //! turn off brown-out
-    // MCUCR = bit (BODS) | bit (BODSE);
-    // MCUCR = bit (BODS);
     interrupts ();
 
     sleep_cpu();
@@ -193,9 +211,10 @@ void init_buffers() {
   writable_data_ptr = &writable_data;
 
   readable_data_write_ptr->module_type = MODULE_TYPE;
-  readable_data_write_ptr->module_version = MODULE_VERSION;
+  readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
+  readable_data_write_ptr->module_minor_version = MODULE_MINOR_VERSION;
+  memset((void *) &readable_data_write_ptr->leaf_wetness, UINT8_MAX, sizeof(leaf_wetness_t));
 
-  reset_buffer();
   reset_samples_buffer();
   reset_report_buffer();
 
@@ -214,26 +233,24 @@ void init_tasks() {
 
   leaf_reading_state = LEAF_READING_INIT;
 
-  //! reset samples_count value
-  samples_count = SENSORS_SAMPLE_COUNT_MIN;
-
   transaction_time = 0;
   inside_transaction = false;
-  
+
+  lastcommand =I2C_LEAF_COMMAND_NONE;
+
   interrupts();
 }
 
 void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
-  pinMode(LEAF_POWER_PIN, OUTPUT);
+  pinMode(LEAF_POWER_PIN, OUTPUT);   // not used
   pinMode(LEAF_ANALOG_PIN, INPUT);
   pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
-  if (i2c_error > 0) {
-    i2c_error = 0;
-  }
+  i2c_error = 0;
+  i2c_time = 0;
 
   Wire.end();
   Wire.begin(configuration.i2c_address);
@@ -251,7 +268,7 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  start_timer();
+  //start_timer();
 }
 
 void start_timer() {
@@ -285,27 +302,28 @@ void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
   LOGN(F("--> type: %s"), stima_name);
-  LOGN(F("--> version: %d"), configuration.module_version);
-  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+  LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
+  LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-  LOGN(F("--> leaf wet value: [ %u - %u ]"), configuration.leaf_calibration_min, configuration.leaf_calibration_max);
+  LOGN(F("--> leaf wet calibration threshold: [ %d ]"), configuration.leaf_calibration_threshold);
 }
 
 void save_configuration(bool is_default) {
   if (is_default) {
     LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
-    configuration.module_version = MODULE_VERSION;
+    configuration.module_main_version = MODULE_MAIN_VERSION;
+    configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
     configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
-    configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
+    configuration.leaf_calibration_threshold = CONFIGURATION_DEFAULT_LEAF_CALIBRATION_THRESHOLD;
   }
   else {
     LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
-    configuration.is_continuous = writable_data.is_continuous;
+    configuration.leaf_calibration_threshold = writable_data.leaf_calibration_threshold;
   }
 
   //! write configuration to eeprom
@@ -318,7 +336,7 @@ void load_configuration() {
   //! read configuration from eeprom
   ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
 
-  if (configuration.module_type != MODULE_TYPE || configuration.module_version != MODULE_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+  if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
@@ -326,17 +344,14 @@ void load_configuration() {
     print_configuration();
   }
 
+  wdt_reset();
+  
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
 }
 
 void init_sensors () {
-  LOGN(F("--> acquiring samples every %u seconds"), SENSORS_SAMPLE_TIME_MS / 1000);
-  LOGN(F("leaf: leaf value"));
-  LOGN(F("timer: total wet time [s]"));
-  LOGN(F("wet: is wet?"));
-
-  LOGN(F("leaf\ttimer\twet"));
+  LOGN(F("--> acquiring samples every %d seconds"), SENSORS_SAMPLE_TIME_MS / 1000);
 }
 
 /*!
@@ -347,6 +362,7 @@ void init_sensors () {
 ISR(TIMER1_OVF_vect) {
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
+  i2c_time+=TIMER1_INTERRUPT_TIME_MS/1000;
 
   //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
   timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
@@ -421,6 +437,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
       // enable Command task
       if (!is_event_command_task) {
+	lastcommand=i2c_rx_data[1];    // record command to be executed
         is_event_command_task = true;
         ready_tasks_count++;
       }
@@ -433,9 +450,6 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_LEAF_ONESHOT_ADDRESS && rx_data_length == I2C_LEAF_ONESHOT_LENGTH) {
-        is_i2c_data_ok = true;
-      }
-      else if (i2c_rx_data[0] == I2C_LEAF_CONTINUOUS_ADDRESS && rx_data_length == I2C_LEAF_CONTINUOUS_LENGTH) {
         is_i2c_data_ok = true;
       }
 
@@ -463,18 +477,15 @@ void leaf_reading_task () {
     case LEAF_READING_INIT:
       i = 0;
       leaf_value = 0;
-      state_after_wait = LEAF_READING_INIT;
-
-      delay_ms = LEAF_READ_DELAY_MS;
-      start_time_ms = millis();
-      state_after_wait = LEAF_READING_READ;
-      leaf_reading_state = LEAF_READING_WAIT_STATE;
+      leaf_reading_state = LEAF_READING_READ;
       LOGV(F("LEAF_READING_INIT --> LEAF_READING_READ"));
     break;
 
     case LEAF_READING_READ:
-      leaf_value += ((float) leafRead() - leaf_value) / (float) (i+1);
+      leaf_value += ((float)(analogRead(LEAF_ANALOG_PIN)) - leaf_value) / (float) (i+1);
 
+      LOGN(F("sample leaf: %D %d"),leaf_value,i);
+      
       if (i < LEAF_READ_COUNT) {
         i++;
         delay_ms = LEAF_VALUES_READ_DELAY_MS;
@@ -489,17 +500,21 @@ void leaf_reading_task () {
     break;
 
     case LEAF_READING_END:
-      if (leaf_value <= configuration.leaf_calibration_max) {
+      if (leaf_value <= configuration.leaf_calibration_threshold) {
         is_leaf_wet = true;
       }
       else {
         is_leaf_wet = false;
       }
 
+      LOGN(F("leaf wet: %T"),is_leaf_wet);
+      
       if (is_leaf_wet) {
-        leaf_wetness.timer += (SENSORS_SAMPLE_TIME_MS / 1000);
+        readable_data_write_ptr->leaf_wetness.time += (SENSORS_SAMPLE_TIME_MS / 1000);
       }
 
+      LOGN(F("leaf wet time: %l"),readable_data_write_ptr->leaf_wetness.time);
+      
       noInterrupts();
       is_event_leaf_reading = false;
       ready_tasks_count--;
@@ -518,141 +533,192 @@ void leaf_reading_task () {
 }
 
 void exchange_buffers() {
+  noInterrupts();
   readable_data_temp_ptr = readable_data_write_ptr;
   readable_data_write_ptr = readable_data_read_ptr;
   readable_data_read_ptr = readable_data_temp_ptr;
+  interrupts();
 }
 
+/*
 void copy_oneshot_data () {
-  LOGN(F("Report Leaf wetness: [ %s ] Total [ %0.f ] seconds"), is_leaf_wet ? "WET" : "DRY", leaf_wetness.timer);
-  readable_data_write_ptr->leaf_wetness.timer = leaf_wetness.timer;
+  LOGN(F("Report Leaf wetness: [ %s ] Total [ %D ] seconds"), is_leaf_wet ? "WET" : "DRY", leaf_wetness.time);
+  readable_data_write_ptr->leaf_wetness.time = leaf_wetness.time;
 }
-
+*/
 void reset_samples_buffer() {
-}
-
-void reset_buffer() {
-  leaf_wetness.timer = 0.0;
+  readable_data_write_ptr->leaf_wetness.time = 0;
 }
 
 void reset_report_buffer () {
-  readable_data_write_ptr->leaf_wetness.timer = (float)(UINT16_MAX);
+  readable_data_write_ptr->leaf_wetness.time = UINT32_MAX;
 }
 
 void command_task() {
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  char buffer[30];
-  #endif
 
-  switch(i2c_rx_data[1]) {
-    case I2C_LEAF_COMMAND_ONESHOT_START:
-    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-    strcpy(buffer, "ONESHOT START");
-    #endif
-    is_oneshot = true;
-    is_continuous = false;
+  switch(lastcommand) {
+  case I2C_LEAF_COMMAND_ONESHOT_START:
+    LOGN(F("Execute [ ONESHOT START ]"));
     is_start = true;
     is_stop = false;
+    is_test_read = false;
     commands();
     break;
 
-    case I2C_LEAF_COMMAND_ONESHOT_STOP:
-    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-    strcpy(buffer, "ONESHOT STOP");
-    #endif
-    is_oneshot = true;
-    is_continuous = false;
+  case I2C_LEAF_COMMAND_ONESHOT_STOP:
+    LOGN(F("Execute [ ONESHOT STOP ]"));
     is_start = false;
     is_stop = true;
+    is_test_read = false;
     commands();
+    transaction_time = 0;
     inside_transaction = true;    
     break;
 
-    case I2C_LEAF_COMMAND_ONESHOT_START_STOP:
-    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-    strcpy(buffer, "ONESHOT START-STOP");
-    #endif
-    is_oneshot = true;
-    is_continuous = false;
+  case I2C_LEAF_COMMAND_ONESHOT_START_STOP:
+    LOGN(F("ONESHOT START-STOP"));;
     is_start = true;
     is_stop = true;
+    is_test_read = false;
     commands();
+    transaction_time = 0;
     inside_transaction = true;
     break;
-
-    case I2C_LEAF_COMMAND_TEST_READ:
-    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-    strcpy(buffer, "TEST READ");
-    #endif
-    tests();
+    
+  case I2C_LEAF_COMMAND_CONTINUOUS_START:
+    LOGN(F("Execute [ CONTINUOUS START ]"));
+    is_start = true;
+    is_stop = false;
+    is_test_read = false;
+    commands();
     break;
 
-    case I2C_LEAF_COMMAND_SAVE:
-    is_oneshot = false;
-    is_continuous = false;
+  case I2C_LEAF_COMMAND_CONTINUOUS_STOP:
+    LOGN(F("Execute [ CONTINUOUS STOP ]"));
+    is_start = false;
+    is_stop = true;
+    is_test_read = false;
+    commands();
+    transaction_time = 0;
+    inside_transaction = true;
+    break;
+    
+  case I2C_LEAF_COMMAND_CONTINUOUS_START_STOP:
+    LOGN(F("Execute [ CONTINUOUS START-STOP ]"));
+    is_start = true;
+    is_stop = true;
+    is_test_read = false;
+    commands();
+    transaction_time = 0;
+    inside_transaction = true;
+    break;
+    
+  case I2C_LEAF_COMMAND_TEST_READ:
+    LOGN(F("Execute [ TEST READ ]"));
+    is_stop = false;
+    is_test_read = true;
+    commands();
+    break;
+
+  case I2C_LEAF_COMMAND_SAVE:
     is_start = false;
     is_stop = false;
-    LOGV(F("Execute command [ SAVE ]"));
+    LOGN(F("Execute command [ SAVE ]"));
     save_configuration(CONFIGURATION_CURRENT);
     init_wire();
     break;
-  }
 
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    LOGT(F("Execute [ %s ]"), buffer);
+  default:
+    LOGN(F("Ignore unknow command"));
   }
-  else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    LOGT(F("Ignore [ %s ]"), buffer);
-  }
-  #endif
 
   noInterrupts();
   is_event_command_task = false;
   ready_tasks_count--;
+  lastcommand =I2C_LEAF_COMMAND_NONE;
   interrupts();
 }
 
-void tests() {
-  noInterrupts();
-  copy_oneshot_data();
-  exchange_buffers();
-  interrupts();
+void copy_buffers() {
+   //! copy readable_data_2 in readable_data_1
+   noInterrupts();
+   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+   interrupts();
 }
 
 void commands() {
 
-  if (inside_transaction) return;
-  
-  noInterrupts();
+  if (inside_transaction) {
+    LOGE(F("Transaction error"));
+    return;
+  }
 
+  //! CONTINUOUS TEST
+  if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {
+    copy_buffers();
+    //exchange_buffers();
+  }
   //! CONTINUOUS START
-  if (configuration.is_continuous && is_continuous && is_start && !is_stop) {
+  else if (!configuration.is_oneshot && is_start && !is_stop && !is_test_read) {
+
+    stop_timer();
+    reset_samples_buffer();
+    //reset_report_buffer();
+    //make_report(true);
+    start_timer();
   }
   //! CONTINUOUS STOP
-  else if (configuration.is_continuous && is_continuous && !is_start && is_stop) {
+  else if (!configuration.is_oneshot && !is_start && is_stop) {
+    stop_timer();
+    copy_buffers();
+    reset_report_buffer();
+    //exchange_buffers();
   }
   //! CONTINUOUS START-STOP
-  else if (configuration.is_continuous && is_continuous && is_start && is_stop) {
+  else if (!configuration.is_oneshot && is_start && is_stop) {
+    stop_timer();
+    exchange_buffers();
+    reset_samples_buffer();
+    //reset_report_buffer();
+    //make_report(true);
+    start_timer();
   }
   //! ONESHOT START
-  else if (configuration.is_oneshot && is_oneshot && is_start && !is_stop) {
-    reset_buffer();
+  else if (configuration.is_oneshot && is_start && !is_stop) {
     reset_samples_buffer();
-    reset_report_buffer();
+    //reset_report_buffer();
+
+    noInterrupts();
+    if (!is_event_leaf_reading) {
+      is_event_leaf_reading = true;
+      ready_tasks_count++;
+    }
+
+    // TODO
+    interrupts();
   }
   //! ONESHOT STOP
-  else if (configuration.is_oneshot && is_oneshot && !is_start && is_stop) {
-    copy_oneshot_data();
+  else if (configuration.is_oneshot && !is_start && is_stop) {
+
+    /* TODO
+    readable_data_write_ptr->temperature.sample = temperature;
+    readable_data_write_ptr->humidity.sample = humidity;
     exchange_buffers();
-    reset_buffer();
+    */
   }
   //! ONESHOT START-STOP
-  else if (configuration.is_oneshot && is_oneshot && is_start && is_stop) {
-    copy_oneshot_data();
+  else if (configuration.is_oneshot && is_start && is_stop) {
+   
+    /* TODO
+    readable_data_write_ptr->temperature.sample = temperature;
+    readable_data_write_ptr->humidity.sample = humidity;
     exchange_buffers();
-    reset_buffer();
+    */    
+    noInterrupts();
+    if (!is_event_leaf_reading) {
+      is_event_leaf_reading = true;
+      ready_tasks_count++;
+    }
+    interrupts();
   }
-
-  interrupts();
 }

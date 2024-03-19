@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (15)
+#define MODULE_MINOR_VERSION                          (18)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -178,4 +178,4 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def TRANSACTION_TIMEOUT_MS
 \brief Timeout for command transaction.
 */
-#define TRANSACTION_TIMEOUT_MS                       (12000)
+#define TRANSACTION_TIMEOUT_MS                       (5000)

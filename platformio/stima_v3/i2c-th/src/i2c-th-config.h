@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (15)
+#define MODULE_MINOR_VERSION                          (18)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
@@ -206,19 +206,19 @@ setting it to 3980 ms we gain 20 ms every sample, 300 ms every observation, 4500
 \def SENSORS_RETRY_COUNT_MAX
 \brief Maximum number of retry for sensors reading.
 */
-#define SENSORS_RETRY_COUNT_MAX                       (2)
+#define SENSORS_RETRY_COUNT_MAX                       (3)
 
 /*!
 \def SENSORS_RETRY_DELAY_MS
 \brief Waiting for reading between two attempts.
 */
-#define SENSORS_RETRY_DELAY_MS                        (100)
+#define SENSORS_RETRY_DELAY_MS                        (50)
 
 /*!
 \def TRANSACTION_TIMEOUT_MS
 \brief Timeout for command transaction.
 */
-#define TRANSACTION_TIMEOUT_MS                       (12000)
+#define TRANSACTION_TIMEOUT_MS                       (5000)
 
 
 #endif

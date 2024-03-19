@@ -1045,6 +1045,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
          commands();
+	 transaction_time = 0;
 	 inside_transaction = true;
       break;
 
@@ -1054,6 +1055,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
          commands();
+	 transaction_time = 0;
 	 inside_transaction = true;
       break;
 
@@ -1071,6 +1073,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
 	 commands();
+	 transaction_time = 0;
 	 inside_transaction = true;
       break;
 
@@ -1080,6 +1083,7 @@ void command_task() {
         is_stop = true;
 	is_test_read = false;
         commands();
+	transaction_time = 0;
 	inside_transaction = true;
       break;
 
@@ -1120,7 +1124,10 @@ void copy_buffers() {
 
 void commands() {
 
-  if (inside_transaction) return;
+  if (inside_transaction){
+    LOGE(F("Transaction error"));
+    return;
+  }
   
   //! CONTINUOUS TEST
   if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {

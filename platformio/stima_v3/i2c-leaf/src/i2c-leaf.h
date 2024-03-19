@@ -44,7 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <StreamUtils.h>
 #include <ArduinoLog.h>
 
-#define leafRead()                    (analogRead(LEAF_ANALOG_PIN))
 
 /*********************************************************************
 * TYPEDEF
@@ -54,13 +53,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief EEPROM saved configuration.
 */
 typedef struct {
-  uint8_t module_version;             //!< module version
+  uint8_t module_main_version;        //!< module main version
+  uint8_t module_configuration_version;   //!< module configuration version
   uint8_t module_type;                //!< module type
   uint8_t i2c_address;                //!< i2c address
   bool is_oneshot;                    //!< enable or disable oneshot mode
-  bool is_continuous;                 //!< enable or disable continuous mode
-  uint16_t leaf_calibration_min;
-  uint16_t leaf_calibration_max;
+  uint16_t leaf_calibration_threshold;
 } configuration_t;
 
 /*!
@@ -68,7 +66,7 @@ typedef struct {
 \brief Leaf wetness data.
 */
 typedef struct {
-  float timer;   //!< timer in seconds that indicates wet leaf
+  uint32_t time;                      //!< time in seconds that indicates wet leaf
 } leaf_wetness_t;
 
 /*!
@@ -76,9 +74,10 @@ typedef struct {
 \brief Readable data through i2c bus.
 */
 typedef struct {
-  uint8_t module_type;                 //!< module version
-  uint8_t module_version;              //!< module type
-  leaf_wetness_t leaf_wetness;         //!< leaf wetness data for report
+  uint8_t module_type;                //!< module type
+  uint8_t module_main_version;        //!< module main version
+  uint8_t module_minor_version;       //!< module minor version
+  leaf_wetness_t leaf_wetness;        //!< leaf wetness data for report
 } readable_data_t;
 
 /*!
@@ -88,7 +87,7 @@ typedef struct {
 typedef struct {
   uint8_t i2c_address;                //!< i2c address
   bool is_oneshot;                    //!< enable or disable oneshot mode
-  bool is_continuous;                 //!< enable or disable continuous mode
+  uint16_t leaf_calibration_threshold;
 } writable_data_t;
 
 /*********************************************************************
@@ -209,10 +208,22 @@ volatile uint8_t readable_data_length;
 volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 
 /*!
+\var lastcommand
+\brief last command received.
+*/
+volatile uint8_t lastcommand;
+
+/*!
 \var i2c_error
 \brief Number of i2c error.
 */
 volatile uint8_t i2c_error;
+
+/*!
+\var i2c_time
+\brief Time in seconds from last I2C reset.
+*/
+volatile uint8_t i2c_time;
 
 /*!
 \var ready_tasks_count
@@ -239,22 +250,10 @@ bool is_start;
 bool is_stop;
 
 /*!
-\var is_oneshot
-\brief Received command is in oneshot mode.
-*/
-bool is_oneshot;
-
-/*!
-\var is_continuous
+\var is_test_read
 \brief Received command is in continuous mode.
 */
-bool is_continuous;
-
-/*!
-\var leaf_wetness
-\brief leaf_wetness data.
-*/
-leaf_wetness_t leaf_wetness;
+bool is_test_read;
 
 bool is_leaf_init;
 bool is_leaf_wet;
@@ -276,7 +275,6 @@ bool do_buffers_reset;
 \brief Timer counter variable for execute timed task with time multiple of base Timer1 time.
 */
 volatile uint16_t timer_counter_ms;
-volatile uint16_t timer_counter_s;
 
 /*!
 \var state

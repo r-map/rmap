@@ -18,8 +18,8 @@ atmega644p_isp: MCU_AVRDUDE = atmega644p
 atmega644p_isp: HFUSE ?= 0xD8
 # Full Swing xtal (16MHz) 16KCK/14CK+65ms
 atmega644p_isp: LFUSE ?= 0xFF
-# 2.7V brownout
-atmega644p_isp: EFUSE ?= 0xFD
+# 1.8V brownout
+atmega644p_isp: EFUSE ?= 0xFE
 atmega644p_isp: UNLOCK ?= 0x3F
 atmega644p_isp: LOCK ?= 0x0F
 

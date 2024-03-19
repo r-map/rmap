@@ -1658,7 +1658,7 @@ void SensorDriverTh::prepare(bool is_test) {
       _buffer[i++] = I2C_TH_COMMAND_ONESHOT_START_STOP;
       _buffer[i] = crc8(_buffer, i);
       i++;
-      _delay_ms = 150;
+      _delay_ms = 300;
     }
     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
       is_i2c_write = true;
@@ -1671,7 +1671,7 @@ void SensorDriverTh::prepare(bool is_test) {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 150;
+      _delay_ms = 300;
     }
 
     if (is_i2c_write) {
@@ -4234,7 +4234,7 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
 
 //------------------------------------------------------------------------------
 // Leaf Wetness
-// USE_SENSOR_LWT: Wetness timer continuous
+// USE_SENSOR_LWT: Wetness time continuous
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_LWT)
 
@@ -4270,10 +4270,10 @@ void SensorDriverLeaf::prepare(bool is_test) {
         _buffer[i] = crc8(_buffer, i);
       }
       else {
-        _buffer[i++] = I2C_LEAF_COMMAND_ONESHOT_START_STOP;
+        _buffer[i++] = I2C_LEAF_COMMAND_CONTINUOUS_START_STOP;
         _buffer[i] = crc8(_buffer, i);
       }
-      _delay_ms = 0;
+      _delay_ms = 50;
     }
 
     if (is_i2c_write) {
@@ -4304,7 +4304,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
   bool is_i2c_write;
   uint8_t i;
 
-  float val;
+  uint32_t val;
   uint8_t *val_ptr;
 
   switch (_get_state) {
@@ -4314,7 +4314,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
       }
 
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
-        val = FLT_MAX;
+        val = INT32_MAX;
         variable_length = 1;
       }
 
@@ -4343,15 +4343,13 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
       offset = 0;
       i = 0;
 
-      #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         is_i2c_write = true;
-        data_length = I2C_LEAF_TIMER_LENGTH;
-        _buffer[i++] = I2C_LEAF_TIMER_ADDRESS;
-        _buffer[i++] = I2C_LEAF_TIMER_LENGTH;
+        data_length = I2C_LEAF_TIME_LENGTH;
+        _buffer[i++] = I2C_LEAF_TIME_ADDRESS;
+        _buffer[i++] = I2C_LEAF_TIME_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      #endif
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
@@ -4419,9 +4417,9 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID_FLOAT(val)) {
-            values[variable_count] = (uint16_t)(round(val / 10.0));
-          }
+          if (_is_success && ISVALID_INT32(val)) {
+            values[variable_count] = round(float(val)/10.);
+          } 
           else {
             values[variable_count] = INT32_MAX;
             _is_success = false;
@@ -4454,7 +4452,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
           if (ISVALID_INT32(values[0])) {
-            LOGN(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
+            LOGT(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
           }
           else {
             LOGT(F("leaf--> Leaf Wet Time: --- minutes"));

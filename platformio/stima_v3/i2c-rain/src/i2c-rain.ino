@@ -596,6 +596,7 @@ void command_task() {
       is_start = false;
       is_stop = true;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
@@ -608,6 +609,7 @@ void command_task() {
       is_start = true;
       is_stop = true;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
@@ -642,8 +644,10 @@ void command_task() {
 
 void commands() {
 
-   if (inside_transaction) return;
-
+   if (inside_transaction) {
+     LOGE(F("Transaction error"));
+     return;
+   }
    noInterrupts();
 
    if (configuration.is_oneshot){

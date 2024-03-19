@@ -1045,6 +1045,7 @@ void command_task() {
       is_start = false;
       is_stop = true;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
@@ -1058,6 +1059,7 @@ void command_task() {
       is_stop = true;
       is_test_read = false;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
@@ -1083,6 +1085,7 @@ void command_task() {
       is_stop = true;
       is_test_read = false;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS STOPT");
@@ -1097,6 +1100,7 @@ void command_task() {
       is_stop = true;
       is_test_read = false;
       commands();
+      transaction_time = 0;
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS START_STOPT");
@@ -1149,8 +1153,10 @@ void copy_buffers() {
 
 void commands() {
 
-  if (inside_transaction) return;
-  
+  if (inside_transaction) {
+    LOGE(F("Transaction error"));
+    return;
+  }
   //! CONTINUOUS TEST
   if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {
     copy_buffers();
