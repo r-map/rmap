@@ -68,6 +68,11 @@ Per il collegamento del sensore Radiometro ( come mostrato in foto ) collegare:
 
 |image10|
 
+Questo il cavo di colegamento al piranometro:
+
+|image_piranometro|
+
+
 i2c-wind
 ~~~~~~~~
 
@@ -90,10 +95,12 @@ Schema di collegamento
 In figura è riportato lo schema di collegamento del quadro:
 
 |image7|
+|image_schema_generale|
 
 Segue invece schema dettaglio della morsettiera di confine:
 
 |image8|
+
 
 .. |image0| image:: ./img/totale.png
 .. |image1| image:: ./img/Stima.png
@@ -106,3 +113,5 @@ Segue invece schema dettaglio della morsettiera di confine:
 .. |image8| image:: ./img/morsettiera.png
 .. |image9| image:: ./img/complessivo.jpg
 .. |image10| image:: ./img/foto_morsettiera.jpg
+.. |image_piranometro| image:: ./img/piranometro.png
+.. |image_schema_generale| image:: ./img/schema_generale.png
