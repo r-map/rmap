@@ -89,13 +89,19 @@ configurazione:
 
 |image6|
 
+Regolatore di carica
+~~~~~~~~~~~~~~~~~~~~
+
+Vedi :download:`manuale <istruzioni-per-uso-regolatore-carica.pdf>`
+
+
 Schema di collegamento
 ----------------------
 
 In figura è riportato lo schema di collegamento del quadro:
 
-|image7|
 |image_schema_generale|
+|image_schema_generale_2|
 
 Segue invece schema dettaglio della morsettiera di confine:
 
@@ -109,9 +115,9 @@ Segue invece schema dettaglio della morsettiera di confine:
 .. |image4| image:: ./img/i2c-radiation.png
 .. |image5| image:: ./img/i2c-wind.png
 .. |image6| image:: ./img/i2c-rain.png
-.. |image7| image:: ./img/schema.png
 .. |image8| image:: ./img/morsettiera.png
 .. |image9| image:: ./img/complessivo.jpg
 .. |image10| image:: ./img/foto_morsettiera.jpg
 .. |image_piranometro| image:: ./img/piranometro.png
 .. |image_schema_generale| image:: ./img/schema_generale.png
+.. |image_schema_generale_2| image:: ./img/schema_generale_2.png

@@ -817,18 +817,17 @@ oppure:
 
 - make atmega1284p_isp  
      
-Compilazione del firmware in formato binario
---------------------------------------------
+Firmware in formato binario
+---------------------------
 
 1. Compilare il firmware per i moduli Stima secondo quanto scritto ai
    punti precedenti
-2. Localizzare il file firmware.elf compilato, solitamente
-   -  rmap/platformio/stima_v3/stima/.pio/build/1284p16m
-3. Attraverso una consolle o il prompt dei comandi, eseguire
-   -  ~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy -I ihex -O binary firmware.elf FIRMWARE.BIN
+2. Localizzare il file FIRMWARE.BIN compilato, solitamente
+   -  rmap/platformio/stima_v3/stima/bin/1284p16m/FIRMWARE:BIN
+3. Verificare che la data di creazione corrisponda e che quindi il firmware sia aggiornato.
 
-Upload del firmware tramite micro SD-Card attraverso Digitecoboot
------------------------------------------------------------------
+Upload del firmware nel modulo master tramite micro SD-Card attraverso Digitecoboot
+-----------------------------------------------------------------------------------
 
 1. Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32
 2. Creare un file sulla scheda SD con il nome esattamente corrispondente alla
@@ -843,8 +842,25 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 7. Se necessario, inserire la micro SD-Card utile per il funzionamento
    del modulo (senza il file FIRMWARE.BIN)
 8. Alimentare il modulo
+9. Controllare sul dispay se la versione del firmware è corretta
+10. Non è necessario estrarre la SD card dal suo alloggiamento ed è
+    possibile utilizzarla direttamente per il funzionamento della
+    stazione
 
 
+Upload del firmware nei moduli non  master tramite micro SD-Card attraverso Digitecoboot
+----------------------------------------------------------------------------------------
+
+1. Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32
+2. Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima
+   GSM/GPRS, Stima I2C-TH o Stima-Rain
+3. Alimentare il modulo e attendere 30 secondi per la fine del
+   caricamento del firmware
+4. Spegnere il modulo e rimuovere la micro SD-Card contenente il
+   firmware
+5. Alimentare il modulo
+6. Eventualmente controllare tramite USB che al boot venga comunicato la corretta versione del firmware.
+   
 
 Configurazione moduli e sensori
 -------------------------------
