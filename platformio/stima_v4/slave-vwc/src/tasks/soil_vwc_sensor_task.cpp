@@ -398,20 +398,20 @@ float SoilVWCSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
   switch (adc_type)
   {
   case Adc_Mode::mVolt:
-    min = 0.0;
-    max = 3300.0;
+    min = (float)(ADC_VOLTAGE_MIN_MV);
+    max = (float)(ADC_VOLTAGE_MAX_MV);
     /* code */
     break;
 
   case Adc_Mode::Volt:
-    min = 0.0;
-    max = 15.0;
+    min = (float)(ADC_VOLTAGE_MIN_V);
+    max = (float)(ADC_VOLTAGE_MAX_V);
     /* code */
     break;
 
   case Adc_Mode::mA:
-    min = 4.0;
-    max = 20.0;
+    min = (float)(ADC_CURRENT_MIN_MA);
+    max = (float)(ADC_CURRENT_MAX_MA);
     /* code */
     break;
 

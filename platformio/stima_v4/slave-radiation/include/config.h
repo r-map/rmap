@@ -156,32 +156,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Index Sensor
 #define SOLAR_RADIATION_INDEX             (0)
 
-#define ADC_VOLTAGE_MAX                               (3300.0)
-#define ADC_VOLTAGE_MIN                               (0.0)
-#define ADC_VOLTAGE_OFFSET                            (0.0)
+// Caratteristic of input type
+#define ADC_VOLTAGE_MAX_V                 (14.4)
+#define ADC_VOLTAGE_MIN_V                 (0.0)
+#define ADC_VOLTAGE_MAX_MV                (3300.0)
+#define ADC_VOLTAGE_MIN_MV                (0.0)
+#define ADC_CURRENT_MAX_MA                (20.0)
+#define ADC_CURRENT_MIN_MA                (0.0)
 
-#define ADC_MAX                                       (4096)
-#define ADC_MIN                                       (0)
+// Adc resolution
+#define ADC_MAX                           (4096)
+#define ADC_MIN                           (0)
 
-#define SOLAR_RADIATION_VOLTAGE_MAX                   (3300.0)
-#define SOLAR_RADIATION_VOLTAGE_MIN                   (0.0)
+// Sensor Typical input limit
+#define SOLAR_RADIATION_VOLTAGE_MAX       (5000.0)
+#define SOLAR_RADIATION_VOLTAGE_MIN       (0.0)
 
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX             (SOLAR_RADIATION_VOLTAGE_MAX + 30.0)
-#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN             (SOLAR_RADIATION_VOLTAGE_MIN - 30.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MAX (SOLAR_RADIATION_VOLTAGE_MAX + 30.0)
+#define SOLAR_RADIATION_ERROR_VOLTAGE_MIN (SOLAR_RADIATION_VOLTAGE_MIN - 30.0)
 
-#define SOLAR_RADIATION_MAX                           (1320.0)
-#define SOLAR_RADIATION_MIN                           (0.0)
+#define SOLAR_RADIATION_MAX               (1500.0)
+#define SOLAR_RADIATION_MIN               (0.0)
 
-#define SOLAR_RADIATION_SENSIBILITY                   (1.0)
+#define SOLAR_RADIATION_SENSIBILITY       (1.0)
 
-#define SOLAR_RADIATION_ERROR_MAX                     (1320.0)
-#define SOLAR_RADIATION_ERROR_MIN                     (0.0)
+#define SOLAR_RADIATION_ERROR_MAX         (1500.0)
+#define SOLAR_RADIATION_ERROR_MIN         (0.0)
 
-#define ADC_ERROR_PERCENTAGE_MIN                      (70)
+#define ADC_ERROR_PERCENTAGE_MIN          (70)
 
-#define SAMPLE_ERROR_PERCENTAGE_MIN                   (90.0)
-#define OBSERVATION_ERROR_PERCENTAGE_MIN              (90.0)
+#define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
-#define ACQUISITION_COUNT_FOR_POWER_RESET             (100)
+#define ACQUISITION_COUNT_FOR_POWER_RESET (100)
 
 #endif

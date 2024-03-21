@@ -160,13 +160,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SOIL_VWC2_INDEX                   (1)
 #define SOIL_VWC3_INDEX                   (2)
 
-#define ADC_VOLTAGE_MAX                   (3300.0)
-#define ADC_VOLTAGE_MIN                   (0.0)
-#define ADC_VOLTAGE_OFFSET                (0.0)
+// Caratteristic of input type
+#define ADC_VOLTAGE_MAX_V                 (14.4)
+#define ADC_VOLTAGE_MIN_V                 (0.0)
+#define ADC_VOLTAGE_MAX_MV                (3300.0)
+#define ADC_VOLTAGE_MIN_MV                (0.0)
+#define ADC_CURRENT_MAX_MA                (20.0)
+#define ADC_CURRENT_MIN_MA                (0.0)
 
+// Adc resolution
 #define ADC_MAX                           (4096)
 #define ADC_MIN                           (0)
 
+// Sensor Typical input limit
 #define SOIL_VWC_VOLTAGE_MAX              (2000.0)
 #define SOIL_VWC_VOLTAGE_MIN              (1000.0)
 

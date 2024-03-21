@@ -218,6 +218,12 @@ void SupervisorTask::loadConfiguration()
   static uavcan_register_Value_1_0 val = {0};
   uint8_t idx;
 
+  // Reset sensor parameter to default with external initializaztion request
+  if(param.is_initialization_request) {
+    param.is_initialization_request = false;
+    register_config_valid = false;
+  }
+
   TRACE_INFO_F(F("SUPERVISOR: Load configuration...\r\n"));
 
   // Reading RMAP Module identify Param -> (READ) + Check(REWRITE) -> [Readonly]
@@ -444,7 +450,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     for(idx=0; idx<MAX_ADC_CHANELS; idx++) {
       param.configuration->sensors[idx].adc_gain = 1;
       param.configuration->sensors[idx].adc_offset = 0;
-      param.configuration->sensors[idx].adc_type = Adc_Mode::mVolt;
+      param.configuration->sensors[idx].adc_type = Adc_Mode::Volt;
       param.configuration->sensors[idx].analog_min = SOLAR_RADIATION_VOLTAGE_MIN;
       param.configuration->sensors[idx].analog_max = SOLAR_RADIATION_VOLTAGE_MAX;
       param.configuration->sensors[idx].is_active = 0;
