@@ -72,6 +72,7 @@ typedef struct {
   cpp_freertos::BinarySemaphore *registerAccessLock;
   cpp_freertos::Queue *systemMessageQueue;
   EERegister *clRegister;
+  bool is_initialization_request;
 } SupervisorParam_t;
 
 class SupervisorTask : public cpp_freertos::Thread {

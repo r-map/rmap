@@ -229,6 +229,7 @@ void setup() {
   supervisorParam.systemStatusLock = systemStatusLock;
   supervisorParam.registerAccessLock = registerAccessLock;
   supervisorParam.systemMessageQueue = systemMessageQueue;
+  supervisorParam.is_initialization_request = init_parameter;
 
   // *****************************************************************************
   // Startup Task, Supervisor as first for Loading parameter generic configuration

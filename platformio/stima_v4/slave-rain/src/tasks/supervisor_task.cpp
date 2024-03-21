@@ -225,6 +225,12 @@ void SupervisorTask::loadConfiguration()
   // Param Reading
   static uavcan_register_Value_1_0 val = {0};
 
+  // Reset sensor parameter to default with external initializaztion request
+  if(param.is_initialization_request) {
+    param.is_initialization_request = false;
+    register_config_valid = false;
+  }
+
   TRACE_INFO_F(F("SUPERVISOR: Load configuration...\r\n"));
 
   // Reading RMAP Module identify Param -> (READ) + Check(REWRITE) -> [Readonly]
