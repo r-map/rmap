@@ -45,6 +45,9 @@ stimawifiStatus_t stimawifiStatus;
 udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef};
 udpThread threadUdp(udp_data);
 
+gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef};
+gpsThread threadGps(gps_data);
+
 Queue mqttQueue((12*5*60)/30,sizeof(mqttMessage_t));   // ~ 5 minutes queue
 
 station_t station;

@@ -174,6 +174,15 @@ struct udpStatus_t
 };
 
 /*!
+\def struct gpsStatus_t
+\brief Stati relativi al thread di ricezione dei dati GPS (porta seriale) per la georefenziazione.
+*/
+struct gpsStatus_t
+{
+  status_e receive;    //!< stato della ricezione dei dati per georeferenziazione  
+};
+
+/*!
 \def struct stimawifiStatus_t
 \brief Stati relativi all'intera stazione.
 */
@@ -182,6 +191,7 @@ struct stimawifiStatus_t
   measureStatus_t measure;     //!< Stati relativi al thread di misura
   publishStatus_t publish;     //!< Stati relativi al thread di pubblicazione
   udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
+  gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
 };
 
 #endif

@@ -12,20 +12,20 @@ The priority is set to 3 and delay is very short.
 */
 
 WiFiUDP UDP;
-OZGPS gps;
-MGPS mgps;
+OZGPS udp_gps;
+MGPS udp_mgps;
 
 void doUdp(udp_data_t& data){
 
   while (UDP.parsePacket()){
     // If UDP packet received...
     //data.logger->notice(F("Received packet!"));
-    memset(&mgps,0,sizeof(mgps));
+    memset(&udp_mgps,0,sizeof(udp_mgps));
 
     while(UDP.available()) {
       uint8_t gpsflag;
-      gpsflag = gps.encode(UDP.read());
-      if(gps.valid) break;
+      gpsflag = udp_gps.encode(UDP.read());
+      if(udp_gps.valid) break;
 	//}else{
 	//data.logger->notice("gps_error: %d", gpsflag);
     }
@@ -34,15 +34,15 @@ void doUdp(udp_data_t& data){
       UDP.read();
     }
     
-    if (gps.valid){
-      data.logger->notice(F("RMC latitude : %5"), mgps.rmc.dms.latitude);
-      data.logger->notice(F("RMC longitude: %5"), mgps.rmc.dms.longitude);
-      //data.logger->notice(F("GGA latitude : %5"), mgps.gga.dms.latitude);
-      //data.logger->notice(F("GGA longitude: %5"), mgps.gga.dms.longitude);
-      //data.logger->notice(F("GLL latitude : %5"), mgps.gll.dms.latitude);
-      //data.logger->notice(F("GLL longitude: %5"), mgps.gll.dms.longitude);
-      data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
-			  mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
+    if (udp_gps.valid){
+      data.logger->notice(F("RMC latitude : %5"), udp_mgps.rmc.dms.latitude);
+      data.logger->notice(F("RMC longitude: %5"), udp_mgps.rmc.dms.longitude);
+      //data.logger->notice(F("GGA latitude : %5"), udp_mgps.gga.dms.latitude);
+      //data.logger->notice(F("GGA longitude: %5"), udp_mgps.gga.dms.longitude);
+      //data.logger->notice(F("GLL latitude : %5"), udp_mgps.gll.dms.latitude);
+      //data.logger->notice(F("GLL longitude: %5"), udp_mgps.gll.dms.longitude);
+      data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), udp_mgps.rmc.time.year, udp_mgps.rmc.time.mon, udp_mgps.rmc.time.day,
+			  udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec);  
       
       /*
 	If you just need “GPS” coordinates, any of the GGA, RMC, or GLL
@@ -55,8 +55,8 @@ void doUdp(udp_data_t& data){
       */
       
       data.georef->mutex->Lock();    
-      itoa(int(std::round(mgps.rmc.dms.latitude*100000)),data.georef->lat,10);
-      itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data.georef->lon,10);
+      itoa(int(std::round(udp_mgps.rmc.dms.latitude*100000)),data.georef->lat,10);
+      itoa(int(std::round(udp_mgps.rmc.dms.longitude*100000)),data.georef->lon,10);
       data.georef->timestamp=now();           // TODO create datetime from RMC datetime
       data.georef->mutex->Unlock();
       data.status->receive=ok;
@@ -93,9 +93,9 @@ void udpThread::Cleanup()
 void udpThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
-  gps.init(&mgps);
-  //gps.set_filter(0xE); // "RMC","GGA","GLL"
-  gps.set_filter(0x2); // "RMC"
+  udp_gps.init(&udp_mgps);
+  //udp_gps.set_filter(0xE); // "RMC","GGA","GLL"
+  udp_gps.set_filter(0x2); // "RMC"
 
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);

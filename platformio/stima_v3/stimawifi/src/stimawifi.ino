@@ -679,6 +679,7 @@ void displayStatus()
   frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
   frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
   frtosLog.notice(F("status udp    : receive %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
+  frtosLog.notice(F("status gps    : receive %d"),stimawifiStatus.gps.receive); // GPS status is ignored by now
   
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
@@ -775,7 +776,7 @@ void setup() {
   //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
   Serial.begin(115200);
   //Serial.setDebugOutput(true);
- 
+  
   // Pass log level, whether to show log level, and print interface.
   // Available levels are:
   // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
@@ -1150,7 +1151,9 @@ void setup() {
 
   if (strcmp(station.ident,"") != 0){
     threadUdp.Start();
+    threadGps.Start();
   }
+
   threadMeasure.Start();
   threadPublish.Start();
 

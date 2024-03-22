@@ -29,5 +29,6 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "udp_thread.h"
+#include "gps_thread.h"
 #include "measure_thread.h"
 #include "publish_thread.h"
