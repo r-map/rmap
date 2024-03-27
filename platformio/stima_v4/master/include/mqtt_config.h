@@ -117,13 +117,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MQTT_DEFAULT_SERVER
 \brief Default MQTT server.
 */
-#define MQTT_DEFAULT_SERVER ("test.rmap.cc")
+#define MQTT_DEFAULT_SERVER ("rmap.arpae.it")
 
 /*!
 \def MQTT_DEFAULT_PORT
-\brief Default MQTT server port.
+\brief Default MQTT server port. Standard MQTT TLS port
 */
-#define MQTT_DEFAULT_PORT (8885)
+#define MQTT_DEFAULT_PORT (8883)
 
 /*!
 \def MQTT_DEFAULT_ROOT_TOPIC

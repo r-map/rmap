@@ -312,7 +312,15 @@ void MqttTask::Run()
       // RPC Must ececuted only from next connection without error to remote server
       // error are always false here if is published at least connection message
       if (!error) {
-        if(!rmap_data_error) param.system_status->flags.clean_session = false;
+        if(!rmap_data_error) {
+          param.system_status->flags.clean_session = false;
+          // Security Remove flag mqtt force connection OK wait... Start success connection OK 
+          if(param.system_status->flags.mqtt_wait_link) {
+            param.systemStatusLock->Take();
+            param.system_status->flags.mqtt_wait_link = false;
+            param.systemStatusLock->Give();
+          }
+        }
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)

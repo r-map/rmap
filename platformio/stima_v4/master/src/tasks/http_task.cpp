@@ -648,6 +648,7 @@ void HttpTask::Run() {
           system_message_t system_message = {0};
           system_message.task_dest = SD_TASK_ID;
           system_message.command.do_reload_fw = true;
+          system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
           param.systemMessageQueue->Enqueue(&system_message);
 
           // Waiting a response done before continue (reload status flag firmware OK!!!)

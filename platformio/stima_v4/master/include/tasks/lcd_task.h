@@ -55,6 +55,10 @@
 
 #include "debug_F.h"
 
+// Enable/Disable enanched function menu
+#define ENABLE_MENU_BOARD_SLUG  (false)
+#define ENABLE_MENU_GSM_NUMBER  (false)
+
 // Limit range for module sensor (LCD)
 #define MAX_VALID_TEMPERATURE   (100.0)
 #define MIN_VALID_TEMPERATURE   (-50.0)
@@ -82,13 +86,19 @@ typedef enum LCDState {
 
 typedef enum LCDMasterCommands {
   MASTER_COMMAND_RESET_FLAGS,
+  MASTER_COMMAND_FORCE_CONNECTION,
   MASTER_COMMAND_DOWNLOAD_CFG,
   MASTER_COMMAND_DOWNLOAD_FW,
+  MASTER_COMMAND_TRUNCATE_DATA,
   MASTER_COMMAND_UPDATE_STATION_SLUG,
+  #if(ENABLE_MENU_BOARD_SLUG)
   MASTER_COMMAND_UPDATE_BOARD_SLUG,
+  #endif
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,
   MASTER_COMMAND_UPDATE_GSM_APN,
+  #if (ENABLE_MENU_GSM_NUMBER)
   MASTER_COMMAND_UPDATE_GSM_NUMBER,
+  #endif
   MASTER_COMMAND_UPDATE_PSK_KEY,
   MASTER_COMMAND_FIRMWARE_UPGRADE,
   MASTER_COMMAND_EXIT  // Always the latest element
@@ -110,7 +120,9 @@ typedef enum LCDMenu {
   UPDATE_BOARD_SLUG,
   UPDATE_MQTT_USERNAME,
   UPDATE_GSM_APN,
+  #if (ENABLE_MENU_GSM_NUMBER)
   UPDATE_GSM_NUMBER,
+  #endif
   UPDATE_PSK_KEY
 } stima4_menu_ui_t;
 
@@ -167,7 +179,9 @@ class LCDTask : public cpp_freertos::Thread {
   void display_print_main_interface(void);
   void display_print_update_board_slug_interface(void);
   void display_print_update_gsm_apn_interface(void);
+  #if (ENABLE_MENU_GSM_NUMBER)
   void display_print_update_gsm_number_interface(void);
+  #endif
   void display_print_update_mqtt_username_interface(void);
   void display_print_update_psk_key_interface(void);
   void display_print_update_station_slug_interface(void);

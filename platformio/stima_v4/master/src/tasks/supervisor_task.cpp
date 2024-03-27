@@ -835,7 +835,7 @@ void SupervisorTask::printConfiguration()
     
     for (uint8_t i = 0; i < param.configuration->constantdata_count; i++)
     {
-      TRACE_INFO_F(F("--> cd %d:%s : %s"), i, param.configuration->constantdata[i].btable, param.configuration->constantdata[i].value);
+      TRACE_INFO_F(F("---> cd %d:%s : %s\r\n"), i, param.configuration->constantdata[i].btable, param.configuration->constantdata[i].value);
     }
 
     TRACE_INFO_F(F("-> data report every %d seconds\r\n"), param.configuration->report_s);

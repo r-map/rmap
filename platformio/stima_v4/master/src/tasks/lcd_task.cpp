@@ -351,6 +351,7 @@ void LCDTask::Run() {
               break;
             }
 
+            #if (ENABLE_MENU_GSM_NUMBER)
             case UPDATE_GSM_NUMBER: {
               TRACE_INFO_F(F("LCD: UPDATE GSM NUMBER\r\n"));
 
@@ -359,6 +360,7 @@ void LCDTask::Run() {
 
               break;
             }
+            #endif
 
             case UPDATE_PSK_KEY: {
               TRACE_INFO_F(F("LCD: UPDATE PSK KEY\r\n"));
@@ -700,6 +702,7 @@ void LCDTask::display_print_main_interface() {
   char errors[25] = {0};
   char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
   char station[STATION_LCD_LENGTH];
+  uint8_t row_pos = 0;  // Incremental Row Position for info flag Message
 
   // Get Date and Time
   if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
@@ -786,15 +789,21 @@ void LCDTask::display_print_main_interface() {
     display.print(buffer_errors);
   }
 
+  // Security Remove flag config wait... Start success connection MQTT 
+  if(param.system_status->flags.mqtt_wait_link) {    
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + (row_pos++ + 7.5) * LINE_BREAK);
+    display.print(F("Waiting server connection..."));
+  }
+
   // Print Wait configuration information
   if (param.system_status->flags.http_wait_cfg) {
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + (row_pos++ + 7.5) * LINE_BREAK);
     display.print(F("Waiting configuration..."));
   }
 
   // Print Wait download firmware information
   if (param.system_status->flags.http_wait_fw) {
-    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8.5 * LINE_BREAK);
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + (row_pos++ + 7.5) * LINE_BREAK);
     display.print(F("Waiting download firmware..."));
   }
 
@@ -949,6 +958,7 @@ void LCDTask::display_print_update_gsm_apn_interface(void) {
  * @brief Display the interface for update the GSM NUMBER
  *
  */
+#if (ENABLE_MENU_GSM_NUMBER)
 void LCDTask::display_print_update_gsm_number_interface(void) {
   char buffer[sizeof(new_gsm_number)] = {0};
   char status_message[20] = {0};
@@ -1008,6 +1018,7 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
   display.sendBuffer();
   display.clearBuffer();
 }
+#endif
 
 /**
  * @brief Display the interface for update the mqtt username of station
@@ -1236,6 +1247,15 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
       break;
     }
+    case MASTER_COMMAND_FORCE_CONNECTION: {
+      // Set the request on system status to force connection request and synch NTP
+      param.systemStatusLock->Take();
+      param.system_status->command.do_ntp_synchronization = true;
+      param.system_status->command.do_mqtt_connect = true;
+      param.system_status->flags.mqtt_wait_link = true;
+      param.systemStatusLock->Give();
+      break;
+    }
     case MASTER_COMMAND_DOWNLOAD_CFG: {
       // Set the request on system status to force connection request
       param.systemStatusLock->Take();
@@ -1252,6 +1272,13 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.systemStatusLock->Give();
       break;
     }
+    case MASTER_COMMAND_TRUNCATE_DATA: {
+      // Set the queue to send
+      system_message.task_dest = SD_TASK_ID;
+      system_message.command.do_trunc_sd = true;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
+      break;
+    }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
       // Update the slug of the station
       param.configurationLock->Take();
@@ -1261,6 +1288,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       saveConfiguration();
       break;
     }
+    #if(ENABLE_MENU_BOARD_SLUG)
     case MASTER_COMMAND_UPDATE_BOARD_SLUG: {
       // Update the board slug of the station
       param.configurationLock->Take();
@@ -1270,6 +1298,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       saveConfiguration();
       break;
     }
+    #endif
     case MASTER_COMMAND_UPDATE_MQTT_USERNAME: {
       // Update the mqtt username of the station
       param.configurationLock->Take();
@@ -1288,6 +1317,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       saveConfiguration();
       break;
     }
+    #if (ENABLE_MENU_GSM_NUMBER)
     case MASTER_COMMAND_UPDATE_GSM_NUMBER: {
       // Update the mqtt password of the station
       param.configurationLock->Take();
@@ -1297,6 +1327,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       saveConfiguration();
       break;
     }
+    #endif
     case MASTER_COMMAND_UPDATE_PSK_KEY: {
       bool end_conversion = false;
       const char* ptr_read = new_client_psk_key;  // Point to PSK_KEY String NOT 0x-> but Direct
@@ -1322,7 +1353,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       // Set the queue to send
       system_message.task_dest = SD_TASK_ID;
       system_message.command.do_update_fw = true;
-      system_message.param = 0xFF;
+      system_message.param = CMD_PARAM_MASTER_ADDRESS;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1445,6 +1476,10 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
       command_name = "Reset flags";
       break;
     }
+    case MASTER_COMMAND_FORCE_CONNECTION: {
+      command_name = "Start server connection";
+      break;
+    }
     case MASTER_COMMAND_DOWNLOAD_CFG: {
       command_name = "Download configuration";
       break;
@@ -1453,14 +1488,20 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
       command_name = "Download firmware";
       break;
     }
+    case MASTER_COMMAND_TRUNCATE_DATA: {
+      command_name = "Init SD Card data";
+      break;
+    }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
       command_name = "Update station slug";
       break;
     }
+    #if(ENABLE_MENU_BOARD_SLUG)
     case MASTER_COMMAND_UPDATE_BOARD_SLUG: {
       command_name = "Update board slug";
       break;
     }
+    #endif
     case MASTER_COMMAND_UPDATE_MQTT_USERNAME: {
       command_name = "Update mqtt username";
       break;
@@ -1469,10 +1510,12 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
       command_name = "Update GSM APN";
       break;
     }
+    #if (ENABLE_MENU_GSM_NUMBER)
     case MASTER_COMMAND_UPDATE_GSM_NUMBER: {
       command_name = "Update GSM number";
       break;
     }
+    #endif
     case MASTER_COMMAND_UPDATE_PSK_KEY: {
       command_name = "Update PSK key";
       break;
@@ -1648,10 +1691,12 @@ void LCDTask::switch_interface() {
           break;
         }
 
+        #if (ENABLE_MENU_GSM_NUMBER)
         case UPDATE_GSM_NUMBER: {
           selected_char_index = selected_char_index == ALPHABET_GSM_NUMBER_LENGTH - 1 ? 0 : selected_char_index + 1;
           break;
         }
+        #endif
 
         case UPDATE_PSK_KEY: {
           selected_char_index = selected_char_index == ALPHABET_PSK_KEY_LENGTH - 1 ? 0 : selected_char_index + 1;
@@ -1727,10 +1772,12 @@ void LCDTask::switch_interface() {
           selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
           break;
         }
+        #if (ENABLE_MENU_GSM_NUMBER)
         case UPDATE_GSM_NUMBER: {
           selected_char_index = selected_char_index == 0 ? ALPHABET_GSM_NUMBER_LENGTH - 1 : selected_char_index - 1;
           break;
         }
+        #endif
         case UPDATE_PSK_KEY: {
           selected_char_index = selected_char_index == 0 ? ALPHABET_PSK_KEY_LENGTH - 1 : selected_char_index - 1;
           break;
@@ -1783,6 +1830,7 @@ void LCDTask::switch_interface() {
             cursor_pos = strlen(param.configuration->stationslug);
             // Update current menu state
             stima4_menu_ui = UPDATE_STATION_SLUG;
+          #if(ENABLE_MENU_BOARD_SLUG)
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_BOARD_SLUG) {
             // ************************************************************************
             // ************************* BOARD SLUG INIT ******************************
@@ -1796,6 +1844,7 @@ void LCDTask::switch_interface() {
             cursor_pos = strlen(param.configuration->board_master.boardslug);
             // Update current menu state
             stima4_menu_ui = UPDATE_BOARD_SLUG;
+          #endif
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_MQTT_USERNAME) {
             // ************************************************************************
             // ************************* MQTT USERNAME INIT ***************************
@@ -1822,6 +1871,7 @@ void LCDTask::switch_interface() {
             cursor_pos = strlen(param.configuration->gsm_apn);
             // Update current menu state
             stima4_menu_ui = UPDATE_GSM_APN;
+          #if (ENABLE_MENU_GSM_NUMBER)
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_NUMBER) {
             // ************************************************************************
             // ************************* GSM NUMBER INIT ******************************
@@ -1835,6 +1885,7 @@ void LCDTask::switch_interface() {
             cursor_pos = strlen(param.configuration->gsm_number);
             // Update current menu state
             stima4_menu_ui = UPDATE_GSM_NUMBER;
+          #endif
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_PSK_KEY) {
             // ************************************************************************
             // *************************** PSK KEY INIT *******************************
@@ -1909,6 +1960,7 @@ void LCDTask::switch_interface() {
         break;
       }
 
+      #if(ENABLE_MENU_BOARD_SLUG)
       case UPDATE_BOARD_SLUG: {
         // ************************************************************************
         // ************************* ELABORATE COMMAND ****************************
@@ -1943,6 +1995,7 @@ void LCDTask::switch_interface() {
         }
         break;
       }
+      #endif
 
       case UPDATE_MQTT_USERNAME: {
         // ************************************************************************
@@ -2014,6 +2067,7 @@ void LCDTask::switch_interface() {
         break;
       }
 
+      #if (ENABLE_MENU_GSM_NUMBER)
       case UPDATE_GSM_NUMBER: {
         // ************************************************************************
         // ************************* ELABORATE COMMAND ****************************
@@ -2048,6 +2102,7 @@ void LCDTask::switch_interface() {
         }
         break;
       }
+      #endif
 
       case UPDATE_PSK_KEY: {
         // ************************************************************************

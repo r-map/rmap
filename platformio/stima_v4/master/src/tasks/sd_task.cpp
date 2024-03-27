@@ -347,6 +347,7 @@ void SdTask::Run()
   bool fw_found;
   bool fw_reload_struct = false;  // True if request reload structure firmware and send queue response
   bool fw_reinit_struct = false;  // True if request reinit structure firmware and send queue response (complete clean directory)
+  bool sd_reinit_data = false;    // True if request reinit sd data and send queue response
   File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
   File rmapBkpFile;               // File (OLDER RMAP Backup Write Data Append from External Task request)
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
@@ -396,7 +397,6 @@ void SdTask::Run()
       #endif  
         TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
         message_traced = false;
-
         state = SD_STATE_CHECK_STRUCTURE;
         message_traced = false;
       } else {
@@ -421,8 +421,55 @@ void SdTask::Run()
       }
       break;
 
-    case SD_STATE_CHECK_STRUCTURE:
+    case SD_STATE_TRUNCATE_DATA:
+      // Truncate SD Card data buffer for external Menu or SW Command Request
+      dir = SD.open("/data");
+      if(!dir) {
+        // Exit Error and Reset
+        state = SD_STATE_INIT;
+        break;
+      }
+      // Open File High LED
+      #ifdef PIN_SD_LED
+      digitalWrite(PIN_SD_LED, HIGH);
+      #endif
+      if(dir.isDir()) {
+        // Delete all file into firmware directory (reinit...)
+        while(true) {
+          entry = dir.openNextFile();
+          if(!entry) break;
+          entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+          entry.close();
+          strcpy(firmware_file_name, "/data/");
+          strcat(firmware_file_name, local_file_name);
+          SD.remove(firmware_file_name);
+          // Long Operation perform non blocking TASK
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+          #if (ENABLE_STACK_USAGE)
+          TaskMonitorStack();
+          #endif
+        }
+        dir.close();
+      }
 
+      // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
+      // Normally on request from RPC Before calling -> system_message.do_update_all
+      // sd_reinit_data is true if must to respond queue to sender (RPC)
+      if(sd_reinit_data) {
+        sd_reinit_data = false;
+        system_message_t system_message = {0};
+        system_message.task_dest = ALL_TASK_ID;
+        system_message.command.done_trunc_sd = true;
+        param.systemMessageQueue->Enqueue(&system_message);
+      }
+
+      TRACE_VERBOSE_F(F("SD_STATE_TRUNCATE_DATA -> SD_STATE_CHECK_STRUCTURE\r\n"));
+
+      state = SD_STATE_CHECK_STRUCTURE;
+      break;
+
+    case SD_STATE_CHECK_STRUCTURE:
       // Waiting loading configuration complete before start application
       if (!param.system_status->configuration.is_loaded) {
           if(!message_traced) {
@@ -620,7 +667,6 @@ void SdTask::Run()
       // **********************************************************************************
       // Clean entire structure firware dir (destroy all file into before new synch server)
       // **********************************************************************************
-
       if(SD.exists("/firmware")) {
         dir = SD.open("/firmware");
         if(!dir) {
@@ -672,6 +718,7 @@ void SdTask::Run()
       // Normally on request from RPC Before calling -> system_message.do_update_all (with init)
       // fw_reinit_struct is true if must to respond queue to sender (RPC)
       if(fw_reinit_struct) {
+        fw_reinit_struct = false;
         system_message_t system_message = {0};
         system_message.task_dest = ALL_TASK_ID;
         system_message.command.done_reinit_fw = true;
@@ -754,6 +801,7 @@ void SdTask::Run()
       // Normally on request from RPC Before calling -> system_message.do_update_all
       // fw_reload_struct is true if must to respond queue to sender (RPC)
       if(fw_reload_struct) {
+        fw_reload_struct = false;
         system_message_t system_message = {0};
         system_message.task_dest = ALL_TASK_ID;
         system_message.command.done_reload_fw = true;
@@ -796,10 +844,17 @@ void SdTask::Run()
       if(!param.systemMessageQueue->IsEmpty()) {
         system_message_t system_message;
         param.systemMessageQueue->Peek(&system_message);
-        if(system_message.task_dest == SD_TASK_ID) {
+        if(system_message.task_dest == LOCAL_TASK_ID) {
           param.systemMessageQueue->Dequeue(&system_message);
           // Request direct Update local firmware (Master) from SD CARD
-          if((system_message.command.do_update_fw)&&(system_message.param = 0xFF)) {
+          if(system_message.command.do_trunc_sd) {
+            // ?Need to send a reply to sender (Security clean data if command come from Remote RPC... Clear before sending data)
+            if(system_message.param == CMD_PARAM_REQUIRE_RESPONSE) sd_reinit_data = true;
+            state = SD_STATE_TRUNCATE_DATA;
+            break;
+          }
+          // Request direct Update local firmware (Master) from SD CARD
+          if((system_message.command.do_update_fw)&&(system_message.param == CMD_PARAM_MASTER_ADDRESS)) {
             retry = 0;
             state = SD_UPLOAD_FIRMWARE_TO_FLASH;
             break;
@@ -808,7 +863,8 @@ void SdTask::Run()
           // And Auto start CallBack Start Upload Firmware To CAN and Local...
           if(system_message.command.do_reload_fw) {
             retry = 0;
-            fw_reload_struct = true; // Need to send a reply to sender
+            // ?Need to send a reply to sender
+            if(system_message.param == CMD_PARAM_REQUIRE_RESPONSE) fw_reload_struct = true;
             // Normally RPC Wait a response all firmware check and loaded structure before
             // Calling systemn update all with another system message to queue
             state = SD_STATE_CHECK_FIRMWARE;
@@ -818,7 +874,8 @@ void SdTask::Run()
           // And Auto start CallBack Start Upload Firmware To CAN and Local...
           if(system_message.command.do_reinit_fw) {
             retry = 0;
-            fw_reinit_struct = true; // Need to send a reply to sender
+            // ?Need to send a reply to sender
+            if(system_message.param == CMD_PARAM_REQUIRE_RESPONSE) fw_reinit_struct = true;
             // Normally RPC Wait a response all firmware check and reinit structure before
             // Calling systemn update all with another system message to queue
             state = SD_STATE_CLEAN_FIRMWARE;

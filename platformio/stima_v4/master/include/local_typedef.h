@@ -315,6 +315,7 @@ typedef struct
       bool ntp_error;
       bool mqtt_error;
       bool http_error;
+      bool mqtt_wait_link;
       bool http_wait_cfg;
       bool http_wait_fw;
       uint8_t gsm_rssi;
@@ -362,6 +363,10 @@ typedef struct
 
 } connection_response_t;
 
+// The parameters depend on the request and may vary in meaning depending on the type of call
+// Specific ID Param generic send/recive queue message
+#define CMD_PARAM_REQUIRE_RESPONSE  0xF0
+#define CMD_PARAM_MASTER_ADDRESS    0xFF
 // System public message task for queue
 typedef struct
 {
@@ -375,6 +380,8 @@ typedef struct
       uint8_t do_reinit_fw    : 1;  // Request reinit firmware really upgradable from SD file (destroy all file struct)
       uint8_t done_reinit_fw  : 1;  // Response reinit firmware really upgradable from SD file (destroy all file struct)
       uint8_t do_update_all   : 1;  // Request starting update all system (all firmware upgradable) and Reboot any boards
+      uint8_t do_trunc_sd     : 1;  // Request truncate and reinit data into SD Card
+      uint8_t done_trunc_sd   : 1;  // Response truncate and reinit data into SD Card
       uint8_t do_inibith      : 1;  // Request inibith sleep
       uint8_t undo_inibith    : 1;  // Remove inibith sleep
       uint8_t do_maint        : 1;  // Request maintenance

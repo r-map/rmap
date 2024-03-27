@@ -2423,119 +2423,123 @@ void CanTask::Run() {
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
-                        // Procedure can continue only without other command in pending state
-                        // If command not starting, time_out remove the command and queue can be free from item
-                        if(!clCanard.slave[system_message.param].command.is_pending()) {
-                            // ENTER MAINTENANCE
-                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_maint)) {
-                                // Start Flag Event Start when request configuration is request
-                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message);
-                                    TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    // Request start module maintenance from LCD or Remote RPC with Param 0/1
-                                    char do_maint = 1;
-                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                        canardClass::Command_Private::module_maintenance, &do_maint, sizeof(do_maint));                            
-                                    // Starting message server
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.cmd_server_running = true;
-                                    param.systemStatusLock->Give();
-                                    message_traced = false;
-                                } else {
-                                    // IS NEED to Request FullPower Mode for type of command
-                                    if(!message_traced) {
-                                        message_traced = true;
-                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                        // Only local task post message queue can be processed here
+                        // Messages checked here can only be addressed to remote slaves. So the addresses must be in the valid area
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.param < MAX_NODE_CONNECT)) {
+                            // Procedure can continue only without other command in pending state
+                            // If command not starting, time_out remove the command and queue can be free from item
+                            if(!clCanard.slave[system_message.param].command.is_pending()) {
+                                // ENTER MAINTENANCE
+                                if(system_message.command.do_maint) {
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        TRACE_INFO_F(F("Command server: Send request maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                        char do_maint = 1;
+                                        clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                            canardClass::Command_Private::module_maintenance, &do_maint, sizeof(do_maint));                            
+                                        // Starting message server
                                         param.systemStatusLock->Take();
-                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
+                                        message_traced = false;
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command
+                                        if(!message_traced) {
+                                            message_traced = true;
+                                            TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
                                     }
                                 }
-                            }
-                            // UNDO MAINTENANCE
-                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.undo_maint)) {
-                                // Start Flag Event Start when request configuration is request
-                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
-                                    // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message);
-                                    TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    // Request start module maintenance from LCD or Remote RPC with Param 0/1
-                                    char undo_maint = 0;
-                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                        canardClass::Command_Private::module_maintenance, &undo_maint, sizeof(undo_maint));                            
-                                    // Starting message server
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.cmd_server_running = true;
-                                    param.systemStatusLock->Give();
-                                    message_traced = false;
-                                } else {
-                                    // IS NEED to Request FullPower Mode for type of command
-                                    if(!message_traced) {
-                                        message_traced = true;
-                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // UNDO MAINTENANCE
+                                if(system_message.command.undo_maint) {
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                        // Remove message from the queue
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        TRACE_INFO_F(F("Command server: Send remove maintenance mode at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        // Request start module maintenance from LCD or Remote RPC with Param 0/1
+                                        char undo_maint = 0;
+                                        clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                            canardClass::Command_Private::module_maintenance, &undo_maint, sizeof(undo_maint));                            
+                                        // Starting message server
                                         param.systemStatusLock->Take();
-                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
+                                        message_traced = false;
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command
+                                        if(!message_traced) {
+                                            message_traced = true;
+                                            TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
                                     }
                                 }
-                            }
-                            // STARTING CALIBRATION (Accelerometer)
-                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_calib_acc)) {
-                                // Start Flag Event Start when request configuration is request
-                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
-                                    // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message);
-                                    TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    // Requestcalibration accellerometer from LCD or Remote RPC without param
-                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                        canardClass::Command_Private::calibrate_accelerometer, NULL, 0);
-                                    // Starting message server
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.cmd_server_running = true;
-                                    param.systemStatusLock->Give();
-                                    message_traced = false;
-                                } else {
-                                    // IS NEED to Request FullPower Mode for type of command
-                                    if(!message_traced) {
-                                        message_traced = true;
-                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // STARTING CALIBRATION (Accelerometer)
+                                if(system_message.command.do_calib_acc) {
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
+                                        // Remove message from the queue
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        TRACE_INFO_F(F("Command server: Send request calibration accelerometer at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                        clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                            canardClass::Command_Private::calibrate_accelerometer, NULL, 0);
+                                        // Starting message server
                                         param.systemStatusLock->Take();
-                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
+                                        message_traced = false;
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command
+                                        if(!message_traced) {
+                                            message_traced = true;
+                                            TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
                                     }
                                 }
-                            }
-                            // RESET FLAGS (All module slave)
-                            if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_reset_flags)) {
-                                // Start Flag Event Start when request configuration is request
-                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                // Remove message from the queue
-                                    // Remove message from the queue
-                                    param.systemMessageQueue->Dequeue(&system_message);
-                                    TRACE_INFO_F(F("Command server: Send request init flags at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
-                                    // Requestcalibration accellerometer from LCD or Remote RPC without param
-                                    clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
-                                        canardClass::Command_Private::reset_flags, NULL, 0);
-                                    // Starting message server
-                                    param.systemStatusLock->Take();
-                                    param.system_status->flags.cmd_server_running = true;
-                                    param.systemStatusLock->Give();
-                                    message_traced = false;
-                                } else {
-                                    // IS NEED to Request FullPower Mode for type of command
-                                    if(!message_traced) {
-                                        message_traced = true;
-                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                // RESET FLAGS (All module slave)
+                                if(system_message.command.do_reset_flags) {
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                
+                                        // Remove message from the queue
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        TRACE_INFO_F(F("Command server: Send request init flags at Node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                        clCanard.send_command_pending(system_message.param, NODE_COMMAND_TIMEOUT_US,                            
+                                            canardClass::Command_Private::reset_flags, NULL, 0);
+                                        // Starting message server
                                         param.systemStatusLock->Take();
-                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
+                                        message_traced = false;
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command
+                                        if(!message_traced) {
+                                            message_traced = true;
+                                            TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
                                     }
                                 }
                             }
@@ -2634,63 +2638,67 @@ void CanTask::Run() {
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
-                        // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
-                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_remotecfg)) {
-                            // Try to configure and Waiting OnLine ( If already On Line nothing todo )
-                            clCanard.slave[system_message.param].configure(
-                                param.configuration->board_slave[system_message.param].can_address,
-                                param.configuration->board_slave[system_message.param].module_type,
-                                param.configuration->board_slave[system_message.param].can_port_id,
-                                param.configuration->board_slave[system_message.param].can_publish_id,
-                                param.configuration->board_slave[system_message.param].serial_number);
-                            // If node is not online, remove command from the queue... Configuration is impossible
-                            // Queue must to be free !!!
-                            if(!clCanard.slave[system_message.param].is_online()) {
-                                if(!remote_configure_wait_online_ms[system_message.param]) {
-                                    remote_configure_wait_online_ms[system_message.param] = millis();
-                                } else {
-                                    // Configuration impossible Module not Found OnLine after 4 sec from New Configuration
-                                    if(millis() - remote_configure_wait_online_ms[system_message.param] > 4000) {
-                                        // Remove message from the queue (No more action possible here NOT Online)
-                                        param.systemMessageQueue->Dequeue(&system_message);
-                                    }
-                                }
-                            } else {
-                                // Start Flag Event Start when request configuration is request
-                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
-                                    // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
-                                    remote_configure_wait_online_ms[system_message.param] = 0;
-                                    param.systemMessageQueue->Dequeue(&system_message);
-                                    if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
-                                        TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
+                        // Only local task post message queue can be processed here
+                        // Messages checked here can only be addressed to remote slaves. So the addresses must be in the valid area
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.param < MAX_NODE_CONNECT)) {
+                            // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
+                            if(system_message.command.do_remotecfg) {
+                                // Try to configure and Waiting OnLine ( If already On Line nothing todo )
+                                clCanard.slave[system_message.param].configure(
+                                    param.configuration->board_slave[system_message.param].can_address,
+                                    param.configuration->board_slave[system_message.param].module_type,
+                                    param.configuration->board_slave[system_message.param].can_port_id,
+                                    param.configuration->board_slave[system_message.param].can_publish_id,
+                                    param.configuration->board_slave[system_message.param].serial_number);
+                                // If node is not online, remove command from the queue... Configuration is impossible
+                                // Queue must to be free !!!
+                                if(!clCanard.slave[system_message.param].is_online()) {
+                                    if(!remote_configure_wait_online_ms[system_message.param]) {
+                                        remote_configure_wait_online_ms[system_message.param] = millis();
                                     } else {
-                                        TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\r\n"), system_message.param + 1);
-                                    }
-                                    if(clCanard.slave[system_message.param].is_online()) {
-                                        // START Remote configuration of Node -> system_message.param
-                                        remote_configure[system_message.param] = REGISTER_STARTING;
-                                        remote_configure_retry[system_message.param] = NODE_REGISTER_MAX_RETRY;
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.reg_server_running = true;
-                                        param.systemStatusLock->Give();
-                                    } else {
-                                        if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
-                                            // Off line ... Not configure?
-                                            TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
-                                        } else {
-                                            // not configured yet (waitinq request PNP) ?
-                                            TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\r\n"),system_message.param + 1);
+                                        // Configuration impossible Module not Found OnLine after 4 sec from New Configuration
+                                        if(millis() - remote_configure_wait_online_ms[system_message.param] > 4000) {
+                                            // Remove message from the queue (No more action possible here NOT Online)
+                                            param.systemMessageQueue->Dequeue(&system_message);
                                         }
                                     }
                                 } else {
-                                    // IS NEED to Request FullPower Mode for type of command (if not yet request full power)
-                                    if(!param.system_status->flags.full_wakeup_request) {
-                                        TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave, old power state: [ %d ]\r\n"), clCanard.slave[system_message.param].heartbeat.get_power_mode());
-                                        param.systemStatusLock->Take();
-                                        param.system_status->flags.full_wakeup_request = true;
-                                        param.systemStatusLock->Give();
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                        // Remove message from the queue (ONLY IF REMOTE NODE IS FULL POWERED!!!)
+                                        remote_configure_wait_online_ms[system_message.param] = 0;
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                            TRACE_INFO_F(F("Register server: Modify configuration at already configured module stimacan: [ %d ], current node id [ %d ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id());
+                                        } else {
+                                            TRACE_INFO_F(F("Register server: Start configuration at new module stimacan: [ %d ]\r\n"), system_message.param + 1);
+                                        }
+                                        if(clCanard.slave[system_message.param].is_online()) {
+                                            // START Remote configuration of Node -> system_message.param
+                                            remote_configure[system_message.param] = REGISTER_STARTING;
+                                            remote_configure_retry[system_message.param] = NODE_REGISTER_MAX_RETRY;
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.reg_server_running = true;
+                                            param.systemStatusLock->Give();
+                                        } else {
+                                            if(clCanard.slave[system_message.param].get_node_id() <= CANARD_NODE_ID_MAX) {
+                                                // Off line ... Not configure?
+                                                TRACE_INFO_F(F("Register server: ALERT stimacan: [ %d ], node id [ %d ] is OFF LINE. Node cannot be configured [ %s ]\r\n"), system_message.param + 1, clCanard.slave[system_message.param].get_node_id(), ABORT_STRING);
+                                            } else {
+                                                // not configured yet (waitinq request PNP) ?
+                                                TRACE_INFO_F(F("Register server: PNP save parameter for module stimacan: [ %d ]. Configuration is ready for remote PNP request.\r\n"),system_message.param + 1);
+                                            }
+                                        }
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command (if not yet request full power)
+                                        if(!param.system_status->flags.full_wakeup_request) {
+                                            TRACE_VERBOSE_F(F("Configuration module: Start full power for sending queue of command configuration to slave, old power state: [ %d ]\r\n"), clCanard.slave[system_message.param].heartbeat.get_power_mode());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
                                     }
                                 }
                             }
@@ -3014,6 +3022,7 @@ void CanTask::Run() {
                 if(!param.systemMessageQueue->IsEmpty()) {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
+                        // No need to check ID Node (global command...)
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_all)) {
                             // Remove message from the queue
                             param.systemMessageQueue->Dequeue(&system_message);
@@ -3066,31 +3075,35 @@ void CanTask::Run() {
 
                 // Get coda comandi da system_message... se richiesto aggiornamento del firmware
                 if(!param.systemMessageQueue->IsEmpty()) {
-                    // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
+                    // Message queue is for CAN (If FW Upgrade local Master, Message is only directet to TASK SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
-                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_update_fw)) {
-                            // Start Flag Event Start when request configuration is request
-                            // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
-                            // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
-                            if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
-                                // Remove message from the queue
-                                param.systemMessageQueue->Dequeue(&system_message);
-                                // Request start update firmware from LCD or Remote RPC
-                                // Start flags and state for file_server start
-                                param.systemStatusLock->Take();
-                                param.system_status->flags.file_server_running = true;
-                                param.systemStatusLock->Give();
-                                // Set STATE for boards request in firmware upgrade
-                                clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
-                                message_traced = false;
-                            } else {
-                                // IS NEED to Request FullPower Mode for type of command
-                                if(!message_traced) {
-                                    message_traced = true;
-                                    TRACE_VERBOSE_F(F("Command server: Start full power for sending firmware at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                        // Only local task post message queue can be processed here
+                        // Messages checked here can only be addressed to remote slaves. So the addresses must be in the valid area
+                        if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.param < MAX_NODE_CONNECT)) {
+                            if(system_message.command.do_update_fw) {
+                                // Start Flag Event Start when request configuration is request
+                                // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                if(clCanard.slave[system_message.param].heartbeat.get_power_mode() == Power_Mode::pwr_on) {
+                                    // Remove message from the queue
+                                    param.systemMessageQueue->Dequeue(&system_message);
+                                    // Request start update firmware from LCD or Remote RPC
+                                    // Start flags and state for file_server start
                                     param.systemStatusLock->Take();
-                                    param.system_status->flags.full_wakeup_request = true;
+                                    param.system_status->flags.file_server_running = true;
                                     param.systemStatusLock->Give();
+                                    // Set STATE for boards request in firmware upgrade
+                                    clCanard.slave[(uint8_t)system_message.param].file_server.start_state();
+                                    message_traced = false;
+                                } else {
+                                    // IS NEED to Request FullPower Mode for type of command
+                                    if(!message_traced) {
+                                        message_traced = true;
+                                        TRACE_VERBOSE_F(F("Command server: Start full power for sending firmware at node: [ %d ]"), clCanard.slave[system_message.param].get_node_id());
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.full_wakeup_request = true;
+                                        param.systemStatusLock->Give();
+                                    }
                                 }
                             }
                         }
@@ -3398,6 +3411,7 @@ void CanTask::Run() {
                     // Message queue is for CAN (If FW Upgrade local Master, Message is for SD...)
                     if(param.systemMessageQueue->Peek(&system_message, 0)) {
                         // ENTER PROCEDURE CONFIG (Only Full POWERED Module!!!)
+                        // Global message no required check nodeId area validation
                         if((system_message.task_dest == LOCAL_TASK_ID) && (system_message.command.do_reboot)) {
                             param.systemMessageQueue->Dequeue(&system_message);
                             // Start Reboot check state

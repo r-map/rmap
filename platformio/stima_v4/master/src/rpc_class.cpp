@@ -104,6 +104,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reinit_fw = true;
+        system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
         param.systemMessageQueue->Enqueue(&system_message);
 
         // Waiting a response done before continue (reinit firmware OK!!!)
@@ -141,6 +142,39 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         param.systemStatusLock->Take();
         param.system_status->command.do_http_configuration_update = true;
         param.systemStatusLock->Give();
+      }
+    }
+    else if (strcmp(it.key().c_str(), "sdinit") == 0)
+    {
+      error_command = false;
+      // download lastes configuration from http command after configurate TLS Key from serial
+      if (it.value().as<bool>() == true)
+      {
+        // Starting queue request truncate structure data on SD Card (Remote request)
+        system_message_t system_message = {0};
+        system_message.task_dest = SD_TASK_ID;
+        system_message.command.do_trunc_sd = true;
+        system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
+        param.systemMessageQueue->Enqueue(&system_message);
+
+        // Waiting a response done before continue (reinit SD Data OK!!!)
+        while(true) {
+          // Continuos Switching context non blocking
+          // Need Waiting Task for start command on All used TASK
+          taskYIELD();
+          vTaskDelay(100);
+          // Check response done
+          if(!param.systemMessageQueue->IsEmpty()) {
+            param.systemMessageQueue->Peek(&system_message);
+            if(system_message.command.done_trunc_sd) {
+              // Remove message (Reinit Done is OK)
+              param.systemMessageQueue->Dequeue(&system_message);
+              break;
+            }
+          }
+        }
+
+        TRACE_INFO_F(F("RPC: DO INIT SD CARD DATA\r\n"));
       }
     }
   }
@@ -229,6 +263,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           system_message_t system_message = {0};
           system_message.task_dest = CAN_TASK_ID;
           system_message.command.do_remotecfg = true;
+          // Parameter is Node Slave ID (Command destination Node Id)
           system_message.param = slaveId;
           param.systemMessageQueue->Enqueue(&system_message, 0);
         }
@@ -678,14 +713,15 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
     }
     else if (strcmp(it.key().c_str(), "date") == 0)
     {
-      // tmElements_t tm;
-      // tm.Year = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>() - 2000);
-      // tm.Month = it.value().as<JsonArray>()[1].as<int>();
-      // tm.Day = it.value().as<JsonArray>()[2].as<int>();
-      // tm.Hour = it.value().as<JsonArray>()[3].as<int>();
-      // tm.Minute = it.value().as<JsonArray>()[4].as<int>();
-      // tm.Second = it.value().as<JsonArray>()[5].as<int>();
-      // system_time = makeTime(tm);
+      // Set date/time from command line RPC
+      STM32RTC &rtc = STM32RTC::getInstance();
+      error_command = false;
+      rtc.setYear(it.value().as<JsonArray>()[0].as<int>());
+      rtc.setMonth(it.value().as<JsonArray>()[1].as<int>());
+      rtc.setDay(it.value().as<JsonArray>()[2].as<int>());
+      rtc.setHours(it.value().as<JsonArray>()[3].as<int>());
+      rtc.setMinutes(it.value().as<JsonArray>()[4].as<int>());
+      rtc.setSeconds(it.value().as<JsonArray>()[5].as<int>());
     }
 #if (USE_MQTT)
     else if (strcmp(it.key().c_str(), "mqttrootpath") == 0)
@@ -1216,6 +1252,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
         system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reload_fw = true;
+        system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
         param.systemMessageQueue->Enqueue(&system_message);
 
         // Waiting a response done before continue (reload firmware OK!!!)
@@ -1321,9 +1358,6 @@ void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
   #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
   strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
   strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
-  #endif
-  #if (USE_MQTT)
-  param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
   #endif
 
   param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
