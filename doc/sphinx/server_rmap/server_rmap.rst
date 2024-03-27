@@ -323,7 +323,8 @@ Collect static files from django apps:
    chown rmap:rmap /home/rmap
    mkdir /rmap/cache
    chown rmap:rmap /rmap/cache
-
+   mkdir  /usr/share/rmap/media
+   chown rmap:rmap  /usr/share/rmap/media
    
 `/etc/httpd/conf.modules.d/00-mpm.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.modules.d/00-mpm.conf>`_
 
