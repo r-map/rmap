@@ -318,6 +318,8 @@ typedef struct
       bool mqtt_wait_link;
       bool http_wait_cfg;
       bool http_wait_fw;
+      bool fw_updating;
+      uint8_t pnp_request;
       uint8_t gsm_rssi;
    } flags;
 

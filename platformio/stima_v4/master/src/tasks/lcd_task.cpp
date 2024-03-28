@@ -523,19 +523,19 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
       // Adjust UDM with comprensible value
       case Module_Type::rain:
         value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / RAIN_GAUGE_SCALE;
-        if ((value_display_A < 0) || (value_display_A > 1000)) bMeasValid_A = false;
+        if ((value_display_A < MIN_VALID_RAIN) || (value_display_A > MAX_VALID_RAIN)) bMeasValid_A = false;
         break;
       // Adjust UDM with comprensible value
       case Module_Type::wind:
         printMeasB = true;
         value_display_A = (float)param.system_status->data_slave[channel].data_value[0] / WIND_SPEED_SCALE;
         value_display_B = (float)param.system_status->data_slave[channel].data_value[1];
-        if ((value_display_A < 0) || (value_display_A > 60)) bMeasValid_A = false;
-        if ((value_display_B < 0) || (value_display_B > 360.0)) bMeasValid_B = false;
+        if ((value_display_A < MIN_VALID_WIND_SPEED) || (value_display_A > MAX_VALID_WIND_SPEED)) bMeasValid_A = false;
+        if ((value_display_B < MIN_VALID_WIND_DIR) || (value_display_B > MAX_VALID_WIND_DIR)) bMeasValid_B = false;
         break;
       case Module_Type::radiation:
         value_display_A = param.system_status->data_slave[channel].data_value[0];
-        if ((value_display_A < 0) || (value_display_A > 2000)) bMeasValid_A = false;
+        if ((value_display_A < MIN_VALID_RADIATION) || (value_display_A > MAX_VALID_RADIATION)) bMeasValid_A = false;
         break;
       case Module_Type::power:
         printMeasB = true;
@@ -543,9 +543,9 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         value_display_A = (float)param.system_status->data_slave[channel].data_value[0];
         value_display_B = (float)param.system_status->data_slave[channel].data_value[1] / CURRENT_CHARGE_SCALE;
         value_display_C = (float)param.system_status->data_slave[channel].data_value[2];
-        if ((value_display_A < 0) || (value_display_A > 100)) bMeasValid_A = false;
-        if ((value_display_B < 0) || (value_display_B > 30)) bMeasValid_B = false;
-        if ((value_display_C < -350) || (value_display_C > 5000)) bMeasValid_C = false;
+        if ((value_display_A < MIN_VALID_POWER_CHG) || (value_display_A > MAX_VALID_POWER_CHG)) bMeasValid_A = false;
+        if ((value_display_B < MIN_VALID_POWER_V) || (value_display_B > MAX_VALID_POWER_V)) bMeasValid_B = false;
+        if ((value_display_C < MIN_VALID_POWER_I) || (value_display_C > MAX_VALID_POWER_I)) bMeasValid_C = false;
         break;
       case Module_Type::vwc:
         printMeasB = true;
@@ -702,6 +702,7 @@ void LCDTask::display_print_main_interface() {
   char errors[25] = {0};
   char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
   char station[STATION_LCD_LENGTH];
+  bool is_error = false;
   uint8_t row_pos = 0;  // Incremental Row Position for info flag Message
 
   // Get Date and Time
@@ -769,24 +770,84 @@ void LCDTask::display_print_main_interface() {
   // Print system status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
   display.print(F("System status: "));
-  if (!param.system_status->flags.ppp_error &&
+  if (!param.system_status->flags.pnp_request &&
+      !param.system_status->flags.fw_updating &&
+      !param.system_status->flags.ppp_error &&
       !param.system_status->flags.dns_error &&
       !param.system_status->flags.ntp_error &&
       !param.system_status->flags.mqtt_error &&
       !param.system_status->flags.http_error) {
     display.print(F(" OK"));
   } else {
-    // Add type of error to buffer
-    if (param.system_status->flags.ppp_error) strcat(errors, "ppp ");
-    if (param.system_status->flags.dns_error) strcat(errors, "dns ");
-    if (param.system_status->flags.ntp_error) strcat(errors, "ntp ");
-    if (param.system_status->flags.mqtt_error) strcat(errors, "mqtt ");
-    if (param.system_status->flags.http_error) strcat(errors, "http");
-
-    display.print(F("ERR"));
+    // Add type of diag message to buffer
+    if (param.system_status->flags.fw_updating) strcat(errors, "Updating firmware... ");
+    if (param.system_status->flags.pnp_request) {
+      strcat(errors, "pnp-");
+      switch(param.system_status->flags.pnp_request) {
+          case Module_Type::th:
+              strcat(errors, "th ");
+              break;
+          case Module_Type::rain:
+              strcat(errors, "rain ");
+              break;
+          case Module_Type::wind:
+              strcat(errors, "wind ");
+              break;
+          case Module_Type::radiation:
+              strcat(errors, "radiation ");
+              break;
+          case Module_Type::vwc:
+              strcat(errors, "vwc ");
+              break;
+          case Module_Type::power:
+              strcat(errors, "mppt ");
+              break;
+          default:
+              strcat(errors, "unknown ");
+              break;
+      }
+    }
+    // Add type of error message to buffer
+    if (param.system_status->flags.ppp_error) {
+      is_error = true;
+      strcat(errors, "ppp ");
+    }
+    if (param.system_status->flags.dns_error) {
+      is_error = true;
+      strcat(errors, "dns ");
+    }
+    if (param.system_status->flags.ntp_error) {
+      is_error = true;
+      strcat(errors, "ntp ");
+    }
+    if (param.system_status->flags.mqtt_error) {
+      is_error = true;
+      strcat(errors, "mqtt ");
+    }
+    if (param.system_status->flags.http_error) {
+      is_error = true;
+      strcat(errors, "http");
+    }
+    // Dispaly Error or Diag Message
+    if (is_error) {
+      display.print(F("ERR"));
+    } else {
+      display.print(F("MSG"));
+    }
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
     snprintf(buffer_errors, sizeof(buffer_errors), "> %s", errors);
     display.print(buffer_errors);
+    // Remove Flag message (Always external SETTED continuos if DIAG message in running...)
+    if(param.system_status->flags.pnp_request) {
+      param.systemStatusLock->Take();
+      param.system_status->flags.pnp_request = false;
+      param.systemStatusLock->Give();
+    }
+    if(param.system_status->flags.fw_updating) {
+      param.systemStatusLock->Take();
+      param.system_status->flags.fw_updating = true;
+      param.systemStatusLock->Give();
+    }
   }
 
   // Security Remove flag config wait... Start success connection MQTT 
