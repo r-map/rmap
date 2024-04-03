@@ -74,7 +74,6 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   // **************************************************************************
   display_off();
   pression_event = false;
-  rotation_event = false;
 
   // **************************************************************************
   // ************************* START TASK *************************************
@@ -166,26 +165,6 @@ void LCDTask::Run() {
       Delay(Ticks::MsToTicks(LCD_TASK_WAIT_DELAY_MS));
     }
     TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
-
-    // **************************************************************************
-    // ************************* ROTATION HANDLER *******************************
-    // **************************************************************************
-
-    if (rotation_event) {
-      // Reading pins from encoder
-      encoder.pin.a = digitalRead(pin_bottom_left_encoder);
-      encoder.pin.b = digitalRead(pin_bottom_right_encoder);
-
-      if (encoder.pin_val != encoder_old.pin_val) {
-        // Processing => DIRECTION: NONE, CLOCK WISE or COUNTER CLOCK WISE
-        encoder_process(encoder.pin_val, encoder_old.pin_val);
-
-        // Updating
-        encoder_old.pin_val = encoder.pin_val;
-      }
-
-      rotation_event = false;
-    }
 
     // **************************************************************************
     // ************************* READ MILLISECONDS ******************************
@@ -481,7 +460,6 @@ void LCDTask::display_on() {
   display_is_off = false;
   last_display_timeout = millis();
   pression_event = false;
-  rotation_event = false;
   state = LCD_STATE_INIT;
   param.systemStatusLock->Take();
   param.system_status->flags.display_on = true;
@@ -1639,7 +1617,7 @@ void LCDTask::ISR_input_pression_pin_encoder() {
 
   // Processing
   if (millis() - debounce_millis >= DEBOUNCE_TIMEOUT) {
-    pression_event = digitalRead(PIN_ENCODER_INT) == LOW ? true : false;
+    pression_event = digitalRead(pin_top_left_encoder) == LOW ? true : false;
   }
 
   // Updating flags and states
@@ -1657,9 +1635,17 @@ void LCDTask::ISR_input_pression_pin_encoder() {
  *
  */
 void LCDTask::ISR_input_rotation_pin_encoder() {
-  // Processing
-  rotation_event = true;
+  // Reading pins from encoder
+  encoder.pin.a = digitalRead(pin_bottom_left_encoder);
+  encoder.pin.b = digitalRead(pin_bottom_right_encoder);
 
+  if (encoder.pin_val != encoder_old.pin_val) {
+    // Processing => DIRECTION: NONE, CLOCK WISE or COUNTER CLOCK WISE
+    encoder_process(encoder.pin_val, encoder_old.pin_val);
+    // Updating
+    encoder_old.pin_val = encoder.pin_val;
+  }
+  
   // Updating flags and states
   last_display_timeout = millis();
 }

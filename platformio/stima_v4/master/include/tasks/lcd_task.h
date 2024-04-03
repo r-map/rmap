@@ -242,9 +242,6 @@ class LCDTask : public cpp_freertos::Thread {
   // Indicates if the pressure event has occurred or not
   inline static bool pression_event;
 
-  // Indicates if the rotation event has occurred or not
-  inline static bool rotation_event;
-
   // It contains the current logic state of the encoder
   inline static encoder_t encoder;
 
@@ -305,9 +302,10 @@ class LCDTask : public cpp_freertos::Thread {
   // Index used to determine the char selected from user in update name station interface
   uint8_t selected_char_index;
 
-  char pin_bottom_left_encoder;
-  char pin_bottom_right_encoder;
-  char pin_top_left_encoder;
+  // ISR Access PIN button
+  inline static char pin_bottom_left_encoder;
+  inline static char pin_bottom_right_encoder;
+  inline static char pin_top_left_encoder;
 
   // Static access for event quque
   inline static cpp_freertos::Queue *localDisplayEventWakeUp;
