@@ -1719,6 +1719,10 @@ void SdTask::Run()
                     is_error = true;
                     break;
                   }
+                  // Signal to LCD updating fw to flash now from SD Card (Direct or downloaded from HTTP)
+                  param.systemStatusLock->Take();
+                  param.system_status->flags.fw_updating = true;
+                  param.systemStatusLock->Give();
                   // Append block firmware file to flash (same of CAN FW Upgrade)
                   // EOF when block != SD_FW_BLOCK_SIZE (UAVCAN TYPE_LEN 256 BYTES)
                   if(!putFlashFile(local_file_name, true, bFirstBlock, data_block, len_block)) {

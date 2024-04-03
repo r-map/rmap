@@ -502,6 +502,10 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
             uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
             if (uavcan_pnp_NodeIDAllocationData_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
+                // Segnalo a LCD PnP request da un nodo della rete UAVCAN
+                localSystemStatusLock->Take();
+                localSystemStatus->flags.pnp_request = msg.unique_id_hash & 0xFF;
+                localSystemStatusLock->Give();
                 // Cerco nei moduli conosciuti (in HASH_UNIQUE_ID) invio il tipo modulo...
                 // Verifico se ho un nodo ancora da configurare come da cfg del master
                 // Il nodo deve essere compatibile con il tipo di modulo previsto da allocare
@@ -860,6 +864,10 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                 if (uavcan_file_Read_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                     if(clCanard.master.file.is_firmware()) {
                         TRACE_VERBOSE_F(F("RX FIRMWARE READ BLOCK LEN: "));
+                        // Segalo a LCD aggiornamento fw to flash in corso da CAN BUS
+                        localSystemStatusLock->Take();
+                        localSystemStatus->flags.fw_updating = true;
+                        localSystemStatusLock->Give();
                     } else {
                         TRACE_VERBOSE_F(F("RX FILE READ BLOCK LEN: "));
                     }
@@ -3029,7 +3037,7 @@ void CanTask::Run() {
                             // Request start update firmware from LCD or Remote RPC
                             // Start flags and state for file_server start
                             is_running_update_system = true;
-                            // Start from last boards to first (When 0xFF) is Master Request and END Procedure upload
+                            // Start from last boards to first (When 0xFF -> CMD_PARAM_MASTER_ADDRESS) is Master Request and END Procedure upload
                             index_running_update_boards = MAX_NODE_CONNECT - 1;
                         }
                     }
@@ -3041,7 +3049,7 @@ void CanTask::Run() {
                 if((is_running_update_system)&&(!is_running_update_send_cmd)&&
                     (!param.system_status->flags.file_server_running)) {
                     // Have reached the last boards (Master)?
-                    if(index_running_update_boards == 0xFF) {
+                    if(index_running_update_boards == CMD_PARAM_MASTER_ADDRESS) {
                         // Master Boards (Update start from SD Task but mode to request is same with queue)
                         if(param.system_status->data_master.fw_upgradable) {
                             memset(&system_message, 0, sizeof(system_message));
