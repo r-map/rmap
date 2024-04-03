@@ -754,12 +754,17 @@ Imparire il comando:
 Installazione server RMAP solo funzionalità BACKEND basato su Rocky Linux 8 (a seervizio per la data ingestion su un'altra macchina)
 ------------------------------------------------------------------------------------------------------------------------------------
 
-Questi file sono specializzati per un server di solo backend
+Questi file sono specializzati per un server di solo backend:
 
 `/etc/httpd/conf.d/rmap.inc <https://raw.githubusercontent.com/r-map/rmap/master/server-backend/etc/httpd/conf.d/rmap.inc>`__
 
 `/etc/httpd/modsecurity.d/crs-setup.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-backend/etc/httpd/modsecurity.d/crs-setup.conf>`__
 
-
 In questi due file sostituire la stringa <insert IP of data-ingestion machine> con quanto indicato.
 
+`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-backend/etc/monit.d/rmap>`__
+
+Servizi
+.......
+
+Disabilitare mosquitto.
