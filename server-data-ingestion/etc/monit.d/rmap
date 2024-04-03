@@ -1,7 +1,7 @@
 
-  check process report2observationd with pidfile /var/run/rmap/report2observationd.lock
-    start program = "/usr/bin/report2observationd restart"
-    stop program = "/usr/bin/report2observationd stop"
+#  check process report2observationd with pidfile /var/run/rmap/report2observationd.lock
+#    start program = "/usr/bin/report2observationd restart"
+#    stop program = "/usr/bin/report2observationd stop"
 
 #  check process mqtt2stationmaintd with pidfile /var/run/rmap/mqtt2stationmaintd.lock
 #    start program = "/usr/bin/mqtt2stationmaintd restart"
