@@ -27,8 +27,12 @@
 #include <LOLIN_I2C_BUTTON.h>
 #include <HTTPUpdate.h>
 #include <Adafruit_NeoPixel.h>
+#include <sqlite3.h>
 
 #include "udp_thread.h"
 #include "gps_thread.h"
 #include "measure_thread.h"
 #include "publish_thread.h"
+#include "db_thread.h"
+#include "critical.hpp"
+#include "SD.h"

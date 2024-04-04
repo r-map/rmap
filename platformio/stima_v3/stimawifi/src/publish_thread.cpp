@@ -287,7 +287,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
-  : Thread{"publish", 20000, 1},
+  : Thread{"publish", 4000, 1},
     data{publish_data},
     ipstack{*data.mqttClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
@@ -319,5 +319,7 @@ void publishThread::Run() {
     }
     data.logger->notice(F("mqtt yield"));
     mqttclient.yield(0);
+    //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));  // free 1480
+    if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error("stack publish");
   }
 };

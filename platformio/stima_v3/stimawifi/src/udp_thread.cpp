@@ -63,13 +63,17 @@ void doUdp(udp_data_t& data){
       
     }
   }
-  if ((now()-data.georef->timestamp) > 30) data.status->receive=error;
+  if ((now()-data.georef->timestamp) > 30){
+    data.status->receive=error;
+  }else{
+    data.status->receive=ok;
+  }
 }
 
 using namespace cpp_freertos;
 
 udpThread::udpThread(udp_data_t& udp_data)
-  : Thread{"UDP", 20000, 3}
+  : Thread{"UDP", 2000, 3}  // 1152 free
     ,data{udp_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -106,6 +110,8 @@ void udpThread::Run() {
     const TickType_t xDelay = 10;
     Delay(xDelay);
     //Delay(Ticks::SecondsToTicks(1));
+    //data.logger->notice("stack udp: %d",uxTaskGetStackHighWaterMark(NULL));
+    if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack udp");
   }
 };  
 
