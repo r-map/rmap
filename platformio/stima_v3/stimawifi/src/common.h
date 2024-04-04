@@ -35,4 +35,5 @@
 #include "publish_thread.h"
 #include "db_thread.h"
 #include "critical.hpp"
+#include "semaphore.hpp"
 #include "SD.h"

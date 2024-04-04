@@ -76,6 +76,8 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
+  mqtt_message.sent=0;
+  
   data.logger->notice(F("have to publish: %s"),values);
   DeserializationError deerror = deserializeJson(doc,values);
   if (deerror) {
@@ -140,11 +142,10 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       data.logger->error(F("time not set or needs sync"));
       strcat(mqtt_message.payload,"}");
     }
-    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-    
-    data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(100));
-    data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(100));
-    
+    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+    if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+      data.logger->error(F("lost message for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    }
   }
 }
 

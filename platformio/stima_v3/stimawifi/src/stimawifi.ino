@@ -729,6 +729,10 @@ void displayStatus()
   pixels.show();
 }
 
+void dataRecovery() {
+  recoverySemaphore.Give();
+}
+
 void measureAndPublish() {
   time_t tnow;
   time(&tnow);
@@ -1135,6 +1139,7 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
+  Alarm.timerRepeat(180, dataRecovery);    // timer for data recoveru from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 

@@ -132,6 +132,7 @@ struct sensor_t
 */
 struct mqttMessage_t
 {
+  uint8_t sent;
   char topic[MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH];
   char payload[MQTT_MESSAGE_LENGTH];
 };

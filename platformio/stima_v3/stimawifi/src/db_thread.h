@@ -13,6 +13,8 @@ struct db_data_t {
   int id;
   frtosLogging* logger;
   Queue* dbqueue;
+  Queue* mqttqueue;
+  BinarySemaphore* recoverysemaphore;
   dbStatus_t* status;
 };
 
