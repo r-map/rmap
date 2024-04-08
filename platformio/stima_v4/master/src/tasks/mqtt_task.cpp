@@ -161,7 +161,10 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_disconnected = true;
       param.system_status->connection.is_mqtt_disconnecting = false;
       param.system_status->connection.is_mqtt_publishing = false;
-      param.system_status->connection.is_mqtt_publishing_end = false;
+      // Initialize publishing flags only with line data MQTT to send (new attempt)
+      if (param.system_status->flags.new_data_to_send) {
+        param.system_status->connection.is_mqtt_publishing_end = false;
+      }
       param.systemStatusLock->Give();
       TRACE_VERBOSE_F(F("MQTT_STATE_INIT -> MQTT_STATE_WAIT_NET_EVENT\r\n"));
       break;
@@ -203,6 +206,10 @@ void MqttTask::Run()
       if (error)
       {
         TRACE_ERROR_F(F("%s, Failed to initialize MQTT client [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+        is_error = true;
+        state = MQTT_STATE_DISCONNECT;
+        TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
+        break;
       }
 
       param.systemStatusLock->Take();
@@ -225,11 +232,12 @@ void MqttTask::Run()
         state = MQTT_STATE_DISCONNECT;
         TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
         break;
-      } else {
-        param.systemStatusLock->Take();
-        param.system_status->flags.dns_error = false;
-        param.systemStatusLock->Give();
       }
+
+      // DNS Ok
+      param.systemStatusLock->Take();
+      param.system_status->flags.dns_error = false;
+      param.systemStatusLock->Give();
 
       // Set the MQTT version to be used
       mqttClientSetVersion(&mqttClientContext, version);
@@ -293,34 +301,29 @@ void MqttTask::Run()
         state = MQTT_STATE_DISCONNECT;
         break;
       }
-      else
-      {
-        memset(topic, 0, sizeof(topic));
-        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
-        // publish connection message (Conn + Version and Revision)
-        sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
-        TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
-        error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
-        TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-        TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
 
-        TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
-        
-      }
+      // Here is connected with remote Server
+      TRACE_INFO_F(F("%s Connected to mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
 
-      // Remove first connection FLAG (Clear queue of RPC in safety mode)
-      // RPC Must ececuted only from next connection without error to remote server
-      // error are always false here if is published at least connection message
-      if (!error) {
-        if(!rmap_data_error) {
-          param.system_status->flags.clean_session = false;
-          // Security Remove flag mqtt force connection OK wait... Start success connection OK 
-          if(param.system_status->flags.mqtt_wait_link) {
-            param.systemStatusLock->Take();
-            param.system_status->flags.mqtt_wait_link = false;
-            param.systemStatusLock->Give();
-          }
-        }
+      // Try to publish Start Connection message
+      memset(topic, 0, sizeof(topic));
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      // publish connection message (Conn + Version and Revision)
+      sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+      error = mqttClientPublish(&mqttClientContext, topic, message, strlen(message), qos, true, NULL);
+      TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+
+      // Without connection start message (something on connection wrong... Exit and retry)
+      if (error) {
+        is_error = true;
+
+        TRACE_ERROR_F(F("%s Failed to publish connection message to mqtt server %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, ERROR_STRING);
+
+        TRACE_VERBOSE_F(F("MQTT_STATE_CONNECT -> MQTT_STATE_DISCONNECT\r\n"));
+        state = MQTT_STATE_DISCONNECT;
+        break;
       }
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
@@ -332,14 +335,16 @@ void MqttTask::Run()
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, is_subscribed ? OK_STRING : ERROR_STRING);
 
+      // Remove first connection FLAG (Clear queue of RPC in safety mode)
+      // RPC Must ececuted only from next connection without error to remote server
+      // error are always false here if is published at least connection message
       param.systemStatusLock->Take();
+      param.system_status->flags.clean_session = false;
+      param.system_status->flags.mqtt_wait_link = false;
       param.system_status->connection.is_mqtt_subscribed = is_subscribed;      
       param.system_status->connection.is_mqtt_connected = true;
       param.system_status->connection.is_mqtt_disconnected = false;
       param.system_status->connection.is_mqtt_connecting = false;
-      // Checked for end of transmission
-      param.system_status->connection.is_mqtt_publishing_end = false;
-      param.system_status->connection.mqtt_data_published = 0;
       param.systemStatusLock->Give();
 
       // Session connection complete (send response to request command)
@@ -356,6 +361,7 @@ void MqttTask::Run()
       break;
 
     case MQTT_STATE_PUBLISH_INFO:
+      // Connection to remote server MQTT estabilished...
       // Local Var to Message status
       DateTime dtStatus;
       char dtBlock[30];
@@ -498,6 +504,8 @@ void MqttTask::Run()
       TaskMonitorStack();
       #endif
 
+      error = NO_ERROR; // Init NoError MQTT Cyclone
+
       // *****************************************
       //  RUN GET RMAP Data Queue and Append MQTT
       // *****************************************
@@ -506,7 +514,6 @@ void MqttTask::Run()
         rmap_eof = false;
         rmap_data_error = false;
         countData = 0;
-        error = NO_ERROR;
 
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
@@ -564,7 +571,6 @@ void MqttTask::Run()
             rmap_data_error |= rmap_get_response.result.event_error;
           }
 
-          error = NO_ERROR; // Init NoError MQTT Cyclone
           // EOF Data? (Save and Exit, after last data process)
           rmap_eof = rmap_get_response.result.end_of_data;
 
@@ -588,8 +594,6 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                error = NO_ERROR;
-
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
@@ -599,17 +603,14 @@ void MqttTask::Run()
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->ITH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_NTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->NTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->MTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_XTH])
                     {
                       error = publishSensorTH(&mqttClientContext, qos, rmapDataTH->XTH, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
@@ -617,14 +618,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -634,13 +635,12 @@ void MqttTask::Run()
                   }
                 }
                 break;
+
               case Module_Type::rain:
                 rmapDataRain = (rmap_service_module_Rain_Response_1_0 *)rmap_get_response.rmap_data.block;
                 #if (ENABLE_STACK_USAGE)
                 TaskMonitorStack();
                 #endif
-
-                error = NO_ERROR;
 
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
@@ -651,7 +651,6 @@ void MqttTask::Run()
                     {
                       error = publishSensorRain(&mqttClientContext, qos, rmapDataRain->TBR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_TPR])
                     {
                       error = publishSensorRainRate(&mqttClientContext, qos, rmapDataRain->TPR, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
@@ -659,14 +658,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -683,8 +682,6 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                error = NO_ERROR;
-
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
@@ -697,14 +694,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -721,8 +718,6 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                error = NO_ERROR;
-
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
@@ -732,27 +727,22 @@ void MqttTask::Run()
                     {
                       error = publishSensorWindAvgVect10(&mqttClientContext, qos, rmapDataWind->DWA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWB])
                     {
                       error = publishSensorWindAvgVect(&mqttClientContext, qos, rmapDataWind->DWB, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWC])
                     {
                       error = publishSensorWindGustSpeed(&mqttClientContext, qos, rmapDataWind->DWC, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWD])
                     {
                       error = publishSensorWindAvgSpeed(&mqttClientContext, qos, rmapDataWind->DWD, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWE])
                     {
                       error = publishSensorWindClassSpeed(&mqttClientContext, qos, rmapDataWind->DWE, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-                    
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DWF])
                     {
                       error = publishSensorWindGustDirection(&mqttClientContext, qos, rmapDataWind->DWF, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
@@ -760,14 +750,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -784,8 +774,6 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                error = NO_ERROR;
-
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
@@ -795,12 +783,10 @@ void MqttTask::Run()
                     {
                       error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC1, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC2])
                     {
                       error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC2, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
-
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_VWC3])
                     {
                       error = publishSensorSoil(&mqttClientContext, qos, rmapDataVWC->VWC3, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
@@ -808,14 +794,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -832,8 +818,6 @@ void MqttTask::Run()
                 TaskMonitorStack();
                 #endif
 
-                error = NO_ERROR;
-
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
@@ -846,14 +830,14 @@ void MqttTask::Run()
 
                     if (error)
                     {
-                      // Connection to MQTT server lost?
-                      state = MQTT_STATE_DISCONNECT;
-                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT\r\n"));
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
                       break;
                     }
                     else
                     {
-                      // Starting publishing
+                      // Executed publishing of line data
                       param.systemStatusLock->Take();
                       param.system_status->connection.is_mqtt_publishing = true;
                       param.system_status->connection.mqtt_data_published++;
@@ -866,6 +850,7 @@ void MqttTask::Run()
                 break;
             }
           }
+
           // Non blocking task
           TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
           Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
@@ -884,6 +869,13 @@ void MqttTask::Run()
       //  END GET RMAP Data Queue and Append MQTT
       // *****************************************
 
+      // ? Exit lost Data (Not autoEnd Data)
+      if (state == MQTT_STATE_DISCONNECT_LOST_DATA) {
+        // !No is_data_publish_end setting VAR
+        break;
+      }
+
+      // Normal OK Standard data send complete Exit (or Only Message Published)
       param.systemStatusLock->Take();
       is_data_publish_end = true;
       param.systemStatusLock->Give();
@@ -891,6 +883,26 @@ void MqttTask::Run()
 
       break;
 
+    // Restore last valid previous data pointer (something wrong with remote push data server)
+    // Save pointer on SD for last valid data send (Using auto save method at EOF, but EOF not reached up)
+    // Next connect is ready to send lost connection block data
+    case MQTT_STATE_DISCONNECT_LOST_DATA:
+      // The operation state is performed only with ready SD Card
+      if(param.system_status->flags.sd_card_ready) {
+        // Normal mode, get data from queue on SD CARD
+        memset(&rmap_get_request, 0, sizeof(rmap_get_request));
+        // Restore previous Data Pointer
+        rmap_get_request.command.do_previous_ptr = true;
+        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
+        // Waiting response from SD with TimeOUT
+        memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+        TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+        param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+      }
+      state = MQTT_STATE_DISCONNECT;
+      break;
+
+    // Disconnecting from Server
     case MQTT_STATE_DISCONNECT:
 
       param.systemStatusLock->Take();
@@ -959,8 +971,12 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_disconnecting = false;
       param.system_status->connection.is_mqtt_subscribed = false;
       param.system_status->connection.is_mqtt_publishing = false;
-      // (true if ok data send, do no clean. Only on Next Connect)
-      param.system_status->connection.is_mqtt_publishing_end = is_data_publish_end;
+      // true if ok all data send (with data available), do no clean. Only resetted on Next attempt Connect
+      if (countData > 0) {
+        param.system_status->connection.is_mqtt_publishing_end = is_data_publish_end;
+      } else {
+        param.system_status->connection.is_mqtt_publishing_end = false;
+      }
       param.systemStatusLock->Give();
 
       state = MQTT_STATE_WAIT_NET_EVENT;
@@ -1116,7 +1132,7 @@ void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, cha
 
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1135,19 +1151,14 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
-
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
+
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // publish temperature value
   do
@@ -1183,19 +1194,14 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
-
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, sensors_topic, message);
   }
+
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // publish humidity value
   do
@@ -1489,7 +1495,7 @@ error_t MqttTask::makeSensorMessageRainLongRate(rmap_measures_RainLongRate_1_0 r
 
 error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1508,14 +1514,9 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1542,7 +1543,7 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
 
 error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_RainRate_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1561,14 +1562,9 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1609,14 +1605,9 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1697,7 +1688,7 @@ error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiati
 
 error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1716,14 +1707,9 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1750,7 +1736,7 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
 
 error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect10_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1769,14 +1755,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1817,14 +1798,9 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1851,7 +1827,7 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
 
 error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1870,14 +1846,9 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -1918,6 +1889,10 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
+
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
     putRmapBackupArchiveData(dateTime, sensors_topic, message);
@@ -1943,7 +1918,7 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
 
 error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -1962,14 +1937,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2010,14 +1980,9 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2044,7 +2009,7 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
 
 error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2063,14 +2028,9 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2097,7 +2057,7 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
 
 error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2116,14 +2076,9 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2150,7 +2105,7 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
 
 error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustDirection_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2169,14 +2124,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2217,14 +2167,9 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2730,7 +2675,7 @@ error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirec
 
 error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_VWC_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2749,14 +2694,9 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2837,7 +2777,7 @@ error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0
 
 error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Power_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
-  uint8_t error_count = 0;
+  uint8_t error_count;
   error_t error = NO_ERROR;
 
   // ----------------------------------------------------------------------------
@@ -2856,14 +2796,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {
@@ -2904,14 +2839,9 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
     error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
   }
 
-  if (!error)
-  {
-    error_count = 0;
-  }
-  else
-  {
-    error_count = MQTT_TASK_PUBLISH_RETRY;
-  }
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
 
   // Saving Data Backup Older Data Format (if SD Card Ready...)
   if ((!error)&&(param.system_status->flags.sd_card_ready)) {

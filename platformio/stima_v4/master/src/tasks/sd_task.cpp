@@ -325,6 +325,8 @@ void SdTask::Run()
   char rmap_file_bkp_check[DATA_FILENAME_LEN] = {0};    // Check control Name VAR Backup (RMAP Data Day changed?)
   uint32_t rmap_pointer_seek;           // Seek Absolute Position Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime;       // Date Time Pointer Read in File RMAP Queue Out
+  uint32_t rmap_pointer_seek_prv;       // Seek Absolute Position Pointer Read in File RMAP Queue Out (Previous Position before OK confirm data recived)
+  uint32_t rmap_pointer_datetime_prv;   // Date Time Pointer Read in File RMAP Queue Out (Previous Position before OK confirm data recived)
   uint32_t rmap_pointer_seek_bkp;       // Bkp Seek Absolute Position Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime_bkp;   // Bkp Date Time Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime_end;   // End Date Time Pointer Read in File RMAP Queue Out (RPC Start/End)
@@ -630,7 +632,7 @@ void SdTask::Run()
           #ifdef PIN_SD_LED
           digitalWrite(PIN_SD_LED, HIGH);
           #endif
-          rmap_pointer_seek = 0xFFFFFFFFu; // Unknown position
+          rmap_pointer_seek = UNKNOWN_POINTER_POSITION; // Unknown position
           rmap_pointer_datetime = param.system_status->datetime.ptr_time_for_sensors_get_value * param.configuration->report_s;  // Init to Data Next Epoch
           // System status enter in data not ready for SENT (no data present)
           param.systemStatusLock->Take();
@@ -657,6 +659,10 @@ void SdTask::Run()
           break;
         }
       }
+
+      // Init backup data
+      rmap_pointer_seek_prv = rmap_pointer_seek;
+      rmap_pointer_datetime_prv = rmap_pointer_datetime;
 
       TRACE_VERBOSE_F(F("SD_STATE_CHECK_DATA_PTR -> SD_STATE_CHECK_FIRMWARE\r\n"));
 
@@ -1046,7 +1052,7 @@ void SdTask::Run()
       // *********************************************************
 
       // Reset pointer?
-      if(rmap_pointer_seek == 0xFFFFFFFFu) {
+      if(rmap_pointer_seek == UNKNOWN_POINTER_POSITION) {
         memset(&rmap_get_request, 0, sizeof(rmap_get_request));
         rmap_get_request.command.do_reset_ptr = true;
         // Go to last data 
@@ -1257,6 +1263,33 @@ void SdTask::Run()
             param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
           }
           // ******************************************************************
+          // Request is previous pointer to date/time? (Something wrong sending)
+          // ******************************************************************
+          else if(rmap_get_request.command.do_previous_ptr) {
+            // Restore previous position            
+            rmap_pointer_seek = rmap_pointer_seek_prv;
+            rmap_pointer_datetime = rmap_pointer_datetime_prv;
+            namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
+            // Day Name File Changed or Not, required reSynch PTR with previous position
+            strcpy(rmap_file_name_rd, rmap_file_name_check);
+            // Not opened? open... in append
+            // Resynch if file is close and (file_name not changed... Closed By End Of Data, new data in this day)
+            rmapRdFile.close();
+            rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+            // Resync Position Before Last Data Read OtherWise Other File (SeekPosition = 0)
+            rmapRdFile.seek(rmap_pointer_seek);
+            // Open File High LED
+            #ifdef PIN_SD_LED
+            digitalWrite(PIN_SD_LED, HIGH);
+            #endif
+            // Auto save position (if reboot system send data ca be start from here...)
+            rmap_get_request.command.do_save_ptr = true;
+            TRACE_INFO_F(F("Data RMAP restore pointer to previous position\r\n"), NULL);
+            rmap_get_response.result.done_synch = true;
+            // ***** Send response to request *****
+            param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
+          }
+          // ******************************************************************
           // Request next avaiable data? ( N.B. Standard Request for GET DATA )
           // ******************************************************************
           else if(rmap_get_request.command.do_get_data) {
@@ -1290,6 +1323,9 @@ void SdTask::Run()
                 #endif
                 int bytes_readed = rmapRdFile.read(&rmap_get_response.rmap_data, sizeof(rmap_get_response.rmap_data));
                 if(bytes_readed == sizeof(rmap_get_response.rmap_data)) {
+                  // Backup previous pointer position (After read next seek position)
+                  rmap_pointer_seek_prv = rmap_pointer_seek;
+                  rmap_pointer_datetime_prv = rmap_pointer_datetime;
                   // CurPosition Check assert(bytes_readed+=sizeof(rmap_get_response.rmap_data))
                   rmap_pointer_seek = rmapRdFile.curPosition();
                   rmap_get_response.result.done_get_data = true;
@@ -1430,7 +1466,7 @@ void SdTask::Run()
             // Rewrite Pointer Data File (Open only at startup for Set Position)
             tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
             if(tmpFile) {
-              if(rmap_pointer_seek == 0xFFFFFFFFu) rmap_pointer_seek = 0;
+              if(rmap_pointer_seek == UNKNOWN_POINTER_POSITION) rmap_pointer_seek = 0;
               // Open File High LED
               #ifdef PIN_SD_LED
               digitalWrite(PIN_SD_LED, HIGH);

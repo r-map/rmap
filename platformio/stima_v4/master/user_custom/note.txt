@@ -6,7 +6,7 @@ La Libreria è gestita da Cyclone che istanzia IRQ_Handler (Com2 in questo caso)
 Arduino prenderebbe possesso di tutte le seriali (anche non utilizzate) senza lasciare possibilità
 di gestione esterna di alcun genere.
 
-Modulo uart.c in libraries\srcWrapper\src\stm32\uart.c Line 950
+Modulo uart.c in libraries\srcWrapper\src\stm32\uart.c Line 975
 
 #if defined(USART2_BASE)
 __weak void USART2_IRQHandler(void)
@@ -14,8 +14,14 @@ __weak void USART2_IRQHandler(void)
 
 __weak void Consente una redifinizione esterna o mantiene quella esistente se non necessaria la redifinizione
 
-2) Raddoppio del Buffer RX UsbSerial x trasmissione a pacchetti 64Byte in polling per modalità CDC STM32
 
-Modulo cdc_queue.h in libraries\srcWrapper\src\stm32\usb\cdc\cdc_queue.h Line 57
+2) Aggiornare caricamento driver (come da originale STM)
+Modulo system_stm32l4xx.c \system\STM32L4xx
 
-#define CDC_RECEIVE_QUEUE_BUFFER_SIZE ((uint16_t)(CDC_QUEUE_MAX_PACKET_SIZE * 6)) // (Originale = *3)
+Funzione SystemInit() Linea 138: Inserire ifdef mancanti che definiscono sempre tabella vettori user se non definita (definita in BootLoader)
+
+#if defined(USER_VECT_TAB_ADDRESS)
+  /* Configure the Vector Table location -------------------------------------*/
+  SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET;
+#endif /* USER_VECT_TAB_ADDRESS */
+
