@@ -19,15 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 TODO
-* implement the use of GPS
-* implement SDcard storage
+* manage retrasmission of data non sended
 */
 
 #include "stimawifi.h"
 
 void display_summary_data(char* status) {
   
-  StaticJsonDocument<500> doc;
+  DynamicJsonDocument doc(500);
 
   frtosLog.notice(F("display_values"));
 
@@ -323,7 +322,7 @@ String  rmap_get_remote_config(){
 
 void firmware_upgrade() {
 
-  StaticJsonDocument<200> doc; 
+  DynamicJsonDocument doc(200); 
   doc["ver"] = SOFTWARE_VERSION;
   doc["user"] = station.user;
   doc["slug"] = station.stationslug;
@@ -602,7 +601,7 @@ void readconfig() {
       std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        StaticJsonDocument<500> doc;
+        DynamicJsonDocument doc(500);
         DeserializationError error = deserializeJson(doc,buf.get());
 	if (!error) {
 	  //json.printTo(Serial);
@@ -647,7 +646,7 @@ void writeconfig() {;
   //save the custom parameters to FS
   frtosLog.notice(F("saving config"));
   //DynamicJsonDocument jsonBuffer;
-  StaticJsonDocument<500> json;
+  DynamicJsonDocument json(500);
     
   //json["rmap_longitude"] = station.longitude;
   //json["rmap_latitude"] = station.latitude;
@@ -678,35 +677,41 @@ void displayStatus()
   
   frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
   frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
-  frtosLog.notice(F("status udp    : receive %d"),stimawifiStatus.udp.receive); // UDP status is ignored by now
-  frtosLog.notice(F("status gps    : receive %d"),stimawifiStatus.gps.receive); // GPS status is ignored by now
-  
+  frtosLog.notice(F("status db     : database %d"),stimawifiStatus.db.database);
+  if (strcmp(station.ident,"") != 0){
+    frtosLog.notice(F("status gps    : receive %d" ),stimawifiStatus.gps.receive);
+    frtosLog.notice(F("status udp    : receive %d" ),stimawifiStatus.udp.receive);
+  }
+    
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
   uint32_t color = pixels.Color(0,0,0);
 
   // if one not unknown then BLUE
-  if (    stimawifiStatus.measure.novalue != unknown && stimawifiStatus.measure.sensor  != unknown && stimawifiStatus.measure.geodef  != unknown
-      &&  stimawifiStatus.publish.connect != unknown && stimawifiStatus.publish.publish != unknown)
-    {
-      strcpy(status,"Stat: working");
-      color = pixels.Color(0,0,255);
-      light=true;
-    }
+  if (    stimawifiStatus.measure.novalue != unknown || stimawifiStatus.measure.sensor  != unknown || stimawifiStatus.measure.geodef  != unknown
+	  ||  stimawifiStatus.publish.connect != unknown || stimawifiStatus.publish.publish != unknown
+	  || stimawifiStatus.db.database != unknown
+	  || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive != unknown || stimawifiStatus.udp.receive != unknown))) {
+    strcpy(status,"Stat: working");
+    color = pixels.Color(0,0,255);
+    light=true;
+  }
   // if all OK then GREEN
   if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok && stimawifiStatus.measure.geodef  == ok
-      &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok)
-    {
-      strcpy(status,"Stat: ok");
-      color = pixels.Color(0,255,0);
-      light=true;
-    }
+	  &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok
+	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok && stimawifiStatus.udp.receive == ok))) {
+    strcpy(status,"Stat: ok");
+    color = pixels.Color(0,255,0);
+    light=true;
+  }
   // if one is error then RED
   if (      stimawifiStatus.measure.novalue == error
 	 || stimawifiStatus.measure.sensor  == error
 	 || stimawifiStatus.measure.geodef  == error
 	 || stimawifiStatus.publish.connect == error
-	 || stimawifiStatus.publish.publish == error){
+	 || stimawifiStatus.publish.publish == error
+	 || stimawifiStatus.db.database == error
+	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error))){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
     light = true;
@@ -722,6 +727,10 @@ void displayStatus()
     pixels.setPixelColor(0, pixels.Color(0,0,0));    
   }
   pixels.show();
+}
+
+void dataRecovery() {
+  recoverySemaphore.Give();
 }
 
 void measureAndPublish() {
@@ -1130,6 +1139,7 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
+  Alarm.timerRepeat(90, dataRecovery);    // timer for data recoveru from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
@@ -1154,8 +1164,9 @@ void setup() {
     threadGps.Start();
   }
 
-  threadMeasure.Start();
   threadPublish.Start();
+  threadDb.Start();
+  threadMeasure.Start();
 
 }
 
@@ -1170,4 +1181,6 @@ void loop() {
     delay(1000);
   }
   Alarm.delay(0);
+  //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));  //5440 free
+  if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");
 }

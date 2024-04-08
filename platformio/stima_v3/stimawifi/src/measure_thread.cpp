@@ -76,6 +76,8 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
+  mqtt_message.sent=0;
+  
   data.logger->notice(F("have to publish: %s"),values);
   DeserializationError deerror = deserializeJson(doc,values);
   if (deerror) {
@@ -140,10 +142,10 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       data.logger->error(F("time not set or needs sync"));
       strcat(mqtt_message.payload,"}");
     }
-    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-    
-    data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(100));
-    
+    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+    if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+      data.logger->error(F("lost message for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    }
   }
 }
 
@@ -209,7 +211,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", 30000, 1},
+  : Thread{"measure", 5000, 1},
     data{measure_data}
 {
   //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
@@ -258,6 +260,8 @@ void measureThread::Run() {
   for(;;){
     WaitForNotification();
     doMeasure(sensorm,*data);
+    //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL)); // free 1800
+    if (uxTaskGetStackHighWaterMark(NULL) < 100 ) data->logger->error("stack measure");
   }
 };
   

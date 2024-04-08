@@ -61,13 +61,12 @@ void doSerialNmea(gps_data_t& data){
     data.georef->mutex->Unlock();
     data.status->receive=ok;
   }
-  if ((now()-data.georef->timestamp) > 30) data.status->receive=error;
 }
 
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t& gps_data)
-  : Thread{"GPS", 20000, 1}
+  : Thread{"GPS", 2500, 1}
     ,data{gps_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -101,9 +100,16 @@ void gpsThread::Run() {
     while (Serial2.available()){
       doSerialNmea(data);
     }
+    if ((now()-data.georef->timestamp) > 30){
+      data.status->receive=error;
+    }else{
+      data.status->receive=ok;
+    }
     const TickType_t xDelay = 500;
     Delay(xDelay);
     //Delay(Ticks::SecondsToTicks(1));
+    //data.logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
+    if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack gps");
   }
 };  
 

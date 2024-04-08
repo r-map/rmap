@@ -48,13 +48,17 @@ udpThread threadUdp(udp_data);
 gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef};
 gpsThread threadGps(gps_data);
 
-Queue mqttQueue((12*5*60)/30,sizeof(mqttMessage_t));   // ~ 5 minutes queue
+Queue dbQueue((12*2),sizeof(mqttMessage_t));       // ~ 1 minutes queue
+Queue mqttQueue((12*3),sizeof(mqttMessage_t));   // ~ 1.5 minutes queue
+BinarySemaphore recoverySemaphore(false);
+db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&stimawifiStatus.db};
+dbThread threadDb(db_data);
 
 station_t station;
 measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.publish,&station,&mqttClient};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.publish,&station,&mqttClient};
 publishThread threadPublish(publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);

@@ -132,6 +132,7 @@ struct sensor_t
 */
 struct mqttMessage_t
 {
+  uint8_t sent;
   char topic[MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH];
   char payload[MQTT_MESSAGE_LENGTH];
 };
@@ -183,6 +184,15 @@ struct gpsStatus_t
 };
 
 /*!
+\def struct dbStatus_t
+\brief Stati relativi al thread di gestione del DataBase.
+*/
+struct dbStatus_t
+{
+  status_e database;    //!< stato di funzionamento del DataBase
+};
+
+/*!
 \def struct stimawifiStatus_t
 \brief Stati relativi all'intera stazione.
 */
@@ -192,6 +202,7 @@ struct stimawifiStatus_t
   publishStatus_t publish;     //!< Stati relativi al thread di pubblicazione
   udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
   gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
+  dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
 };
 
 #endif

@@ -277,17 +277,23 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
     if(mqttPublish( mqttclient, data, mqtt_message,false)){
       data.logger->notice(F("Data published"));    
       data.status->publish=ok;
-      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message
+      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message and archive
+      mqtt_message.sent=1;
     }else{
-      //mqttclient.disconnect(); ////////////////////////////////////// do to ?
+      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive for future send
+      mqtt_message.sent=0;
+      mqttDisconnect(ipstack,mqttclient, data);
       data.logger->error(F("Error in publish data"));
       data.status->publish=error;
+    }
+    if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+      data.logger->error(F("lost message for db  : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     }
   }
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
-  : Thread{"publish", 20000, 1},
+  : Thread{"publish", 4000, 1},
     data{publish_data},
     ipstack{*data.mqttClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
@@ -319,5 +325,7 @@ void publishThread::Run() {
     }
     data.logger->notice(F("mqtt yield"));
     mqttclient.yield(0);
+    //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));  // free 1480
+    if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error("stack publish");
   }
 };

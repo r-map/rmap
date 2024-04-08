@@ -5,14 +5,11 @@
 #define GPS_THREAD_H_
 
 /*
-Android-GPSd-Forwarder send a burst of GPS packets > 6
-so we have trouble to do not lost some packets
-in lwip the buffer size for GPS is defined by
-CONFIG_LWIP_GPS_RECVMBOX_SIZE
-with default to 6
-In arduino we cannot change this value because the librari is precompiled.
-We can only speed up the task and hope.
-The priority is set to 3 and delay is very short.
+NEO-6 - Data Sheet:
+Serial Port 1 Output 9600 Baud, 8 bits, no parity bit, 1 stop bit
+Configured to transmit both NMEA and UBX protocols, but only following NMEA and no
+UBX messages have been activated at start-up:
+GGA, GLL, GSA, GSV, RMC, VTG, TXT
 */
 
 struct gps_data_t {
