@@ -53,6 +53,7 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
 
   debounce_millis = 0;
   last_display_timeout = millis();
+  last_display_refresh = millis();
 
   // **************************************************************************
   // ************************* ENCODER SETUP **********************************
@@ -137,6 +138,7 @@ void LCDTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
 
 void LCDTask::Run() {
   bool event_wake_up;
+
 // Start Running Monitor and First WDT normal state
 #if (ENABLE_STACK_USAGE)
   TaskMonitorStack();
@@ -171,6 +173,14 @@ void LCDTask::Run() {
     // **************************************************************************
 
     read_millis = millis();
+
+    // **************************************************************************
+    // ************************* REFRESH LCD HANDLER ****************************
+    // **************************************************************************
+
+    if ((read_millis < last_display_refresh) || (read_millis - last_display_refresh) >= DISPLAY_REFRESH_TIMEOUT && !display_is_off) {
+      data_printed = false;
+    }
 
     // **************************************************************************
     // ************************* DISPLAY OFF HANDLER ****************************
@@ -248,10 +258,14 @@ void LCDTask::Run() {
         }
 
         // **************************************************************************
-        // ************************* MENU HANDLER ***********************************
+        // ***************************** MENU HANDLER *******************************
         // **************************************************************************
 
         if (!data_printed) {
+
+          // Refresh millis page auto reload
+          last_display_refresh = read_millis;
+
           // Display default interface: title and decorations
           display_print_default_interface();
 
@@ -675,9 +689,9 @@ void LCDTask::display_print_default_interface() {
  *
  */
 void LCDTask::display_print_main_interface() {
-  char buffer_errors[30] = {0};
-  char dtIntest[18] = {0};
-  char errors[25] = {0};
+  char buffer_errors[40] = {0};
+  char msgOut[18] = {0};
+  char errors[35] = {0};
   char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
   char station[STATION_LCD_LENGTH];
   bool is_error = false;
@@ -685,7 +699,7 @@ void LCDTask::display_print_main_interface() {
 
   // Get Date and Time
   if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
-    sprintf(dtIntest, "%02d/%02d/%02d %02d:%02d:00",
+    sprintf(msgOut, "%02d/%02d/%02d %02d:%02d:00",
             rtc.getDay(), rtc.getMonth(), rtc.getYear(), rtc.getHours(), rtc.getMinutes());
     param.rtcLock->Give();
   }
@@ -698,7 +712,7 @@ void LCDTask::display_print_main_interface() {
 
   // Print Date and Time
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(dtIntest);
+  display.print(msgOut);
 
   // Print station name
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + LINE_BREAK);
@@ -741,9 +755,46 @@ void LCDTask::display_print_main_interface() {
     }
   }
 
-  // Print SD card status
+  // Print SD card status / connection Line
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
-  param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
+  // Show connection state prioritary or SD Status Card
+  if(param.system_status->flags.run_connection) {
+    // Connection message running
+    // Last message priority from Last to first (No message Disconnection, return to SD State)
+    if(param.system_status->connection.is_mqtt_publishing_end) {
+      display.print(F("Conn: mqtt publish OK"));
+    }
+    else if(param.system_status->connection.is_mqtt_publishing) {
+      display.print(F("Conn: mqtt publishing..."));
+    } 
+    else if(param.system_status->connection.is_mqtt_connected) {
+      display.print(F("Conn: mqtt connected OK"));
+    }
+    else if(param.system_status->connection.is_mqtt_connecting) {
+      display.print(F("Conn: mqtt connection..."));
+    }
+    else if(param.system_status->connection.is_mqtt_connected) {
+      display.print(F("Conn: mqtt connected OK"));
+    }
+    else if(param.system_status->connection.is_connected) {
+      display.print(F("Conn: PPP connected OK"));
+    }
+    else if(param.system_status->connection.is_connecting) {
+      display.print(F("Conn: ppp connection..."));
+    }
+  } else {
+    // SD/Publish alternate Message without connection running
+    if(!main_page_subinfo) {
+      main_page_subinfo = 1;
+      param.system_status->flags.sd_card_ready == true ? display.print(F("SD card status: OK")) : display.print(F("SD card status: ERR"));
+    } else {
+      main_page_subinfo = 0;
+      sprintf(msgOut, "%07ld", param.system_status->connection.mqtt_data_published);
+      display.print(F("Published ["));
+      display.print(msgOut);
+      display.print(F("] mqtt data"));
+    }
+  }
 
   // Print system status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);

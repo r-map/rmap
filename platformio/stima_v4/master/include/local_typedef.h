@@ -435,11 +435,12 @@ typedef struct
 {
    struct
    {
-      uint8_t do_synch_ptr  : 1;  // Request synch pointer data rmap START with param (set pointer)
-      uint8_t do_end_ptr    : 1;  // Request synch pointer data rmap END with param (set pointer)
-      uint8_t do_get_data   : 1;  // Get first data avaiable and set pointer to next data
-      uint8_t do_save_ptr   : 1;  // Request to Save Pointer Data (Optional with All other Request)
-      uint8_t do_reset_ptr  : 1;  // Request to Reset Pointer Data
+      uint8_t do_synch_ptr    : 1;  // Request synch pointer data rmap START with param (set pointer)
+      uint8_t do_end_ptr      : 1;  // Request synch pointer data rmap END with param (set pointer)
+      uint8_t do_get_data     : 1;  // Get first data avaiable and set pointer to next data
+      uint8_t do_save_ptr     : 1;  // Request to Save Pointer Data (Optional with All other Request)
+      uint8_t do_reset_ptr    : 1;  // Request to Reset Pointer Data
+      uint8_t do_previous_ptr : 1;  // Request to Reset previous position (something fail in send data)
    } command;
    uint32_t param;  // 32 Bit for generic data or casting to pointer
 

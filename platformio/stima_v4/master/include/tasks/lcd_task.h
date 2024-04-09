@@ -257,6 +257,9 @@ class LCDTask : public cpp_freertos::Thread {
   // It contains the final result of the encoder state
   inline static uint8_t encoder_state;
 
+  // The last time in milliseconds from any refresh video (auto refresh timeout)
+  uint32_t last_display_refresh;
+
   // Index used for read the data from array of slave boards
   int8_t channel;
 
@@ -301,6 +304,9 @@ class LCDTask : public cpp_freertos::Thread {
 
   // Index used to determine the char selected from user in update name station interface
   uint8_t selected_char_index;
+
+  // Index used to determine the main selected pages/subPages/Info
+  uint8_t main_page_subinfo;
 
   // ISR Access PIN button
   inline static char pin_bottom_left_encoder;

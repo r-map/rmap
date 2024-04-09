@@ -76,6 +76,8 @@
 
 #define DATA_FILENAME_LEN                (22)
 
+#define UNKNOWN_POINTER_POSITION         (0xFFFFFFFFu)
+
 #include "debug_F.h"
 
 // TIME CONST and Define for Epoch function

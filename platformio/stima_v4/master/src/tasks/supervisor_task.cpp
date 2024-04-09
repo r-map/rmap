@@ -147,6 +147,8 @@ void SupervisorTask::Run()
 
         param.systemStatusLock->Take();
         param.system_status->configuration.is_loaded = true;
+        // Reset counter published data from Start
+        param.system_status->connection.mqtt_data_published = 0;
         // Init acquire base datetime (for get next)
         param.system_status->datetime.ptr_time_for_sensors_get_istant = 0; // Force get istant at startup display...
         param.system_status->datetime.ptr_time_for_sensors_get_value = rtc.getEpoch() / param.configuration->report_s;
@@ -464,10 +466,6 @@ void SupervisorTask::Run()
             } else {
               TRACE_VERBOSE_F(F("SUPERVISOR: Publish data [ %s ] from MQTT\r\n"), ERROR_STRING);
             }
-            // Remove Flag for Start Next Publish and Connect for Next attempt
-            param.systemStatusLock->Take();
-            param.system_status->connection.is_mqtt_publishing_end = false;
-            param.systemStatusLock->Give();
 
             if ((param.system_status->command.do_http_configuration_update)||(param.system_status->command.do_http_firmware_download)) {
               // is_mqtt_connected, Already terminated not newver Connection here
