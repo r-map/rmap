@@ -154,6 +154,13 @@ typedef enum {
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
+
+/*!
+\var protect_elaboration;
+\brief block measure when some compute are active.
+*/
+bool protect_elaboration;
+
 /*!
 \var configuration
 \brief Configuration data.

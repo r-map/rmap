@@ -1658,7 +1658,7 @@ void SensorDriverTh::prepare(bool is_test) {
       _buffer[i++] = I2C_TH_COMMAND_ONESHOT_START_STOP;
       _buffer[i] = crc8(_buffer, i);
       i++;
-      _delay_ms = 300;
+      _delay_ms = 350;
     }
     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
       is_i2c_write = true;
@@ -1671,7 +1671,7 @@ void SensorDriverTh::prepare(bool is_test) {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 300;
+      _delay_ms = 350;
     }
 
     if (is_i2c_write) {
