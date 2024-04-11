@@ -390,13 +390,11 @@ ISR(TIMER1_OVF_vect) {
    //! increment timer_counter by TIMER1_INTERRUPT_TIME_MS
    timer_counter += TIMER1_INTERRUPT_TIME_MS;
 
-   if (!protect_elaboration) {
-     //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
-     if (executeTimerTaskEach(timer_counter, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot && is_start) {
-       if (!is_event_sensors_reading) {
-         is_event_sensors_reading = true;
-         ready_tasks_count++;
-       }
+   //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
+   if (executeTimerTaskEach(timer_counter, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot && is_start) {
+     if (!is_event_sensors_reading) {
+       is_event_sensors_reading = true;
+       ready_tasks_count++;
      }
    }
 
@@ -574,7 +572,7 @@ void sensors_reading_task () {
 	  LOGE(F("Skip failed Sensor"));
 	  addValue<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX, INT32_MAX);
 	  addValue<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX, INT32_MAX);
-	  
+	  i2c_error++;
 	  sensors_reading_state = SENSORS_READING_NEXT;
 	} 
 
@@ -1139,11 +1137,9 @@ void commands() {
   //! CONTINUOUS START
   else if (!configuration.is_oneshot && is_start && !is_stop && !is_test_read) {
 
-    protect_elaboration=true;
     reset_samples_buffer();
     reset_data(readable_data_write_ptr);
     make_report(true);
-    protect_elaboration=false;
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {
@@ -1152,12 +1148,10 @@ void commands() {
   }
   //! CONTINUOUS START-STOP
   else if (!configuration.is_oneshot && is_start && is_stop) {
-    protect_elaboration=true;
     exchange_buffers();
     reset_samples_buffer();
     reset_data(readable_data_write_ptr);
     make_report(true);
-    protect_elaboration=false;
   }
   //! ONESHOT START
   else if (configuration.is_oneshot && is_start && !is_stop) {
