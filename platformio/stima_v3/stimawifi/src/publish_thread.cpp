@@ -242,6 +242,14 @@ bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >
   return true;
 }
 
+void archive( publish_data_t& data) {
+  mqttMessage_t mqtt_message;
+  data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive
+  mqtt_message.sent=0;
+  if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+    data.logger->error(F("lost message for db  : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+  }
+ }
 
 void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, mqttMessage_t& mqtt_message) {
 
@@ -321,11 +329,15 @@ void publishThread::Run() {
   for(;;){
     mqttMessage_t mqttMessage;
     while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-      doPublish(ipstack,mqttclient, data, mqttMessage);
+      if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
+	archive(data);
+      } else {
+	doPublish(ipstack,mqttclient, data, mqttMessage);
+      }
     }
-    data.logger->notice(F("mqtt yield"));
-    mqttclient.yield(0);
+    data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
+    if( esp_get_minimum_free_heap_size() < 50000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));  // free 1480
-    if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error("stack publish");
+    if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error(F("stack publish"));
   }
 };

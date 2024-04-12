@@ -48,8 +48,8 @@ udpThread threadUdp(udp_data);
 gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef};
 gpsThread threadGps(gps_data);
 
-Queue dbQueue((12*2),sizeof(mqttMessage_t));       // ~ 1 minutes queue
-Queue mqttQueue((12*3),sizeof(mqttMessage_t));   // ~ 1.5 minutes queue
+Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));       // ~ 1 minutes queue
+Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));   // ~ 1.5 minutes queue
 BinarySemaphore recoverySemaphore(false);
 db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&stimawifiStatus.db};
 dbThread threadDb(db_data);

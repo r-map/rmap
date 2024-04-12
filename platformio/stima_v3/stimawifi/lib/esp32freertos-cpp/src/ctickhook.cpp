@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (c) 2017, Michael Becker (michael.f.becker@gmail.com)
+ *  Copyright (c) 2023, Michael Becker (michael.f.becker@gmail.com)
  *
  *  This file is part of the FreeRTOS Add-ons project.
  *
@@ -12,6 +12,8 @@
  *
  *  On-line Documentation:
  *  http://michaelbecker.github.io/freertos-addons/docs/html/index.html
+ *
+ *  MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files
@@ -37,6 +39,7 @@
  ***************************************************************************/
 
 
+
 #include "tickhook.hpp"
 
 #if ( configUSE_TICK_HOOK == 1 )
@@ -59,7 +62,7 @@ TickHook::TickHook()
 TickHook::~TickHook()
 {
     taskENTER_CRITICAL(&tickhookspinlock);
-    Callbacks.remove(this);
+        Callbacks.remove(this);
     taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
@@ -67,7 +70,7 @@ TickHook::~TickHook()
 void TickHook::Register()
 {
     taskENTER_CRITICAL(&tickhookspinlock);
-    Callbacks.push_front(this);
+        Callbacks.push_front(this);
     taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
@@ -75,7 +78,7 @@ void TickHook::Register()
 void TickHook::Disable()
 {
     taskENTER_CRITICAL(&tickhookspinlock);
-    Enabled = false;
+        Enabled = false;
     taskEXIT_CRITICAL(&tickhookspinlock);
 }
 
@@ -83,7 +86,7 @@ void TickHook::Disable()
 void TickHook::Enable()
 {
     taskENTER_CRITICAL(&tickhookspinlock);
-    Enabled = true;
+        Enabled = true;
     taskEXIT_CRITICAL(&tickhookspinlock);
 }
 

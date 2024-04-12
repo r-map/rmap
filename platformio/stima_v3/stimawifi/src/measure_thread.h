@@ -12,7 +12,7 @@ struct measure_data_t {
   summarydata_t* summarydata;
   MutexStandard* i2cmutex;
   georef_t* georef;
-  sensor_t  sensors[SENSORS_LEN];
+  sensor_t  sensors[SENSORS_MAX];
   uint8_t sensors_count;
 };
 
@@ -35,7 +35,7 @@ protected:
     
 private:
   measure_data_t* data;
-  SensorDriver* sd[SENSORS_LEN];
+  SensorDriver* sd[SENSORS_MAX];
   sensorManage sensorm[SENSORS_MAX];
   uint8_t sensors_count;
 };

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (c) 2017, Michael Becker (michael.f.becker@gmail.com)
+ *  Copyright (c) 2023, Michael Becker (michael.f.becker@gmail.com)
  *
  *  This file is part of the FreeRTOS Add-ons project.
  *
@@ -12,6 +12,8 @@
  *
  *  On-line Documentation:
  *  http://michaelbecker.github.io/freertos-addons/docs/html/index.html
+ *
+ *  MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files
@@ -35,6 +37,7 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  ***************************************************************************/
+
 
 
 #ifndef QUEUE_HPP_
@@ -149,7 +152,7 @@ class Queue {
          *  @param item The item you are adding.
          *  @return true if the item was added, false if it was not.
          */
-        virtual bool Enqueue(void *item);
+        virtual bool Enqueue(const void *item);
 
         /**
          *  Add an item to the back of the queue.
@@ -159,7 +162,7 @@ class Queue {
          *         the queue is currently full.
          *  @return true if the item was added, false if it was not.
          */
-        virtual bool Enqueue(void *item, TickType_t Timeout);
+        virtual bool Enqueue(const void *item, TickType_t Timeout);
 
         /**
          *  Remove an item from the front of the queue.
@@ -190,7 +193,7 @@ class Queue {
          *         rescheduling event.
          *  @return true if the item was added, false if it was not.
          */
-        virtual bool EnqueueFromISR(void *item, BaseType_t *pxHigherPriorityTaskWoken);
+        virtual bool EnqueueFromISR(const void *item, BaseType_t *pxHigherPriorityTaskWoken);
 
         /**
          *  Remove an item from the front of the queue in ISR context.

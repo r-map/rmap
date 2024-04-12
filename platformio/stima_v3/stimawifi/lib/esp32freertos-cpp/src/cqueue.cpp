@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (c) 2017, Michael Becker (michael.f.becker@gmail.com)
+ *  Copyright (c) 2023, Michael Becker (michael.f.becker@gmail.com)
  *
  *  This file is part of the FreeRTOS Add-ons project.
  *
@@ -12,6 +12,8 @@
  *
  *  On-line Documentation:
  *  http://michaelbecker.github.io/freertos-addons/docs/html/index.html
+ *
+ *  MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files
@@ -35,6 +37,7 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  ***************************************************************************/
+
 
 
 #include "queue.hpp"
@@ -63,7 +66,7 @@ Queue::~Queue()
 }
 
 
-bool Queue::Enqueue(void *item)
+bool Queue::Enqueue(const void *item)
 {
     BaseType_t success;
 
@@ -73,7 +76,7 @@ bool Queue::Enqueue(void *item)
 }
 
 
-bool Queue::Enqueue(void *item, TickType_t Timeout)
+bool Queue::Enqueue(const void *item, TickType_t Timeout)
 {
     BaseType_t success;
 
@@ -103,7 +106,7 @@ bool Queue::Peek(void *item, TickType_t Timeout)
 }
 
 
-bool Queue::EnqueueFromISR(void *item, BaseType_t *pxHigherPriorityTaskWoken)
+bool Queue::EnqueueFromISR(const void *item, BaseType_t *pxHigherPriorityTaskWoken)
 {
     BaseType_t success;
 

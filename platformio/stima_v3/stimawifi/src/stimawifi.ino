@@ -533,7 +533,7 @@ int  rmap_config(const String payload){
 	
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
-	    if (measure_data.sensors_count < SENSORS_LEN) {
+	    if (measure_data.sensors_count < SENSORS_MAX) {
 	      frtosLog.notice(F("station sensor found!"));
 	      strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
 	      frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);

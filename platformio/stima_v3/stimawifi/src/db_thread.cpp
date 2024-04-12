@@ -73,9 +73,14 @@ void data_recovery(sqlite3 *db, db_data_t& data){
   mqttMessage_t message;
 
   data.logger->notice(F("Start recovery from DB"));       
-  
+
+  if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
+    data.logger->warning(F("no space in queue while recovery data from DB"));   
+    return;
+  }
+
   //char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT 12";
-  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 LIMIT 12";
+  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -86,14 +91,20 @@ void data_recovery(sqlite3 *db, db_data_t& data){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc) {
-    data.logger->error(F("select rcovery data from DB"));   
+    data.logger->error(F("select recovery data from DB"));   
   } else {
-      
+
+
+  sqlite3_bind_int(
+		   stmt,                  // previously compiled prepared statement object
+		   1,                     // parameter index, 1-based
+		   (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
+    
     while(1) {
       // fetch a row's status
-      CriticalSection::SuspendScheduler();
+      //CriticalSection::SuspendScheduler();
       rc = sqlite3_step(stmt);      
-      CriticalSection::ResumeScheduler();
+      //CriticalSection::ResumeScheduler();
       
       if(rc == SQLITE_ROW) {
 	message.sent = (uint8_t)sqlite3_column_int(stmt, 0);
@@ -168,9 +179,9 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
   sqlite3_bind_text(stmt, 3, message.topic,   -1, SQLITE_STATIC);
   sqlite3_bind_text(stmt, 4, message.payload, -1, SQLITE_STATIC);
 
-  CriticalSection::SuspendScheduler();
+  //CriticalSection::SuspendScheduler();
   rc = sqlite3_step(stmt); // you'll want to check the return value, read on...
-  CriticalSection::ResumeScheduler();
+  //CriticalSection::ResumeScheduler();
 
   if (rc != SQLITE_DONE) {
     data.status->database=error;
@@ -182,7 +193,8 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 
     //restart SDcard
     SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
-    if (SD.begin(C3SS,SPI,20000, "/sd",MAXFILE, false)){
+    SPI.setDataMode(SPI_MODE0);
+    if (SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false)){
       if (!sqlite3_open("/sd/stima.db", &db)){
 	// close open things
 	sqlite3_close(db);
@@ -252,6 +264,7 @@ void dbThread::Run() {
   */
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.setDataMode(SPI_MODE0);
   //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
   if (SD.begin(C3SS,SPI,4000000, "/sd",MAXFILE, true)){
     data.logger->notice(F("SD mount OK"));

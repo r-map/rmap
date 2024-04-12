@@ -27,9 +27,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*!
 \def SENSOR_MAX
 \brief Max number of sensor.
-Max value here is 25
+Max value here is 25 for stima atmega1284
 */
-#define SENSORS_MAX      (15)
+#define SENSORS_MAX      (6)
 
 /*!
 \def SENSOR_UNIQUE_MAX
