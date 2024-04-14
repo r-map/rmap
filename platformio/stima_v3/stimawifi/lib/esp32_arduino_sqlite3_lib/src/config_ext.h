@@ -7,7 +7,7 @@
 #define SQLITE_DISABLE_LFS                   1
 #define SQLITE_DISABLE_DIRSYNC               1
 #define SQLITE_SECURE_DELETE                 0
-#define SQLITE_DEFAULT_LOOKASIDE        512,64
+#define SQLITE_DEFAULT_LOOKASIDE        128,32
 #define YYSTACKDEPTH                        20
 #define SQLITE_SMALL_STACK                   1
 #define SQLITE_SORTER_PMASZ                  4
@@ -26,7 +26,7 @@
 #define SQLITE_DEFAULT_LOCKING_MODE          1
 #define SQLITE_DEFAULT_PAGE_SIZE           512
 #define SQLITE_DEFAULT_PCACHE_INITSZ         8
-#define SQLITE_MAX_DEFAULT_PAGE_SIZE     32768
+#define SQLITE_MAX_DEFAULT_PAGE_SIZE      1024
 #define SQLITE_POWERSAFE_OVERWRITE           1
 #define SQLITE_MAX_EXPR_DEPTH                0
 

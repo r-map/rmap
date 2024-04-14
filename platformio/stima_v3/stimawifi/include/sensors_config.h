@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Max number of sensor.
 Max value here is 25 for stima atmega1284
 */
-#define SENSORS_MAX      (6)
+#define SENSORS_MAX      (3)
 
 /*!
 \def SENSOR_UNIQUE_MAX
@@ -37,7 +37,7 @@ Max value here is 25 for stima atmega1284
 unique sensors are sensors that can have more driver but only one i2c address and only one setup and prepare
 Max value here is 10
 */
-#define SENSORS_UNIQUE_MAX      (6)
+#define SENSORS_UNIQUE_MAX      (3)
 
 /*!
 \def USE_JSON

@@ -1,10 +1,12 @@
 #include "common.h"
 
+//uint8_t sqlite_memory[SQLITE_MEMORY];
+
 const char* data = "Callback function called";
 
 static int callback(void *data, int argc, char **argv, char **azColName) {
   int i;
-  Serial.printf("%s: ", (const char*)data);
+  //Serial.printf("%s: ", (const char*)data);
   for (i = 0; i<argc; i++){
     Serial.printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
   }
@@ -31,12 +33,20 @@ int db_exec(sqlite3 *db, const char *sql) {
 
 void db_setup(sqlite3 *db, db_data_t& data){
 
+  //sqlite3_hard_heap_limit64(SQLITE_MEMORY);
+
   if(db_exec(db,
 	     "PRAGMA user_version = 1;"
 	     ) != SQLITE_OK) {
     data.logger->error(F("pragma user_version"));       
   }
-
+  
+  if(db_exec(db,
+	     "PRAGMA temp_store = FILE;"
+	     ) != SQLITE_OK) {
+    data.logger->error(F("pragma temp_store"));       
+  }
+  
   if(db_exec(db,
 	     "PRAGMA synchronous = FULL;"
 	     ) != SQLITE_OK) {
@@ -75,12 +85,11 @@ void data_recovery(sqlite3 *db, db_data_t& data){
   data.logger->notice(F("Start recovery from DB"));       
 
   if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
-    data.logger->warning(F("no space in queue while recovery data from DB"));   
+    data.logger->warning(F("no space in publish queue while recovery data from DB"));   
     return;
   }
 
-  //char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT 12";
-  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 LIMIT ?";
+  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -111,14 +120,14 @@ void data_recovery(sqlite3 *db, db_data_t& data){
 	strcpy(message.topic, (const char*)sqlite3_column_text(stmt, 1));
 	strcpy(message.payload, (const char*)sqlite3_column_text(stmt, 2));
 	
-	data.logger->notice(F("Data prepared for publish %s:%s"),message.topic,message.payload);       
+	data.logger->notice(F("Message recovery enqueue for publish %s:%s"),message.topic,message.payload);       
 	if(!data.mqttqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
-	  data.logger->error(F("lost message for mqtt  : %s ; %s"),  message.topic, message.payload);
+	  data.logger->error(F("Message recovery recovery for publish : %s ; %s"),  message.topic, message.payload);
 	}
       } else if(rc == SQLITE_DONE) {
 	break;
       } else {
-	data.logger->error(F("getting values in DB: %s"),sqlite3_errmsg(db));       
+	data.logger->error(F("getting values from DB: %s"),sqlite3_errmsg(db));       
 	break;
       }
     }
@@ -129,10 +138,11 @@ void data_recovery(sqlite3 *db, db_data_t& data){
 bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 
   int rc;
-
   char sql[] = "INSERT OR REPLACE INTO messages VALUES (?, strftime('%s',?), ?, ?)";
-
   sqlite3_stmt* stmt; // will point to prepared stamement object
+
+  data.logger->notice(F("spaceleft in db queue %d"),data.mqttqueue->NumSpacesLeft());   
+  
   sqlite3_prepare_v2(
 		     db,             // the handle to your (opened and ready) database
 		     sql,            // the sql statement, utf-8 encoded
@@ -182,7 +192,7 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
   //CriticalSection::SuspendScheduler();
   rc = sqlite3_step(stmt); // you'll want to check the return value, read on...
   //CriticalSection::ResumeScheduler();
-
+  
   if (rc != SQLITE_DONE) {
     data.status->database=error;
     data.logger->error(F("insert values in DB: %s"),sqlite3_errmsg(db));       
@@ -195,7 +205,7 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
     SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
     SPI.setDataMode(SPI_MODE0);
     if (SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false)){
-      if (!sqlite3_open("/sd/stima.db", &db)){
+      if (sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK){
 	// close open things
 	sqlite3_close(db);
 	SD.end();
@@ -250,7 +260,33 @@ void dbThread::Cleanup()
 void dbThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
-  sqlite3_initialize();
+  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.setDataMode(SPI_MODE0);
+  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
+  if (SD.begin(C3SS,SPI,4000000, "/sd",MAXFILE, true)){
+    data.logger->notice(F("SD mount OK"));
+  }else{
+    data.logger->error(F("SD mount"));
+    //data.status->database=error;
+    return;
+  }
+
+  data.logger->notice(F("largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+  void* sqlite_memory= malloc(SQLITE_MEMORY);
+  if (sqlite_memory == 0){
+    data.logger->error(F("sqlite3 memory malloc"));
+    return;    
+  }
+  
+  if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
+    data.logger->error(F("sqlite3_config: %s"),sqlite3_errmsg(db));
+    return;
+  }
+
+  if(sqlite3_initialize()!=SQLITE_OK){
+    data.logger->error(F("sqlite3_initialize"));
+    return;
+  }
 
   /*
   if (LittleFS.exists("/stima.db")) {
@@ -263,18 +299,7 @@ void dbThread::Run() {
   }
   */
 
-  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
-  SPI.setDataMode(SPI_MODE0);
-  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
-  if (SD.begin(C3SS,SPI,4000000, "/sd",MAXFILE, true)){
-    data.logger->notice(F("SD mount OK"));
-  }else{
-    data.logger->error(F("SD mount"));
-    //data.status->database=error;
-    return;
-  }
-
-  if (sqlite3_open("/sd/stima.db", &db)){
+  if (!(sqlite3_open("/sd/stima.db", &db)==SQLITE_OK)){
     data.logger->error(F("DB open"));
     //data.status->database=error;
     return;
@@ -288,17 +313,19 @@ void dbThread::Run() {
     //return;
   }
 
+  /*
   if(db_exec(db, "CREATE INDEX ts ON messages(datetime)") != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
-
+  
   if(db_exec(db, "CREATE INDEX status ON messages(sent)") != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
+  */
 
   db_setup(db,data);
 
@@ -331,11 +358,15 @@ void dbThread::Run() {
 
     while (data.dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){
       if (!doDb(db,data,message)) return;
+
+      if(db_exec(db, "PRAGMA shrink_memory;") != SQLITE_OK) {
+	data.logger->error(F("pragma shrink_memory"));       
+      }
     }
 
     if(data.recoverysemaphore->Take(0)) data_recovery(db, data);
-
+    
     //data.logger->error("stack db: %d",uxTaskGetStackHighWaterMark(NULL));
-    if ( uxTaskGetStackHighWaterMark(NULL) < 100 ) data.logger->error("stack db");
+    if ( uxTaskGetStackHighWaterMark(NULL) < 100 ) data.logger->error(F("stack db"));
   }
 };  

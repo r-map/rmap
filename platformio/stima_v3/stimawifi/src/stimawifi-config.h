@@ -22,9 +22,6 @@
 
 #define STIMAHTTP_PORT 80
 
-// set the I2c clock frequency
-#define I2C_CLOCK 50000
-
 #define FIRMWARE_TYPE "LOLIN_C3_MINI"
 #define PMS_RESET 0
 
@@ -62,11 +59,22 @@
 
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
 #define DATA_BURST (12)
-#define DB_QUEUE_LEN (DATA_BURST*2)
-#define MQTT_QUEUE_LEN (DATA_BURST*3)
+#define DB_QUEUE_LEN (DATA_BURST)
+#define MQTT_QUEUE_LEN (DATA_BURST*2)
 #define MQTT_QUEUE_SPACELEFT_RECOVERY (MQTT_QUEUE_LEN/2)
 #define MQTT_QUEUE_SPACELEFT_PUBLISH (MQTT_QUEUE_LEN/3)
-#define MQTT_QUEUE_BURST_RECOVERY (DATA_BURST)
+#define MQTT_QUEUE_BURST_RECOVERY (DATA_BURST/2)
+
+// SD card SPI PIN assignment
+#define C3SCK 1   
+#define C3MISO 0  
+#define C3MOSI 4  
+#define C3SS 6    
+
+// SD card max number of file
+#define MAXFILE 3
+
+#define SQLITE_MEMORY 130000
 
 /*!
 \def MQTT_TIMEOUT_MS

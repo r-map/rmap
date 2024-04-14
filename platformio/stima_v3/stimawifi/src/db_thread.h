@@ -2,13 +2,6 @@
 #ifndef DB_THREAD_H_
 #define DB_THREAD_H_
 
-#define C3SCK 1   
-#define C3MISO 0  
-#define C3MOSI 4  
-#define C3SS 6    
-
-#define MAXFILE 5
-
 struct db_data_t {
   int id;
   frtosLogging* logger;

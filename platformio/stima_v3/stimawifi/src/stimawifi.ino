@@ -803,7 +803,7 @@ void setup() {
   
   Wire.begin();
   //Wire.begin(SDA_PIN,SCL_PIN);
-  Wire.setClock(I2C_CLOCK);
+  Wire.setClock(I2C_BUS_CLOCK);
 
   // check return value of
   // the Write.endTransmisstion to see if

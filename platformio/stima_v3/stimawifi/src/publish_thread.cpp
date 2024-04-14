@@ -244,10 +244,15 @@ bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >
 
 void archive( publish_data_t& data) {
   mqttMessage_t mqtt_message;
-  data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive
-  mqtt_message.sent=0;
-  if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-    data.logger->error(F("lost message for db  : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+  if (data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue the message and archive
+    mqtt_message.sent=0;
+    if(data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+      data.logger->notice(F("enqueue archive message"));
+    }else{
+      data.logger->error(F("lost message for db archive : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    }
+  }else{
+    data.logger->error(F("dequeue mqtt message"));
   }
  }
 
@@ -281,21 +286,22 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
     }
   }
 
+  mqttMessage_t tmp_mqtt_message;  
   if (mqttclient.isConnected()){
     if(mqttPublish( mqttclient, data, mqtt_message,false)){
       data.logger->notice(F("Data published"));    
       data.status->publish=ok;
-      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message and archive
+      data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message and archive
       mqtt_message.sent=1;
     }else{
-      data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive for future send
+      data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive for future send
       mqtt_message.sent=0;
       mqttDisconnect(ipstack,mqttclient, data);
       data.logger->error(F("Error in publish data"));
       data.status->publish=error;
     }
     if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data.logger->error(F("lost message for db  : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      data.logger->error(F("lost message for db publish : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     }
   }
 }
@@ -336,7 +342,7 @@ void publishThread::Run() {
       }
     }
     data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
-    if( esp_get_minimum_free_heap_size() < 50000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < 10000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));  // free 1480
     if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error(F("stack publish"));
   }
