@@ -313,7 +313,6 @@ void dbThread::Run() {
     //return;
   }
 
-  /*
   if(db_exec(db, "CREATE INDEX ts ON messages(datetime)") != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
@@ -325,7 +324,6 @@ void dbThread::Run() {
     //SD.end();
     //return;
   }
-  */
 
   db_setup(db,data);
 

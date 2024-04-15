@@ -72,9 +72,9 @@
 #define C3SS 6    
 
 // SD card max number of file
-#define MAXFILE 3
+#define MAXFILE 4
 
-#define SQLITE_MEMORY 130000
+#define SQLITE_MEMORY 110000
 
 /*!
 \def MQTT_TIMEOUT_MS
