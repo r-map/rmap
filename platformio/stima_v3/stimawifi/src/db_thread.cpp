@@ -204,17 +204,20 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 	sqlite3_close(db);
 	SD.end();
 	data.logger->error(F("DB open"));
-	delay(3000);
+	data.status->database=error;
+	return false;      //terminate
       }else{
 	db_setup(db,data);
       }
     }else{
       SD.end();
       data.logger->error(F("SD card open"));      
-      delay(3000);
+      data.status->database=error;
+      return false;       //terminate
     }
+    // go for retry
     return true;
-  } 
+  }
   
   sqlite3_finalize(stmt);
 
@@ -269,16 +272,19 @@ void dbThread::Run() {
   void* sqlite_memory= malloc(SQLITE_MEMORY);
   if (sqlite_memory == 0){
     data.logger->error(F("sqlite3 memory malloc"));
+    data.status->database=error;
     return;    
   }
   
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data.logger->error(F("sqlite3_config: %s"),sqlite3_errmsg(db));
+    data.status->database=error;
     return;
   }
 
   if(sqlite3_initialize()!=SQLITE_OK){
     data.logger->error(F("sqlite3_initialize"));
+    data.status->database=error;
     return;
   }
 
@@ -295,7 +301,7 @@ void dbThread::Run() {
 
   if (!(sqlite3_open("/sd/stima.db", &db)==SQLITE_OK)){
     data.logger->error(F("DB open"));
-    //data.status->database=error;
+    data.status->database=error;
     return;
   }
   
