@@ -289,7 +289,6 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
   mqttMessage_t tmp_mqtt_message;  
   if (mqttclient.isConnected()){
     if(mqttPublish( mqttclient, data, mqtt_message,false)){
-      data.logger->notice(F("Data published"));    
       data.status->publish=ok;
       data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message and archive
       mqtt_message.sent=1;
@@ -297,7 +296,6 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
       data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive for future send
       mqtt_message.sent=0;
       mqttDisconnect(ipstack,mqttclient, data);
-      data.logger->error(F("Error in publish data"));
       data.status->publish=error;
     }
     if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){

@@ -2,32 +2,26 @@
 
 //uint8_t sqlite_memory[SQLITE_MEMORY];
 
-const char* data = "Callback function called";
-
-static int callback(void *data, int argc, char **argv, char **azColName) {
+static int callback(void* data, int argc, char **argv, char **azColName) {
   int i;
-  //Serial.printf("%s: ", (const char*)data);
   for (i = 0; i<argc; i++){
-    Serial.printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    ((db_data_t *)data)->logger->notice(F("SQL result %s = %s"), azColName[i], argv[i] ? argv[i] : "NULL");
   }
-  Serial.printf("\n");
   return 0;
 }
 
-
-int db_exec(sqlite3 *db, const char *sql) {
+int db_exec(sqlite3 *db, const char *sql,db_data_t& data) {
   char *zErrMsg = 0;
-  Serial.println(sql);
+  data.logger->notice(F("SQL exec: %s"),sql);
   long start = micros();
-  int rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+  int rc = sqlite3_exec(db, sql, callback, &data, &zErrMsg);
   if (rc != SQLITE_OK) {
-    Serial.printf("SQL error: %s\n", zErrMsg);
+    data.logger->notice(F("SQL error: %s"), zErrMsg);
     sqlite3_free(zErrMsg);
   } else {
-    Serial.printf("Operation done successfully\n");
+    data.logger->notice(F("SQL operation done successfully"));
   }
-  Serial.print(F("Time taken:"));
-  Serial.println(micros()-start);
+  data.logger->notice(F("SQL time taken: %l"),micros()-start);
   return rc;
 }
 
@@ -37,43 +31,43 @@ void db_setup(sqlite3 *db, db_data_t& data){
 
   if(db_exec(db,
 	     "PRAGMA user_version = 1;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma user_version"));       
   }
   
   if(db_exec(db,
 	     "PRAGMA temp_store = FILE;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma temp_store"));       
   }
   
   if(db_exec(db,
 	     "PRAGMA synchronous = FULL;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma synchronous"));       
   }
 
   if(db_exec(db,
 	     "PRAGMA secure_delete = FALSE;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma secure_delete"));       
   }
 
   if(db_exec(db,
 	     "PRAGMA locking_mode = EXCLUSIVE;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma locking_mode"));       
   }
 
   if(db_exec(db,
 	     "PRAGMA journal_size_limit = 10000 ;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma journal_size_limit"));       
   }
 
   if(db_exec(db,
 	     "PRAGMA journal_mode = TRUNCATE;"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma journal_mode"));       
   }
 }
@@ -307,19 +301,19 @@ void dbThread::Run() {
   
   if(db_exec(db,
 	     "CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))"
-	     ) != SQLITE_OK) {
+	     ,data) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
 
-  if(db_exec(db, "CREATE INDEX ts ON messages(datetime)") != SQLITE_OK) {
+  if(db_exec(db, "CREATE INDEX ts ON messages(datetime)",data) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
   
-  if(db_exec(db, "CREATE INDEX status ON messages(sent)") != SQLITE_OK) {
+  if(db_exec(db, "CREATE INDEX status ON messages(sent)",data) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
@@ -328,8 +322,8 @@ void dbThread::Run() {
   db_setup(db,data);
 
   /*
-  //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages");
-  int rc = db_exec(db, "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDERED BY datetime");
+  //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages",data);
+  int rc = db_exec(db, "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDERED BY datetime",data);
   if (rc != SQLITE_OK) {
     data.logger->error(F("select all to be sent in DB"));   
   }
@@ -339,13 +333,13 @@ void dbThread::Run() {
   mqttMessage_t message;
 
   data.logger->notice(F("Total number of record in DB"));       
-  rc = db_exec(db, "SELECT COUNT(*) FROM messages");
+  rc = db_exec(db, "SELECT COUNT(*) FROM messages",data);
   if (rc != SQLITE_OK) {
     data.logger->error(F("select all in DB"));   
   }
 
   data.logger->notice(F("Total number of record in DB to send"));       
-  rc = db_exec(db, "SELECT COUNT(*) FROM messages WHERE sent = 0");
+  rc = db_exec(db, "SELECT COUNT(*) FROM messages WHERE sent = 0",data);
   if (rc != SQLITE_OK) {
     data.logger->error(F("select to send in DB"));
   }
@@ -357,7 +351,7 @@ void dbThread::Run() {
     while (data.dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){
       if (!doDb(db,data,message)) return;
 
-      if(db_exec(db, "PRAGMA shrink_memory;") != SQLITE_OK) {
+      if(db_exec(db, "PRAGMA shrink_memory;",data) != SQLITE_OK) {
 	data.logger->error(F("pragma shrink_memory"));       
       }
     }
