@@ -66,7 +66,7 @@ void doSerialNmea(gps_data_t& data){
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t& gps_data)
-  : Thread{"GPS", 2500, 1}
+  : Thread{"GPS", 2500, 2}
     ,data{gps_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);

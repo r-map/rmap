@@ -211,7 +211,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", 5000, 1},
+  : Thread{"measure", 5000, 2},
     data{measure_data}
 {
   //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);

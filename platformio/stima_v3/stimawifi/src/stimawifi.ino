@@ -1139,7 +1139,7 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
-  Alarm.timerRepeat(90, dataRecovery);    // timer for data recoveru from DB
+  Alarm.timerRepeat(20, dataRecovery);    // timer for data recoveru from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
@@ -1163,7 +1163,9 @@ void setup() {
     threadUdp.Start();
     threadGps.Start();
   }
-
+  
+  vTaskPrioritySet(NULL, 2);
+  
   threadPublish.Start();
   threadDb.Start();
   threadMeasure.Start();
@@ -1173,14 +1175,8 @@ void setup() {
 void loop() {
   webserver.handleClient();
   //MDNS.update();
-  // sometimes ESP32 do not reconnect and we need a restart
-  uint16_t counter=0;
-  while (WiFi.status() != WL_CONNECTED) { //lost connection
-    frtosLog.error(F("WIFI disconnected!"));
-    if(counter++>=300) reboot(); //300 seconds timeout - reset board
-    delay(1000);
-  }
   Alarm.delay(0);
+
   //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));  //5440 free
   if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");
 }

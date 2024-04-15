@@ -41,6 +41,8 @@ bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACK
 
 bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const bool cleanSession=true) {
 
+  if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
+
   bool returnstatus = ipstack.connect(data.station->mqtt_server, MQTT_SERVER_PORT);
   if (returnstatus){
     data.logger->notice(F("IPstack connected"));
@@ -305,7 +307,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
-  : Thread{"publish", 4000, 1},
+  : Thread{"publish", 4000, 2},
     data{publish_data},
     ipstack{*data.mqttClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
@@ -330,6 +332,7 @@ void publishThread::Cleanup()
   
 void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
+
   for(;;){
     mqttMessage_t mqttMessage;
     while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
@@ -339,6 +342,9 @@ void publishThread::Run() {
 	doPublish(ipstack,mqttclient, data, mqttMessage);
       }
     }
+    
+    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
+
     data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
     if( esp_get_minimum_free_heap_size() < 10000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));  // free 1480

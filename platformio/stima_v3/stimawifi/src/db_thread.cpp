@@ -234,7 +234,7 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t& db_data)
-  : Thread{"DB", 5000, 1}
+  : Thread{"DB", 5000, 3}
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
