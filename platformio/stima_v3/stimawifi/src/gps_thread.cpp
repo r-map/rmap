@@ -66,7 +66,7 @@ void doSerialNmea(gps_data_t& data){
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t& gps_data)
-  : Thread{"GPS", 2500, 2}
+  : Thread{"GPS", 2000, 2}
     ,data{gps_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -105,9 +105,9 @@ void gpsThread::Run() {
     }else{
       data.status->receive=ok;
     }
-    const TickType_t xDelay = 500;
-    Delay(xDelay);
+    Delay(500);
     //Delay(Ticks::SecondsToTicks(1));
+
     //data.logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack gps");
   }

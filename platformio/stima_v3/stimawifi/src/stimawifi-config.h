@@ -58,7 +58,7 @@
 #define CH 8            // character height px for display
 
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
-#define DATA_BURST (12)
+#define DATA_BURST (15)
 #define DB_QUEUE_LEN (DATA_BURST)
 #define MQTT_QUEUE_LEN (DATA_BURST*2)
 #define MQTT_QUEUE_SPACELEFT_RECOVERY (MQTT_QUEUE_LEN/3*2)

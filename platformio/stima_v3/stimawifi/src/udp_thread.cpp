@@ -107,9 +107,9 @@ void udpThread::Run() {
   
   for(;;){
     doUdp(data);
-    const TickType_t xDelay = 10;
-    Delay(xDelay);
+    Delay(10);
     //Delay(Ticks::SecondsToTicks(1));
+
     //data.logger->notice("stack udp: %d",uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack udp");
   }

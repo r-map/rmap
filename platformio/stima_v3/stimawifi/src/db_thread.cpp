@@ -1,6 +1,6 @@
 #include "common.h"
 
-//uint8_t sqlite_memory[SQLITE_MEMORY];
+static uint8_t sqlite_memory[SQLITE_MEMORY];
 
 static int callback(void* data, int argc, char **argv, char **azColName) {
   int i;
@@ -234,7 +234,7 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t& db_data)
-  : Thread{"DB", 5000, 3}
+  : Thread{"DB", 4500, 3}
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -268,6 +268,7 @@ void dbThread::Run() {
     return;
   }
 
+  /*
   data.logger->notice(F("largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
   void* sqlite_memory= malloc(SQLITE_MEMORY);
   if (sqlite_memory == 0){
@@ -275,7 +276,7 @@ void dbThread::Run() {
     data.status->database=error;
     return;    
   }
-  
+  */
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data.logger->error(F("sqlite3_config: %s"),sqlite3_errmsg(db));
     data.status->database=error;
@@ -364,7 +365,9 @@ void dbThread::Run() {
 
     if(data.recoverysemaphore->Take(0)) data_recovery(db, data);
     
-    //data.logger->error("stack db: %d",uxTaskGetStackHighWaterMark(NULL));
+    //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < 25000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    //data.logger->notice("stack db: %d",uxTaskGetStackHighWaterMark(NULL));
     if ( uxTaskGetStackHighWaterMark(NULL) < 100 ) data.logger->error(F("stack db"));
   }
 };  

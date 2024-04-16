@@ -1160,8 +1160,8 @@ void setup() {
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
   if (strcmp(station.ident,"") != 0){
-    threadUdp.Start();
-    threadGps.Start();
+  threadUdp.Start();
+  threadGps.Start();
   }
   
   vTaskPrioritySet(NULL, 2);
@@ -1177,6 +1177,8 @@ void loop() {
   //MDNS.update();
   Alarm.delay(0);
 
-  //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));  //5440 free
+  //delay(1000);
+  
+  //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");
 }

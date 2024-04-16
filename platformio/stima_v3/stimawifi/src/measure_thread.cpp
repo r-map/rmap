@@ -211,7 +211,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", 5000, 2},
+  : Thread{"measure", 4000, 2},
     data{measure_data}
 {
   //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
@@ -260,7 +260,10 @@ void measureThread::Run() {
   for(;;){
     WaitForNotification();
     doMeasure(sensorm,*data);
-    //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL)); // free 1800
+
+    //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < 25000)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL));
     if (uxTaskGetStackHighWaterMark(NULL) < 100 ) data->logger->error("stack measure");
   }
 };
