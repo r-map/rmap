@@ -29,7 +29,7 @@ public:
   
  protected:  
   virtual void Run();
-    
+  
  private:
   publish_data_t data;
   IPStack ipstack;

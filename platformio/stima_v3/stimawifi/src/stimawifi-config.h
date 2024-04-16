@@ -74,6 +74,14 @@
 // SD card max number of file
 #define MAXFILE 4
 
+/*
+  https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
+  There is 520 KB of available SRAM (320 KB of DRAM and 200 KB of
+  IRAM) on the ESP32. However, due to a technical limitation, the
+  maximum statically allocated DRAM usage is 160 KB. The remaining 160
+  KB (for a total of 320 KB of DRAM) can only be allocated at runtime
+  as heap.
+*/
 #define SQLITE_MEMORY 110000
 
 /*!

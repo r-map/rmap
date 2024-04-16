@@ -321,7 +321,18 @@ publishThread::publishThread(publish_data_t &publish_data)
 publishThread::~publishThread()
 {
 }
-  
+
+
+/*
+static void publishThread::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  data.logger->error(F("Disconnected from WiFi access point"));
+  data.logger->notice(F("WiFi lost connection. Reason: %s"),info.wifi_sta_disconnected.reason);
+  data.logger->notice(F("Trying to Reconnect"));
+  mqttDisconnect(ipstack,mqttclient, data);
+  WiFi.disconnect();
+  WiFi.reconnect();
+}
+*/
 void publishThread::Cleanup()
 {
   data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
@@ -333,6 +344,8 @@ void publishThread::Cleanup()
 void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
+  //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  
   for(;;){
     mqttMessage_t mqttMessage;
     while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
@@ -342,9 +355,9 @@ void publishThread::Run() {
 	doPublish(ipstack,mqttclient, data, mqttMessage);
       }
     }
-    
-    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
 
+    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
+    
     data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
 
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

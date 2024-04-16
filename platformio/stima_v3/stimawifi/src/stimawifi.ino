@@ -976,6 +976,7 @@ void setup() {
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
+    WiFi.setAutoReconnect(true);
     frtosLog.notice(F("connected... good!"));
     frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
