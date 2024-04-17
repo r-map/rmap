@@ -287,6 +287,12 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
+long ntp_set_time(){               // resync from sntp
+  time_t tnow;
+  time(&tnow);
+  return tnow;
+}
+
 String  rmap_get_remote_config(){
   
   String payload;
@@ -734,10 +740,10 @@ void dataRecovery() {
 }
 
 void measureAndPublish() {
-  time_t tnow;
-  time(&tnow);
-  setTime(tnow);              // resync from sntp   /////    TODO !
-  frtosLog.notice(F("Time: %s"),ctime(&tnow));
+  //time_t tnow;
+  //time(&tnow);
+  //setTime(tnow);              // resync from sntp   /////    TODO !
+  //frtosLog.notice(F("Time: %s"),ctime(&tnow));
 
   threadMeasure.Notify();
 }
@@ -910,6 +916,8 @@ void setup() {
   sntp_set_time_sync_notification_cb( timeavailable );
   sntp_servermode_dhcp(1);
   configTime(0, 0, station.ntp_server);
+
+  setSyncProvider(ntp_set_time);
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value

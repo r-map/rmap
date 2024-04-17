@@ -115,6 +115,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       data.georef->mutex->Unlock();      
       data.status->geodef=ok;
     } else {
+      data.logger->error(F("georef undefined"));
       data.status->geodef=error;      
       return;
     }
