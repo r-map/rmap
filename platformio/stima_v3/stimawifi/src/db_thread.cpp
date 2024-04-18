@@ -1,7 +1,14 @@
 #include "common.h"
 
+
+//char* resend = "update messages set sent = false where datetimeBETWEEN  ? and ?" ;
+
+
+
+// static allocated memory used by sqlite
 static uint8_t sqlite_memory[SQLITE_MEMORY];
 
+// callback for data returned by sqlite
 static int callback(void* data, int argc, char **argv, char **azColName) {
   int i;
   for (i = 0; i<argc; i++){
@@ -10,6 +17,7 @@ static int callback(void* data, int argc, char **argv, char **azColName) {
   return 0;
 }
 
+// execute one SQL sentence
 int db_exec(sqlite3 *db, const char *sql,db_data_t& data) {
   char *zErrMsg = 0;
   data.logger->notice(F("SQL exec: %s"),sql);
@@ -25,46 +33,70 @@ int db_exec(sqlite3 *db, const char *sql,db_data_t& data) {
   return rc;
 }
 
+// setup the databse opened by sqlite
 void db_setup(sqlite3 *db, db_data_t& data){
 
   //sqlite3_hard_heap_limit64(SQLITE_MEMORY);
 
-  if(db_exec(db,
+  // The user-version is an integer that is available to applications
+  // to use however they want.
+  if(db_exec(db, 
 	     "PRAGMA user_version = 1;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma user_version"));       
   }
   
+  //When temp_store is FILE (1) temporary tables and indices are
+  //stored in a file.
   if(db_exec(db,
 	     "PRAGMA temp_store = FILE;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma temp_store"));       
   }
-  
+
+  // When synchronous is FULL (2), the SQLite database engine will use
+  // the xSync method of the VFS to ensure that all content is safely
+  // written to the disk surface prior to continuing. This ensures
+  // that an operating system crash or power failure will not corrupt
+  // the database. FULL synchronous is very safe, but it is also
+  // slower.
   if(db_exec(db,
 	     "PRAGMA synchronous = FULL;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma synchronous"));       
   }
 
+  // When secure_delete is on, SQLite overwrites deleted content with
+  // zeros.  Applications that wish to avoid leaving forensic traces
+  // after content is deleted or updated should enable the
+  // secure_delete
   if(db_exec(db,
 	     "PRAGMA secure_delete = FALSE;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma secure_delete"));       
   }
 
+  // When the locking-mode is set to EXCLUSIVE, the database
+  // connection never releases file-locks.
   if(db_exec(db,
 	     "PRAGMA locking_mode = EXCLUSIVE;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma locking_mode"));       
   }
-
+  
+  // The journal_size_limit pragma may be used to limit the size of
+  // rollback-journal and WAL files left in the file-system after
+  // transactions or checkpoints.
   if(db_exec(db,
 	     "PRAGMA journal_size_limit = 10000 ;"
 	     ,data) != SQLITE_OK) {
     data.logger->error(F("pragma journal_size_limit"));       
   }
 
+  // The TRUNCATE journaling mode commits transactions by truncating
+  // the rollback journal to zero-length instead of deleting it. On
+  // many systems, truncating a file is much faster than deleting the
+  // file since the containing directory does not need to be changed.
   if(db_exec(db,
 	     "PRAGMA journal_mode = TRUNCATE;"
 	     ,data) != SQLITE_OK) {
@@ -72,6 +104,8 @@ void db_setup(sqlite3 *db, db_data_t& data){
   }
 }
 
+// when activated scan the DB for unsent messages and schedule a burst
+// of messages for retrasmission
 void data_recovery(sqlite3 *db, db_data_t& data){
   int rc;
   mqttMessage_t message;
@@ -82,7 +116,7 @@ void data_recovery(sqlite3 *db, db_data_t& data){
     data.logger->warning(F("no space in publish queue while recovery data from DB"));   
     return;
   }
-
+  // select MQTT_QUEUE_BURST_RECOVERY unsent messages
   char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
@@ -105,10 +139,7 @@ void data_recovery(sqlite3 *db, db_data_t& data){
     
     while(1) {
       // fetch a row's status
-      //CriticalSection::SuspendScheduler();
       rc = sqlite3_step(stmt);      
-      //CriticalSection::ResumeScheduler();
-      
       if(rc == SQLITE_ROW) {
 	message.sent = (uint8_t)sqlite3_column_int(stmt, 0);
 	strcpy(message.topic, (const char*)sqlite3_column_text(stmt, 1));
@@ -126,9 +157,11 @@ void data_recovery(sqlite3 *db, db_data_t& data){
       }
     }
     sqlite3_finalize(stmt);
-  }
+  } 
+  data.logger->notice(F("End recovery from DB"));        
 }
 
+// insert or replace a record in DB
 bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
 
   int rc;
@@ -265,7 +298,7 @@ void dbThread::Run() {
   }else{
     data.logger->error(F("SD mount"));
     //data.status->database=error;
-    return;
+    return;     // without SD card terminate the thread
   }
 
   /*
@@ -277,19 +310,23 @@ void dbThread::Run() {
     return;    
   }
   */
+
+  // sqlite use static allocated memory
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data.logger->error(F("sqlite3_config: %s"),sqlite3_errmsg(db));
     data.status->database=error;
     return;
   }
 
+  //initialize sqlite
   if(sqlite3_initialize()!=SQLITE_OK){
     data.logger->error(F("sqlite3_initialize"));
     data.status->database=error;
     return;
   }
 
-  /*
+  /*   if use LittleFS
+
   if (LittleFS.exists("/stima.db")) {
     LittleFS.remove("/stima.db");
   }
@@ -300,12 +337,14 @@ void dbThread::Run() {
   }
   */
 
+  // open DB
   if (!(sqlite3_open("/sd/stima.db", &db)==SQLITE_OK)){
     data.logger->error(F("DB open"));
     data.status->database=error;
     return;
   }
-  
+
+  // create table
   if(db_exec(db,
 	     "CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))"
 	     ,data) != SQLITE_OK) {
@@ -314,18 +353,21 @@ void dbThread::Run() {
     //return;
   }
 
+  // create index on datetime
   if(db_exec(db, "CREATE INDEX ts ON messages(datetime)",data) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
-  
+
+  // create index on sent
   if(db_exec(db, "CREATE INDEX status ON messages(sent)",data) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
 
+  // setup for the DB
   db_setup(db,data);
 
   /*
@@ -354,17 +396,20 @@ void dbThread::Run() {
   data.status->database=ok;
   
   for(;;){
-
+    // peek one message
     while (data.dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){
       if (!doDb(db,data,message)) return;
 
+      // free memory
       if(db_exec(db, "PRAGMA shrink_memory;",data) != SQLITE_OK) {
 	data.logger->error(F("pragma shrink_memory"));       
       }
     }
 
+    // check semaphore for data recovey
     if(data.recoverysemaphore->Take(0)) data_recovery(db, data);
-    
+
+    // checks for heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < 25000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack db: %d",uxTaskGetStackHighWaterMark(NULL));

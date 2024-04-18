@@ -29,6 +29,7 @@ public:
   
  protected:  
   virtual void Run();
+  bool mqttSubscribeRpc(char* comtopic);
   
  private:
   publish_data_t data;

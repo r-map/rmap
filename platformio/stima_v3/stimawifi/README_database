@@ -1,6 +1,6 @@
 https://github.com/siara-cc/esp32_arduino_sqlite3_lib
 sqlite completo
-impronta molto grande, funziona solo con arduino core V2
+impronta molto grande
 
 https://github.com/siara-cc/sqlite_micro_logger_c
 genera file sqlite compatibili con API specializzate

@@ -3,6 +3,7 @@
 
 unsigned short int displaypos;
 
+// reset data used as summary
 void reset_summary_data(measure_data_t &data) {
   data.summarydata->temperature=NAN;
   data.summarydata->humidity=-999;
@@ -11,6 +12,7 @@ void reset_summary_data(measure_data_t &data) {
   data.summarydata->co2=-999;
 }
 
+// set summary data from measure
 void get_summary_data(sensorManage sensorm,measure_data_t &data) {
  
   StaticJsonDocument<500> doc;
@@ -150,6 +152,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
   }
 }
 
+// execute all measure required
 void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
   //LockGuard guard(*data.i2cmutex);
@@ -160,26 +163,35 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   data.status->novalue=unknown;
   data.status->geodef=unknown;
 
+  // sensorm (sensor Manager) is a finite state machine
+  // here we can execute measure in parallel starting one state machine (sensorm) for each sensor
+  // each sensor can do one or more measure
+
+  // start to initialize sensorm
   data.logger->notice(F("doMeasure --> sensors_count: %d"),data.sensors_count);
   for (uint8_t i = 0; i < data.sensors_count; i++) {
-    sensorm[i].setTest(false);
-    sensorm[i].setEventRead();
+    sensorm[i].setTest(false);  // this is real measure, no test
+    sensorm[i].setEventRead();  // start machine for read with this event
   }
-  
+
+  // exit with break from here
   while (true){
+    // run measurements
     for (uint8_t i = 0; i < data.sensors_count; i++) {
       //data.logger->notice(F("doMeasure --> run sensor: %d"),i);
       data.i2cmutex->Lock();
       sensorm[i].run();
       data.i2cmutex->Unlock();
-     
+
+      // this machine is ready for data get
       if (sensorm[i].getDataReady()){
 	data.logger->notice(F("JSON %s %s %d -> %s"),
 			    sensorm[i].getSensorDriver()->getDriver(),
 			    sensorm[i].getSensorDriver()->getType(),
 			    sensorm[i].getSensorDriver()->getAddress(),
 			    sensorm[i].json_values);
-	  
+
+	// send to publish queue
 	enqueueMqttMessage(sensorm[i].json_values,data.sensors[i].timerange,data.sensors[i].level, data );
 	data.i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
 	get_summary_data(sensorm[i],data);
@@ -187,20 +199,25 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 	sensorm[i].setDataReady(false);      
       }    
     }
-    
+
+    // set reading status when all sensor get read
     bool reading = false;
     for (uint8_t i = 0; i < data.sensors_count; i++) {
       reading |= sensorm[i].getEventRead();
     }
-    
+
     if (!reading){
+      // end of work
       for (uint8_t i = 0; i < data.sensors_count; i++) {
+	//check for error
 	if(sensorm[i].getErrorStatus()){
 	  data.logger->error(F("sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
 	  data.status->sensor=error;
 	}
+	// prepare sensor manager machine for a new measure
 	sensorm[i].newMeasure();
       }
+      // all is done
       break;
     }
   }
@@ -230,6 +247,7 @@ measureThread::~measureThread()
 
 void measureThread::Begin()
 {
+  // create one driver for each sensor
   uint8_t tmp_count=0;
   for (uint8_t i = 0; i < data->sensors_count; i++) {
     //data.logger->notice(F("create --> %d: %s-%s [ 0x%x ]"), i,sensors[i].driver,sensors[i].type, sensors[i].address);
@@ -243,6 +261,7 @@ void measureThread::Begin()
     }else{
       data->logger->error(F("sensor driver not created"));
     }
+    // begin sensor manager state machines with one driver each
     sensorm[i].begin(sd[i]);
   }
 }
@@ -259,9 +278,11 @@ void measureThread::Cleanup()
 void measureThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
   for(;;){
+    // wait for notification from the main task when we have to do measurements
     WaitForNotification();
     doMeasure(sensorm,*data);
 
+    // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < 25000)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL));

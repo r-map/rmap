@@ -5,7 +5,7 @@ Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
-published by the Freeg Software Foundation; either version 2 of 
+published by the Free Software Foundation; either version 2 of 
 the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -19,11 +19,105 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 TODO
-* manage retrasmission of data non sended
+* manage remote procedure call
 */
+
+/*
+FreeRtos viene utilizzato attraverso un wrapper C++.  Ogni thread ha
+una struttura dati utilizzata per comunicare trutture dati e dati.
+Nessun dato possibilmente è definito globalmente.
+Il colore del led indica lo stato di funzionamento:
+spento: sconosciuto
+blu: in elaborazione
+verde : tutto funziona
+Rosso: almeno un errore è presente
+
+Il display è opzionale e visualizza comunicazioni, ogni 3 secondi lo
+stato aggiornato riassuntivo di funzionamento e un riassunto delle
+ultime misurazioni effettuate
+
+L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
+in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
+
+Per poter utilizzare la stazione in modalità "mobile" ossia con
+posizione continuamente modificabile ci sono due possibilità:
+* connettere un modulo GPS con Ublox neo6m
+* utilizzare l'app android GPSD_forwarder
+
+La configurazione è gestita sul server e i thread sono attivati
+automaticamente. Quando la geolocalizzazione è possibile i dati
+vengono generati, in caso contrario no.
+
+Il frusso dei dati nelle code è il seguente:
+
+i dati e metadati sono generati da threadMeasure e accodati nella coda
+mqttqueue per la pubblicazione, ricevuti da threadPublish.
+threadMeasure è attivato periodicamente.  threadPublish prova la
+pubblicazione MQTT, in ogni caso dopo un tentativo vengono accodati
+per l'archiviazione nella coda dbqueue flaggati relativamente al
+risultato della pubblicazione.  Se threadMeasure trova la coda
+mqttqueue con poco spazio invia i dati direttamente alla coda dbqueue
+per l'archiviazione.  Il thread threadDb viene attivato periodicamente
+per recuperare l'invio dei dati archiviati e non ancora trasmessi
+inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
+sufficiente spazio nella coda. Il thread threadDb esegue a priorità
+più alta degli altri per garanetire l'archiviazione in tempi utili per
+non riempire le code. Ogni thread ha una struttura dati che descrive
+lo stato di funzionamento. Il thread loop di arduino effettua una
+sintesi degli stati di tutti i thread.
+
+Threads
+
+  thread loop arduino
+
+Questo thread esegue tutte le operazioni iniziali di configurazione e
+attivazione degli altri thread. Prima si configura la connessione WiFi
+insieme ad alcuni parametri univoci della stazione. Tramite questi
+ultimi la configurazione stazione viene scaricata dal server. Il
+thread governa la visualizzazione sul display e la colorazione del
+LED. Inoltre è possibile visualizzare i dati misurati tramite un
+browser.  La libreria TimeAlarm gestisce l'attivazione dei segnali ai
+thread per attivazioni perioche.
+
+  threadMeasure
+
+Questo thread si occupa di interrogare i sensori, associare i metadati
+e accodarli per la pubblicazione e archiviazione. I sensori vengono
+interrogati in parallelo tramite delle macchine a stati finiti.
+Inoltre viene prodotta una struttura di dati di riassunto delle misure
+effettuate.
+
+  threadPublish
+
+Pubblica i dati in MQTT secondo lo standard RMAP.  Se la
+configurazione è per una stazione mobile della struttura con la
+geolocalizzazione viene controllato il timestamp e se ancora attuale
+associate le coordinate ai dati.
+
+  threadDb
+
+Archivia i dati su SD card. Il formato è quello portabile di sqlite3 e
+possono essere letti tramite la stessa libreria da PC. Più scritture
+con gli stessi metadati aggiornano i dati, non creano record
+duplicati.
+
+  threadUdp
+
+Legge i dati UDP inviati dalla app GPSD forwarder riempiendo una
+struttura dati con la geolocalizzazione e un timestamp.
+
+  threadGps
+
+Legge i dati dal GPS (porta seriale) riempiendo una struttura dati con
+la geolocalizzazione e un timestamp.
+
+*/
+
 
 #include "stimawifi.h"
 
+// show some measure (fixed selection) on display in a fixed position
+// display a sintetic status too
 void display_summary_data(char* status) {
   
   DynamicJsonDocument doc(500);
@@ -109,6 +203,7 @@ void timeavailable(struct timeval *t)
   }
 }
 
+// HTTP response
 String Json(){
 
   String str ="{"
@@ -133,7 +228,12 @@ String Json(){
 
   return str;
 }
-
+// HTTP response for browser in smartphone
+// The browser get a page from server, query the phone for geolocation,
+// send coordinate with an ajax request to ESP
+// everything do not work for a mixed protocol not admitted by browser (http/https)
+// getting coordinate from phone is enabled by https only protocol
+// ESP support http only protocol (not full true...  but not easy)
 String Geo(){
   if (webserver.method() == HTTP_GET){
     frtosLog.notice(F("geo get N arguments: %d"),webserver.args());
@@ -210,6 +310,7 @@ String Data(){
   return str;
 }
 
+// HTTP response
 String FullPage(){
   String ptr = "<!DOCTYPE html> <html>\n"
     "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n"
@@ -256,27 +357,31 @@ String FullPage(){
 }
 
 
-// web server response function
+// web server response callback function
 void handle_FullPage() {
   webserver.send(200, "text/html", FullPage()); 
 }
 
+// web server response callback function
 void handle_Data() {
   webserver.send(200, "text/html", Data()); 
 }
 
+// web server response callback function
 void handle_Json() {
   webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
   webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
   webserver.send(200, "application/json", Json()); 
 }
 
+// web server response callback function
 void handle_Geo() {
   webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
   webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
   webserver.send(200, "text/plain", Geo()); 
 }
 
+// web server response callback function
 void handle_NotFound(){
   webserver.send(404, "text/plain", "Not found");
 }
@@ -287,12 +392,14 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
+// callback from Time library
 long ntp_set_time(){               // resync from sntp
   time_t tnow;
   time(&tnow);
   return tnow;
 }
 
+// get station configuration from server
 String  rmap_get_remote_config(){
   
   String payload;
@@ -326,6 +433,7 @@ String  rmap_get_remote_config(){
   return payload;
 }
 
+// check and execute firmware upgrade from server
 void firmware_upgrade() {
 
   DynamicJsonDocument doc(200); 
@@ -396,6 +504,7 @@ void firmware_upgrade() {
   delay(3000);
 }
 
+// read configuration from EEPROM
 String readconfig_rmap() {
 
     if (LittleFS.exists("/rmap.json")) {
@@ -422,6 +531,7 @@ String readconfig_rmap() {
   return String();  
 }
 
+// write configuration to EEPROM
 void writeconfig_rmap(const String payload) {;
 
   //save the custom parameters to FS
@@ -438,6 +548,7 @@ void writeconfig_rmap(const String payload) {;
   //end save
 }
 
+// convert json configuratio to station structure
 int  rmap_config(const String payload){
 
   bool status_station = false;
@@ -594,6 +705,7 @@ int  rmap_config(const String payload){
   return status;
 }
 
+// read configuration from EEPROM and put it in station structure
 void readconfig() {
 
   if (LittleFS.exists("/config.json")) {
@@ -647,6 +759,7 @@ void readconfig() {
   //end read
 }
 
+// write configuration to EEPROM from station structure
 void writeconfig() {;
 
   //save the custom parameters to FS
@@ -676,6 +789,7 @@ void writeconfig() {;
   frtosLog.notice(F("saved config parameter"));
 }
 
+// print status and summary it for display and manage LED
 void displayStatus()
 {
 
@@ -735,25 +849,24 @@ void displayStatus()
   pixels.show();
 }
 
+// send signal to DB thread for recovery unsent data from DB on SD card
 void dataRecovery() {
   recoverySemaphore.Give();
 }
 
+// send signal to measure thread to start measuremets
 void measureAndPublish() {
-  //time_t tnow;
-  //time(&tnow);
-  //setTime(tnow);              // resync from sntp   /////    TODO !
-  //frtosLog.notice(F("Time: %s"),ctime(&tnow));
-
   threadMeasure.Notify();
 }
 
+// reboot ESP
 void reboot() {
   //reset and try again, or maybe put it to deep sleep
   ESP.restart();
   delay(5000);
 }
 
+// prefix for logging system
 void logPrefix(Print* _logOutput) {
   char dt[DATE_TIME_STRING_LENGTH];
   snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
@@ -762,11 +875,13 @@ void logPrefix(Print* _logOutput) {
   _logOutput->print(" ");
 }
 
+// suffix for logging system
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
   _logOutput->flush();  // we use this to flush every log message
 }
 
+// arduino setup routine
 void setup() {
   // put your setup code here, to run once in Arduin task:
 
@@ -1066,7 +1181,7 @@ void setup() {
 
   threadMeasure.Begin();
   
- // Set up mDNS responder:
+  // Set up mDNS responder:
   // - first argument is the domain name, in this example
   //   the fully-qualified domain name is "stimawifi.local"
   // - second argument is the IP address to advertise
@@ -1168,26 +1283,28 @@ void setup() {
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
+  // if mobile station start geolocation thread
   if (strcmp(station.ident,"") != 0){
-  threadUdp.Start();
-  threadGps.Start();
+    threadUdp.Start();
+    threadGps.Start();
   }
-  
+
+  // set the priority of this thread
   vTaskPrioritySet(NULL, 2);
-  
+
+  // start other thread
   threadPublish.Start();
   threadDb.Start();
   threadMeasure.Start();
 
 }
 
+// arduino loop routine
 void loop() {
   webserver.handleClient();
   //MDNS.update();
   Alarm.delay(0);
 
-  //delay(1000);
-  
   //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");
 }

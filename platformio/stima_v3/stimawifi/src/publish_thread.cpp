@@ -1,34 +1,6 @@
 #include "common.h"
 
-/*
-void mqttRxCallback(MQTT::MessageData &md) {
-  MQTT::Message &rx_message = md.message;
-
-  data.logger->notice(F("MQTT RX: %s"), (char*)rx_message.payload);
-  data.logger->notice(F("--> len %d"), rx_message.payloadlen);
-  data.logger->notice(F("--> qos %d"), rx_message.qos);
-  data.logger->notice(F("--> retained %d"), rx_message.retained);
-  data.logger->notice(F("--> dup %d"), rx_message.dup);
-  data.logger->notice(F("--> id %d"), rx_message.id);
-
-  is_event_rpc=true;
-  while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
-    streamRpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcpayload, MQTT_RPC_RESPONSE_LENGTH );
-  }
-}
-
-bool mqttSubscribeRpc(publish_data_t& data, MQTT::connackData& data) {
-  // remove previous handler               
-  // MessageHandler in MQTTClient is not cleared betwen sessions  
-  mqtt_client.setMessageHandler(comtopic, NULL);
-  bool returnstatus = mqtt_client.subscribe(comtopic, MQTT::QOS1, mqttRxCallback) == 0;    // subscribe and set new handler
-  data.logger->notice(F("MQTT Subscription %s [ %s ]"), comtopic, returnstatus ? OK_STRING : FAIL_STRING);
-
-  return returnstatus;
-}
-
-*/
-
+// disconnect from MQTT broker
 bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data) {
 
   mqttclient.disconnect();
@@ -39,6 +11,7 @@ bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACK
 }
 
 
+// connect to MQTT broker setting will message
 bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const bool cleanSession=true) {
 
   if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
@@ -156,7 +129,7 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   return returnstatus;
 }
 
-
+// publish one message to the MQTT broker (retained or not retained)
 bool mqttPublish(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const mqttMessage_t& mqtt_message, const bool retained) {
 
     MQTT::Message tx_message;
@@ -183,6 +156,8 @@ bool mqttPublish(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttcli
     return (rc == MQTT::SUCCESS);
 }
 
+// publish maint messages (support messages)
+// connection message with station version
 bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data) {
 
   mqttMessage_t mqtt_message;
@@ -213,7 +188,7 @@ bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttc
   return mqttPublish(mqttclient, data, mqtt_message, false); 
 }
 
-
+// publish constant data messages like station name and height
 bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data) {
 
   mqttMessage_t mqtt_message;
@@ -244,6 +219,7 @@ bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >
   return true;
 }
 
+// get one message from publish queue and send it to the queue for SD card archive
 void archive( publish_data_t& data) {
   mqttMessage_t mqtt_message;
   if (data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue the message and archive
@@ -258,6 +234,9 @@ void archive( publish_data_t& data) {
   }
  }
 
+// if required connect to the broker, publish maint message, publish constant data messages
+// try to send message to the broker
+// send the same message to the queue for archive with flag to describe if publish is completed with success
 void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, mqttMessage_t& mqtt_message) {
 
   // manage mqtt reconnect as RMAP standard
@@ -348,10 +327,13 @@ void publishThread::Run() {
   
   for(;;){
     mqttMessage_t mqttMessage;
+    // wait for message and peek it from the queue
     while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
+      // if there are no enough space left on the publish queue set it to the archive
       if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
 	archive(data);
       } else {
+	// publish message
 	doPublish(ipstack,mqttclient, data, mqttMessage);
       }
     }
@@ -360,9 +342,45 @@ void publishThread::Run() {
     
     data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
 
+    // check heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < 25000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
     if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error(F("stack publish"));
   }
 };
+
+
+//https://stackoverflow.com/questions/400257/how-can-i-pass-a-class-member-function-as-a-callback
+
+/*
+void mqttRxCallback(MQTT::MessageData &md, publish_data_t& data) {
+  MQTT::Message &rx_message = md.message;
+
+  data.logger->notice(F("MQTT RX: %s"), (char*)rx_message.payload);
+  data.logger->notice(F("--> len %d"), rx_message.payloadlen);
+  data.logger->notice(F("--> qos %d"), rx_message.qos);
+  data.logger->notice(F("--> retained %d"), rx_message.retained);
+  data.logger->notice(F("--> dup %d"), rx_message.dup);
+  data.logger->notice(F("--> id %d"), rx_message.id);
+
+  bool is_event_rpc=true;
+  while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
+    //streamRpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcpayload, MQTT_RPC_RESPONSE_LENGTH );
+  }
+}
+
+bool publishThread::mqttSubscribeRpc(char* comtopic) {
+
+  // remove previous handler               
+  // MessageHandler in MQTTClient is not cleared betwen sessions  
+  mqttclient.setMessageHandler(comtopic, NULL);
+
+  auto callback = std::bind(&mqttRxCallback,std::placeholders::_1,data); 
+  bool returnstatus = mqttclient.subscribe(comtopic, MQTT::QOS1, callback) == 0;    // subscribe and set new handler
+
+  data.logger->notice(F("MQTT Subscription %s [ %s ]"), comtopic, returnstatus ? "OK" : "FAIL");
+
+  return returnstatus;
+}
+*/
