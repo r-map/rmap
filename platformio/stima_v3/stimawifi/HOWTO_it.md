@@ -1,21 +1,9 @@
-Con questo firmware è possibile pubblicare i dati su un server RMAP.
-Istruzioni in breve:
+Con questo firmware è possibile pubblicare i dati su un server RMAP:
+https://rmap.cc/
 
-    registratevi sul server RMAP per ottenere username e password:
-    http://rmap.cc/registrazione/register/
+La documentazione per configurare la stazione e pubblicare i dati la trovate:
+https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html#configurazioni-sul-server
+https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html#configurazione-stazione
 
-    Create una nuova stazione sul server:
-    http://rmapv.rmap.cc/insertdata/newstation
-    inserite il vostro indirizzo o utilizzate lo strumento "draw a marker" sulla mappa e inserite il nome della stazione.
-    Selezionate "luftdaten" come modello della stazione
-
-Seguite le istruzioni per assemblare l'hardware come descritto su luftdaten.info
-http://luftdaten.info/it/traduzione-delle-istruzioni-per-il-montaggio-del-sensore-di-polveri-sottili/
-ma nella pagina di configurazione inserite i dati per RMAP:
-
-    username
-    password
-    nome stazione
-
-Salvate e tutto è completato.
-
+non dimenticate i nostri videotutorial:
+https://doc.rmap.cc/videotutorial/stimawifi/stimawifi.html#manuale-utente
