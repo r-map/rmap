@@ -3,6 +3,18 @@
 
 //char* resend = "update messages set sent = false where datetimeBETWEEN  ? and ?" ;
 
+void clearSD()
+{
+  byte sd = 0;
+  digitalWrite(C3SS, LOW);
+  while (sd != 255)
+  {
+    sd = SPI.transfer(255);
+    Serial.print("sd=");
+    Serial.println(sd);
+  }
+  digitalWrite(C3SS, HIGH);
+}
 
 
 // static allocated memory used by sqlite
@@ -223,31 +235,42 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
   if (rc != SQLITE_DONE) {
     data.status->database=error;
     data.logger->error(F("insert values in DB: %s"),sqlite3_errmsg(db));       
-    // close SDcard
+    // close stmp, sqlite3 DB, SDcard
     sqlite3_finalize(stmt);
     sqlite3_close(db);
     SD.end();
 
-    //restart SDcard
+    // restart SDcard management
+    // https://www.reddit.com/r/esp32/comments/qilboy/is_there_a_way_to_reset_a_microsd_card_from/
+    // https://forum.arduino.cc/t/resolved-how-can-i-reboot-an-sd-card/349700
+    
     SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
     SPI.setDataMode(SPI_MODE0);
-    if (SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false)){
-      if (sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK){
-	// close open things
-	sqlite3_close(db);
-	SD.end();
-	data.logger->error(F("DB open"));
-	data.status->database=error;
-	return false;      //terminate
-      }else{
-	db_setup(db,data);
-      }
+    bool s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+    if (!s){
+      delay(100);
+      clearSD();
+      delay(100);
+      s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+    }
+    if (!sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK){
+      // close open things
+      sqlite3_close(db);
+      SD.end();
+      data.logger->error(F("DB open"));
+      data.status->database=error;
+      return false;      //terminate
     }else{
+      db_setup(db,data);
+    }
+    /*
+      }else{
       SD.end();
       data.logger->error(F("SD card open"));      
       data.status->database=error;
       return false;       //terminate
-    }
+      }
+    */
     // go for retry
     return true;
   }
