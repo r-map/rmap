@@ -344,9 +344,9 @@ void publishThread::Run() {
 
     // check heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < 25000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
-    if( uxTaskGetStackHighWaterMark(NULL) < 100 )data.logger->error(F("stack publish"));
+    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data.logger->error(F("stack publish"));
   }
 };
 

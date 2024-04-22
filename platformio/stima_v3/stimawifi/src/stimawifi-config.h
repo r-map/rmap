@@ -20,6 +20,12 @@
 // Length of datetime string %04u-%02u-%02uT%02u:%02u:%02u
 #define DATE_TIME_STRING_LENGTH                       (25)
 
+// minimum heap size for warning
+#define HEAP_MIN_WARNING 20000
+
+// minimum thread stack size for warning
+#define STACK_MIN_WARNING 100
+
 #define STIMAHTTP_PORT 80
 
 #define FIRMWARE_TYPE "LOLIN_C3_MINI"

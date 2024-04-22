@@ -3,22 +3,30 @@
 
 //char* resend = "update messages set sent = false where datetimeBETWEEN  ? and ?" ;
 
-void clearSD()
+// De-initialize/Reset SD Card
+// https://github.com/greiman/SdFat/issues/351
+void clearSD ()
 {
+  /*
+  SPI.begin();
+  SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+  SPI.transfer(0XFF);
+  SPI.endTransaction();
+  SPI.end()
+  */
+  
   byte sd = 0;
   digitalWrite(C3SS, LOW);
-  while (sd != 255)
+  while (sd != 0XFF)
   {
-    sd = SPI.transfer(255);
+    SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+    sd = SPI.transfer(0XFF);
+    SPI.endTransaction();
     Serial.print("sd=");
     Serial.println(sd);
   }
   digitalWrite(C3SS, HIGH);
 }
-
-
-// static allocated memory used by sqlite
-static uint8_t sqlite_memory[SQLITE_MEMORY];
 
 // callback for data returned by sqlite
 static int callback(void* data, int argc, char **argv, char **azColName) {
@@ -30,10 +38,10 @@ static int callback(void* data, int argc, char **argv, char **azColName) {
 }
 
 // execute one SQL sentence
-int db_exec(sqlite3 *db, const char *sql,db_data_t& data) {
+int dbThread::db_exec( const char *sql) {
   char *zErrMsg = 0;
   data.logger->notice(F("SQL exec: %s"),sql);
-  long start = micros();
+  long start = millis();
   int rc = sqlite3_exec(db, sql, callback, &data, &zErrMsg);
   if (rc != SQLITE_OK) {
     data.logger->notice(F("SQL error: %s"), zErrMsg);
@@ -41,28 +49,24 @@ int db_exec(sqlite3 *db, const char *sql,db_data_t& data) {
   } else {
     data.logger->notice(F("SQL operation done successfully"));
   }
-  data.logger->notice(F("SQL time taken: %l"),micros()-start);
+  data.logger->notice(F("SQL time taken: %l"),millis()-start);
   return rc;
 }
 
 // setup the databse opened by sqlite
-void db_setup(sqlite3 *db, db_data_t& data){
+void dbThread::db_setup(){
 
   //sqlite3_hard_heap_limit64(SQLITE_MEMORY);
 
   // The user-version is an integer that is available to applications
   // to use however they want.
-  if(db_exec(db, 
-	     "PRAGMA user_version = 1;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA user_version = 1;") != SQLITE_OK) {
     data.logger->error(F("pragma user_version"));       
   }
   
   //When temp_store is FILE (1) temporary tables and indices are
   //stored in a file.
-  if(db_exec(db,
-	     "PRAGMA temp_store = FILE;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA temp_store = FILE;") != SQLITE_OK) {
     data.logger->error(F("pragma temp_store"));       
   }
 
@@ -72,9 +76,7 @@ void db_setup(sqlite3 *db, db_data_t& data){
   // that an operating system crash or power failure will not corrupt
   // the database. FULL synchronous is very safe, but it is also
   // slower.
-  if(db_exec(db,
-	     "PRAGMA synchronous = FULL;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA synchronous = FULL;") != SQLITE_OK) {
     data.logger->error(F("pragma synchronous"));       
   }
 
@@ -82,26 +84,20 @@ void db_setup(sqlite3 *db, db_data_t& data){
   // zeros.  Applications that wish to avoid leaving forensic traces
   // after content is deleted or updated should enable the
   // secure_delete
-  if(db_exec(db,
-	     "PRAGMA secure_delete = FALSE;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA secure_delete = FALSE;") != SQLITE_OK) {
     data.logger->error(F("pragma secure_delete"));       
   }
 
   // When the locking-mode is set to EXCLUSIVE, the database
   // connection never releases file-locks.
-  if(db_exec(db,
-	     "PRAGMA locking_mode = EXCLUSIVE;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA locking_mode = EXCLUSIVE;") != SQLITE_OK) {
     data.logger->error(F("pragma locking_mode"));       
   }
   
   // The journal_size_limit pragma may be used to limit the size of
   // rollback-journal and WAL files left in the file-system after
   // transactions or checkpoints.
-  if(db_exec(db,
-	     "PRAGMA journal_size_limit = 10000 ;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA journal_size_limit = 10000 ;") != SQLITE_OK) {
     data.logger->error(F("pragma journal_size_limit"));       
   }
 
@@ -109,16 +105,14 @@ void db_setup(sqlite3 *db, db_data_t& data){
   // the rollback journal to zero-length instead of deleting it. On
   // many systems, truncating a file is much faster than deleting the
   // file since the containing directory does not need to be changed.
-  if(db_exec(db,
-	     "PRAGMA journal_mode = TRUNCATE;"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("PRAGMA journal_mode = TRUNCATE;") != SQLITE_OK) {
     data.logger->error(F("pragma journal_mode"));       
   }
 }
 
 // when activated scan the DB for unsent messages and schedule a burst
 // of messages for retrasmission
-void data_recovery(sqlite3 *db, db_data_t& data){
+void dbThread::data_recovery(void){
   int rc;
   mqttMessage_t message;
 
@@ -151,7 +145,7 @@ void data_recovery(sqlite3 *db, db_data_t& data){
     
     while(1) {
       // fetch a row's status
-      rc = sqlite3_step(stmt);      
+      rc = sqlite3_step(stmt);
       if(rc == SQLITE_ROW) {
 	message.sent = (uint8_t)sqlite3_column_int(stmt, 0);
 	strcpy(message.topic, (const char*)sqlite3_column_text(stmt, 1));
@@ -173,8 +167,64 @@ void data_recovery(sqlite3 *db, db_data_t& data){
   data.logger->notice(F("End recovery from DB"));        
 }
 
+
+// re/start SDcard and sqlite management
+// https://www.reddit.com/r/esp32/comments/qilboy/is_there_a_way_to_reset_a_microsd_card_from/
+// https://forum.arduino.cc/t/resolved-how-can-i-reboot-an-sd-card/349700
+bool dbThread::db_restart(){
+
+  // close sqlite3 DB, SDcard
+  data.logger->error(F("close DB and SDcard"));       
+  sqlite3_close_v2(db);
+  sqlite3_shutdown();
+  SD.end();
+
+  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.setDataMode(SPI_MODE0);
+  bool s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+  if (!s){
+    data.logger->error(F("SD begin"));       
+    SD.end();
+    delay(1000);
+    clearSD();
+    delay(1000);
+    s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+  }
+
+  data.logger->notice(F("SD begin OK"));       
+
+  // sqlite use static allocated memory
+  if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
+    data.logger->error(F("sqlite3_config: %s"),sqlite3_errmsg(db));
+    data.status->database=error;
+    return false;
+  }
+
+  //initialize sqlite
+  if(sqlite3_initialize()!=SQLITE_OK){
+    data.logger->error(F("sqlite3_initialize"));
+    data.status->database=error;
+    return false;
+  }
+
+  if (sqlite3_open("/sd/stima.db", &db)==SQLITE_OK){
+    data.logger->notice(F("DB begin OK"));       
+    // setup for the DB
+    db_setup();
+    return true;
+  }else{
+    data.logger->error(F("DB open: %s"),sqlite3_errmsg(db));       
+    // close open things
+    sqlite3_close_v2(db);
+    SD.end();
+    data.status->database=error;
+    return false;
+  }
+}
+
+
 // insert or replace a record in DB
-bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
+bool dbThread::doDb(const mqttMessage_t& message) {
 
   int rc;
   char sql[] = "INSERT OR REPLACE INTO messages VALUES (?, strftime('%s',?), ?, ?)";
@@ -235,48 +285,14 @@ bool doDb(sqlite3 *db, db_data_t& data, const mqttMessage_t& message) {
   if (rc != SQLITE_DONE) {
     data.status->database=error;
     data.logger->error(F("insert values in DB: %s"),sqlite3_errmsg(db));       
-    // close stmp, sqlite3 DB, SDcard
+
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    SD.end();
-
-    // restart SDcard management
-    // https://www.reddit.com/r/esp32/comments/qilboy/is_there_a_way_to_reset_a_microsd_card_from/
-    // https://forum.arduino.cc/t/resolved-how-can-i-reboot-an-sd-card/349700
-    
-    SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
-    SPI.setDataMode(SPI_MODE0);
-    bool s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
-    if (!s){
-      delay(100);
-      clearSD();
-      delay(100);
-      s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
-    }
-    if (!sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK){
-      // close open things
-      sqlite3_close(db);
-      SD.end();
-      data.logger->error(F("DB open"));
-      data.status->database=error;
-      return false;      //terminate
-    }else{
-      db_setup(db,data);
-    }
-    /*
-      }else{
-      SD.end();
-      data.logger->error(F("SD card open"));      
-      data.status->database=error;
-      return false;       //terminate
-      }
-    */
-    // go for retry
-    return true;
+    sqlite_status=false;
+    return true;   // go for retry
   }
-  
-  sqlite3_finalize(stmt);
 
+  sqlite3_finalize(stmt);
+  sqlite_status=true;
   data.status->database=ok;  
   data.logger->notice(F("Data saved on SD %s:%s"),message.topic,message.payload);       
 
@@ -295,6 +311,7 @@ dbThread::dbThread(db_data_t& db_data)
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data.status->database=unknown;
+  sqlite_status=false;
   //Start();
 };
 
@@ -361,37 +378,36 @@ void dbThread::Run() {
   */
 
   // open DB
-  if (!(sqlite3_open("/sd/stima.db", &db)==SQLITE_OK)){
+  if ((sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK)){
     data.logger->error(F("DB open"));
     data.status->database=error;
     return;
   }
 
   // create table
-  if(db_exec(db,
-	     "CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))"
-	     ,data) != SQLITE_OK) {
+  if(db_exec("CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))"
+	     ) != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
 
   // create index on datetime
-  if(db_exec(db, "CREATE INDEX ts ON messages(datetime)",data) != SQLITE_OK) {
+  if(db_exec("CREATE INDEX ts ON messages(datetime)") != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
 
   // create index on sent
-  if(db_exec(db, "CREATE INDEX status ON messages(sent)",data) != SQLITE_OK) {
+  if(db_exec("CREATE INDEX status ON messages(sent)") != SQLITE_OK) {
     //sqlite3_close(db);
     //SD.end();
     //return;
   }
 
   // setup for the DB
-  db_setup(db,data);
+  db_setup();
 
   /*
   //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages",data);
@@ -405,37 +421,39 @@ void dbThread::Run() {
   mqttMessage_t message;
 
   data.logger->notice(F("Total number of record in DB"));       
-  rc = db_exec(db, "SELECT COUNT(*) FROM messages",data);
+  rc = db_exec("SELECT COUNT(*) FROM messages");
   if (rc != SQLITE_OK) {
     data.logger->error(F("select all in DB"));   
   }
 
   data.logger->notice(F("Total number of record in DB to send"));       
-  rc = db_exec(db, "SELECT COUNT(*) FROM messages WHERE sent = 0",data);
+  rc = db_exec("SELECT COUNT(*) FROM messages WHERE sent = 0");
   if (rc != SQLITE_OK) {
     data.logger->error(F("select to send in DB"));
   }
     
   data.status->database=ok;
+  sqlite_status=true;
   
   for(;;){
-    // peek one message
-    while (data.dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){
-      if (!doDb(db,data,message)) return;
-
-      // free memory
-      if(db_exec(db, "PRAGMA shrink_memory;",data) != SQLITE_OK) {
-	data.logger->error(F("pragma shrink_memory"));       
-      }
+    while (data.dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){  // peek one message
+      if (!doDb(message)) return;                                 // return and terminate task if fatal error
+      if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
+      if (!sqlite_status) ESP.restart();                          // SD do not restart; REBOOT
     }
 
+    // free memory
+    if(db_exec("PRAGMA shrink_memory;") != SQLITE_OK) {
+      data.logger->error(F("pragma shrink_memory"));       
+    }
+    
     // check semaphore for data recovey
-    if(data.recoverysemaphore->Take(0)) data_recovery(db, data);
+    if(data.recoverysemaphore->Take(0)) data_recovery();
 
     // checks for heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < 25000)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack db: %d",uxTaskGetStackHighWaterMark(NULL));
-    if ( uxTaskGetStackHighWaterMark(NULL) < 100 ) data.logger->error(F("stack db"));
+    if ( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data.logger->error(F("stack db"));
   }
 };  

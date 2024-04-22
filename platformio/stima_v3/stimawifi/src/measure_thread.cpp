@@ -284,9 +284,9 @@ void measureThread::Run() {
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < 25000)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL));
-    if (uxTaskGetStackHighWaterMark(NULL) < 100 ) data->logger->error("stack measure");
+    if (uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error("stack measure");
   }
 };
   

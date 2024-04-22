@@ -11,7 +11,6 @@ struct db_data_t {
   dbStatus_t* status;
 };
 
-bool doDb(sqlite3 *db_test, db_data_t& data, const mqttMessage_t& message);
 
 using namespace cpp_freertos;
 
@@ -32,9 +31,17 @@ class dbThread : public Thread {
   virtual void Run();
 
  private:
+  bool doDb(const mqttMessage_t& );
+  int db_exec( const char*);
+  void db_setup();
+  void data_recovery();
+  bool db_restart();
   db_data_t data;
   sqlite3 *db;
   //SdFat SD;
+  uint8_t sqlite_memory[SQLITE_MEMORY];   // allocated memory used by sqlite
+  bool sqlite_status;
+  
 };
 
 #endif

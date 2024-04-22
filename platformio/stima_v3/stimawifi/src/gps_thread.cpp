@@ -109,7 +109,7 @@ void gpsThread::Run() {
     //Delay(Ticks::SecondsToTicks(1));
 
     //data.logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
-    if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack gps");
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data.logger->error("stack gps");
   }
 };  
 

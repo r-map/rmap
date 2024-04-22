@@ -111,7 +111,7 @@ void udpThread::Run() {
     //Delay(Ticks::SecondsToTicks(1));
 
     //data.logger->notice("stack udp: %d",uxTaskGetStackHighWaterMark(NULL));
-    if(uxTaskGetStackHighWaterMark(NULL) < 100) data.logger->error("stack udp");
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data.logger->error("stack udp");
   }
 };  
 
