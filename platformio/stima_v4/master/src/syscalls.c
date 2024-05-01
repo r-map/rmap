@@ -10,7 +10,6 @@ extern int errno;
 extern caddr_t _end;
 extern caddr_t _max_heap;
 
-// extern caddr_t _sbrk(int incr);
 extern int link(char *old, char *new);
 extern int _close(int file);
 extern int _fstat(int file, struct stat *st);
@@ -42,27 +41,6 @@ int _read(int file, char *ptr, int len)
 {
    return 0;
 }
-
-// extern caddr_t _sbrk(int incr)
-// {
-//    static caddr_t heap_end = NULL;
-//    caddr_t prev_heap_end;
-
-//    if(heap_end == NULL)
-//       heap_end = (caddr_t) &_end;
-
-//    prev_heap_end = heap_end;
-
-//    if((heap_end + incr) > (caddr_t) &_max_heap)
-//    {
-//       errno = ENOMEM;
-//       return (caddr_t) -1;
-//    }
-
-//    heap_end += incr;
-
-//    return prev_heap_end;
-// }
 
 extern int link(char *old, char *new)
 {

@@ -249,7 +249,12 @@ void ModemTask::Run() {
 
       // Suspend TASK Controller for external Delay controller
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-      status = sim7600.setup();
+      // network_order in conformity to [sim7600_connection_network_type_t],[sim7600_connection_network_type_t],..
+      // Example : 9=LTE, 3=GSM, 5=WDCMA -> 4G/2G/3G
+      status = sim7600.setup((sim7600_connection_network_mode_t) param.configuration->network_type,
+                             (sim7600_type_network_registration_t) param.configuration->network_regver,
+                             param.configuration->network_order);
+      // Wait...
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
       // Resume
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
@@ -324,6 +329,20 @@ void ModemTask::Run() {
       error = pppConnect(interface);
       // Resume
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
+      // Saving state signal and network registration (connect or not...)
+      // need to signal exetrnan LCD state signal/registration for debug connection state
+      param.systemStatusLock->Take();
+      param.system_status->modem.ber = sim7600.getBer();
+      param.system_status->modem.rssi = sim7600.getRssi();
+      param.system_status->modem.creg_n = sim7600.getCregN();
+      param.system_status->modem.creg_stat = sim7600.getCregStat();
+      param.system_status->modem.cgreg_n = sim7600.getCgregN();
+      param.system_status->modem.cgreg_stat = sim7600.getCgregStat();
+      param.system_status->modem.cereg_n = sim7600.getCeregN();
+      param.system_status->modem.cereg_stat = sim7600.getCeregStat();
+      param.systemStatusLock->Give();
+
       // Any error to report?
       if (error)
       {
@@ -345,14 +364,6 @@ void ModemTask::Run() {
         param.systemStatusLock->Take();
         param.system_status->flags.ppp_error = false;
         param.system_status->connection.is_ppp_estabilished = true;
-        param.system_status->modem.ber = sim7600.getBer();
-        param.system_status->modem.rssi = sim7600.getRssi();
-        param.system_status->modem.creg_n = sim7600.getCregN();
-        param.system_status->modem.creg_stat = sim7600.getCregStat();
-        param.system_status->modem.cgreg_n = sim7600.getCgregN();
-        param.system_status->modem.cgreg_stat = sim7600.getCgregStat();
-        param.system_status->modem.cereg_n = sim7600.getCeregN();
-        param.system_status->modem.cereg_stat = sim7600.getCeregStat();
         param.systemStatusLock->Give();
 
         TRACE_INFO_F(F("%s Establishing PPP connection... [ %s ]\r\n"), Thread::GetName().c_str(), OK_STRING);

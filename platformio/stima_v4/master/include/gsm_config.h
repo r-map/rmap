@@ -119,4 +119,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define GSM_NUMBER_LENGTH                 (20)
 
+/*!
+\def GSM_PASSWORD_LENGTH
+\brief Length in bytes for password.
+*/
+#define GSM_ORDER_NETWORK_LENGTH          (15)
+
 #endif

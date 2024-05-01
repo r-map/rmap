@@ -3,7 +3,8 @@
 /*********************************************************************
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
+Moreno Gasperini <m.gasperini@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -92,36 +93,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define AT_NO_CARRIER_STRING                                ("NO CARRIER")
 
 /*!
-\def SIM7600_AT_CREG_MODE
-\brief CREG mode.
-*/
-#define SIM7600_AT_CREG_MODE                                (1)
-
-/*!
-\def SIM7600_AT_CGREG_MODE
-\brief CGREG mode.
-*/
-#define SIM7600_AT_CGREG_MODE                               (2)
-
-/*!
-\def SIM7600_AT_CEREG_MODE
-\brief CEREG mode.
-*/
-#define SIM7600_AT_CEREG_MODE                               (3)
-
-/*!
-\def SIM7600_AT_CXREG_MODE_MAX
-\brief C[X]REG mode max.
-*/
-#define SIM7600_AT_CXREG_MODE_MIN                           (SIM7600_AT_CGREG_MODE)
-
-/*!
-\def SIM7600_AT_CXREG_MODE_MAX
-\brief C[X]REG mode max.
-*/
-#define SIM7600_AT_CXREG_MODE_MAX                           (SIM7600_AT_CEREG_MODE)
-
-/*!
 \def SIM7600_USE_ROAMING_REGISTER
 \brief try connection with roaming register network response as network registered OK
 */
@@ -173,19 +144,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def SIM7600_WAIT_FOR_NETWORK_DELAY_MS
 \brief Waiting time in milliseconds network availability.
 */
-#define SIM7600_WAIT_FOR_NETWORK_DELAY_MS                   (5000)
+#define SIM7600_WAIT_FOR_NETWORK_DELAY_MS                   (2500)
 
 /*!
-\def SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX
+\def SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM GPRS EUTRAN
 \brief Max number of retry for checking network availability.
 */
-#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX            (8)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM        (20)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GPRS       (10)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_EUTRAN     (5)
 
 /*!
 \def SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS
 \brief Waiting time in milliseconds for getting uart reconfiguration.
 */
 #define SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS          (1000)
+
+/*!
+\def SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS
+\brief Waiting time in milliseconds for getting signal quality.
+*/
+#define SIM7600_WAIT_FOR_SETUP_SET_MODE_NETWORK_DELAY_MS    (4000)
 
 /*!
 \def SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS
@@ -302,6 +281,47 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define printStatus(status, ok, error)                      (status == SIM7600_OK ? ok : error)
 
 /*!
+\enum sim7600_connection_network_mode_t
+\Network mode connection network selection type (only primary band)
+*/
+typedef enum
+{
+   SIM7600_MODE_NETWORK_DEFAULT = 0,
+   SIM7600_MODE_NETWORK_AUTO = 2,
+   SIM7600_MODE_NETWORK_2G = 13,
+   SIM7600_MODE_NETWORK_3G = 14,
+   SIM7600_MODE_NETWORK_4G = 38
+} sim7600_connection_network_mode_t;
+
+/*!
+\enum sim7600_connection_network_type_t
+\Network type for select prefered order list on selected network mode.
+*/
+typedef enum
+{
+   SIM7600_TYPE_NETWORK_DEFAULT = 0,
+   SIM7600_TYPE_NETWORK_CDMA = 2,
+   SIM7600_TYPE_NETWORK_GSM = 3,
+   SIM7600_TYPE_NETWORK_HDR = 4,
+   SIM7600_TYPE_NETWORK_WCDMA = 5,
+   SIM7600_TYPE_NETWORK_LTE = 9,
+   SIM7600_TYPE_NETWORK_TDSCDMA = 11
+} sim7600_connection_network_type_t;
+
+/*!
+\enum sim7600_type_network_registration_t
+\Network type registration abilitate and verify (+CREG +CGRER + CEREG).
+\Mode for GSM, GPRS, EUTRAN familiy band registration network
+*/
+typedef enum
+{
+   SIM7600_REG_NETWORK_NONE,
+   SIM7600_REG_NETWORK_GSM,
+   SIM7600_REG_NETWORK_GPRS,
+   SIM7600_REG_NETWORK_EUTRAN
+} sim7600_type_network_registration_t;
+
+/*!
 \enum sim7600_power_state_t
 \brief Main loop finite state machine.
 */
@@ -336,16 +356,18 @@ typedef enum
 \brief Main loop finite state machine.
 */
 typedef enum {
-   SIM7600_SETUP_INIT,                  //!< init task variables
-   SIM7600_SETUP_RESET,                 //!< reset sim7600 to default state
-   SIM7600_SETUP_ECHO_MODE,             //!< disable sim7600 echo mode
-   SIM7600_SETUP_GET_SIGNAL_QUALITY,    //!< get signal quality
-   SIM7600_SETUP_CHANGE_BAUD_RATE,
-   SIM7600_SETUP_SET_PHONE_FUNCTIONALITY,
-   SIM7600_SETUP_ENABLE_NETWORK,
-   SIM7600_SETUP_WAIT_NETWORK,          //!< wait for network availability
-   SIM7600_SETUP_END,                   //!< performs end operations and deactivate task
-   SIM7600_SETUP_WAIT_STATE             //!< non-blocking waiting time
+   SIM7600_SETUP_INIT,                    //!< init task variables
+   SIM7600_SETUP_RESET,                   //!< reset sim7600 to default state
+   SIM7600_SETUP_ECHO_MODE,               //!< disable sim7600 echo mode
+   SIM7600_SETUP_GET_SIGNAL_QUALITY,      //!< get signal quality
+   SIM7600_SETUP_CHANGE_BAUD_RATE,        //!< switch baud from defualt to fast rs232 speed
+   SIM7600_SETUP_SET_PHONE_FUNCTIONALITY, //!< set on off or partial functionally for modem
+   SIM7600_SETUP_SET_MODE_NETWORK,        //!< set type network prefered
+   SIM7600_SETUP_SET_PRIORITY_NETWORK,    //!< set priority list type network (only if more than one enabled)
+   SIM7600_SETUP_ENABLE_NETWORK,          //!< enable type of network required
+   SIM7600_SETUP_WAIT_NETWORK,            //!< wait for network availability
+   SIM7600_SETUP_END,                     //!< performs end operations and deactivate task
+   SIM7600_SETUP_WAIT_STATE               //!< non-blocking waiting time
 } sim7600_setup_state_t;
 
 /*!
@@ -354,11 +376,11 @@ typedef enum {
 */
 typedef enum
 {
-   SIM7600_CONNECTION_START_INIT,    //!< init task variables
-   SIM7600_CONNECTION_START_PDP, //!< check if sim7600 is attached to gprs
-   SIM7600_CONNECTION_START_PDP_AUTH, //!< starting up connection
-   SIM7600_CONNECTION_START_CONNECT, //!< starting up connection
-   SIM7600_CONNECTION_START_END,     //!< performs end operations and deactivate task
+   SIM7600_CONNECTION_START_INIT,      //!< init task variables
+   SIM7600_CONNECTION_START_PDP,       //!< check if sim7600 is attached to gprs
+   SIM7600_CONNECTION_START_PDP_AUTH,  //!< starting up connection
+   SIM7600_CONNECTION_START_CONNECT,   //!< starting up connection
+   SIM7600_CONNECTION_START_END,       //!< performs end operations and deactivate task
    #ifndef USE_FREERTOS
    SIM7600_CONNECTION_START_WAIT_STATE //!< non-blocking waiting time
    #endif
@@ -560,7 +582,7 @@ public:
    \brief Send CREG AT command for reading network status.
    \return sim7600 status on each call.
    */
-   sim7600_status_t sendAtCxreg(uint8_t cxreg_mode = SIM7600_AT_CREG_MODE);
+   sim7600_status_t sendAtCxreg(uint8_t cxreg_mode = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM);
 
    /*!
    \fn sim7600_status_t sendAtCsq(uint8_t *rssi, uint8_t *ber)
@@ -589,10 +611,14 @@ public:
    /*!
    \fn sim7600_status_t setup()
    \brief Execute setup sequence.
+   \param[in] network_type type base network abilitation AUTO, 2G, 3G, 4G mode
+   \param[in] network_regver type of registration minimal metwork to get setup OK
+   \param[in] *network_order order list mode network access operation
    \return sim7600 status on each call.
    */
-   sim7600_status_t setup();
-
+   sim7600_status_t setup(sim7600_connection_network_mode_t network_type = SIM7600_MODE_NETWORK_DEFAULT,
+                           sim7600_type_network_registration_t network_regver = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN,
+                           char* network_order = "");
    /*!
    \fn sim7600_status_t connect(const char *apn, const char *number)
    \brief Execute start connection sequence.

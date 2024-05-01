@@ -386,6 +386,31 @@
 \brief Default gsm password.
 */
 #define CONFIGURATION_DEFAULT_GSM_PASSWORD (GSM_DEFAULT_PASSWORD)
+
+/*!
+\def CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER
+\brief Default order list SIM7600 COMMAND AT+CNAOP.
+*/
+#define CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER     ("")
+
+/*!
+\def CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED
+\brief Extra parametr network are valid?...
+*/
+#define CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED      (0x60)
+
+/*!
+\def CONFIGURATION_GSM_DEFAULT_NETWORK
+\brief Network configuration default prefered AS DEFAULT.
+*/
+#define CONFIGURATION_GSM_DEFAULT_NETWORK           (0x00)
+
+/*!
+\def CONFIGURATION_GSM_DEFAULT_REGISTRATION AS GPRS_REGISTRATION
+\brief Default gsm password.
+*/
+#define CONFIGURATION_GSM_DEFAULT_REGISTRATION      (0x02)
+
 #endif
 
 #define SEED_LENGTH (32)
