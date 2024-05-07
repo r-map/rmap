@@ -108,9 +108,9 @@ typedef struct
    char network[NETWORK_LENGTH];
 
 #if (USE_MQTT)
-   uint16_t mqtt_port;                    //!< mqtt server port
-   char mqtt_server[MQTT_SERVER_LENGTH];  //!< mqtt server
-   char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];   //!< mqtt root path
+   uint16_t mqtt_port;                              //!< mqtt server port
+   char mqtt_server[MQTT_SERVER_LENGTH];            //!< mqtt server
+   char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];    //!< mqtt root path
    char mqtt_maint_topic[MQTT_MAINT_TOPIC_LENGTH];  //!< mqtt maint path
    char mqtt_rpc_topic[MQTT_RPC_TOPIC_LENGTH];      //!< mqtt subscribe topic
    char mqtt_username[MQTT_USERNAME_LENGTH];        //!< username to compose mqtt username (username/stationslug/boardslug)
@@ -140,6 +140,10 @@ typedef struct
    char gsm_number[GSM_NUMBER_LENGTH];      //!< gsm number
    char gsm_username[GSM_USERNAME_LENGTH];  //!< gsm username
    char gsm_password[GSM_PASSWORD_LENGTH];  //!< gsm password
+   uint8_t network_advanced;                //!< using network advanced configuration param
+   uint8_t network_type;                    //!< prefered type of network radio gsm
+   uint8_t network_regver;                  //!< end of validation register network ready connect
+   char network_order[GSM_ORDER_NETWORK_LENGTH];  //!< network preferred type order list
 #endif
 } configuration_t;
 

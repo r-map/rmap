@@ -31,6 +31,20 @@
 #define TRACE_LEVEL     SUPERVISOR_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
+// Using to force some parameter (extraparameter) to configuration, debug or specific parameter
+#define SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER   (true)
+#if SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER
+#define USE_LOCAL_ASSIGN_APN_PARAMETER              (true)
+#define SAVE_LOCAL_ASSIGN_APN_PARAMETER             (GSM_APN_WIND)
+#define USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION   (true)
+#define CONFIGURATION_FOR_AUTO_4G_3G_2G             (false)
+#define CONFIGURATION_FOR_PRIORITY_4G_2G            (true)
+#define CONFIGURATION_FOR_PRIORITY_2G_4G            (false)
+#define CONFIGURATION_FOR_ONLY_4G                   (false)
+#define CONFIGURATION_FOR_ONLY_3G                   (false)
+#define CONFIGURATION_FOR_ONLY_2G                   (false)
+#endif
+
 #include "tasks/supervisor_task.h"
 
 using namespace cpp_freertos;
@@ -746,18 +760,6 @@ void SupervisorTask::Run()
           state = SUPERVISOR_STATE_END;
           break;
         }
-        // else if (++retry <= SUPERVISOR_TASK_GENERIC_RETRY) // Check Retry
-        // {
-        //   TaskWatchDog(param.system_status, param.systemStatusLock, SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS, false);
-        //   Delay(Ticks::MsToTicks(SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS));
-        //   // Try to powerOff Modem other times
-        //   TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CHECK_DISCONNECTION -> SUPERVISOR_STATE_REQUEST_DISCONNECTION\r\n"));
-        //   state = SUPERVISOR_STATE_REQUEST_DISCONNECTION;
-        // } else {
-        //   // Disconnection impossible, perform a Reboot
-        //   // Signal to E2Prom the problem
-        //   NVIC_SystemReset();
-        // }
       }
       break;
 
@@ -797,6 +799,16 @@ bool SupervisorTask::loadConfiguration()
     param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
   }
 
+  // Check if network_advanced isn't assigned (try with default value)
+  if(param.configuration->network_advanced != CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED) {
+      strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
+      param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+      // DEFAULT FOR MODEM RESET (AUTO...)
+      param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
+      // WAITING ABOUT GPRS REGISTRATION (1->GSM,2->GPRS,3->EUTRAN)... FASTER
+      param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
+  }
+
   // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
   param.configuration->module_main_version = MODULE_MAIN_VERSION;
   param.configuration->module_minor_version = MODULE_MINOR_VERSION;
@@ -809,6 +821,68 @@ bool SupervisorTask::loadConfiguration()
   {
     status = saveConfiguration(CONFIGURATION_DEFAULT);
   }
+  #endif
+
+  // Set local parameter EXTRA param for specific GSM/GPRS/EDGE/LTE CONNECTION SIM
+  // Other local parametre to save...
+  #if(SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER)
+    // VALID VALUE ->
+    // network_type -> MODE_DEFAULT = 0, MODE_AUTO = 2, MODE_2G = 13, SIM7600_MODE_3G = 14, MODE_4G = 38
+    // DEFAULT = "" OR -> CDMA = 2, GSM = 3, HDR = 4, WCDMA = 5, LTE = 9, TDSCDMA = 11 ( priority list as string )
+    // network_regver -> 0 = NONE/DEFAULT, 1 TO GSM CREG, TO GPRS (FASTER) +CGREG , TO EUTRAN +CEREG
+    // +CEREG it seems unnecessary, when +CGREG is valid also +CEREG becomes valid even without reaching +CEREG
+    // "TIM" CONNECTION often non reaches +CEREG while "WIND" and "VODAFONE" yes
+    #if(USE_LOCAL_ASSIGN_APN_PARAMETER)
+    strSafeCopy(param.configuration->gsm_apn, SAVE_LOCAL_ASSIGN_APN_PARAMETER, GSM_APN_LENGTH);
+    #endif
+    #if(CONFIGURATION_FOR_AUTO_4G_3G_2G)
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
+    param.configuration->network_regver = 2;
+    #else
+    param.configuration->network_regver = 3;
+    #endif
+    strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_type = 0;
+    #endif
+    #if(CONFIGURATION_FOR_4G_2G)
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
+    param.configuration->network_regver = 2;
+    #else
+    param.configuration->network_regver = 3;
+    #endif
+    strSafeCopy(param.configuration->network_order, "9,3,5,11,2,4", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_type = 0;
+    #endif
+    #if(CONFIGURATION_FOR_2G_4G)
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
+    param.configuration->network_regver = 2;
+    #else
+    param.configuration->network_regver = 3;
+    #endif
+    strSafeCopy(param.configuration->network_order, "3,9,5,11,2,4", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_type = 0;
+    #endif
+    #if(CONFIGURATION_FOR_ONLY_4G)
+    strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    param.configuration->network_type = 38;
+    status = saveConfiguration(false);
+    #endif
+    #if(CONFIGURATION_FOR_ONLY_3G)
+    strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    param.configuration->network_type = 14;
+    status = saveConfiguration(false);
+    #endif
+    #if(CONFIGURATION_FOR_ONLY_2G)
+    strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+    param.configuration->network_type = 13;
+    status = saveConfiguration(false);
+    #endif
   #endif
 
   TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
@@ -930,6 +1004,10 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->gsm_number, CONFIGURATION_DEFAULT_GSM_NUMBER, GSM_NUMBER_LENGTH);
       strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
       strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
+      strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
+      param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+      param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
+      param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
       #endif
 
       #if (USE_NTP)

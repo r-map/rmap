@@ -3,7 +3,7 @@
 /*********************************************************************
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This is based on popular lib "arduino-sht"
 <https://github.com/Sensirion/arduino-sht>

@@ -3,7 +3,8 @@
 /*********************************************************************
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
+Moreno Gasperini <m.gasperini@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -616,34 +617,34 @@ sim7600_status_t SIM7600::sendAtCxreg(uint8_t cxreg_mode)
 {
    sim7600_status_t at_command_status;
 
-   if (cxreg_mode == SIM7600_AT_CREG_MODE)
+   if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM)
    {
       at_command_status = sendAtCommand("AT+CREG?\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
    }
-   else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+   else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS)
    {
       at_command_status = sendAtCommand("AT+CGREG?\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
    }
-   else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+   else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN)
    {
       at_command_status = sendAtCommand("AT+CEREG?\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
    }
 
-   if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   if ((at_command_status == SIM7600_OK) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM))
    {
       if (sscanf(buffer_ext, "+CREG: %d,%d", &creg_n, &creg_stat) != 2)
       {
          at_command_status == SIM7600_ERROR;
       }
    }
-   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CGREG_MODE))
+   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS))
    {
       if (sscanf(buffer_ext, "+CGREG: %d,%d", &cgreg_n, &cgreg_stat) != 2)
       {
          at_command_status == SIM7600_ERROR;
       }
    }
-   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == SIM7600_AT_CEREG_MODE))
+   else if ((at_command_status == SIM7600_OK) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN))
    {
       if (sscanf(buffer_ext, "+CEREG: %d,%d", &cereg_n, &cereg_stat) != 2)
       {
@@ -651,31 +652,31 @@ sim7600_status_t SIM7600::sendAtCxreg(uint8_t cxreg_mode)
       }
    }
 
-   if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM))
    {
       creg_n = CREG_N_UNKNOWN;
       creg_stat = CREG_STAT_UNKNOWN;
    }
-   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS))
    {
       cgreg_n = CREG_N_UNKNOWN;
       cgreg_stat = CREG_STAT_UNKNOWN;
    }
-   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   else if ((at_command_status == SIM7600_ERROR) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN))
    {
       cereg_n = CREG_N_UNKNOWN;
       cereg_stat = CREG_STAT_UNKNOWN;
    }
 
-   if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CREG_MODE))
+   if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM))
    {
       TRACE_VERBOSE_F(F("%s +CREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), creg_n, creg_stat);
    }
-   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CGREG_MODE))
+   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS))
    {
       TRACE_VERBOSE_F(F("%s +CGREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), cgreg_n, cgreg_stat);
    }
-   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == SIM7600_AT_CEREG_MODE))
+   else if ((at_command_status != SIM7600_BUSY) && (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN))
    {
       TRACE_VERBOSE_F(F("%s +CEREG [ %s ] [ %d,%d ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING), cereg_n, cereg_stat);
    }
@@ -710,16 +711,18 @@ sim7600_status_t SIM7600::sendAtCsq()
    return at_command_status;
 }
 
-sim7600_status_t SIM7600::setup()
+sim7600_status_t SIM7600::setup(sim7600_connection_network_mode_t network_type, sim7600_type_network_registration_t network_regver, char* network_order)
 {
    static uint8_t retry;
+   static uint8_t retryWaitForNetwork;
    static sim7600_status_t sim7600_status;
    static bool is_error;
    static bool is_registered;
-   static bool is_almost_one_registered;
    sim7600_status_t at_command_status;
    static uint8_t cxreg_mode;
+   static uint8_t cregx_level;
    uint8_t stat = 0;
+   char cmdLocal[30];
 
    #ifndef USE_FREERTOS
    static sim7600_setup_state_t state_after_wait;
@@ -733,8 +736,8 @@ sim7600_status_t SIM7600::setup()
    case SIM7600_SETUP_INIT:
       retry = 0;
       is_error = false;
-      cxreg_mode = SIM7600_AT_CREG_MODE;
-      is_almost_one_registered = false;
+      cxreg_mode = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM;
+      cregx_level = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_NONE;
       sim7600_status = SIM7600_BUSY;
 
       if (isOn())
@@ -810,7 +813,8 @@ sim7600_status_t SIM7600::setup()
       // fail
       else if (at_command_status == SIM7600_ERROR)
       {
-         is_error = true;
+         // Dont'care for ATE0 command
+         is_error = false;
          sim7600_setup_state = SIM7600_SETUP_END;
       }
 
@@ -875,13 +879,13 @@ sim7600_status_t SIM7600::setup()
       {
          #ifndef USE_FREERTOS
          start_time_ms = millis();
-         state_after_wait = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         state_after_wait = SIM7600_SETUP_SET_MODE_NETWORK;
          sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
          #else
-         sim7600_setup_state = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         sim7600_setup_state = SIM7600_SETUP_SET_MODE_NETWORK;
          #endif
          retry = 0;
-         delay_ms = SIM7600_WAIT_FOR_GET_SIGNAL_QUALITY_DELAY_MS;
+         delay_ms = SIM7600_WAIT_FOR_SETUP_SET_MODE_NETWORK_DELAY_MS;
       }
       // retry
       else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
@@ -908,6 +912,103 @@ sim7600_status_t SIM7600::setup()
       // wait
       break;
 
+   case SIM7600_SETUP_SET_MODE_NETWORK:
+
+      // No required parameter?... Continue
+      if(network_type==sim7600_connection_network_mode_t::SIM7600_MODE_NETWORK_DEFAULT) {
+         sim7600_setup_state = SIM7600_SETUP_SET_PRIORITY_NETWORK;
+         retry = 0;
+         break;
+      }
+
+      // Set mode network prefered
+      sprintf(cmdLocal, "AT+CNMP=%d\r\n", network_type);
+      
+      at_command_status = sendAtCommand(cmdLocal, buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_SET_PRIORITY_NETWORK;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_SET_PRIORITY_NETWORK;
+         #endif
+         retry = 0;
+      }
+      // retry
+      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_WAIT_NETWORK;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #endif
+         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
+
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s set network priority network type [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
+      break;
+
+   case SIM7600_SETUP_SET_PRIORITY_NETWORK:
+
+      // No required parameter?... Continue
+      if(strlen(network_order)==0) {
+         sim7600_setup_state = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         retry = 0;
+         break;
+      }
+
+      // Set mode network prefered
+      sprintf(cmdLocal, "AT+CNAOP=7,%s\r\n", network_order);
+      at_command_status = sendAtCommand(cmdLocal, buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
+
+      // success
+      if (at_command_status == SIM7600_OK)
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #else
+         sim7600_setup_state = SIM7600_SETUP_GET_SIGNAL_QUALITY;
+         #endif
+         retry = 0;
+      }
+      // retry
+      else if ((at_command_status == SIM7600_ERROR) && ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX))
+      {
+         #ifndef USE_FREERTOS
+         start_time_ms = millis();
+         state_after_wait = SIM7600_SETUP_WAIT_NETWORK;
+         sim7600_setup_state = SIM7600_SETUP_WAIT_STATE;
+         #endif
+         delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
+      }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
+
+      if (at_command_status != SIM7600_BUSY)
+      {
+         TRACE_INFO_F(F("%s set network prefered connection mode to: %d - [ %s ]\r\n"), SIM7600_NAME, network_type, printStatus(at_command_status, OK_STRING, ERROR_STRING));
+      }
+      break;
+
    case SIM7600_SETUP_GET_SIGNAL_QUALITY:
       at_command_status = sendAtCsq();
 
@@ -927,15 +1028,15 @@ sim7600_status_t SIM7600::setup()
       break;
 
    case SIM7600_SETUP_ENABLE_NETWORK:
-      if (cxreg_mode == SIM7600_AT_CREG_MODE)
+      if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM)
       {
          at_command_status = sendAtCommand("AT+CREG=2\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
       }
-      else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+      else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS)
       {
          at_command_status = sendAtCommand("AT+CGREG=2\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
       }
-      else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+      else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN)
       {
          at_command_status = sendAtCommand("AT+CEREG=2\r\n", buffer_ext, sizeof(buffer_ext), AT_OK_STRING, AT_ERROR_STRING, SIM7600_AT_DEFAULT_TIMEOUT_MS);
       }
@@ -943,15 +1044,15 @@ sim7600_status_t SIM7600::setup()
       // success or fail
       if (at_command_status != SIM7600_BUSY)
       {
-         if (cxreg_mode == SIM7600_AT_CREG_MODE)
+         if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM)
          {
             TRACE_INFO_F(F("%s enable CREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
-         else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+         else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS)
          {
             TRACE_INFO_F(F("%s enable CGREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
-         else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+         else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN)
          {
             TRACE_INFO_F(F("%s enable CEREG [ %s ]\r\n"), SIM7600_NAME, printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
@@ -959,9 +1060,13 @@ sim7600_status_t SIM7600::setup()
          retry = 0;
          cxreg_mode++;
 
-         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
+         // Esco con tutti i register network abilitati richiesti in setup
+         if (cxreg_mode > network_regver)
          {
-            cxreg_mode = SIM7600_AT_CREG_MODE;
+            // Riavvio cxreg per la verifica se effettivamente avviene la registrazione per il tipo di connessione...
+            // Waiting registration for requested network GSM/2G/4G, START FROM GSM
+            cxreg_mode = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM;
+
             delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
             sim7600_setup_state = SIM7600_SETUP_WAIT_NETWORK;
          }
@@ -980,6 +1085,12 @@ sim7600_status_t SIM7600::setup()
          #endif
          delay_ms = SIM7600_GENERIC_WAIT_DELAY_MS;
       }
+      // fail
+      else if (at_command_status == SIM7600_ERROR)
+      {
+         is_error = true;
+         sim7600_setup_state = SIM7600_SETUP_END;
+      }
 
       // wait
       break;
@@ -987,19 +1098,30 @@ sim7600_status_t SIM7600::setup()
    case SIM7600_SETUP_WAIT_NETWORK:
       is_registered = false;
       at_command_status = sendAtCxreg(cxreg_mode);
+      switch(cxreg_mode) {
+         case sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM:
+            retryWaitForNetwork = SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM;
+            break;
+         case sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS:
+            retryWaitForNetwork = SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GPRS;
+            break;
+         case sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN:
+            retryWaitForNetwork = SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_EUTRAN;
+            break;
+      }
 
       // success
       if (at_command_status == SIM7600_OK)
       {
-         if (cxreg_mode == SIM7600_AT_CREG_MODE)
+         if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GSM)
          {
             stat = creg_stat;
          }
-         else if (cxreg_mode == SIM7600_AT_CGREG_MODE)
+         else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS)
          {
             stat = cgreg_stat;
          }
-         else if (cxreg_mode == SIM7600_AT_CEREG_MODE)
+         else if (cxreg_mode == sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN)
          {
             stat = cereg_stat;
          }
@@ -1013,7 +1135,7 @@ sim7600_status_t SIM7600::setup()
 
          case 1:
             is_registered = true;
-            is_almost_one_registered |= true;
+            cregx_level = cxreg_mode;
             TRACE_INFO_F(F("%s network registered... [ %s ]\r\n"), SIM7600_NAME, OK_STRING);
             break;
 
@@ -1033,9 +1155,14 @@ sim7600_status_t SIM7600::setup()
             break;
 
          case 5:
-            is_registered = true;
-            is_almost_one_registered |= true;
+            #if (SIM7600_USE_ROAMING_REGISTER)
             TRACE_INFO_F(F("%s network registered (roaming)... [ %s ]\r\n"), SIM7600_NAME, OK_STRING);
+            is_registered = true;
+            cregx_level = cxreg_mode;
+            #else
+            TRACE_INFO_F(F("%s network registered (roaming) but rejected from SW configuration... [ %s ]\r\n"), SIM7600_NAME, OK_STRING);
+            is_registered = false;
+            #endif
             break;
 
          case 6:
@@ -1059,9 +1186,10 @@ sim7600_status_t SIM7600::setup()
       if ((at_command_status == SIM7600_OK) && is_registered)
       {
          retry = 0;
+         // Try all type network registration GSM -> GPRS -> LTE until Mode ( > CGREG_SETUP Request DEFAULT = LTE )
+         // Exit success on all method requested (>network_regver) available (here)
          cxreg_mode++;
-
-         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
+         if (cxreg_mode > network_regver)
          {
             sim7600_setup_state = SIM7600_SETUP_END;
             delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
@@ -1071,8 +1199,8 @@ sim7600_status_t SIM7600::setup()
             at_command_status = SIM7600_BUSY;
          }
       }
-      // retry
-      else if ((at_command_status == SIM7600_OK) && !is_registered && ((++retry) < SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX))
+      // retry if available
+      else if ((at_command_status == SIM7600_OK) && !is_registered && ((++retry) < retryWaitForNetwork))
       {
          #ifndef USE_FREERTOS
          start_time_ms = millis();
@@ -1081,33 +1209,25 @@ sim7600_status_t SIM7600::setup()
          #endif
          delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
       }
-      // fail
-      else if ((at_command_status == SIM7600_ERROR) || (retry >= SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX))
+      // fail or max retry
+      else if ((at_command_status == SIM7600_ERROR) || (retry >= retryWaitForNetwork))
       {
          retry = 0;
-         cxreg_mode++;
-
-         // Try to LTE Mode (CGREG_MAX), but if registered with GPRS (CGREG_MIN), connection was OK
-         if (cxreg_mode > SIM7600_AT_CXREG_MODE_MAX)
+         // Max registration not reached up, but if registered with CGREG_MIN (DEFAULT GPRS), connection was already OK
+         // Exit success on minimal method available (here)
+         if (cregx_level >= sim7600_type_network_registration_t::SIM7600_REG_NETWORK_GPRS)
          {
-            if (cxreg_mode > SIM7600_AT_CXREG_MODE_MIN)
-            {
-               is_error = false;
-               sim7600_setup_state = SIM7600_SETUP_END;
-               delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
-            } else {
-               #if (SIM7600_USE_ROAMING_REGISTER)
-               is_error = !is_almost_one_registered;
-               #else
-               is_error = true;
-               #endif
-               sim7600_setup_state = SIM7600_SETUP_END;
-               delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
-            }
-         }
-         else
-         {
-            at_command_status = SIM7600_BUSY;
+            // Minimal connection available es. GPRS (direct or roaming if enabled from configuration define)
+            is_error = false;
+            sim7600_setup_state = SIM7600_SETUP_END;
+            delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
+         } else {
+            // Optional roaming exter (UP) control...
+            // Here connection not available (loss or roaming not valid)
+            is_error = true;
+            sim7600_setup_state = SIM7600_SETUP_END;
+            delay_ms = SIM7600_WAIT_FOR_NETWORK_DELAY_MS;
+            TRACE_INFO_F(F("%s network not available for registration. Connection abort... [ %s ]\r\n"), SIM7600_NAME, ERROR_STRING);
          }
       }
       // wait

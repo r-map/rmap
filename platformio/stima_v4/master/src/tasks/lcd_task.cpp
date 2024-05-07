@@ -839,7 +839,13 @@ void LCDTask::display_print_main_interface() {
     // Add type of error message to buffer
     if (param.system_status->flags.ppp_error) {
       is_error = true;
-      strcat(errors, "ppp ");
+      // ppp error [rssi,ber XYZ] X=REGISTRATION [X]GSM [Y]GPRS [Z]EUTRAN (->9 NOT ATTEMPT)
+      if(param.system_status->modem.creg_n > 9) param.system_status->modem.creg_n = 9;
+      if(param.system_status->modem.cgreg_n > 9) param.system_status->modem.cgreg_n = 9;
+      if(param.system_status->modem.cereg_n > 9) param.system_status->modem.cereg_n = 9;
+      sprintf(msgOut, "ppp [%d,%d %d%d%d] ", param.system_status->modem.rssi, param.system_status->modem.ber,
+        param.system_status->modem.creg_n, param.system_status->modem.cgreg_n, param.system_status->modem.cereg_n);
+      strcat(errors, msgOut);
     }
     if (param.system_status->flags.dns_error) {
       is_error = true;
