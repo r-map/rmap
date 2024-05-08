@@ -904,10 +904,10 @@ void SensorDriverSht::setup() {
 
     if (!_sht.softReset()){
       _error_count++;
-      LOGE(F("sht setup... [ %s ]"), ERROR_STRING);
+      LOGE(F("sht setup software reset... [ %s ]"), ERROR_STRING);
       return;
     }
-    delay(10);
+    delay(5);
 
     if(_sht.clearStatusRegister()) {
       if(_sht.checkStatus()) {
