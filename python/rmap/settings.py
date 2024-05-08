@@ -703,6 +703,8 @@ INSTALLED_APPS = [
 FILE_UPLOAD_HANDLERS = [
 "django.core.files.uploadhandler.TemporaryFileUploadHandler",]
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
 #for django < 1.6 only
 AUTH_PROFILE_MODULE = 'stations.UserProfile'
 

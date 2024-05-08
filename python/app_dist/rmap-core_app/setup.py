@@ -238,7 +238,7 @@ setup(name='rmap-core',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
-      cmdclass={'build': build,'compilemessages':compilemessages,'makemessages':makemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
+      cmdclass={'build': build,'makemessages':makemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
 #      include_package_data=True,
 #      packages=find_packages(),
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc'
@@ -259,8 +259,8 @@ setup(name='rmap-core',
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson"
-                          ,"django-imagekit","django-appconf","paho-mqtt","requests"
-                          ,"paho-mqtt","sslpsk"
+                          ,"django-imagekit","django-appconf"
+                          ,"paho-mqtt","sslpsk","fasteners"
                           #, "dballe>=8.4"
                          ],
       )

@@ -664,16 +664,18 @@ def profile_details(request,mystation_slug):
     mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
 
     reserved={}
-    for myboard in mystation.board_set.all():
-        if ( myboard.active ):
-            try:
-                if ( myboard.transportmqtt.active):
-                    reserved["Board slug"]=myboard.slug
-                    reserved["Password"]=myboard.transportmqtt.mqttpassword
-                    reserved["PSKkey"]=myboard.transportmqtt.mqttpskkey
+    if ( mystation.active ):
+        reserved["Station slug"]=mystation.slug
+        for myboard in mystation.board_set.all():
+            if ( myboard.active ):
+                try:
+                    if ( myboard.transportmqtt.active):
+                        reserved["Board slug"]=myboard.slug
+                        reserved["Password"]=myboard.transportmqtt.mqttpassword
+                        reserved["PSKkey"]=myboard.transportmqtt.mqttpskkey
 
-            except ObjectDoesNotExist:
-                pass
+                except ObjectDoesNotExist:
+                    pass
 
 
 

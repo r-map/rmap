@@ -1,6 +1,6 @@
 %define srcname rmap-core
-%define version 16.2
-%define release 5
+%define version 16.5
+%define release 1
 
 Summary: rete monitoraggio ambientale partecipativo
 Name: python3-%{srcname}
