@@ -443,8 +443,9 @@ void dbThread::Run() {
     }
 
     // free memory
-    if(db_exec("PRAGMA shrink_memory;") != SQLITE_OK) {
-      data.logger->error(F("pragma shrink_memory"));       
+    //if(db_exec("PRAGMA shrink_memory;") != SQLITE_OK) {
+    if(sqlite3_db_release_memory(db)) {
+      data.logger->error(F("release memory"));       
     }
     
     // check semaphore for data recovey

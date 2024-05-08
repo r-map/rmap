@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2024-04-01T00:00"    // date and time
-#define MAJOR_VERSION    "20240401"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2024-05-01T00:00"    // date and time
+#define MAJOR_VERSION    "20240501"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 #define WIFI_SSED "STIMA-config"
@@ -21,7 +21,7 @@
 #define DATE_TIME_STRING_LENGTH                       (25)
 
 // minimum heap size for warning
-#define HEAP_MIN_WARNING 20000
+#define HEAP_MIN_WARNING 10000
 
 // minimum thread stack size for warning
 #define STACK_MIN_WARNING 100
