@@ -535,7 +535,7 @@ void SdTask::Run()
         bWriteErr = false;
         // Create Default Base Topic from E2Prom archived configuration (Rewrite at startup, changed firmware, configuration, ecc...)
         memset(logBuffer, 0, sizeof(logBuffer));
-        snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%07d,%07d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
+        snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%d,%d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
         bWriteErr |= !tmpFile.println(param.configuration->stationslug);
         bWriteErr |= !tmpFile.println(param.configuration->module_main_version);
         bWriteErr |= !tmpFile.println(param.configuration->module_minor_version);

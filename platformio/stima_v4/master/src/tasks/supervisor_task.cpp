@@ -32,13 +32,13 @@
 #define LOCAL_TASK_ID   SUPERVISOR_TASK_ID
 
 // Using to force some parameter (extraparameter) to configuration, debug or specific parameter
-#define SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER   (true)
+#define SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER   (false)
 #if SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER
-#define USE_LOCAL_ASSIGN_APN_PARAMETER              (true)
-#define SAVE_LOCAL_ASSIGN_APN_PARAMETER             (GSM_APN_WIND)
+#define USE_LOCAL_ASSIGN_APN_PARAMETER              (false)
+#define SAVE_LOCAL_ASSIGN_APN_PARAMETER             (GSM_APN_TIM)
 #define USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION   (true)
-#define CONFIGURATION_FOR_AUTO_4G_3G_2G             (false)
-#define CONFIGURATION_FOR_PRIORITY_4G_2G            (true)
+#define CONFIGURATION_FOR_AUTO_4G_3G_2G             (true)
+#define CONFIGURATION_FOR_PRIORITY_4G_2G            (false)
 #define CONFIGURATION_FOR_PRIORITY_2G_4G            (false)
 #define CONFIGURATION_FOR_ONLY_4G                   (false)
 #define CONFIGURATION_FOR_ONLY_3G                   (false)
@@ -913,7 +913,7 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> data report every %d seconds\r\n"), param.configuration->report_s);
     TRACE_INFO_F(F("-> data observation every %d seconds\r\n"), param.configuration->observation_s);
     TRACE_INFO_F(F("-> ident: %s\r\n"), param.configuration->ident);
-    TRACE_INFO_F(F("-> longitude %07d and latitude %07d\r\n"), param.configuration->longitude, param.configuration->latitude);
+    TRACE_INFO_F(F("-> longitude %d and latitude %d\r\n"), param.configuration->longitude, param.configuration->latitude);
     TRACE_INFO_F(F("-> network: %s\r\n"), param.configuration->network);
 
     #if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_ETH)
@@ -941,13 +941,13 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->board_master.boardslug);
     TRACE_INFO_F(F("-> client psk key "));
     TRACE_INFO_ARRAY("", param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
-    TRACE_INFO_F(F("-> mqtt root topic: %s/%s/%s/%07d,%07d/%s/\r\n"), 
+    TRACE_INFO_F(F("-> mqtt root topic: %s/%s/%s/%d,%d/%s/\r\n"), 
       param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-    TRACE_INFO_F(F("-> mqtt maint topic: %s/%s/%s/%07d,%07d/%s/\r\n"),
+    TRACE_INFO_F(F("-> mqtt maint topic: %s/%s/%s/%d,%d/%s/\r\n"),
       param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-    TRACE_INFO_F(F("-> mqtt rpc topic: %s/%s/%s/%07d,%07d/%s/\r\n"),
+    TRACE_INFO_F(F("-> mqtt rpc topic: %s/%s/%s/%d,%d/%s/\r\n"),
       param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
     #endif

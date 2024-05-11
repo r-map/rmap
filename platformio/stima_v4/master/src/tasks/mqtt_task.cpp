@@ -282,7 +282,7 @@ void MqttTask::Run()
       {
         // Changed MQTT_CLIENT_MAX_WILL_TOPIC_LEN -> FROM 16 TO 80 BYTES
         memset(topic, 0, sizeof(topic));
-        snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+        snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
         mqttClientSetWillMessage(&mqttClientContext, topic, MQTT_ON_ERROR_MESSAGE, strlen(MQTT_ON_ERROR_MESSAGE), qos, true);
       }
 
@@ -307,7 +307,7 @@ void MqttTask::Run()
 
       // Try to publish Start Connection message
       memset(topic, 0, sizeof(topic));
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // publish connection message (Conn + Version and Revision)
       sprintf(message, "{\"v\":\"conn\", \"s\":%d, \"m\":%d}", param.configuration->module_main_version, param.configuration->module_minor_version);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
@@ -328,8 +328,8 @@ void MqttTask::Run()
 
       // Subscribe to the desired topics (Subscribe error not blocking connection)
       memset(topic, 0, sizeof(topic));
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
-      snprintf(topic_rpc_response, sizeof(topic_rpc_response), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_RES_TOPIC);
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
+      snprintf(topic_rpc_response, sizeof(topic_rpc_response), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_RES_TOPIC);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       is_subscribed = !mqttClientSubscribe(&mqttClientContext, topic, qos, NULL);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
@@ -375,7 +375,7 @@ void MqttTask::Run()
 
       // Restore TOPIC -> MQTT_STATUS_TOPIC
       memset(topic, 0, sizeof(topic));
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Prepare DateTime Generic status Message
       convertUnixTimeToDate(param.system_status->datetime.epoch_sensors_get_value, &dtStatus);
       makeDate(dtStatus, dtBlock, sizeof(dtBlock));
@@ -913,7 +913,7 @@ void MqttTask::Run()
 
       // publish disconnection message
       memset(topic, 0, sizeof(topic));
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%07d,%07d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_maint_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_STATUS_TOPIC);
       // Non blocking taskMQTT_NET_WAIT_TIMEOUT_PUBLISH
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
       error = mqttClientPublish(&mqttClientContext, topic, MQTT_ON_DISCONNECT_MESSAGE, strlen(MQTT_ON_DISCONNECT_MESSAGE), qos, true, NULL);
@@ -1095,7 +1095,7 @@ error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, c
   error_t error = NO_ERROR;
 
   memset(topic, 0, topic_length);
-  if (snprintf(topic, topic_length, "%s/%s/%s/%07d,%07d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) <= 0)
+  if (snprintf(topic, topic_length, "%s/%s/%s/%d,%d/%s/%s", configuration->mqtt_root_topic, configuration->mqtt_username, configuration->ident, configuration->longitude, configuration->latitude, configuration->network, sensors_topic) <= 0)
   {
     error = ERROR_FAILURE;
   }
