@@ -77,8 +77,11 @@
 #define C3MOSI 4  
 #define C3SS 6    
 
+// SPI clock
+#define SPICLOCK 1000000
+
 // SD card max number of file
-#define MAXFILE 4
+#define MAXFILE 5
 
 /*
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html

@@ -205,4 +205,15 @@ struct stimawifiStatus_t
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
 };
 
+
+/*!
+\def struct rpcRecovery_t
+\brief params for recovery rpc
+*/
+struct rpcRecovery_t
+{
+  char dtstart[20];   //"YYYY-MM-GGTHH:MM:SS";
+  char dtend[20];     //"YYYY-MM-GGTHH:MM:SS";
+};
+
 #endif
