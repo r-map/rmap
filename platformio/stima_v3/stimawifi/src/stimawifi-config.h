@@ -83,6 +83,9 @@
 // SD card max number of file
 #define MAXFILE 5
 
+// time in seconds saved on SD card for archive and recovery
+#define SDRECOVERYTIME (3600*24*7)
+
 /*
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
   There is 520 KB of available SRAM (320 KB of DRAM and 200 KB of

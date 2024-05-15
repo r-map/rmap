@@ -117,7 +117,7 @@ void dbThread::data_purge(void){
   data.logger->notice(F("Start purge"));       
 
   //char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?)";
-  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT 1000";
+  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT 100";
   //char sql[] = "DELETE FROM messages WHERE pk IN (SELECT pk FROM messages WHERE datetime < strftime('%s',?) LIMIT 100)";
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -133,7 +133,7 @@ void dbThread::data_purge(void){
 
     data.logger->notice(F("bind 1"));
     char dtstart[20];
-    time_t time=now()-(3600*24*10);
+    time_t time=now() - SDRECOVERYTIME;
     snprintf(dtstart,20,"%04u-%02u-%02uT%02u:%02u:%02u",
 	     year(time), month(time), day(time),
 	     hour(time), minute(time), second(time));
@@ -236,8 +236,15 @@ void dbThread::data_recovery(void){
     data.logger->warning(F("no space in publish queue while recovery data from DB"));   
     return;
   }
+
+  char dtstart[20];
+  time_t time=now()- SDRECOVERYTIME;
+  snprintf(dtstart,20,"%04u-%02u-%02uT%02u:%02u:%02u",
+	   year(time), month(time), day(time),
+	   hour(time), minute(time), second(time));
+  
   // select MQTT_QUEUE_BURST_RECOVERY unsent messages
-  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT ?";
+  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime < strftime('%s',?) ORDER BY datetime LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -248,14 +255,21 @@ void dbThread::data_recovery(void){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc) {
-    data.logger->error(F("select recovery data from DB"));   
+    data.logger->error(F("select recovery data from DB: %s"),sqlite3_errmsg(db));   
   } else {
 
 
-  sqlite3_bind_int(
-		   stmt,                  // previously compiled prepared statement object
-		   1,                     // parameter index, 1-based
-		   (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
+    sqlite3_bind_text(
+		      stmt,                  // previously compiled prepared statement object
+		      1,                     // parameter index, 1-based
+		      dtstart,               // the data
+		      -1,                    // length of data
+		      SQLITE_STATIC);
+    
+    sqlite3_bind_int(
+		     stmt,                  // previously compiled prepared statement object
+		     2,                     // parameter index, 1-based
+		     (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
     
     while(1) {
       // fetch a row's status
