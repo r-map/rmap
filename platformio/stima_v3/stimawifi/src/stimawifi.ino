@@ -1263,7 +1263,7 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
-  Alarm.timerRepeat(20, dataRecovery);    // timer for data recoveru from DB
+  Alarm.timerRepeat(10, dataRecovery);    // timer for data recoveru from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 

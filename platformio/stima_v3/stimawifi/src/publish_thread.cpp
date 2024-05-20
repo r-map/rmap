@@ -324,6 +324,18 @@ void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
   //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+  /*
+  rpcRecovery_t rpcrecovery;  
+  strcpy(rpcrecovery.dtstart,"2024-05-09T00:00:00") ;
+  strcpy(rpcrecovery.dtend, "2024-05-09T01:00:00") ;
+  
+  if(data.recoveryqueue->Enqueue(&rpcrecovery)){
+    data.logger->notice(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
+  }else{
+    data.logger->error(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
+  }
+  */
   
   for(;;){
     mqttMessage_t mqttMessage;

@@ -297,6 +297,7 @@ def StationsOnMap(request,user=None,slug=None):
     if 'search' in request.GET:
         query = query & (Q(user__username__icontains=request.GET['search']) | Q(slug__icontains=request.GET['search']))
 
+    query = query  & Q(active=True) 
 
     stations=StationMetadata.objects.filter(query).exclude(lat=None,lon=None)
 

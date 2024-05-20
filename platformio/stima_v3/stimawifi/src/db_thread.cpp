@@ -1,15 +1,13 @@
 #include "common.h"
 
 
-//char* resend = "update messages set sent = false where datetimeBETWEEN  ? and ?" ;
-
 // De-initialize/Reset SD Card
 // https://github.com/greiman/SdFat/issues/351
 void clearSD ()
 {
   /*
   SPI.begin();
-  SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(SPICLOCK, MSBFIRST, SPI_MODE0));
   SPI.transfer(0XFF);
   SPI.endTransaction();
   SPI.end()
@@ -19,7 +17,7 @@ void clearSD ()
   digitalWrite(C3SS, LOW);
   while (sd != 0XFF)
   {
-    SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+    SPI.beginTransaction(SPISettings(SPICLOCK, MSBFIRST, SPI_MODE0));
     sd = SPI.transfer(0XFF);
     SPI.endTransaction();
     Serial.print("sd=");
@@ -110,6 +108,122 @@ void dbThread::db_setup(){
   }
 }
 
+
+// set data in specific datetime range as unset for recovery
+// of messages for retrasmission
+void dbThread::data_purge(void){
+  int rc;
+
+  data.logger->notice(F("Start purge"));       
+
+  //char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?)";
+  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT 100";
+  //char sql[] = "DELETE FROM messages WHERE pk IN (SELECT pk FROM messages WHERE datetime < strftime('%s',?) LIMIT 100)";
+  sqlite3_stmt* stmt; // will point to prepared stamement object
+  rc=sqlite3_prepare_v2(
+			db,             // the handle to your (opened and ready) database
+			sql,            // the sql statement, utf-8 encoded
+			strlen(sql),    // max length of sql statement
+			&stmt,          // this is an "out" parameter, the compiled statement goes here
+			nullptr);       // pointer to the tail end of sql statement (when there are 
+                                        // multiple statements inside the string; can be null)
+  if(rc) {
+    data.logger->error(F("purge data in DB: %s"),sqlite3_errmsg(db));
+  } else {
+
+    data.logger->notice(F("bind 1"));
+    char dtstart[20];
+    time_t time=now() - SDRECOVERYTIME;
+    snprintf(dtstart,20,"%04u-%02u-%02uT%02u:%02u:%02u",
+	     year(time), month(time), day(time),
+	     hour(time), minute(time), second(time));
+
+    data.logger->notice(F("purge data in DB from: %s"),dtstart);
+
+    sqlite3_bind_text(
+		      stmt,                  // previously compiled prepared statement object
+		      1,                     // parameter index, 1-based
+		      dtstart,               // the data
+		      -1,                    // length of data
+		      SQLITE_STATIC);        // this parameter is a little tricky - it's a pointer to the callback
+                                             // function that frees the data after the call to this function.
+                                             // It can be null if the data doesn't need to be freed, or like in this case,
+                                             // special value SQLITE_STATIC (data will be freed automatically).
+
+    data.logger->notice(F("step"));
+    
+    rc = sqlite3_step(stmt);
+    
+    if(rc == SQLITE_DONE) {
+      data.logger->notice(F("OK purge values in DB"));
+    } else {
+      data.logger->error(F("purge values in DB: %s"),sqlite3_errmsg(db));       
+    }
+  }
+  sqlite3_finalize(stmt);
+  data.logger->notice(F("End purge values in DB"));        
+}
+
+
+// set data in specific datetime range as unset for recovery
+// of messages for retrasmission
+void dbThread::data_set_recovery(void){
+  int rc;
+
+  data.logger->notice(F("Start set recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
+
+  char sql[] = "UPDATE messages SET sent = false WHERE datetime BETWEEN  strftime('%s',?) and strftime('%s',?)";
+  //char sql[] = "UPDATE messages SET sent = false WHERE datetime strftime('%s',?))";
+    
+  sqlite3_stmt* stmt; // will point to prepared stamement object
+  rc=sqlite3_prepare_v2(
+			db,             // the handle to your (opened and ready) database
+			sql,            // the sql statement, utf-8 encoded
+			strlen(sql),    // max length of sql statement
+			&stmt,          // this is an "out" parameter, the compiled statement goes here
+			nullptr);       // pointer to the tail end of sql statement (when there are 
+                                        // multiple statements inside the string; can be null)
+  if(rc) {
+    data.logger->error(F("update set recovery data in DB"));
+  } else {
+
+    data.logger->notice(F("bind 1"));
+    
+    sqlite3_bind_text(
+		      stmt,                  // previously compiled prepared statement object
+		      1,                     // parameter index, 1-based
+		      rpcrecovery.dtstart,   // the data
+		      -1,                    // length of data
+		      SQLITE_STATIC);        // this parameter is a little tricky - it's a pointer to the callback
+                                             // function that frees the data after the call to this function.
+                                             // It can be null if the data doesn't need to be freed, or like in this case,
+                                             // special value SQLITE_STATIC (data will be freed automatically).
+
+    data.logger->notice(F("bind 2"));
+    
+    sqlite3_bind_text(
+		      stmt,                  // previously compiled prepared statement object
+		      2,                     // parameter index, 1-based
+		      rpcrecovery.dtend,     // the data
+		      -1,                    // length of data
+		      SQLITE_STATIC);        // this parameter is a little tricky - it's a pointer to the callback
+                                             // function that frees the data after the call to this function.
+                                             // It can be null if the data doesn't need to be freed, or like in this case,
+                                             // special value SQLITE_STATIC (data will be freed automatically).
+    data.logger->notice(F("step"));
+    
+    rc = sqlite3_step(stmt);
+    
+    if(rc == SQLITE_DONE) {
+      data.logger->notice(F("OK setting values in DB"));
+    } else {
+      data.logger->error(F("getting values in DB: %s"),sqlite3_errmsg(db));       
+    }
+  }
+  sqlite3_finalize(stmt);
+  data.logger->notice(F("End set values in DB"));        
+}
+
 // when activated scan the DB for unsent messages and schedule a burst
 // of messages for retrasmission
 void dbThread::data_recovery(void){
@@ -122,8 +236,15 @@ void dbThread::data_recovery(void){
     data.logger->warning(F("no space in publish queue while recovery data from DB"));   
     return;
   }
+
+  char dtstart[20];
+  time_t time=now()- SDRECOVERYTIME;
+  snprintf(dtstart,20,"%04u-%02u-%02uT%02u:%02u:%02u",
+	   year(time), month(time), day(time),
+	   hour(time), minute(time), second(time));
+  
   // select MQTT_QUEUE_BURST_RECOVERY unsent messages
-  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDER BY datetime LIMIT ?";
+  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime < strftime('%s',?) ORDER BY datetime LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -134,14 +255,21 @@ void dbThread::data_recovery(void){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc) {
-    data.logger->error(F("select recovery data from DB"));   
+    data.logger->error(F("select recovery data from DB: %s"),sqlite3_errmsg(db));   
   } else {
 
 
-  sqlite3_bind_int(
-		   stmt,                  // previously compiled prepared statement object
-		   1,                     // parameter index, 1-based
-		   (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
+    sqlite3_bind_text(
+		      stmt,                  // previously compiled prepared statement object
+		      1,                     // parameter index, 1-based
+		      dtstart,               // the data
+		      -1,                    // length of data
+		      SQLITE_STATIC);
+    
+    sqlite3_bind_int(
+		     stmt,                  // previously compiled prepared statement object
+		     2,                     // parameter index, 1-based
+		     (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
     
     while(1) {
       // fetch a row's status
@@ -181,14 +309,14 @@ bool dbThread::db_restart(){
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
   SPI.setDataMode(SPI_MODE0);
-  bool s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+  bool s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, false);
   if (!s){
     data.logger->error(F("SD begin"));       
     SD.end();
     delay(1000);
     clearSD();
     delay(1000);
-    s = SD.begin(C3SS,SPI,400000, "/sd",MAXFILE, false);
+    s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, false);
   }
 
   data.logger->notice(F("SD begin OK"));       
@@ -252,7 +380,7 @@ bool dbThread::doDb(const mqttMessage_t& message) {
     if (doc.containsKey("t")){
       strncpy(dt, doc["t"],20);
     }else{
-      data.logger->error(F("datetime missed in payload"));      
+      data.logger->error(F("datetime missed in payload"));
       return true;
     }
   } else {
@@ -332,8 +460,8 @@ void dbThread::Run() {
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
   SPI.setDataMode(SPI_MODE0);
-  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
-  if (SD.begin(C3SS,SPI,4000000, "/sd",MAXFILE, true)){
+  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
+  if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, true)){
     data.logger->notice(F("SD mount OK"));
   }else{
     data.logger->error(F("SD mount"));
@@ -447,9 +575,15 @@ void dbThread::Run() {
     if(sqlite3_db_release_memory(db)) {
       data.logger->error(F("release memory"));       
     }
+
+    // check queue for rpc recovey
+    if(data.recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) data_set_recovery();
     
     // check semaphore for data recovey
-    if(data.recoverysemaphore->Take(0)) data_recovery();
+    if(data.recoverysemaphore->Take(0)){
+      data_purge();
+      data_recovery();
+    }
 
     // checks for heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

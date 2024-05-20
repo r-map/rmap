@@ -12,6 +12,7 @@ struct publish_data_t {
   frtosLogging* logger;
   Queue* mqttqueue;
   Queue* dbqueue;
+  BinaryQueue* recoveryqueue;
   publishStatus_t* status;
   station_t* station;
   WiFiClient* mqttClient;
