@@ -234,8 +234,8 @@ uint8_t ElaborateDataTask::checkTemperature(rmapdata_t main_temperature, rmapdat
 
   #if (USE_REDUNDANT_SENSOR)
 
-  float main = ((main_temperature - 27315.0) / 100.0);
-  float redundant = ((redundant_temperature - 27315.0) / 100.0);
+  float main = (((float)main_temperature - 27315.0) / 100.0);
+  float redundant = (((float)redundant_temperature - 27315.0) / 100.0);
 
   if ((main > MAX_VALID_TEMPERATURE) || (main < MIN_VALID_TEMPERATURE)) {
     quality = 0;
@@ -348,8 +348,8 @@ uint8_t ElaborateDataTask::checkHumidity(rmapdata_t main_humidity, rmapdata_t re
 rmapdata_t ElaborateDataTask::getBetterTemperature(rmapdata_t main_temperature, rmapdata_t redundant_temperature) {
   rmapdata_t temperature;
 
-  float main = ((main_temperature - 27315.0) / 100.0);
-  float redundant = ((redundant_temperature - 27315.0) / 100.0);
+  float main = (((float)main_temperature - 27315.0) / 100.0);
+  float redundant = (((float)redundant_temperature - 27315.0) / 100.0);
 
   // main_sensor fail?
   if ((main > MAX_VALID_TEMPERATURE) || (main < MIN_VALID_TEMPERATURE)) {
@@ -442,6 +442,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // Elaboration main_temperature
   rmapdata_t main_temperature_s = 0;
+  bool ist_main_temperature_setted = false;
   float avg_main_temperature_s = 0;
   float avg_main_temperature_o = 0;
   float min_main_temperature_o = FLT_MAX;
@@ -457,6 +458,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
 
   // Elaboration main_humidity
   rmapdata_t main_humidity_s = 0;
+  bool ist_main_humidity_setted = false;
   float avg_main_humidity_s = 0;
   float avg_main_humidity_o = 0;
   float min_main_humidity_o = FLT_MAX;
@@ -604,6 +606,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
         #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
         valid_count_main_temperature_t++;
         #endif
+        ist_main_temperature_setted = true;
         avg_main_temperature_s += (float)(((float)main_temperature_s - avg_main_temperature_s) / valid_count_main_temperature_s);
       }
 
@@ -623,6 +626,7 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
         #if TRACE_LEVEL >= TRACE_LEVEL_DEBUG
         valid_count_main_humidity_t++;
         #endif
+        ist_main_humidity_setted = true;
         avg_main_humidity_s += (float)(((float)main_humidity_s - avg_main_humidity_s) / valid_count_main_humidity_s);
       }
 
@@ -686,11 +690,15 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     TRACE_DEBUG_F(F("-> %d temperature observation avaiable (%d%%)\r\n"), valid_count_main_temperature_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
-      // report.temperature.ist (already assigned)
+      // Check if external istant value data are valid
+      if(!ist_main_temperature_setted) report.temperature.ist = RMAPDATA_MAX;
       report.temperature.avg = (rmapdata_t)avg_main_temperature_o;
       if(min_main_temperature_o > FLT_MIN) report.temperature.min = (rmapdata_t)min_main_temperature_o;
       if(max_main_temperature_o < FLT_MAX) report.temperature.max = (rmapdata_t)max_main_temperature_o;
       report.temperature.quality = (rmapdata_t)avg_main_temperature_quality_o;
+    } else {
+      // Remove assigned istant value on TOP (min percentage data verified not valid)
+      report.temperature.ist = RMAPDATA_MAX;
     }
 
     // humidity, elaboration final
@@ -699,11 +707,15 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
     TRACE_DEBUG_F(F("-> %d humidity observation avaiable (%d%%)\r\n"), valid_count_main_humidity_o, (uint8_t)valid_data_calc_perc);
     if (valid_data_calc_perc >= OBSERVATION_ERROR_PERCENTAGE_MIN)
     {
-      // report.humidity.ist (already assigned)
+      // Check if external istant value data are valid
+      if(!ist_main_humidity_setted) report.humidity.ist = RMAPDATA_MAX;
       report.humidity.avg = (rmapdata_t)avg_main_humidity_o;
       if(min_main_humidity_o > FLT_MIN) report.humidity.min = (rmapdata_t)min_main_humidity_o;
       if(max_main_humidity_o < FLT_MAX) report.humidity.max = (rmapdata_t)max_main_humidity_o;
       report.humidity.quality = (rmapdata_t)avg_main_humidity_quality_o;
+    } else {
+      // Remove assigned istant value on TOP (min percentage data verified not valid)
+      report.humidity.ist = RMAPDATA_MAX;
     }
 
     // Trace report final
