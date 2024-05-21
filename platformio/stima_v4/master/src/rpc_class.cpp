@@ -173,9 +173,32 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
             }
           }
         }
-
         TRACE_INFO_F(F("RPC: DO INIT SD CARD DATA\r\n"));
       }
+    }
+    else if (strcmp(it.key().c_str(), "reginit") == 0)
+    {
+      error_command = false;
+      // Starting queue request truncate structure data on SD Card (Remote request)
+      system_message_t system_message = {0};
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_factory = true;
+      // Parameter is Node Slave ID (Command destination Node Id)
+      system_message.param = (Module_Type)it.value().as<unsigned int>();
+      param.systemMessageQueue->Enqueue(&system_message);
+      TRACE_INFO_F(F("RPC: DO FACTORY RESET ON NODE ID:%d\r\n"), system_message.param);
+    }
+    else if (strcmp(it.key().c_str(), "pgcalib") == 0)
+    {
+      error_command = false;
+      // Starting queue request truncate structure data on SD Card (Remote request)
+      system_message_t system_message = {0};
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_calib_acc = true;
+      // Parameter is Node Slave ID (Command destination Node Id)
+      system_message.param = (Module_Type)it.value().as<unsigned int>();
+      param.systemMessageQueue->Enqueue(&system_message);
+      TRACE_INFO_F(F("RPC: DO CALIBRATE ACCELEROMETER ON NODE ID:%d\r\n"), system_message.param);
     }
   }
 

@@ -728,8 +728,9 @@ rmap_service_module_Rain_Response_1_0 CanTask::processRequestGetModuleData(canar
           resp.is_redundant_error = param->system_status->events.is_redundant_error;
           resp.is_tipping_error = param->system_status->events.is_tipping_error;
 
-          // Ritorno lo stato (Copia dal comando... e versione modulo)
-          resp.state = req->parameter.command;
+          // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
+          resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)
+          if(param->system_status->flags.is_maintenance) resp.state |= CAN_FLAG_IS_MAINTENANCE_MODE;
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
 

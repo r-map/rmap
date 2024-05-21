@@ -1473,13 +1473,17 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
 
   switch (command) {
     case SLAVE_COMMAND_MAINTENANCE: {
-      // Set the flag of maintenance
+      // Set the flag of maintenance (inverted from remote read or local save value)
       param.systemStatusLock->Take();
       param.system_status->data_slave[channel].maintenance_mode = !param.system_status->data_slave[channel].maintenance_mode;
       param.systemStatusLock->Give();
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
-      system_message.command.do_maint = true;
+      if(param.system_status->data_slave[channel].maintenance_mode) {
+        system_message.command.do_maint = true;
+      } else {
+        system_message.command.undo_maint = true;
+      }
       system_message.param = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
@@ -1488,6 +1492,14 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_reset_flags = true;
+      system_message.param = channel;
+      param.systemMessageQueue->Enqueue(&system_message, 0);
+      break;
+    }
+    case SLAVE_COMMAND_DO_FACTORY: {
+      // Set the queue to send
+      system_message.task_dest = CAN_TASK_ID;
+      system_message.command.do_factory = true;
       system_message.param = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
@@ -1643,6 +1655,10 @@ const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t co
     }
     case SLAVE_COMMAND_RESET_FLAGS: {
       command_name = "Reset flags";
+      break;
+    }
+    case SLAVE_COMMAND_DO_FACTORY: {
+      command_name = "Do factory";
       break;
     }
     case SLAVE_COMMAND_CALIBRATION_ACCELEROMETER: {

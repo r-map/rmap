@@ -148,6 +148,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
 #define SENSORS_ACQUISITION_DELAY_MS      (4000)
+#define SENSORS_ACQUISITION_DELAY_MS_MIN  (200)
+#define SENSORS_ACQUISITION_DELAY_MS_MAX  (60000)
 #define OBSERVATIONS_TIME_S               (60)
 #define REPORTS_TIME_S                    (900)
 

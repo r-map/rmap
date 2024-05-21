@@ -808,8 +808,9 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
 
           TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_speed, (rmapdata_t) report_srv.vavg_speed, (rmapdata_t) report_srv.vavg10_direction);
 
-          // Ritorno lo stato (Copia dal comando... e versione modulo)
-          resp.state = req->parameter.command;
+          // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
+          resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)
+          if(param->system_status->flags.is_maintenance) resp.state |= CAN_FLAG_IS_MAINTENANCE_MODE;
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)

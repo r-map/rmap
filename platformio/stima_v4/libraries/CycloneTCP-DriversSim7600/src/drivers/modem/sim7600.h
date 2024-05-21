@@ -93,6 +93,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define AT_NO_CARRIER_STRING                                ("NO CARRIER")
 
 /*!
+\def AT_OK_STRING
+\brief AT command: ok message.
+*/
+#define AT_DISCONNETTING_STRING                             ("DISCONNECTED")
+
+/*!
 \def SIM7600_USE_ROAMING_REGISTER
 \brief try connection with roaming register network response as network registered OK
 */

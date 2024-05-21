@@ -758,8 +758,9 @@ rmap_service_module_TH_Response_1_0 CanTask::processRequestGetModuleData(canardC
           TRACE_INFO_F(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.temperature.ist, (rmapdata_t) report_srv.temperature.min, (rmapdata_t) report_srv.temperature.avg, (rmapdata_t) report_srv.temperature.max, (rmapdata_t) report_srv.temperature.quality);
           TRACE_INFO_F(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\r\n"), (rmapdata_t)report_srv.humidity.ist, (rmapdata_t)report_srv.humidity.min, (rmapdata_t)report_srv.humidity.avg, (rmapdata_t)report_srv.humidity.max, (rmapdata_t)report_srv.humidity.quality);
 
-          // Ritorno lo stato (Copia dal comando... e versione modulo)
-          resp.state = req->parameter.command;
+          // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
+          resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)
+          if(param->system_status->flags.is_maintenance) resp.state |= CAN_FLAG_IS_MAINTENANCE_MODE;
           resp.version = MODULE_MAIN_VERSION;
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)

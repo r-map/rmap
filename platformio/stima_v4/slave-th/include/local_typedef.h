@@ -88,7 +88,7 @@ typedef struct
    // DateTime Operation
    struct
    {
-      uint32_t next_ptr_time_for_sensors_reading;
+      uint32_t time_start_maintenance;
    } datetime;
 
    // Info Task && WDT

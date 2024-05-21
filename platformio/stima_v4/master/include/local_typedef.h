@@ -393,6 +393,7 @@ typedef struct
       uint8_t do_maint        : 1;  // Request maintenance
       uint8_t undo_maint      : 1;  // Remove maintenance
       uint8_t do_calib_acc    : 1;  // Request set calibration accellerometer
+      uint8_t do_factory      : 1;  // Request reset register uavcan to factory value (complete reset remote node)
       uint8_t do_reset_flags  : 1;  // Request reset remote signal/error flags
       uint8_t do_remotecfg    : 1;  // Request remote node configuration
       uint8_t do_sleep        : 1;  // Optional param for difference level Sleep

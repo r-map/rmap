@@ -106,6 +106,10 @@ using namespace cpp_freertos;
 #define MIN_TRANSACTION_HEARTBEAT_RX      (SEC_WAKE_UP_MODULE_FOR_QUERY)
 #define MIN_VALID_HEARTBEAT_RX            (20)
 
+// Bit flag return maintenance mode on state command
+#define CAN_FLAG_IS_MAINTENANCE_MODE      (0x08)
+#define CAN_FLAG_MASK_MAINTENANCE_MODE    (0x07)
+
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 

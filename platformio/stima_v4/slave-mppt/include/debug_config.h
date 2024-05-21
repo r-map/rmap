@@ -32,7 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WDT_TASK_TRACE_LEVEL                TRACE_LEVEL_INFO
 #define MPPT_SENSOR_TASK_TRACE_LEVEL        TRACE_LEVEL_VERBOSE
 #define ELABORATE_DATA_TASK_TRACE_LEVEL     TRACE_LEVEL_VERBOSE
-#define SENSOR_DRIVER_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
 
 #else
 
@@ -42,7 +41,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WDT_TASK_TRACE_LEVEL                TRACE_LEVEL_OFF
 #define MPPT_SENSOR_TASK_TRACE_LEVEL        TRACE_LEVEL_OFF
 #define ELABORATE_DATA_TASK_TRACE_LEVEL     TRACE_LEVEL_OFF
-#define SENSOR_DRIVER_TRACE_LEVEL           TRACE_LEVEL_OFF
 
 #endif
 

@@ -37,6 +37,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "drivers/module_slave_hal.hpp"
 #include "SensorDriver.h"
 
+#include <STM32RTC.h>
+
 // Register EEprom
 #include "register_class.hpp"
 
@@ -46,6 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define SUPERVISOR_TASK_GENERIC_RETRY_DELAY_MS  (5000)
 #define SUPERVISOR_TASK_GENERIC_RETRY           (3)
+
+#define SUPERVISOR_AUTO_END_MAINTENANCE_SEC     (3600ul)
 
 #include "debug_F.h"
 
@@ -86,6 +90,8 @@ private:
   void printConfiguration();
   void loadConfiguration();
   void saveConfiguration(bool is_default);
+
+  STM32RTC& rtc = STM32RTC::getInstance();
 
   SupervisorState_t state;
   SupervisorParam_t param;

@@ -128,6 +128,14 @@ void SupervisorTask::Run()
       // true if configuration ok and loaded -> 
       if (param.system_status->flags.is_cfg_loaded)
       {
+        // Security autoremove maintenance after 1 hour from calling starting method
+        if(param.system_status->flags.is_maintenance) {
+          if((rtc.getEpoch() - param.system_status->datetime.time_start_maintenance) > SUPERVISOR_AUTO_END_MAINTENANCE_SEC) {
+            param.systemStatusLock->Take();
+            param.system_status->flags.is_maintenance = false;
+            param.systemStatusLock->Give();
+          }
+        }
         // Standard SUPERVISOR_OPERATION SYSTEM CHECK...
         // ********* SYSTEM QUEUE REQUEST ***********
         // Check Queue command system status
@@ -140,6 +148,8 @@ void SupervisorTask::Run()
                 param.systemStatusLock->Take();
                 if(system_message.param != 0) {
                   param.system_status->flags.is_maintenance = true;
+                  // Save maintenance start epoch (reset automatic)
+                  param.system_status->datetime.time_start_maintenance = rtc.getEpoch();
                 } else {
                   param.system_status->flags.is_maintenance = false;
                 }

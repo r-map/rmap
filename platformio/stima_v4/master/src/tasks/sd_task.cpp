@@ -453,6 +453,9 @@ void SdTask::Run()
           #endif
         }
         dir.close();
+      } else {
+        // data is a file (error on SD structure)
+        SD.remove("/data");
       }
 
       // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
@@ -654,7 +657,9 @@ void SdTask::Run()
           }
         } else {
           // SD Pointer Error, general Openon first File...
-          // Error. Send to system_stae and retry OPEN INIT SD
+          // Pointer file not coerent, Remove and new creation starting
+          SD.remove("/data/pointer.dat");
+          SD.remove("/data");
           state = SD_STATE_INIT;
           break;
         }

@@ -92,6 +92,10 @@ using namespace cpp_freertos;
 #define CAN_SEMAPHORE_MAX_WAITING_TIME_MS (1000)
 #define FLASH_SEMAPHORE_MAX_WAITING_TIME_MS (3000)
 
+// Bit flag return maintenance mode on state command
+#define CAN_FLAG_IS_MAINTENANCE_MODE    (0x08)
+#define CAN_FLAG_MASK_MAINTENANCE_MODE  (0x07)
+
 // Debug Check Enable Function
 // #define LOG_RX_PACKET
 // #define LED_ON_SYNCRO_TIME

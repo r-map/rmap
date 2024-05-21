@@ -488,9 +488,12 @@ sim7600_status_t SIM7600::sendAtCommand(const char *command, char *response, siz
             // Wait for a response from the modem
             error = pppReceiveAtCommand(interface, response + n, response_length - n);
 
-            // Check escape sequence... Enter command Mode (OK or NO CARRIER)
+            // Check escape sequence... Enter command Mode (OK DISCONNECTED or NO CARRIER)
             bool bSeqEscapeOk = false;
             if(strncmp(command,"+++", 3)==0) {
+               if(found(response, AT_DISCONNETTING_STRING)) {
+                  bSeqEscapeOk = true;
+               }
                if(found(response, AT_NO_CARRIER_STRING)) {
                   bSeqEscapeOk = true;
                }

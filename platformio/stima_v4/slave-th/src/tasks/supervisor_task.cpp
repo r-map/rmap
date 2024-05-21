@@ -128,6 +128,14 @@ void SupervisorTask::Run()
       // true if configuration ok and loaded -> 
       if (param.system_status->flags.is_cfg_loaded)
       {
+        // Security autoremove maintenance after 1 hour from calling starting method
+        if(param.system_status->flags.is_maintenance) {
+          if((rtc.getEpoch() - param.system_status->datetime.time_start_maintenance) > SUPERVISOR_AUTO_END_MAINTENANCE_SEC) {
+            param.systemStatusLock->Take();
+            param.system_status->flags.is_maintenance = false;
+            param.systemStatusLock->Give();
+          }
+        }
         // Standard SUPERVISOR_OPERATION SYSTEM CHECK...
         // ********* SYSTEM QUEUE REQUEST ***********
         // Check Queue command system status
@@ -140,6 +148,8 @@ void SupervisorTask::Run()
                 param.systemStatusLock->Take();
                 if(system_message.param != 0) {
                   param.system_status->flags.is_maintenance = true;
+                  // Save maintenance start epoch (reset automatic)
+                  param.system_status->datetime.time_start_maintenance = rtc.getEpoch();
                 } else {
                   param.system_status->flags.is_maintenance = false;
                 }
@@ -309,6 +319,8 @@ void SupervisorTask::loadConfiguration()
       param.configuration->sensors_count = val.natural8.value.elements[0];
       param.configurationLock->Give();
     }
+    // Check sensor_count (valid if >0)
+    if(!param.configuration->sensors_count) register_config_valid = false;
   }
 
   // Reading RMAP Module sensor delay acquire -> (READ/WRITE)
@@ -329,6 +341,10 @@ void SupervisorTask::loadConfiguration()
       param.configuration->sensor_acquisition_delay_ms = val.natural32.value.elements[0];
       param.configurationLock->Give();
     }
+    // Check limit delay from task acquire
+    if((param.configuration->sensor_acquisition_delay_ms < SENSORS_ACQUISITION_DELAY_MS_MIN)||
+        (param.configuration->sensor_acquisition_delay_ms > SENSORS_ACQUISITION_DELAY_MS_MAX))
+     register_config_valid = false;
   }
 
   // Reading RMAP Module sensor address -> (READ/WRITE)
@@ -487,6 +503,9 @@ void SupervisorTask::saveConfiguration(bool is_default)
   // Load default value to WRITE into config base
   if(is_default) {
 
+    // Reinit Configuration with default classic value
+    TRACE_INFO_F(F("Required initial default configuration, restore user define value\r\n"));
+
     param.configurationLock->Take();
 
     param.configuration->module_main_version = MODULE_MAIN_VERSION;
@@ -515,6 +534,7 @@ void SupervisorTask::saveConfiguration(bool is_default)
     sensor_count++;
     #endif
     #endif
+    param.configuration->sensors_count = sensor_count;
 
     // Acquisition time sensor default
     param.configuration->sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
@@ -605,11 +625,10 @@ void SupervisorTask::saveConfiguration(bool is_default)
   // Writing RMAP Module sensor count -> (READ)
   // uint8_t sensors_count
   // Select type register (uint_8)
-  sensor_count = 0;
   uavcan_register_Value_1_0_select_natural8_(&val);
   val.natural8.value.count = 1;
   param.configurationLock->Take();
-  val.natural8.value.elements[0] = sensor_count;
+  val.natural8.value.elements[0] = param.configuration->sensors_count;
   param.configurationLock->Give();
   param.registerAccessLock->Take();
   param.clRegister->write("rmap.module.sensor.count", &val);
