@@ -35,8 +35,8 @@ class report2observation(object):
 
     self.mqtt_host=mqtt_host
     self.subtopics=subtopics
-    self.client_id = "report2observation_%d" % (os.getpid())
-    self.mqttc = paho.Client(self.client_id, clean_session=True)
+    self.client_id = "report2observation"
+    self.mqttc = paho.Client(self.client_id, clean_session=False)
     self.terminateevent=terminate
     self.mqttuser=mqttuser
     self.mqttpassword=mqttpassword
@@ -148,7 +148,7 @@ class report2observation(object):
           return
 
       logging.info("user={} ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
-      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.debug,qos=0,version=version)  # attention qos 0 for fast publish
+      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.info,qos=0,version=version)  # attention qos 0 for fast publish
 
       mqtt.connect()
       

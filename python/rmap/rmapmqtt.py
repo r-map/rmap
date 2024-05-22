@@ -128,7 +128,12 @@ class rmapmqtt:
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
-            self.loop()
+            last=time.time()
+            while (not self.connected and ((time.time()-last) < 10)):
+                   self.loop(1)
+            if not self.connected:
+                   raise Exception("cannot connect")
+                   
         except Exception as inst:
             self.error(inst)
 
@@ -164,12 +169,16 @@ class rmapmqtt:
         self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=self.qos,retain=retain)
         rc,self.mid=self.messageinfo
         last=time.time()
-        while (((time.time()-last) < timeout) and (self.messageinfo.is_published() == False)):
-            if (not self.loop_started):
-                self.loop(.1)
-            else:
-                self.messageinfo.wait_for_publish()
-        
+        try:
+            while (((time.time()-last) < timeout) and (self.messageinfo.is_published() == False)):
+                if (not self.loop_started):
+                    self.loop(.1)
+                else:
+                    self.messageinfo.wait_for_publish()
+
+        except Exception as inst:
+            self.error(inst)
+                
         if rc != mqtt.MQTT_ERR_SUCCESS:
             return rc
         if (self.qos == 0 ):
