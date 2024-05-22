@@ -34,10 +34,12 @@ class dbThread : public Thread {
  private:
   bool doDb(const mqttMessage_t& );
   int db_exec( const char*);
+  bool db_obsolete();
+  bool db_remove();
   void db_setup();
-  void data_purge();
-  void data_recovery();
-  void data_set_recovery();
+  bool data_purge(int messages);
+  bool data_recovery();
+  bool data_set_recovery();
   bool db_restart();
   db_data_t data;
   sqlite3 *db;

@@ -84,7 +84,7 @@
 #define MAXFILE 5
 
 // time in seconds saved on SD card for archive and recovery
-#define SDRECOVERYTIME (3600*24*7)
+#define SDRECOVERYTIME (3600*24*1)
 
 /*
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html

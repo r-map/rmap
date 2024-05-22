@@ -20,14 +20,14 @@ void clearSD ()
     SPI.beginTransaction(SPISettings(SPICLOCK, MSBFIRST, SPI_MODE0));
     sd = SPI.transfer(0XFF);
     SPI.endTransaction();
-    Serial.print("sd=");
-    Serial.println(sd);
+    //Serial.print("sd=");
+    //Serial.println(sd);
   }
   digitalWrite(C3SS, HIGH);
 }
 
 // callback for data returned by sqlite
-static int callback(void* data, int argc, char **argv, char **azColName) {
+static int db_exec_callback(void* data, int argc, char **argv, char **azColName) {
   int i;
   for (i = 0; i<argc; i++){
     ((db_data_t *)data)->logger->notice(F("SQL result %s = %s"), azColName[i], argv[i] ? argv[i] : "NULL");
@@ -40,7 +40,7 @@ int dbThread::db_exec( const char *sql) {
   char *zErrMsg = 0;
   data.logger->notice(F("SQL exec: %s"),sql);
   long start = millis();
-  int rc = sqlite3_exec(db, sql, callback, &data, &zErrMsg);
+  int rc = sqlite3_exec(db, sql, db_exec_callback, &data, &zErrMsg);
   if (rc != SQLITE_OK) {
     data.logger->notice(F("SQL error: %s"), zErrMsg);
     sqlite3_free(zErrMsg);
@@ -49,6 +49,52 @@ int dbThread::db_exec( const char *sql) {
   }
   data.logger->notice(F("SQL time taken: %l"),millis()-start);
   return rc;
+}
+
+// callback for data returned by sqlite
+static int db_obsolete_callback(void* result, int argc, char **argv, char **azColName) {
+  time_t time=now() - SDRECOVERYTIME;
+  //Serial.println(time);  
+  //Serial.println(atoi(argv[0]));
+  if (argv[0] != NULL ) {
+    *(bool *)result = (atoi(argv[0]) < time);
+  } else {
+    *(bool *)result = false;
+  }
+  return 0;
+}
+
+// execute one SQL sentence
+bool dbThread::db_obsolete() {
+  char *zErrMsg = 0;
+  char sql[] = "SELECT MAX(datetime) FROM messages";
+  data.logger->notice(F("SQL exec: %s"),sql);
+  long start = millis();
+  bool obsolete;
+  int rc = sqlite3_exec(db, sql, db_obsolete_callback, &obsolete, &zErrMsg);
+  if (rc != SQLITE_OK) {
+    data.logger->notice(F("SQL error: %s"), zErrMsg);
+    sqlite3_free(zErrMsg);
+    obsolete=false;
+  } else {
+    data.logger->notice(F("SQL operation done successfully"));
+  }
+
+  if (obsolete){
+
+    rc=db_remove();
+    /*
+    data.logger->notice(F("DROP TABLE"));    
+    rc = db_exec("DROP TABLE messages");
+
+    if (rc == SQLITE_OK){
+      rc = db_exec("CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))");
+    }
+  }
+  data.logger->notice(F("SQL time taken: %l"),millis()-start);
+    */
+  }
+  return rc == SQLITE_OK;
 }
 
 // setup the databse opened by sqlite
@@ -95,7 +141,7 @@ void dbThread::db_setup(){
   // The journal_size_limit pragma may be used to limit the size of
   // rollback-journal and WAL files left in the file-system after
   // transactions or checkpoints.
-  if(db_exec("PRAGMA journal_size_limit = 10000 ;") != SQLITE_OK) {
+  if(db_exec("PRAGMA journal_size_limit = 1000000 ;") != SQLITE_OK) {
     data.logger->error(F("pragma journal_size_limit"));       
   }
 
@@ -103,7 +149,7 @@ void dbThread::db_setup(){
   // the rollback journal to zero-length instead of deleting it. On
   // many systems, truncating a file is much faster than deleting the
   // file since the containing directory does not need to be changed.
-  if(db_exec("PRAGMA journal_mode = TRUNCATE;") != SQLITE_OK) {
+  if(db_exec("PRAGMA journal_mode = DELETE;") != SQLITE_OK) {
     data.logger->error(F("pragma journal_mode"));       
   }
 }
@@ -111,14 +157,14 @@ void dbThread::db_setup(){
 
 // set data in specific datetime range as unset for recovery
 // of messages for retrasmission
-void dbThread::data_purge(void){
+bool dbThread::data_purge(int nmessages=100){
   int rc;
 
   data.logger->notice(F("Start purge"));       
 
   //char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?)";
-  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT 100";
   //char sql[] = "DELETE FROM messages WHERE pk IN (SELECT pk FROM messages WHERE datetime < strftime('%s',?) LIMIT 100)";
+  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT ?";
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
 			db,             // the handle to your (opened and ready) database
@@ -127,7 +173,7 @@ void dbThread::data_purge(void){
 			&stmt,          // this is an "out" parameter, the compiled statement goes here
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
-  if(rc) {
+  if(rc != SQLITE_OK) {
     data.logger->error(F("purge data in DB: %s"),sqlite3_errmsg(db));
   } else {
 
@@ -150,24 +196,31 @@ void dbThread::data_purge(void){
                                              // It can be null if the data doesn't need to be freed, or like in this case,
                                              // special value SQLITE_STATIC (data will be freed automatically).
 
+    sqlite3_bind_int(
+		     stmt,                  // previously compiled prepared statement object
+		     2,                     // parameter index, 1-based
+		     (int)nmessages);       // the data
+
     data.logger->notice(F("step"));
     
     rc = sqlite3_step(stmt);
     
     if(rc == SQLITE_DONE) {
       data.logger->notice(F("OK purge values in DB"));
-    } else {
+      rc  = SQLITE_OK;
+  } else {
       data.logger->error(F("purge values in DB: %s"),sqlite3_errmsg(db));       
     }
   }
   sqlite3_finalize(stmt);
   data.logger->notice(F("End purge values in DB"));        
+  return rc  == SQLITE_OK;
 }
 
 
 // set data in specific datetime range as unset for recovery
 // of messages for retrasmission
-void dbThread::data_set_recovery(void){
+bool dbThread::data_set_recovery(void){
   int rc;
 
   data.logger->notice(F("Start set recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
@@ -183,7 +236,7 @@ void dbThread::data_set_recovery(void){
 			&stmt,          // this is an "out" parameter, the compiled statement goes here
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
-  if(rc) {
+  if(rc != SQLITE_OK) {
     data.logger->error(F("update set recovery data in DB"));
   } else {
 
@@ -216,17 +269,19 @@ void dbThread::data_set_recovery(void){
     
     if(rc == SQLITE_DONE) {
       data.logger->notice(F("OK setting values in DB"));
+      rc  = SQLITE_OK;
     } else {
       data.logger->error(F("getting values in DB: %s"),sqlite3_errmsg(db));       
     }
   }
   sqlite3_finalize(stmt);
   data.logger->notice(F("End set values in DB"));        
+  return rc  == SQLITE_OK;
 }
 
 // when activated scan the DB for unsent messages and schedule a burst
 // of messages for retrasmission
-void dbThread::data_recovery(void){
+bool dbThread::data_recovery(void){
   int rc;
   mqttMessage_t message;
 
@@ -234,7 +289,7 @@ void dbThread::data_recovery(void){
 
   if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
     data.logger->warning(F("no space in publish queue while recovery data from DB"));   
-    return;
+    return false;
   }
 
   char dtstart[20];
@@ -244,7 +299,7 @@ void dbThread::data_recovery(void){
 	   hour(time), minute(time), second(time));
   
   // select MQTT_QUEUE_BURST_RECOVERY unsent messages
-  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime < strftime('%s',?) ORDER BY datetime LIMIT ?";
+  char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime > strftime('%s',?) ORDER BY datetime LIMIT ?";
     
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
@@ -254,7 +309,7 @@ void dbThread::data_recovery(void){
 			&stmt,          // this is an "out" parameter, the compiled statement goes here
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
-  if(rc) {
+  if(rc != SQLITE_OK) {
     data.logger->error(F("select recovery data from DB: %s"),sqlite3_errmsg(db));   
   } else {
 
@@ -284,6 +339,7 @@ void dbThread::data_recovery(void){
 	  data.logger->error(F("Message recovery recovery for publish : %s ; %s"),  message.topic, message.payload);
 	}
       } else if(rc == SQLITE_DONE) {
+	rc  = SQLITE_OK;
 	break;
       } else {
 	data.logger->error(F("getting values from DB: %s"),sqlite3_errmsg(db));       
@@ -293,7 +349,43 @@ void dbThread::data_recovery(void){
     sqlite3_finalize(stmt);
   } 
   data.logger->notice(F("End recovery from DB"));        
+  return rc == SQLITE_OK;
 }
+
+
+bool dbThread::db_remove(){
+
+  // close sqlite3 DB, SDcard
+  data.logger->notice(F("close DB"));       
+  sqlite3_close_v2(db);
+
+  data.logger->notice(F("remove DB from SDcard"));       
+  SD.remove("/stima.db");
+
+  if (sqlite3_open("/sd/stima.db", &db)==SQLITE_OK){
+    data.logger->notice(F("DB begin OK"));       
+    // create table
+    db_exec("CREATE TABLE IF NOT EXISTS messages ( sent INT NOT NULL, datetime INT NOT NULL, topic TEXT NOT NULL , payload TEXT NOT NULL, PRIMARY KEY(datetime,topic))");
+
+    // create index on datetime
+    db_exec("CREATE INDEX ts ON messages(datetime)");
+
+    // create index on sent
+    db_exec("CREATE INDEX status ON messages(sent)");
+
+    // setup for the DB
+    db_setup();
+    return true;
+  }else{
+    data.logger->error(F("DB open: %s"),sqlite3_errmsg(db));       
+    // close open things
+    sqlite3_close_v2(db);
+    SD.end();
+    data.status->database=error;
+    return false;
+  }
+}
+
 
 
 // re/start SDcard and sqlite management
@@ -559,7 +651,13 @@ void dbThread::Run() {
   if (rc != SQLITE_OK) {
     data.logger->error(F("select to send in DB"));
   }
-    
+
+  if (!db_obsolete()) data.logger->error(F("cheking obsolete DB"));
+  /*
+  for (uint8_t i=0; i < 5000; i++){
+    if (!data_purge(100)) data.logger->error(F("purge DB"));
+  }
+  */
   data.status->database=ok;
   sqlite_status=true;
   
@@ -581,8 +679,8 @@ void dbThread::Run() {
     
     // check semaphore for data recovey
     if(data.recoverysemaphore->Take(0)){
-      data_purge();
-      data_recovery();
+      if (!data_purge(1000)) data.logger->error(F("purge DB"));
+      if(!data_recovery()) data.logger->error(F("recovery DB"));
     }
 
     // checks for heap and stack
