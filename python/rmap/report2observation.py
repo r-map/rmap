@@ -36,7 +36,7 @@ class report2observation(object):
     self.mqtt_host=mqtt_host
     self.subtopics=subtopics
     self.client_id = "report2observation"
-    self.mqttc = paho.Client(self.client_id, clean_session=False)
+    self.mqttc = paho.Client(self.client_id, clean_session=False)   # with qos 1
     self.terminateevent=terminate
     self.mqttuser=mqttuser
     self.mqttpassword=mqttpassword
@@ -77,7 +77,7 @@ class report2observation(object):
 
     for topic in self.subtopics:
         logging.debug("Subscribing to topic %s" % topic)
-        self.mqttc.subscribe(topic, 0)
+        self.mqttc.subscribe(topic, 1)   # qos 1
 
   def on_publish(self,mosq, userdata, mid):
     logging.debug("pubblish %s with id %s" % (userdata, mid))
