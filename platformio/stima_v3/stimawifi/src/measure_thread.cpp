@@ -62,14 +62,14 @@ void get_summary_data(sensorManage sensorm,measure_data_t &data) {
       }
     }
   }else{
-    data.logger->error(F("display_values deserialization ERROR"));
+    data.logger->error(F("measure display_values deserialization ERROR"));
   }
 
-  data.logger->notice(F("get temperature: %D"),data.summarydata->temperature);
-  data.logger->notice(F("get humidity: %d"),data.summarydata->humidity);
-  data.logger->notice(F("get PM2: %d"),data.summarydata->pm2);
-  data.logger->notice(F("get PM10: %d"),data.summarydata->pm10);
-  data.logger->notice(F("get CO2: %d"),data.summarydata->co2);
+  data.logger->notice(F("measure get temperature: %D"),data.summarydata->temperature);
+  data.logger->notice(F("measure get humidity: %d"),data.summarydata->humidity);
+  data.logger->notice(F("measure get PM2: %d"),data.summarydata->pm2);
+  data.logger->notice(F("measure get PM10: %d"),data.summarydata->pm10);
+  data.logger->notice(F("measure get CO2: %d"),data.summarydata->co2);
 
 }
 
@@ -80,15 +80,15 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 
   mqtt_message.sent=0;
   
-  data.logger->notice(F("have to publish: %s"),values);
+  data.logger->notice(F("measure have to publish: %s"),values);
   DeserializationError deerror = deserializeJson(doc,values);
   if (deerror) {
-    data.logger->error(F("reading json data: %s"),deerror.c_str());
+    data.logger->error(F("measure reading json data: %s"),deerror.c_str());
     return;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
-      data.logger->error(F("novalue error"));
+      data.logger->error(F("measure novalue error"));
       data.status->novalue=error;
       continue;
     }
@@ -117,7 +117,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       data.georef->mutex->Unlock();      
       data.status->geodef=ok;
     } else {
-      data.logger->error(F("georef undefined"));
+      data.logger->error(F("measure georef undefined"));
       data.status->geodef=error;      
       return;
     }
@@ -142,12 +142,17 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 	       hour(messagetime), minute(messagetime), second(messagetime));
       strcat(mqtt_message.payload,jsontime);
     }else{
-      data.logger->error(F("time not set or needs sync"));
+      data.logger->error(F("measure time not set or needs sync"));
       strcat(mqtt_message.payload,"}");
     }
-    data.logger->notice(F("Enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+    data.logger->notice(F("measure enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
     if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data.logger->error(F("lost message for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      data.logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      if(data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+	data.logger->notice(F("measure enqueue archive message"));
+      }else{
+	data.logger->error(F("measure lost message for db archive : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      }
     }
   }
 }
@@ -168,7 +173,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   // each sensor can do one or more measure
 
   // start to initialize sensorm
-  data.logger->notice(F("doMeasure --> sensors_count: %d"),data.sensors_count);
+  data.logger->notice(F("measure --> sensors_count: %d"),data.sensors_count);
   for (uint8_t i = 0; i < data.sensors_count; i++) {
     sensorm[i].setTest(false);  // this is real measure, no test
     sensorm[i].setEventRead();  // start machine for read with this event
@@ -178,14 +183,14 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   while (true){
     // run measurements
     for (uint8_t i = 0; i < data.sensors_count; i++) {
-      //data.logger->notice(F("doMeasure --> run sensor: %d"),i);
+      //data.logger->notice(F("measure --> run sensor: %d"),i);
       data.i2cmutex->Lock();
       sensorm[i].run();
       data.i2cmutex->Unlock();
 
       // this machine is ready for data get
       if (sensorm[i].getDataReady()){
-	data.logger->notice(F("JSON %s %s %d -> %s"),
+	data.logger->notice(F("measure JSON %s %s %d -> %s"),
 			    sensorm[i].getSensorDriver()->getDriver(),
 			    sensorm[i].getSensorDriver()->getType(),
 			    sensorm[i].getSensorDriver()->getAddress(),
@@ -211,7 +216,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
       for (uint8_t i = 0; i < data.sensors_count; i++) {
 	//check for error
 	if(sensorm[i].getErrorStatus()){
-	  data.logger->error(F("sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
+	  data.logger->error(F("measure sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
 	  data.status->sensor=error;
 	}
 	// prepare sensor manager machine for a new measure
@@ -250,16 +255,16 @@ void measureThread::Begin()
   // create one driver for each sensor
   uint8_t tmp_count=0;
   for (uint8_t i = 0; i < data->sensors_count; i++) {
-    //data.logger->notice(F("create --> %d: %s-%s [ 0x%x ]"), i,sensors[i].driver,sensors[i].type, sensors[i].address);
+    //data.logger->notice(F("measure create --> %d: %s-%s [ 0x%x ]"), i,sensors[i].driver,sensors[i].type, sensors[i].address);
     SensorDriver::createAndSetup(data->sensors[i].driver,data->sensors[i].type, data->sensors[i].address, 1, sd, tmp_count);
     if (sd[i]){
-      data->logger->notice(F("created --> %d: %s-%s [ 0x%x ]: [ %s ]"), i,
+      data->logger->notice(F("measure created --> %d: %s-%s [ 0x%x ]: [ %s ]"), i,
 			   sd[i]->getDriver(),
 			   sd[i]->getType(),
 			   sd[i]->getAddress(),
 			   sd[i]->isSetted() ? OK_STRING : FAIL_STRING);
     }else{
-      data->logger->error(F("sensor driver not created"));
+      data->logger->error(F("measure sensor driver not created"));
     }
     // begin sensor manager state machines with one driver each
     sensorm[i].begin(sd[i]);
@@ -285,8 +290,8 @@ void measureThread::Run() {
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    //data->logger->notice("stack measure: %d",uxTaskGetStackHighWaterMark(NULL));
-    if (uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error("stack measure");
+    //data->logger->notice("measure stack: %d",uxTaskGetStackHighWaterMark(NULL));
+    if (uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error("measure stack");
   }
 };
   

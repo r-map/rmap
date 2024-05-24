@@ -56,7 +56,7 @@ db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&recoveryQ
 dbThread threadDb(db_data);
 
 station_t station;
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
 measureThread threadMeasure(&measure_data);
 
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.publish,&station,&mqttClient};

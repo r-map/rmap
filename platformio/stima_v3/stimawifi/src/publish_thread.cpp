@@ -6,7 +6,7 @@ bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACK
   mqttclient.disconnect();
   //mqttclient.setMessageHandler(comtopic, NULL); // remove handler setted
   ipstack.disconnect();
-  data.logger->notice(F("MQTT Disconnectted"));
+  data.logger->notice(F("publish MQTT Disconnectted"));
   return true;
 }
 
@@ -14,13 +14,13 @@ bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACK
 // connect to MQTT broker setting will message
 bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const bool cleanSession=true) {
 
-  if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
+  if (WiFi.status() != WL_CONNECTED) data.logger->error(F("publish WIFI disconnected!"));
 
   bool returnstatus = ipstack.connect(data.station->mqtt_server, MQTT_SERVER_PORT);
   if (returnstatus){
-    data.logger->notice(F("IPstack connected"));
+    data.logger->notice(F("publish IPstack connected"));
   } else {
-    data.logger->error(F("IPstack connect failed"));
+    data.logger->error(F("publish IPstack connect failed"));
     return returnstatus;
   }
   
@@ -65,66 +65,66 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   options.cleansession = cleanSession;
   options.keepAliveInterval = 60;
     
-  data.logger->notice(F("MQTT clientID: %s"), options.clientID.cstring);
-  data.logger->notice(F("MQTT will topic: %s"), options.will.topicName.cstring);
-  data.logger->notice(F("MQTT will payload: %s"), options.will.message.cstring);
-  data.logger->notice(F("MQTT cleansession: %s"), options.cleansession ? "true" : "false");
-  data.logger->notice(F("MQTT server: %s"), data.station->mqtt_server);
-  data.logger->notice(F("MQTT keepAliveInterval: %d"), options.keepAliveInterval);
-  data.logger->notice(F("MQTT user: %s"), options.username.cstring);
-  data.logger->notice(F("MQTT password: %s"), options.password.cstring);
+  data.logger->notice(F("publish MQTT clientID: %s"), options.clientID.cstring);
+  data.logger->notice(F("publish MQTT will topic: %s"), options.will.topicName.cstring);
+  data.logger->notice(F("publish MQTT will payload: %s"), options.will.message.cstring);
+  data.logger->notice(F("publish MQTT cleansession: %s"), options.cleansession ? "true" : "false");
+  data.logger->notice(F("publish MQTT server: %s"), data.station->mqtt_server);
+  data.logger->notice(F("publish MQTT keepAliveInterval: %d"), options.keepAliveInterval);
+  data.logger->notice(F("publish MQTT user: %s"), options.username.cstring);
+  data.logger->notice(F("publish MQTT password: %s"), options.password.cstring);
     
   MQTT::connackData connack;
   returnstatus = mqttclient.connect(options,connack);
   if (returnstatus == 0){
-    data.logger->notice(F("mqttclient connected"));
+    data.logger->notice(F("publish mqttclient connected"));
   } else {
-    data.logger->notice(F("mqttclient connect failed"));
+    data.logger->notice(F("publish mqttclient connect failed"));
     return returnstatus == 0;
   }
   
-  data.logger->notice(F("MQTT sessionPresent: %T"), connack.sessionPresent);
+  data.logger->notice(F("publish MQTT sessionPresent: %T"), connack.sessionPresent);
   
   returnstatus=false;
   switch (connack.rc)
     {
     case 0:
-      data.logger->notice(F("Connection accepted"));
+      data.logger->notice(F("publish Connection accepted"));
       returnstatus=true;
       break;
     case 1:
-      data.logger->error(F("Connection Refused"));
-      data.logger->notice(F("The Server does not support the level of the MQTT protocol requested by the Client"));
+      data.logger->error(F("publish Connection Refused"));
+      data.logger->notice(F("publish The Server does not support the level of the MQTT protocol requested by the Client"));
       break;
       
     case 2:
-      data.logger->error(F("Connection Refused"));
-      data.logger->notice(F("The Client identifier is correct UTF-8 but not allowed by the Server"));
+      data.logger->error(F("publish Connection Refused"));
+      data.logger->notice(F("publish The Client identifier is correct UTF-8 but not allowed by the Server"));
       break;
        
     case 3:
-      data.logger->error(F("Connection Refused"));
-      data.logger->notice(F("The Network Connection has been made but the MQTT service is unavailable"));
+      data.logger->error(F("publish Connection Refused"));
+      data.logger->notice(F("publish The Network Connection has been made but the MQTT service is unavailable"));
       break;
       
     case 4:
-      data.logger->error(F("Connection Refused"));
-      data.logger->notice(F("bad user name or password"));
+      data.logger->error(F("publish Connection Refused"));
+      data.logger->notice(F("publish bad user name or password"));
       break;
       
     case 5:
-      data.logger->error(F("Connection Refused"));
-      data.logger->notice(F("not authorized"));
+      data.logger->error(F("publish Connection Refused"));
+      data.logger->notice(F("publish not authorized"));
       break;
       
     default:
-      data.logger->error(F("unknow connect respose"));
-      data.logger->notice(F("RC Reserved for future use"));
+      data.logger->error(F("publish unknow connect respose"));
+      data.logger->notice(F("publish RC Reserved for future use"));
       break;
     }
 
   if (connack.sessionPresent && (connack.rc != 0)){
-    data.logger->error(F("inconsistent connect respose and session present "));
+    data.logger->error(F("publish inconsistent connect respose and session present "));
   }
   return returnstatus;
 }
@@ -139,7 +139,7 @@ bool mqttPublish(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttcli
     tx_message.payload = (void*) mqtt_message.payload;
     tx_message.payloadlen = strlen(mqtt_message.payload);
 
-    data.logger->notice(F("Publish: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    data.logger->notice(F("publish Publish: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     
     MQTT::returnCode rc = (MQTT::returnCode) mqttclient.publish(mqtt_message.topic, tx_message);
     switch (rc){
@@ -225,12 +225,12 @@ void archive( publish_data_t& data) {
   if (data.mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue the message and archive
     mqtt_message.sent=0;
     if(data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data.logger->notice(F("enqueue archive message"));
+      data.logger->notice(F("publish enqueue for db"));
     }else{
-      data.logger->error(F("lost message for db archive : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      data.logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     }
   }else{
-    data.logger->error(F("dequeue mqtt message"));
+    data.logger->error(F("publish dequeue mqtt message"));
   }
  }
 
@@ -246,42 +246,47 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
       data.status->connect=ok;
       if (strcmp(data.station->ident,"") == 0){
 	if (!publish_maint(mqttclient,data)) {
-	  data.logger->error(F("Error in publish maint"));
+	  data.logger->error(F("publish Error in publish maint"));
 	  data.status->publish=error;
 	}else{
-	  data.logger->notice(F("Published maint"));
+	  data.logger->notice(F("publish Published maint"));
 	  data.status->publish=ok;      
 	}
 	if (!publish_constantdata(mqttclient,data)) {
-	  data.logger->error(F("Error in publish constant data"));
+	  data.logger->error(F("publish Error in publish constant data"));
 	  data.status->publish=error;
 	}else{
-	  data.logger->notice(F("Published constant data"));
+	  data.logger->notice(F("publish Published constant data"));
 	  data.status->publish=ok;
 	}
       }
     } else {
       data.status->connect=error;
-      data.logger->error(F("MQTT connect failed"));
+      data.logger->error(F("publish MQTT connect failed"));
       data.status->publish=error;
     }
   }
 
   mqttMessage_t tmp_mqtt_message;  
+  data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));
+
+  mqtt_message.sent=0;
   if (mqttclient.isConnected()){
     if(mqttPublish( mqttclient, data, mqtt_message,false)){
-      data.status->publish=ok;
-      data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message and archive
-      mqtt_message.sent=1;
-    }else{
-      data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));  // dequeue the message and archive for future send
-      mqtt_message.sent=0;
+      mqtt_message.sent=1;  // all done: archive
+    } else {
       mqttDisconnect(ipstack,mqttclient, data);
-      data.status->publish=error;
     }
-    if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data.logger->error(F("lost message for db publish : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-    }
+  }
+
+  if ( mqtt_message.sent == 1 ){
+    data.status->publish=ok;
+  } else {
+    data.status->publish=error;
+  }
+  
+  if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+    data.logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
   }
 }
 
@@ -350,15 +355,15 @@ void publishThread::Run() {
       }
     }
 
-    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("WIFI disconnected!"));
+    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("publish WIFI disconnected!"));
     
-    data.logger->notice(F("publish queue space left %d"),data.mqttqueue->NumSpacesLeft());
+    data.logger->notice(F("publish mqtt queue space left %d"),data.mqttqueue->NumSpacesLeft());
 
     // check heap and stack
     //data.logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data.logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data.logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
-    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data.logger->error(F("stack publish"));
+    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data.logger->error(F("publish stack"));
   }
 };
 

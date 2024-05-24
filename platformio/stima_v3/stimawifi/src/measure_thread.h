@@ -7,6 +7,7 @@ struct measure_data_t {
   int id;
   frtosLogging* logger;
   Queue* mqttqueue;
+  Queue* dbqueue;
   measureStatus_t* status;
   station_t* station;
   summarydata_t* summarydata;
