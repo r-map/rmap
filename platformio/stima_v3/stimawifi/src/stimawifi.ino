@@ -51,20 +51,28 @@ vengono generati, in caso contrario no.
 Il frusso dei dati nelle code è il seguente:
 
 i dati e metadati sono generati da threadMeasure e accodati nella coda
-mqttqueue per la pubblicazione, ricevuti da threadPublish.
+mqttqueue per la pubblicazione, ricevuti da threadPublish; se non c'è spazio
+vanno dirattamente nella coda dbqueue per l'archiviazione su SD card.
 threadMeasure è attivato periodicamente.  threadPublish prova la
 pubblicazione MQTT, in ogni caso dopo un tentativo vengono accodati
 per l'archiviazione nella coda dbqueue flaggati relativamente al
-risultato della pubblicazione.  Se threadMeasure trova la coda
-mqttqueue con poco spazio invia i dati direttamente alla coda dbqueue
-per l'archiviazione.  Il thread threadDb viene attivato periodicamente
+risultato della pubblicazione.  Dopo il tenativo di invio al broker MQTT
+i dati vengono inviati alla coda dbqueue per l'archiviazione.
+Il thread threadDb gestisce la scrittura dei dati con eventuale
+sovrascrittura nel database.
+Il thread threadDb viene attivato periodicamente
 per recuperare l'invio dei dati archiviati e non ancora trasmessi
 inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
 sufficiente spazio nella coda. Il thread threadDb esegue a priorità
 più alta degli altri per garanetire l'archiviazione in tempi utili per
-non riempire le code. Ogni thread ha una struttura dati che descrive
+non riempire le code.
+I dati vengo continuamente ripuliti eliminando dal database i dati
+più vecchi. Se all'avvio i dati presenti nel db risultano essere
+tutti vecchi l'intero DB viene rinomitato e ricreato vuoto.
+Ogni thread ha una struttura dati che descrive
 lo stato di funzionamento. Il thread loop di arduino effettua una
-sintesi degli stati di tutti i thread.
+sintesi degli stati di tutti i thread e li visualizza tramite i
+colori del LED e tramite il display opzionale.
 
 Threads
 
@@ -1080,7 +1088,7 @@ void setup() {
       u8g2.setCursor(0, 4*CH); 
       u8g2.print(F(WIFI_PASSWORD));
       u8g2.sendBuffer();
-    }
+  }
 
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
