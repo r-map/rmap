@@ -43,7 +43,8 @@ extern "C" void CAN1_RX0_IRQHandler(void) {
 }
 
 // ***************** ISR READ RX CAN_BUS, BUFFER RX SETUP ISR, CALLBACK *****************
-// Gestita come coda FIFO (In sostituzione interrupt bxCAN non funzionante correttamente)
+
+/// @brief Gestita come coda FIFO (In sostituzione interrupt bxCAN non funzionante correttamente)
 extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
     uint8_t testElement = __CAN1_RX0_IRQHandler_PTR->wr_ptr + 1;

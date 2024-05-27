@@ -30,6 +30,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Ntp Task:: Ntp Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param ntpParam parameters for the task
 NtpTask::NtpTask(const char *taskName, uint16_t stackSize, uint8_t priority, NtpParam_t ntpParam) : Thread(taskName, stackSize, priority), param(ntpParam)
 {
   // Start WDT controller and TaskState Flags
@@ -96,6 +101,7 @@ void NtpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void NtpTask::Run() {
   uint8_t retry;
   bool is_error;

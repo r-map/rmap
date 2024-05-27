@@ -357,11 +357,9 @@ uint64_t StimaV4GetSerialNumber(void) {
 // ********************************************************************************************
 // *******************************************************************************************/
 #if (ENABLE_CAN)
-/**
-  * @brief CAN1 Initialization Function
-  * @param None
-  * @retval None
-  */
+/// @brief CAN1 Initialization Function
+/// @param None
+/// @retval None
 void MX_CAN1_Init(void)
 {
   CAN_FilterTypeDef CAN_FilterInitStruct;
@@ -402,11 +400,9 @@ void MX_CAN1_Init(void)
 #endif
 
 #if (ENABLE_QSPI)
-/**
-  * @brief QUADSPI Initialization Function
-  * @param None
-  * @retval None
-  */
+/// @brief QUADSPI Initialization Function
+/// @param None
+/// @retval None
 void MX_QUADSPI_Init(void)
 {
   /* USER CODE BEGIN QUADSPI_Init 0 */
@@ -436,11 +432,9 @@ void MX_QUADSPI_Init(void)
 }
 #endif
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+/// @brief GPIO Initialization Function
+/// @param None
+/// @retval None
 void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -626,12 +620,9 @@ extern "C" void HAL_MspInit(void)
 }
 
 #if (ENABLE_CAN)
-/**
-* @brief CAN MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hcan: CAN handle pointer
-* @retval None
-*/
+/// @brief CAN MSP Initialization. This function configures the hardware resources used in this example
+/// @param hcan: CAN handle pointer
+/// @retval None
 extern "C" void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -672,12 +663,9 @@ extern "C" void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
   }
 }
 
-/**
-* @brief CAN MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hcan: CAN handle pointer
-* @retval None
-*/
+/// @brief CAN MSP De-Initialization. This function freeze the hardware resources used in this example
+/// @param hcan: CAN handle pointer
+/// @retval None
 extern "C" void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 {
   if(hcan->Instance==CAN1)
@@ -703,12 +691,9 @@ extern "C" void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 #endif
 
 #if (ENABLE_QSPI)
-/**
-* @brief QSPI MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hqspi: QSPI handle pointer
-* @retval None
-*/
+/// @brief QSPI MSP Initialization. This function configures the hardware resources used in this example
+/// @param hqspi: QSPI handle pointer
+/// @retval None
 extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -755,12 +740,9 @@ extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
 
 }
 
-/**
-* @brief QSPI MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hqspi: QSPI handle pointer
-* @retval None
-*/
+/// @brief QSPI MSP De-Initialization. This function freeze the hardware resources used in this example
+/// @param hqspi: QSPI handle pointer
+/// @retval None
 extern "C" void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
 {
   if(hqspi->Instance==QUADSPI)
@@ -795,12 +777,9 @@ extern "C" void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
 #endif
 
 #if (ENABLE_SPI1)
-/**
-* @brief SPI MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hspi: SPI handle pointer
-* @retval None
-*/
+/// @brief SPI MSP Initialization. This function configures the hardware resources used in this example
+/// @param hspi: SPI handle pointer
+/// @retval None
 extern "C" void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -840,12 +819,9 @@ extern "C" void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
 }
 
-/**
-* @brief SPI MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hspi: SPI handle pointer
-* @retval None
-*/
+/// @brief SPI MSP De-Initialization. This function freeze the hardware resources used in this example
+/// @param hspi: SPI handle pointer
+/// @retval None
 extern "C" void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 {
   if(hspi->Instance==SPI1)

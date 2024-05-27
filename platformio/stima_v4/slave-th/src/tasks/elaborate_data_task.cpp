@@ -35,6 +35,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct the Elaborate Data Task::ElaborateDataTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param ElaborateDataParam parameters for the task
 ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
 {
   // Start WDT controller and TaskState Flags
@@ -101,6 +106,7 @@ void ElaborateDataTask::TaskState(uint8_t state_position, uint8_t state_subposit
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void ElaborateDataTask::Run() {
   // Queue for data
   elaborate_data_t edata;

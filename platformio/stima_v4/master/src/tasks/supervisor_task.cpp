@@ -49,6 +49,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Supervisor Task:: Supervisor Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param supervisorParam parameters for the task
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -119,6 +124,7 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
 #define TEST_CONNECTION     (false)
 #define DISABLE_CONNECTION  (false)
 
+/// @brief RUN Task
 void SupervisorTask::Run()
 {
   uint8_t retry, hh, nn, ss;

@@ -44,10 +44,14 @@
 //                 E2PROM STIMAV4 STM32 ARDUINO REGISTER CLASS ACCESS
 // ***************************************************************************************
 
-// Contructor
+/// @brief Constructor Class
 EERegister::EERegister()
 {
 }
+/// @brief Construct a new EERegister::EERegister object 
+/// @param wire I2C class
+/// @param wireLock I2C semaphore
+/// @param i2c_address I2C address
 EERegister::EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 {
     // Memory controller for ClassRegister

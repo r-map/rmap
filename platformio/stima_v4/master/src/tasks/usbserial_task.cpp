@@ -36,6 +36,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Usb Serial Task:: Usb Serial Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param usbSerialParam parameters for the task
 UsbSerialTask::UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam) : Thread(taskName, stackSize, priority), param(usbSerialParam)
 {
   // Start WDT controller and TaskState Flags
@@ -102,6 +107,7 @@ void UsbSerialTask::TaskState(uint8_t state_position, uint8_t state_subposition,
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void UsbSerialTask::Run()
 {
   bool message_traced = false;

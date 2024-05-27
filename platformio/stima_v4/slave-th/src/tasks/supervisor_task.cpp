@@ -28,6 +28,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
+/// @brief Construct the Supervisor Task::SupervisorTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param supervisorParam parameters for the task
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -97,6 +102,7 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void SupervisorTask::Run()
 {
   // Request response for system queue Task controlled...

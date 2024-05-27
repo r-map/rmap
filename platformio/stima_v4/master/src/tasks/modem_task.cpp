@@ -37,6 +37,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Modem Task:: Modem Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param modemParam parameters for the task
 ModemTask::ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam) : Thread(taskName, stackSize, priority), param(modemParam)
 {
   // Start WDT controller and TaskState Flags
@@ -103,6 +108,7 @@ void ModemTask::TaskState(uint8_t state_position, uint8_t state_subposition, tas
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void ModemTask::Run() {
   uint8_t retry;
   bool is_error;

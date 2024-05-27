@@ -37,6 +37,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Sd Task:: Sd Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param sdParam parameters for the task
 SdTask::SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t sdParam) : Thread(taskName, stackSize, priority), param(sdParam)
 {
   // Start WDT controller and TaskState Flags
@@ -293,7 +298,8 @@ bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t 
     return fileReady;
 }
 
-void SdTask::Run()
+/// @brief RUN Task
+void SdTask::Run() 
 {
   // System message data queue structured
   system_message_t system_message;

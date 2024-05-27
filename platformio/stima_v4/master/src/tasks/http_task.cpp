@@ -30,6 +30,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace cpp_freertos;
 
+/// @brief Construct a new Http Task:: Http Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param httpParam parameters for the task
 HttpTask::HttpTask(const char *taskName, uint16_t stackSize, uint8_t priority, HttpParam_t httpParam) : Thread(taskName, stackSize, priority), param(httpParam)
 {
   // Start WDT controller and TaskState Flags
@@ -96,6 +101,7 @@ void HttpTask::TaskState(uint8_t state_position, uint8_t state_subposition, task
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void HttpTask::Run() {
   uint8_t retry;
   uint8_t retry_get_response;
@@ -753,12 +759,10 @@ void HttpTask::Run() {
   }
 }
 
-/**
- * @brief TLS initialization callback
- * @param[in] context Pointer to the HTTP client context
- * @param[in] tlsContext Pointer to the TLS context
- * @return Error code
- **/
+/// @brief TLS initialization callback
+/// @param[in] context Pointer to the HTTP client context
+/// @param[in] tlsContext Pointer to the TLS context
+/// @return Error code
 error_t HttpTask::httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext)
 {
   error_t error;

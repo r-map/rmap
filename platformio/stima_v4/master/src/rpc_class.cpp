@@ -1156,6 +1156,10 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
 #endif
 
 #if (USE_RPC_METHOD_RECOVERY)
+/// @brief RPC recovery method
+/// @param params 
+/// @param result 
+/// @return int 
 int RegisterRPC::recovery(JsonObject params, JsonObject result)
 {
   bool rmap_data_error = false;
@@ -1252,6 +1256,10 @@ int RegisterRPC::recovery(JsonObject params, JsonObject result)
 #endif
 
 #if (USE_RPC_METHOD_REBOOT)
+/// @brief RPC reboot method
+/// @param params 
+/// @param result 
+/// @return int 
 int RegisterRPC::reboot(JsonObject params, JsonObject result)
 {
   // print lcd message before reboot
@@ -1323,6 +1331,10 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 #endif
 
 #if (USE_RPC_METHOD_TEST)
+/// @brief RPC test method
+/// @param params 
+/// @param result 
+/// @return int 
 int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 {
   // RPC Test

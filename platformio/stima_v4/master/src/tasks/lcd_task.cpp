@@ -35,6 +35,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct the LCD Task::LCDTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param lcdParam parameters for the task
 LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam) : Thread(taskName, stackSize, priority), param(lcdParam) {
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
@@ -136,6 +141,7 @@ void LCDTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void LCDTask::Run() {
   bool event_wake_up;
 
@@ -380,14 +386,11 @@ void LCDTask::Run() {
   }
 }
 
-/**
- * @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
- *
- * @param str pointer to string (will be incremented if hex char are found and converted)
- * @param value_out pointer to data return value converted
- * @return true if error occurs
- * @return false if conversion is ready
- */
+/// @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
+/// @param str pointer to string (will be incremented if hex char are found and converted)
+/// @param value_out pointer to data return value converted
+/// @return true if error occurs
+/// @return false if conversion is ready
 bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t* value_out) {
   bool is_error = false;
 
@@ -425,10 +428,7 @@ bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t* value_out) {
   return is_error;
 }
 
-/**
- * @brief Put off display
- *
- */
+/// @brief Put off display
 void LCDTask::display_off() {
   TRACE_INFO_F(F("LCD: Display OFF\r\n"));
 
@@ -456,10 +456,7 @@ void LCDTask::display_off() {
   state = LCD_STATE_STANDBY;
 }
 
-/**
- * @brief Put on display
- *
- */
+/// @brief Put on display
 void LCDTask::display_on() {
   TRACE_INFO_F(F("LCD: Display ON\r\n"));
 
@@ -480,10 +477,7 @@ void LCDTask::display_on() {
   param.systemStatusLock->Give();
 }
 
-/**
- * @brief Rows with description, value and unity type of measurement
- *
- */
+/// @brief Rows with description, value and unity type of measurement
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
   bool bMeasValid_A = true, bMeasValid_B = true, bMeasValid_C = true;
   bool printMeasB = false, printMeasC = false;
@@ -638,10 +632,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
   display.clearBuffer();
 }
 
-/**
- * @brief Rows with commands
- *
- */
+/// @brief Show menu with commands list when press the button
 void LCDTask::display_print_config_menu_interface() {
   // Index used for count printed rows
   uint8_t row_printed = 0;
@@ -672,10 +663,7 @@ void LCDTask::display_print_config_menu_interface() {
   display.clearBuffer();
 }
 
-/**
- * @brief Print default interface to always show
- *
- */
+/// @brief Print default interface to always show. A simple rect with the header line
 void LCDTask::display_print_default_interface() {
   display.drawFrame(X_RECT, Y_RECT, display.getWidth() - X_RECT_HEADER_MARGIN, display.getHeight() - Y_RECT_HEADER_MARGIN);
   display.drawHLine(X_RECT, Y_RECT_HEADER, display.getWidth() - X_RECT_HEADER_MARGIN);
@@ -684,10 +672,7 @@ void LCDTask::display_print_default_interface() {
   display.print(F("Stima: Digiteco-Arpae"));
 }
 
-/**
- * @brief Print Main interface with general information about station
- *
- */
+/// @brief Print Main interface with general information about station
 void LCDTask::display_print_main_interface() {
   char buffer_errors[40] = {0};
   char msgOut[18] = {0};
@@ -922,10 +907,7 @@ void LCDTask::display_print_main_interface() {
   display.clearBuffer();
 }
 
-/**
- * @brief Display the interface for update the board slug of station
- *
- */
+/// @brief Display the interface for update the board slug of station
 void LCDTask::display_print_update_board_slug_interface(void) {
   char buffer[sizeof(new_board_slug)] = {0};
   char status_message[20] = {0};
@@ -986,10 +968,7 @@ void LCDTask::display_print_update_board_slug_interface(void) {
   display.clearBuffer();
 }
 
-/**
- * @brief Display the interface for update the GSM APN
- *
- */
+/// @brief Display the interface for update the GSM APN
 void LCDTask::display_print_update_gsm_apn_interface(void) {
   char buffer[sizeof(new_gsm_apn)] = {0};
   char status_message[20] = {0};
@@ -1050,10 +1029,7 @@ void LCDTask::display_print_update_gsm_apn_interface(void) {
   display.clearBuffer();
 }
 
-/**
- * @brief Display the interface for update the GSM NUMBER
- *
- */
+/// @brief Display the interface for update the GSM NUMBER
 #if (ENABLE_MENU_GSM_NUMBER)
 void LCDTask::display_print_update_gsm_number_interface(void) {
   char buffer[sizeof(new_gsm_number)] = {0};
@@ -1116,10 +1092,7 @@ void LCDTask::display_print_update_gsm_number_interface(void) {
 }
 #endif
 
-/**
- * @brief Display the interface for update the mqtt username of station
- *
- */
+/// @brief Display the interface for update the mqtt username of station
 void LCDTask::display_print_update_mqtt_username_interface(void) {
   char buffer[sizeof(new_mqtt_username)] = {0};
   char status_message[20] = {0};
@@ -1180,10 +1153,7 @@ void LCDTask::display_print_update_mqtt_username_interface(void) {
   display.clearBuffer();
 }
 
-/**
- * @brief Display the interface for update the PSK KEY
- *
- */
+/// @brief Display the interface for update the PSK KEY
 void LCDTask::display_print_update_psk_key_interface(void) {
   char buffer[sizeof(new_client_psk_key)] = {0};
   char status_message[20] = {0};
@@ -1244,10 +1214,7 @@ void LCDTask::display_print_update_psk_key_interface(void) {
   display.clearBuffer();
 }
 
-/**
- * @brief Display the interface for update the slug of station
- *
- */
+/// @brief Display the interface for update the slug of station
 void LCDTask::display_print_update_station_slug_interface(void) {
   char buffer[sizeof(new_station_slug)] = {0};
   char status_message[20] = {0};
@@ -1308,21 +1275,15 @@ void LCDTask::display_print_update_station_slug_interface(void) {
   display.clearBuffer();
 }
 
-/**
- * @brief Display setup handler
- *
- */
+/// @brief Display setup handler
 void LCDTask::display_setup() {
   display.begin();            // Initialize display
   display.enableUTF8Print();  // UTF8 support enabled
   display.clearBuffer();      // Clear the internal memory
 }
 
-/**
- * @brief Master command handler
- *
- * @param command type of elaboration based on master command
- */
+/// @brief Master command handler
+/// @param command type of elaboration based on master command
 void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   system_message_t system_message = {0};
 
@@ -1461,11 +1422,8 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
   }
 }
 
-/**
- * @brief Slave command handler
- *
- * @param command type of elaboration based on slave command
- */
+/// @brief Slave command handler
+/// @param command type of elaboration based on slave command
 void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
   system_message_t system_message = {0};
 
@@ -1528,12 +1486,9 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
   }
 }
 
-/**
- * @brief Process the result of encoder rotation
- *
- * @param new_value new binary value of inputs encoder
- * @param old_value old binary value of inputs encoder
- */
+/// @brief Process the result of encoder rotation
+/// @param new_value new binary value of inputs encoder
+/// @param old_value old binary value of inputs encoder
 void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
   switch (old_value) {
     case 0: {
@@ -1571,12 +1526,9 @@ void LCDTask::encoder_process(uint8_t new_value, uint8_t old_value) {
   }
 }
 
-/**
- * @brief Get the master command name from enumeration
- *
- * @param command master command enumeration
- * @return Command name in string format (const char*)
- */
+/// @brief Get the master command name from enumeration
+/// @param command master command enumeration
+/// @return Command name in string format (const char*)
 const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t command) {
   const char* command_name;
   switch (command) {
@@ -1640,12 +1592,9 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
   return command_name;
 }
 
-/**
- * @brief Get the slave command name from enumeration
- *
- * @param command slave command enumeration
- * @return Command name in string format (const char*)
- */
+/// @brief Get the slave command name from enumeration
+/// @param command slave command enumeration
+/// @return Command name in string format (const char*)
 const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t command) {
   const char* command_name;
   switch (command) {
@@ -1677,10 +1626,7 @@ const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t co
   return command_name;
 }
 
-/**
- * @brief ISR handler for encoder input that manage the button pression
- *
- */
+/// @brief ISR handler for encoder input that manage the button pression
 void LCDTask::ISR_input_pression_pin_encoder() {
   // **************************************************************************
   // ************************* DEBOUNCE BUTTON HANDLER ************************
@@ -1703,10 +1649,7 @@ void LCDTask::ISR_input_pression_pin_encoder() {
   }
 }
 
-/**
- * @brief ISR handler for encoder inputs that manage the rotation
- *
- */
+/// @brief ISR handler for encoder inputs that manage the rotation
 void LCDTask::ISR_input_rotation_pin_encoder() {
   // Reading pins from encoder
   encoder.pin.a = digitalRead(pin_bottom_left_encoder);
@@ -1723,10 +1666,7 @@ void LCDTask::ISR_input_rotation_pin_encoder() {
   last_display_timeout = millis();
 }
 
-/**
- * @brief Save new configuration to eeprom
- *
- */
+/// @brief Save new configuration to eeprom
 bool LCDTask::saveConfiguration(void) {
   // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
@@ -1741,11 +1681,7 @@ bool LCDTask::saveConfiguration(void) {
   return status;
 }
 
-/**
- *
- * @brief Interface switch handler
- *
- */
+/// @brief Interface switch handler
 void LCDTask::switch_interface() {
   // **************************************************************************
   // ************************* STATE HANDLER **********************************

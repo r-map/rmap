@@ -37,6 +37,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct the TemperatureHumidtySensor Task::TemperatureHumidtySensorTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param temperatureHumidtySensorParam parameters for the task
 TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam) : Thread(taskName, stackSize, priority), param(temperatureHumidtySensorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -103,6 +108,7 @@ void TemperatureHumidtySensorTask::TaskState(uint8_t state_position, uint8_t sta
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void TemperatureHumidtySensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
@@ -384,6 +390,7 @@ void TemperatureHumidtySensorTask::Run() {
   }
 }
 
+/// @brief Power on the sensor
 void TemperatureHumidtySensorTask::powerOn()
 {
   if (!is_power_on)
@@ -398,6 +405,7 @@ void TemperatureHumidtySensorTask::powerOn()
   }
 }
 
+/// @brief Power off the sensor
 void TemperatureHumidtySensorTask::powerOff()
 {
   digitalWrite(PIN_I2C2_EN, LOW); // I2C External Enable PIN (LevelShitf PCA9517D)

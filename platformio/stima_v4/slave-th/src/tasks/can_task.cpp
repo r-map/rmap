@@ -1155,9 +1155,11 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
     }
 }
 
-/// *********************************************************************************************
-/// @brief Main TASK && INIT TASK --- UAVCAN
-/// *********************************************************************************************
+/// @brief Construct the Can Task::CanTask object Main TASK && INIT TASK --- UAVCAN
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param canParam parameters for the task
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam)
 {
   // Start WDT controller and TaskState Flags

@@ -33,7 +33,11 @@
 #include "tasks/accelerometer_task.h"
 
 #if (ENABLE_ACCELEROMETER)
-
+/// @brief Construct the Accelerometer Task::AccelerometerTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param accelerometerParam parameters for the task
 AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
 {
   // Start WDT controller and TaskState Flags
@@ -106,6 +110,7 @@ void AccelerometerTask::TaskState(uint8_t state_position, uint8_t state_subposit
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void AccelerometerTask::Run()
 {
   // Local parameter for command and state accelerometer

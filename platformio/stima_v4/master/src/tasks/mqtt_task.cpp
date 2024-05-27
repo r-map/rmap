@@ -43,6 +43,11 @@ using namespace cpp_freertos;
   defined in tasks/mqtt_task.h -> const uint16_t cipherSuites[] = TYPE_VALUE
 */
 
+/// @brief Construct a new Mqtt Task:: Mqtt Task object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param mqttParam parameters for the task
 MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), param(mqttParam)
 {
   // Start WDT controller and TaskState Flags
@@ -118,6 +123,7 @@ void MqttTask::TaskState(uint8_t state_position, uint8_t state_subposition, task
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void MqttTask::Run()
 {
   uint8_t retry;
@@ -1000,6 +1006,12 @@ void MqttTask::Run()
 // ***************************** Sensor publish format function ************************************
 // *************************************************************************************************
 
+/// @brief Create the sensor topic
+/// @param metadata uavcan metadata
+/// @param bvalue string of value
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @return error_t 
 error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bvalue, char *sensors_topic, size_t sensors_topic_length)
 {
   error_t error = NO_ERROR;
@@ -1090,6 +1102,12 @@ error_t MqttTask::makeSensorTopic(rmap_metadata_Metadata_1_0 metadata, char *bva
   return error;
 }
 
+/// @brief Create the mqtt common topic
+/// @param configuration struct of configuration
+/// @param topic string of topic
+/// @param sensors_topic string of sensor topic
+/// @param topic_length length of topic
+/// @return error_t 
 error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, char *sensors_topic, size_t topic_length)
 {
   error_t error = NO_ERROR;
@@ -1103,6 +1121,11 @@ error_t MqttTask::makeCommonTopic(configuration_t *configuration, char *topic, c
   return error;
 }
 
+/// @brief Create the mqtt date 
+/// @param dateTime datetime
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t 
 error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1115,7 +1138,10 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
   return error;
 }
 
-// Put data into queue to create File Data Backup Older Format
+/// @brief Put data into queue to create File Data Backup Older Format
+/// @param dateTime 
+/// @param localTopic 
+/// @param localMessage 
 void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, char *localMessage)
 {
   rmap_backup_data_t archive_backup_data_line = {0};
@@ -1130,6 +1156,19 @@ void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, cha
   param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
 }
 
+/// @brief Publish th sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t 
 error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_TH_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1221,8 +1260,12 @@ error_t MqttTask::publishSensorTH(MqttClientContext *context, MqttQosLevel qos, 
   return error;
 }
 
-// 1,0,900/103,2000,-,-/B14198 {"v":903,"t":"2019-07-30T11:45:00"}
-// 9,0,900/103,6000,-,-/ {"d":51,"p":[100,0,0,0,0,0],"t":"2019-07-30T11:45:00"}
+/// @brief create mqtt message for temperature value
+/// @param temperature uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 temperature, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1277,6 +1320,12 @@ error_t MqttTask::makeSensorMessageTemperature(rmap_measures_Temperature_1_0 tem
   return error;
 }
 
+/// @brief create mqtt message for humidity value
+/// @param humidity uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1331,6 +1380,12 @@ error_t MqttTask::makeSensorMessageHumidity(rmap_measures_Humidity_1_0 humidity,
   return error;
 }
 
+/// @brief create mqtt message for rain value
+/// @param rain uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1385,6 +1440,12 @@ error_t MqttTask::makeSensorMessageRain(rmap_measures_Rain_1_0 rain, DateTime da
   return error;
 }
 
+/// @brief create mqtt message for rain short rate value
+/// @param rainShortRate uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageRainShortRate(rmap_measures_RainShortRate_1_0 rainShortRate, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1439,6 +1500,12 @@ error_t MqttTask::makeSensorMessageRainShortRate(rmap_measures_RainShortRate_1_0
   return error;
 }
 
+/// @brief create mqtt message for rain long rate value
+/// @param rainLongRate uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageRainLongRate(rmap_measures_RainLongRate_1_0 rainLongRate, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1493,6 +1560,19 @@ error_t MqttTask::makeSensorMessageRainLongRate(rmap_measures_RainLongRate_1_0 r
   return error;
 }
 
+/// @brief Publish rain sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Rain_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1541,6 +1621,19 @@ error_t MqttTask::publishSensorRain(MqttClientContext *context, MqttQosLevel qos
   return error;
 }
 
+/// @brief Publish rain rate sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_RainRate_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1632,6 +1725,12 @@ error_t MqttTask::publishSensorRainRate(MqttClientContext *context, MqttQosLevel
   return error;
 }
 
+/// @brief create mqtt message for radiation value
+/// @param radiation uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiation, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -1686,6 +1785,19 @@ error_t MqttTask::makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiati
   return error;
 }
 
+/// @brief Publish radiation sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1734,6 +1846,19 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   return error;
 }
 
+/// @brief Publish wind average vect 10 sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect10_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1825,6 +1950,19 @@ error_t MqttTask::publishSensorWindAvgVect10(MqttClientContext *context, MqttQos
   return error;
 }
 
+/// @brief Publish wind average vect sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgVect_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -1916,6 +2054,19 @@ error_t MqttTask::publishSensorWindAvgVect(MqttClientContext *context, MqttQosLe
   return error;
 }
 
+/// @brief Publish wind gust speed sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2007,6 +2158,19 @@ error_t MqttTask::publishSensorWindGustSpeed(MqttClientContext *context, MqttQos
   return error;
 }
 
+/// @brief Publish wind average speed sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindAvgSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2055,6 +2219,19 @@ error_t MqttTask::publishSensorWindAvgSpeed(MqttClientContext *context, MqttQosL
   return error;
 }
 
+/// @brief Publish wind class speed sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2103,6 +2280,19 @@ error_t MqttTask::publishSensorWindClassSpeed(MqttClientContext *context, MqttQo
   return error;
 }
 
+/// @brief Publish wind gust direction sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_WindGustDirection_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2194,8 +2384,12 @@ error_t MqttTask::publishSensorWindGustDirection(MqttClientContext *context, Mqt
   return error;
 }
 
-// 1,0,900/103,2000,-,-/B14198 {"v":903,"t":"2019-07-30T11:45:00"}
-// 9,0,900/103,6000,-,-/ {"d":51,"p":[100,0,0,0,0,0],"t":"2019-07-30T11:45:00"}
+/// @brief create mqtt message for wind class speed value
+/// @param sensor uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 sensor, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2349,6 +2543,12 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
   return error;
 }
 
+/// @brief create mqtt message for wind speed value
+/// @param speed uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageSpeed(rmap_measures_WindSpeed_1_0 speed, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2403,6 +2603,12 @@ error_t MqttTask::makeSensorMessageSpeed(rmap_measures_WindSpeed_1_0 speed, Date
   return error;
 }
 
+/// @brief create mqtt message for wind direction value
+/// @param direction uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageDirection(rmap_measures_WindDirection_1_0 direction, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2457,6 +2663,12 @@ error_t MqttTask::makeSensorMessageDirection(rmap_measures_WindDirection_1_0 dir
   return error;
 }
 
+/// @brief create mqtt message for wind peak gust speed value
+/// @param peak uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageSpeedPeak(rmap_measures_WindPeakGustSpeed_1_0 peak, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2511,6 +2723,12 @@ error_t MqttTask::makeSensorMessageSpeedPeak(rmap_measures_WindPeakGustSpeed_1_0
   return error;
 }
 
+/// @brief create mqtt message for wind long gust speed value
+/// @param _long uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageSpeedLong(rmap_measures_WindLongGustSpeed_1_0 _long, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2565,6 +2783,12 @@ error_t MqttTask::makeSensorMessageSpeedLong(rmap_measures_WindLongGustSpeed_1_0
   return error;
 }
 
+/// @brief create mqtt message for wind peak gust direction value
+/// @param peak uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageDirectionPeak(rmap_measures_WindPeakGustDirection_1_0 peak, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2619,6 +2843,12 @@ error_t MqttTask::makeSensorMessageDirectionPeak(rmap_measures_WindPeakGustDirec
   return error;
 }
 
+/// @brief create mqtt message for wind long gust direction value
+/// @param _long uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirection_1_0 _long, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2673,6 +2903,19 @@ error_t MqttTask::makeSensorMessageDirectionLong(rmap_measures_WindLongGustDirec
   return error;
 }
 
+/// @brief Publish soil sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_VWC_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2721,6 +2964,12 @@ error_t MqttTask::publishSensorSoil(MqttClientContext *context, MqttQosLevel qos
   return error;
 }
 
+/// @brief create mqtt message for volumetric water content value
+/// @param soil uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0 soil, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2775,6 +3024,19 @@ error_t MqttTask::makeSensorMessageSoil(rmap_measures_VolumetricWaterContent_1_0
   return error;
 }
 
+/// @brief Publish power sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
 error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Power_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
 {
   uint8_t error_count;
@@ -2914,6 +3176,12 @@ error_t MqttTask::publishSensorPower(MqttClientContext *context, MqttQosLevel qo
   return error;
 }
 
+/// @brief create mqtt message for input voltage value
+/// @param inputVoltage uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 inputVoltage, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -2968,6 +3236,12 @@ error_t MqttTask::makeSensorMessageInputVoltage(rmap_measures_InputVoltage_1_0 i
   return error;
 }
 
+/// @brief create mqtt message for batteryCurrent value
+/// @param batteryCurrent uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageBatteryCurrent(rmap_measures_BatteryCurrent_1_0 batteryCurrent, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -3023,6 +3297,12 @@ error_t MqttTask::makeSensorMessageBatteryCurrent(rmap_measures_BatteryCurrent_1
   return error;
 }
 
+/// @brief create mqtt message for battery charge value
+/// @param batteryCharge uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
 error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0 batteryCharge, DateTime dateTime, char *message, size_t message_length)
 {
   error_t error = NO_ERROR;
@@ -3077,13 +3357,10 @@ error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0
   return error;
 }
 
-
-/**
- * @brief TLS initialization callback
- * @param[in] context Pointer to the MQTT client context
- * @param[in] tlsContext Pointer to the TLS context
- * @return Error code
- **/
+/// @brief TLS initialization callback
+/// @param[in] context Pointer to the MQTT client context
+/// @param[in] tlsContext Pointer to the TLS context
+/// @return Error code
 error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
 {
   error_t error;
@@ -3125,17 +3402,15 @@ error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tl
   return NO_ERROR;
 }
 
-/**
- * @brief Subscriber callback function
- * @param[in] context Pointer to the MQTT client context
- * @param[in] topic Topic name
- * @param[in] message Message payload
- * @param[in] length Length of the message payload
- * @param[in] dup Duplicate delivery of the PUBLISH packet
- * @param[in] qos QoS level used to publish the message
- * @param[in] retain This flag specifies if the message is to be retained
- * @param[in] packetId Packet identifier
- **/
+/// @brief Subscriber callback function
+/// @param[in] context Pointer to the MQTT client context
+/// @param[in] topic Topic name
+/// @param[in] message Message payload
+/// @param[in] length Length of the message payload
+/// @param[in] dup Duplicate delivery of the PUBLISH packet
+/// @param[in] qos QoS level used to publish the message
+/// @param[in] retain This flag specifies if the message is to be retained
+/// @param[in] packetId Packet identifier
 void MqttTask::mqttPublishCallback(MqttClientContext *context, const char_t *topic, const uint8_t *message, size_t length, bool_t dup, MqttQosLevel qos, bool_t retain, uint16_t packetId)
 {
   task_flag old_status_task_flag; // Backup state of flag of TASK State (before suspend for RPC)

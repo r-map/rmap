@@ -279,7 +279,11 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 //   Funzioni ed utility di ricezione dati dalla rete UAVCAN, richiamati da processReceivedTransfer()
 // ***************************************************************************************************
 
-// Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
+/// @brief Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
+/// @param clCanard canard class 
+/// @param req uavcan node execute command request
+/// @param remote_node node of remote server
+/// @return uavcan_node_ExecuteCommand_Response_1_1 
 uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(canardClass &clCanard, const uavcan_node_ExecuteCommand_Request_1_1* req,
                                                                             uint8_t remote_node) {
     uavcan_node_ExecuteCommand_Response_1_1 resp = {0};
@@ -412,7 +416,9 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
     return resp;
 }
 
-// Accesso ai registri UAVCAN risposta a richieste
+/// @brief Accesso ai registri UAVCAN risposta a richieste
+/// @param req uavcan register access request
+/// @return uavcan_register_Access_Response_1_0 
 uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req) {
     char name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + 1] = {0};
     LOCAL_ASSERT(req->name.name.count < sizeof(name));
@@ -486,6 +492,10 @@ uavcan_node_GetInfo_Response_1_0 CanTask::processRequestNodeGetInfo() {
 // Chiamata direttamente nel main loop in ricezione dalla coda RX
 // Richiama le funzioni qui sopra di preparazione e risposta alle richieste
 // ******************************************************************************************
+
+///@brief Processing messages and commands received
+///@param clCanard class of Canard
+///@param transfer Reassembled incoming transfer
 void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTransfer* const transfer) {
         // Gestione dei Messaggi in ingresso
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
@@ -972,6 +982,12 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
 /// *********************************************************************************************
 /// @brief Main TASK && INIT TASK --- UAVCAN
 /// *********************************************************************************************
+
+/// @brief Construct the Can Task::CanTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param canParam parameters for the task
 CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam) : Thread(taskName, stackSize, priority), param(canParam)
 {
     // Start WDT controller and TaskState Flags
