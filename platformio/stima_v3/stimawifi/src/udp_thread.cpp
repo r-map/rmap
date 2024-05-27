@@ -35,13 +35,13 @@ void doUdp(udp_data_t& data){
     }
     
     if (udp_gps.valid){
-      data.logger->notice(F("RMC latitude : %5"), udp_mgps.rmc.dms.latitude);
-      data.logger->notice(F("RMC longitude: %5"), udp_mgps.rmc.dms.longitude);
+      data.logger->notice(F("udp RMC latitude : %5"), udp_mgps.rmc.dms.latitude);
+      data.logger->notice(F("udp RMC longitude: %5"), udp_mgps.rmc.dms.longitude);
       //data.logger->notice(F("GGA latitude : %5"), udp_mgps.gga.dms.latitude);
       //data.logger->notice(F("GGA longitude: %5"), udp_mgps.gga.dms.longitude);
       //data.logger->notice(F("GLL latitude : %5"), udp_mgps.gll.dms.latitude);
       //data.logger->notice(F("GLL longitude: %5"), udp_mgps.gll.dms.longitude);
-      data.logger->notice(F("RMC datetime: %d %d %d %d %d %d"), udp_mgps.rmc.time.year, udp_mgps.rmc.time.mon, udp_mgps.rmc.time.day,
+      data.logger->notice(F("udp RMC datetime: %d %d %d %d %d %d"), udp_mgps.rmc.time.year, udp_mgps.rmc.time.mon, udp_mgps.rmc.time.day,
 			  udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec);  
       
       /*
@@ -88,14 +88,14 @@ udpThread::~udpThread()
 void udpThread::Cleanup()
 {
   UDP.stop();
-  frtosLog.notice(F("Stop listening on UDP port %d"),UDP_PORT);
-  data.logger->notice("Delete Thread %s %d", GetName().c_str(), data.id);
+  data.logger->notice(F("udp Stop listening on UDP port %d"),UDP_PORT);
+  data.logger->notice("udp Delete Thread %s %d", GetName().c_str(), data.id);
   data.status->receive=unknown;
   delete this;
 }
 
 void udpThread::Run() {
-  data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
+  data.logger->notice("udp Starting Thread %s %d", GetName().c_str(), data.id);
 
   udp_gps.init(&udp_mgps);
   //udp_gps.set_filter(0xE); // "RMC","GGA","GLL"
@@ -103,7 +103,7 @@ void udpThread::Run() {
 
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
-  data.logger->notice(F("Listening on UDP port %d"),UDP_PORT);
+  data.logger->notice(F("udp Listening on UDP port %d"),UDP_PORT);
   
   for(;;){
     doUdp(data);
@@ -111,7 +111,7 @@ void udpThread::Run() {
     //Delay(Ticks::SecondsToTicks(1));
 
     //data.logger->notice("stack udp: %d",uxTaskGetStackHighWaterMark(NULL));
-    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data.logger->error("stack udp");
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data.logger->error("udp stack");
   }
 };  
 
