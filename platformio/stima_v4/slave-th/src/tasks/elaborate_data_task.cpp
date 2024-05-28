@@ -574,8 +574,24 @@ void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8
   if (report_time_s == 0)
   {
     // Make last data value to Get Istant show value
-    report.temperature.ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
-    report.humidity.ist = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+    main_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_main_samples, SAMPLES_COUNT_MAX);
+    #if (USE_REDUNDANT_SENSOR)
+    redundant_temperature_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&temperature_redundant_samples, SAMPLES_COUNT_MAX);
+    #endif
+    #if (USE_REDUNDANT_SENSOR)
+    // Only after calculate quality... Reget data for better choiche from main and redundant value (avg if is ok...)
+    main_temperature_s = getBetterTemperature(main_temperature_s, redundant_temperature_s);
+    #endif
+    report.temperature.ist = main_temperature_s;
+    main_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_main_samples, SAMPLES_COUNT_MAX);
+    #if (USE_REDUNDANT_SENSOR)
+    redundant_humidity_s = bufferReadBack<sample_t, uint16_t, rmapdata_t>(&humidity_redundant_samples, SAMPLES_COUNT_MAX);
+    #endif
+    #if (USE_REDUNDANT_SENSOR)
+    // Only after calculate quality... Reget data for better choiche from main and redundant value (avg if is ok...)
+    main_humidity_s = getBetterHumidity(main_humidity_s, redundant_humidity_s);
+    #endif
+    report.humidity.ist = main_humidity_s;
   }
   else
   {

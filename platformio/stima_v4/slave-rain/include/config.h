@@ -181,7 +181,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // Limit range for module sensor
 #define MAX_VALID_RAIN                    (1000.0)
 #define MIN_VALID_RAIN                    (0.0)
-#define RAIN_RATE_MULTIPLY                (10000)
+#define RAIN_RATE_MULTIPLY                (1000)
 
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
