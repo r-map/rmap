@@ -43,6 +43,14 @@
 #define MQTT_TASK_PUBLISH_DELAY_MS        (5)
 #define MQTT_TASK_PUBLISH_RETRY           (5)
 
+/*!
+\def USE_MINIMAL_WAIT_SECOND_CONNECT
+\brief Enable using function delay minimal second waiting maintenance MQTT connection active
+*/
+#define USE_MINIMAL_WAIT_SECOND_CONNECT   (true)
+
+#define MQTT_MINIMAL_SECOND_CONNECTION    (15)                        // Minimal connection second maintenance for receive RPC
+
 #define MQTT_PUT_QUEUE_BKP_TIMEOUT_MS     (2500)
 
 #define MQTT_NET_WAIT_TIMEOUT_SUSPEND     (120000)                    // Time out mqtt suspend operation timeout
@@ -70,8 +78,9 @@
 #include "core/net.h"
 #include "mqtt/mqtt_client.h"
 #include "canard_config.hpp"
-
 #include "stima_utility.h"
+
+#include <STM32RTC.h>
 
 // Canard Type data
 #include <rmap/_module/TH_1_0.h>
@@ -236,6 +245,8 @@ private:
 
   MqttState_t state;
   MqttParam_t param;
+
+  STM32RTC &rtc = STM32RTC::getInstance();
 
   MqttClientContext mqttClientContext;
 

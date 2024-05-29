@@ -182,6 +182,7 @@ typedef struct
       uint32_t epoch_sensors_get_value;            // Date time epoch for data archive value
       uint32_t ptr_time_for_sensors_get_istant;    // Divider time ptr to determine next istant
       uint32_t ptr_time_for_sensors_get_value;     // Divider time ptr to determine next acquire
+      uint32_t epoch_mqtt_last_connection;         // Date Time epoch for last valid mqtt connection
    } datetime;
 
    // Info Task && WDT
@@ -455,8 +456,9 @@ typedef struct
 enum file_block_type {
    file_name = 0,     // Block is name file (starting block, create file)
    data_chunck = 1,   // Block is data block (file...)
-   end_of_file = 2,   // Block is end of file (Normal)
-   ctrl_checksum = 3  // Block is end of file (Required checksum control)
+   kill_file = 2,     // Block is command for kill file (remove for something wrong)
+   end_of_file = 3,   // Block is end of file (Normal)
+   ctrl_checksum = 4  // Block is end of file (Required checksum control)
 };
 
 // Queue for response put file operation

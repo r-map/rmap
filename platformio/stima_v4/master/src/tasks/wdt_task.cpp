@@ -65,6 +65,8 @@ void WdtTask::Run() {
     if(firsCheck) {
       // Init last day at first
       last_day_boot_rst = rtc.getDay();
+      // Init Valid connection dateTime for internal security check
+      param.system_status->datetime.epoch_mqtt_last_connection = rtc.getEpoch();
     } else {
       // Check day is changed
       if(last_day_boot_rst != rtc.getDay()) {
@@ -77,6 +79,12 @@ void WdtTask::Run() {
           // Save info bootloader block
           param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
         }
+      }
+      // Check complete connection status valid (last connection operation, all procedure are OK...)
+      if((rtc.getEpoch() - param.system_status->datetime.epoch_mqtt_last_connection) > WDT_CHECK_MQTT_CONN_SEC) {
+        // Force reboot system, try with complete restart.
+        // This operation only increase tot_reset flag, not wdt_reset
+        NVIC_SystemReset();
       }
     }
 

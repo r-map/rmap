@@ -565,6 +565,8 @@ void HttpTask::Run() {
         }
         else if (bErrorFirmwareDownload)
         {
+          // Closing queue and removing file
+          do_firmware_end_data(false);
           // Error if of queue/SD no more action here, exit and signal the problem to server (SD)
           is_error = true;
           state = HTTP_STATE_END;
@@ -576,6 +578,11 @@ void HttpTask::Run() {
       // Any error to report?
       if (error != ERROR_END_OF_STREAM)
       {
+        // Closing queue and removing file if need
+        if ((is_get_firmware)&&(bValidFirmwareRequest)) {
+          do_firmware_end_data(false);
+        }
+        // Check retry...
         if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
           is_error = true;
           state = HTTP_STATE_END;
@@ -588,10 +595,11 @@ void HttpTask::Run() {
         break;
       }
 
-      // Closing Queue and File data (Ready for next firmware...)
+      // Closing Queue and File data if opened (Ready for next firmware...)
       if ((is_get_firmware)&&(bValidFirmwareRequest)) {
-        bErrorFirmwareDownload |= do_firmware_end_data();
-        // At least one firmware are downloade. Need to resynch version/revision to check avaiables version into SD card...
+        // Send closing File correct complete Data Chunk
+        bErrorFirmwareDownload |= do_firmware_end_data(true);
+        // At least one firmware are downloaded. Need to resynch version/revision to check avaiables version into SD card...
         bDownloadedFirmware = true;
       }
 
@@ -873,10 +881,11 @@ bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
 }
 
 /// @brief Close queue update firmware data block to SD Card
-/// @param  none
+/// @param saveFile confirm sequence httpChunk data correct and EndOfStream complete.
+/// True if saving file if ok, else with false, function remove data file form queue into SD
 /// @return if error occurs return (true)
-bool HttpTask::do_firmware_end_data(void) {
-  bool file_upload_error = false;
+bool HttpTask::do_firmware_end_data(bool saveFile) {
+  bool file_command_error = false;
   memset(&firmwareDownloadChunck, 0, sizeof(file_put_request_t));
 
   // SD have to GET Ready before Push DATA
@@ -886,21 +895,30 @@ bool HttpTask::do_firmware_end_data(void) {
     return true;
   }
 
-  // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
-  firmwareDownloadChunck.block_type = file_block_type::end_of_file;
+  if(saveFile) {
+    // Final Block (EOF, without checksum). If cecksum use file_block_type::end_of_file and put checksum Verify into block...
+    firmwareDownloadChunck.block_type = file_block_type::end_of_file;
+  } else {
+    // Something was wrong. Request to close queue and remove remote file from SD
+    firmwareDownloadChunck.block_type = file_block_type::kill_file;
+  }
   // Push data request to queue SD
   param.dataFilePutRequestQueue->Enqueue(&firmwareDownloadChunck);
 
   // Waiting response from SD with TimeOUT
   memset(&sdcard_task_response, 0, sizeof(file_put_response_t));
   TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-  file_upload_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
-  file_upload_error |= !sdcard_task_response.done_operation;
+  file_command_error = !param.dataFilePutResponseQueue->Dequeue(&sdcard_task_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+  file_command_error |= !sdcard_task_response.done_operation;
 
-  // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK SD)
-  TRACE_VERBOSE_F(F("HTTP: Uploading file (Firmware) [ %s ]\r\n"), file_upload_error ? ERROR_STRING : OK_STRING);
-  return(file_upload_error);
-
+  if(saveFile) {
+    // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK SD)
+    TRACE_VERBOSE_F(F("HTTP: Uploading file (Firmware) [ %s ]\r\n"), file_command_error ? ERROR_STRING : OK_STRING);
+  } else {
+    // FLUSH Security Queue if any Error occurs (Otherwise queue are empty. Pull From TASK SD)
+    TRACE_VERBOSE_F(F("HTTP: Killing file (Firmware) [ %s ]\r\n"), file_command_error ? ERROR_STRING : OK_STRING);
+  }
+  return(file_command_error);
 }
 
 #endif

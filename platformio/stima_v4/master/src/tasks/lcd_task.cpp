@@ -609,22 +609,27 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     display.print(measure_C);
   }
 
-  // Print maintenance information if enabled
-  if (param.system_status->data_slave[channel].maintenance_mode) {
+  // Print message of upgrading firmware when is running (prioritary)
+  if (param.system_status->data_slave[channel].is_fw_upgrading) {
+    display.setFont(u8g2_font_open_iconic_arrow_2x_t);
+    display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.75 * LINE_BREAK, U8G2_SYMBOL_DOWNLOAD);
+    display.setFont(u8g2_font_helvR08_tf);
+    display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
+    display.print(F("Firmware is upgrading..."));
+  } else if (param.system_status->data_slave[channel].maintenance_mode) {
+    // Print maintenance information if enabled
     display.setFont(u8g2_font_open_iconic_embedded_2x_t);
     display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.75 * LINE_BREAK, U8G2_SYMBOL_MAINTENANCE);
     display.setFont(u8g2_font_helvR08_tf);
     display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
     display.print(F("Maintenance mode"));
-  }
-
-  // Print message of upgrading firmware when is running
-  if (param.system_status->data_slave[channel].is_fw_upgrading) {
-    display.setFont(u8g2_font_open_iconic_arrow_2x_t);
-    display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_DOWNLOAD);
+  } else {
+    // Show Version and Revision actual for module on_line
+    char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
+    snprintf(firmware_version, sizeof(firmware_version), "Module version: %d.%d", param.system_status->data_slave[channel].module_version, param.system_status->data_slave[channel].module_revision);
     display.setFont(u8g2_font_helvR08_tf);
-    display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.5 * LINE_BREAK);
-    display.print(F("Firmware is upgrading..."));
+    display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
+    display.print(firmware_version);
   }
 
   // Apply the updates to display

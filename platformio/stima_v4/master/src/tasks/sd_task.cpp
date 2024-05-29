@@ -1557,6 +1557,24 @@ void SdTask::Run()
             }
             // Send response to caller
             param.dataFilePutResponseQueue->Enqueue(&file_put_response);
+          } else if(file_put_request.block_type == file_block_type::kill_file) {
+            // Security Check remote_file_name is valid before continue, more exit from Stream are possible
+            if(strlen(remote_file_name) > 0) {
+              // Close file in append if again opened
+              putFile.close();
+              // Remove file name Upload (session current upload ERROR)
+              SD.remove(remote_file_name);
+              // Unlock session. File is ready for the system (without integrity control)
+              memset(remote_file_name, 0, sizeof(remote_file_name));
+              // Remove File Low LED
+              #ifdef PIN_SD_LED
+              digitalWrite(PIN_SD_LED, LOW);
+              #endif
+            }
+            // Responding to queue command
+            memset(&file_put_response, 0, sizeof(file_put_response));
+            file_put_response.done_operation = true;
+            param.dataFilePutResponseQueue->Enqueue(&file_put_response);
           } else if(file_put_request.block_type == file_block_type::end_of_file) {
             // Remove file name Upload (session current END)
             // Unlock session. File is ready for the system (without integrity control)

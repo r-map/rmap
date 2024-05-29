@@ -142,7 +142,7 @@ private:
 
   bool do_firmware_set_name(Module_Type module_type, uint8_t version, uint8_t revision);
   bool do_firmware_add_block(uint8_t *block_addr, uint16_t block_len);
-  bool do_firmware_end_data(void);
+  bool do_firmware_end_data(bool saveFile);
 
   static error_t httpClientTlsInitCallback(HttpClientContext *context, TlsContext *tlsContext);
 

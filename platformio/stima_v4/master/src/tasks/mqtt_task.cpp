@@ -141,6 +141,7 @@ void MqttTask::Run()
   bool rmap_eof;
   bool rmap_data_error;
   uint32_t countData;
+  uint32_t epoch_mqtt_current_connection;
   // RMAP Casting value to Uavcan Structure
   rmap_service_module_TH_Response_1_0 *rmapDataTH;
   rmap_service_module_Rain_Response_1_0 *rmapDataRain;
@@ -341,6 +342,8 @@ void MqttTask::Run()
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
       TRACE_INFO_F(F("%s Subscribe to mqtt server %s on %s [ %s ]\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic, is_subscribed ? OK_STRING : ERROR_STRING);
 
+      // Save start connection for minimal Waiting Connection MQTT (Secure time waiting remote RPC)
+      epoch_mqtt_current_connection = rtc.getEpoch();
       // Remove first connection FLAG (Clear queue of RPC in safety mode)
       // RPC Must ececuted only from next connection without error to remote server
       // error are always false here if is published at least connection message
@@ -351,6 +354,7 @@ void MqttTask::Run()
       param.system_status->connection.is_mqtt_connected = true;
       param.system_status->connection.is_mqtt_disconnected = false;
       param.system_status->connection.is_mqtt_connecting = false;
+      param.system_status->datetime.epoch_mqtt_last_connection = epoch_mqtt_current_connection;
       param.systemStatusLock->Give();
 
       // Session connection complete (send response to request command)
@@ -524,7 +528,7 @@ void MqttTask::Run()
         // Exit on End of data or Error from queue
         while((!rmap_data_error)&&(!rmap_eof)&&(!error)) {
 
-          // External publish response RPC ququed to MQTT (if one or more request->response executed)
+          // External publish response RPC queued to MQTT (if one or more request->response executed)
           if(rpc_response_index) {
             for(uint8_t rpcIdx = 0; rpcIdx < rpc_response_index; rpcIdx++) {
               if(strlen(rpc_response[rpcIdx])) {
@@ -881,10 +885,8 @@ void MqttTask::Run()
         break;
       }
 
-      // Normal OK Standard data send complete Exit (or Only Message Published)
-      param.systemStatusLock->Take();
+      // Normal OK Standard data send complete Exit (or Only Info Message are Published)
       is_data_publish_end = true;
-      param.systemStatusLock->Give();
       state = MQTT_STATE_DISCONNECT;
 
       break;
@@ -910,6 +912,30 @@ void MqttTask::Run()
 
     // Disconnecting from Server
     case MQTT_STATE_DISCONNECT:
+
+      // Minimal Waiting Connection ON
+      #if(USE_MINIMAL_WAIT_SECOND_CONNECT)
+      // Only If Connection sequence without MQTT error are OK
+      // Waiting TimeIn minimal for connection (check command RPC from server...)
+      if((is_data_publish_end) && (!is_error) &&
+         ((rtc.getEpoch() - epoch_mqtt_current_connection) < MQTT_MINIMAL_SECOND_CONNECTION)) {
+        // External publish response RPC queued to MQTT (if one or more request->response executed)
+        if(rpc_response_index) {
+          for(uint8_t rpcIdx = 0; rpcIdx < rpc_response_index; rpcIdx++) {
+            if(strlen(rpc_response[rpcIdx])) {
+              TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+              mqttClientPublish(&mqttClientContext, topic_rpc_response, rpc_response[rpcIdx], strlen(rpc_response[rpcIdx]), qos, false, NULL);
+              TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+            }
+          }
+          // Reset entire buffer rpc_response
+          memset(rpc_response, 0, sizeof(rpc_response));
+          rpc_response_index = 0;
+        }
+        // Simply break waiting Time connection
+        break;      
+      }
+      #endif
 
       param.systemStatusLock->Take();
       // Saving error connection INFO

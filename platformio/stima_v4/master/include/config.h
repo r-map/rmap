@@ -52,7 +52,7 @@
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (2)
+#define MODULE_MINOR_VERSION  (3)
 
 /*!
 \def RMAP_PROCOTOL_VERSION
@@ -202,6 +202,9 @@
 #define USBSERIAL_TASK_ID           (8)
 #define WDT_TASK_ID                 (9)
 #define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
+
+// Chect connection time in second for try system reboot, without remote connection
+#define WDT_CHECK_MQTT_CONN_SEC     (14400)
 
 #define USE_RPC_METHOD_ADMIN        (true)
 #define USE_RPC_METHOD_CONFIGURE    (true)
