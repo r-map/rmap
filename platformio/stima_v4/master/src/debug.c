@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdarg.h>
 #include "debug.h"
 
+/// @brief Interface from TRACE macros for monitor log
 void print_debug(const char *fmt, ...)
 {
    va_list args;

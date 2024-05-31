@@ -89,11 +89,11 @@
 #define REGISTER_DATA_SERVICE           "rmap.service"
 #define REGISTER_RMAP_MASTER_ID         "rmap.master.id"
 
-// Class EEProm - Register Uavcan
+/// @brief Class EEProm - Register Uavcan
 class EERegister {
 
 public:
-  // Constructor
+  /// Constructor
   EERegister();
   EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address = EEPROM_AT24C64_DEFAULT_ADDRESS);
 
@@ -105,7 +105,7 @@ public:
   /// Reads the specified register from the persistent storage into `inout_value`.
   /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,
   /// the value will be stored in the persistent storage using @ref registerWrite(), overriding existing value.
-  /// The default will not be initialized if the argument is empty.
+  /// The default will not be initialized if the argument is empty.  
   void read(const char* const register_name, uavcan_register_Value_1_0* const inout_value);
 
   /// Store the given register value into the persistent storage.
@@ -144,7 +144,7 @@ private:
   void _eeprom_register_get_next_id(uint8_t *current_register);
   uint8_t _eeprom_register_add(uint8_t *reg_name, uint8_t *data, size_t data_len);
 
-  // Private Memory E2prom Object
+  /// Private Memory E2prom Object
   EEprom _Eprom;
 
 };

@@ -86,7 +86,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using namespace cpp_freertos;
 
 void init_wire(void);
-void init_sdcard(void);
 void init_rtc(bool init);
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length);
 

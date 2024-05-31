@@ -74,13 +74,13 @@ class canardClass {
 
         // ********************   Tipi di Dati    *****************
 
-        // Modalità di accesso a getMicros()
+        /// @brief Modalità di accesso a getMicros()
         enum GetMonotonicTime_Type : uint8_t {
             syncronized_time,
             start_syncronization
         };
 
-        // Gestione modalità file server Upload
+        /// @brief Gestione modalità file server Upload
         enum FileServer_State : uint8_t {
             standby,
             start_request,
@@ -91,7 +91,7 @@ class canardClass {
             upload_complete
         };
 
-        // Gestione comandi privati di Canard / Rmap
+        /// @brief Gestione comandi privati di Canard / Rmap
         enum Command_Private : uint8_t {
             set_full_power            =  2,
             set_nominal_power         =  3,
@@ -108,7 +108,7 @@ class canardClass {
             remote_test_value         = 100
         };
 
-        // Interprete heartBeat VSC (Vendor Status Code) x Comunicazioni messaggi Master<->Slave
+        /// @brief Interprete heartBeat VSC (Vendor Status Code) x Comunicazioni messaggi Master<->Slave
         typedef union {
             // Bit field
             struct {
@@ -122,10 +122,10 @@ class canardClass {
             // uint8 value
             uint8_t uint8_val;
         } heartbeat_VSC;
-
-        // Coda di ricezione dati per gestione rapida in Interrupt (STM32 IRQ_CB bxCan)
-        // Gestisce l'inserimento dei dati sulla coda locale, prima della gestione
-        // Con Canard con il passaggio dalla coda bufferizzata ai frame di Canard_Rx
+        
+        /// @brief Coda di ricezione dati per gestione rapida in Interrupt (STM32 IRQ_CB bxCan)
+        /// Gestisce l'inserimento dei dati sulla coda locale, prima della gestione
+        /// Con Canard con il passaggio dalla coda bufferizzata ai frame di Canard_Rx         
         typedef struct CanardRxQueue
         {
             // CanardTxQueue (Frame e Buffer x Interrupt gestione Coda FiFo)
@@ -215,7 +215,7 @@ class canardClass {
         {
             public:
 
-            // Time stamp
+            /// @brief classe per accesso funzioni TimeStamp Cyphal
             class timestamp {
                 
                 public:
@@ -231,7 +231,7 @@ class canardClass {
 
             } timestamp;
 
-            // File upload (node_id può essere differente dal master, es. yakut e lo riporto)
+            /// @brief classe per accesso funzioni File upload
             class file
             {
 
@@ -305,7 +305,8 @@ class canardClass {
         // ****************************************************************************************
         //  Sottoclassi SLAVE remoti per gestione di variabili di Stato, pending, retry e il resto
         // ****************************************************************************************
-        class slave        
+        /// @brief Sottoclassi SLAVE remoti per gestione comunicazione e pending comandi remoti
+        class slave
         {
 
             public:
@@ -329,6 +330,7 @@ class canardClass {
             uint64_t get_serial_number(void);
             Module_Type get_module_type(void);
 
+            /// @brief Stati e variabili per Heartbeat Cypal
             class heartbeat {
 
                 public:
@@ -359,7 +361,7 @@ class canardClass {
 
             } heartbeat;
 
-            // Comandi inviati da locale Tx->(Comando + Param) Rx<-(Risposta)
+            /// @brief Stati e variabili per comandi Cypal, Comandi inviati da locale Tx->(Comando + Param) Rx<-(Risposta)
             class command {
 
                 public:
@@ -383,7 +385,7 @@ class canardClass {
 
             } command;
 
-            // Accesso ai registri inviati da locale Tx->(Registro + Value) Rx<-(Risposta)
+            /// @brief Stati e variabili per accesso ai registri Cyphal inviati da locale Tx->(Registro + Value) Rx<-(Risposta)
             class register_access {
 
                 public:
@@ -417,6 +419,7 @@ class canardClass {
 
             // Accesso ai dati dello slave in servizio Tx->(Funzione) Rx<-(Dato + Stato)
             // Puntatore alla struttura dati relativa es. -> rmap_module_TH_1_0 ecc...
+            /// @brief Stati e variabili per metodi privati Rmap su comunicazione Cypal
             class rmap_service {
 
                 public:
@@ -453,6 +456,7 @@ class canardClass {
             } rmap_service;
 
             // Nome file(locale) per aggiornamento file remoto e relativo stato di funzionamento
+            /// @brief Stati e variabili per metodi file server Cypal
             class file_server {
 
                 public:
@@ -483,7 +487,8 @@ class canardClass {
             } file_server;
 
             // Pubblicazione dei dati autonoma (struttura dati come per servizio)
-            #ifdef USE_SUB_PUBLISH_SLAVE_DATA
+            #ifdef USE_SUB_PUBLISH_SLAVE_DATA            
+            /// @brief Stati e variabili per metodi publisher Cypal
             class publisher {
 
                 public:
@@ -505,7 +510,7 @@ class canardClass {
 
         } slave[MAX_NODE_CONNECT];
 
-        // Abilitazione delle pubblicazioni falcoltative sulla rete (ON/OFF a richiesta)
+        /// @brief Abilitazione delle pubblicazioni falcoltative sulla rete (ON/OFF a richiesta)
         class publisher_enabled
         {
             public:
@@ -514,7 +519,7 @@ class canardClass {
 
         } publisher_enabled;
 
-        // Tranfer ID (CAN Interfaccia ID -> uint8) servizi attivi del modulo locale
+        /// @brief Tranfer ID (CAN Interfaccia ID -> uint8) servizi attivi del modulo locale
         class next_transfer_id
         {
             public:
@@ -533,7 +538,7 @@ class canardClass {
 
         } next_transfer_id;
 
-        // Flag di stato
+        /// @brief Flag di stato per gestione stato della rete e relativi moduli
         class flag
         {
 

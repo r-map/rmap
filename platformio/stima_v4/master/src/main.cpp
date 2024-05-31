@@ -37,55 +37,53 @@ void setup() {
  
   // Semaphore, Queue && Param Config for TASK
 #if (ENABLE_I2C1)
-  static BinarySemaphore *wireLock;       // Access I2C external interface UPIN_27
+  static BinarySemaphore *wireLock;       ///< Semaphore Access I2C external interface UPIN_27
 #endif
 
 #if (ENABLE_I2C2)
-  static BinarySemaphore *wire2Lock;      // Access I2C internal EEprom, Display
+  static BinarySemaphore *wire2Lock;      ///< Semaphore Access I2C internal EEprom, Display
 #endif
 
 #if (ENABLE_CAN)
-  static BinarySemaphore *canLock;        // Can BUS
+  static BinarySemaphore *canLock;        ///< Semaphore Can BUS
 #endif
 
 #if (ENABLE_QSPI)
-  static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
+  static BinarySemaphore *qspiLock;       ///< Semaphore Qspi (Flash Memory)
 #endif
 
-  static BinarySemaphore *rtcLock;        // RTC (Access lock)
+  static BinarySemaphore *rtcLock;        ///< Semaphore RTC (Access lock)
 
-  static BinarySemaphore *rpcLock;        // RPC (Access lock)
+  static BinarySemaphore *rpcLock;        ///< Semaphore RPC (Access lock)
 
   // System semaphore
-  static BinarySemaphore *configurationLock;  // Access Configuration
-  static BinarySemaphore *systemStatusLock;   // Access System status
-  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
+  static BinarySemaphore *configurationLock;    ///< Access Configuration
+  static BinarySemaphore *systemStatusLock;     ///< Access System status
+  static BinarySemaphore *registerAccessLock;   ///< Access Register Cyphal Specifications
 
-  // System Queue (Generic Message from/to Task)
-  static Queue *systemMessageQueue;
-  // Data queue (Request / exchange data from Data Task)
-  static Queue *connectionRequestQueue;
-  static Queue *connectionResponseQueue;
-  //Data SD WR/RD
-  static Queue *dataRmapPutQueue;
-  static Queue *dataRmapGetRequestQueue;
-  static Queue *dataRmapGetResponseQueue;
-  static Queue *dataRmapPutBackupQueue;
-  static Queue *dataFilePutRequestQueue;
-  static Queue *dataFilePutResponseQueue;
-  static Queue *dataFileGetRequestQueue;
-  static Queue *dataFileGetResponseQueue;
-  static Queue *dataLogPutQueue;
-  //Display LCD
-  static Queue *displayEventWakeUp;
+  static Queue *systemMessageQueue;             ///< System Queue (Generic Message from/to Task)
+  static Queue *connectionRequestQueue;         ///< Connection queue (Request / exchange data from Data Task)
+  static Queue *connectionResponseQueue;        ///< Connection queue (Request / exchange data from Data Task)
+  // Data SD WR/RD
+  static Queue *dataRmapPutQueue;               ///< RMAP Data native queue Send data
+  static Queue *dataRmapGetRequestQueue;        ///< Data queue (Request / exchange data from Data Task)
+  static Queue *dataRmapGetResponseQueue;       ///< Data queue (Response / exchange data from Data Task)
+  static Queue *dataRmapPutBackupQueue;         ///< RMAP Data backup queue Send data
+  static Queue *dataFilePutRequestQueue;        ///< File put to SD queue (request)
+  static Queue *dataFilePutResponseQueue;       ///< File put to SD queue (response)
+  static Queue *dataFileGetRequestQueue;        ///< File get from SD queue (request)
+  static Queue *dataFileGetResponseQueue;       ///< File get from SD queue (response)
+  static Queue *dataLogPutQueue;                ///< LOG to SD queue Send data
+  // Display LCD
+  static Queue *displayEventWakeUp;             ///< Queue for Event LCD Encoder command
 
   // System and status configuration struct
-  static configuration_t configuration = {0};
-  static system_status_t system_status = {0};
+  static configuration_t configuration = {0};   ///< System configuration
+  static system_status_t system_status = {0};   ///< System status
 
   // Net Interface
-  static YarrowContext yarrowContext;
-  static uint8_t seed[SEED_LENGTH];
+  static YarrowContext yarrowContext;           ///< NET CycloneTCP yarrowContext
+  static uint8_t seed[SEED_LENGTH];             ///< NET CycloneTCP seed
 
   // Initializing basic hardware's configuration, variables and function
   SetupSystemPeripheral();
@@ -441,7 +439,7 @@ void setup() {
   Thread::StartScheduler();
 }
 
-// FreeRTOS idleHook callBack to loop
+/// @brief FreeRTOS idleHook callBack to loop
 void loop() {
   // Enable LowPower idleHock reduce power consumption without disable sysTick
   #if (USE_LOWPOWER_IDLE_LOOP)
@@ -449,7 +447,7 @@ void loop() {
   #endif
 }
 
-// Setup Wire I2C SPI Interface
+/// @brief Setup Wire I2C SPI Local Pin Interface
 void init_wire()
 {
   // Setup I2C
@@ -475,7 +473,8 @@ void init_wire()
   digitalWrite(PIN_GSM_EN_POW, HIGH);
 }
 
-// Setup RTC HW && LowPower Class STM32
+/// @brief Setup RTC HW && LowPower Class STM32
+/// @param init true to initialize register of RTC
 void init_rtc(bool init)
 {
   // Init istance to STM RTC object
@@ -495,6 +494,11 @@ void init_rtc(bool init)
   LowPower.idleHookEnable();
 }
 
+/// @brief init module for connect CycloneTCP Library
+/// @param yarrowContext net context for CycloneTCP
+/// @param seed seed for CycloneTCP
+/// @param seed_length lenght of seed
+/// @return true Method initializated
 bool init_net(YarrowContext *yarrowContext, uint8_t *seed, size_t seed_length)
 {
   error_t error = NO_ERROR;

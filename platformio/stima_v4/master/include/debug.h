@@ -53,14 +53,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TRACE_LEVEL_DEBUG     5
 #define TRACE_LEVEL_VERBOSE   6
 
-//Default trace level
+// Default trace level
 #ifndef TRACE_LEVEL
    #define TRACE_LEVEL TRACE_LEVEL_DEBUG
 #endif
 
 void print_debug(const char *fmt, ...);
 
-//Trace output redirection
+// Trace output redirection
 #ifndef TRACE_PRINTF
 #define TRACE_PRINTF(...) osSuspendAllTasks(), print_debug(__VA_ARGS__), osResumeAllTasks()
 #endif
@@ -73,7 +73,7 @@ void print_debug(const char *fmt, ...);
    #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stdout, p, a), osResumeAllTasks()
 #endif
 
-//Debugging macros
+// Debugging macros
 #if (TRACE_LEVEL >= TRACE_LEVEL_FATAL)
    #define TRACE_FATAL(...) TRACE_PRINTF(__VA_ARGS__)
    #define TRACE_FATAL_ARRAY(p, a, n) TRACE_ARRAY(p, a, n)
@@ -142,17 +142,17 @@ void print_debug(const char *fmt, ...);
 
 #define printError(error, ok_str, error_str) (error == NO_ERROR ? ok_str : error_str)
 
-//C++ guard
+// C++ guard
 #ifdef __cplusplus
     extern "C" {
 #endif
 
-//Debug related functions
+// Debug related functions
 void init_debug(uint32_t baudrate);
 
 void print_debug_array(const char *prepend, const void *data, size_t length);
 
-//Deprecated definitions
+// Deprecated definitions
 #define TRACE_LEVEL_NO_TRACE TRACE_LEVEL_OFF
 
 // C++ guard
