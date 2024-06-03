@@ -81,7 +81,10 @@
 #define SPICLOCK 1000000
 
 // SD card max number of file
-#define MAXFILE 5
+#define SDMAXFILE 6
+
+// littlefs max number of file
+#define LFMAXFILE 4
 
 // time in seconds saved on SD card for archive and recovery
 #define SDRECOVERYTIME (3600*24*1)

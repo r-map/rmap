@@ -174,7 +174,7 @@ bool dbThread::data_purge(int nmessages=100){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
-    data.logger->error(F("db purge data in DB: %s"),sqlite3_errmsg(db));
+    data.logger->error(F("db purge prepare: %s"),sqlite3_errmsg(db));
   } else {
 
     char dtstart[20];
@@ -209,7 +209,7 @@ bool dbThread::data_purge(int nmessages=100){
     }
   }
   sqlite3_finalize(stmt);
-  data.logger->notice(F("db End purge values in DB"));        
+  data.logger->notice(F("db purge values in DB Ended"));        
   return rc  == SQLITE_OK;
 }
 
@@ -219,7 +219,7 @@ bool dbThread::data_purge(int nmessages=100){
 bool dbThread::data_set_recovery(void){
   int rc;
 
-  data.logger->notice(F("db Start set recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
+  data.logger->notice(F("db set recovery started: %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
 
   char sql[] = "UPDATE messages SET sent = false WHERE datetime BETWEEN  strftime('%s',?) and strftime('%s',?)";
   //char sql[] = "UPDATE messages SET sent = false WHERE datetime strftime('%s',?))";
@@ -233,7 +233,7 @@ bool dbThread::data_set_recovery(void){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
-    data.logger->error(F("db update set recovery data in DB"));
+    data.logger->error(F("db set recovery prepare"));
   } else {
 
     sqlite3_bind_text(
@@ -260,7 +260,7 @@ bool dbThread::data_set_recovery(void){
     if(rc == SQLITE_DONE) {
       rc  = SQLITE_OK;
     } else {
-      data.logger->error(F("db getting values in DB: %s"),sqlite3_errmsg(db));       
+      data.logger->error(F("db set recovery updating values in DB: %s"),sqlite3_errmsg(db));       
     }
   }
   sqlite3_finalize(stmt);
@@ -274,11 +274,11 @@ bool dbThread::data_recovery(void){
   int rc;
   mqttMessage_t message;
 
-  data.logger->notice(F("db Start recovery from DB"));       
+  data.logger->notice(F("db recovery from DB started"));       
 
   if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
-    data.logger->warning(F("db no space in publish queue while recovery data from DB"));   
-    return false;
+    data.logger->warning(F("db recovery no space in publish queue"));   
+    return true;
   }
 
   char dtstart[20];
@@ -300,7 +300,7 @@ bool dbThread::data_recovery(void){
 			nullptr);       // pointer to the tail end of sql statement (when there are 
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
-    data.logger->error(F("db select recovery data from DB: %s"),sqlite3_errmsg(db));   
+    data.logger->error(F("db recovery prepare select data from DB: %s"),sqlite3_errmsg(db));   
   } else {
 
 
@@ -324,15 +324,15 @@ bool dbThread::data_recovery(void){
 	strcpy(message.topic, (const char*)sqlite3_column_text(stmt, 1));
 	strcpy(message.payload, (const char*)sqlite3_column_text(stmt, 2));
 	
-	data.logger->notice(F("db Message recovery enqueue for publish %s:%s"),message.topic,message.payload);       
+	data.logger->notice(F("db recovery queuing message for publish %s:%s"),message.topic,message.payload);       
 	if(!data.mqttqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
-	  data.logger->error(F("db Message recovery recovery for publish : %s ; %s"),  message.topic, message.payload);
+	  data.logger->warning(F("db recovery message for publish not queued"));
 	}
       } else if(rc == SQLITE_DONE) {
 	rc  = SQLITE_OK;
 	break;
       } else {
-	data.logger->error(F("db getting values from DB: %s"),sqlite3_errmsg(db));       
+	data.logger->error(F("db recovery getting values from DB: %s"),sqlite3_errmsg(db));       
 	break;
       }
     }
@@ -391,14 +391,14 @@ bool dbThread::db_restart(){
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
   SPI.setDataMode(SPI_MODE0);
-  bool s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, false);
+  bool s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
   if (!s){
     data.logger->error(F("db SD begin"));       
     SD.end();
     delay(1000);
     clearSD();
     delay(1000);
-    s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, false);
+    s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
   }
 
   data.logger->notice(F("db SD begin OK"));       
@@ -540,15 +540,17 @@ void dbThread::Cleanup()
 void dbThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
-  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
-  SPI.setDataMode(SPI_MODE0);
-  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
-  if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",MAXFILE, true)){
-    data.logger->notice(F("db SD mount OK"));
-  }else{
-    data.logger->error(F("db SD mount"));
-    //data.status->database=error;
-    return;     // without SD card terminate the thread
+  if (SD.cardType() == CARD_NONE) {
+    SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+    SPI.setDataMode(SPI_MODE0);
+    //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
+    if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, true)){
+      data.logger->notice(F("db SD mount OK"));
+    }else{
+      data.logger->error(F("db SD mount"));
+      //data.status->database=error;
+      return;     // without SD card terminate the thread
+    }
   }
 
   /*
@@ -680,7 +682,7 @@ void dbThread::Run() {
 
     // check semaphore for data recovey
     if(data.recoverysemaphore->Take(0)){
-      if (!data_purge(1000)) data.logger->error(F("db purge DB"));
+      if (!data_purge()) data.logger->error(F("db purge DB"));
       if(!data_recovery()) data.logger->error(F("db recovery DB"));
     }
 

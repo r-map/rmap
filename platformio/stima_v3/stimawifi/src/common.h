@@ -37,3 +37,4 @@
 #include "critical.hpp"
 #include "semaphore.hpp"
 #include "SD.h"
+#include <StreamUtils.h>

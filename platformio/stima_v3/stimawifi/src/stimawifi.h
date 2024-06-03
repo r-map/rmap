@@ -16,6 +16,21 @@ MutexStandard loggingmutex;
 MutexStandard i2cmutex;
 MutexStandard geomutex;
 
+#if (ENABLE_SDCARD_LOGGING)   
+
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
+
 //flag for saving data
 bool shouldSaveConfig = false;
 bool pmspresent =  false;

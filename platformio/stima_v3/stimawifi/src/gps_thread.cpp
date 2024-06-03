@@ -43,6 +43,10 @@ void doSerialNmea(gps_data_t& data){
     //data.logger->notice(F("gps GLL longitude: %5"), gps_mgps.gll.dms.longitude);
     data.logger->notice(F("gps RMC datetime: %d %d %d %d %d %d"), gps_mgps.rmc.time.year, gps_mgps.rmc.time.mon, gps_mgps.rmc.time.day,
 			gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec);  
+
+    setTime(gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec
+	    ,gps_mgps.rmc.time.day,gps_mgps.rmc.time.mon,gps_mgps.rmc.time.year);
+    //RTC.set(now());
     
     /*
       If you just need “GPS” coordinates, any of the GGA, RMC, or GLL

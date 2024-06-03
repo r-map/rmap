@@ -52,10 +52,10 @@ LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 /*!
-\def DEBUG_MEMORY
-\brief Activate debug of memory use and stack heap collision on serial interface.
+\def SDCARD_LOGGING_FILE_NAME
+\brief File name for logging on SD-Card.
 */
-#define DEBUG_MEMORY                      (0)
+#define SDCARD_LOGGING_FILE_NAME                     ("/stimawifi.log")
 
 /*!
 \def OK_STRING
@@ -104,11 +104,5 @@ LOG_LEVEL_VERBOSE
 \brief "SAVE" string message.
 */
 #define SAVE_STRING                       ("SAVE")
-
-/*!
-\def STIMA_LCD_TRACE_LEVEL
-\brief Lcd trace level debug for stima sketch.
-*/
-#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
 
 #endif

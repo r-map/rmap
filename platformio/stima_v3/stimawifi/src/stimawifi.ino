@@ -209,6 +209,7 @@ void timeavailable(struct timeval *t)
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
   }
+  //RTC.set(now());  
 }
 
 // HTTP response
@@ -911,10 +912,48 @@ void setup() {
   delay(500);
   digitalWrite(PMS_RESET,HIGH);
 
+  // manage reset button in hardware (RESET_PIN) or in software (I2C)
+  bool reset=digitalRead(RESET_PIN) == LOW;
+  if (button.get() == 0)
+  {
+    if (button.BUTTON_A)
+    {
+      //String keyString[] = {"None", "Press", "Long Press", "Double Press", "Hold"};
+      //frtosLog.notice(F("BUTTON A: %s"),keyString[button.BUTTON_A].c_str());
+      if (button.BUTTON_A == KEY_VALUE_HOLD) reset=true;
+    }
+  }
+
   //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
   Serial.begin(115200);
   //Serial.setDebugOutput(true);
-  
+
+#if (ENABLE_SDCARD_LOGGING)      
+
+  delay(10000);
+  Serial.println("\nInitializing SD card..." );
+
+  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.setDataMode(SPI_MODE0);
+  //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
+  if (!SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+
+    logFile = SD.open(SDCARD_LOGGING_FILE_NAME, FILE_APPEND);
+    if (logFile) {
+      //logFile.seekEnd(0);
+      frtosLog.begin(LOG_LEVEL, &loggingStream,loggingmutex);
+    } else {
+      frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
+      frtosLog.error(F("logging begin with sdcard\n"));
+    }
+  }
+#else
   // Pass log level, whether to show log level, and print interface.
   // Available levels are:
   // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
@@ -923,6 +962,8 @@ void setup() {
 
   // set runtime log level to the same of compile time
   frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
+#endif
+  
   frtosLog.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(logSuffix); // Uncomment to get newline as suffix
   frtosLog.notice(F("Started"));
@@ -966,18 +1007,6 @@ void setup() {
   itoa(ESP.getChipId(),esp_chipid,10);
   frtosLog.notice(F("esp_chipid: %s "),esp_chipid );
   */
-
-  // manage reset button in hardware (RESET_PIN) or in software (I2C)
-  bool reset=digitalRead(RESET_PIN) == LOW;
-  if (button.get() == 0)
-  {
-    if (button.BUTTON_A)
-    {
-      //String keyString[] = {"None", "Press", "Long Press", "Double Press", "Hold"};
-      //frtosLog.notice(F("BUTTON A: %s"),keyString[button.BUTTON_A].c_str());
-      if (button.BUTTON_A == KEY_VALUE_HOLD) reset=true;
-    }
-  }
   
   if (reset) {
     frtosLog.notice(F("clean FS"));
@@ -992,7 +1021,7 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
-    LittleFS.begin();    
+    LittleFS.begin(false,"/littlefs",LFMAXFILE);    
     LittleFS.format();
     frtosLog.notice(F("Reset wifi configuration"));
     wifiManager.resetSettings();
@@ -1039,8 +1068,6 @@ void setup() {
   sntp_set_time_sync_notification_cb( timeavailable );
   sntp_servermode_dhcp(1);
   configTime(0, 0, station.ntp_server);
-
-  setSyncProvider(ntp_set_time);
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -1258,9 +1285,13 @@ void setup() {
       u8g2.sendBuffer();
     }
     delay(5000);
-    reboot(); //timeout - reset board
+    //reboot(); //timeout - reset board
   }
 
+  if (timeStatus() == timeSet) setSyncProvider(ntp_set_time);
+
+  //if (RTC.get()) setSyncProvider(RTC.get);   // the function to get the time from the RTC
+  
   if (oledpresent){
     u8g2.setCursor(0, 3*CH);
     u8g2.print(F("Time OK"));
@@ -1292,7 +1323,7 @@ void setup() {
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
   // if mobile station start geolocation thread
-  if (strcmp(station.ident,"") != 0){
+  if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
     threadGps.Start();
   }

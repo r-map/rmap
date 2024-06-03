@@ -43,6 +43,10 @@ void doUdp(udp_data_t& data){
       //data.logger->notice(F("GLL longitude: %5"), udp_mgps.gll.dms.longitude);
       data.logger->notice(F("udp RMC datetime: %d %d %d %d %d %d"), udp_mgps.rmc.time.year, udp_mgps.rmc.time.mon, udp_mgps.rmc.time.day,
 			  udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec);  
+
+      setTime(udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec
+	      ,udp_mgps.rmc.time.day,udp_mgps.rmc.time.mon,udp_mgps.rmc.time.year);
+      //RTC.set(now());
       
       /*
 	If you just need “GPS” coordinates, any of the GGA, RMC, or GLL

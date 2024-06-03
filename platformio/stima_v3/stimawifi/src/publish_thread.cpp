@@ -328,6 +328,7 @@ void publishThread::Cleanup()
 void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
+  WiFi.setAutoReconnect(true);
   //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /*
@@ -355,8 +356,12 @@ void publishThread::Run() {
       }
     }
 
-    if (WiFi.status() != WL_CONNECTED) data.logger->error(F("publish WIFI disconnected!"));
-    
+    if (WiFi.status() != WL_CONNECTED) {
+      data.logger->error(F("publish WIFI disconnected!"));
+      //WiFi.disconnect();
+      //WiFi.reconnect();
+      //WiFi.setAutoReconnect(true);
+    }
     data.logger->notice(F("publish mqtt queue space left %d"),data.mqttqueue->NumSpacesLeft());
 
     // check heap and stack

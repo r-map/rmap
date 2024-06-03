@@ -31,7 +31,8 @@ public:
  protected:  
   virtual void Run();
   bool mqttSubscribeRpc(char* comtopic);
-  
+  //static void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+
  private:
   publish_data_t data;
   IPStack ipstack;
