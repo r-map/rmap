@@ -24,14 +24,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _HTTP_CONFIG_H
 #define _HTTP_CONFIG_H
 
+/// @brief HTTP client port
 #define HTTP_CLIENT_PORT         (442)
 
+/// @brief HTTP URI length
 #define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 
+/// @brief HTTP buffer size
 #define HTTP_BUFFER_SIZE         (256)
 
+/// @brief HTTP user agents length
 // #define HTTP_USER_AGENTS_LENGTH  (STIMA_MODULE_NAME_LENGTH + 10)
 
+/// @brief HTTP header size
 #define HTTP_HEADER_SIZE         (128)
 
 #endif

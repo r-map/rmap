@@ -27,21 +27,31 @@
   ******************************************************************************
 */
 
-// Assert Locali (Enable / disable)
+/// @brief Assert Locali (Enable / disable)
 #define LOCAL_ASSERT    assert
 // #define LOCAL_ASSERT    (void(0));
 
+/// @brief kilo unit
 #define KILO 1000L
+/// @brief mega unit
 #define MEGA ((int64_t)KILO * KILO)
 
 // CODA, RIDONDANZA, TIMEDELAY TX & RX CANARD
+/// @brief CAN redundancy factor
 #define CAN_REDUNDANCY_FACTOR 1
+/// @brief  CAN TX queue capacity factor
 #define CAN_TX_QUEUE_CAPACITY 100
+/// @brief CAN max iface
 #define CAN_MAX_IFACE         1
+/// @brief CAN Rx queue capacity factor
 #define CAN_RX_QUEUE_CAPACITY 100
+/// @brief Iface CAN index
 #define IFACE_CAN_IDX         0
+/// @brief CAN delay send in microseconds 
 #define CAN_DELAY_US_SEND     0
+/// @brief Max subscriptions to CAN
 #define MAX_SUBSCRIPTION      30
+/// @brief Heap arena size
 #define HEAP_ARENA_SIZE       (1024 * 16)
 
 // CAN SPEED RATE HZ
