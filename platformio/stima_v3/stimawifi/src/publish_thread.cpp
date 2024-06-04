@@ -291,7 +291,7 @@ void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SI
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
-  : Thread{"publish", 3500, 2},
+  : Thread{"publish", 3500, 1},
     data{publish_data},
     ipstack{*data.mqttClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}

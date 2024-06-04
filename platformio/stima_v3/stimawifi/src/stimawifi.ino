@@ -209,7 +209,9 @@ void timeavailable(struct timeval *t)
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
   }
-  //RTC.set(now());  
+  if (RTC.set(now()) != 0){
+    frtosLog.error("Setting RTC time from NTP!");
+  }
 }
 
 // HTTP response
@@ -402,7 +404,7 @@ void saveConfigCallback () {
 }
 
 // callback from Time library
-long ntp_set_time(){               // resync from sntp
+long long int ntp_set_time(){               // resync from sntp
   time_t tnow;
   time(&tnow);
   return tnow;
@@ -1068,6 +1070,7 @@ void setup() {
   sntp_set_time_sync_notification_cb( timeavailable );
   sntp_servermode_dhcp(1);
   configTime(0, 0, station.ntp_server);
+  sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -1096,7 +1099,7 @@ void setup() {
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds
-  wifiManager.setConfigPortalTimeout(300);
+  wifiManager.setConfigPortalTimeout(180);
 
   // USE THIS OPTIONS WITH WIFIMANAGER VERSION 2
   //if false, timeout captive portal even if a STA client connected to softAP (false), suggest disabling if captiveportal is open
@@ -1131,6 +1134,8 @@ void setup() {
       u8g2.sendBuffer();
     }
     delay(3000);
+    //WiFi.disconnect(true);
+    //esp_wifi_stop();
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
@@ -1164,7 +1169,7 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   */
-  
+
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(station.server, custom_rmap_server.getValue());
@@ -1213,8 +1218,7 @@ void setup() {
     delay(5000);
     reboot();
   }
-
-  threadMeasure.Begin();
+  
   
   // Set up mDNS responder:
   // - first argument is the domain name, in this example
@@ -1249,56 +1253,61 @@ void setup() {
     u8g2.sendBuffer();
   }
 
-  /*
-  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
-    frtosLog.error("Failed to update system time within 30s timeout");
-  }  
-  sntp_init();
-  // wait for time to be set
-  */
+  if (WiFi.status() == WL_CONNECTED) {
+    //if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(60000)) == ESP_OK) {  // alternative starting from idf 5.1 with esp_netif_sntp.h
+    int retry = 0;
+    const int retry_count = 60;
+    time_t datetime = 0;
+    struct tm timeinfo = { 0 };
+    while(timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
+      frtosLog.notice(F("Waiting for system time to be set... (%d/%d)"), retry, retry_count);
+      delay(1000);
+      datetime=now();
+      localtime_r(&datetime, &timeinfo);
+    }
+  }
   
-  int retry = 0;
-  const int retry_count = 60;
-  time_t datetime = 0;
-  struct tm timeinfo = { 0 };
-  while(timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
-    frtosLog.notice(F("Waiting for system time to be set... (%d/%d)"), retry, retry_count);
-    delay(1000);
-    datetime=now();
-    localtime_r(&datetime, &timeinfo);
+
+  if (timeStatus() == timeSet) {
+    frtosLog.notice(F("Getted time from NTP"));
+     setSyncProvider(ntp_set_time);
+  } else{
+    esp_sntp_stop();
+    if (year(RTC.get()) > 2020){
+      frtosLog.notice(F("Getted time from RTC"));
+      setSyncProvider(RTC.get);   // the function to get the time from the RTC
+    }
   }
 
-  if(retry >= retry_count) {
-    frtosLog.error(F("NTP time out: Time not configurated, REBOOT"));
+  if (timeStatus() != timeSet) {
+    frtosLog.warning(F("Time not setted"));  
     if (oledpresent){
       u8g2.clearBuffer();
       u8g2.setDrawColor(0);
       u8g2.drawBox( 0, 1*CH,64, CH);
       u8g2.setDrawColor(1);
       u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("Time Error"));
-      u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 2*CH,64, CH);
-      u8g2.setDrawColor(1);
+      u8g2.print(F("NTP Time Error"));
+      //u8g2.setDrawColor(0);
+      //u8g2.drawBox( 0, 2*CH,64, CH);
+      //u8g2.setDrawColor(1);
+      //u8g2.setCursor(0, 3*CH);
+      //u8g2.print(F("RESTART"));
+      u8g2.sendBuffer();
+
+      //delay(5000);
+      //reboot(); //timeout - reset board
+    }
+  } else {
+    time_t time=now();
+    frtosLog.notice(F("Time: %s"),ctime(&time));  
+    if (oledpresent){
       u8g2.setCursor(0, 3*CH);
-      u8g2.print(F("RESTART"));
+      u8g2.print(F("Time OK"));
       u8g2.sendBuffer();
     }
-    delay(5000);
-    //reboot(); //timeout - reset board
   }
 
-  if (timeStatus() == timeSet) setSyncProvider(ntp_set_time);
-
-  //if (RTC.get()) setSyncProvider(RTC.get);   // the function to get the time from the RTC
-  
-  if (oledpresent){
-    u8g2.setCursor(0, 3*CH);
-    u8g2.print(F("Time OK"));
-    u8g2.sendBuffer();
-  }
-  
-  frtosLog.notice(F("Time: %s"),ctime(&datetime));  
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
@@ -1328,21 +1337,32 @@ void setup() {
     threadGps.Start();
   }
 
-  // set the priority of this thread
-  vTaskPrioritySet(NULL, 2);
-
   // start other thread
+  threadMeasure.Begin();
   threadPublish.Start();
   threadDb.Start();
   threadMeasure.Start();
+
+  //esp_task_wdt_init(60, true);
+  //enableLoopWDT();
+  //disableLoopWDT();
+  //rtc_wdt_protect_off();
+  //rtc_wdt_disable();
 
 }
 
 // arduino loop routine
 void loop() {
+  // set the priority of this thread
+  vTaskPrioritySet(NULL, 3);
+
+  //disableLoopWDT();
+  // set the priority of this thread
+  //vTaskPrioritySet(NULL, 5);
   webserver.handleClient();
   //MDNS.update();
   Alarm.delay(0);
+  delay(1000);
 
   //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");

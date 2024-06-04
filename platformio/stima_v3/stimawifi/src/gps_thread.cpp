@@ -46,7 +46,9 @@ void doSerialNmea(gps_data_t& data){
 
     setTime(gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec
 	    ,gps_mgps.rmc.time.day,gps_mgps.rmc.time.mon,gps_mgps.rmc.time.year);
-    //RTC.set(now());
+    if (RTC.set(now()) != 0){
+      frtosLog.error("gps Setting RTC time from GPS!");
+    }
     
     /*
       If you just need “GPS” coordinates, any of the GGA, RMC, or GLL
@@ -70,7 +72,7 @@ void doSerialNmea(gps_data_t& data){
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t& gps_data)
-  : Thread{"GPS", 2500, 2}
+  : Thread{"GPS", 2500, 1}
     ,data{gps_data}
 {
   //data->logger->notice("gps Create Thread %s %d", GetName().c_str(), data->id);
@@ -111,7 +113,7 @@ void gpsThread::Run() {
     }
     Delay(500);
     //Delay(Ticks::SecondsToTicks(1));
-
+    
     //data.logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data.logger->error("gps stack");
   }

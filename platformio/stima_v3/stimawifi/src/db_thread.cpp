@@ -516,7 +516,7 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t& db_data)
-  : Thread{"DB", 4500, 3}
+  : Thread{"DB", 4500, 2}
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -682,7 +682,9 @@ void dbThread::Run() {
 
     // check semaphore for data recovey
     if(data.recoverysemaphore->Take(0)){
-      if (!data_purge()) data.logger->error(F("db purge DB"));
+      if (timeStatus() == timeSet) {
+	if (!data_purge()) data.logger->error(F("db purge DB"));
+      }
       if(!data_recovery()) data.logger->error(F("db recovery DB"));
     }
 

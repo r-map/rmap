@@ -46,7 +46,9 @@ void doUdp(udp_data_t& data){
 
       setTime(udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec
 	      ,udp_mgps.rmc.time.day,udp_mgps.rmc.time.mon,udp_mgps.rmc.time.year);
-      //RTC.set(now());
+      if (RTC.set(now()) != 0){
+	frtosLog.error("Setting RTC time from UDP!");
+      }
       
       /*
 	If you just need “GPS” coordinates, any of the GGA, RMC, or GLL

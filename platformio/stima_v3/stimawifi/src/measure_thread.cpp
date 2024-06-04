@@ -144,6 +144,7 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
     }else{
       data.logger->error(F("measure time not set or needs sync"));
       strcat(mqtt_message.payload,"}");
+      return;
     }
     data.logger->notice(F("measure enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
     if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
@@ -234,7 +235,7 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", 4000, 2},
+  : Thread{"measure", 4000, 1},
     data{measure_data}
 {
   //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
@@ -285,7 +286,7 @@ void measureThread::Run() {
   for(;;){
     // wait for notification from the main task when we have to do measurements
     WaitForNotification();
-    doMeasure(sensorm,*data);
+    if (timeStatus() == timeSet) doMeasure(sensorm,*data);
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
