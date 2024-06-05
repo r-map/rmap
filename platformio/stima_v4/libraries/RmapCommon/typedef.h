@@ -57,8 +57,8 @@ typedef uint16_t rmapdata_t;
 #define ISVALID_RMAPDATA(v)     ((rmapdata_t) v != RMAPDATA_MAX)
 
 typedef struct {
-  rmapdata_t value;       //!< sensor acquired value
-  uint8_t index;          //!<
+  rmapdata_t value;       ///< sensor acquired value
+  uint8_t index;          ///< index of command
 } elaborate_data_t;
 
 typedef struct {

@@ -9,38 +9,38 @@ void setup() {
 
   // Semaphore, Queue && Param Config for TASK
 #if (ENABLE_I2C1)
-  static BinarySemaphore *wireLock;       // Access I2C internal EEprom, Accelerometer
+  static BinarySemaphore *wireLock;       ///< Access I2C internal EEprom, Accelerometer
 #endif
 
 #if (ENABLE_I2C2)
-  static BinarySemaphore *wire2Lock;      // Access I2C External (Sensor)
+  static BinarySemaphore *wire2Lock;      ///< Access I2C External (Sensor)
 #endif
 
 #if (ENABLE_CAN)
-  static BinarySemaphore *canLock;        // Can BUS
+  static BinarySemaphore *canLock;        ///< Can BUS
 #endif
 
 #if (ENABLE_QSPI)
-  static BinarySemaphore *qspiLock;       // Qspi (Flash Memory)
+  static BinarySemaphore *qspiLock;       ///< Qspi (Flash Memory)
 #endif
 
-  static BinarySemaphore *rtcLock;        // RTC (Access lock)
+  static BinarySemaphore *rtcLock;        ///< RTC (Access lock)
 
   // System Queue (Generic Message from/to Task)
-  static Queue *systemMessageQueue;
+  static Queue *systemMessageQueue;       ///< System Queue (Generic Message from/to Task)
   // Data queue (Request / exchange data from Can to Sensor and Elaborate Task)
-  static Queue *elaborateDataQueue;
-  static Queue *requestDataQueue;
-  static Queue *reportDataQueue;
+  static Queue *elaborateDataQueue;       ///< Elaborate data queue push data
+  static Queue *requestDataQueue;         ///< Request data from module
+  static Queue *reportDataQueue;          ///< Report data
 
   // System semaphore
-  static BinarySemaphore *configurationLock;  // Access Configuration
-  static BinarySemaphore *systemStatusLock;   // Access System status
-  static BinarySemaphore *registerAccessLock; // Access Register Cyphal Specifications
+  static BinarySemaphore *configurationLock;  ///< Access Configuration
+  static BinarySemaphore *systemStatusLock;   ///< Access System status
+  static BinarySemaphore *registerAccessLock; ///< Access Register Cyphal Specifications
 
   // System and status configuration struct
-  static configuration_t configuration = {0};
-  static system_status_t system_status = {0};
+  static configuration_t configuration = {0}; ///< System configuration
+  static system_status_t system_status = {0}; ///< System status
 
   // Initializing basic hardware's configuration
   SetupSystemPeripheral();

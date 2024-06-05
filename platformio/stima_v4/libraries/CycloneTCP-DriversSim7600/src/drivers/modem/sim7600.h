@@ -292,11 +292,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 typedef enum
 {
-   SIM7600_MODE_NETWORK_DEFAULT = 0,
-   SIM7600_MODE_NETWORK_AUTO = 2,
-   SIM7600_MODE_NETWORK_2G = 13,
-   SIM7600_MODE_NETWORK_3G = 14,
-   SIM7600_MODE_NETWORK_4G = 38
+   SIM7600_MODE_NETWORK_DEFAULT = 0,   ///< Use default assigned method form HW module
+   SIM7600_MODE_NETWORK_AUTO = 2,      ///< Use method AUTO for network connection
+   SIM7600_MODE_NETWORK_2G = 13,       ///< Use only method 2G for network connection
+   SIM7600_MODE_NETWORK_3G = 14,       ///< Use only method 3G for network connection
+   SIM7600_MODE_NETWORK_4G = 38        ///< Use only method 4G for network connection
 } sim7600_connection_network_mode_t;
 
 /*!
@@ -305,13 +305,13 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_TYPE_NETWORK_DEFAULT = 0,
-   SIM7600_TYPE_NETWORK_CDMA = 2,
-   SIM7600_TYPE_NETWORK_GSM = 3,
-   SIM7600_TYPE_NETWORK_HDR = 4,
-   SIM7600_TYPE_NETWORK_WCDMA = 5,
-   SIM7600_TYPE_NETWORK_LTE = 9,
-   SIM7600_TYPE_NETWORK_TDSCDMA = 11
+   SIM7600_TYPE_NETWORK_DEFAULT = 0,   ///< Use trasmission signal default for network connection
+   SIM7600_TYPE_NETWORK_CDMA = 2,      ///< Use trasmission signal CDMA for network connection
+   SIM7600_TYPE_NETWORK_GSM = 3,       ///< Use trasmission signal GSM for network connection
+   SIM7600_TYPE_NETWORK_HDR = 4,       ///< Use trasmission signal HDR for network connection
+   SIM7600_TYPE_NETWORK_WCDMA = 5,     ///< Use trasmission signal WCDMA for network connection
+   SIM7600_TYPE_NETWORK_LTE = 9,       ///< Use trasmission signal LTE for network connection
+   SIM7600_TYPE_NETWORK_TDSCDMA = 11   ///< Use trasmission signal TDSCDMA for network connection
 } sim7600_connection_network_type_t;
 
 /*!
@@ -321,10 +321,10 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_REG_NETWORK_NONE,
-   SIM7600_REG_NETWORK_GSM,
-   SIM7600_REG_NETWORK_GPRS,
-   SIM7600_REG_NETWORK_EUTRAN
+   SIM7600_REG_NETWORK_NONE,        ///< registration network not required
+   SIM7600_REG_NETWORK_GSM,         ///< registration network GSM minimal required
+   SIM7600_REG_NETWORK_GPRS,        ///< registration network GPRS minimal required
+   SIM7600_REG_NETWORK_EUTRAN       ///< registration network EUTRAN minimal required
 } sim7600_type_network_registration_t;
 
 /*!
@@ -333,14 +333,14 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_POWER_INIT,         //!< init task variables
-   SIM7600_POWER_ENABLE,       //!< set sim7600 poweron/poweroff pin low
-   SIM7600_POWER_IMPULSE_UP,   //!< set sim7600 poweron/poweroff pin high
-   SIM7600_POWER_IMPULSE_DOWN,   //!< set sim7600 poweron/poweroff pin high
-   SIM7600_POWER_CHECK_STATUS, //!< check if sim7600 is on or is off
-   SIM7600_POWER_END,          //!< performs end operations and deactivate task
+   SIM7600_POWER_INIT,           ///< init task variables
+   SIM7600_POWER_ENABLE,         ///< set sim7600 poweron/poweroff pin low
+   SIM7600_POWER_IMPULSE_UP,     ///< set sim7600 poweron/poweroff pin high
+   SIM7600_POWER_IMPULSE_DOWN,   ///< set sim7600 poweron/poweroff pin high
+   SIM7600_POWER_CHECK_STATUS,   ///< check if sim7600 is on or is off
+   SIM7600_POWER_END,            ///< performs end operations and deactivate task
    #ifndef USE_FREERTOS
-   SIM7600_POWER_WAIT_STATE //!< non-blocking waiting time
+   SIM7600_POWER_WAIT_STATE ///< non-blocking waiting time
    #endif
 } sim7600_power_state_t;
 
@@ -350,10 +350,10 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_POWER_OFF_INIT,         //!< init task variables
-   SIM7600_POWER_OFF_END,          //!< performs end operations and deactivate task
+   SIM7600_POWER_OFF_INIT,         ///< init task variables
+   SIM7600_POWER_OFF_END,          ///< performs end operations and deactivate task
    #ifndef USE_FREERTOS
-   SIM7600_POWER_OFF_WAIT_STATE //!< non-blocking waiting time
+   SIM7600_POWER_OFF_WAIT_STATE ///< non-blocking waiting time
    #endif
 } sim7600_power_off_state_t;
 
@@ -362,18 +362,18 @@ typedef enum
 \brief Main loop finite state machine.
 */
 typedef enum {
-   SIM7600_SETUP_INIT,                    //!< init task variables
-   SIM7600_SETUP_RESET,                   //!< reset sim7600 to default state
-   SIM7600_SETUP_ECHO_MODE,               //!< disable sim7600 echo mode
-   SIM7600_SETUP_GET_SIGNAL_QUALITY,      //!< get signal quality
-   SIM7600_SETUP_CHANGE_BAUD_RATE,        //!< switch baud from defualt to fast rs232 speed
-   SIM7600_SETUP_SET_PHONE_FUNCTIONALITY, //!< set on off or partial functionally for modem
-   SIM7600_SETUP_SET_MODE_NETWORK,        //!< set type network prefered
-   SIM7600_SETUP_SET_PRIORITY_NETWORK,    //!< set priority list type network (only if more than one enabled)
-   SIM7600_SETUP_ENABLE_NETWORK,          //!< enable type of network required
-   SIM7600_SETUP_WAIT_NETWORK,            //!< wait for network availability
-   SIM7600_SETUP_END,                     //!< performs end operations and deactivate task
-   SIM7600_SETUP_WAIT_STATE               //!< non-blocking waiting time
+   SIM7600_SETUP_INIT,                    ///< init task variables
+   SIM7600_SETUP_RESET,                   ///< reset sim7600 to default state
+   SIM7600_SETUP_ECHO_MODE,               ///< disable sim7600 echo mode
+   SIM7600_SETUP_GET_SIGNAL_QUALITY,      ///< get signal quality
+   SIM7600_SETUP_CHANGE_BAUD_RATE,        ///< switch baud from defualt to fast rs232 speed
+   SIM7600_SETUP_SET_PHONE_FUNCTIONALITY, ///< set on off or partial functionally for modem
+   SIM7600_SETUP_SET_MODE_NETWORK,        ///< set type network prefered
+   SIM7600_SETUP_SET_PRIORITY_NETWORK,    ///< set priority list type network (only if more than one enabled)
+   SIM7600_SETUP_ENABLE_NETWORK,          ///< enable type of network required
+   SIM7600_SETUP_WAIT_NETWORK,            ///< wait for network availability
+   SIM7600_SETUP_END,                     ///< performs end operations and deactivate task
+   SIM7600_SETUP_WAIT_STATE               ///< non-blocking waiting time
 } sim7600_setup_state_t;
 
 /*!
@@ -382,13 +382,13 @@ typedef enum {
 */
 typedef enum
 {
-   SIM7600_CONNECTION_START_INIT,      //!< init task variables
-   SIM7600_CONNECTION_START_PDP,       //!< check if sim7600 is attached to gprs
-   SIM7600_CONNECTION_START_PDP_AUTH,  //!< starting up connection
-   SIM7600_CONNECTION_START_CONNECT,   //!< starting up connection
-   SIM7600_CONNECTION_START_END,       //!< performs end operations and deactivate task
+   SIM7600_CONNECTION_START_INIT,      ///< init task variables
+   SIM7600_CONNECTION_START_PDP,       ///< check if sim7600 is attached to gprs
+   SIM7600_CONNECTION_START_PDP_AUTH,  ///< starting up connection
+   SIM7600_CONNECTION_START_CONNECT,   ///< starting up connection
+   SIM7600_CONNECTION_START_END,       ///< performs end operations and deactivate task
    #ifndef USE_FREERTOS
-   SIM7600_CONNECTION_START_WAIT_STATE //!< non-blocking waiting time
+   SIM7600_CONNECTION_START_WAIT_STATE ///< non-blocking waiting time
    #endif
 } sim7600_connection_start_state_t;
 
@@ -398,13 +398,13 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_CONNECTION_STOP_INIT,                       //!< init task variables
-   SIM7600_CONNECTION_ENTER_COMMAND_MODE,              //!< enter command mode
-   SIM7600_CONNECTION_STOP_HANGUP,                     //!< close socket
-   SIM7600_CONNECTION_STOP_CLOSE_PDP,                  //!< close pdp context
-   SIM7600_CONNECTION_STOP_END,                        //!< performs end operations and deactivate task
+   SIM7600_CONNECTION_STOP_INIT,                       ///< init task variables
+   SIM7600_CONNECTION_ENTER_COMMAND_MODE,              ///< enter command mode
+   SIM7600_CONNECTION_STOP_HANGUP,                     ///< close socket
+   SIM7600_CONNECTION_STOP_CLOSE_PDP,                  ///< close pdp context
+   SIM7600_CONNECTION_STOP_END,                        ///< performs end operations and deactivate task
    #ifndef USE_FREERTOS
-   SIM7600_CONNECTION_STOP_WAIT_STATE                  //!< non-blocking waiting time
+   SIM7600_CONNECTION_STOP_WAIT_STATE                  ///< non-blocking waiting time
    #endif
 } sim7600_connection_stop_state_t;
 
@@ -414,12 +414,12 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_STATE_NONE = 0b00000000,             //!< default state at power on
-   SIM7600_STATE_ON = 0b00000001,               //!< module is on
-   SIM7600_STATE_SETTED = 0b00000010,           //!< module is is setted
-   SIM7600_STATE_CONNECTED = 0b00000100,        //!< module is is connected
+   SIM7600_STATE_NONE = 0b00000000,             ///< default state at power on
+   SIM7600_STATE_ON = 0b00000001,               ///< module is on
+   SIM7600_STATE_SETTED = 0b00000010,           ///< module is is setted
+   SIM7600_STATE_CONNECTED = 0b00000100,        ///< module is is connected
    #ifndef USE_FREERTOS
-   SIM7600_AT_WAIT_STATE //!< non-blocking waiting time
+   SIM7600_AT_WAIT_STATE ///< non-blocking waiting time
    #endif
 } sim7600_state_t;
 
@@ -429,12 +429,12 @@ typedef enum
 */
 typedef enum
 {
-   SIM7600_AT_INIT,    //!< init task variables
-   SIM7600_AT_SEND,    //!< send AT command
-   SIM7600_AT_RECEIVE, //!< wait for AT response
-   SIM7600_AT_END,     //!< performs end operations and deactivate task
+   SIM7600_AT_INIT,    ///< init task variables
+   SIM7600_AT_SEND,    ///< send AT command
+   SIM7600_AT_RECEIVE, ///< wait for AT response
+   SIM7600_AT_END,     ///< performs end operations and deactivate task
    #ifndef USE_FREERTOS
-   SIM7600_AT_WAIT_STATE //!< non-blocking waiting time
+   SIM7600_AT_WAIT_STATE ///< non-blocking waiting time
    #endif
 } sim7600_at_state_t;
 
@@ -443,9 +443,9 @@ typedef enum
 \brief Main loop finite state machine.
 */
 typedef enum {
-   SIM7600_BUSY,      //!< busy: sim7600 is doing something
-   SIM7600_OK,        //!< operation complete with success
-   SIM7600_ERROR      //!< operation abort due to error
+   SIM7600_BUSY,      ///< busy: sim7600 is doing something
+   SIM7600_OK,        ///< operation complete with success
+   SIM7600_ERROR      ///< operation abort due to error
 } sim7600_status_t;
 
 /*!
