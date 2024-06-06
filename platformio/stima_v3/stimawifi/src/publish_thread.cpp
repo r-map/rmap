@@ -78,7 +78,7 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   options.username.cstring = unique_id;
   options.password.cstring = data.station->password;
   options.cleansession = cleanSession;
-  options.keepAliveInterval = 180;
+  options.keepAliveInterval = 60;
     
   data.logger->notice(F("publish MQTT clientID: %s"), options.clientID.cstring);
   data.logger->notice(F("publish MQTT will topic: %s"), options.will.topicName.cstring);
