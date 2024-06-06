@@ -91,56 +91,60 @@
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
 
+/// @brief LCD State of task
 typedef enum LCDState {
-  LCD_STATE_CREATE,
-  LCD_STATE_INIT,
-  LCD_STATE_CHECK_OPERATION,
-  LCD_STATE_STANDBY
+  LCD_STATE_CREATE,          ///< creating a task
+  LCD_STATE_INIT,            ///< initializing a task
+  LCD_STATE_CHECK_OPERATION, ///< checking operation
+  LCD_STATE_STANDBY          ///< standby task
 } LCDState_t;
 
+/// @brief LCD Master commands names
 typedef enum LCDMasterCommands {
-  MASTER_COMMAND_RESET_FLAGS,
-  MASTER_COMMAND_FORCE_CONNECTION,
-  MASTER_COMMAND_DOWNLOAD_CFG,
-  MASTER_COMMAND_DOWNLOAD_FW,
-  MASTER_COMMAND_TRUNCATE_DATA,
-  MASTER_COMMAND_UPDATE_STATION_SLUG,
+  MASTER_COMMAND_RESET_FLAGS,           ///< reset flags
+  MASTER_COMMAND_FORCE_CONNECTION,      ///< force gsm connection
+  MASTER_COMMAND_DOWNLOAD_CFG,          ///< download configuration
+  MASTER_COMMAND_TRUNCATE_DATA,         ///< init sd card
+  MASTER_COMMAND_UPDATE_STATION_SLUG,   ///< update station slug
   #if(ENABLE_MENU_BOARD_SLUG)
-  MASTER_COMMAND_UPDATE_BOARD_SLUG,
+  MASTER_COMMAND_UPDATE_BOARD_SLUG,     ///< update board slug
   #endif
-  MASTER_COMMAND_UPDATE_MQTT_USERNAME,
-  MASTER_COMMAND_UPDATE_GSM_APN,
+  MASTER_COMMAND_UPDATE_MQTT_USERNAME,  ///< update mqtt username
+  MASTER_COMMAND_UPDATE_GSM_APN,        ///< update gsm apn
   #if (ENABLE_MENU_GSM_NUMBER)
-  MASTER_COMMAND_UPDATE_GSM_NUMBER,
+  MASTER_COMMAND_UPDATE_GSM_NUMBER,     ///< update gsm number
   #endif
-  MASTER_COMMAND_UPDATE_PSK_KEY,
-  MASTER_COMMAND_FIRMWARE_UPGRADE,
-  MASTER_COMMAND_EXIT  // Always the latest element
+  MASTER_COMMAND_UPDATE_PSK_KEY,        ///< update PSK key
+  MASTER_COMMAND_FIRMWARE_UPGRADE,      ///< firmware upgrade
+  MASTER_COMMAND_EXIT                   ///< exit from menu. Always the latest element
 } stima4_master_commands_t;
 
+/// @brief LCD Slave commands names
 typedef enum LCDSlaveCommands {
-  SLAVE_COMMAND_MAINTENANCE,
-  SLAVE_COMMAND_RESET_FLAGS,
-  SLAVE_COMMAND_DO_FACTORY,
-  SLAVE_COMMAND_CALIBRATION_ACCELEROMETER,
-  SLAVE_COMMAND_FIRMWARE_UPGRADE,
-  SLAVE_COMMAND_EXIT  // Always the latest element
+  SLAVE_COMMAND_MAINTENANCE,                ///< do/undo maintenance
+  SLAVE_COMMAND_RESET_FLAGS,                ///< reset flags
+  SLAVE_COMMAND_DO_FACTORY,                 ///< do factory
+  SLAVE_COMMAND_CALIBRATION_ACCELEROMETER,  ///< do calibration accelerometer
+  SLAVE_COMMAND_FIRMWARE_UPGRADE,           ///< firmware upgrade
+  SLAVE_COMMAND_EXIT                        ///< exit from menu. Always the latest element
 } stima4_slave_commands_t;
 
+/// @brief List of LCD Menu
 typedef enum LCDMenu {
-  MAIN,
-  CHANNEL,
-  CONFIGURATION,
-  UPDATE_STATION_SLUG,
-  UPDATE_BOARD_SLUG,
-  UPDATE_MQTT_USERNAME,
-  UPDATE_GSM_APN,
+  MAIN,                               ///< main
+  CHANNEL,                            ///< UI for each slave
+  CONFIGURATION,                      ///< configuration
+  UPDATE_STATION_SLUG,                ///< update station slug
+  UPDATE_BOARD_SLUG,                  ///< update board slug
+  UPDATE_MQTT_USERNAME,               ///< update mqtt username
+  UPDATE_GSM_APN,                     ///< update gsm apn
   #if (ENABLE_MENU_GSM_NUMBER)
-  UPDATE_GSM_NUMBER,
+  UPDATE_GSM_NUMBER,                  ///< update gsm number
   #endif
-  UPDATE_PSK_KEY
+  UPDATE_PSK_KEY                      ///< update PSK key
 } stima4_menu_ui_t;
 
+/// @brief Decoding function for Encoder 
 typedef union Encoder {
   struct Pin {
     bool a : 1;
@@ -150,6 +154,7 @@ typedef union Encoder {
 
 } encoder_t;
 
+/// @brief List of LCD parameters of task
 typedef struct {
   configuration_t *configuration;
   system_status_t *system_status;
@@ -205,116 +210,118 @@ class LCDTask : public cpp_freertos::Thread {
   void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
 
-  // Default char list for user input
+  /// @brief Default char list for user input
   char alphabet[ALPHABET_LENGTH] = {
       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '<', '>', '!'};
 
-  // GSM number char list for user input
+  /// @brief GSM number char list for user input
   char alphabet_gsm_number[ALPHABET_GSM_NUMBER_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '#', '*', '<', '>', '!'};
 
-  // PSK KEY char list for user input
+  /// @brief PSK KEY char list for user input
   char alphabet_psk_key[ALPHABET_PSK_KEY_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '<', '>', '!'};
 
-  // It contains the new psk key in char format inserted from user
+  /// @brief It contains the new psk key in char format inserted from user
   char new_client_psk_key[2 * CLIENT_PSK_KEY_LENGTH + 1];
 
-  // It contains the new gsm apn inserted from user
+  /// @brief It contains the new gsm apn inserted from user
   char new_gsm_apn[GSM_APN_LENGTH] = {0};
 
-  // It contains the new gsm number inserted from user
+  /// @brief It contains the new gsm number inserted from user
   char new_gsm_number[GSM_NUMBER_LENGTH] = {0};
 
-  // It contains the new mqtt username of station inserted from user
+  /// @brief It contains the new mqtt username of station inserted from user
   char new_mqtt_username[MQTT_USERNAME_LENGTH] = {0};
 
-  // It contains the new slug of station inserted from user
+  /// @brief It contains the new slug of station inserted from user
   char new_station_slug[STATIONSLUG_LENGTH] = {0};
   
-  // It contains the new board slug of station inserted from user
+  /// @brief It contains the new board slug of station inserted from user
   char new_board_slug[BOARDSLUG_LENGTH] = {0};
 
-  // Indicates whether the display has printed the updates or not
+  /// @brief Indicates whether the display has printed the updates or not
   bool data_printed;
 
-  // Indicates whether the display is off or not
+  /// @brief Indicates whether the display is off or not
   bool display_is_off;
 
-  // Indicates if the pressure event has occurred or not
+  /// @brief Indicates if the pressure event has occurred or not
   inline static bool pression_event;
 
-  // It contains the current logic state of the encoder
+  /// @brief It contains the current logic state of the encoder
   inline static encoder_t encoder;
 
-  // It contains the old logic state of the encoder
+  /// @brief It contains the old logic state of the encoder
   inline static encoder_t encoder_old;
 
-  // The time in milliseconds for debounce management
+  /// @brief The time in milliseconds for debounce management
   inline static uint32_t debounce_millis;
 
-  // The last time in milliseconds from any interactions with encoder for power display management
+  /// @brief The last time in milliseconds from any interactions with encoder for power display management
   inline static uint32_t last_display_timeout;
 
-  // It contains the final result of the encoder state
+  /// @brief It contains the final result of the encoder state
   inline static uint8_t encoder_state;
 
-  // The last time in milliseconds from any refresh video (auto refresh timeout)
+  /// @brief The last time in milliseconds from any refresh video (auto refresh timeout)
   uint32_t last_display_refresh;
 
-  // Index used for read the data from array of slave boards
+  /// @brief Index used for read the data from array of slave boards
   int8_t channel;
 
-  // Used for master configuration menu management of commands
+  /// @brief Used for master configuration menu management of commands
   stima4_master_commands_t stima4_master_command;
 
-  // Used for slave configuration menu management of commands
+  /// @brief Used for slave configuration menu management of commands
   stima4_slave_commands_t stima4_slave_command;
 
-  // Current menu state
+  /// @brief Current menu state
   stima4_menu_ui_t stima4_menu_ui;
 
-  // Last menu state before configuration state
+  /// @brief Last menu state before configuration state
   stima4_menu_ui_t stima4_menu_ui_last;
 
-  // Display instance
+  /// @brief Display instance
   U8G2_SH1108_128X160_F_FREERTOS_HW_I2C display;
 
-  // Contains the stack size allocated by LCD task
+  /// @brief Contains the stack size allocated by LCD task
   uint16_t stackSize;
 
-  // It contains the current time in milliseconds
+  /// @brief It contains the current time in milliseconds
   uint32_t read_millis;
 
-  // Number of configurated boards
+  /// @brief Number of configurated boards
   uint8_t board_count;
 
-  // Indicates the position of command selector in configuration menu
+  /// @brief Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
 
-  // Contains the number of commands available for master board
+  /// @brief Contains the number of commands available for master board
   uint8_t commands_master_number;
 
-  // Contains the number of commands available for each slave board
+  /// @brief Contains the number of commands available for each slave board
   uint8_t commands_slave_number;
 
-  // Used to calculate the y-axis position of cursor to enter the new char of new station name
+  /// @brief Used to calculate the y-axis position of cursor to enter the new char of new station name
   uint8_t cursor_pos;
 
-  // Contains the priority assigned to LCD task
+  /// @brief Contains the priority assigned to LCD task
   uint8_t priority;
 
-  // Index used to determine the char selected from user in update name station interface
+  /// @brief Index used to determine the char selected from user in update name station interface
   uint8_t selected_char_index;
 
-  // Index used to determine the main selected pages/subPages/Info
+  /// @brief Index used to determine the main selected pages/subPages/Info
   uint8_t main_page_subinfo;
 
-  // ISR Access PIN button
+  /// @brief ISR Access PIN button for buttom left encoder control
   inline static char pin_bottom_left_encoder;
+  /// @brief ISR Access PIN button for buttom right encoder control
   inline static char pin_bottom_right_encoder;
+  /// @brief ISR Access PIN button for top left encoder control
   inline static char pin_top_left_encoder;
 
-  // Static access for event quque
+  /// @brief Static access for event quque
   inline static cpp_freertos::Queue *localDisplayEventWakeUp;
 
   STM32RTC &rtc = STM32RTC::getInstance();

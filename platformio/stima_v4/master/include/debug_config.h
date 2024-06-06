@@ -26,18 +26,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #if USE_DEBUG
 
+/// @brief Stima trace level for debug
 #define STIMA_TRACE_LEVEL              TRACE_LEVEL_INFO
+/// @brief Ethernet task trace level for debug
 #define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
+/// @brief Modem task trace level for debug
 #define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_VERBOSE
+/// @brief NTP task trace level for debug
 #define NTP_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
+/// @brief MQTT task trace level for debug
 #define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
+/// @brief HTTP task trace level for debug
 #define HTTP_TASK_TRACE_LEVEL          TRACE_LEVEL_INFO
+/// @brief Supervisor task trace level for debug
 #define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_INFO
+/// @brief CAN task trace level for debug
 #define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+/// @brief SD task trace level for debug
 #define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_INFO
+/// @brief LCD task trace level for debug
 #define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
+/// @brief USB Serial task trace level for debug
 #define USBSERIAL_TASK_TRACE_LEVEL     TRACE_LEVEL_INFO
+/// @brief WhatchDog task trace level for debug
 #define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
+/// @brief SIM7600 trace level for debug
 #define SIM7600_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
 
 #else
