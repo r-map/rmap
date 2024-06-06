@@ -282,7 +282,7 @@ bool dbThread::data_recovery(void){
   //}
   
   if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
-    data.logger->warning(F("db recovery no space in publish queue"));   
+    data.logger->warning(F("db recovery no space in mqtt queue"));   
     return true;
   }
 
@@ -445,7 +445,7 @@ bool dbThread::doDb(const mqttMessage_t& message) {
   char sql[] = "INSERT OR REPLACE INTO messages VALUES (?, strftime('%s',?), ?, ?)";
   sqlite3_stmt* stmt; // will point to prepared stamement object
 
-  data.logger->notice(F("db spaceleft in db queue %d"),data.mqttqueue->NumSpacesLeft());   
+  data.logger->notice(F("db spaceleft in mqtt queue %d"),data.mqttqueue->NumSpacesLeft());   
   
   sqlite3_prepare_v2(
 		     db,             // the handle to your (opened and ready) database
@@ -521,7 +521,7 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t& db_data)
-  : Thread{"DB", 4500, 2}
+  : Thread{"DB", 5500, 2}
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);

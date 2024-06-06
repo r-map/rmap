@@ -351,6 +351,11 @@ void publishThread::Run() {
   
   for(;;){
     
+    // if there are no enough space left on the mqtt queue send it to the DB archive
+    while (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
+      archive(data);
+    }
+
     // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
     // mqttclient.yield(5000);
     // data.logger->notice(F("publish MQTT connect status %T %T %T"),mqttclient.yield(0)!=0, !mqttclient.isConnected(), WiFi.status() != WL_CONNECTED);
@@ -359,6 +364,7 @@ void publishThread::Run() {
     //if ((!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
 
     mqttclient.yield(0);
+    
     if (data.status->publish != ok){
       mqttDisconnect(ipstack,mqttclient, data);
       if (mqttConnect(ipstack,mqttclient, data, true)) {   // manage mqtt reconnect as RMAP standard
@@ -371,18 +377,13 @@ void publishThread::Run() {
 	delay(3000);
       }
     }
-
+    
     if (data.status->connect==ok){
       mqttMessage_t mqttMessage;
       // wait for message and peek it from the queue
       while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-	// if there are no enough space left on the publish queue send it to the archive
-	if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
-	  archive(data);
-	} else {
-	  // publish message
-	  if (!doPublish(ipstack,mqttclient, data, mqttMessage)) break;
-	}
+	// publish message
+	if (!doPublish(ipstack,mqttclient, data, mqttMessage)) break;
       }
     }
     
