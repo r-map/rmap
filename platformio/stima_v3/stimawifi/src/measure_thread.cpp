@@ -146,13 +146,24 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
       strcat(mqtt_message.payload,"}");
       return;
     }
-    data.logger->notice(F("measure enqueue: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
-    if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data.logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+
+
+    // if there are enough space left on the publish queue send it
+    if (data.mqttqueue->NumSpacesLeft() > MQTT_QUEUE_SPACELEFT_MEASURE){
+      data.logger->notice(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+      if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+	data.logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	if (data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){      // on error send il to DB
+	  data.logger->notice(F("measure enqueue for db"));
+	}else{
+	  data.logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	}
+      }
+    } else {    // if there are no enough space left on the publish queue send it to the archive
       if(data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-	data.logger->notice(F("measure enqueue archive message"));
+	data.logger->notice(F("measure enqueue for db"));
       }else{
-	data.logger->error(F("measure lost message for db archive : %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	data.logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
       }
     }
   }

@@ -18,6 +18,8 @@ struct publish_data_t {
   WiFiClient* mqttClient;
 };
 
+bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);
+bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);
 
 using namespace cpp_freertos;
 

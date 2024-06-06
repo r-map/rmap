@@ -276,6 +276,11 @@ bool dbThread::data_recovery(void){
 
   data.logger->notice(F("db recovery from DB started"));       
 
+  //if(data.status->publish != ok)
+  //  data.logger->warning(F("db recovery skip: publish task KO"));   
+  //  return false;
+  //}
+  
   if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
     data.logger->warning(F("db recovery no space in publish queue"));   
     return true;
@@ -287,7 +292,7 @@ bool dbThread::data_recovery(void){
 	   year(time), month(time), day(time),
 	   hour(time), minute(time), second(time));
   
-  // select MQTT_QUEUE_BURST_RECOVERY unsent messages
+  // select DATA_BURST_RECOVERY unsent messages
   //char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime > strftime('%s',?) ORDER BY datetime LIMIT ?";
   char sql[] = "SELECT sent,topic,payload  FROM messages WHERE sent = 0 AND datetime > strftime('%s',?) LIMIT ?";
     
@@ -314,7 +319,7 @@ bool dbThread::data_recovery(void){
     sqlite3_bind_int(
 		     stmt,                  // previously compiled prepared statement object
 		     2,                     // parameter index, 1-based
-		     (int)MQTT_QUEUE_BURST_RECOVERY);    // the data
+		     (int)DATA_BURST_RECOVERY);    // the data
     
     while(1) {
       // fetch a row's status

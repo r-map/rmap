@@ -14,8 +14,23 @@ bool mqttDisconnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACK
 // connect to MQTT broker setting will message
 bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const bool cleanSession=true) {
 
-  if (WiFi.status() != WL_CONNECTED) data.logger->error(F("publish WIFI disconnected!"));
-
+  if (WiFi.status() != WL_CONNECTED) {    
+    data.logger->error(F("publish WIFI not connected!  Try reconnect"));
+    WiFi.disconnect();
+    WiFi.setAutoReconnect(true);
+    WiFi.reconnect();
+    unsigned long start=millis();
+    while ((WiFi.status() != WL_CONNECTED) && (millis() < (start+30000))){
+      data.logger->notice(F("publish WIFI not connetted"));
+      delay(1000);
+    }
+  }
+	   
+  if (WiFi.status() != WL_CONNECTED) {
+    data.logger->error(F("publish WIFI reconnect failed"));
+    return false;
+  }
+  
   bool returnstatus = ipstack.connect(data.station->mqtt_server, MQTT_SERVER_PORT);
   if (returnstatus){
     data.logger->notice(F("publish IPstack connected"));
@@ -63,7 +78,7 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   options.username.cstring = unique_id;
   options.password.cstring = data.station->password;
   options.cleansession = cleanSession;
-  options.keepAliveInterval = 60;
+  options.keepAliveInterval = 180;
     
   data.logger->notice(F("publish MQTT clientID: %s"), options.clientID.cstring);
   data.logger->notice(F("publish MQTT will topic: %s"), options.will.topicName.cstring);
@@ -75,16 +90,13 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
   data.logger->notice(F("publish MQTT password: %s"), options.password.cstring);
     
   MQTT::connackData connack;
-  returnstatus = mqttclient.connect(options,connack);
-  if (returnstatus == 0){
+  uint8_t rc = mqttclient.connect(options,connack);
+  if (rc == 0){
     data.logger->notice(F("publish mqttclient connected"));
   } else {
     data.logger->notice(F("publish mqttclient connect failed"));
-    return returnstatus == 0;
   }
-  
-  data.logger->notice(F("publish MQTT sessionPresent: %T"), connack.sessionPresent);
-  
+    
   returnstatus=false;
   switch (connack.rc)
     {
@@ -123,15 +135,38 @@ bool mqttConnect(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_
       break;
     }
 
+  data.logger->notice(F("publish MQTT sessionPresent: %T"), connack.sessionPresent);
   if (connack.sessionPresent && (connack.rc != 0)){
     data.logger->error(F("publish inconsistent connect respose and session present "));
   }
-  return returnstatus;
+
+  if (!returnstatus) return returnstatus;
+  
+  if (strcmp(data.station->ident,"") == 0){
+    if (publish_maint(mqttclient,data)) {
+      data.logger->notice(F("publish Published maint"));
+      data.status->publish=ok;      
+    }else{
+      data.logger->error(F("publish Error in publish maint"));
+      data.status->publish=error;
+      return false;
+    }
+    if (publish_constantdata(mqttclient,data)) {
+      data.logger->notice(F("publish Published constant data"));
+      data.status->publish=ok;
+    }else{
+      data.logger->error(F("publish Error in publish constant data"));
+      data.status->publish=error;
+      return false;
+    }
+  }
+  return true;
 }
 
 // publish one message to the MQTT broker (retained or not retained)
 bool mqttPublish(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, const mqttMessage_t& mqtt_message, const bool retained) {
 
+    mqttclient.yield(0);
     MQTT::Message tx_message;
     tx_message.qos = MQTT::QOS1;
     tx_message.retained = retained;
@@ -212,8 +247,7 @@ bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >
       strcat(mqtt_message.topic,"/-,-,-/-,-,-,-/");
       strcat(mqtt_message.topic,data.station->constantdata[i].btable);
 
-      bool returnstatus=mqttPublish(mqttclient, data, mqtt_message, false);
-      if (!returnstatus) return false;
+      if (!mqttPublish(mqttclient, data, mqtt_message, false)) return false;
     }
 
   return true;
@@ -237,57 +271,30 @@ void archive( publish_data_t& data) {
 // if required connect to the broker, publish maint message, publish constant data messages
 // try to send message to the broker
 // send the same message to the queue for archive with flag to describe if publish is completed with success
-void doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, mqttMessage_t& mqtt_message) {
+bool doPublish(IPStack& ipstack, MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data, mqttMessage_t& mqtt_message) {
 
-  // manage mqtt reconnect as RMAP standard
-  if (!mqttclient.isConnected()){
-    mqttDisconnect(ipstack,mqttclient, data);
-    if (mqttConnect(ipstack,mqttclient, data, true)) {
-      data.status->connect=ok;
-      if (strcmp(data.station->ident,"") == 0){
-	if (!publish_maint(mqttclient,data)) {
-	  data.logger->error(F("publish Error in publish maint"));
-	  data.status->publish=error;
-	}else{
-	  data.logger->notice(F("publish Published maint"));
-	  data.status->publish=ok;      
-	}
-	if (!publish_constantdata(mqttclient,data)) {
-	  data.logger->error(F("publish Error in publish constant data"));
-	  data.status->publish=error;
-	}else{
-	  data.logger->notice(F("publish Published constant data"));
-	  data.status->publish=ok;
-	}
-      }
-    } else {
-      data.status->connect=error;
-      data.logger->error(F("publish MQTT connect failed"));
-      data.status->publish=error;
-    }
-  }
-
+  bool rc=false;
+  mqtt_message.sent=0;
+  
   mqttMessage_t tmp_mqtt_message;  
   data.mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));
 
-  mqtt_message.sent=0;
-  if (mqttclient.isConnected()){
-    if(mqttPublish( mqttclient, data, mqtt_message,false)){
-      mqtt_message.sent=1;  // all done: archive
-    } else {
-      mqttDisconnect(ipstack,mqttclient, data);
-    }
+  if(mqttPublish( mqttclient, data, mqtt_message,false)){
+    mqtt_message.sent=1;  // all done: archive
+    rc=true;
   }
 
-  if ( mqtt_message.sent == 1 ){
+  if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+    data.logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+  }
+  
+  if ( rc ){
     data.status->publish=ok;
   } else {
     data.status->publish=error;
   }
   
-  if(!data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-    data.logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-  }
+  return rc;
 }
 
 publishThread::publishThread(publish_data_t &publish_data)
@@ -328,7 +335,6 @@ void publishThread::Cleanup()
 void publishThread::Run() {
   data.logger->notice("Starting Thread %s %d", GetName().c_str(), data.id);
 
-  WiFi.setAutoReconnect(true);
   //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   /*
@@ -344,24 +350,42 @@ void publishThread::Run() {
   */
   
   for(;;){
-    mqttMessage_t mqttMessage;
-    // wait for message and peek it from the queue
-    while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-      // if there are no enough space left on the publish queue set it to the archive
-      if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
-	archive(data);
+    
+    // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
+    // mqttclient.yield(5000);
+    // data.logger->notice(F("publish MQTT connect status %T %T %T"),mqttclient.yield(0)!=0, !mqttclient.isConnected(), WiFi.status() != WL_CONNECTED);
+    // if ( (mqttclient.yield(1000)!=0) || (!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
+
+    //if ((!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
+
+    mqttclient.yield(0);
+    if (data.status->publish != ok){
+      mqttDisconnect(ipstack,mqttclient, data);
+      if (mqttConnect(ipstack,mqttclient, data, true)) {   // manage mqtt reconnect as RMAP standard
+	data.logger->notice(F("publish MQTT connected"));
+	data.status->connect=ok;
       } else {
-	// publish message
-	doPublish(ipstack,mqttclient, data, mqttMessage);
+	data.status->connect=error;
+	data.logger->error(F("publish MQTT connect failed"));
+	data.status->publish=error;
+	delay(3000);
       }
     }
 
-    if (WiFi.status() != WL_CONNECTED) {
-      data.logger->error(F("publish WIFI disconnected!"));
-      //WiFi.disconnect();
-      //WiFi.reconnect();
-      //WiFi.setAutoReconnect(true);
+    if (data.status->connect==ok){
+      mqttMessage_t mqttMessage;
+      // wait for message and peek it from the queue
+      while (data.mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
+	// if there are no enough space left on the publish queue send it to the archive
+	if (data.mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
+	  archive(data);
+	} else {
+	  // publish message
+	  if (!doPublish(ipstack,mqttclient, data, mqttMessage)) break;
+	}
+      }
     }
+    
     data.logger->notice(F("publish mqtt queue space left %d"),data.mqttqueue->NumSpacesLeft());
 
     // check heap and stack

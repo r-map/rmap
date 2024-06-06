@@ -404,10 +404,10 @@ void saveConfigCallback () {
 }
 
 // callback from Time library
-long long int ntp_set_time(){               // resync from sntp
+time_t ntp_set_time(){               // resync from sntp
   time_t tnow;
   time(&tnow);
-  return tnow;
+  return  tnow;
 }
 
 // get station configuration from server
@@ -1125,6 +1125,7 @@ void setup() {
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
   wifiManager.setDebugOutput(true);
+  wifiManager.setWiFiAutoReconnect(true);
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
@@ -1139,7 +1140,8 @@ void setup() {
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
-    WiFi.setAutoReconnect(true);
+    //WiFi.setAutoReconnect(true);
+    wifiManager.setDisableConfigPortal(true);
     frtosLog.notice(F("connected... good!"));
     frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
@@ -1348,13 +1350,13 @@ void setup() {
   //disableLoopWDT();
   //rtc_wdt_protect_off();
   //rtc_wdt_disable();
-
+  //wdt_hal_disable();
 }
 
 // arduino loop routine
 void loop() {
   // set the priority of this thread
-  vTaskPrioritySet(NULL, 3);
+  vTaskPrioritySet(NULL, 2);
 
   //disableLoopWDT();
   // set the priority of this thread
