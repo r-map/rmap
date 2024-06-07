@@ -533,10 +533,10 @@ String readconfig_rmap() {
       return configFile.readString();
       
     } else {
-      frtosLog.notice(F("erro reading rmap file"));	
+      frtosLog.error(F("reading rmap file"));	
     }
   } else {
-    frtosLog.notice(F("rmap file do not exist"));
+    frtosLog.warning(F("rmap file do not exist"));
   }
   //end read
   return String();  
@@ -575,7 +575,7 @@ int  rmap_config(const String payload){
     DeserializationError error = deserializeJson(doc,payload);
     if (!error){
       JsonArrayConst array = doc.as<JsonArray>();
-      frtosLog.notice(F("array: %d"),array.size());
+      frtosLog.notice(F("deserialize json array[ %d ]"),array.size());
       //for (uint8_t i = 0; i < array.size(); i++) {
       for(JsonObjectConst element: array){
 	
@@ -1202,7 +1202,7 @@ void setup() {
   firmware_upgrade();
   
   if (!rmap_config(remote_config) == 0) {
-    frtosLog.notice(F("station not configurated ! restart"));
+    frtosLog.error(F("station not configurated"));
     //frtosLog.notice(F("Reset wifi configuration"));
     //wifiManager.resetSettings();
 
@@ -1217,6 +1217,7 @@ void setup() {
       u8g2.sendBuffer();
     }
     
+    frtosLog.error(F("reboot!"));
     delay(5000);
     reboot();
   }
@@ -1340,9 +1341,9 @@ void setup() {
   }
 
   // start other thread
-  threadMeasure.Begin();
-  threadPublish.Start();
   threadDb.Start();
+  threadPublish.Start();
+  threadMeasure.Begin();
   threadMeasure.Start();
 
   //esp_task_wdt_init(60, true);

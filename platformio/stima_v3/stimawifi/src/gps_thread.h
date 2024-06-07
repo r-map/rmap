@@ -19,8 +19,6 @@ struct gps_data_t {
   georef_t* georef;
 };
 
-void doGps(gps_data_t& data);
-
 using namespace cpp_freertos;
 
 class gpsThread : public Thread {
@@ -32,7 +30,7 @@ class gpsThread : public Thread {
    *  @param gps_data data used by thread.
    */
   
-  gpsThread(gps_data_t& gps_data);
+  gpsThread(gps_data_t* gps_data);
   ~gpsThread();
   virtual void Cleanup();
   
@@ -40,7 +38,9 @@ class gpsThread : public Thread {
   virtual void Run();
 
  private:
-  gps_data_t data;
+  void GPS_SerialInit();
+  void doSerialNmea();
+  gps_data_t* data;
 
 };
 

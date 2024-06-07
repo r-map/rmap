@@ -23,8 +23,6 @@ struct udp_data_t {
   georef_t* georef;
 };
 
-void doUdp(udp_data_t& data);
-
 using namespace cpp_freertos;
 
 class udpThread : public Thread {
@@ -36,7 +34,7 @@ class udpThread : public Thread {
    *  @param udp_data data used by thread.
    */
   
-  udpThread(udp_data_t& udp_data);
+  udpThread(udp_data_t* udp_data);
   ~udpThread();
   virtual void Cleanup();
   
@@ -44,7 +42,8 @@ class udpThread : public Thread {
   virtual void Run();
 
  private:
-  udp_data_t data;
+  void doUdp();
+  udp_data_t* data;
 
 };
 

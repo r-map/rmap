@@ -24,7 +24,7 @@ class dbThread : public Thread {
    *  @param db_data data used by thread.
    */
   
-  dbThread(db_data_t& db_data);
+  dbThread(db_data_t* db_data);
   ~dbThread();
   virtual void Cleanup();
   
@@ -41,7 +41,7 @@ class dbThread : public Thread {
   bool data_recovery();
   bool data_set_recovery();
   bool db_restart();
-  db_data_t data;
+  db_data_t* data;
   sqlite3 *db;
   //SdFat SD;
   uint8_t sqlite_memory[SQLITE_MEMORY];   // allocated memory used by sqlite

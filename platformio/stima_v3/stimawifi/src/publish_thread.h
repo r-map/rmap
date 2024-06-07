@@ -26,7 +26,7 @@ using namespace cpp_freertos;
 class publishThread : public Thread {
 
 public:
-  publishThread(publish_data_t &publish_data);
+  publishThread(publish_data_t* publish_data);
   ~publishThread();
   virtual void Cleanup();
   
@@ -36,7 +36,14 @@ public:
   //static void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
 
  private:
-  publish_data_t data;
+  bool mqttDisconnect();
+  bool mqttConnect(const bool cleanSession=true);
+  bool mqttPublish( const mqttMessage_t& mqtt_message, const bool retained);
+  bool publish_maint();
+  bool publish_constantdata();
+  void archive();
+  bool doPublish(mqttMessage_t& mqtt_message);
+  publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 > mqttclient;
 };

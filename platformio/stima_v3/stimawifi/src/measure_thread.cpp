@@ -4,129 +4,130 @@
 unsigned short int displaypos;
 
 // reset data used as summary
-void reset_summary_data(measure_data_t &data) {
-  data.summarydata->temperature=NAN;
-  data.summarydata->humidity=-999;
-  data.summarydata->pm2=-999;
-  data.summarydata->pm10=-999;
-  data.summarydata->co2=-999;
+void measureThread::reset_summary_data() {
+  data->summarydata->temperature=NAN;
+  data->summarydata->humidity=-999;
+  data->summarydata->pm2=-999;
+  data->summarydata->pm10=-999;
+  data->summarydata->co2=-999;
 }
 
 // set summary data from measure
-void get_summary_data(sensorManage sensorm,measure_data_t &data) {
- 
+void measureThread::get_summary_data(uint8_t i) {
+  
   StaticJsonDocument<500> doc;
-  DeserializationError error = deserializeJson(doc,sensorm.json_values);
-  if (!error) {
+  DeserializationError error = deserializeJson(doc,(const char*)sensorm[i].json_values);
+  if (error) {
+    data->logger->error(F("measure get summary data deserialization ERROR: %s"),sensorm[i].json_values);
+  }else{
     JsonObject obj = doc.as<JsonObject>();
     for (JsonPair pair : obj) {
       if (pair.value().isNull()) {
-	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
+	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B12101")==0){
-	  data.summarydata->temperature=NAN;
+	  data->summarydata->temperature=NAN;
 	}
-	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
+	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B13003")==0){
-	  data.summarydata->humidity=-999;
+	  data->summarydata->humidity=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15198")==0){
-	  data.summarydata->pm2=-999;
+	  data->summarydata->pm2=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15195")==0){
-	  data.summarydata->pm10=-999;
+	  data->summarydata->pm10=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15242")==0){
-	  data.summarydata->co2=-999;
+	  data->summarydata->co2=-999;
 	}
-	continue;
-      }
+
+      } else {
       
-      float val=pair.value().as<float>();
-      
-      //if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
-      if (strcmp(pair.key().c_str(),"B12101")==0){
-	data.summarydata->temperature=round((val-27315)/10.)/10;
-      }
-      //if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm.getSensorDriver()->getType(),"SHT")==0)){
-      if (strcmp(pair.key().c_str(),"B13003")==0){
-	data.summarydata->humidity=round(val);
-      }
-      if (strcmp(pair.key().c_str(),"B15198")==0){
-	data.summarydata->pm2=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15195")==0){
-	data.summarydata->pm10=round(val/10.);
-      }
-      if (strcmp(pair.key().c_str(),"B15242")==0){
-	data.summarydata->co2=round(val/1.8);
+	float val=pair.value().as<float>();
+	
+	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
+	if (strcmp(pair.key().c_str(),"B12101")==0){
+	  data->summarydata->temperature=round((val-27315)/10.)/10;
+	}
+	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
+	if (strcmp(pair.key().c_str(),"B13003")==0){
+	  data->summarydata->humidity=round(val);
+	}
+	if (strcmp(pair.key().c_str(),"B15198")==0){
+	  data->summarydata->pm2=round(val/10.);
+	}
+	if (strcmp(pair.key().c_str(),"B15195")==0){
+	  data->summarydata->pm10=round(val/10.);
+	}
+	if (strcmp(pair.key().c_str(),"B15242")==0){
+	  data->summarydata->co2=round(val/1.8);
+	}
       }
     }
-  }else{
-    data.logger->error(F("measure display_values deserialization ERROR"));
   }
 
-  data.logger->notice(F("measure get temperature: %D"),data.summarydata->temperature);
-  data.logger->notice(F("measure get humidity: %d"),data.summarydata->humidity);
-  data.logger->notice(F("measure get PM2: %d"),data.summarydata->pm2);
-  data.logger->notice(F("measure get PM10: %d"),data.summarydata->pm10);
-  data.logger->notice(F("measure get CO2: %d"),data.summarydata->co2);
+  data->logger->notice(F("measure get temperature: %D"),data->summarydata->temperature);
+  data->logger->notice(F("measure get humidity: %d"),data->summarydata->humidity);
+  data->logger->notice(F("measure get PM2: %d"),data->summarydata->pm2);
+  data->logger->notice(F("measure get PM10: %d"),data->summarydata->pm10);
+  data->logger->notice(F("measure get CO2: %d"),data->summarydata->co2);
 
 }
 
-void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data ) {
+void measureThread::enqueueMqttMessage(uint8_t i ) {
   
   mqttMessage_t mqtt_message;
   StaticJsonDocument<500> doc;
 
   mqtt_message.sent=0;
   
-  data.logger->notice(F("measure have to publish: %s"),values);
-  DeserializationError deerror = deserializeJson(doc,values);
+  data->logger->notice(F("measure have to publish: %s"),sensorm[i].json_values);
+  DeserializationError deerror = deserializeJson(doc,(const char*)sensorm[i].json_values);
   if (deerror) {
-    data.logger->error(F("measure reading json data: %s"),deerror.c_str());
+    data->logger->error(F("measure reading json data: %s"),deerror.c_str());
     return;
   }
   for (JsonPair pair : doc.as<JsonObject>()) {
     if (pair.value().isNull()){
-      data.logger->error(F("measure novalue error"));
-      data.status->novalue=error;
+      data->logger->error(F("measure novalue error"));
+      data->status->novalue=error;
       continue;
     }
         
     strcpy(mqtt_message.topic,"1/");
-    strcat(mqtt_message.topic,data.station->mqttrootpath);
+    strcat(mqtt_message.topic,data->station->mqttrootpath);
     strcat(mqtt_message.topic,"/");
-    strcat(mqtt_message.topic,data.station->user);
+    strcat(mqtt_message.topic,data->station->user);
 
-    if (strcmp(data.station->ident,"") == 0){
+    if (strcmp(data->station->ident,"") == 0){
       strcat(mqtt_message.topic,"//");
-      strcat(mqtt_message.topic,data.station->longitude);
+      strcat(mqtt_message.topic,data->station->longitude);
       strcat(mqtt_message.topic,",");
-      strcat(mqtt_message.topic,data.station->latitude);
+      strcat(mqtt_message.topic,data->station->latitude);
       strcat(mqtt_message.topic,"/");
-      data.status->geodef=ok;
-    } else if (abs(now()-data.georef->timestamp) < (data.station->sampletime/2)) {
-      data.georef->mutex->Lock();
+      data->status->geodef=ok;
+    } else if (abs(now()-data->georef->timestamp) < (data->station->sampletime/2)) {
+      data->georef->mutex->Lock();
       strcat(mqtt_message.topic,"/");
-      strcat(mqtt_message.topic,data.station->ident);
+      strcat(mqtt_message.topic,data->station->ident);
       strcat(mqtt_message.topic,"/");
-      strcat(mqtt_message.topic,data.georef->lon);
+      strcat(mqtt_message.topic,data->georef->lon);
       strcat(mqtt_message.topic,",");
-      strcat(mqtt_message.topic,data.georef->lat);
+      strcat(mqtt_message.topic,data->georef->lat);
       strcat(mqtt_message.topic,"/");
-      data.georef->mutex->Unlock();      
-      data.status->geodef=ok;
+      data->georef->mutex->Unlock();      
+      data->status->geodef=ok;
     } else {
-      data.logger->error(F("measure georef undefined"));
-      data.status->geodef=error;      
+      data->logger->error(F("measure georef undefined"));
+      data->status->geodef=error;      
       return;
     }
       
-    strcat(mqtt_message.topic,data.station->network);
+    strcat(mqtt_message.topic,data->station->network);
     strcat(mqtt_message.topic,"/");
-    strcat(mqtt_message.topic,timerange);
+    strcat(mqtt_message.topic,data->sensors[i].timerange);
     strcat(mqtt_message.topic,"/");
-    strcat(mqtt_message.topic,level);
+    strcat(mqtt_message.topic,data->sensors[i].level);
     strcat(mqtt_message.topic,"/");
     strcat(mqtt_message.topic,pair.key().c_str());
 
@@ -142,51 +143,51 @@ void enqueueMqttMessage(const char* values, const char* timerange, const char* l
 	       hour(messagetime), minute(messagetime), second(messagetime));
       strcat(mqtt_message.payload,jsontime);
     }else{
-      data.logger->error(F("measure time not set or needs sync"));
+      data->logger->error(F("measure time not set or needs sync"));
       strcat(mqtt_message.payload,"}");
       return;
     }
 
 
     // if there are enough space left on the publish queue send it
-    if (data.mqttqueue->NumSpacesLeft() > MQTT_QUEUE_SPACELEFT_MEASURE){
-      data.logger->notice(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
-      if(!data.mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-	data.logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-	if (data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){      // on error send il to DB
-	  data.logger->notice(F("measure enqueue for db"));
+    if (data->mqttqueue->NumSpacesLeft() > MQTT_QUEUE_SPACELEFT_MEASURE){
+      data->logger->notice(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+      if(!data->mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+	data->logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	if (data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){      // on error send il to DB
+	  data->logger->notice(F("measure enqueue for db"));
 	}else{
-	  data.logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	  data->logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
 	}
       }
     } else {    // if there are no enough space left on the publish queue send it to the archive
-      if(data.dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-	data.logger->notice(F("measure enqueue for db"));
+      if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+	data->logger->notice(F("measure enqueue for db"));
       }else{
-	data.logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	data->logger->error(F("measure lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
       }
     }
   }
 }
 
 // execute all measure required
-void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
+void measureThread::doMeasure() {
 
-  //LockGuard guard(*data.i2cmutex);
+  //LockGuard guard(data->i2cmutex);
 
-  reset_summary_data(data);
+  reset_summary_data();
   
-  data.status->sensor=unknown;  
-  data.status->novalue=unknown;
-  data.status->geodef=unknown;
-
+  data->status->sensor=unknown;  
+  data->status->novalue=unknown;
+  data->status->geodef=unknown;
+  
   // sensorm (sensor Manager) is a finite state machine
   // here we can execute measure in parallel starting one state machine (sensorm) for each sensor
   // each sensor can do one or more measure
 
   // start to initialize sensorm
-  data.logger->notice(F("measure --> sensors_count: %d"),data.sensors_count);
-  for (uint8_t i = 0; i < data.sensors_count; i++) {
+  data->logger->notice(F("measure --> sensors_count: %d"),data->sensors_count);
+  for (uint8_t i = 0; i < data->sensors_count; i++) {
     sensorm[i].setTest(false);  // this is real measure, no test
     sensorm[i].setEventRead();  // start machine for read with this event
   }
@@ -194,42 +195,43 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
   // exit with break from here
   while (true){
     // run measurements
-    for (uint8_t i = 0; i < data.sensors_count; i++) {
-      //data.logger->notice(F("measure --> run sensor: %d"),i);
-      data.i2cmutex->Lock();
+    for (uint8_t i = 0; i < data->sensors_count; i++) {
+      //data->logger->notice(F("measure --> run sensor: %d"),i);
+      data->i2cmutex->Lock();
       sensorm[i].run();
-      data.i2cmutex->Unlock();
-
+      data->i2cmutex->Unlock();
+      
       // this machine is ready for data get
       if (sensorm[i].getDataReady()){
-	data.logger->notice(F("measure JSON %s %s %d -> %s"),
+	data->logger->notice(F("measure JSON %s %s %d -> %s"),
 			    sensorm[i].getSensorDriver()->getDriver(),
 			    sensorm[i].getSensorDriver()->getType(),
 			    sensorm[i].getSensorDriver()->getAddress(),
 			    sensorm[i].json_values);
 
 	// send to publish queue
-	enqueueMqttMessage(sensorm[i].json_values,data.sensors[i].timerange,data.sensors[i].level, data );
-	data.i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
-	get_summary_data(sensorm[i],data);
-	data.i2cmutex->Unlock();
+	//enqueueMqttMessage(sensorm[i].json_values,sensorm[i].json_values,data->sensors[i].timerange,data->sensors[i].level, data );
+	enqueueMqttMessage(i);
+	data->i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
+	get_summary_data(i);
+	data->i2cmutex->Unlock();
 	sensorm[i].setDataReady(false);      
       }    
     }
 
     // set reading status when all sensor get read
     bool reading = false;
-    for (uint8_t i = 0; i < data.sensors_count; i++) {
+    for (uint8_t i = 0; i < data->sensors_count; i++) {
       reading |= sensorm[i].getEventRead();
     }
 
     if (!reading){
       // end of work
-      for (uint8_t i = 0; i < data.sensors_count; i++) {
+      for (uint8_t i = 0; i < data->sensors_count; i++) {
 	//check for error
 	if(sensorm[i].getErrorStatus()){
-	  data.logger->error(F("measure sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
-	  data.status->sensor=error;
+	  data->logger->error(F("measure sensor ERROR: %s-%s:"), sensorm[i].getSensorDriver()->getDriver(),sensorm[i].getSensorDriver()->getType());	
+	  data->status->sensor=error;
 	}
 	// prepare sensor manager machine for a new measure
 	sensorm[i].newMeasure();
@@ -239,8 +241,8 @@ void doMeasure(sensorManage sensorm[], measure_data_t &data ) {
     }
   }
 
-  if(data.status->novalue==unknown) data.status->novalue=ok;
-  if(data.status->sensor==unknown) data.status->sensor=ok;
+  if(data->status->novalue==unknown) data->status->novalue=ok;
+  if(data->status->sensor==unknown) data->status->sensor=ok;
 
 }
 
@@ -249,7 +251,7 @@ measureThread::measureThread(measure_data_t* measure_data)
   : Thread{"measure", 4000, 1},
     data{measure_data}
 {
-  //data.logger->notice("Create Thread %s %d", GetName().c_str(), data.id);
+  //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->novalue=unknown;
   data->status->sensor=unknown;
     
@@ -267,7 +269,7 @@ void measureThread::Begin()
   // create one driver for each sensor
   uint8_t tmp_count=0;
   for (uint8_t i = 0; i < data->sensors_count; i++) {
-    //data.logger->notice(F("measure create --> %d: %s-%s [ 0x%x ]"), i,sensors[i].driver,sensors[i].type, sensors[i].address);
+    data->logger->notice(F("measure create --> %d: %s-%s [ 0x%x ]"), i,data->sensors[i].driver,data->sensors[i].type, data->sensors[i].address);
     SensorDriver::createAndSetup(data->sensors[i].driver,data->sensors[i].type, data->sensors[i].address, 1, sd, tmp_count);
     if (sd[i]){
       data->logger->notice(F("measure created --> %d: %s-%s [ 0x%x ]: [ %s ]"), i,
@@ -276,7 +278,7 @@ void measureThread::Begin()
 			   sd[i]->getAddress(),
 			   sd[i]->isSetted() ? OK_STRING : FAIL_STRING);
     }else{
-      data->logger->error(F("measure sensor driver not created"));
+      data->logger->fatal(F("measure sensor driver not created"));
     }
     // begin sensor manager state machines with one driver each
     sensorm[i].begin(sd[i]);
@@ -297,7 +299,7 @@ void measureThread::Run() {
   for(;;){
     // wait for notification from the main task when we have to do measurements
     WaitForNotification();
-    if (timeStatus() == timeSet) doMeasure(sensorm,*data);
+    if (timeStatus() == timeSet) doMeasure();
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
