@@ -184,9 +184,9 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_factory = true;
       // Parameter is Node Slave ID (Command destination Node Id)
-      system_message.param = (Module_Type)it.value().as<unsigned int>();
+      system_message.node_id = (Module_Type)it.value().as<unsigned int>();
       param.systemMessageQueue->Enqueue(&system_message);
-      TRACE_INFO_F(F("RPC: DO FACTORY RESET ON NODE ID:%d\r\n"), system_message.param);
+      TRACE_INFO_F(F("RPC: DO FACTORY RESET ON NODE ID:%d\r\n"), system_message.node_id);
     }
     else if (strcmp(it.key().c_str(), "pgcalib") == 0)
     {
@@ -196,9 +196,9 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_calib_acc = true;
       // Parameter is Node Slave ID (Command destination Node Id)
-      system_message.param = (Module_Type)it.value().as<unsigned int>();
+      system_message.node_id = (Module_Type)it.value().as<unsigned int>();
       param.systemMessageQueue->Enqueue(&system_message);
-      TRACE_INFO_F(F("RPC: DO CALIBRATE ACCELEROMETER ON NODE ID:%d\r\n"), system_message.param);
+      TRACE_INFO_F(F("RPC: DO CALIBRATE ACCELEROMETER ON NODE ID:%d\r\n"), system_message.node_id);
     }
   }
 
@@ -285,9 +285,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           // With command on system_message queue Start configuration of remote module programmed
           system_message_t system_message = {0};
           system_message.task_dest = CAN_TASK_ID;
-          system_message.command.do_remotecfg = true;
+          system_message.command.do_remote_cfg = true;
           // Parameter is Node Slave ID (Command destination Node Id)
-          system_message.param = slaveId;
+          system_message.node_id = slaveId;
           param.systemMessageQueue->Enqueue(&system_message, 0);
         }
         else error_command = true;
@@ -879,6 +879,78 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       else error_command = true;
     }
 #endif
+    // ******* Manage register Uavcan over RPC Command list ********
+    else if (strcmp(it.key().c_str(), "register") == 0)
+    {
+      // Modify an Register Uavcan (name register)
+      strcpy(uavcanRegisterName, it.value().as<const char *>());
+    }
+    else if (strcmp(it.key().c_str(), "id") == 0)
+    {
+      // Modify an Register Uavcan (id Uavcan Node)
+      uavcanRegisterNodeId, it.value().as<unsigned int>();
+    }
+    else if (strcmp(it.key().c_str(), "rvs") == 0)
+    {
+      // Modify an Register Uavcan (register value select type)
+      // Only at get value start check is format is supported
+      uavcanRegisterTypeValue, it.value().as<unsigned int>();
+    }
+    else if (strcmp(it.key().c_str(), "value") == 0)
+    {
+      // Prepare message before get data for casting dataValue about dataType RPC Request
+      system_message_t system_message = {0};
+
+      // Modify an Register Uavcan (new value)
+      switch(uavcanRegisterTypeValue) {
+        case RVS_TYPE_BIT:
+          system_message.value.bool_val, it.value().as<bool>();
+          break;
+        case RVS_TYPE_INTEGER_8:
+          system_message.value.uint8_val, it.value().as<int>();
+          break;
+        case RVS_TYPE_INTEGER_16:
+          system_message.value.uint16_val, it.value().as<int>();
+          break;
+        case RVS_TYPE_INTEGER_32:
+        case RVS_TYPE_INTEGER_64:
+          system_message.value.uint32_val, it.value().as<long int>();
+          break;
+        case RVS_TYPE_NATURAL_8:
+          system_message.value.int8_val, it.value().as<unsigned int>();
+          break;
+        case RVS_TYPE_NATURAL_16:
+          system_message.value.int16_val, it.value().as<unsigned int>();
+          break;
+        case RVS_TYPE_NATURAL_32:
+        case RVS_TYPE_NATURAL_64:
+          system_message.value.int32_val, it.value().as<unsigned long int>();
+          break;
+        case RVS_TYPE_REAL_16:
+        case RVS_TYPE_REAL_32:
+        case RVS_TYPE_REAL_64:
+          system_message.value.float_val, it.value().as<float>();
+          break;
+        default:
+          error_command = true;
+          break;
+      }
+      // Send command to queue if no error
+      if(!error_command) {
+        // Starting queue request reload structure firmware upgradable (after download command is also send to TASK SD...)
+        // And waiting response. After command structure firmware are reloaded
+        system_message.task_dest = CAN_TASK_ID;
+        system_message.command.do_remote_reg = true;
+        system_message.node_id = uavcanRegisterNodeId;
+        system_message.param = uavcanRegisterTypeValue;
+        // system_message.value => setted up
+        param.systemMessageQueue->Enqueue(&system_message);
+      }
+      // Reset var value for enter new register
+      memset(uavcanRegisterName, 0, sizeof(uavcanRegisterName));
+      uavcanRegisterNodeId = 0;
+      uavcanRegisterTypeValue = RVS_TYPE_UNKNOWN;
+    }
     else
     {
       is_error = true;

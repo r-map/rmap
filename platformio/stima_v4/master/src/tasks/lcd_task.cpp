@@ -791,6 +791,7 @@ void LCDTask::display_print_main_interface() {
   display.print(F("System status: "));
   if (!param.system_status->flags.pnp_request &&
       !param.system_status->flags.fw_updating &&
+      !param.system_status->flags.file_server_running &&
       !param.system_status->flags.ppp_error &&
       !param.system_status->flags.dns_error &&
       !param.system_status->flags.ntp_error &&
@@ -799,7 +800,8 @@ void LCDTask::display_print_main_interface() {
     display.print(F(" OK"));
   } else {
     // Add type of diag message to buffer
-    if (param.system_status->flags.fw_updating) strcat(errors, "Updating firmware... ");
+    if ((param.system_status->flags.fw_updating)||(param.system_status->flags.file_server_running))
+      strcat(errors, "Updating firmware... ");
     if (param.system_status->flags.pnp_request) {
       strcat(errors, "pnp-");
       switch(param.system_status->flags.pnp_request) {
@@ -870,7 +872,7 @@ void LCDTask::display_print_main_interface() {
     }
     if(param.system_status->flags.fw_updating) {
       param.systemStatusLock->Take();
-      param.system_status->flags.fw_updating = true;
+      param.system_status->flags.fw_updating = false;
       param.systemStatusLock->Give();
     }
   }
@@ -1415,7 +1417,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       // Set the queue to send
       system_message.task_dest = SD_TASK_ID;
       system_message.command.do_update_fw = true;
-      system_message.param = CMD_PARAM_MASTER_ADDRESS;
+      system_message.node_id = CMD_PARAM_MASTER_ADDRESS;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1447,7 +1449,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       } else {
         system_message.command.undo_maint = true;
       }
-      system_message.param = channel;
+      system_message.node_id = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1455,7 +1457,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_reset_flags = true;
-      system_message.param = channel;
+      system_message.node_id = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1463,7 +1465,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_factory = true;
-      system_message.param = channel;
+      system_message.node_id = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1471,7 +1473,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_calib_acc = true;
-      system_message.param = channel;
+      system_message.node_id = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }
@@ -1479,7 +1481,7 @@ void LCDTask::elaborate_slave_command(stima4_slave_commands_t command) {
       // Set the queue to send
       system_message.task_dest = CAN_TASK_ID;
       system_message.command.do_update_fw = true;
-      system_message.param = channel;
+      system_message.node_id = channel;
       param.systemMessageQueue->Enqueue(&system_message, 0);
       break;
     }

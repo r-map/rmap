@@ -306,7 +306,8 @@ typedef struct
       bool full_wakeup_request;  ///< Flag indicate request wakeup for starting operation with slave in full power mode
       bool file_server_running;  ///< True if file server are running
       bool cmd_server_running;   ///< True if command server are running
-      bool reg_server_running;   ///< True if remote configure or register server procedure over CAN are running
+      bool reg_server_running;   ///< True if register server are running
+      bool cfg_server_running;   ///< True if remote configure server procedure over CAN are running
       bool rmap_server_running;  ///< True if get rmap data from slave module procedure over CAN are running
       bool new_data_to_send;     ///< True if any data are ready to sent vs MQTT Server
       bool new_start_connect;    ///< True if passed time of report data (synch wit new_data)
@@ -376,12 +377,33 @@ typedef struct
 #define CMD_PARAM_REQUIRE_RESPONSE  0xF0
 #define CMD_PARAM_MASTER_ADDRESS    0xFF
 
+// Register value to set remote register on RPC request
+// Register are to be setted with corect type configured (otherwise Uavcan retrieve an error on setup)
+#define RVS_TYPE_UNKNOWN            0x00
+#define RVS_TYPE_EMPTY              0x01
+#define RVS_TYPE_BIT                0x02
+#define RVS_TYPE_INTEGER_8          0x03
+#define RVS_TYPE_INTEGER_16         0x04
+#define RVS_TYPE_INTEGER_32         0x05
+#define RVS_TYPE_INTEGER_64         0x06
+#define RVS_TYPE_NATURAL_8          0x07
+#define RVS_TYPE_NATURAL_16         0x08
+#define RVS_TYPE_NATURAL_32         0x09
+#define RVS_TYPE_NATURAL_64         0x0A
+#define RVS_TYPE_REAL_16            0x0B
+#define RVS_TYPE_REAL_32            0x0C
+#define RVS_TYPE_REAL_64            0x0D
+#define RVS_TYPE_STRING             0x0E
+#define RVS_TYPE_UNSTRUCTURED       0x0F
+#define RVS_TYPE_ONLY_TYPE          0x0F
+#define RVS_TYPE_IS_ARRAY           0x10
+
 /// @brief System public message task for queue
 typedef struct
 {
    uint8_t task_dest; ///< ID Task destination of message
    ///< struct of command
-   struct
+   struct command
    {
       uint8_t do_reboot       : 1;  ///< Request reboot from RPC Other in security mode (waiting operation)
       uint8_t do_update_fw    : 1;  ///< Request update firmware (node or master) from SD file
@@ -399,12 +421,27 @@ typedef struct
       uint8_t do_calib_acc    : 1;  ///< Request set calibration accellerometer
       uint8_t do_factory      : 1;  ///< Request reset register uavcan to factory value (complete reset remote node)
       uint8_t do_reset_flags  : 1;  ///< Request reset remote signal/error flags
-      uint8_t do_remotecfg    : 1;  ///< Request remote node configuration
+      uint8_t do_remote_cfg   : 1;  ///< Request update remote node configuration
+      uint8_t do_remote_reg   : 1;  ///< Request update remote node register
       uint8_t do_sleep        : 1;  ///< Optional param for difference level Sleep
       uint8_t do_cmd          : 1;  ///< Using param to determine type of message command
       uint8_t done_cmd        : 1;  ///< Using param to determine type of message response
    } command;
-   uint32_t param;  ///< 32 Bit for generic data or casting to pointer (user access)
+   uint8_t node_id;  ///< Optional node_id destination message
+   uint8_t param;    ///< Optional param message
+   ///< union of optional parameter value
+   union value
+   {
+      bool     bool_val;   ///< bool for generic data user access
+      uint8_t  uint8_val;  ///< Uint 8 Bit for generic data user access
+      uint16_t uint16_val; ///< Uint 16 Bit for generic data user access
+      uint32_t uint32_val; ///< Uint 32 Bit for generic data user access
+      int8_t   int8_val;   ///< int 8 Bit for generic data user access
+      int16_t  int16_val;  ///< int 16 Bit for generic data user access
+      int32_t  int32_val;  ///< int 32 Bit for generic data user access
+      float    float_val;  ///< Float for generic data user access
+   } value;
+   char message[64]; ///< Optional message string data user access
 
 } system_message_t;
 

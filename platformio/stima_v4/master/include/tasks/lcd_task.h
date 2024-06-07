@@ -104,6 +104,7 @@ typedef enum LCDMasterCommands {
   MASTER_COMMAND_RESET_FLAGS,           ///< reset flags
   MASTER_COMMAND_FORCE_CONNECTION,      ///< force gsm connection
   MASTER_COMMAND_DOWNLOAD_CFG,          ///< download configuration
+  MASTER_COMMAND_DOWNLOAD_FW,           ///< download firmware
   MASTER_COMMAND_TRUNCATE_DATA,         ///< init sd card
   MASTER_COMMAND_UPDATE_STATION_SLUG,   ///< update station slug
   #if(ENABLE_MENU_BOARD_SLUG)

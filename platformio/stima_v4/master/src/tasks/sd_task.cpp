@@ -871,7 +871,7 @@ void SdTask::Run()
             break;
           }
           // Request direct Update local firmware (Master) from SD CARD
-          if((system_message.command.do_update_fw)&&(system_message.param == CMD_PARAM_MASTER_ADDRESS)) {
+          if((system_message.command.do_update_fw)&&(system_message.node_id == CMD_PARAM_MASTER_ADDRESS)) {
             retry = 0;
             state = SD_UPLOAD_FIRMWARE_TO_FLASH;
             break;

@@ -32,6 +32,7 @@
 #define _RPC_H
 
 #include "config.h"
+#include "register_class.hpp"
 
 #include "debug_config.h"
 #include "local_typedef.h"
@@ -128,25 +129,27 @@ class RegisterRPC {
     // ***************** PRIVATE ACCESS *****************
     private:
 
-      static bool saveConfiguration(void);                                ///< Saving configuration
-      static void initFixedConfigurationParam(uint8_t lasNodeConfig);     ///< Init default configuration with fixed value
+      static bool saveConfiguration(void);                                    ///< Saving configuration
+      static void initFixedConfigurationParam(uint8_t lasNodeConfig);         ///< Init default configuration with fixed value
 
-      static bool ASCIIHexToDecimal(char** str, uint8_t *value_out);      ///< Convert ASCII HEX to Decimal for JSON Convert
+      static bool ASCIIHexToDecimal(char** str, uint8_t *value_out);          ///< Convert ASCII HEX to Decimal for JSON Convert
 
-      inline static RpcParam_t param;                                     ///< Access to paramaeter configuration
+      inline static RpcParam_t param;                                         ///< Access to paramaeter configuration
 
-      inline static char boardName[BOARDSLUG_LENGTH] = {0};               ///< Name board (boardslug) pre loaded for saving in config param
-      inline static uint64_t boardSN = {0};                               ///< S.N. board pre loaded for saving in config param
-      inline static bool isSlaveConfigure = false;                        ///< is module actual in reconfiguration
-      inline static bool isMasterConfigure = false;                       ///< is master actual in reconfiguration
-      inline static bool is_configuration_changed = false;                ///< configuration was changed (Need reset PNP Slave?)
-      inline static Module_Type currentModule = Module_Type::undefined;   ///< Current type module of Master or Slave actual in reconfiguration
-      inline static uint8_t slaveId = UNKNOWN_ID;                         ///< Index of slave in reconfiguration stimacan"X"
-      inline static uint8_t sensorId = UNKNOWN_ID;                        ///< Sensor index in actual reconfiguration (ITH/MTH...)
-      inline static uint8_t sensorMultyId = UNKNOWN_ID;                   ///< Sensor index in actual reconfiguration (with same index type sequence, multi sensor as soil vwc)
-      inline static uint8_t id_constant_data = 0;                         ///< Constant data pointer in reconfiguration of master
-      inline static char subject[SUBJECT_ID_LEN_MAX];                     ///< subject string for module check in reconfiguration
-
+      inline static char boardName[BOARDSLUG_LENGTH] = {0};                   ///< Name board (boardslug) pre loaded for saving in config param
+      inline static uint64_t boardSN = {0};                                   ///< S.N. board pre loaded for saving in config param
+      inline static bool isSlaveConfigure = false;                            ///< is module actual in reconfiguration
+      inline static bool isMasterConfigure = false;                           ///< is master actual in reconfiguration
+      inline static bool is_configuration_changed = false;                    ///< configuration was changed (Need reset PNP Slave?)
+      inline static Module_Type currentModule = Module_Type::undefined;       ///< Current type module of Master or Slave actual in reconfiguration
+      inline static uint8_t slaveId = UNKNOWN_ID;                             ///< Index of slave in reconfiguration stimacan"X"
+      inline static uint8_t sensorId = UNKNOWN_ID;                            ///< Sensor index in actual reconfiguration (ITH/MTH...)
+      inline static uint8_t sensorMultyId = UNKNOWN_ID;                       ///< Sensor index in actual reconfiguration (with same index type sequence, multi sensor as soil vwc)
+      inline static uint8_t id_constant_data = 0;                             ///< Constant data pointer in reconfiguration of master
+      inline static char subject[SUBJECT_ID_LEN_MAX];                         ///< subject string for module check in reconfiguration
+      inline static uint8_t uavcanRegisterNodeId = 0;                         ///< register nodeId for RPC remote update on request configure method
+      inline static char uavcanRegisterName[MEM_UAVCAN_LEN_INTEST_REG] = {0}; ///< register name for RPC remote update on request configure method
+      inline static uint8_t uavcanRegisterTypeValue = 0;                      ///< register selected type for RPC remote update on request configure method
 };
 
 #endif
