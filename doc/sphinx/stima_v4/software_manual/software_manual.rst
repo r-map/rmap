@@ -1,4 +1,5 @@
-Descrizione software \*******************\*
+Descrizione software
+********************
 
 StimaV4 logica di funzionamento software
 ========================================
@@ -19,7 +20,7 @@ La struttura del progetto è organizzata in directory (driver) e (task),
 facilmente comprensibili per suddividere le funzionalità di base. Nella
 sottodirectory driver saranno presenti i moduli che consentono l’accesso
 ai dispositivi HW dell’architettura StimaV4, mentre in task sono
-contenuti i veri e propri task di funzionamentosviluppati in C++ usando
+contenuti i veri e propri task di funzionamento sviluppati in C++ usando
 il wrapper sviluppato da Michael Becker
 https://michaelbecker.github.io/freertos-addons/ in grado di integrare
 in una classe C++ le funzionalità FreeRTOS nel singolo modulo e dare
@@ -86,7 +87,7 @@ la configurazione dei clock di sistema e dei vari dispositivi utilizzati
 e relative configurazioni per i clock sorgenti. Ogni dispositivo ha un
 clock sorgente specifico opportunamente dimensionato. La modifica di
 questi parametri seppur possibile può rendere il sistema instabile o
-inibire l’utilizzo di qualche perifierica. La riduzione del clock di
+inibire l’utilizzo di qualche periferica. La riduzione del clock di
 sistema ad intervalli diversi da quelli impostati necessità il ricalcolo
 e la modifica delle selezioni dei corretti divisori/moltiplicatori per
 mantenere i clock dei dispositivi nei range di validità.
@@ -255,7 +256,7 @@ il perfetto funzionamento dei dispositivi.
 Nei moduli slave sono presenti ulteriori classi relativamente al loro
 utilizzo relative all’accelerometro e al modulo MPPT (LTC4015). Come per
 i moduli Eeprom e Flash si tratta di classi C++ che danno l’accesso ai
-dipositivi HW nel mainprogram e/o nel relativo task di utilizzo.
+dispositivi HW nel main program e/o nel relativo task di utilizzo.
 
 **Freertos_CallBack.c** è una raccolta di chiamate HW di call_back
 relativi ad eccezioni e/o chiamate RTOS HW di sistema. All’interno del
@@ -448,37 +449,53 @@ il giusto dimensionamento in completa sicurezza.
 Se abilitati, i task disponibili (nel Master) sono quelli sopra
 elencati. Di seguito le principali funzionalità degli stessi:
 
--  Supervisor > Supervisione del sistema > > Caricamento e gestione
-   della configurazione di sistema > > Gestione degli stati della
-   comunicazione remota
+- Supervisor
+    - Supervisione del sistema
+    - Caricamento e gestione della configurazione di sistema
+    - Gestione degli stati della comunicazione remota
 
--  SdTask > Gestione della SD Card > > Code per lettura archiviazione
-   dati > > Code per gestione log > > Code per caricamento lettura
-   firmware
+- SdTask
+    - Gestione della SD Card
+    - Code per lettura archiviazione dati
+    - Code per gestione log
+    - Code per caricamento lettura firmware
 
--  UsbSerial > Gestione porta USB > > Gestione RPC locali
+- UsbSerial
+    - Gestione porta USB
+    - Gestione RPC locali
 
--  LCD > Gestione display > > Gestione encoder
+- LCD
+    - Gestione display
+    - Gestione encoder
 
--  Can > Gestione porta CAN > > Classe Canard interrogazione ai moduli
-   Slave Remoti (Cypahl) > > Sincronizzazione data/ora con gli slave
-   remoti > > Interfacciamento tra CAN (Moduli remoti) e altri
-   dispositivi locali
+- Can
+    - Gestione porta CAN
+    - Classe Canard interrogazione ai moduli Slave Remoti (Cypahl)
+    - Sincronizzazione data/ora con gli slave remoti
+    - Interfacciamento tra CAN (Moduli remoti) e altri dispositivi locali
 
--  Modem > Gestione del modulo SIM7600E > > Avvio connessione PPP
-   remota, integrazione con CycloneTCP
+- Modem
+    - Gestione del modulo SIM7600E
+    - Avvio connessione PPP remota
+    - interfaccia NET CycloneTCP
 
--  NTP > Gestione connessione NTP > > sincronizzazione data/ora con
-   server remoto
+- NTP
+    - Gestione connessione NTP
+    - sincronizzazione data/ora con server remoto
 
--  HTTP > Gestione delle connessionni http(s) > > Gestione RPC Remote
-   (configurazione) e scaricamento firmware
+- HTTP
+    - Gestione delle connessioni http(s)
+    - Gestione RPC Remote (tipicamente configurazione)
+    - Dowload firmware
 
--  MQTT > Gestione della connessione mqtt(s) > pubblicazione dati >
-   Gestione RPC Remote
-
--  WDT > Gestione WatchDog di Sistema > > Controllo operatività dei Task
-   > > Controllo bootLoader
+- MQTT
+    - Gestione della connessione mqtt(s)
+    - pubblicazione dati
+    - Gestione RPC Remote
+- WDT
+    - Gestione WatchDog di Sistema
+    - Controllo operatività dei Task
+    - Controllo bootLoader
 
 --------------
 
@@ -520,25 +537,33 @@ risultato completo con un unico protocollo di comunicazione orientato ai
 dati (Cyphal) su CanBus particolarmente efficace in questo tipo di
 sistemi.
 
--  Supervisor > Supervisione del sistema > > Caricamento e gestione
-   della configurazione di sistema
+- Supervisor
+    - Supervisione del sistema
+    - Caricamento e gestione della configurazione di sistema
 
--  Can > Gestione porta CAN > > Classe Canard comunicazione con modulo
-   Master (Cypahl) > > Sincronizzazione data/ora con il master > >
-   Avviamento delle funzioni LowPower dai flag remoti
+- Can
+    - Gestione porta CAN
+    - Classe Canard comunicazione con modulo Master (Cypahl)
+    - Sincronizzazione data/ora con il master
+    - Avviamento delle funzioni LowPower dai flags remoti
 
--  Accelerometer > Gestione dell’accelerometro (inclinometro solo per
-   pluviometro)
+- Accelerometer
+    - Gestione dell’accelerometro (inclinometro solo per pluviometro)
 
--  Sensor > Acquisizione locale dei valori istantanei > > Gestione
-   ON/OFF periferia dove previsto > > Inserimento dati nei buffer per
-   elaborazioni
+- Sensor
+    - Acquisizione locale dei valori istantanei
+    - Gestione ON/OFF periferia dove previsto
+    - Inserimento dati nei buffer per elaborazioni
 
--  Elaborate > Gestione delle elaborazioni dati > > Gestione code per
-   attesa comandi e presentazioni report dati
+- Elaborate
+    - Gestione delle elaborazioni dati
+    - Gestione code per attesa comandi
+    - Presentazione report dati
 
--  WDT > Gestione WatchDog di Sistema > > Controllo operatività dei Task
-   > > Controllo bootLoader
+- WDT
+    - Gestione WatchDog di Sistema
+    - Controllo operatività dei Task
+    - Controllo bootLoader
 
 Task di WatchDog ( Master e Slave )
 -----------------------------------
@@ -597,7 +622,7 @@ riprogrammare la memoria Flash con la nuova versione di programma e
 avviare al termine il nuovo applicativo. L’operazione prevede il
 salvataggio sulla memoria flash esterna dell’attuale versione in modo
 che se una volta riprogrammato il dispositivo interviene il WatchDog
-prima dell’avvio del programma, il bootLoader provvedereà in un
+prima dell’avvio del programma, il bootLoader provvederà in un
 operazione di rollBack al ripristino della versione precedente. I flag
 cosi come descritti sotto nella struttura segnalano tutte le possibili
 eventualità
@@ -675,13 +700,14 @@ messaggio verrà prelevato dalla coda e processato. Se il messaggio è per
 tutti solo un task avrà la possibilità di eliminare il messaggio,
 tipicamente il Supervisor o il task CAN a seconda delle esigenze.
 
-Esempio di sleep di un Task: verifica messaggi in coda > messaggio per
-tutti > > messaggio di sleep > > > messa in stato di sospensione del
-WatchDog per un tempo pari al tempo configurato di sleep del task (tempo
-massimo che non pregiudica il funzionamento del sistema senza quel task
-attivo) > > > > > > Entrata di task in sleep > > > > > > > > spegnimento
-sensori, dispositivi, altro… > > > > > > > > attivazione del Delay
-(lungo) che pone il task dormiente.
+Esempio fasi di sleep per un Task:
+    - verifica messaggi in coda
+        - messaggio per tutti
+            - messaggio di sleep
+            - messa in stato di sospensione del WatchDog per un tempo pari al tempo configurato di sleep del task (tempo massimo che non pregiudica il funzionamento del sistema senza quel task attivo)
+            - Entrata di task in sleep spegnimento periferiche locali
+            - Attivazione del Delay (lungo) che pone il task dormiente.
+            - Risveglio e riattivazione periferiche locali
 
 Il resto è gestito dall’RTOS (quando tutti i task sono in sleep per un
 tempo superiore al tempo configurato minimo di attivazione del basso
@@ -702,7 +728,7 @@ di rientrare in modalità operativa.
 
        {
 
-           // Itsrequestaddressedinto ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
+           // Its request addressed into ALL TASK... -> no pull (only SUPERVISOR or exernal gestor)
 
            if(system_message.task_dest == ALL_TASK_ID)
 
@@ -864,7 +890,7 @@ definizioni delle tempistiche di gestione dei task:
 
 Sono i tempi di gestione del task in modalità normale ogni (20 mSec),
 modalità real_time (quando il task deve essere sempre eseguito per
-specific controlli (1 mSec), e quando il task può andare in sleep (tempo
+specifici controlli (1 mSec), e quando il task può andare in sleep (tempo
 massimo di attesa prima dello switch nel contesto 850 mS). Nel CAN
 essendo necessario un heartBeat definito dalle specifiche Cypal di 1
 secondo, si è scelto un tempo massimo all’interno del massimo rate dell
@@ -1495,7 +1521,7 @@ Per utilizzare le funzioni di Debug e LOG all’interno del file
 debug_config.h sono definiti i livelli di TRACE dei messaggi, cioè il
 livello per ogni TASK di LOG. Ogni livello attiva più o meno messaggi a
 seconda di come sono stati inseriti nell’applicativo. Di seguito un
-esempio di defnzione.
+esempio di definzione.
 
 ::
 
@@ -1622,7 +1648,7 @@ effettuare.
    param.system_status->connection.is_http_firmware_upgraded = !param.system_status->command.do_http_firmware_download;
 
 Per avviare una comunicazione, vengono specificati le operazioni da
-effettuare (automatiche e/o manuali) tramite le paramentrizazzioni dei
+effettuare (automatiche e/o manuali) tramite le parametrizzazioni dei
 flag do_mqtt, do_ntp, do_http_configuration ecc..
 
 Questi flag se abilitati informano il task della necessità di avviare
@@ -1672,7 +1698,7 @@ adesso alla gestione dello stato di connessione.
 A seconda dello stato di connessione si effettuano le operazioni
 programmate. Si avvia inizialmente la connessione CONNECTION_INIT e
 successivamente a connessione correttamente stabilita si procede con
-l’operazione ad.esempio di sincronizzazione NTP. In sequenza vengono
+l’operazione ad esempio di sincronizzazione NTP. In sequenza vengono
 effettuate NTP, http e MQTT. NTP è automatico alla prima connessione e
 successivamente viene richiamata 1 volta al giorno. http è su richiesta,
 normalmente e bypassata ma su richiesta di una RPC locale o remota viene
@@ -2287,7 +2313,7 @@ potrà interagire in comunicazione con comandi diretti. Se necessario
 trasmettere un comando diretto, lo slave dovrà prima essere risvegliato
 e alla conferma del flag rimosso potrà essere inviato il comando.
 
-Al termine di tutto, se non necessarià una comunicazione particolare o
+Al termine di tutto, se non necessaria una comunicazione particolare o
 privilegiata, il master comunicherà agli slave di rientrare in power
 down.
 
