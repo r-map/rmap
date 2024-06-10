@@ -72,12 +72,18 @@ void WdtTask::Run() {
       if(last_day_boot_rst != rtc.getDay()) {
         last_day_boot_rst = rtc.getDay();
         // Reset counter if occurs event
-        if((param.boot_request->tot_reset)||(param.boot_request->wdt_reset)) {
+        if((param.boot_request->tot_reset) || (param.boot_request->wdt_reset)) {
           // Reset counter on new or restored firmware
           param.boot_request->tot_reset = 0;
           param.boot_request->wdt_reset = 0;
           // Save info bootloader block
           param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
+        }
+        // Reset counter error MQTT index lost data connection server error
+        if(param.system_status->connection.mqtt_data_exit_error) {
+          param.systemStatusLock->Take();
+          param.system_status->connection.mqtt_data_exit_error = 0;
+          param.systemStatusLock->Give();
         }
       }
       // Check complete connection status valid (last connection operation, all procedure are OK...)
@@ -213,7 +219,7 @@ void WdtTask::Run() {
           param.boot_request->backup_executed = false;
           param.boot_request->app_forcing_start = false;
           param.boot_request->rollback_executed = false;          
-          param.boot_request->upload_error = 0;          
+          param.boot_request->upload_error = 0;
           param.boot_request->upload_executed = false;
           // Reset counter on new or restored firmware
           param.boot_request->tot_reset = 0;

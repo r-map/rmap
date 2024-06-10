@@ -203,6 +203,7 @@ void setup() {
   static RpcParam_t rpcParam = {0};
   rpcParam.configuration = &configuration;
   rpcParam.system_status = &system_status;
+  rpcParam.boot_request = &boot_check;
   rpcParam.systemMessageQueue = systemMessageQueue;
   rpcParam.dataLogPutQueue = dataLogPutQueue;
   rpcParam.eeprom = &memEprom;

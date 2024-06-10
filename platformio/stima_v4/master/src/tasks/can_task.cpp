@@ -1217,7 +1217,7 @@ void CanTask::Run() {
     bool bStartSetFullPower = false;    // Set remote node full power for get data
     // Get Istant value from node first time at startup
     uint8_t bStartupCount = CONFIGURATION_DEFAULT_UPDATE_IST_S + 1;
-    // Register access register rfemote configuration array
+    // Register access register remote configuration array
     uint8_t remote_configure[MAX_NODE_CONNECT] = {0};
     bool remote_configure_reboot[MAX_NODE_CONNECT] = {0};
     uint32_t remote_configure_end_ms;   // Time wait after end configure one node (from 2 different Node Not Restart Config)
@@ -2625,7 +2625,7 @@ void CanTask::Run() {
                                         // Remove message from the queue
                                         param.systemMessageQueue->Dequeue(&system_message);
                                         TRACE_INFO_F(F("Command server: Send request init flags at Node: [ %d ]\r\n"), clCanard.slave[system_message.node_id].get_node_id());
-                                        // Requestcalibration accellerometer from LCD or Remote RPC without param
+                                        // Request calibration accellerometer from LCD or Remote RPC without param
                                         clCanard.send_command_pending(system_message.node_id, NODE_COMMAND_TIMEOUT_US,                            
                                             canardClass::Command_Private::reset_flags, NULL, 0);
                                         // Starting message server
@@ -2633,6 +2633,30 @@ void CanTask::Run() {
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
                                         message_traced = false;
+                                    } else {
+                                        // IS NEED to Request FullPower Mode for type of command
+                                        if(!message_traced) {
+                                            message_traced = true;
+                                            TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
+                                            param.systemStatusLock->Take();
+                                            param.system_status->flags.full_wakeup_request = true;
+                                            param.systemStatusLock->Give();
+                                        }
+                                    }
+                                }
+                                // RESET FLAGS (All module slave)
+                                if(system_message.command.do_reboot_node) {
+                                    // Start Flag Event Start when request configuration is request
+                                    // When remote node recive VSC from Master Heartbeat Remote slave FullPower is performed
+                                    // Then new state for slave (fullpower) are resend to master. If Ok procedure can start 
+                                    if(clCanard.slave[system_message.node_id].heartbeat.get_power_mode() == Power_Mode::pwr_on) {                                
+                                        // Remove message from the queue
+                                        param.systemMessageQueue->Dequeue(&system_message);
+                                        TRACE_INFO_F(F("Command server: Send direct reboot at Node: [ %d ]\r\n"), clCanard.slave[system_message.node_id].get_node_id());
+                                        // Direct reboot from LCD or Remote RPC without param
+                                        clCanard.send_command(clCanard.slave[system_message.node_id].get_node_id(), NODE_COMMAND_TIMEOUT_US,                            
+                                            uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
+                                        // No required Starting message server on Reboot Command
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
                                         if(!message_traced) {

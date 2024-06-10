@@ -35,13 +35,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief NTP task trace level for debug
 #define NTP_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
 /// @brief MQTT task trace level for debug
-#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_VERBOSE
+#define MQTT_TASK_TRACE_LEVEL          TRACE_LEVEL_INFO
 /// @brief HTTP task trace level for debug
 #define HTTP_TASK_TRACE_LEVEL          TRACE_LEVEL_INFO
 /// @brief Supervisor task trace level for debug
 #define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_INFO
 /// @brief CAN task trace level for debug
-#define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_VERBOSE
+#define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
 /// @brief SD task trace level for debug
 #define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_INFO
 /// @brief LCD task trace level for debug

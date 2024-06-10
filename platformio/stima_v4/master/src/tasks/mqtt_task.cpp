@@ -434,7 +434,11 @@ void MqttTask::Run()
       }
       byteState[indexPosition++] = param.boot_request->tot_reset;
       byteState[indexPosition++] = param.boot_request->wdt_reset;
-      byteState[indexPosition] = 0;
+      // Log MQTT Error from server respoonse (if enabled on param 4th)
+      if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT)
+        byteState[indexPosition] = param.system_status->connection.mqtt_data_exit_error;
+      else
+        byteState[indexPosition] = 0;
 
       // publish connection message (Conn + Version and Revision)
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
@@ -831,9 +835,9 @@ void MqttTask::Run()
                 // check if the sensor was configured or not
                 for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
                 {
-                  if (!error && param.configuration->board_slave[slaveId].module_type == Module_Type::power)
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::power)
                   {
-                    if (param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MPP])
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_MPP])
                     {
                       error = publishSensorPower(&mqttClientContext, qos, rmapDataPower->MPP, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
@@ -861,10 +865,14 @@ void MqttTask::Run()
             }
           }
 
+          // ? Connection to MQTT server lost data or update data Error, exit immediatly!
+          if(state == MQTT_STATE_DISCONNECT_LOST_DATA) break;
+
           // Non blocking task
           TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
           Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
         }
+
         // TRACE Only Exit End Result code
         if(error) {
           TRACE_ERROR_F(F("MQTT: RMAP Publish Data, exit from upload Data MQTT [ %s ]\r\n"), ERROR_STRING);
@@ -905,7 +913,15 @@ void MqttTask::Run()
         // Waiting response from SD with TimeOUT
         memset(&rmap_get_response, 0, sizeof(rmap_get_response));
         TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-        param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);
+        param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);      
+      }
+      // ? Enabled to save MQTT Server responding Error state
+      if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
+        param.systemStatusLock->Take();
+        if(param.system_status->connection.mqtt_data_exit_error < 0xFF) {
+          param.system_status->connection.mqtt_data_exit_error++;
+        }
+        param.systemStatusLock->Give();
       }
       state = MQTT_STATE_DISCONNECT;
       break;
@@ -2424,6 +2440,21 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
   if (snprintf(message, message_length, "{\"d\":51,\"p\":[") <= 0)
   {
     error = ERROR_FAILURE;
+  }
+
+  // Check block limit for table area data if valid
+  if ((sensor.class1.val.value <= rmap_tableb_B11211_1_0_MAX) ||
+      (sensor.class2.val.value <= rmap_tableb_B11212_1_0_MAX) ||
+      (sensor.class3.val.value <= rmap_tableb_B11213_1_0_MAX) ||
+      (sensor.class4.val.value <= rmap_tableb_B11214_1_0_MAX) ||
+      (sensor.class5.val.value <= rmap_tableb_B11215_1_0_MAX) ||
+      (sensor.class6.val.value <= rmap_tableb_B11216_1_0_MAX)) {
+    if (sensor.class1.val.value > rmap_tableb_B11211_1_0_MAX) sensor.class1.val.value = 0;
+    if (sensor.class2.val.value > rmap_tableb_B11212_1_0_MAX) sensor.class2.val.value = 0;
+    if (sensor.class3.val.value > rmap_tableb_B11213_1_0_MAX) sensor.class3.val.value = 0;
+    if (sensor.class4.val.value > rmap_tableb_B11214_1_0_MAX) sensor.class4.val.value = 0;
+    if (sensor.class5.val.value > rmap_tableb_B11215_1_0_MAX) sensor.class5.val.value = 0;
+    if (sensor.class6.val.value > rmap_tableb_B11216_1_0_MAX) sensor.class6.val.value = 0;
   }
 
   if (!error)

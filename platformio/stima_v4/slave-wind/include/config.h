@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION  (2)
+#define MODULE_MINOR_VERSION  (3)
 
 /*!
 \def RMAP_PROCOTOL_VERSION

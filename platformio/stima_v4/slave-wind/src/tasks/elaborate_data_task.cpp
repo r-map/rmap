@@ -322,12 +322,12 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
   float avg_speed = 0;
 
-  float class_1 = 0;
-  float class_2 = 0;
-  float class_3 = 0;
-  float class_4 = 0;
-  float class_5 = 0;
-  float class_6 = 0;
+  uint16_t class_1 = 0;
+  uint16_t class_2 = 0;
+  uint16_t class_3 = 0;
+  uint16_t class_4 = 0;
+  uint16_t class_5 = 0;
+  uint16_t class_6 = 0;
 
   float avg_quality = 0;
   uint16_t n_sample_quality = 0;
@@ -566,39 +566,31 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
     if (valid_a_per >= OBSERVATION_ERROR_PERCENTAGE_MIN) {
       getSDFromUV(ua, va, &vavg10_speed, &vavg10_direction);
-      report.vavg10_speed = vavg10_speed * WIND_CASTING_SPEED_MULT;
-      report.vavg10_direction = round(vavg10_direction);
+      report.vavg10_speed = (rmapdata_t) (vavg10_speed * WIND_CASTING_SPEED_MULT);
+      report.vavg10_direction = (rmapdata_t) round(vavg10_direction);
     }
 
     if (valid_b_per >= OBSERVATION_ERROR_PERCENTAGE_MIN) {
       getSDFromUV(ub, vb, &vavg_speed, &vavg_direction);
-      report.vavg_speed = vavg_speed * WIND_CASTING_SPEED_MULT;
-      report.vavg_direction = round(vavg_direction);
+      report.vavg_speed = (rmapdata_t) (vavg_speed * WIND_CASTING_SPEED_MULT);
+      report.vavg_direction = (rmapdata_t) round(vavg_direction);
 
-      report.peak_gust_speed = peak_gust_speed * WIND_CASTING_SPEED_MULT;
-      report.peak_gust_direction = round(peak_gust_direction);
+      report.peak_gust_speed = (rmapdata_t) (peak_gust_speed * WIND_CASTING_SPEED_MULT);
+      report.peak_gust_direction = (rmapdata_t) round(peak_gust_direction);
 
-      report.long_gust_speed = long_gust_speed * WIND_CASTING_SPEED_MULT;
-      report.long_gust_direction = round(long_gust_direction);
+      report.long_gust_speed = (rmapdata_t) long_gust_speed * WIND_CASTING_SPEED_MULT;
+      report.long_gust_direction = (rmapdata_t) round(long_gust_direction);
     }
 
     if (valid_count_speed_per >= SAMPLE_ERROR_PERCENTAGE_MIN) {
-      class_1 = calcFrequencyPercent(class_1, valid_count_speed);
-      class_2 = calcFrequencyPercent(class_2, valid_count_speed);
-      class_3 = calcFrequencyPercent(class_3, valid_count_speed);
-      class_4 = calcFrequencyPercent(class_4, valid_count_speed);
-      class_5 = calcFrequencyPercent(class_5, valid_count_speed);
-      class_6 = calcFrequencyPercent(class_6, valid_count_speed);
-
-      report.avg_speed = avg_speed * WIND_CASTING_SPEED_MULT;
-      report.quality = round(avg_quality);
-
-      report.class_1 = round(class_1);
-      report.class_2 = round(class_2);
-      report.class_3 = round(class_3);
-      report.class_4 = round(class_4);
-      report.class_5 = round(class_5);
-      report.class_6 = round(class_6);
+      report.avg_speed = (rmapdata_t) avg_speed * WIND_CASTING_SPEED_MULT;
+      report.quality = (rmapdata_t) round(avg_quality);
+      report.class_1 = (rmapdata_t) round((float)class_1 / (float)valid_count_speed * 100.0);
+      report.class_2 = (rmapdata_t) round((float)class_2 / (float)valid_count_speed * 100.0);
+      report.class_3 = (rmapdata_t) round((float)class_3 / (float)valid_count_speed * 100.0);
+      report.class_4 = (rmapdata_t) round((float)class_4 / (float)valid_count_speed * 100.0);
+      report.class_5 = (rmapdata_t) round((float)class_5 / (float)valid_count_speed * 100.0);
+      report.class_6 = (rmapdata_t) round((float)class_6 / (float)valid_count_speed * 100.0);
     }
 
     TRACE_DEBUG_F(F("-> report.vavg10_speed (%d)\r\n"), (rmapdata_t) report.vavg10_speed);

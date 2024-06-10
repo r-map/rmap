@@ -792,6 +792,7 @@ bool SupervisorTask::loadConfiguration()
 {
   // Private param and Semaphore: param.configuration, param.configurationLock
   bool status = true;
+  bool update_cfg = false;
 
   //! read configuration from eeprom
   if (param.configurationLock->Take())
@@ -805,14 +806,21 @@ bool SupervisorTask::loadConfiguration()
     param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
   }
 
-  // Check if network_advanced isn't assigned (try with default value)
-  if(param.configuration->network_advanced != CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED) {
-      strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
-      param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
-      // DEFAULT FOR MODEM RESET (AUTO...)
-      param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
-      // WAITING ABOUT GPRS REGISTRATION (1->GSM,2->GPRS,3->EUTRAN)... FASTER
-      param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
+  // *********************** SWITCH CONFIGURATION PARAMETER ******************************
+  // FROM VERSION 0 TO 1
+  if(param.configuration->configuration_version == 0) {
+    // Require Update configuration
+    update_cfg = true;
+    // Set New Version
+    param.configuration->configuration_version = CONFIGURATION_VERSION;
+    // Init flags monitor state to unmanaged
+    param.configuration->monitor_flags = CONFIGURATION_GSM_DEFAULT_MONITOR_FLAGS;
+    // Check if network_advanced isn't assigned (try with default value)
+    strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
+    // DEFAULT FOR MODEM RESET (AUTO...)
+    param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
+    // WAITING ABOUT GPRS REGISTRATION (1->GSM,2->GPRS,3->EUTRAN)... FASTER
+    param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
   }
 
   // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
@@ -842,7 +850,6 @@ bool SupervisorTask::loadConfiguration()
     strSafeCopy(param.configuration->gsm_apn, SAVE_LOCAL_ASSIGN_APN_PARAMETER, GSM_APN_LENGTH);
     #endif
     #if(CONFIGURATION_FOR_AUTO_4G_3G_2G)
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
     param.configuration->network_regver = 2;
     #else
@@ -852,7 +859,6 @@ bool SupervisorTask::loadConfiguration()
     param.configuration->network_type = 0;
     #endif
     #if(CONFIGURATION_FOR_4G_2G)
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
     param.configuration->network_regver = 2;
     #else
@@ -862,7 +868,6 @@ bool SupervisorTask::loadConfiguration()
     param.configuration->network_type = 0;
     #endif
     #if(CONFIGURATION_FOR_2G_4G)
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     #if (USE_FASTER_CONTROL_ONLY_GPRS_REGISTRATION)
     param.configuration->network_regver = 2;
     #else
@@ -873,23 +878,26 @@ bool SupervisorTask::loadConfiguration()
     #endif
     #if(CONFIGURATION_FOR_ONLY_4G)
     strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     param.configuration->network_type = 38;
-    status = saveConfiguration(false);
+    // Force update configuration
+    update_cfg = true;
     #endif
     #if(CONFIGURATION_FOR_ONLY_3G)
     strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     param.configuration->network_type = 14;
-    status = saveConfiguration(false);
+    // Force update configuration
+    update_cfg = true;
     #endif
     #if(CONFIGURATION_FOR_ONLY_2G)
     strSafeCopy(param.configuration->network_order, "", GSM_ORDER_NETWORK_LENGTH);
-    param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
     param.configuration->network_type = 13;
-    status = saveConfiguration(false);
+    // Force update configuration
+    update_cfg = true;
     #endif
   #endif
+
+  // Update configuration required
+  if(update_cfg) status = saveConfiguration(false);
 
   TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
   printConfiguration();
@@ -1011,7 +1019,7 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->gsm_username, CONFIGURATION_DEFAULT_GSM_USERNAME, GSM_USERNAME_LENGTH);
       strSafeCopy(param.configuration->gsm_password, CONFIGURATION_DEFAULT_GSM_PASSWORD, GSM_PASSWORD_LENGTH);
       strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
-      param.configuration->network_advanced = CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED;
+      param.configuration->monitor_flags = CONFIGURATION_GSM_DEFAULT_MONITOR_FLAGS;
       param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
       param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
       #endif

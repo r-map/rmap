@@ -92,6 +92,9 @@ typedef struct
    bool is_configured[CAN_SENSOR_COUNT_MAX];          ///< module is configured ? (only used for slave board)
 } board_configuration_t;
 
+/// @brief Enable Monitor MQTT Error exit server response
+#define NETWORK_FLAG_MONITOR_MQTT   0x01
+
 /// @brief configuration_t General StimaV4 system Configuration
 typedef struct
 {
@@ -142,7 +145,7 @@ typedef struct
    char gsm_number[GSM_NUMBER_LENGTH];      ///< gsm number
    char gsm_username[GSM_USERNAME_LENGTH];  ///< gsm username
    char gsm_password[GSM_PASSWORD_LENGTH];  ///< gsm password
-   uint8_t network_advanced;                ///< using network advanced configuration param
+   uint8_t monitor_flags;                   ///< using monitor function flags operation param
    uint8_t network_type;                    ///< prefered type of network radio gsm
    uint8_t network_regver;                  ///< end of validation register network ready connect
    char network_order[GSM_ORDER_NETWORK_LENGTH];  ///< network preferred type order list
@@ -234,6 +237,7 @@ typedef struct
       bool is_http_firmware_upgrading;       ///< Try to connect HTTP Server for download firmware
 
       uint32_t mqtt_data_published;          ///< Amount of MQTT Data published
+      uint8_t  mqtt_data_exit_error;         ///< Index of MQTT Data procedure published with exit error code
    } connection;
 
    ///< Command Flag to Task NET connection
@@ -405,7 +409,7 @@ typedef struct
    ///< struct of command
    struct command
    {
-      uint8_t do_reboot       : 1;  ///< Request reboot from RPC Other in security mode (waiting operation)
+      uint8_t do_reboot       : 1;  ///< Request reboot from RPC Other in security mode configure (waiting operation)
       uint8_t do_update_fw    : 1;  ///< Request update firmware (node or master) from SD file
       uint8_t do_reload_fw    : 1;  ///< Request reload firmware really upgradable from SD file
       uint8_t done_reload_fw  : 1;  ///< Response reload firmware really upgradable from SD file
@@ -421,6 +425,7 @@ typedef struct
       uint8_t do_calib_acc    : 1;  ///< Request set calibration accellerometer
       uint8_t do_factory      : 1;  ///< Request reset register uavcan to factory value (complete reset remote node)
       uint8_t do_reset_flags  : 1;  ///< Request reset remote signal/error flags
+      uint8_t do_reboot_node  : 1;  ///< Request reboot from RPC Other in direct mode (without regulation configure node)
       uint8_t do_remote_cfg   : 1;  ///< Request update remote node configuration
       uint8_t do_remote_reg   : 1;  ///< Request update remote node register
       uint8_t do_sleep        : 1;  ///< Optional param for difference level Sleep

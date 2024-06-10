@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "local_typedef_config.h"
 #include "typedef.h"
 
-#define MAX_ADC_CHANELS (4)
+#define MAX_ADC_CHANELS (1)
 
 // Gestione modalità Power ( x Canard e Nodo in generale)
 enum Power_Mode : uint8_t {

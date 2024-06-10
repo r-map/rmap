@@ -127,35 +127,35 @@ typedef struct
 typedef struct
 {
    // DWA
-   float vavg10_speed;     // B11002   254,0,0     velocità media vettoriale su 10'
-   float vavg10_direction; // B11001   254,0,0     direzione media vettoriale su 10'
+   rmapdata_t vavg10_speed;     // B11002   254,0,0     velocità media vettoriale su 10'
+   rmapdata_t vavg10_direction; // B11001   254,0,0     direzione media vettoriale su 10'
 
    // DWB
-   float vavg_speed;     // B11002   200,0,900     velocità media vettoriale su 15'
-   float vavg_direction; // B11001   200,0,900     direzione media vettoriale su 15'
+   rmapdata_t vavg_speed;     // B11002   200,0,900     velocità media vettoriale su 15'
+   rmapdata_t vavg_direction; // B11001   200,0,900     direzione media vettoriale su 15'
 
    // DWC
-   float peak_gust_speed; // B11041   2,0,900      velocità della raffica sui samples
-   float long_gust_speed; // B11209   2,0,900      velocità della raffica sulle osservazioni
+   rmapdata_t peak_gust_speed; // B11041   2,0,900      velocità della raffica sui samples
+   rmapdata_t long_gust_speed; // B11209   2,0,900      velocità della raffica sulle osservazioni
 
    // DWD
-   float avg_speed; // B11002   0,0,900            velocità media scalare
+   rmapdata_t avg_speed; // B11002   0,0,900            velocità media scalare
 
    // DWE: classi di vento
-   float class_1; // B11211   9,0,900
-   float class_2; // B11212   9,0,900
-   float class_3; // B11213   9,0,900
-   float class_4; // B11214   9,0,900
-   float class_5; // B11215   9,0,900
-   float class_6; // B11216   9,0,900
+   rmapdata_t class_1; // B11211   9,0,900
+   rmapdata_t class_2; // B11212   9,0,900
+   rmapdata_t class_3; // B11213   9,0,900
+   rmapdata_t class_4; // B11214   9,0,900
+   rmapdata_t class_5; // B11215   9,0,900
+   rmapdata_t class_6; // B11216   9,0,900
    // dtable={"51":["B11211","B11212","B11213","B11214","B11215","B11216"]}
 
    // DWF
-   float peak_gust_direction; // B11043   205,0,900   direzione della raffica sui samples
-   float long_gust_direction; // B11210   205,0,900   direzione della raffica sulle osservazioni
+   rmapdata_t peak_gust_direction; // B11043   205,0,900   direzione della raffica sui samples
+   rmapdata_t long_gust_direction; // B11210   205,0,900   direzione della raffica sulle osservazioni
 
    // common for all DWA DWB DWC DWD DWE DWF
-   float quality;
+   rmapdata_t quality;
 } report_t;
 
 // Backup && Upload Firmware TypeDef

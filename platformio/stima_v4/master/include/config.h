@@ -49,6 +49,9 @@
 /// @brief Module minor version.
 #define MODULE_MINOR_VERSION  (4)
 
+/// @brief Module minor version.
+#define CONFIGURATION_VERSION (1)
+
 /// @brief rmap protocol version
 #define RMAP_PROCOTOL_VERSION (1)
 
@@ -302,6 +305,8 @@
 #define USE_RPC_METHOD_ADMIN        (true)
 /// @brief Enable RPC configure method
 #define USE_RPC_METHOD_CONFIGURE    (true)
+/// @brief Enable RPC update method
+#define USE_RPC_METHOD_UPDATE       (true)
 /// @brief Enable RPC reboot method
 #define USE_RPC_METHOD_REBOOT       (true)
 /// @brief Enable RPC recovery method
@@ -414,11 +419,11 @@
 /// @brief Default gsm password.
 #define CONFIGURATION_DEFAULT_GSM_PASSWORD (GSM_DEFAULT_PASSWORD)
 
+/// @brief Monitor flags monitor operation default.
+#define CONFIGURATION_GSM_DEFAULT_MONITOR_FLAGS     (0x00)
+
 /// @brief Default order list SIM7600 COMMAND AT+CNAOP.
 #define CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER     ("")
-
-/// @brief Extra parametr network are valid?...
-#define CONFIGURATION_GSM_EXTRA_PARAM_ASSIGNED      (0x60)
 
 /// @brief Network configuration default prefered AS DEFAULT.
 #define CONFIGURATION_GSM_DEFAULT_NETWORK           (0x00)

@@ -1302,13 +1302,16 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.systemStatusLock->Take();
       param.system_status->modem.connection_attempted = 0;
       param.system_status->modem.connection_completed = 0;
-      param.system_status->modem.perc_modem_connection_valid = 0;
+      param.system_status->modem.perc_modem_connection_valid = 100;
+      param.system_status->connection.mqtt_data_exit_error = 0;
       param.systemStatusLock->Give();
-      // Reset counter on new or restored firmware
-      param.boot_request->tot_reset = 0;
-      param.boot_request->wdt_reset = 0;
-      // Save info bootloader block
-      param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
+      if(param.boot_request->tot_reset || param.boot_request->wdt_reset) {
+        // Reset counter on new or restored firmware
+        param.boot_request->tot_reset = 0;
+        param.boot_request->wdt_reset = 0;
+        // Save info bootloader block
+        param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
+      }
       break;
     }
     case MASTER_COMMAND_FORCE_CONNECTION: {

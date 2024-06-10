@@ -57,6 +57,10 @@ void RegisterRPC::init(JsonRPC *streamRpc)
   streamRpc->registerMethod("configure", &configure);
 #endif
 
+#if (USE_RPC_METHOD_UPDATE)
+  streamRpc->registerMethod("update", &update);
+#endif
+
 #if (USE_RPC_METHOD_PREPARE)
   streamRpc->registerMethod("prepare", &prepare);
 #endif
@@ -98,7 +102,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download all new firmwares for all of the boards
       if (it.value().as<bool>() == true)
       {
-
         // Starting queue request reinit structure firmware upgradable (and start download...)
         // And waiting response. After command structure firmware are resetted (after download new check for valid firmware ready)
         system_message_t system_message = {0};
@@ -106,7 +109,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         system_message.command.do_reinit_fw = true;
         system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
         param.systemMessageQueue->Enqueue(&system_message);
-
         // Waiting a response done before continue (reinit firmware OK!!!)
         while(true) {
           // Continuos Switching context non blocking
@@ -123,7 +125,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
             }
           }
         }
-
         TRACE_INFO_F(F("RPC: DO DOWNLOAD FIRMWARE\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
@@ -156,7 +157,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         system_message.command.do_trunc_sd = true;
         system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
         param.systemMessageQueue->Enqueue(&system_message);
-
         // Waiting a response done before continue (reinit SD Data OK!!!)
         while(true) {
           // Continuos Switching context non blocking
@@ -179,26 +179,93 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
     else if (strcmp(it.key().c_str(), "reginit") == 0)
     {
       error_command = false;
-      // Starting queue request truncate structure data on SD Card (Remote request)
-      system_message_t system_message = {0};
-      system_message.task_dest = CAN_TASK_ID;
-      system_message.command.do_factory = true;
-      // Parameter is Node Slave ID (Command destination Node Id)
-      system_message.node_id = (Module_Type)it.value().as<unsigned int>();
-      param.systemMessageQueue->Enqueue(&system_message);
-      TRACE_INFO_F(F("RPC: DO FACTORY RESET ON NODE ID:%d\r\n"), system_message.node_id);
+      uint8_t node_id_rpc = it.value().as<unsigned int>();
+      // Starting queue request direct command remote Node over Cyphal
+      if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
+        system_message_t system_message = {0};
+        system_message.task_dest = CAN_TASK_ID;
+        system_message.command.do_factory = true;
+        // Parameter is Node Slave ID (Command destination Node Id)
+        system_message.node_id = (Module_Type)node_id_rpc;
+        param.systemMessageQueue->Enqueue(&system_message);
+        TRACE_INFO_F(F("RPC: DO FACTORY RESET ON NODE ID:%d\r\n"), system_message.node_id);
+      } else {
+        TRACE_INFO_F(F("RPC: ERROR DO FACTORY ON UNCONFIGURED NODE\r\n"));
+        error_command = true;
+      }
     }
     else if (strcmp(it.key().c_str(), "pgcalib") == 0)
     {
       error_command = false;
-      // Starting queue request truncate structure data on SD Card (Remote request)
-      system_message_t system_message = {0};
-      system_message.task_dest = CAN_TASK_ID;
-      system_message.command.do_calib_acc = true;
-      // Parameter is Node Slave ID (Command destination Node Id)
-      system_message.node_id = (Module_Type)it.value().as<unsigned int>();
-      param.systemMessageQueue->Enqueue(&system_message);
-      TRACE_INFO_F(F("RPC: DO CALIBRATE ACCELEROMETER ON NODE ID:%d\r\n"), system_message.node_id);
+      uint8_t node_id_rpc = it.value().as<unsigned int>();
+      // Starting queue request direct command remote Node over Cyphal
+      if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
+        system_message_t system_message = {0};
+        system_message.task_dest = CAN_TASK_ID;
+        system_message.command.do_calib_acc = true;
+        // Parameter is Node Slave ID (Command destination Node Id)
+        system_message.node_id = (Module_Type)node_id_rpc;
+        param.systemMessageQueue->Enqueue(&system_message);
+        TRACE_INFO_F(F("RPC: DO CALIBRATE ACCELEROMETER ON NODE ID:%d\r\n"), system_message.node_id);
+      } else {
+        TRACE_INFO_F(F("RPC: ERROR CALIBRATE ACCELEROMETER ON UNCONFIGURED NODE\r\n"));
+        error_command = true;
+      }
+    }
+    else if (strcmp(it.key().c_str(), "reboot") == 0)
+    {
+      error_command = false;
+      uint8_t node_id_rpc = it.value().as<unsigned int>();
+      // Starting queue request direct command remote Node over Cyphal
+      if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
+        // Starting queue request direct commend reboot remote Node over Cyphal
+        system_message_t system_message = {0};
+        system_message.task_dest = CAN_TASK_ID;
+        system_message.command.do_reboot_node = true;
+        // Parameter is Node Slave ID (Command destination Node Id)
+        system_message.node_id = (Module_Type)node_id_rpc;
+        param.systemMessageQueue->Enqueue(&system_message);
+        TRACE_INFO_F(F("RPC: DO DIRECT REMOTE REBOOT ON NODE ID:%d\r\n"), system_message.node_id);
+      } else {
+        TRACE_INFO_F(F("RPC: ERROR REMOTE REBOOT ON UNCONFIGURED NODE\r\n"));
+        error_command = true;
+      }
+    }
+    else if (strcmp(it.key().c_str(), "rstflags") == 0)
+    {
+      error_command = false;
+      uint8_t node_id_rpc = it.value().as<unsigned int>();
+      if(node_id_rpc == CMD_PARAM_MASTER_ADDRESS) {
+          // Set the request on system status to reset flags
+          param.systemStatusLock->Take();
+          param.system_status->modem.connection_attempted = 0;
+          param.system_status->modem.connection_completed = 0;
+          param.system_status->modem.perc_modem_connection_valid = 100;
+          param.system_status->connection.mqtt_data_exit_error = 0;
+          param.systemStatusLock->Give();
+          if(param.boot_request->tot_reset || param.boot_request->wdt_reset) {
+            // Reset counter on new or restored firmware
+            param.boot_request->tot_reset = 0;
+            param.boot_request->wdt_reset = 0;
+            // Save info bootloader block
+            param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*)param.boot_request, sizeof(bootloader_t));
+          }
+          TRACE_INFO_F(F("RPC: DO RESET LOCAL FLAGS ON MASTER\r\n"));
+      } else {
+        // Starting queue request direct command remote Node over Cyphal
+        if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
+          system_message_t system_message = {0};
+          system_message.task_dest = CAN_TASK_ID;
+          system_message.command.do_reset_flags = true;
+          // Parameter is Node Slave ID (Command destination Node Id)
+          system_message.node_id = (Module_Type)node_id_rpc;
+          param.systemMessageQueue->Enqueue(&system_message);
+          TRACE_INFO_F(F("RPC: DO RESET REMOTE FLAGS ON NODE ID:%d\r\n"), system_message.node_id);
+        } else {
+          TRACE_INFO_F(F("RPC: ERROR RESET REMOTE FLAGS ON UNCONFIGURED NODE\r\n"));
+          error_command = true;
+        }
+      }
     }
   }
 
@@ -879,78 +946,6 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
       else error_command = true;
     }
 #endif
-    // ******* Manage register Uavcan over RPC Command list ********
-    else if (strcmp(it.key().c_str(), "register") == 0)
-    {
-      // Modify an Register Uavcan (name register)
-      strcpy(uavcanRegisterName, it.value().as<const char *>());
-    }
-    else if (strcmp(it.key().c_str(), "id") == 0)
-    {
-      // Modify an Register Uavcan (id Uavcan Node)
-      uavcanRegisterNodeId, it.value().as<unsigned int>();
-    }
-    else if (strcmp(it.key().c_str(), "rvs") == 0)
-    {
-      // Modify an Register Uavcan (register value select type)
-      // Only at get value start check is format is supported
-      uavcanRegisterTypeValue, it.value().as<unsigned int>();
-    }
-    else if (strcmp(it.key().c_str(), "value") == 0)
-    {
-      // Prepare message before get data for casting dataValue about dataType RPC Request
-      system_message_t system_message = {0};
-
-      // Modify an Register Uavcan (new value)
-      switch(uavcanRegisterTypeValue) {
-        case RVS_TYPE_BIT:
-          system_message.value.bool_val, it.value().as<bool>();
-          break;
-        case RVS_TYPE_INTEGER_8:
-          system_message.value.uint8_val, it.value().as<int>();
-          break;
-        case RVS_TYPE_INTEGER_16:
-          system_message.value.uint16_val, it.value().as<int>();
-          break;
-        case RVS_TYPE_INTEGER_32:
-        case RVS_TYPE_INTEGER_64:
-          system_message.value.uint32_val, it.value().as<long int>();
-          break;
-        case RVS_TYPE_NATURAL_8:
-          system_message.value.int8_val, it.value().as<unsigned int>();
-          break;
-        case RVS_TYPE_NATURAL_16:
-          system_message.value.int16_val, it.value().as<unsigned int>();
-          break;
-        case RVS_TYPE_NATURAL_32:
-        case RVS_TYPE_NATURAL_64:
-          system_message.value.int32_val, it.value().as<unsigned long int>();
-          break;
-        case RVS_TYPE_REAL_16:
-        case RVS_TYPE_REAL_32:
-        case RVS_TYPE_REAL_64:
-          system_message.value.float_val, it.value().as<float>();
-          break;
-        default:
-          error_command = true;
-          break;
-      }
-      // Send command to queue if no error
-      if(!error_command) {
-        // Starting queue request reload structure firmware upgradable (after download command is also send to TASK SD...)
-        // And waiting response. After command structure firmware are reloaded
-        system_message.task_dest = CAN_TASK_ID;
-        system_message.command.do_remote_reg = true;
-        system_message.node_id = uavcanRegisterNodeId;
-        system_message.param = uavcanRegisterTypeValue;
-        // system_message.value => setted up
-        param.systemMessageQueue->Enqueue(&system_message);
-      }
-      // Reset var value for enter new register
-      memset(uavcanRegisterName, 0, sizeof(uavcanRegisterName));
-      uavcanRegisterNodeId = 0;
-      uavcanRegisterTypeValue = RVS_TYPE_UNKNOWN;
-    }
     else
     {
       is_error = true;
@@ -977,6 +972,290 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
   }
   else
   {
+    result[F("state")] = F("done");
+    return E_SUCCESS;
+  }
+}
+#endif
+
+#if (USE_RPC_METHOD_UPDATE)
+/// @brief RPC CallBack of update method
+///        Same as configure but update direct of single parameter and saving immediatly
+/// @param params JsonObject request
+/// @param result JsonObject response
+/// @return execute level error or ok
+int RegisterRPC::update(JsonObject params, JsonObject result)
+{
+  bool is_error = false;
+  bool error_command = false;
+  bool bSaveE2 = true;
+
+  for (JsonPair it : params)
+  {
+    // ************** PRINCIPAL MASTER PARAMETER LIST **************
+    if (strcmp(it.key().c_str(), "sd") == 0)
+    {
+      for (JsonPair sd : it.value().as<JsonObject>())
+      {
+        param.configurationLock->Take();
+        strcpy(param.configuration->constantdata[id_constant_data].btable, sd.key().c_str());
+        strcpy(param.configuration->constantdata[id_constant_data].value, sd.value().as<const char *>());
+        param.configurationLock->Give();
+        if(++id_constant_data >= USE_CONSTANTDATA_COUNT) {
+          is_error = true;
+          break;
+        }
+      }
+      if(!is_error) {
+        param.configurationLock->Take();
+        param.configuration->constantdata_count = id_constant_data;
+        param.configurationLock->Give();
+      }
+    }
+    else if (strcmp(it.key().c_str(), "stationslug") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->stationslug, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "boardslug") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->board_master.boardslug, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "lon") == 0)
+    {
+      param.configurationLock->Take();
+      param.configuration->longitude = it.value().as<long int>(); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "lat") == 0)
+    {
+      param.configurationLock->Take();
+      param.configuration->latitude = it.value().as<long int>(); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "network") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->network, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "date") == 0)
+    {
+      // Set date/time from command line RPC
+      STM32RTC &rtc = STM32RTC::getInstance();
+      error_command = false;
+      rtc.setYear(it.value().as<JsonArray>()[0].as<int>());
+      rtc.setMonth(it.value().as<JsonArray>()[1].as<int>());
+      rtc.setDay(it.value().as<JsonArray>()[2].as<int>());
+      rtc.setHours(it.value().as<JsonArray>()[3].as<int>());
+      rtc.setMinutes(it.value().as<JsonArray>()[4].as<int>());
+      rtc.setSeconds(it.value().as<JsonArray>()[5].as<int>());
+    }
+#if (USE_MQTT)
+    else if (strcmp(it.key().c_str(), "mqttrootpath") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_root_topic, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttrpcpath") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_rpc_topic, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_maint_topic, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttserver") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_server, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttport") == 0)
+    {
+      param.configurationLock->Take();
+      param.configuration->mqtt_port = it.value().as<unsigned int>();
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttsampletime") == 0)
+    {
+      param.configurationLock->Take();
+      param.configuration->report_s = it.value().as<unsigned int>();
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttuser") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_username, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttpassword") == 0)
+    {
+      param.configurationLock->Take();
+      strcpy(param.configuration->mqtt_password, it.value().as<const char *>()); 
+      param.configurationLock->Give();
+    }
+    else if (strcmp(it.key().c_str(), "mqttpskkey") == 0)
+    {
+      uint8_t byte_pos = 0;
+      const char *ptr_read = it.value().as<const char *>() + 2; // Point to PSK_KEY String 0x->
+      bool end_conversion = false;
+      uint8_t data_read;
+      // Read all HexASCII (2Char for each Time) and Put into (serial_number) at power Byte byte_pos
+      // Start from MSB to LSB. Terminate if All Byte expected was read or Error Char into Input String
+      // Or Input String is terminated. Each character !" HEX_TIPE (0..9,A..F) terminate function
+      // Hex string can be shorter than expected. Value are convert as UINT_64 MSB Left Formatted
+      param.configurationLock->Take();
+      // Reset PSK_KEY
+      memset(param.configuration->client_psk_key, 0, CLIENT_PSK_KEY_LENGTH);
+      while((byte_pos!=CLIENT_PSK_KEY_LENGTH) && !end_conversion) {
+        end_conversion = ASCIIHexToDecimal((char**)&ptr_read, &data_read);
+        param.configuration->client_psk_key[byte_pos++] = data_read;
+      }
+      param.configurationLock->Give();
+    }
+#endif
+#if (USE_NTP)
+    else if (strcmp(it.key().c_str(), "ntpserver") == 0)
+    {
+      // ntp_server
+      strcpy(param.configuration->ntp_server, it.value().as<const char *>());
+    }
+#endif
+#if (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+    else if (strcmp(it.key().c_str(), "gsmapn") == 0)
+    {
+      // gsm_apn
+      strcpy(param.configuration->gsm_apn, it.value().as<const char *>());
+    }
+    else if (strcmp(it.key().c_str(), "pppnumber") == 0)
+    {
+      // gsm_number
+      strcpy(param.configuration->gsm_number, it.value().as<const char *>());
+    }
+#endif
+    // Manage flags and other local param command
+    else if (strcmp(it.key().c_str(), "monitor") == 0)
+    {
+      param.configurationLock->Take();
+      param.configuration->monitor_flags = it.value().as<unsigned int>();
+      param.configurationLock->Give();
+    }
+    // ******* Manage register Uavcan over RPC Command list ********
+    else if (strcmp(it.key().c_str(), "register") == 0)
+    {
+      // Modify an Register Uavcan (name register)
+      bSaveE2 = false; // don't save on E2
+      strcpy(uavcanRegisterName, it.value().as<const char *>());
+    }
+    else if (strcmp(it.key().c_str(), "id") == 0)
+    {
+      // Modify an Register Uavcan (id Uavcan Node)
+      bSaveE2 = false; // don't save on E2
+      uavcanRegisterNodeId = it.value().as<unsigned int>();
+    }
+    else if (strcmp(it.key().c_str(), "rvs") == 0)
+    {
+      // Modify an Register Uavcan (register value select type)
+      // Only at get value start check is format is supported
+      bSaveE2 = false; // don't save on E2
+      uavcanRegisterTypeValue = it.value().as<unsigned int>();
+    }
+    else if (strcmp(it.key().c_str(), "value") == 0)
+    {
+      // Prepare message before get data for casting dataValue about dataType RPC Request
+      bSaveE2 = false; // don't save on E2
+      system_message_t system_message = {0};
+
+      // Modify an Register Uavcan (new value)
+      switch(uavcanRegisterTypeValue) {
+        case RVS_TYPE_BIT:
+          system_message.value.bool_val = it.value().as<bool>();
+          break;
+        case RVS_TYPE_INTEGER_8:
+          system_message.value.uint8_val = it.value().as<int>();
+          break;
+        case RVS_TYPE_INTEGER_16:
+          system_message.value.uint16_val = it.value().as<int>();
+          break;
+        case RVS_TYPE_INTEGER_32:
+        case RVS_TYPE_INTEGER_64:
+          system_message.value.uint32_val = it.value().as<long int>();
+          break;
+        case RVS_TYPE_NATURAL_8:
+          system_message.value.int8_val = it.value().as<unsigned int>();
+          break;
+        case RVS_TYPE_NATURAL_16:
+          system_message.value.int16_val = it.value().as<unsigned int>();
+          break;
+        case RVS_TYPE_NATURAL_32:
+        case RVS_TYPE_NATURAL_64:
+          system_message.value.int32_val = it.value().as<unsigned long int>();
+          break;
+        case RVS_TYPE_REAL_16:
+        case RVS_TYPE_REAL_32:
+        case RVS_TYPE_REAL_64:
+          system_message.value.float_val = it.value().as<float>();
+          break;
+        default:
+          error_command = true;
+          break;
+      }
+
+      // ?Existing configured node (clear command if not)
+      if(param.configuration->board_slave[uavcanRegisterNodeId].module_type == Module_Type::undefined) {
+        error_command = true;
+      }
+
+      // Send command to queue if no error
+      if(!error_command) {
+        // Starting queue request reload structure firmware upgradable (after download command is also send to TASK SD...)
+        // And waiting response. After command structure firmware are reloaded
+        system_message.task_dest = CAN_TASK_ID;
+        system_message.command.do_remote_reg = true;
+        strcpy(system_message.message, uavcanRegisterName);
+        system_message.node_id = uavcanRegisterNodeId;
+        system_message.param = uavcanRegisterTypeValue;
+        // system_message.value => setted up
+        param.systemMessageQueue->Enqueue(&system_message);
+      }
+      // Reset var value for enter new register
+      memset(uavcanRegisterName, 0, sizeof(uavcanRegisterName));
+      uavcanRegisterNodeId = 0;
+      uavcanRegisterTypeValue = RVS_TYPE_UNKNOWN;
+    }
+    else
+    {
+      is_error = true;
+    }
+  }
+
+  // error_command = Out of command context but command request valid
+  // is_error = error command or out of limit parameter
+  if ((error_command)||(is_error))
+  {
+    // Result an error
+    result[F("state")] = F("error");
+    if(error_command) return E_INVALID_REQUEST;
+    if(is_error) return E_INVALID_PARAMS;
+  }
+  else
+  {
+    // Save on E2prom directly?
+    if(bSaveE2) {
+      // Reboot isn't necessary (Direct update field configuration name and value)
+      // Need Saving for load new parameter on next reboot
+      saveConfiguration();
+    }
+    // Response return
     result[F("state")] = F("done");
     return E_SUCCESS;
   }
@@ -1441,6 +1720,7 @@ void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
 
   param.configuration->module_main_version = MODULE_MAIN_VERSION;
   param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+  param.configuration->configuration_version = CONFIGURATION_VERSION;
   param.configuration->module_type = (Module_Type)MODULE_TYPE;
 
   param.configuration->observation_s = CONFIGURATION_DEFAULT_OBSERVATION_S;

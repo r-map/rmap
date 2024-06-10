@@ -72,6 +72,7 @@ typedef struct
 {
     configuration_t *configuration;                     ///< System configuration structure
     system_status_t *system_status;                     ///< System status structure
+    bootloader_t *boot_request;                         ///< Bootloader structure
     cpp_freertos::BinarySemaphore *rtcLock;             ///< Semaphore for RTC access
     cpp_freertos::BinarySemaphore *configurationLock;   ///< Semaphore for configuration access
     cpp_freertos::BinarySemaphore *systemStatusLock;    ///< Semaphore for system access
@@ -100,6 +101,10 @@ class RegisterRPC {
 
         #if (USE_RPC_METHOD_CONFIGURE)
         static int configure(JsonObject params, JsonObject result);   ///< Method configure
+        #endif
+
+        #if (USE_RPC_METHOD_UPDATE)
+        static int update(JsonObject params, JsonObject result);      ///< Method update
         #endif
 
         #if (USE_RPC_METHOD_RECOVERY)

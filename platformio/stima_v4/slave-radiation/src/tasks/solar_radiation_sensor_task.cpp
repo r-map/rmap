@@ -200,7 +200,7 @@ void SolarRadiationSensorTask::Run() {
         TRACE_ERROR_F(F("Sensor analog: Error reading ADC\r\n"));
         value = (float)UINT16_MAX;
       } else {
-        // Gain - offset to ADC to real value, anc d connvert to scale used (mV for solar_radiation for each ADC Type method used)
+        // Gain - offset to ADC to real value, and connvert to scale used (mV for solar_radiation for each ADC Type method used)
         value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
         value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
         if (param.configuration->sensors[adc_channel].adc_type == Adc_Mode::Volt) value *= 1000.0;
