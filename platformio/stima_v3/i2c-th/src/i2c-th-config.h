@@ -73,6 +73,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIGURATION_RESET_PIN                       (8)
 
 /*!
+\def TH_POWER_PIN
+\brief Output pin for power on and power off th sensor.
+*/
+#define TH_POWER_PIN                                  (5)
+
+/*!
 \def SDCARD_CHIP_SELECT_PIN
 \brief Chip select for SDcard SPI.
 */#define SDCARD_CHIP_SELECT_PIN 7

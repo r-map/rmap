@@ -217,15 +217,15 @@ void init_buffers() {
 void init_tasks() {
 
    //! no tasks ready
-   ready_tasks_count = 0;
+   ready_tasks_count = 1;
 
    is_event_command_task = false;
-   is_event_sensors_reading = false;
+   is_event_sensors_reading = true;
 
    sensors_reading_state = SENSORS_READING_INIT;
 
    lastcommand=I2C_TH_COMMAND_NONE;
-   is_start = false;
+   is_start = true;
    is_stop = false;
    is_test_read = false;
    transaction_time = 0;
@@ -235,6 +235,8 @@ void init_tasks() {
 void init_pins() {
    pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
    pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
+   pinMode(TH_POWER_PIN, OUTPUT);
+   thPowerOn();
 }
 
 void init_wire() {
@@ -246,6 +248,14 @@ void init_wire() {
   //pinMode(SCL, INPUT_PULLUP);
   Wire.onRequest(i2c_request_interrupt_handler);
   Wire.onReceive(i2c_receive_interrupt_handler);
+}
+
+void thPowerOff () {
+  digitalWrite(TH_POWER_PIN, LOW);
+}
+
+void thPowerOn () {
+  digitalWrite(TH_POWER_PIN, HIGH);
 }
 
 void init_spi() {
@@ -556,12 +566,55 @@ void sensors_reading_task () {
    case SENSORS_READING_SETUP_CHECK:
 
         LOGV(F("Sensor error count: %d"),sensors[i]->getErrorCount());
-     
+
+	sensors_reading_state = SENSORS_READING_SETUP; 
+
 	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
 	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
 	  sensors[i]->resetSetted();
+	  //if (strcmp(sensors[i]->getType(),SENSOR_TYPE_SHT)==0 &&
+	  if (strcmp(sensors[i]->getType(),SENSOR_TYPE_SHT)==0 &&
+	      (sensors[i]->getErrorCount() % SENSOR_ERROR_COUNT_MAX) == 0){
+	    /* SHT Hard Reset 
+	       A hard reset is achieved by switching the supply
+	       voltage to the VDD Pin off and then on again. In order to
+	       prevent powering the sensor over the ESD diodes, the voltage
+	       to pins 1 (SCL) and 4 (SDA) also needs to be removed
+	    */
+	    sensors_reading_state = SENSORS_READING_POWER_OFF; 
+	  }
 	}
+	break;
+
+   case SENSORS_READING_POWER_OFF:
+
+        LOGN(F("Power off SHT sensor"));     
+        void thPowerOff ();
+	pinMode(SDA,OUTPUT);
+	pinMode(SCL,OUTPUT);
+	pinMode(SCL,LOW);
+	pinMode(SDA,LOW);
+	delay_ms=10;
+	start_time_ms = millis();
+	state_after_wait = SENSORS_READING_POWER_ON;
+	sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	break;
 	
+   case SENSORS_READING_POWER_ON:
+
+        LOGN(F("Power on SHT sensor"));     
+        void thPowerOn ();
+     	pinMode(SDA,INPUT);
+     	pinMode(SCL,INPUT);
+	init_wire();
+	delay_ms=3;
+	start_time_ms = millis();
+	state_after_wait = SENSORS_READING_SETUP;
+	sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	break;
+
+   case SENSORS_READING_SETUP:
+
 	if (!sensors[i]->isSetted()) {
 	  sensors[i]->setup();
 	}
@@ -578,7 +631,7 @@ void sensors_reading_task () {
 
 	break;
 
-	
+
    case SENSORS_READING_PREPARE:
 
         //! prepare sensor and get delay for complete operation

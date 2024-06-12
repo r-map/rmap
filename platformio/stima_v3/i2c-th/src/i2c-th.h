@@ -140,7 +140,10 @@ typedef enum {
 */
 typedef enum {
    SENSORS_READING_INIT,            //!< init task variables
-   SENSORS_READING_SETUP_CHECK,             //!< check errors and if required try a sensor setup
+   SENSORS_READING_SETUP_CHECK,     //!< check sensor errors
+   SENSORS_READING_POWER_OFF,       //!< power off sensor
+   SENSORS_READING_POWER_ON,        //!< power on sensor
+   SENSORS_READING_SETUP,           //!< if required try a sensor setup
    SENSORS_READING_PREPARE,         //!< prepare sensor
    SENSORS_READING_IS_PREPARED,     //!< check if the sensor has been prepared
    SENSORS_READING_GET,             //!< read and get values from sensor
