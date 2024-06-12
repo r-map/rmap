@@ -61,11 +61,6 @@ class Flash {
 
   public:
 
-    /* Exported types ------------------------------------------------------------*/
-    /** @defgroup Exported Types
-      * @{
-      */
-
     /* QSPI Error codes */
     typedef enum
     {
@@ -105,14 +100,6 @@ class Flash {
       __IO QSPI_StatusTypeDef State;   /*!< QSPI state  */
     } QSPI_Info;
 
-    /**
-      * @}
-      */
-
-    /* Exported functions --------------------------------------------------------*/
-    /** @defgroup Exported Functions
-      * @{
-      */
     Flash();
     Flash(QSPI_HandleTypeDef *hqspi);
     QSPI_StatusTypeDef BSP_QSPI_Init(void);
@@ -131,17 +118,9 @@ class Flash {
     uint8_t BSP_QSPI_SuspendErase(void);
     uint8_t BSP_QSPI_ResumeErase(void);
 
-    /**
-      * @}
-      */
-
 protected:
 private:
 
-    /* Private functions --------------------------------------------------------*/
-    /** @defgroup Private Functions
-      * @{
-      */
     QSPI_StatusTypeDef BSP_QSPI_Receive(uint8_t *pData, uint32_t Timeout);
     QSPI_StatusTypeDef BSP_QSPI_Transmit(uint8_t *pData, uint32_t Timeout);
     QSPI_StatusTypeDef BSP_QSPI_AutoPolling(QSPI_CommandTypeDef *cmd, QSPI_AutoPollingTypeDef *cfg, uint32_t Timeout);
@@ -156,20 +135,9 @@ private:
     QSPI_StatusTypeDef QSPI_DisableContinuousMode(void);
     QSPI_StatusTypeDef QSPI_AutoPollingMemReady(uint32_t Timeout);
 
-    /**
-      * @}
-      */
-
-    /* Private variables --------------------------------------------------------*/
-    /** @defgroup Private variables
-      * @{
-      */
     QSPI_HandleTypeDef *_hqspi;
     QSPI_IT_EventFlag *_evtFlag;
     QSPI_Info _FlashInfo;
-    /**
-      * @}
-      */
 };
 
 #endif /* __ETH452_QSPI_H */

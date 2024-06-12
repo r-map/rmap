@@ -1712,7 +1712,6 @@ int RegisterRPC::rpctest(JsonObject params, JsonObject result)
 #endif
 
 /// @brief Init configuration fixed param unused on RPC Connfiguration
-/// @param  None
 void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
 {
   // Private param and Semaphore: param.configuration, param.configurationLock
@@ -1761,7 +1760,6 @@ void RegisterRPC::initFixedConfigurationParam(uint8_t lastNodeConfig)
 }
 
 /// @brief Save configuration to E2
-/// @param None
 /// @return true is saving is done
 bool RegisterRPC::saveConfiguration(void)
 {

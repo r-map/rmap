@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    rpc.hpp
+  * @file    rpc_class.hpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   RPC Object Class for register RPC function, CallBack and manage data

@@ -138,7 +138,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MQTT_DEFAULT_MAINT_TOPIC ("1/maint")
 
 /*!
-\def MQTT_DEFAULT_SUBSCRIBE_TOPIC
+\def MQTT_DEFAULT_RPC_TOPIC
 \brief Default MQTT subscibe topic.
 */
 #define MQTT_DEFAULT_RPC_TOPIC ("1/rpc")

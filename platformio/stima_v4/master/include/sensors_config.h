@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief Enable if you want use ADT7420 sensor.
 #define USE_SENSOR_ADT              (false)
 
-/// @brief Enable if you want use HIH6100 sen\sor.
+/// @brief Enable if you want use HIH6100 sensor.
 #define USE_SENSOR_HIH              (false)
 
 /// @brief Enable if you want use HYT939, HYT271 or HYT221 sensor.

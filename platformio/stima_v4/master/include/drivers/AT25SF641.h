@@ -36,30 +36,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup Components
-  * @{
-  */
-
-/** @addtogroup AT25SF641
-  * @{
-  */
-
-/** @defgroup AT25SF641_Exported_Types
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @defgroup AT25SF641_Exported_Constants
-  * @{
-  */
-
 /**
   * @brief  AT25SF641 Configuration
   */
@@ -152,9 +128,6 @@
 #define AT25SF641_SR_LB			                  ((uint32_t)0x3800)  /*!< Lock security register */
 #define AT25SF641_SR_CMP		                  ((uint32_t)0x4000)  /*!< Complement Block Protection */
 #define AT25SF641_FS_ERSUS                   	((uint32_t)0x8000)  /*!< Erase operation suspended */
-/**
-  * @}
-  */
 
 #ifdef __cplusplus
 }

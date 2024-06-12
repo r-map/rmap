@@ -6,7 +6,7 @@
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; Copyright (C) 2022 Cristiano Souza Paz <c.souzapaz@digiteco.it>
+ * <h2><center>&copy; Copyright (C) 2022 Cristiano Souza Paz <c.souzapaz@digiteco.it></center></h2>
  * <h2><center>All rights reserved.</center></h2>
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
 
 using namespace cpp_freertos;
 
-/// @brief Construct the LCD Task::LCDTask object
+/// @brief Construct a new LCD Task:: LCDTask object
 /// @param taskName name of the task
 /// @param stackSize size of the stack
 /// @param priority priority of the task
@@ -52,39 +52,25 @@ LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCD
   pin_bottom_right_encoder = PIN_ENCODER_B;
   pin_top_left_encoder = PIN_ENCODER_INT;
 
-  // **************************************************************************
-  // ************************* TIMINGS SETUP **********************************
-  // **************************************************************************
-
+  // Timings setup
   debounce_millis = 0;
   last_display_timeout = millis();
   last_display_refresh = millis();
 
-  // **************************************************************************
-  // ************************* ENCODER SETUP **********************************
-  // **************************************************************************
-
+  // Encoder setup
   attachInterrupt(pin_bottom_left_encoder, ISR_input_rotation_pin_encoder, CHANGE);
   attachInterrupt(pin_bottom_right_encoder, ISR_input_rotation_pin_encoder, CHANGE);
   attachInterrupt(pin_top_left_encoder, ISR_input_pression_pin_encoder, CHANGE);
 
-  // **************************************************************************
-  // ************************* DISPLAY SETUP **********************************
-  // **************************************************************************
-
+  // Display setup
   display = U8G2_SH1108_128X160_F_FREERTOS_HW_I2C(U8G2_R1, param.wire, param.wireLock);
   display_setup();
 
-  // **************************************************************************
-  // ************************* VARIABLES INITIALIZATION ***********************
-  // **************************************************************************
+  // Init variables
   display_off();
   pression_event = false;
 
-  // **************************************************************************
-  // ************************* START TASK *************************************
-  // **************************************************************************
-
+  // Start task
   Start();
 };
 
