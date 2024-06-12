@@ -258,7 +258,7 @@ void TemperatureHumidtySensorTask::Run() {
             // 0 - 1 is indextype of measure Humidity/Temperature
             // Redundant or not depending from configuration register (default first loaded is main)
             // Reading Error
-            if(param.configuration->sensors[0].is_redundant)
+            if(param.configuration->sensors[i].is_redundant)
               param.system_status->events.is_redundant_error = true;
             else
               param.system_status->events.is_main_error = true;
@@ -267,7 +267,7 @@ void TemperatureHumidtySensorTask::Run() {
             // 0 - 1 is indextype of measure Humidity/Temperature
             // Redundant or not depending from configuration register (default first loaded is main)
             // Reading OK
-            if(param.configuration->sensors[0].is_redundant)
+            if(param.configuration->sensors[i].is_redundant)
               param.system_status->events.is_redundant_error = false;
             else
               param.system_status->events.is_main_error = false;
