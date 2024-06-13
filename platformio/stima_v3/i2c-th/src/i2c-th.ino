@@ -217,15 +217,15 @@ void init_buffers() {
 void init_tasks() {
 
    //! no tasks ready
-   ready_tasks_count = 1;
+   ready_tasks_count = 0;
 
    is_event_command_task = false;
-   is_event_sensors_reading = true;
+   is_event_sensors_reading = false;
 
    sensors_reading_state = SENSORS_READING_INIT;
 
    lastcommand=I2C_TH_COMMAND_NONE;
-   is_start = true;
+   is_start = false;
    is_stop = false;
    is_test_read = false;
    transaction_time = 0;
