@@ -231,6 +231,30 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         error_command = true;
       }
     }
+    else if (strcmp(it.key().c_str(), "fupdate") == 0)
+    {
+      error_command = false;
+      uint8_t node_id_rpc = it.value().as<unsigned int>();
+      // Starting queue request direct command remote Node over Cyphal
+      if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {
+        if(param.system_status->data_slave[node_id_rpc].fw_upgradable) {
+          // Starting queue request direct command firmware update remote Node over Cyphal
+          system_message_t system_message = {0};
+          system_message.task_dest = CAN_TASK_ID;
+          system_message.command.do_update_fw = true;
+          // Parameter is Node Slave ID (Command destination Node Id)
+          system_message.node_id = (Module_Type)node_id_rpc;
+          param.systemMessageQueue->Enqueue(&system_message);
+          TRACE_INFO_F(F("RPC: DO DIRECT REMOTE UPGRADE FIRMWARE ON NODE ID:%d\r\n"), system_message.node_id);
+        } else {
+          TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNNECESSARY NODE\r\n"));
+          error_command = true;
+        }
+      } else {
+        TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNCONFIGURED NODE\r\n"));
+        error_command = true;
+      }
+    }
     else if (strcmp(it.key().c_str(), "rstflags") == 0)
     {
       error_command = false;
@@ -1620,8 +1644,16 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
 
   for (JsonPair it : params)
   {
+    // do reboot without contro system inibition (if operation is locked from other function)
+    if (strcmp(it.key().c_str(), "force") == 0) {
+      if (it.value().as<bool>() == true)
+      {
+        TRACE_INFO_F(F("RPC: Request reboot NVIC forced mode\r\n"));
+        NVIC_SystemReset();
+      }
+    }
     // do the firmware update on all of the boards
-    if (strcmp(it.key().c_str(), "fupdate") == 0)
+    else if (strcmp(it.key().c_str(), "fupdate") == 0)
     {
       if (it.value().as<bool>() == true)
       {

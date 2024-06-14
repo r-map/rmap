@@ -268,7 +268,7 @@ void SupervisorTask::Run()
       #if (!TEST_CONNECTION)
       // Checking starting Connection inibition next Start... If something Wrong... (Default 10 min)
       // RPC Request Command as (configure or download firmware) will start immediatly
-      if(((rtc.getEpoch() - param.system_status->data_master.connect_run_epoch) > MIN_INIBITH_CONNECT_RETRY_S)||
+      if(((rtc.getEpoch() - param.system_status->datetime.epoch_connect_run) > MIN_INIBITH_CONNECT_RETRY_S)||
           (param.system_status->command.do_http_configuration_update)||
           (param.system_status->command.do_http_firmware_download)) {
         // ? External or internal request command strart connection
@@ -300,7 +300,7 @@ void SupervisorTask::Run()
           // is_mqtt_connected, Always enabled MQTT Connection
           param.system_status->connection.is_mqtt_connected = false;
           // Saving starting Connection to inibith next Connection... If something Wrong...
-          param.system_status->data_master.connect_run_epoch = rtc.getEpoch();
+          param.system_status->datetime.epoch_connect_run = rtc.getEpoch();
           // Resetting command request (Not event setted but external request)
           param.system_status->command.do_http_configuration_update = false;
           param.system_status->command.do_http_firmware_download = false;
@@ -508,7 +508,7 @@ void SupervisorTask::Run()
             // Saving connection sequence completed
             param.systemStatusLock->Take();
             // Clear inibith time. Next Send can start immediatly
-            param.system_status->data_master.connect_run_epoch = 0;
+            param.system_status->datetime.epoch_connect_run = 0;
             param.system_status->modem.connection_completed++;
             param.systemStatusLock->Give();
           }

@@ -64,6 +64,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_POWER_MPPT)
 #endif
 
+// Enable control Error for Debug
+#define DEBUG_MODE            (false)
+#define ERROR_HANDLER_CB      (false)
+
 // HW device enabled
 #define ENABLE_I2C1           (true)
 #define ENABLE_I2C2           (false)

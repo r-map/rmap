@@ -1991,8 +1991,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retTHData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retTHData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retTHData->version;
                                         param.system_status->data_slave[queueId].module_revision = retTHData->revision;
@@ -2067,8 +2068,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retRainData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retRainData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retRainData->version;
                                         param.system_status->data_slave[queueId].module_revision = retRainData->revision;
@@ -2149,8 +2151,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retWindData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retWindData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retWindData->version;
                                         param.system_status->data_slave[queueId].module_revision = retWindData->revision;
@@ -2228,8 +2231,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retRadiationData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retRadiationData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retRadiationData->version;
                                         param.system_status->data_slave[queueId].module_revision = retRadiationData->revision;
@@ -2304,8 +2308,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retPwrData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retPwrData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retPwrData->version;
                                         param.system_status->data_slave[queueId].module_revision = retPwrData->revision;
@@ -2390,8 +2395,9 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev at first access (if not readed)
-                                    if(!param.system_status->data_slave[queueId].module_version) {
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retVwcData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retVwcData->revision)) {
                                         param.systemStatusLock->Take();
                                         param.system_status->data_slave[queueId].module_version = retVwcData->version;
                                         param.system_status->data_slave[queueId].module_revision = retVwcData->revision;
@@ -3414,6 +3420,7 @@ void CanTask::Run() {
                                             param.system_status->boards_update_avaiable[iAvaiableFw].version,
                                             param.system_status->boards_update_avaiable[iAvaiableFw].revision);
                                         break;
+                                        TRACE_INFO_F(F("File server: Prepare trasmission file firmware at node: [ %d ]. File name [ %s ]\r\n"), clCanard.slave[file_server_queueId].get_node_id(), file_name);
                                     }
                                 }
                                 // Start upload file with module_type last version found on SD Card
@@ -3424,6 +3431,7 @@ void CanTask::Run() {
                                 // Se non ci sono altre problematiche (aggiornamenti vari, download blocchi ecc.. avvio...)
                                 // Avvio il comando nel nodo remoto
                                 clCanard.slave[file_server_queueId].file_server.next_state();
+                                TRACE_INFO_F(F("File server: Starting trasmission command download firmware at node: [ %d ]\r\n"), clCanard.slave[file_server_queueId].get_node_id());
                                 // altrimenti Annullo la richiesta (Invio Error al Remoto su Request File)
                                 // O smetto di rispondere al servizio per quella richiesta (TimeOut)
                                 // clCanard.slave[queueId].file_server.end_transmission(); -> ANNULLA!!!

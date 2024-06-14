@@ -185,6 +185,7 @@ typedef struct
    {
       uint32_t epoch_sensors_get_istant;           ///< Date Time epoch for data istant value
       uint32_t epoch_sensors_get_value;            ///< Date time epoch for data archive value
+      uint32_t epoch_connect_run;                  ///< Connection start epoch (to inibit for retry start... if something wrong)
       uint32_t ptr_time_for_sensors_get_istant;    ///< Divider time ptr to determine next istant
       uint32_t ptr_time_for_sensors_get_value;     ///< Divider time ptr to determine next acquire
       uint32_t epoch_mqtt_last_connection;         ///< Date Time epoch for last valid mqtt connection
@@ -271,7 +272,6 @@ typedef struct
    struct
    {
       bool fw_upgradable;           ///< Fw upgrade flag
-      uint32_t connect_run_epoch;   ///< Connection start epoch (to inibit for retry start... if something wrong)
       uint8_t number_reboot;        ///< Total reboot
       uint8_t number_wdt;           ///< Total WDT
    } data_master;

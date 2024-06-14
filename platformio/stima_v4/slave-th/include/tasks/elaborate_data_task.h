@@ -85,7 +85,7 @@ class ElaborateDataTask : public cpp_freertos::Thread {
   } State_t;
 
 public:
-  ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam);
+  ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaborateDataParam);
 
 protected:
   virtual void Run();

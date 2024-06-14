@@ -428,9 +428,20 @@ void SdTask::Run()
       break;
 
     case SD_STATE_TRUNCATE_DATA:
-      // Truncate SD Card data buffer for external Menu or SW Command Request
+      // Truncate SD Card data buffer for external Menu or SW Command Request      
+      // Data Directory...
       dir = SD.open("/data");
       if(!dir) {
+        // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
+        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
+        // sd_reinit_data is true if must to respond queue to sender (RPC)
+        if(sd_reinit_data) {
+          sd_reinit_data = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_trunc_sd = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+        }
         // Exit Error and Reset
         state = SD_STATE_INIT;
         break;
@@ -461,9 +472,60 @@ void SdTask::Run()
         // data is a file (error on SD structure)
         SD.remove("/data");
       }
+      
+      // Firmware Directory...
+      dir = SD.open("/firmware");
+      if(!dir) {
+        // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
+        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
+        // sd_reinit_data is true if must to respond queue to sender (RPC)
+        if(sd_reinit_data) {
+          sd_reinit_data = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_trunc_sd = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+        }
+        // Exit Error and Reset
+        state = SD_STATE_INIT;
+        break;
+      }
+      // Open File High LED
+      #ifdef PIN_SD_LED
+      digitalWrite(PIN_SD_LED, HIGH);
+      #endif
+      if(dir.isDir()) {
+        // Delete all file into firmware directory (reinit...)
+        while(true) {
+          entry = dir.openNextFile();
+          if(!entry) break;
+          entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+          entry.close();
+          strcpy(firmware_file_name, "/firmware/");
+          strcat(firmware_file_name, local_file_name);
+          SD.remove(firmware_file_name);
+          // Long Operation perform non blocking TASK
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+          #if (ENABLE_STACK_USAGE)
+          TaskMonitorStack();
+          #endif
+        }
+        dir.close();
+      } else {
+        // firmware is a file (error on SD structure)
+        SD.remove("/firmware");
+      }
+
+      // Force init array structure SD Card firmware present (RESETTED to initial void value, without Firmware files)
+      for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+        param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
+        param.system_status->boards_update_avaiable[brd].version = 0;
+        param.system_status->boards_update_avaiable[brd].revision = 0;
+      }
 
       // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
-      // Normally on request from RPC Before calling -> system_message.do_update_all
+      // Normally on request from RPC Before calling -> system_message.(do_function_respond)
       // sd_reinit_data is true if must to respond queue to sender (RPC)
       if(sd_reinit_data) {
         sd_reinit_data = false;
@@ -507,6 +569,15 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir firmware\r\n"));
       }
+      dir = SD.open("/firmware");
+      if(!dir.isDir()) {
+        // firmware is a file (error on SD structure), restart this switch to create good structure
+        SD.remove("/firmware");
+        TRACE_INFO_F(F("SD: removed file firmware from structure\r\n"));
+        break;
+      }
+      dir.close();
+
       // Create log directory
       if(!SD.exists("/log")) {
         if(!SD.mkdir("/log")) {
@@ -515,6 +586,15 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir log\r\n"));
       }
+      dir = SD.open("/log");
+      if(!dir.isDir()) {
+        // Log is a file (error on SD structure), restart this switch to create good structure
+        SD.remove("/log");
+        TRACE_INFO_F(F("SD: removed file log from structure\r\n"));
+        break;
+      }
+      dir.close();
+
       // Create data and pointer ditectory
       if(!SD.exists("/data")) {
         if(!SD.mkdir("/data")) {
@@ -523,6 +603,15 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir data\r\n"));
       }
+      dir = SD.open("/data");
+      if(!dir.isDir()) {
+        // Data is a file (error on SD structure), restart this switch to create good structure
+        SD.remove("/data");
+        TRACE_INFO_F(F("SD: removed file data from structure\r\n"));
+        break;
+      }
+      dir.close();
+
       // Create archive backup ditectory
       if(!SD.exists("/bkp")) {
         if(!SD.mkdir("/bkp")) {
@@ -531,6 +620,14 @@ void SdTask::Run()
         }
         TRACE_INFO_F(F("SD: created base structure dir bkp\r\n"));
       }
+      dir = SD.open("/bkp");
+      if(!dir.isDir()) {
+        // bkp is a file (error on SD structure), restart this switch to create good structure
+        SD.remove("/bkp");
+        TRACE_INFO_F(F("SD: removed file bkp from structure\r\n"));
+        break;
+      }
+      dir.close();
 
       // Create Info Dat File (Crteated at startup Info on BKP\SD)
       tmpFile = SD.open("/bkp/info.dat", O_RDWR | O_CREAT);
@@ -660,7 +757,7 @@ void SdTask::Run()
             break;
           }
         } else {
-          // SD Pointer Error, general Openon first File...
+          // SD Pointer Error, general Open on first File...
           // Pointer file not coerent, Remove and new creation starting
           SD.remove("/data/pointer.dat");
           SD.remove("/data");
@@ -682,55 +779,69 @@ void SdTask::Run()
       // **********************************************************************************
       // Clean entire structure firware dir (destroy all file into before new synch server)
       // **********************************************************************************
-      if(SD.exists("/firmware")) {
-        dir = SD.open("/firmware");
-        if(!dir) {
-          // Exit Error and Reset
-          state = SD_STATE_INIT;
-          break;
+      dir = SD.open("/firmware");
+      if(!dir) {
+        // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
+        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
+        // sd_reinit_data is true if must to respond queue to sender (RPC)
+        if(fw_reinit_struct) {
+          fw_reinit_struct = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_reinit_fw = true;
+          param.systemMessageQueue->Enqueue(&system_message);
         }
-        // Open File High LED
-        #ifdef PIN_SD_LED
-        digitalWrite(PIN_SD_LED, HIGH);
-        #endif
-        if(!dir.isDir()) {
-          SD.remove("/firmware");
-          // Create newver firmware directory
-          if(!SD.exists("/firmware")) {
-            if(!SD.mkdir("/firmware")) {
-              state = SD_STATE_INIT;
-              break;
-            }
-            TRACE_INFO_F(F("SD: reinit base structure dir firmware\r\n"));
-          }
-        } else {
-          // Delete all file into firmware directory (reinit...)
-          while(true) {
-            entry = dir.openNextFile();
-            if(!entry) break;
-            entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
-            entry.close();
-            strcpy(firmware_file_name, "/firmware/");
-            strcat(firmware_file_name, local_file_name);
-            SD.remove(firmware_file_name);
-          }
-          dir.close();
-        }
-        // Close File Low LED
-        #ifdef PIN_SD_LED
-        digitalWrite(PIN_SD_LED, LOW);
-        #endif
+        // Exit Error and Reset
+        state = SD_STATE_INIT;
+        break;
       }
-
-      // Force init array structure SD Card firmware present (RESETTED to initial void value)
-      for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
-        param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
-        param.system_status->boards_update_avaiable[brd].version = 0;
-        param.system_status->boards_update_avaiable[brd].revision = 0;
+      // Open File High LED
+      #ifdef PIN_SD_LED
+      digitalWrite(PIN_SD_LED, HIGH);
+      #endif
+      if(dir.isDir()) {
+        // Delete all file into firmware directory (reinit...)
+        while(true) {
+          entry = dir.openNextFile();
+          if(!entry) break;
+          entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
+          entry.close();
+          strcpy(firmware_file_name, "/firmware/");
+          strcat(firmware_file_name, local_file_name);
+          SD.remove(firmware_file_name);
+          // Long Operation perform non blocking TASK
+          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+          #if (ENABLE_STACK_USAGE)
+          TaskMonitorStack();
+          #endif
+        }
+        dir.close();
+      } else {
+        // firmware is a file (error on SD structure)
+        SD.remove("/firmware");
+        // Recreate
+        if(!SD.exists("/firmware")) {
+          if(!SD.mkdir("/firmware")) {
+            // ? Need to send response to sender (Not at startup -> fw_reinit_struct = false)
+            // Normally on request from RPC Before calling -> system_message.(do_function_respond)
+            // fw_reinit_struct is true if must to respond queue to sender (RPC)
+            if(fw_reinit_struct) {
+              fw_reinit_struct = false;
+              system_message_t system_message = {0};
+              system_message.task_dest = ALL_TASK_ID;
+              system_message.command.done_reinit_fw = true;
+              param.systemMessageQueue->Enqueue(&system_message);
+            }
+            state = SD_STATE_INIT;
+            break;
+          }
+          TRACE_INFO_F(F("SD: created base structure dir firmware\r\n"));
+        }
       }
 
       // ? Need to send response to sender (Not at startup -> fw_reinit_struct = false)
-      // Normally on request from RPC Before calling -> system_message.do_update_all (with init)
+      // Normally on request from RPC Before calling -> system_message.(do_function_respond)
       // fw_reinit_struct is true if must to respond queue to sender (RPC)
       if(fw_reinit_struct) {
         fw_reinit_struct = false;
@@ -740,7 +851,14 @@ void SdTask::Run()
         param.systemMessageQueue->Enqueue(&system_message);
       }
 
-      TRACE_VERBOSE_F(F("SD_STATE_CLEAN_FIRMWARE -> SD_STATE_CHECK_FIRMWARE\r\n"));
+      // Force init array structure SD Card firmware present (RESETTED to initial void value, without Firmware files)
+      for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
+        param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
+        param.system_status->boards_update_avaiable[brd].version = 0;
+        param.system_status->boards_update_avaiable[brd].revision = 0;
+      }
+
+      TRACE_VERBOSE_F(F("SD_STATE_CLEAN_FIRMWARE -> SD_STATE_WAITING_EVENT\r\n"));
 
       state = SD_STATE_WAITING_EVENT;
       break;
@@ -752,6 +870,16 @@ void SdTask::Run()
       // **********************************************************************************
       dir = SD.open("/firmware");
       if(!dir) {
+        // ? Need to send response to sender (Not at startup -> fw_reload_struct = false)
+        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
+        // fw_reload_struct is true if must to respond queue to sender (RPC)
+        if(fw_reload_struct) {
+          fw_reload_struct = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_reload_fw = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+        }
         // Exit Error and Reset
         state = SD_STATE_INIT;
         break;
@@ -813,7 +941,7 @@ void SdTask::Run()
       // **********************************************************************************
 
       // ? Need to send response to sender (Not at startup -> fw_reload_struct = false)
-      // Normally on request from RPC Before calling -> system_message.do_update_all
+      // Normally on request from RPC Before calling -> system_message.(do_function_respond)
       // fw_reload_struct is true if must to respond queue to sender (RPC)
       if(fw_reload_struct) {
         fw_reload_struct = false;

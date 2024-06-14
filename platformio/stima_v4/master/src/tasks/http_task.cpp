@@ -397,6 +397,14 @@ void HttpTask::Run() {
       status = httpClientGetStatus(&httpClientContext);
             
       if(is_get_firmware) {
+
+        // Security Remove flag firmware wait... Start success download 
+        if(param.system_status->flags.http_wait_fw) {
+          param.systemStatusLock->Take();
+          param.system_status->flags.http_wait_fw = false;
+          param.systemStatusLock->Give();
+        }
+
         bValidFirmwareRequest = false;
         switch (status) {
           case 300:
@@ -525,13 +533,6 @@ void HttpTask::Run() {
 
           if (!error)
           {
-
-            // Security Remove flag firmware wait... Start success download 
-            if(param.system_status->flags.http_wait_fw) {
-              param.systemStatusLock->Take();
-              param.system_status->flags.http_wait_fw = false;
-              param.systemStatusLock->Give();
-            }
 
             #if (ENABLE_STACK_USAGE)
             TaskMonitorStack();
