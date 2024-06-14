@@ -101,10 +101,14 @@ int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t l
 }
 
 /**
-  * @defgroup    IIS328DQ_Sensitivity
-  * @brief       These functions convert raw-data into engineering units.
+ * @defgroup Accelerometer Accelerometer driver functions 
+ * @{
+ */
+
+/**
+  * @defgroup IIS328DQ_Sensitivity IIS328DQ_Sensitivity 
+  * @brief These functions convert raw-data into engineering units
   * @{
-  *
   */
 
 /// @brief Push data row for scroll mean sensibility data
@@ -204,15 +208,12 @@ float_t Accelerometer::iis328dq_from_fsx_to_inc(coordinate request)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Data_Generation
-  * @brief       This section group all the functions concerning
-  *              data generation
+  * @defgroup IIS328DQ_Data_Generation IIS328DQ_Data_Generation
+  * @brief This section group all the functions concerning data generation
   * @{
-  *
   */
 
 /// @brief  X axis enable/disable.[set]
@@ -575,14 +576,12 @@ int32_t Accelerometer::iis328dq_flag_data_ready_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Data_Output
-  * @brief       This section groups all the data output functions.
+  * @defgroup IIS328DQ_Data_Output IIS328DQ_Data_Output
+  * @brief This section groups all the data output functions.
   * @{
-  *
   */
 
 /// @brief  Linear acceleration output register. The value is expressed
@@ -607,14 +606,12 @@ int32_t Accelerometer::iis328dq_acceleration_raw_get(int16_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Common
-  * @brief       This section groups common useful functions.
+  * @defgroup IIS328DQ_Common IIS328DQ_Common
+  * @brief This section groups common useful functions.
   * @{
-  *
   */
 
 /// @brief  Device Who am I.[get]
@@ -771,15 +768,12 @@ int32_t Accelerometer::iis328dq_data_format_get(iis328dq_ble_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Filters
-  * @brief       This section group all the functions concerning the
-  *              filters configuration.
+  * @defgroup IIS328DQ_Filters IIS328DQ_Filters
+  * @brief This section group all the functions concerning the filters configuration.
   * @{
-  *
   */
 
 /// @brief  High pass filter cut-off frequency configuration.[set]
@@ -959,15 +953,12 @@ int32_t Accelerometer::iis328dq_hp_reference_value_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Serial_Interface
-  * @brief       This section groups all the functions concerning serial
-  *              interface management.
+  * @defgroup IIS328DQ_Serial_Interface IIS328DQ_Serial_Interface
+  * @brief This section groups all the functions concerning serial interface management.
   * @{
-  *
   */
 
 /// @brief  SPI 3- or 4-wire interface.[set]
@@ -1022,15 +1013,12 @@ int32_t Accelerometer::iis328dq_spi_mode_get(iis328dq_sim_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Interrupt_Pins
-  * @brief       This section groups all the functions that manage
-  *              interrupt pins.
+  * @defgroup IIS328DQ_Interrupt_Pins IIS328DQ_Interrupt_Pins
+  * @brief This section groups all the functions that manage interrupt pins.
   * @{
-  *
   */
 
 /// @brief  Data signal on INT 1 pad control bits.[set]
@@ -1355,15 +1343,12 @@ int32_t Accelerometer::iis328dq_pin_polarity_get(iis328dq_ihl_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_interrupt_on_threshold
-  * @brief       This section groups all the functions that manage
-  *              the interrupt on threshold event generation.
+  * @defgroup IIS328DQ_interrupt_on_threshold IIS328DQ_interrupt_on_threshold
+  * @brief This section groups all the functions that manage the interrupt on threshold event generation.
   * @{
-  *
   */
 
 /// @brief  Configure the interrupt 1 threshold sign.[set]
@@ -1717,15 +1702,12 @@ int32_t Accelerometer::iis328dq_int2_dur_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Wake_Up_Event
-  * @brief       This section groups all the functions that manage the
-  *              Wake Up event generation.
+  * @defgroup IIS328DQ_Wake_Up_Event IIS328DQ_Wake_Up_Event 
+  * @brief This section groups all the functions that manage the Wake Up event generation.
   * @{
-  *
   */
 
 /// @brief  Turn-on mode selection for sleep to wake function.[set]
@@ -1766,15 +1748,12 @@ int32_t Accelerometer::iis328dq_wkup_to_sleep_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Six_Position_Detection
-  * @brief       This section groups all the functions concerning six
-  *              position detection (6D).
+  * @defgroup IIS328DQ_Six_Position_Detection IIS328DQ_Six_Position_Detection
+  * @brief This section groups all the functions concerning six position detection (6D).
   * @{
-  *
   */
 
 /// @brief  Configure the 6d on interrupt 1 generator.[set]
@@ -1975,7 +1954,9 @@ int32_t Accelerometer::iis328dq_int2_6d_treshold_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
+/**
+  * @}
+  */
 

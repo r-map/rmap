@@ -48,13 +48,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define RMAP_PROCOTOL_VERSION (1)
 
-/*!
+/*
 \def USE_SIMULATOR
 \brief Random generator value for Local Test
+*/
+// #define USE_SIMULATOR
+
+/*
 \def INIT_SIMULATOR
 \brief Fill buffer data wuith 900 data value init
 */
-// #define USE_SIMULATOR
 // #define INIT_SIMULATOR
 
 /*!

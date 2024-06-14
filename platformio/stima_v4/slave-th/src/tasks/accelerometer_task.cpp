@@ -68,8 +68,6 @@ void AccelerometerTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void AccelerometerTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -371,8 +369,6 @@ void AccelerometerTask::saveConfiguration(bool is_default)
 }
 
 /// @brief Calibrate accelereometer position X-Y-Z to actual value (set offset from 0)
-/// @param configuration configuration accelerometer
-/// @param registerLock Semaphore register access
 /// @param is_default require default value data
 /// @param save_register request to save calibration in register
 void AccelerometerTask::calibrate(bool is_default, bool save_register)
@@ -428,7 +424,6 @@ bool AccelerometerTask::checkModule(void)
 }
 
 /// @brief Setup hardware configuration
-/// @param configuration Configuration hardware param to Accelerometer
 void AccelerometerTask::setupModule(void)
 {
   TRACE_INFO_F(F("Setup hardware module... [ %s ]\r\n"), OK_STRING);
@@ -444,7 +439,6 @@ void AccelerometerTask::setupModule(void)
 }
 
 /// @brief Read data from module accelerometer
-/// @param configuration Param configuratione
 /// @return true if data is ready from module
 bool AccelerometerTask::readModule(void)
 {

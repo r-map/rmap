@@ -423,13 +423,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
                                                USE_SENSOR_STH_V2 + USE_SENSOR_ITH_V2 + USE_SENSOR_MTH_V2 + USE_SENSOR_NTH_V2 + USE_SENSOR_XTH_V2)
 
 /*!
-\def SENSOR_MAX
+\def SENSORS_MAX
 \brief Max number of sensor.
 */
 #define SENSORS_MAX                           (SENSORS_COUNT_MAX)
 
 /*!
-\def SENSOR_UNIQUE_MAX
+\def SENSORS_UNIQUE_MAX
 \brief Max number of unique sensor.
 unique sensors are sensors that can have more driver but only one i2c address and only one setup and prepare
 */

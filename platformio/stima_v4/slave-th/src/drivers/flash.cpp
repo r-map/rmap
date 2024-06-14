@@ -92,10 +92,6 @@ extern "C" void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
 
 /* Constructor Class ---------------------------------------------------------*/
 
-/** @defgroup Constructor Class
-  * @{
-  */
-
 Flash::Flash()
 {
 }
