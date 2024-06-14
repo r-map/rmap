@@ -1,30 +1,35 @@
-/**@file debug.h */
-
-/*********************************************************************
-<h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
-authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+ ******************************************************************************
+ * @file    debug.h
+ * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+ * @brief   Debug constants and functions
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (C) 2022 Marco Baldinetti <m.baldinetti@digiteco.it></center></h2>
+ * <h2><center>All rights reserved.</center></h2>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************
+ */
 
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
-//Dependencies
 #include <stdio.h>
 #include <stdint.h>
 #include <Arduino.h>
@@ -44,13 +49,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define FLAG_STRING           "*"
 #define SPACE_STRING          " "
 
-/// @brief Level definitions
+/// @brief OFF level of trace
 #define TRACE_LEVEL_OFF       0
+/// @brief Fatal level of trace
 #define TRACE_LEVEL_FATAL     1
+/// @brief Error level of trace
 #define TRACE_LEVEL_ERROR     2
+/// @brief Warning level of trace
 #define TRACE_LEVEL_WARNING   3
+/// @brief Info level of trace
 #define TRACE_LEVEL_INFO      4
+/// @brief Debug level of trace
 #define TRACE_LEVEL_DEBUG     5
+/// @brief Verbose level of trace
 #define TRACE_LEVEL_VERBOSE   6
 
 // Default trace level

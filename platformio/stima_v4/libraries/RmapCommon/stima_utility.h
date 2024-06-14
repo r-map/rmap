@@ -30,55 +30,50 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "stima_config.h"
 
 /*!
-\fn void getStimaNameByType(char *name, uint8_t type)
 \brief Return a STIMA's name starting from a module type stored in configuration.
 \param[out] *name STIMA's name.
 \param[in] *type module type stored in configuration.
-\return void.
+\param[in] offset offset for the name 
 */
 void getStimaNameByType(char *name, uint8_t type, uint8_t offset = 0);
 
 /*!
-\fn void getStimaDescriptionByType(char *name, uint8_t type)
 \brief Return a STIMA's description Cyphal from a module type stored in configuration.
 \param[out] *description STIMA's description.
 \param[in] *type module type stored in configuration.
-\return void.
 */
-
 void getStimaDescriptionByType(char *description, uint8_t type);
 
 /*!
-\fn void getStimaLcdDescriptionByType(char *lcd_description_X, uint8_t type)
 \brief Return a STIMA's description to print with LCD display from a module type stored in configuration.
-\param[out] *description STIMA's description.
+\param[in] *lcd_description_A STIMA's description A.
+\param[in] *lcd_description_B STIMA's description B.
+\param[in] *lcd_description_C STIMA's description C.
 \param[in] *type module type stored in configuration.
-\return void.
 */
 void getStimaLcdDescriptionByType(char *lcd_description_A, char *lcd_description_B, char *lcd_description_C, uint8_t type);
 
 /*!
-\fn void getStimaLcdUnitTypeByType(char *lcd_unit_type_X, uint8_t type)
 \brief Return a STIMA's Unit type to print with LCD display from a module type stored in configuration.
-\param[out] *description STIMA's description.
+\param[in] *lcd_unit_type_A unit type A.
+\param[in] *lcd_unit_type_B unit type B.
+\param[in] *lcd_unit_type_C unit type C.
 \param[in] *type module type stored in configuration.
-\return void.
 */
 void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, char *lcd_unit_type_C, uint8_t type);
 
 /*!
-\fn void getStimaLcdDecimalsByType(uint8_t *decimals_X, uint8_t type)
 \brief Return a STIMA's Decimals for use to print value of measurement with LCD display from a module type stored in configuration.
-\param[out] *description STIMA's description.
+\param[in] *decimals_A decimals of measure A.
+\param[in] *decimals_B decimals of measure B.
+\param[in] *decimals_C decimals of measure C.
 \param[in] *type module type stored in configuration.
-\return void.
 */
 void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t *decimals_C, uint8_t type);
 
 /*!
-\fn void checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision)
 \brief Return a STIMA's check file firmware name Type Version and Revision.
-\param[out] *types Type of module checked.
+\param[out] *type Type of module checked.
 \param[out] *version Version firmware of module checked.
 \param[out] *revision Revision firmware of module checked.
 \param[in] *file_name module name to check.
@@ -87,13 +82,11 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
 bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, uint8_t *revision);
 
 /*!
-\fn void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision)
 \brief Return a STIMA's name file firmware by Type Version and Revision requested.
-\param[in] types Type of module checked.
+\param[in] type Type of module checked.
 \param[in] version Version firmware of module checked.
 \param[in] revision Revision firmware of module checked.
 \param[out] *file_name module named correct cyphal.
-\return true if file name is correct, false if not
 */
 void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision);
 

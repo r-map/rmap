@@ -30,18 +30,6 @@
 #include "drivers/module_slave_hal.hpp"
 #include "drivers/flash.h"
 
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup
-  * @{
-  */
-
-/** @defgroup QSPI
-  * @{
-  */
-
 /* QSPI IRQ CallBack for QSPI Class ---------------------------------------------------*/
 
 /// @brief This function handles QUADSPI global interrupt.
@@ -61,7 +49,6 @@ Flash::QSPI_IT_EventFlag QSPI_IRQ_Flag;
 
 /// @brief  Transfer Error callback.
 /// @param  hqspi : QSPI handle
-/// @retval None
 extern "C" void HAL_QSPI_ErrorCallback(QSPI_HandleTypeDef *hqspi)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -71,7 +58,6 @@ extern "C" void HAL_QSPI_ErrorCallback(QSPI_HandleTypeDef *hqspi)
 
 /// @brief  Command completed callback.
 /// @param  hqspi : QSPI handle
-/// @retval None
 extern "C" void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
 {
   UNUSED(hqspi);
@@ -80,7 +66,6 @@ extern "C" void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
 
 /// @brief  Rx Transfer completed callback.
 /// @param  hqspi : QSPI handle
-/// @retval None
 extern "C" void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
 {
   UNUSED(hqspi);
@@ -89,7 +74,6 @@ extern "C" void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
 
 /// @brief  Tx Transfer completed callback.
 /// @param  hqspi : QSPI handle
-/// @retval None
 extern "C" void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -99,7 +83,6 @@ extern "C" void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
 
 /// @brief  Status Match callback.
 /// @param  hqspi : QSPI handle
-/// @retval None
 extern "C" void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -683,7 +666,6 @@ uint8_t Flash::BSP_QSPI_ResumeErase(void)
 }
 
 /// @brief Receive an amount of data in interrupt mode.
-/// @param hqspi : QSPI handle
 /// @param pData : pointer to data buffer
 /// @param Timeout : Timeout duration
 /// @note   This function is used only in Indirect Read Mode
@@ -700,7 +682,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_Receive(uint8_t *pData, uint32_t Timeo
 }
 
 /// @brief Transmit an amount of data in interrupt mode.
-/// @param hqspi : QSPI handle
 /// @param pData : pointer to data buffer
 /// @param Timeout : Timeout duration
 /// @note   This function is used only in Indirect Write Mode
@@ -717,7 +698,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_Transmit(uint8_t *pData, uint32_t Time
 }
 
 /// @brief  Configure the QSPI Automatic Polling Mode in interrupt mode.
-/// @param  hqspi : QSPI handle
 /// @param  cmd : structure that contains the command configuration information.
 /// @param  cfg : structure that contains the polling configuration information.
 /// @param  Timeout : Timeout duration
@@ -735,7 +715,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_AutoPolling(QSPI_CommandTypeDef *cmd, 
 }
 
 /// @brief Waiting event for QSPI Module
-/// @param evtIT EventIT flag waiting test
 /// @param Timeout Timeout for operation
 /// @return QSPI polling status flag
 Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_WaitingForEvent(uint32_t Timeout) {
@@ -765,7 +744,6 @@ Flash::QSPI_StatusTypeDef Flash::BSP_QSPI_WaitingForEvent(uint32_t Timeout) {
 }
 
 /// @brief  This function enter in deep power down the QSPI memory.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_SetDeepPowerDown(void)
 {
@@ -786,7 +764,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_SetDeepPowerDown(void)
 }
 
 /// @brief  This function exit from deep power down the QSPI memory.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_ExitDeepPowerDown(void)
 {
@@ -807,7 +784,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_ExitDeepPowerDown(void)
 }
 
 /// @brief  This function reset the QSPI memory.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_ResetMemory(void)
 {
@@ -846,7 +822,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_ResetMemory(void)
 
 /**
   * @brief  This function configure the dummy cycles on memory side.
-  * @param  hqspi: QSPI handle
   * @retval QSPI memory status
   */
 Flash::QSPI_StatusTypeDef Flash::QSPI_DummyCyclesCfg(void)
@@ -899,7 +874,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_DummyCyclesCfg(void)
 }
 
 /// @brief  This function enable the write for Volatile Status Register only.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_WriteEnableVolat(void)
 {
@@ -920,7 +894,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_WriteEnableVolat(void)
 }
 
 /// @brief  This function set Write Enable Latch bit and wait it is effective.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_WriteEnable(void)
 {
@@ -957,7 +930,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_WriteEnable(void)
 }
 
 /// @brief  This function clear Write Enable Latch bit and wait it is effective.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_WriteDisable(void)
 {
@@ -994,7 +966,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_WriteDisable(void)
 }
 
 /// @brief  This function disable Continuous Read Mode Reset - Quad.
-/// @param  hqspi: QSPI handle
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_DisableContinuousMode(void)
 {
@@ -1015,7 +986,6 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_DisableContinuousMode(void)
 }
 
 /// @brief  This function read the SR of the memory and wait the EOP.
-/// @param  hqspi: QSPI handle
 /// @param  Timeout: Timeout for auto-polling
 /// @retval QSPI memory status
 Flash::QSPI_StatusTypeDef Flash::QSPI_AutoPollingMemReady(uint32_t Timeout)
@@ -1043,22 +1013,5 @@ Flash::QSPI_StatusTypeDef Flash::QSPI_AutoPollingMemReady(uint32_t Timeout)
 
 	return BSP_QSPI_AutoPolling(&sCommand, &sConfig, Timeout);
 }
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
 
 

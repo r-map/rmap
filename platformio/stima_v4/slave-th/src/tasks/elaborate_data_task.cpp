@@ -39,7 +39,7 @@ using namespace cpp_freertos;
 /// @param taskName name of the task
 /// @param stackSize size of the stack
 /// @param priority priority of the task
-/// @param ElaborateDataParam parameters for the task
+/// @param elaboradeDataParam parameters for the task
 ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaboradeDataParam) : Thread(taskName, stackSize, priority), param(elaboradeDataParam)
 {
   // Start WDT controller and TaskState Flags
@@ -64,8 +64,6 @@ void ElaborateDataTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void ElaborateDataTask::TaskWatchDog(uint32_t millis_standby)
 {

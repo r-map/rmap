@@ -1,4 +1,4 @@
-/**@file rmap_utility.cpp */
+/**@file stima_utility.cpp */
 
 /*********************************************************************
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>

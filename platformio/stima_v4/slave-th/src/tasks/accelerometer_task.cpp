@@ -248,7 +248,6 @@ void AccelerometerTask::Run()
 }
 
 /// @brief Load configuration accelleration module
-/// @param None
 void AccelerometerTask::loadConfiguration(void)
 {
   // Verify config valid param
@@ -314,7 +313,6 @@ void AccelerometerTask::loadConfiguration(void)
 }
 
 /// @brief Print configuration Accelerometer
-/// @param None
 void AccelerometerTask::printConfiguration(void)
 {
   TRACE_INFO_F(F("--> accelerometer config: \r\n"));

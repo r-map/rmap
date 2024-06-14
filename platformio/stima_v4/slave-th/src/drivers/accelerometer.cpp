@@ -147,7 +147,7 @@ float_t Accelerometer::iis328dq_from_fs2_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 2G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs2_to_mg(coordinate request)
 {
@@ -163,7 +163,7 @@ float_t Accelerometer::iis328dq_from_fs4_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 4G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs4_to_mg(coordinate request)
 {
@@ -179,7 +179,7 @@ float_t Accelerometer::iis328dq_from_fs8_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 8G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs8_to_mg(coordinate request)
 {
@@ -195,7 +195,7 @@ float_t Accelerometer::iis328dq_from_fsx_to_inc(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled 0-100% to inclinometer value
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to inclinometer value
 float_t Accelerometer::iis328dq_from_fsx_to_inc(coordinate request)
 {
@@ -587,7 +587,7 @@ int32_t Accelerometer::iis328dq_flag_data_ready_get(uint8_t *val)
 
 /// @brief  Linear acceleration output register. The value is expressed
 ///         as a 16-bit word in two’s complement.[get]
-/// @param  buff  buffer that stores data read
+/// @param  val   data read
 /// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_acceleration_raw_get(int16_t *val)
 {

@@ -46,8 +46,8 @@ EEprom::EEprom(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 }
 
 /// @brief 		Write a number of data byte into EEPROM
-/// @param[in]	address, EEPROM data address
-/// @param[in]	value, data value to write
+/// @param[in]	address EEPROM data address
+/// @param[in]	value data value to write
 /// @return		true if success, otherwise false returned.
 bool EEprom::Write(uint16_t address, uint8_t value)
 {
@@ -79,9 +79,9 @@ bool EEprom::Write(uint16_t address, uint8_t value)
 } 
 
 /// @brief 		Write a number of data byte into EEPROM
-/// @param[in]	address, EEPROM data address
-/// @param[in]	buffer, source data buffer location
-/// @param[in]	length, buffer length
+/// @param[in]	address EEPROM data address
+/// @param[in]	buffer source data buffer location
+/// @param[in]	length buffer length
 /// @return		true if success, otherwise false returned.
 bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 {
@@ -127,8 +127,8 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 }
 
 /// @brief 		Read a single byte from EEPROM
-/// @param[in]	address, EEPROM data address
-/// @param[in]	value, destination data buffer location
+/// @param[in]	address EEPROM data address
+/// @param[in]	value destination data buffer location
 /// @return		true if success, otherwise false returned.
 bool EEprom::Read(uint16_t address, uint8_t *value)
 {
@@ -160,9 +160,9 @@ bool EEprom::Read(uint16_t address, uint8_t *value)
 }
 
 /// @brief 		Read a number of data byte from EEPROM
-/// @param[in]	address, EEPROM data address
-/// @param[in]	read_buffer, destination data buffer location
-/// @param[in]	length, buffer length
+/// @param[in]	address EEPROM data address
+/// @param[in]	buffer destination data buffer location
+/// @param[in]	length buffer length
 /// @return		true if success, otherwise false returned.
 bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 {

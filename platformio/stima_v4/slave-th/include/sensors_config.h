@@ -53,7 +53,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 /*!
 \def USE_SENSOR_HIH
-\brief Enable if you want use HIH6100 sen\sor.
+\brief Enable if you want use HIH6100 sensor.
 */
 #define USE_SENSOR_HIH              (false)
 
