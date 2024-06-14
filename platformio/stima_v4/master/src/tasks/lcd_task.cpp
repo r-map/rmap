@@ -26,21 +26,23 @@
  *
  ******************************************************************************
  */
+
 #define TRACE_LEVEL   LCD_TASK_TRACE_LEVEL
 #define LOCAL_TASK_ID LCD_TASK_ID
 
 #include "tasks/lcd_task.h"
 
-#if (ENABLE_LCD)
-
 using namespace cpp_freertos;
+
+#if (ENABLE_LCD)
 
 /// @brief Construct a new LCD Task:: LCDTask object
 /// @param taskName name of the task
 /// @param stackSize size of the stack
 /// @param priority priority of the task
 /// @param lcdParam parameters for the task
-LCDTask::LCDTask(const char* taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam) : Thread(taskName, stackSize, priority), param(lcdParam) {
+LCDTask::LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam) : Thread(taskName, stackSize, priority), param(lcdParam) 
+{
   // Start WDT controller and TaskState Flags
   TaskWatchDog(WDT_STARTING_TASK_MS);
   TaskState(LCD_STATE_CREATE, UNUSED_SUB_POSITION, task_flag::normal);
@@ -87,8 +89,6 @@ void LCDTask::TaskMonitorStack() {
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void LCDTask::TaskWatchDog(uint32_t millis_standby) {
   // Local TaskWatchDog update
@@ -375,8 +375,7 @@ void LCDTask::Run() {
 /// @brief Convert ASCII Hex 2 Format CHAR to uint8 value and increment string pointer to long string conversion (with error check)
 /// @param str pointer to string (will be incremented if hex char are found and converted)
 /// @param value_out pointer to data return value converted
-/// @return true if error occurs
-/// @return false if conversion is ready
+/// @return true if error occurs. false if conversion is ready
 bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t* value_out) {
   bool is_error = false;
 
@@ -415,7 +414,7 @@ bool LCDTask::ASCIIHexToDecimal(char** str, uint8_t* value_out) {
 }
 
 /// @brief Put off display
-void LCDTask::display_off() {
+void LCDTask::display_off(void) {
   TRACE_INFO_F(F("LCD: Display OFF\r\n"));
 
   // Processing light of display
@@ -443,7 +442,7 @@ void LCDTask::display_off() {
 }
 
 /// @brief Put on display
-void LCDTask::display_on() {
+void LCDTask::display_on(void) {
   TRACE_INFO_F(F("LCD: Display ON\r\n"));
 
   // Turn high phisicals pins
@@ -464,6 +463,7 @@ void LCDTask::display_on() {
 }
 
 /// @brief Rows with description, value and unity type of measurement
+/// @param module_type The module type
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
   bool bMeasValid_A = true, bMeasValid_B = true, bMeasValid_C = true;
   bool printMeasB = false, printMeasC = false;
@@ -624,7 +624,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
 }
 
 /// @brief Show menu with commands list when press the button
-void LCDTask::display_print_config_menu_interface() {
+void LCDTask::display_print_config_menu_interface(void) {
   // Index used for count printed rows
   uint8_t row_printed = 0;
 
@@ -655,7 +655,7 @@ void LCDTask::display_print_config_menu_interface() {
 }
 
 /// @brief Print default interface to always show. A simple rect with the header line
-void LCDTask::display_print_default_interface() {
+void LCDTask::display_print_default_interface(void) {
   display.drawFrame(X_RECT, Y_RECT, display.getWidth() - X_RECT_HEADER_MARGIN, display.getHeight() - Y_RECT_HEADER_MARGIN);
   display.drawHLine(X_RECT, Y_RECT_HEADER, display.getWidth() - X_RECT_HEADER_MARGIN);
   display.setFont(u8g2_font_helvR08_tf);
@@ -664,7 +664,7 @@ void LCDTask::display_print_default_interface() {
 }
 
 /// @brief Print Main interface with general information about station
-void LCDTask::display_print_main_interface() {
+void LCDTask::display_print_main_interface(void) {
   char buffer_errors[40] = {0};
   char msgOut[18] = {0};
   char errors[35] = {0};
@@ -1269,7 +1269,7 @@ void LCDTask::display_print_update_station_slug_interface(void) {
 }
 
 /// @brief Display setup handler
-void LCDTask::display_setup() {
+void LCDTask::display_setup(void) {
   display.begin();            // Initialize display
   display.enableUTF8Print();  // UTF8 support enabled
   display.clearBuffer();      // Clear the internal memory
@@ -1623,7 +1623,7 @@ const char* LCDTask::get_slave_command_name_from_enum(stima4_slave_commands_t co
 }
 
 /// @brief ISR handler for encoder input that manage the button pression
-void LCDTask::ISR_input_pression_pin_encoder() {
+void LCDTask::ISR_input_pression_pin_encoder(void) {
   // **************************************************************************
   // ************************* DEBOUNCE BUTTON HANDLER ************************
   // **************************************************************************
@@ -1646,7 +1646,7 @@ void LCDTask::ISR_input_pression_pin_encoder() {
 }
 
 /// @brief ISR handler for encoder inputs that manage the rotation
-void LCDTask::ISR_input_rotation_pin_encoder() {
+void LCDTask::ISR_input_rotation_pin_encoder(void) {
   // Reading pins from encoder
   encoder.pin.a = digitalRead(pin_bottom_left_encoder);
   encoder.pin.b = digitalRead(pin_bottom_right_encoder);
@@ -1678,7 +1678,7 @@ bool LCDTask::saveConfiguration(void) {
 }
 
 /// @brief Interface switch handler
-void LCDTask::switch_interface() {
+void LCDTask::switch_interface(void) {
   // **************************************************************************
   // ************************* STATE HANDLER **********************************
   // **************************************************************************

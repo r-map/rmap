@@ -92,7 +92,7 @@
 #define LCD_TASK_WAIT_DELAY_MS  (10)
 
 /// @brief LCD State of task
-typedef enum LCDState {
+typedef enum {
   LCD_STATE_CREATE,          ///< creating a task
   LCD_STATE_INIT,            ///< initializing a task
   LCD_STATE_CHECK_OPERATION, ///< checking operation
@@ -100,7 +100,7 @@ typedef enum LCDState {
 } LCDState_t;
 
 /// @brief LCD Master commands names
-typedef enum LCDMasterCommands {
+typedef enum {
   MASTER_COMMAND_RESET_FLAGS,           ///< reset flags
   MASTER_COMMAND_FORCE_CONNECTION,      ///< force gsm connection
   MASTER_COMMAND_DOWNLOAD_CFG,          ///< download configuration
@@ -121,7 +121,7 @@ typedef enum LCDMasterCommands {
 } stima4_master_commands_t;
 
 /// @brief LCD Slave commands names
-typedef enum LCDSlaveCommands {
+typedef enum {
   SLAVE_COMMAND_MAINTENANCE,                ///< do/undo maintenance
   SLAVE_COMMAND_RESET_FLAGS,                ///< reset flags
   SLAVE_COMMAND_DO_FACTORY,                 ///< do factory
@@ -131,7 +131,7 @@ typedef enum LCDSlaveCommands {
 } stima4_slave_commands_t;
 
 /// @brief List of LCD Menu
-typedef enum LCDMenu {
+typedef enum {
   MAIN,                               ///< main
   CHANNEL,                            ///< UI for each slave
   CONFIGURATION,                      ///< configuration
@@ -146,7 +146,7 @@ typedef enum LCDMenu {
 } stima4_menu_ui_t;
 
 /// @brief Decoding function for Encoder 
-typedef union Encoder {
+typedef union {
   struct Pin {
     bool a : 1;
     bool b : 1;
@@ -172,19 +172,20 @@ typedef struct {
 } LCDParam_t;
 
 class LCDTask : public cpp_freertos::Thread {
- public:
+
+public:
   LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam);
 
- protected:
+protected:
   virtual void Run();
 
- private:
-#if (ENABLE_STACK_USAGE)
-  void TaskMonitorStack();
-#endif
+private:
+  
+  #if (ENABLE_STACK_USAGE)
+    void TaskMonitorStack();
+  #endif
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
-
   bool ASCIIHexToDecimal(char **str, uint8_t *value_out);
   bool saveConfiguration(void);
   const char *get_master_command_name_from_enum(stima4_master_commands_t command);
@@ -210,6 +211,11 @@ class LCDTask : public cpp_freertos::Thread {
   void elaborate_master_command(stima4_master_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
+
+  LCDState_t state;
+  LCDParam_t param;
+  
+  STM32RTC &rtc = STM32RTC::getInstance();
 
   /// @brief Default char list for user input
   char alphabet[ALPHABET_LENGTH] = {
@@ -324,11 +330,6 @@ class LCDTask : public cpp_freertos::Thread {
 
   /// @brief Static access for event quque
   inline static cpp_freertos::Queue *localDisplayEventWakeUp;
-
-  STM32RTC &rtc = STM32RTC::getInstance();
-
-  LCDState_t state;
-  LCDParam_t param;
 };
 
 #endif

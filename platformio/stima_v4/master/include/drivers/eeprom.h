@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    Eeprom.cpp
+  * @file    eeprom.h
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   eeprom AT24C64 header file
   ******************************************************************************

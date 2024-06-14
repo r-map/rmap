@@ -1164,8 +1164,10 @@ void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type
 #else
 /// @brief Imposta il nodo e il tipo di modulo dell'istanza slave relativa
 /// @param node_id nodo_id remoto dell'istanza
-/// @param node_type tipo di modulo dell'istanza
+/// @param module_type tipo di modulo dell'istanza
 /// @param rmap_port_id port_id remoto dell'istanza
+/// @param rmap_subject_id publish subject id rmap remoto dell'istanza
+/// @param serial_number serial Number id dell'istanza slave
 void canardClass::slave::configure(CanardNodeID node_id, Module_Type module_type, CanardPortID rmap_port_id,
                                     uint64_t serial_number) {
     _node_id = node_id;

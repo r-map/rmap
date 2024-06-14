@@ -1113,8 +1113,6 @@ void CanTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void CanTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -1138,8 +1136,6 @@ void CanTask::TaskWatchDog(uint32_t millis_standby)
 }
 
 /// @brief local watchDog and Sleep flag Task (optional) access from member static
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void CanTask::LocalTaskWatchDog(uint32_t millis_standby)
 {
