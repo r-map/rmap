@@ -518,11 +518,18 @@ void SdTask::Run()
       }
 
       // Force init array structure SD Card firmware present (RESETTED to initial void value, without Firmware files)
+      param.systemStatusLock->Take();
       for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
         param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
         param.system_status->boards_update_avaiable[brd].version = 0;
         param.system_status->boards_update_avaiable[brd].revision = 0;
       }
+      // Force init flags structure SD Card firmware ready (SETTED on get data connection Cyphal)
+      param.system_status->data_master.fw_upgradable = false;
+      for(uint8_t queueId=0; queueId<BOARDS_COUNT_MAX; queueId++) {
+        param.system_status->data_slave[queueId].fw_upgradable = false;
+      }
+      param.systemStatusLock->Give();
 
       // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
       // Normally on request from RPC Before calling -> system_message.(do_function_respond)
@@ -852,11 +859,18 @@ void SdTask::Run()
       }
 
       // Force init array structure SD Card firmware present (RESETTED to initial void value, without Firmware files)
+      param.systemStatusLock->Take();
       for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
         param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
         param.system_status->boards_update_avaiable[brd].version = 0;
         param.system_status->boards_update_avaiable[brd].revision = 0;
       }
+      // Force init flags structure SD Card firmware ready (SETTED on get data connection Cyphal)
+      param.system_status->data_master.fw_upgradable = false;
+      for(uint8_t queueId=0; queueId<BOARDS_COUNT_MAX; queueId++) {
+        param.system_status->data_slave[queueId].fw_upgradable = false;
+      }
+      param.systemStatusLock->Give();
 
       TRACE_VERBOSE_F(F("SD_STATE_CLEAN_FIRMWARE -> SD_STATE_WAITING_EVENT\r\n"));
 
@@ -884,6 +898,14 @@ void SdTask::Run()
         state = SD_STATE_INIT;
         break;
       }
+
+      // Security remove flag on reload firmware file current struct
+      param.systemStatusLock->Take();
+      param.system_status->data_master.fw_upgradable = false;
+      for(uint8_t queueId=0; queueId<BOARDS_COUNT_MAX; queueId++) {
+        param.system_status->data_slave[queueId].fw_upgradable = false;
+      }
+      param.systemStatusLock->Give();
 
       while(true) {
         entry = dir.openNextFile();
