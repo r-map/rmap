@@ -940,14 +940,16 @@ void SdTask::Run()
                 param.system_status->boards_update_avaiable[brd].module_type = module_type;
                 param.system_status->boards_update_avaiable[brd].version = fw_version;
                 param.system_status->boards_update_avaiable[brd].revision = fw_revision;
-                // ?Is this module ->Master? (check directly if fw upgrade is avaiable with last version file present)
-                if(param.configuration->module_type == module_type) {
-                  if((fw_version > param.configuration->module_main_version) ||
-                    ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))) {
-                    param.system_status->data_master.fw_upgradable = true;
-                  }
-                }
                 param.systemStatusLock->Give();
+              }
+              // ?Is this module ->Master? (check directly if fw upgrade is avaiable with last version file present)
+              if(param.configuration->module_type == module_type) {
+                if((fw_version > param.configuration->module_main_version) ||
+                  ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))) {
+                  param.systemStatusLock->Take();
+                  param.system_status->data_master.fw_upgradable = true;
+                  param.systemStatusLock->Give();
+                }
               }
               break;
             }

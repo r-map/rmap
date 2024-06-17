@@ -345,6 +345,9 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
   } else if (strstr(file_name, STIMA_MODULE_NAME_POWER_MPPT)) {
     *type = STIMA_MODULE_TYPE_POWER_MPPT;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_POWER_MPPT);
+  } else if (strstr(file_name, STIMA_MODULE_NAME_VWC)) {
+    *type = STIMA_MODULE_TYPE_VWC;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_VWC);
   } else {
     // Error unknown module file
     return false;

@@ -47,7 +47,7 @@
 #define MODULE_MAIN_VERSION   (4)
 
 /// @brief Module minor version.
-#define MODULE_MINOR_VERSION  (5)
+#define MODULE_MINOR_VERSION  (6)
 
 /// @brief Module minor version.
 #define CONFIGURATION_VERSION (1)

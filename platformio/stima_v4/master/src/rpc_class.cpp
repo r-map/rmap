@@ -235,24 +235,39 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
     {
       error_command = false;
       uint8_t node_id_rpc = it.value().as<unsigned int>();
-      // Starting queue request direct command remote Node over Cyphal
-      if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {
-        if(param.system_status->data_slave[node_id_rpc].fw_upgradable) {
+      if(node_id_rpc == CMD_PARAM_MASTER_ADDRESS) {
+        if(param.system_status->data_master.fw_upgradable) {
           // Starting queue request direct command firmware update remote Node over Cyphal
           system_message_t system_message = {0};
-          system_message.task_dest = CAN_TASK_ID;
+          system_message.task_dest = SD_TASK_ID;
           system_message.command.do_update_fw = true;
-          // Parameter is Node Slave ID (Command destination Node Id)
           system_message.node_id = (Module_Type)node_id_rpc;
           param.systemMessageQueue->Enqueue(&system_message);
-          TRACE_INFO_F(F("RPC: DO DIRECT REMOTE UPGRADE FIRMWARE ON NODE ID:%d\r\n"), system_message.node_id);
+          TRACE_INFO_F(F("RPC: DO DIRECT UPGRADE FIRMWARE ON MASTER\r\n"));
         } else {
-          TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNNECESSARY NODE\r\n"));
+          TRACE_INFO_F(F("RPC: ERROR UPGRADE FIRMWARE ON MASTER WITHOUT (.BIN) FILE\r\n"));
           error_command = true;
         }
       } else {
-        TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNCONFIGURED NODE\r\n"));
-        error_command = true;
+        // Starting queue request direct command remote Node over Cyphal
+        if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {
+          if(param.system_status->data_slave[node_id_rpc].fw_upgradable) {
+            // Starting queue request direct command firmware update remote Node over Cyphal
+            system_message_t system_message = {0};
+            system_message.task_dest = CAN_TASK_ID;
+            system_message.command.do_update_fw = true;
+            // Parameter is Node Slave ID (Command destination Node Id)
+            system_message.node_id = (Module_Type)node_id_rpc;
+            param.systemMessageQueue->Enqueue(&system_message);
+            TRACE_INFO_F(F("RPC: DO DIRECT REMOTE UPGRADE FIRMWARE ON NODE ID:%d\r\n"), system_message.node_id);
+          } else {
+            TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNNECESSARY NODE\r\n"));
+            error_command = true;
+          }
+        } else {
+          TRACE_INFO_F(F("RPC: ERROR REMOTE UPGRADE FIRMWARE ON UNCONFIGURED NODE\r\n"));
+          error_command = true;
+        }
       }
     }
     else if (strcmp(it.key().c_str(), "rstflags") == 0)
@@ -379,7 +394,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           system_message.command.do_remote_cfg = true;
           // Parameter is Node Slave ID (Command destination Node Id)
           system_message.node_id = slaveId;
-          param.systemMessageQueue->Enqueue(&system_message, 0);
+          param.systemMessageQueue->Enqueue(&system_message);
         }
         else error_command = true;
         // Reset and deinit info current module and parameter pointer configure sequence
@@ -1705,7 +1720,7 @@ int RegisterRPC::reboot(JsonObject params, JsonObject result)
     system_message_t system_message = {0};
     system_message.task_dest = CAN_TASK_ID;
     system_message.command.do_reboot = true;
-    param.systemMessageQueue->Enqueue(&system_message, 0);
+    param.systemMessageQueue->Enqueue(&system_message);
   }
   #endif
 

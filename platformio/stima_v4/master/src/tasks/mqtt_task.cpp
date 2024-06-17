@@ -2453,6 +2453,9 @@ error_t MqttTask::makeSensorMessageClassSpeed(rmap_sensors_WindClassSpeed_1_0 se
     if (sensor.class4.val.value > rmap_tableb_B11214_1_0_MAX) sensor.class4.val.value = 0;
     if (sensor.class5.val.value > rmap_tableb_B11215_1_0_MAX) sensor.class5.val.value = 0;
     if (sensor.class6.val.value > rmap_tableb_B11216_1_0_MAX) sensor.class6.val.value = 0;
+    uint8_t chkVal = sensor.class1.val.value + sensor.class2.val.value + sensor.class3.val.value +
+                     sensor.class4.val.value + sensor.class5.val.value + sensor.class6.val.value;
+    if(chkVal != rmap_tableb_B11216_1_0_MAX) sensor.class1.val.value += (rmap_tableb_B11216_1_0_MAX - chkVal);
   }
 
   if (!error)
