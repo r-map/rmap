@@ -899,12 +899,12 @@ void SdTask::Run()
         break;
       }
 
-      // Security remove flag on reload firmware file current struct
+      // Security remove only local master flag on reload firmware file current struct
+      // Master check version direct from firmware define value, slave only from CAN Get Data
+      // Slave Flag removed with calling download_firmware. And slave module version reload
+      // directly before next command update firmware
       param.systemStatusLock->Take();
       param.system_status->data_master.fw_upgradable = false;
-      for(uint8_t queueId=0; queueId<BOARDS_COUNT_MAX; queueId++) {
-        param.system_status->data_slave[queueId].fw_upgradable = false;
-      }
       param.systemStatusLock->Give();
 
       while(true) {
@@ -943,7 +943,7 @@ void SdTask::Run()
                 param.systemStatusLock->Give();
               }
               // ?Is this module ->Master? (check directly if fw upgrade is avaiable with last version file present)
-              if(param.configuration->module_type == module_type) {
+              if(param.configuration->module_type == MODULE_TYPE) {
                 if((fw_version > param.configuration->module_main_version) ||
                   ((fw_version == param.configuration->module_main_version) && (fw_revision > param.configuration->module_minor_version))) {
                   param.systemStatusLock->Take();
