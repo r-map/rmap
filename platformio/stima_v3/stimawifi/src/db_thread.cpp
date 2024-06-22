@@ -162,9 +162,16 @@ bool dbThread::data_purge(int nmessages=100){
 
   data->logger->notice(F("db Start purge"));       
 
+  //The values emitted by the RETURNING clause are the values as seen
+  //by the top-level DELETE, INSERT, or UPDATE statement and do not
+  //reflect any subsequent value changes made by triggers. Thus, if
+  //the database includes AFTER triggers that modifies some of the
+  //values of each row inserted or updated, the RETURNING clause emits
+  //the original values that are computed before those triggers run
+  
   //char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?)";
   //char sql[] = "DELETE FROM messages WHERE pk IN (SELECT pk FROM messages WHERE datetime < strftime('%s',?) LIMIT 100)";
-  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) LIMIT ?";
+  char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?) RETURNING sent,topic,payload LIMIT ?";
   sqlite3_stmt* stmt; // will point to prepared stamement object
   rc=sqlite3_prepare_v2(
 			db,             // the handle to your (opened and ready) database
@@ -200,14 +207,36 @@ bool dbThread::data_purge(int nmessages=100){
 		     2,                     // parameter index, 1-based
 		     (int)nmessages);       // the data
 
-    rc = sqlite3_step(stmt);
-    
-    if(rc == SQLITE_DONE) {
-      rc  = SQLITE_OK;
-  } else {
-      data->logger->error(F("db purge values in DB: %s"),sqlite3_errmsg(db));       
+    while(1) {
+      mqttMessage_t message;
+      // fetch a row's status
+      rc = sqlite3_step(stmt);
+      if(rc == SQLITE_ROW) {
+	message.sent = (uint8_t)sqlite3_column_int(stmt, 0);
+	strcpy(message.topic, (const char*)sqlite3_column_text(stmt, 1));
+	strcpy(message.payload, (const char*)sqlite3_column_text(stmt, 2));
+	if (archiveFile) {
+	  data->logger->notice(F("db try save message in archive %T:%s:%s"),message.sent,message.topic,message.payload);       
+	  if (archiveFile.write((uint8_t *)&message,sizeof(mqttMessage_t)/sizeof(uint8_t))) {
+	    data->logger->notice(F("db saved message in archive"));       
+	  } else {
+	    data->logger->error(F("db save message in archive"));       
+	  }
+	} else {
+	  data->logger->error(F("db skip message for archive %s:%s"),message.topic,message.payload);       
+	}
+	
+      } else if(rc == SQLITE_DONE) {
+	rc  = SQLITE_OK;
+	break;
+      } else {
+	data->logger->error(F("db purge getting values from DB: %s"),sqlite3_errmsg(db));       
+	break;
+      }
     }
   }
+
+  archiveFile.flush();
   sqlite3_finalize(stmt);
   data->logger->notice(F("db purge values in DB Ended"));        
   return rc  == SQLITE_OK;
@@ -521,7 +550,7 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t* db_data)
-  : Thread{"DB", 5500, 2}
+  : Thread{"DB", 5500, 1}
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -538,7 +567,8 @@ void dbThread::Cleanup()
 {
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->database=unknown;
-  sqlite3_close(db);  
+  sqlite3_close(db);
+  archiveFile.close();
   delete this;
 }
 
@@ -558,6 +588,12 @@ void dbThread::Run() {
     }
   }
 
+  // open archive on sd card
+  archiveFile = SD.open(SDCARD_ARCHIVE_FILE_NAME, FILE_APPEND);
+  if (!archiveFile){
+    data->logger->error(F("db failed to open archive file for appending"));
+  }
+  
   /*
   data->logger->notice(F("largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
   void* sqlite_memory= malloc(SQLITE_MEMORY);

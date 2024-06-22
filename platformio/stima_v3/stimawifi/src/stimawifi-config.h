@@ -75,16 +75,27 @@
 #define MQTT_QUEUE_SPACELEFT_RECOVERY (DATA_BURST*2)
 
 // SD card SPI PIN assignment
+
+//Micro SD Card Shield
 #define C3SCK 1   
 #define C3MISO 0  
 #define C3MOSI 4  
-#define C3SS 6    
+
+//https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
+#define C3SS 6
+
+//WIFI D1 mini - Data logger shield for D1 mini with RTC and MicroSD
+//https://en.m.nu/esp8266-shields/wifi-d1-mini-data-logger-shield-for-d1-mini-with-rtc-and-microsd
+//#define C3SS 5
 
 // SPI clock
 #define SPICLOCK 1000000
 
 // SD card max number of file
 #define SDMAXFILE 6
+
+
+#define SDCARD_ARCHIVE_FILE_NAME ("/archive.dat")
 
 // littlefs max number of file
 #define LFMAXFILE 4

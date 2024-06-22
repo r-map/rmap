@@ -15,7 +15,7 @@ struct publish_data_t {
   BinaryQueue* recoveryqueue;
   publishStatus_t* status;
   station_t* station;
-  WiFiClient* mqttClient;
+  WiFiClient* networkClient;
 };
 
 bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);

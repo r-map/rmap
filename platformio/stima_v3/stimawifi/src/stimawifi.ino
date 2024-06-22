@@ -1333,7 +1333,7 @@ void setup() {
   
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
-
+  
   // if mobile station start geolocation thread
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
@@ -1357,7 +1357,7 @@ void setup() {
 // arduino loop routine
 void loop() {
   // set the priority of this thread
-  vTaskPrioritySet(NULL, 2);
+  vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
 
   //disableLoopWDT();
   // set the priority of this thread

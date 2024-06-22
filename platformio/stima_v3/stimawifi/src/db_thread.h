@@ -46,7 +46,13 @@ class dbThread : public Thread {
   //SdFat SD;
   uint8_t sqlite_memory[SQLITE_MEMORY];   // allocated memory used by sqlite
   bool sqlite_status;
-  rpcRecovery_t rpcrecovery;  
+  rpcRecovery_t rpcrecovery;
+  /*!
+    \var archiveFile
+    \brief File for archive on SD-Card.
+  */
+  File archiveFile;
+
 };
 
 #endif
