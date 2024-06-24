@@ -30,34 +30,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /*********************************************************************
 * MODULE
 *********************************************************************/
-/*!
-\def MODULE_MAIN_VERSION
-\brief Module main version.
-*/
+/// @brief Module main version.
 #define MODULE_MAIN_VERSION   (4)
 
-/*!
-\def MODULE_MINOR_VERSION
-\brief Module minor version.
-*/
+/// @brief Module minor version.
 #define MODULE_MINOR_VERSION  (3)
 
-/*!
-\def RMAP_PROCOTOL_VERSION
-\brief rmap protocol version
-*/
+/// @brief rmap protocol version
 #define RMAP_PROCOTOL_VERSION (1)
 
-/*!
-\def USE_SIMULATOR
-\brief Random generator value for Local Test
-\def INIT_SIMULATOR
-\brief Fill buffer data wuith 900 data value init
-\def VECT_MED_ON_360_SIMULATOR
-\brief Fill buffer data wuith 360 data value init complete angle 0..359 to check avg vect function
-*/
+// Random generator value for Local Test
 // #define USE_SIMULATOR
+
+// Fill buffer data wuith 900 data value init
 // #define INIT_SIMULATOR
+
+// Fill buffer data wuith 360 data value init complete angle 0..359 to check avg vect function
 // #define VECT_MED_ON_360_SIMULATOR
 
 /*!
@@ -76,47 +64,79 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_WIND)
 #endif
 
-// Enable control Error for Debug
+/// @brief Enable control Error for Debug
 #define DEBUG_MODE            (false)
 #define ERROR_HANDLER_CB      (false)
 
-// HW device enabled
+/*********************************************************************
+* HW DEVICES
+*********************************************************************/
+
+/// @brief Enable I2C1 interface
 #define ENABLE_I2C1           (true)
+/// @brief Enable I2C2 interface
 #define ENABLE_I2C2           (true)
+/// @brief Enable QSPI interface
 #define ENABLE_QSPI           (true)
+/// @brief Enable CAN BUS interface
 #define ENABLE_CAN            (true)
+/// @brief Enable I2C Accelerometer
 #define ENABLE_ACCELEROMETER  (false)
 
-// HW Diag PIN redefine
+/// @brief Enable HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (false)
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
+/// @brief Enable WatchDog Task and Module
 #define ENABLE_WDT            (true)
-#define WDT_TIMEOUT_BASE_US   (8000000)     // WatchDog HW us
-#define WDT_STARTING_TASK_MS  (60000)       // Init WDT Task Local ms
-#define WDT_CONTROLLER_MS     (2000)        // Task ms minimal check
+/// @brief WatchDog Hardware microseconds timeout
+#define WDT_TIMEOUT_BASE_US   (8000000)
+/// @brief Init WatchDog Task local milliseconds
+#define WDT_STARTING_TASK_MS  (60000)
+/// @brief Task milliseconds minimal check
+#define WDT_CONTROLLER_MS     (2000)  
+/// @brief Enable stack usage
 #define ENABLE_STACK_USAGE    (true)
-#define UNUSED_SUB_POSITION   (0)           // Monitor Sub Position Not Used Flag
-#define NORMAL_STATE          (0)           // Monitor No Sleep / No Suspend
-#define SLEEP_STATE           (1)           // Sleep Task For Wdt or LowPower Check
-#define SUSPEND_STATE         (2)           // Suspend Task from WDT
+/// @brief Monitor Sub Position not used flag
+#define UNUSED_SUB_POSITION   (0)          
+/// @brief Monitor No Sleep / No Suspend
+#define NORMAL_STATE          (0)  
+/// @brief Sleep Task For Wdt or LowPower Check         
+#define SLEEP_STATE           (1)   
+/// @brief Suspend Task from Wdt        
+#define SUSPEND_STATE         (2)           
 
-// Generic Semaphore Time acquire RTC
+/*********************************************************************
+* Generic Semaphore Time acquire RTC
+*********************************************************************/
+/// @brief Enable RTC Interface
 #define ENABLE_RTC            (true)
+/// @brief Delay for RTC in milliseconds
 #define RTC_WAIT_DELAY_MS     (100)
 
-// Address EEProm for reserved bootloader flag param (and future used)
+/*********************************************************************
+* Address EEProm for reserved bootloader flag param (and future used 2000 Bytes)
+*********************************************************************/
+/// @brief Starting EEPROM address
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (450)
+/// @brief Size EEPROM reserved address. Must be > CONFIGURATION_EEPROM_END
+#define SIZE_EEPROM_RESERVED           (450)  
+/// @brief Bootloader start address                       
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
+/// @brief Bootloader struct size
 #define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
+/// @brief Bootloader struct end address  
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
-// Private configuration board direct
+
+/*********************************************************************
+* Private configuration board direct
+*********************************************************************/
+/// @brief Start Address EEPROM configuration
 #define CONFIGURATION_EEPROM_ADDRESS   (20)
-// Start Standard UAVCAN Register
+/// @brief Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
 
-// Monitor Serial speed
+/// @brief Monitor Debug Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
@@ -131,98 +151,141 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define I2C2_BUS_CLOCK_HZ (100000L)
 #endif
 
-// Queue Lenght
+/*********************************************************************
+* Queue Lenght
+*********************************************************************/
+/// @brief Request system message queue length
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
+/// @brief Elaborate data message queue length
 #define ELABORATE_DATA_QUEUE_LENGTH (2)
+/// @brief Request data message queue length
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
+/// @brief Report data message queue length
 #define REPORT_DATA_QUEUE_LENGTH    (1)
 
-// Task system_status and queue ID message
-#define ALL_TASK_ID                 (99)      // Send message to ALL Task
-#define SUPERVISOR_TASK_ID          (0)       // Send message to specific task..
+/*********************************************************************
+* Task system_status and queue ID message
+*********************************************************************/
+/// @brief All task ID. Send message to ALL Task
+#define ALL_TASK_ID                 (99)    
+/// @brief Supervisor task ID
+#define SUPERVISOR_TASK_ID          (0)    
+/// @brief CAN task ID
 #define CAN_TASK_ID                 (1)
+/// @brief Elaborate data task ID
 #define ELABORATE_TASK_ID           (2)
+/// @brief Sensor acquire task ID
 #define SENSOR_TASK_ID              (3)
+/// @brief Accelerometer task ID
 #define ACCELEROMETER_TASK_ID       (4)
+/// @brief Watch Dog task ID
 #define WDT_TASK_ID                 (5)
-#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
+/// @brief Total Max Task for WDT Task Control
+#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) 
 
-// Task waiting queue command/response
+/*********************************************************************
+* Global queue wait and other timeout
+*********************************************************************/
+/// @brief Time to wait pushing data queue
 #define WAIT_QUEUE_REQUEST_PUSHDATA_MS    (500)
+/// @brief Time to wait pushing command queue
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
 
-// Sample and default value for elaborate task 
+/*********************************************************************
+* Parameter of buffer data dimension and acquire
+*********************************************************************/
+/// @brief Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (10800)
-#define SENSORS_ACQUISITION_DELAY_MS      (1000)
+/// @brief Default observation (RMAP) time in second 
 #define OBSERVATIONS_TIME_S               (60)
+/// @brief Default report (RMAP) time in second 
 #define REPORTS_TIME_S                    (900)
+
+/*********************************************************************
+* Parameter of sensor and elaboration function
+*********************************************************************/
+/// @brief Default delay from two function acquire data 
+#define SENSORS_ACQUISITION_DELAY_MS      (1000)
 
 // Index Sensor
 #define WIND_SPEED_INDEX                  (0)
 #define WIND_DIRECTION_INDEX              (1)
 
-// Limit range for module sensor
+/// @brief Limit MAX valid speed range for module sensor
 #define MAX_VALID_WIND_SPEED              (70.0)
+/// @brief Limit MAX valid speed range for module sensor
 #define MIN_VALID_WIND_SPEED              (0.0)
+/// @brief Limit MAX valid direction range for module sensor
 #define MAX_VALID_WIND_DIRECTION          (359.9)
+/// @brief Limit MAX valid direction range for module sensor
 #define MIN_VALID_WIND_DIRECTION          (0.0)
 
+/// @brief Samples min percent valid on elaboration data
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+/// @brief Observation min percent valid on elaboration data
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
+/// @brief Delay after power ON sensor before starting measurement
 #define WIND_POWER_ON_DELAY_MS            (5000)
 
+// Mutiply for RMAP and casting value data conversion
 #define WIND_CASTING_SPEED_MULT           (10)
 #define WIND_CASTING_SPEED_MULT_ACQUIRE   (100)
 
+/// @brief Limit MAX Class 1 Frequency wind speed
 #define WIND_CLASS_1_MAX                  (1.0)
+/// @brief Limit MAX Class 2 Frequency wind speed
 #define WIND_CLASS_2_MAX                  (2.0)
+/// @brief Limit MAX Class 3 Frequency wind speed
 #define WIND_CLASS_3_MAX                  (4.0)
+/// @brief Limit MAX Class 4 Frequency wind speed
 #define WIND_CLASS_4_MAX                  (7.0)
+/// @brief Limit MAX Class 5 Frequency wind speed
 #define WIND_CLASS_5_MAX                  (10.0)
 
-/*!
-\def WIND_READ_DELAY_MS
-\brief Reading delay.
-*/
+/// @brief Reading delay
 #define WIND_MESSAGE_DELAY_MS             (4)
 
-/*!
-\def WIND_WAITING_RESPONSE_TIMEOUT_MS
-\brief Windsonic compose response message delay.
-*/
+/// @brief Windsonic compose response message delay.
 #define WIND_WAITING_RESPONSE_TIMEOUT_MS  (500)
 
-/*!
-\def WIND_WAITING_READCHAR_TIMEOUT_MS (0,9 mSec at 9600 Baud)
-\brief Windsonic compose response message timeout next char.
-*/
+/// @brief Windsonic compose response message timeout next char
 #define WIND_WAITING_READCHAR_TIMEOUT_MS  (10)
 
-/*!
-\def WIND_READ_COUNT
-\brief number of read.
-*/
+/// @brief Max delay after retry
 #define WIND_RETRY_MAX_DELAY_MS           (4000)
 
+/// @brief Limit MAX value Direction
 #define WIND_DIRECTION_MAX                (360.0)
+/// @brief Limit MIN value Direction
 #define WIND_DIRECTION_MIN                (0.0)
 
+/// @brief Limit MAX value Speed
 #define WIND_SPEED_MAX                    (60.0)
+/// @brief Limit MIN value Direction
 #define WIND_SPEED_MIN                    (0.0)
 
+/// @brief Limit MIN calm Wind for elaboration data
 #define CALM_WIND_MAX_MS                  (0.1)
+/// @brief Limit MIN calm Wind for elaboration data on getting vector result value
 #define CALM_WIND_MAX_MED_VECT            (0.05)
+/// @brief Limit MIN ATAN2 Function check for vector elaboration data
 #define ATAN2_CHECK_LIMIT                 (0.001)
 
+/// @brief Sensor Gill RS232 Speed
 #define GWS_SERIAL_BAUD                   (9600)
 
+/// @brief Sensor STX value index
 #define GWS_STX_INDEX                     (0)
+/// @brief Sensor ETX value index
 #define GWS_ETX_INDEX                     (19)
 
+/// @brief Sensor index value for only speed data
 #define GWS_WITHOUT_DIRECTION_OFFSET      (3)
+/// @brief Sensor index value for void data
 #define GWS_WITHOUT_MEASUREMENT_OFFSET    (9)
 
+// Parameter for RS232 protocol char configuration
 #define GWS_DIRECTION_INDEX               (3)
 #define GWS_DIRECTION_LENGTH              (3)
 #define GWS_SPEED_INDEX                   (7)

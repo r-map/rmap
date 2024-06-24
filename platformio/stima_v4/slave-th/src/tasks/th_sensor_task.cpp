@@ -37,11 +37,11 @@
 
 using namespace cpp_freertos;
 
-/// @brief Construct the TemperatureHumidtySensor Task::TemperatureHumidtySensorTask object
+/// @brief Constructor for the sensor Task
 /// @param taskName name of the task
 /// @param stackSize size of the stack
 /// @param priority priority of the task
-/// @param temperatureHumidtySensorParam parameters for the task
+/// @param temperatureHumidtySensorParam local parameters for the task
 TemperatureHumidtySensorTask::TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam) : Thread(taskName, stackSize, priority), param(temperatureHumidtySensorParam)
 {
   // Start WDT controller and TaskState Flags

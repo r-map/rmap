@@ -51,6 +51,7 @@ using namespace cpp_freertos;
 #define ELABORATE_TASK_WAIT_DELAY_MS      (20)
 #define ELABORATE_TASK_SLEEP_DELAY_MS     (850)
 
+/// @brief struct array for module data
 typedef struct {
   rmapdata_t values[SAMPLES_COUNT_MAX];   //!< samples buffer data values
   uint16_t count;                         //!< samples counter
@@ -58,6 +59,7 @@ typedef struct {
   rmapdata_t *write_ptr;                  //!< writer pointer
 } sample_t;
 
+/// @brief struct array for maintenance
 typedef struct {
   bool values[SAMPLES_COUNT_MAX];         //!< samples buffer maintenance values
   uint16_t count;                         //!< samples counter
@@ -65,19 +67,23 @@ typedef struct {
   bool *write_ptr;                        //!< writer pointer
 } maintenance_t;
 
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborateDataQueue;
-  cpp_freertos::Queue *rainQueue;
-  cpp_freertos::Queue *requestDataQueue;
-  cpp_freertos::Queue *reportDataQueue;
+  configuration_t *configuration;                       //!< system configuration pointer struct
+  system_status_t *system_status;                       //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *configurationLock;     //!< semaphore access to configuration
+  cpp_freertos::BinarySemaphore *systemStatusLock;      //!< semaphore access to system status
+  cpp_freertos::Queue *systemMessageQueue;              //!< Queue for system message
+  cpp_freertos::Queue *elaborateDataQueue;              //!< Queue for elaborate data
+  cpp_freertos::Queue *requestDataQueue;                //!< Queue for request data
+  cpp_freertos::Queue *reportDataQueue;                 //!< Queue for report data
+  cpp_freertos::Queue *rainQueue;                       //!< Queue to RAIN Event
 } ElaborateDataParam_t;
 
+/// @brief ELABORATE DATA TASK cpp_freertos class
 class ElaborateDataTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
   typedef enum {
     ELABORATE_DATA_CREATE,
     ELABORATE_DATA_INIT,

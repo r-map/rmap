@@ -62,30 +62,33 @@
 
 #include "debug_F.h"
 
-typedef enum
-{
-  USBSERIAL_STATE_CREATE,
-  USBSERIAL_STATE_INIT,
-  USBSERIAL_STATE_WAITING_EVENT,
-  USBSERIAL_STATE_ERROR
-} UsbSerialState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *qspiLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  cpp_freertos::BinarySemaphore *rpcLock;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  Flash *flash;
-  EEprom *eeprom;
-  JsonRPC *streamRpc;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *qspiLock;            //!< Semaphore to QSPI Memory flash access
+  cpp_freertos::BinarySemaphore *rtcLock;             //!< Semaphore to RTC Access
+  cpp_freertos::BinarySemaphore *rpcLock;             //!< Semaphore to RPC over USB Serial Access
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  Flash *flash;                                       //!< Object Flash C++ access
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
+  JsonRPC *streamRpc;                                 //!< Object Stream C++ access for RPC
 } UsbSerialParam_t;
 
+/// @brief USB SERIAL TASK cpp_freertos class
 class UsbSerialTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    USBSERIAL_STATE_CREATE,
+    USBSERIAL_STATE_INIT,
+    USBSERIAL_STATE_WAITING_EVENT,
+    USBSERIAL_STATE_ERROR
+  } UsbSerialState_t;
 
 public:
   UsbSerialTask(const char *taskName, uint16_t stackSize, uint8_t priority, UsbSerialParam_t usbSerialParam);

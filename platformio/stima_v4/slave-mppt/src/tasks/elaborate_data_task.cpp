@@ -35,6 +35,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct the Elaborate Data Task::ElaborateDataTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param elaborateDataParam parameters for the task
 ElaborateDataTask::ElaborateDataTask(const char *taskName, uint16_t stackSize, uint8_t priority, ElaborateDataParam_t elaborateDataParam) : Thread(taskName, stackSize, priority), param(elaborateDataParam)
 {
   // Start WDT controller and TaskState Flags
@@ -59,8 +64,6 @@ void ElaborateDataTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void ElaborateDataTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -101,6 +104,7 @@ void ElaborateDataTask::TaskState(uint8_t state_position, uint8_t state_subposit
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void ElaborateDataTask::Run() {
   // Queue for data
   elaborate_data_t edata;
@@ -241,8 +245,8 @@ uint8_t ElaborateDataTask::checkMppt_I_In(rmapdata_t data_in)
 
 /// @brief Create a report from buffered sample
 /// @param is_init Bool optional backup ptr_wr calc
-/// @param report_time_s Report time for the calc
-/// @param observation_time_s Observation time for the calc
+/// @param report_time_s time of report
+/// @param observation_time_s time to make an observation
 void ElaborateDataTask::make_report (bool is_init, uint16_t report_time_s, uint8_t observation_time_s)
 {
   // Generic and shared var

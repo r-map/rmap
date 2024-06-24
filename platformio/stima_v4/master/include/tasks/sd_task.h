@@ -91,47 +91,47 @@ const int _ytab[2][12] =
   {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 };
 
-#define errorExit(msg) errorHalt(F(msg))
-#define initError(msg) initErrorHalt(F(msg))
-
-typedef enum
-{
-  SD_STATE_CREATE,
-  SD_STATE_INIT,
-  SD_STATE_INIT_SD,
-  SD_STATE_TRUNCATE_DATA,
-  SD_STATE_CHECK_STRUCTURE,
-  SD_STATE_CHECK_DATA_PTR,
-  SD_STATE_CHECK_FIRMWARE,
-  SD_STATE_CLEAN_FIRMWARE,
-  SD_STATE_WAITING_EVENT,
-  SD_UPLOAD_FIRMWARE_TO_FLASH,
-  SD_STATE_ERROR
-} SdState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  bootloader_t *boot_request;
-  cpp_freertos::BinarySemaphore *qspiLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataRmapGetRequestQueue;
-  cpp_freertos::Queue *dataRmapGetResponseQueue;
-  cpp_freertos::Queue *dataRmapPutQueue;
-  cpp_freertos::Queue *dataRmapPutBackupQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *dataFilePutRequestQueue;
-  cpp_freertos::Queue *dataFilePutResponseQueue;
-  cpp_freertos::Queue *dataFileGetRequestQueue;
-  cpp_freertos::Queue *dataFileGetResponseQueue;
-  Flash *flash;
-  EEprom *eeprom;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  bootloader_t *boot_request;                         //!< Boot struct pointer
+  cpp_freertos::BinarySemaphore *qspiLock;            //!< Semaphore to QSPI Memory flash access
+  cpp_freertos::BinarySemaphore *rtcLock;             //!< Semaphore to RTC Access
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataRmapGetRequestQueue;       //!< Queue for access data RMAP Set Request
+  cpp_freertos::Queue *dataRmapGetResponseQueue;      //!< Queue for access data RMAP Get Response
+  cpp_freertos::Queue *dataRmapPutQueue;              //!< Queue for access data RMAP access Put Get Queue
+  cpp_freertos::Queue *dataRmapPutBackupQueue;        //!< Queue for access data RMAP Put backup data
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *dataFilePutRequestQueue;       //!< Queue for Data Put File (firmware) Set request
+  cpp_freertos::Queue *dataFilePutResponseQueue;      //!< Queue for Data Put File (firmware) Get response
+  cpp_freertos::Queue *dataFileGetRequestQueue;       //!< Queue for Data Get File (firmware) Set request
+  cpp_freertos::Queue *dataFileGetResponseQueue;      //!< Queue for Data Get File (firmware) Get response
+  Flash *flash;                                       //!< Object Flash C++ access
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
 } SdParam_t;
 
+/// @brief SD TASK cpp_freertos class
 class SdTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    SD_STATE_CREATE,
+    SD_STATE_INIT,
+    SD_STATE_INIT_SD,
+    SD_STATE_TRUNCATE_DATA,
+    SD_STATE_CHECK_STRUCTURE,
+    SD_STATE_CHECK_DATA_PTR,
+    SD_STATE_CHECK_FIRMWARE,
+    SD_STATE_CLEAN_FIRMWARE,
+    SD_STATE_WAITING_EVENT,
+    SD_UPLOAD_FIRMWARE_TO_FLASH,
+    SD_STATE_ERROR
+  } SdState_t;
 
 public:
   SdTask(const char *taskName, uint16_t stackSize, uint8_t priority, SdParam_t sdParam);

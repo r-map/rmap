@@ -36,6 +36,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Constructor for the sensor Task
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param mpptSensorParam local parameters for the task
 MpptSensorTask::MpptSensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, MpptSensorParam_t mpptSensorParam) : Thread(taskName, stackSize, priority), param(mpptSensorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -60,8 +65,6 @@ void MpptSensorTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void MpptSensorTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -102,6 +105,7 @@ void MpptSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void MpptSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;

@@ -37,6 +37,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Constructor for the sensor Task
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param rainSensorParam local parameters for the task
 RainSensorTask::RainSensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, RainSensorParam_t rainSensorParam) : Thread(taskName, stackSize, priority), param(rainSensorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -74,8 +79,6 @@ void RainSensorTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void RainSensorTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -116,6 +119,7 @@ void RainSensorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void RainSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;

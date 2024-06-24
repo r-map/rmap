@@ -170,6 +170,11 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_INIT:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
       state = ACCELEROMETER_STATE_CHECK_HARDWARE;
+      // Signal reset error to system state
+      param.systemStatusLock->Take();
+      param.system_status->events.is_accelerometer_error = true;
+      param.system_status->events.is_bubble_level_error = false;
+      param.systemStatusLock->Give();
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
       is_module_ready = false;
@@ -196,13 +201,34 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_SETUP_MODULE:
       setupModule();
       is_module_ready = true;
+      // System inform Accelerometer ready hardware OK
+      param.systemStatusLock->Take();
+      param.system_status->events.is_accelerometer_error = false;
+      param.systemStatusLock->Give();
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SETUP_MODULE -> ACCELEROMETER_STATE_CHECK_OPERATION\r\n"));
       state = ACCELEROMETER_STATE_CHECK_OPERATION;
       break;
 
     case ACCELEROMETER_STATE_CHECK_OPERATION:
       if(readModule()) {
-        TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
+        // Checking bubble error limit (with Mirror Error "Z" become 0.001 -> 0.999 X,Y 0.001 -> -0.001)
+        if(((abs(value_x) > BUBBLE_ANGLE_ERROR) && (abs(value_x) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_y) > BUBBLE_ANGLE_ERROR) && (abs(value_y) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_z) > BUBBLE_ANGLE_ERROR) && (abs(value_z) < BUBBLE_ANGLE_MIRROR)))
+        {
+          if(!param.system_status->events.is_bubble_level_error) {
+            param.systemStatusLock->Take();
+            param.system_status->events.is_bubble_level_error = true;
+            param.systemStatusLock->Give();
+          }
+        } else {
+          if(param.system_status->events.is_bubble_level_error) {
+            param.systemStatusLock->Take();
+            param.system_status->events.is_bubble_level_error = false;
+            param.systemStatusLock->Give();
+          }
+        }
+        TRACE_INFO_F(F("X[ 0.%03d ]  |  Y[ 0.%03d ]  |  Z[ 0.%03d ]\r\n"), (int)(abs(value_x)*1000), (int)(abs(value_y)*1000), (int)(abs(value_z)*1000),  OK_STRING);
         if(start_calibration) {
           TRACE_INFO_F(F("ACCELEROMETER Start calibration\r\n"));
           calibrate(false, true);

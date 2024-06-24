@@ -44,10 +44,14 @@
 //                 E2PROM STIMAV4 STM32 ARDUINO REGISTER CLASS ACCESS
 // ***************************************************************************************
 
-// Contructor
+/// @brief Constructor Class
 EERegister::EERegister()
 {
 }
+/// @brief Construct a new EERegister::EERegister object 
+/// @param wire I2C class
+/// @param wireLock I2C semaphore
+/// @param i2c_address I2C address
 EERegister::EERegister(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 {
     // Memory controller for ClassRegister
@@ -85,7 +89,6 @@ void EERegister::_memory_read_byte(uint16_t address, uint8_t *data) {
 }
 
 /// @brief Inizializza l'area memory (indice) dedicata a REGISTER
-/// @param  None
 void EERegister::_eeprom_register_factory(void) {
     uint8_t register_index[MEM_UAVCAN_MAX_REG];
     // Scrivo in un unica tornata
@@ -105,7 +108,7 @@ void EERegister::_eeprom_register_clear(uint8_t reg_numb) {
 ///        (fast=senza controlli validità) la procedura chiamante si occupa dei limiti
 /// @param reg_numb (IN) Numero di regsitro da leggere
 /// @param reg_name (OUT) Nome del resistro UAVCAN/CYPAL
-/// @param data (OUT) Valore del registro
+/// @param reg_value (OUT) Valore del registro
 /// @return lunghezza del registro
 size_t EERegister::_eeprom_register_get_fast(uint8_t reg_numb, uint8_t *reg_name, uint8_t *reg_value) {
     uint8_t read_block[MEM_UAVCAN_LEN_REG];
@@ -138,7 +141,6 @@ size_t EERegister::_eeprom_register_get_len_intest_fast(uint8_t reg_numb) {
 /// @param reg_numb (IN) Numero di regsitro da leggere
 /// @param reg_name (OUT) Nome del resistro UAVCAN/CYPAL
 /// @param name_len (IN) Lunghezza del messaggio di intestazione (preventivamente letto)
-/// @return None
 void EERegister::_eeprom_register_get_intest_fast(uint8_t reg_numb, uint8_t *reg_name, uint8_t name_len) {
     // Registro eeprom valido, ritorno i campi name e value
     _memory_read_block(MEM_UAVCAN_GET_ADDR_NAME(reg_numb), reg_name, name_len);
@@ -238,6 +240,7 @@ uint8_t EERegister::_eeprom_register_get_index_from_name(uint8_t *reg_name) {
 /// @param reg_numb Numero di regsitro da impostare
 /// @param reg_name Nome del resistro UAVCAN/CYPAL
 /// @param data Valore del registro
+/// @param len_data Dimensione valore del registro
 void EERegister::_eeprom_register_set(uint8_t reg_numb, uint8_t *reg_name, uint8_t *data, size_t len_data) {
     uint8_t reg_valid;
     uint8_t name_len = strlen((char*)reg_name);
@@ -260,8 +263,7 @@ void EERegister::_eeprom_register_set(uint8_t reg_numb, uint8_t *reg_name, uint8
 }
 
 /// @brief Ritorna il prossimo indice (se esiste) valido nella sezione memoria Cypal dedicata
-/// @param [IN/OUT] current_register indirizzo di partenza nel campo di validità [MEM_UAVCAN_MAX_REG]
-/// @return None
+/// @param current_register indirizzo di partenza nel campo di validità [MEM_UAVCAN_MAX_REG] [IN/OUT] 
 void EERegister::_eeprom_register_get_next_id(uint8_t *current_register) {
     uint8_t register_index[MEM_UAVCAN_MAX_REG];
     // Controllo se richiesto avvio dall'inizio della coda... get_next(MAX)...
@@ -286,6 +288,7 @@ void EERegister::_eeprom_register_get_next_id(uint8_t *current_register) {
 /// @brief Aggiunge un registro alla configurazione CYPAL/STIMAV4
 /// @param reg_name Nome del resistro UAVCAN/CYPAL
 /// @param data Valore del registro
+/// @param data_len Dimensione valore del registro
 /// @return indice dell'elemento inserito nello stazio EEprom Cypal Dedicato [FAIL = MEM_UAVCAN_REG_UNDEF]
 uint8_t EERegister::_eeprom_register_add(uint8_t *reg_name, uint8_t *data, size_t data_len) {
     uint8_t register_index[MEM_UAVCAN_MAX_REG];
@@ -301,7 +304,6 @@ uint8_t EERegister::_eeprom_register_add(uint8_t *reg_name, uint8_t *data, size_
 }
 
 /// @brief Check if exist or create space register with init default value
-/// @param register_init (true, perform an init to default value)
 void EERegister::setup(void)
 {
     // Init AREA E2PROM
@@ -435,7 +437,6 @@ uavcan_register_Name_1_0 EERegister::getNameByIndex(const uint16_t index) {
 }
 
 /// @brief Set factoryReset Register UAVCAN
-/// @param  None
 void EERegister::doFactoryReset(void) {
     setup();
 }

@@ -54,33 +54,36 @@
 
 using namespace cpp_freertos;
 
-typedef enum
-{
-  MODEM_STATE_CREATE,
-  MODEM_STATE_INIT,
-  MODEM_STATE_WAIT_NET_EVENT,
-  MODEM_STATE_SWITCH_ON,
-  MODEM_STATE_SETUP,
-  MODEM_STATE_CONNECT,
-  MODEM_STATE_CONNECTED,
-  MODEM_STATE_DISCONNECT,
-  MODEM_STATE_SWITCH_OFF,
-  MODEM_STATE_END
-} ModemState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct
 {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *connectionRequestQueue;
-  cpp_freertos::Queue *connectionResponseQueue;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *connectionRequestQueue;        //!< Queue for connection Set request
+  cpp_freertos::Queue *connectionResponseQueue;       //!< Queue for connection Get response
 } ModemParam_t;
 
+/// @brief MODEM TASK cpp_freertos class
 class ModemTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    MODEM_STATE_CREATE,
+    MODEM_STATE_INIT,
+    MODEM_STATE_WAIT_NET_EVENT,
+    MODEM_STATE_SWITCH_ON,
+    MODEM_STATE_SETUP,
+    MODEM_STATE_CONNECT,
+    MODEM_STATE_CONNECTED,
+    MODEM_STATE_DISCONNECT,
+    MODEM_STATE_SWITCH_OFF,
+    MODEM_STATE_END
+  } ModemState_t;
 
 public:
   ModemTask(const char *taskName, uint16_t stackSize, uint8_t priority, ModemParam_t modemParam);

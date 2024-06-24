@@ -61,49 +61,53 @@
 
 #include "debug_F.h"
 
-typedef enum
-{
-  SUPERVISOR_STATE_CREATE,
-  SUPERVISOR_STATE_INIT,
-  SUPERVISOR_STATE_LOAD_CONFIGURATION,
-  SUPERVISOR_STATE_WAITING_EVENT,
-  SUPERVISOR_STATE_CONNECTION_OPERATION,
-  SUPERVISOR_STATE_SAVE_CONFIGURATION,
-  SUPERVISOR_STATE_REQUEST_CONNECTION,
-  SUPERVISOR_STATE_CHECK_CONNECTION,
-  SUPERVISOR_STATE_DO_NTP,
-  SUPERVISOR_STATE_DO_HTTP,
-  SUPERVISOR_STATE_DO_MQTT,
-  SUPERVISOR_STATE_REQUEST_DISCONNECTION,
-  SUPERVISOR_STATE_CHECK_DISCONNECTION,
-  SUPERVISOR_STATE_END
-} SupervisorState_t;
-
-typedef enum
-{
-  CONNECTION_INIT,
-  CONNECTION_CHECK,
-  CONNECTION_CHECK_NTP,
-  CONNECTION_CHECK_HTTP,
-  CONNECTION_CHECK_MQTT,
-  CONNECTION_END
-} SupervisorConnection_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *registerAccessLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *connectionRequestQueue;
-  cpp_freertos::Queue *connectionResponseQueue;
-  EEprom *eeprom;
-  EERegister *clRegister;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *registerAccessLock;  //!< Semaphore to register Cyphal access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *connectionRequestQueue;        //!< Queue for connection Set request
+  cpp_freertos::Queue *connectionResponseQueue;       //!< Queue for connection Get response
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
+  EERegister *clRegister;                             //!< Object Register C++ access
 } SupervisorParam_t;
 
+/// @brief SUPERVISOR TASK cpp_freertos class
 class SupervisorTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    SUPERVISOR_STATE_CREATE,
+    SUPERVISOR_STATE_INIT,
+    SUPERVISOR_STATE_LOAD_CONFIGURATION,
+    SUPERVISOR_STATE_WAITING_EVENT,
+    SUPERVISOR_STATE_CONNECTION_OPERATION,
+    SUPERVISOR_STATE_SAVE_CONFIGURATION,
+    SUPERVISOR_STATE_REQUEST_CONNECTION,
+    SUPERVISOR_STATE_CHECK_CONNECTION,
+    SUPERVISOR_STATE_DO_NTP,
+    SUPERVISOR_STATE_DO_HTTP,
+    SUPERVISOR_STATE_DO_MQTT,
+    SUPERVISOR_STATE_REQUEST_DISCONNECTION,
+    SUPERVISOR_STATE_CHECK_DISCONNECTION,
+    SUPERVISOR_STATE_END
+  } SupervisorState_t;
+
+  /// @brief Enum for state switch of connection method
+  typedef enum
+  {
+    CONNECTION_INIT,
+    CONNECTION_CHECK,
+    CONNECTION_CHECK_NTP,
+    CONNECTION_CHECK_HTTP,
+    CONNECTION_CHECK_MQTT,
+    CONNECTION_END
+  } SupervisorConnection_t;
 
 public:
   SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam);

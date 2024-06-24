@@ -29,10 +29,15 @@
 
 #include "drivers/eeprom.h"
 
+/// @brief Constructor Class
 EEprom::EEprom()
 {
 }
 
+/// @brief Construct a new EEprom::EEprom object 
+/// @param wire I2C class
+/// @param wireLock I2C semaphore
+/// @param i2c_address I2C address
 EEprom::EEprom(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 {
 	_wire = wire;
@@ -40,12 +45,10 @@ EEprom::EEprom(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 	_i2c_address = i2c_address;
 }
 
-/**
- * @brief 		Write a number of data byte into EEPROM
- * @param[in]	address, EEPROM data address
- * @param[in]	value, data value to write
- * @return		true if success, otherwise false returned.
- */
+/// @brief 		Write a number of data byte into EEPROM
+/// @param[in]	address EEPROM data address
+/// @param[in]	value data value to write
+/// @return		true if success, otherwise false returned.
 bool EEprom::Write(uint16_t address, uint8_t value)
 {
 	bool status = true;
@@ -74,13 +77,12 @@ bool EEprom::Write(uint16_t address, uint8_t value)
 	}
 	return status;
 } 
-/**
- * @brief 		Write a number of data byte into EEPROM
- * @param[in]	address, EEPROM data address
- * @param[in]	buffer, source data buffer location
- * @param[in]	length, buffer length
- * @return		true if success, otherwise false returned.
- */
+
+/// @brief 		Write a number of data byte into EEPROM
+/// @param[in]	address EEPROM data address
+/// @param[in]	buffer source data buffer location
+/// @param[in]	length buffer length
+/// @return		true if success, otherwise false returned.
 bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 {
 	bool status = true;	// status ok
@@ -124,12 +126,10 @@ bool EEprom::Write(uint16_t address, uint8_t *buffer, uint16_t length)
 	return status;
 }
 
-/**
- * @brief 		Read a single byte from EEPROM
- * @param[in]	address, EEPROM data address
- * @param[in]	value, destination data buffer location
- * @return		true if success, otherwise false returned.
- */
+/// @brief 		Read a single byte from EEPROM
+/// @param[in]	address EEPROM data address
+/// @param[in]	value destination data buffer location
+/// @return		true if success, otherwise false returned.
 bool EEprom::Read(uint16_t address, uint8_t *value)
 {
 	bool status = true;
@@ -159,13 +159,11 @@ bool EEprom::Read(uint16_t address, uint8_t *value)
 	return status;
 }
 
-/**
- * @brief 		Read a number of data byte from EEPROM
- * @param[in]	address, EEPROM data address
- * @param[in]	read_buffer, destination data buffer location
- * @param[in]	length, buffer length
- * @return		true if success, otherwise false returned.
- */
+/// @brief 		Read a number of data byte from EEPROM
+/// @param[in]	address EEPROM data address
+/// @param[in]	buffer destination data buffer location
+/// @param[in]	length buffer length
+/// @return		true if success, otherwise false returned.
 bool EEprom::Read(uint16_t address, uint8_t *buffer, uint16_t length)
 {
 	bool status = true;

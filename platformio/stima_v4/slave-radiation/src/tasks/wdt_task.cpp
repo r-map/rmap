@@ -34,11 +34,17 @@
 
 #if (ENABLE_WDT)
 
+/// @brief Construct the Wdt Task::WdtTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param WdtParam parameters for the task
 WdtTask::WdtTask(const char *taskName, uint16_t stackSize, uint8_t priority, WdtParam_t wdtParam) : Thread(taskName, stackSize, priority), param(wdtParam)
 {
   Start();
 };
 
+/// @brief RUN Task
 void WdtTask::Run() {
   bool firsCheck = true;
   uint16_t stackUsage;

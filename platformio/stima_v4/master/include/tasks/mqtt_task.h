@@ -150,40 +150,43 @@ const uint16_t MqttCipherSuites[] =
 
 using namespace cpp_freertos;
 
-typedef enum
-{
-  MQTT_STATE_CREATE,
-  MQTT_STATE_INIT,
-  MQTT_STATE_WAIT_NET_EVENT,
-  MQTT_STATE_CONNECT,
-  MQTT_STATE_PUBLISH,
-  MQTT_STATE_PUBLISH_INFO,
-  MQTT_STATE_DISCONNECT_LOST_DATA,
-  MQTT_STATE_DISCONNECT,
-  MQTT_STATE_END
-} MqttState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct
 {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  bootloader_t *boot_request;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;  
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataRmapGetRequestQueue;
-  cpp_freertos::Queue *dataRmapGetResponseQueue;
-  cpp_freertos::Queue *dataRmapPutQueue;
-  cpp_freertos::Queue *dataRmapPutBackupQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *connectionRequestQueue;
-  cpp_freertos::Queue *connectionResponseQueue;
-  cpp_freertos::BinarySemaphore *rpcLock;
-  YarrowContext *yarrowContext;
-  JsonRPC *streamRpc;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  bootloader_t *boot_request;                         //!< Boot struct pointer
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataRmapGetRequestQueue;       //!< Queue for access data RMAP Set Request
+  cpp_freertos::Queue *dataRmapGetResponseQueue;      //!< Queue for access data RMAP Get Response
+  cpp_freertos::Queue *dataRmapPutQueue;              //!< Queue for access data RMAP access Put Get Queue
+  cpp_freertos::Queue *dataRmapPutBackupQueue;        //!< Queue for access data RMAP Put backup data
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *connectionRequestQueue;        //!< Queue for connection Set request
+  cpp_freertos::Queue *connectionResponseQueue;       //!< Queue for connection Get response
+  cpp_freertos::BinarySemaphore *rpcLock;             //!< Semaphore to RPC Access over MQTT
+  YarrowContext *yarrowContext;                       //!< yarrowContext access to CycloneTCP Library
+  JsonRPC *streamRpc;                                 //!< Object Stream C++ access for RPC
 } MqttParam_t;
 
+/// @brief MQTT TASK cpp_freertos class
 class MqttTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    MQTT_STATE_CREATE,
+    MQTT_STATE_INIT,
+    MQTT_STATE_WAIT_NET_EVENT,
+    MQTT_STATE_CONNECT,
+    MQTT_STATE_PUBLISH,
+    MQTT_STATE_PUBLISH_INFO,
+    MQTT_STATE_DISCONNECT_LOST_DATA,
+    MQTT_STATE_DISCONNECT,
+    MQTT_STATE_END
+  } MqttState_t;
 
 public:
   MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam);

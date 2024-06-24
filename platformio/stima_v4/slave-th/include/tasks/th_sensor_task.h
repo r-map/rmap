@@ -61,18 +61,22 @@
 
 using namespace cpp_freertos;
 
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  TwoWire *wire;
-  cpp_freertos::BinarySemaphore *wireLock;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *elaborateDataQueue;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  TwoWire *wire;                                      //!< Wire access I2C for sensor operation
+  cpp_freertos::BinarySemaphore *wireLock;            //!< Semaphore to sensor I2C access
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *elaborateDataQueue;            //!< Queue for elaborate data
 } TemperatureHumidtySensorParam_t;
 
+/// @brief SENSOR TASK cpp_freertos class
 class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
   typedef enum
   {
     SENSOR_STATE_CREATE,

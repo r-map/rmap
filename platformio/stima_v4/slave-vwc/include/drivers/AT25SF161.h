@@ -37,30 +37,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup Components
-  * @{
-  */
-
-/** @addtogroup AT25SF161
-  * @{
-  */
-
-/** @defgroup AT25SF161_Exported_Types
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @defgroup AT25SF161_Exported_Constants
-  * @{
-  */
-
 /**
   * @brief  AT25SF161 Configuration
   */
@@ -154,4 +130,3 @@
 #endif
 
 #endif /* __AT25SF161_H */
-

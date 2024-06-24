@@ -33,7 +33,11 @@
 #include "tasks/accelerometer_task.h"
 
 #if (ENABLE_ACCELEROMETER)
-
+/// @brief Construct the Accelerometer Task::AccelerometerTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param accelerometerParam parameters for the task
 AccelerometerTask::AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t accelerometerParam) : Thread(taskName, stackSize, priority), param(accelerometerParam)
 {
   // Start WDT controller and TaskState Flags
@@ -64,8 +68,6 @@ void AccelerometerTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void AccelerometerTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -106,6 +108,7 @@ void AccelerometerTask::TaskState(uint8_t state_position, uint8_t state_subposit
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void AccelerometerTask::Run()
 {
   // Local parameter for command and state accelerometer
@@ -167,6 +170,11 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_INIT:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
       state = ACCELEROMETER_STATE_CHECK_HARDWARE;
+      // Signal reset error to system state
+      param.systemStatusLock->Take();
+      param.system_status->events.is_accelerometer_error = true;
+      param.system_status->events.is_bubble_level_error = false;
+      param.systemStatusLock->Give();
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
       is_module_ready = false;
@@ -193,13 +201,34 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_SETUP_MODULE:
       setupModule();
       is_module_ready = true;
+      // System inform Accelerometer ready hardware OK
+      param.systemStatusLock->Take();
+      param.system_status->events.is_accelerometer_error = false;
+      param.systemStatusLock->Give();
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_SETUP_MODULE -> ACCELEROMETER_STATE_CHECK_OPERATION\r\n"));
       state = ACCELEROMETER_STATE_CHECK_OPERATION;
       break;
 
     case ACCELEROMETER_STATE_CHECK_OPERATION:
       if(readModule()) {
-        TRACE_INFO_F(F("X[ 0.%d ]  |  Y[ 0.%d ]  |  Z[ 0.%d ]\r\n"), (int)(value_x*1000), (int)(value_y*1000), (int)(value_z*1000),  OK_STRING);
+        // Checking bubble error limit (with Mirror Error "Z" become 0.001 -> 0.999 X,Y 0.001 -> -0.001)
+        if(((abs(value_x) > BUBBLE_ANGLE_ERROR) && (abs(value_x) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_y) > BUBBLE_ANGLE_ERROR) && (abs(value_y) < BUBBLE_ANGLE_MIRROR)) ||
+           ((abs(value_z) > BUBBLE_ANGLE_ERROR) && (abs(value_z) < BUBBLE_ANGLE_MIRROR)))
+        {
+          if(!param.system_status->events.is_bubble_level_error) {
+            param.systemStatusLock->Take();
+            param.system_status->events.is_bubble_level_error = true;
+            param.systemStatusLock->Give();
+          }
+        } else {
+          if(param.system_status->events.is_bubble_level_error) {
+            param.systemStatusLock->Take();
+            param.system_status->events.is_bubble_level_error = false;
+            param.systemStatusLock->Give();
+          }
+        }
+        TRACE_INFO_F(F("X[ 0.%03d ]  |  Y[ 0.%03d ]  |  Z[ 0.%03d ]\r\n"), (int)(abs(value_x)*1000), (int)(abs(value_y)*1000), (int)(abs(value_z)*1000),  OK_STRING);
         if(start_calibration) {
           TRACE_INFO_F(F("ACCELEROMETER Start calibration\r\n"));
           calibrate(false, true);
@@ -243,7 +272,6 @@ void AccelerometerTask::Run()
 }
 
 /// @brief Load configuration accelleration module
-/// @param None
 void AccelerometerTask::loadConfiguration(void)
 {
   // Verify config valid param
@@ -309,7 +337,6 @@ void AccelerometerTask::loadConfiguration(void)
 }
 
 /// @brief Print configuration Accelerometer
-/// @param None
 void AccelerometerTask::printConfiguration(void)
 {
   TRACE_INFO_F(F("--> accelerometer config: \r\n"));
@@ -368,8 +395,6 @@ void AccelerometerTask::saveConfiguration(bool is_default)
 }
 
 /// @brief Calibrate accelereometer position X-Y-Z to actual value (set offset from 0)
-/// @param configuration configuration accelerometer
-/// @param registerLock Semaphore register access
 /// @param is_default require default value data
 /// @param save_register request to save calibration in register
 void AccelerometerTask::calibrate(bool is_default, bool save_register)
@@ -425,7 +450,6 @@ bool AccelerometerTask::checkModule(void)
 }
 
 /// @brief Setup hardware configuration
-/// @param configuration Configuration hardware param to Accelerometer
 void AccelerometerTask::setupModule(void)
 {
   TRACE_INFO_F(F("Setup hardware module... [ %s ]\r\n"), OK_STRING);
@@ -441,7 +465,6 @@ void AccelerometerTask::setupModule(void)
 }
 
 /// @brief Read data from module accelerometer
-/// @param configuration Param configuratione
 /// @return true if data is ready from module
 bool AccelerometerTask::readModule(void)
 {

@@ -1,25 +1,32 @@
-/**@file supervisor_task.h */
-
-/*********************************************************************
-<h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
-authors:
-Marco Baldinetti <marco.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+  ******************************************************************************
+  * @file    supervisor_task.h
+  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+  * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @brief   Supervisor module header file
+    ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
+  * <h2><center>All rights reserved.</center></h2>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version 2
+  * of the License, or (at your option) any later version.
+  * 
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  * 
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  * <http://www.gnu.org/licenses/>.
+  * 
+  ******************************************************************************
+*/
 
 #ifndef _SUPERVISOR_TASK_H
 #define _SUPERVISOR_TASK_H
@@ -52,25 +59,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "debug_F.h"
 
-typedef enum
-{
-  SUPERVISOR_STATE_CREATE,
-  SUPERVISOR_STATE_INIT,
-  SUPERVISOR_STATE_CHECK_OPERATION,
-  SUPERVISOR_STATE_END
-} SupervisorState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *registerAccessLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  EERegister *clRegister;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *registerAccessLock;  //!< Semaphore to register Cyphal access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  EERegister *clRegister;                             //!< Object Register C++ access
 } SupervisorParam_t;
 
+/// @brief SUPERVISOR TASK cpp_freertos class
 class SupervisorTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    SUPERVISOR_STATE_CREATE,
+    SUPERVISOR_STATE_INIT,
+    SUPERVISOR_STATE_CHECK_OPERATION,
+    SUPERVISOR_STATE_END
+  } SupervisorState_t;
 
 public:
   SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t SupervisorParam);

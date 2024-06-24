@@ -293,10 +293,3 @@ uint16_t Mppt::get_mask(uint16_t registerinfo)
   }
   return mask;
 }
-
-/**
-  * @}
-  *
-  */
-
-

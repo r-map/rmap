@@ -125,38 +125,41 @@ using namespace cpp_freertos;
 #define REGISTER_08_SEND    15u
 #define REGISTER_COMPLETE   17u
 
-// Mode Power HW CanBus Controller
-enum CAN_ModePower
-{
-  CAN_INIT,
-  CAN_NORMAL,
-  CAN_LISTEN_ONLY,
-  CAN_SLEEP
+/// @brief Mode Power HW CanBus Controller state
+enum CAN_ModePower {
+    CAN_INIT,             //!< CAN is in init or configuration mode
+    CAN_NORMAL,           //!< CAN is in normal state (TX and RX Ready)
+    CAN_LISTEN_ONLY,      //!< CAN in only listen mode (turn off TX board)
+    CAN_SLEEP             //!< Power CAN is OFF
 };
 
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  bootloader_t *boot_request;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *registerAccessLock;  
-  cpp_freertos::BinarySemaphore *canLock;
-  cpp_freertos::BinarySemaphore *qspiLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  cpp_freertos::BinarySemaphore *rpcLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *dataRmapPutQueue;
-  cpp_freertos::Queue *dataFileGetRequestQueue;
-  cpp_freertos::Queue *dataFileGetResponseQueue;
-  Flash *flash;
-  EEprom *eeprom;
-  EERegister *clRegister;
-  JsonRPC *streamRpc;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  bootloader_t *boot_request;                         //!< Boot struct pointer
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *registerAccessLock;  //!< Semaphore to register Cyphal access
+  cpp_freertos::BinarySemaphore *canLock;             //!< Semaphore to CAN Bus access
+  cpp_freertos::BinarySemaphore *qspiLock;            //!< Semaphore to QSPI Memory flash access
+  cpp_freertos::BinarySemaphore *rtcLock;             //!< Semaphore to RTC Access
+  cpp_freertos::BinarySemaphore *rpcLock;             //!< Semaphore to RPC over Cyphal Access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *dataRmapPutQueue;              //!< Queue for RMAP put data
+  cpp_freertos::Queue *dataFileGetRequestQueue;       //!< Queue for Data Get File (firmware) Set request
+  cpp_freertos::Queue *dataFileGetResponseQueue;      //!< Queue for Data Get File (firmware) Get response
+  Flash *flash;                                       //!< Object Flash C++ access
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
+  EERegister *clRegister;                             //!< Object Register C++ access
+  JsonRPC *streamRpc;                                 //!< Object Stream C++ access for RPC
 } CanParam_t;
 
+/// @brief CAN TASK cpp_freertos class
 class CanTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
   typedef enum {
     CAN_STATE_CREATE,
     CAN_STATE_INIT,

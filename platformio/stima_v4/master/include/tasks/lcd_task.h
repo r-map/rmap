@@ -91,14 +91,6 @@
 #define LCD_TASK_PRINT_DELAY_MS (5000)
 #define LCD_TASK_WAIT_DELAY_MS  (10)
 
-/// @brief LCD State of task
-typedef enum {
-  LCD_STATE_CREATE,          ///< creating a task
-  LCD_STATE_INIT,            ///< initializing a task
-  LCD_STATE_CHECK_OPERATION, ///< checking operation
-  LCD_STATE_STANDBY          ///< standby task
-} LCDState_t;
-
 /// @brief LCD Master commands names
 typedef enum {
   MASTER_COMMAND_RESET_FLAGS,           ///< reset flags
@@ -155,23 +147,32 @@ typedef union {
 
 } encoder_t;
 
-/// @brief List of LCD parameters of task
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  bootloader_t *boot_request;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  cpp_freertos::BinarySemaphore *wireLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::Queue *displayEventWakeUp;
-  EEprom *eeprom;
-  TwoWire *wire;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  bootloader_t *boot_request;                         //!< Boot struct pointer
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *rtcLock;             //!< Semaphore to RTC Access
+  cpp_freertos::BinarySemaphore *wireLock;            //!< Semaphore to I2C Access display dirver
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::Queue *displayEventWakeUp;            //!< Queue for display encoder Events
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
+  TwoWire *wire;                                      //!< Wire I2C for Access display dirver
 } LCDParam_t;
 
+/// @brief LCD TASK cpp_freertos class
 class LCDTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum {
+    LCD_STATE_CREATE,          ///< creating a task
+    LCD_STATE_INIT,            ///< initializing a task
+    LCD_STATE_CHECK_OPERATION, ///< checking operation
+    LCD_STATE_STANDBY          ///< standby task
+  } LCDState_t;
 
 public:
   LCDTask(const char *taskName, uint16_t stackSize, uint8_t priority, LCDParam_t lcdParam);

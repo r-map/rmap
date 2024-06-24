@@ -52,15 +52,17 @@
 
 using namespace cpp_freertos;
 
+/// @brief struct local elaborate data parameter
 typedef struct {
-  system_status_t *system_status;
-  bootloader_t *boot_request;
-  cpp_freertos::Queue *dataLogPutQueue;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *rtcLock;
-  EEprom *eeprom;
+  system_status_t *system_status;                     //!< system status pointer struct
+  bootloader_t *boot_request;                         //!< Boot struct pointer
+  cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *rtcLock;             //!< Semaphore to RTC Access
+  EEprom *eeprom;                                     //!< Object EEprom C++ access
 } WdtParam_t;
 
+/// @brief WATCH DOG TASK cpp_freertos class
 class WdtTask : public cpp_freertos::Thread {
 
 public:

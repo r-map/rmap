@@ -56,30 +56,36 @@ using namespace cpp_freertos;
 #define ACCELEROMETER_TASK_WAIT_DELAY_MS    (20)
 #define ACCELEROMETER_TASK_SLEEP_DELAY_MS   (850)
 
-typedef enum
-{
-  ACCELEROMETER_STATE_CREATE,
-  ACCELEROMETER_STATE_INIT,
-  ACCELEROMETER_STATE_CHECK_HARDWARE,
-  ACCELEROMETER_STATE_LOAD_CONFIGURATION,
-  ACCELEROMETER_STATE_SETUP_MODULE,
-  ACCELEROMETER_STATE_CHECK_OPERATION,
-  ACCELEROMETER_STATE_WAIT_RESUME,
-  ACCELEROMETER_STATE_HARDWARE_FAIL
-} AccelerometerState_t;
+#define BUBBLE_ANGLE_ERROR                  (0.03)
+#define BUBBLE_ANGLE_MIRROR                 (0.80)
 
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  TwoWire *wire;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *registerAccessLock;
-  cpp_freertos::BinarySemaphore *wireLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  EERegister *clRegister;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  TwoWire *wire;                                      //!< Local Wire access for sensor accelerometer
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *registerAccessLock;  //!< Semaphore to register Cyphal access
+  cpp_freertos::BinarySemaphore *wireLock;            //!< Semaphore to Wire access for sensor accelerometer
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  EERegister *clRegister;                             //!< Object Register C++ access
 } AccelerometerParam_t;
 
+/// @brief ACCELEROMETER TASK cpp_freertos class
 class AccelerometerTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    ACCELEROMETER_STATE_CREATE,
+    ACCELEROMETER_STATE_INIT,
+    ACCELEROMETER_STATE_CHECK_HARDWARE,
+    ACCELEROMETER_STATE_LOAD_CONFIGURATION,
+    ACCELEROMETER_STATE_SETUP_MODULE,
+    ACCELEROMETER_STATE_CHECK_OPERATION,
+    ACCELEROMETER_STATE_WAIT_RESUME,
+    ACCELEROMETER_STATE_HARDWARE_FAIL
+  } AccelerometerState_t;
 
 public:
   AccelerometerTask(const char *taskName, uint16_t stackSize, uint8_t priority, AccelerometerParam_t AccelerometerParam);

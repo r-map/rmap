@@ -28,7 +28,6 @@
   ******************************************************************************
 */
 
-
 #ifndef _SUPERVISOR_TASK_H
 #define _SUPERVISOR_TASK_H
 
@@ -60,26 +59,29 @@
 
 #include "debug_F.h"
 
-typedef enum
-{
-  SUPERVISOR_STATE_CREATE,
-  SUPERVISOR_STATE_INIT,
-  SUPERVISOR_STATE_CHECK_OPERATION,
-  SUPERVISOR_STATE_END
-} SupervisorState_t;
-
+/// @brief struct local elaborate data parameter
 typedef struct {
-  configuration_t *configuration;
-  system_status_t *system_status;
-  cpp_freertos::BinarySemaphore *configurationLock;
-  cpp_freertos::BinarySemaphore *systemStatusLock;
-  cpp_freertos::BinarySemaphore *registerAccessLock;
-  cpp_freertos::Queue *systemMessageQueue;
-  EERegister *clRegister;
-  bool is_initialization_request;
+  configuration_t *configuration;                     //!< system configuration pointer struct
+  system_status_t *system_status;                     //!< system status pointer struct
+  cpp_freertos::BinarySemaphore *configurationLock;   //!< Semaphore to configuration access
+  cpp_freertos::BinarySemaphore *systemStatusLock;    //!< Semaphore to system status access
+  cpp_freertos::BinarySemaphore *registerAccessLock;  //!< Semaphore to register Cyphal access
+  cpp_freertos::Queue *systemMessageQueue;            //!< Queue for system message
+  EERegister *clRegister;                             //!< Object Register C++ access
+  bool is_initialization_request;                     //!< External require initilizaztion register E2
 } SupervisorParam_t;
 
+/// @brief SUPERVISOR TASK cpp_freertos class
 class SupervisorTask : public cpp_freertos::Thread {
+
+  /// @brief Enum for state switch of running method
+  typedef enum
+  {
+    SUPERVISOR_STATE_CREATE,
+    SUPERVISOR_STATE_INIT,
+    SUPERVISOR_STATE_CHECK_OPERATION,
+    SUPERVISOR_STATE_END
+  } SupervisorState_t;
 
 public:
   SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t SupervisorParam);

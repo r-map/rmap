@@ -29,10 +29,15 @@
 
 #include "drivers/Accelerometer.h"
 
+/// @brief Constructor Class
 Accelerometer::Accelerometer()
 {
 }
 
+/// @brief Construct a new Accelerometer::Accelerometer object 
+/// @param wire I2C class
+/// @param wireLock I2C semaphore
+/// @param i2c_address I2C address
 Accelerometer::Accelerometer(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i2c_address)
 {
 	_wire = wire;
@@ -46,15 +51,11 @@ Accelerometer::Accelerometer(TwoWire *wire, BinarySemaphore *wireLock, uint8_t i
   }
 }
 
-/**
-  * @brief  Read generic device register
-  *
-  * @param  reg   register to read
-  * @param  data  pointer to buffer that store the data read(ptr)
-  * @param  len   number of consecutive register to read
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Read generic device register
+/// @param  reg   register to read
+/// @param  data  pointer to buffer that store the data read(ptr)
+/// @param  len   number of consecutive register to read
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
@@ -76,15 +77,11 @@ int32_t Accelerometer::iis328dq_read_reg(uint8_t reg, uint8_t *data, uint16_t le
     return 1;
 }
 
-/**
-  * @brief  Write generic device register
-  *
-  * @param  reg   register to write
-  * @param  data  pointer to data to write in register reg(ptr)
-  * @param  len   number of consecutive register to write
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Write generic device register
+/// @param  reg   register to write
+/// @param  data  pointer to data to write in register reg(ptr)
+/// @param  len   number of consecutive register to write
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t len)
 {
   // Try lock Semaphore
@@ -104,10 +101,14 @@ int32_t Accelerometer::iis328dq_write_reg(uint8_t reg, uint8_t *data, uint16_t l
 }
 
 /**
-  * @defgroup    IIS328DQ_Sensitivity
-  * @brief       These functions convert raw-data into engineering units.
+ * @defgroup Accelerometer Accelerometer driver functions 
+ * @{
+ */
+
+/**
+  * @defgroup IIS328DQ_Sensitivity IIS328DQ_Sensitivity 
+  * @brief These functions convert raw-data into engineering units
   * @{
-  *
   */
 
 /// @brief Push data row for scroll mean sensibility data
@@ -150,7 +151,7 @@ float_t Accelerometer::iis328dq_from_fs2_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 2G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs2_to_mg(coordinate request)
 {
@@ -166,7 +167,7 @@ float_t Accelerometer::iis328dq_from_fs4_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 4G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs4_to_mg(coordinate request)
 {
@@ -182,7 +183,7 @@ float_t Accelerometer::iis328dq_from_fs8_to_mg(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled on 8G to mg
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to mg
 float_t Accelerometer::iis328dq_from_fs8_to_mg(coordinate request)
 {
@@ -198,7 +199,7 @@ float_t Accelerometer::iis328dq_from_fsx_to_inc(int16_t lsb)
 }
 
 /// @brief Read from sroll mean accelerometer scaled 0-100% to inclinometer value
-/// @param lsb int16 readed from device
+/// @param request coordinate to get
 /// @return float conversion to inclinometer value
 float_t Accelerometer::iis328dq_from_fsx_to_inc(coordinate request)
 {
@@ -207,24 +208,17 @@ float_t Accelerometer::iis328dq_from_fsx_to_inc(coordinate request)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Data_Generation
-  * @brief       This section group all the functions concerning
-  *              data generation
+  * @defgroup IIS328DQ_Data_Generation IIS328DQ_Data_Generation
+  * @brief This section group all the functions concerning data generation
   * @{
-  *
   */
 
-/**
-  * @brief  X axis enable/disable.[set]
-  *
-  * @param  val   change the values of xen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  X axis enable/disable.[set]
+/// @param  val   change the values of xen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_x_data_set(uint8_t val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -243,13 +237,9 @@ int32_t Accelerometer::iis328dq_axis_x_data_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  X axis enable/disable.[get]
-  *
-  * @param  val   change the values of xen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  X axis enable/disable.[get]
+/// @param  val   change the values of xen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_x_data_get(uint8_t *val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -262,13 +252,9 @@ int32_t Accelerometer::iis328dq_axis_x_data_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Y axis enable/disable.[set]
-  *
-  * @param  val   change the values of yen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Y axis enable/disable.[set]
+/// @param  val   change the values of yen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_y_data_set(uint8_t val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -287,13 +273,9 @@ int32_t Accelerometer::iis328dq_axis_y_data_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Y axis enable/disable.[get]
-  *
-  * @param  val   change the values of yen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Y axis enable/disable.[get]
+/// @param  val   change the values of yen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_y_data_get(uint8_t *val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -306,13 +288,9 @@ int32_t Accelerometer::iis328dq_axis_y_data_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Z axis enable/disable.[set]
-  *
-  * @param  val   change the values of zen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Z axis enable/disable.[set]
+/// @param  val   change the values of zen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_z_data_set(uint8_t val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -331,13 +309,9 @@ int32_t Accelerometer::iis328dq_axis_z_data_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Z axis enable/disable.[get]
-  *
-  * @param  val   change the values of zen in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Z axis enable/disable.[get]
+/// @param  val   change the values of zen in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_axis_z_data_get(uint8_t *val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -350,13 +324,9 @@ int32_t Accelerometer::iis328dq_axis_z_data_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Accelerometer data rate selection.[set]
-  *
-  * @param  val   change the values of dr in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Accelerometer data rate selection.[set]
+/// @param  val   change the values of dr in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_data_rate_set(iis328dq_dr_t val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -376,13 +346,9 @@ int32_t Accelerometer::iis328dq_data_rate_set(iis328dq_dr_t val)
   return ret;
 }
 
-/**
-  * @brief  Accelerometer data rate selection.[get]
-  *
-  * @param  val   Get the values of dr in reg CTRL_REG1
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Accelerometer data rate selection.[get]
+/// @param  val   Get the values of dr in reg CTRL_REG1
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_data_rate_get(iis328dq_dr_t *val)
 {
   iis328dq_ctrl_reg1_t ctrl_reg1;
@@ -441,13 +407,9 @@ int32_t Accelerometer::iis328dq_data_rate_get(iis328dq_dr_t *val)
   return ret;
 }
 
-/**
-  * @brief  High pass filter mode selection.[set]
-  *
-  * @param  val   change the values of hpm in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  High pass filter mode selection.[set]
+/// @param  val   change the values of hpm in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_reference_mode_set(iis328dq_hpm_t val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -466,13 +428,9 @@ int32_t Accelerometer::iis328dq_reference_mode_set(iis328dq_hpm_t val)
   return ret;
 }
 
-/**
-  * @brief  High pass filter mode selection.[get]
-  *
-  * @param  val   Get the values of hpm in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  High pass filter mode selection.[get]
+/// @param  val   Get the values of hpm in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_reference_mode_get(iis328dq_hpm_t *val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -499,13 +457,9 @@ int32_t Accelerometer::iis328dq_reference_mode_get(iis328dq_hpm_t *val)
   return ret;
 }
 
-/**
-  * @brief  Accelerometer full-scale selection.[set]
-  *
-  * @param  val   change the values of fs in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Accelerometer full-scale selection.[set]
+/// @param  val   change the values of fs in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_full_scale_set(iis328dq_fs_t val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -524,13 +478,9 @@ int32_t Accelerometer::iis328dq_full_scale_set(iis328dq_fs_t val)
   return ret;
 }
 
-/**
-  * @brief  Accelerometer full-scale selection.[get]
-  *
-  * @param  val   Get the values of fs in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Accelerometer full-scale selection.[get]
+/// @param  val   Get the values of fs in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_full_scale_get(iis328dq_fs_t *val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -561,13 +511,9 @@ int32_t Accelerometer::iis328dq_full_scale_get(iis328dq_fs_t *val)
   return ret;
 }
 
-/**
-  * @brief  Block data update.[set]
-  *
-  * @param  val   change the values of bdu in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Block data update.[set]
+/// @param  val   change the values of bdu in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_block_data_update_set(uint8_t val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -586,13 +532,9 @@ int32_t Accelerometer::iis328dq_block_data_update_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Block data update.[get]
-  *
-  * @param  val   change the values of bdu in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Block data update.[get]
+/// @param  val   change the values of bdu in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_block_data_update_get(uint8_t *val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -605,13 +547,9 @@ int32_t Accelerometer::iis328dq_block_data_update_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  The STATUS_REG register is read by the interface.[get]
-  *
-  * @param  val   registers STATUS_REG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  The STATUS_REG register is read by the interface.[get]
+/// @param  val   registers STATUS_REG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_status_reg_get(iis328dq_status_reg_t *val)
 {
   int32_t ret;
@@ -621,13 +559,9 @@ int32_t Accelerometer::iis328dq_status_reg_get(iis328dq_status_reg_t *val)
   return ret;
 }
 
-/**
-  * @brief  Accelerometer new data available.[get]
-  *
-  * @param  val   change the values of zyxda in reg STATUS_REG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Accelerometer new data available.[get]
+/// @param  val   change the values of zyxda in reg STATUS_REG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_flag_data_ready_get(uint8_t *val)
 {
   iis328dq_status_reg_t status_reg;
@@ -642,24 +576,18 @@ int32_t Accelerometer::iis328dq_flag_data_ready_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Data_Output
-  * @brief       This section groups all the data output functions.
+  * @defgroup IIS328DQ_Data_Output IIS328DQ_Data_Output
+  * @brief This section groups all the data output functions.
   * @{
-  *
   */
 
-/**
-  * @brief  Linear acceleration output register. The value is expressed
-  *         as a 16-bit word in two’s complement.[get]
-  *
-  * @param  buff  buffer that stores data read
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Linear acceleration output register. The value is expressed
+///         as a 16-bit word in two’s complement.[get]
+/// @param  val   data read
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_acceleration_raw_get(int16_t *val)
 {
   uint8_t buff[6];
@@ -678,23 +606,17 @@ int32_t Accelerometer::iis328dq_acceleration_raw_get(int16_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Common
-  * @brief       This section groups common useful functions.
+  * @defgroup IIS328DQ_Common IIS328DQ_Common
+  * @brief This section groups common useful functions.
   * @{
-  *
   */
 
-/**
-  * @brief  Device Who am I.[get]
-  *
-  * @param  buff  buffer that stores data read
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Device Who am I.[get]
+/// @param  buff  buffer that stores data read
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_device_id_get(uint8_t *buff)
 {
   int32_t ret;
@@ -704,13 +626,9 @@ int32_t Accelerometer::iis328dq_device_id_get(uint8_t *buff)
   return ret;
 }
 
-/**
-  * @brief  Reboot memory content. Reload the calibration parameters.[set]
-  *
-  * @param  val   change the values of boot in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Reboot memory content. Reload the calibration parameters.[set]
+/// @param  val   change the values of boot in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_boot_set(uint8_t val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -729,13 +647,9 @@ int32_t Accelerometer::iis328dq_boot_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Reboot memory content. Reload the calibration parameters.[get]
-  *
-  * @param  val   change the values of boot in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Reboot memory content. Reload the calibration parameters.[get]
+/// @param  val   change the values of boot in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_boot_get(uint8_t *val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -748,13 +662,9 @@ int32_t Accelerometer::iis328dq_boot_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Linear acceleration sensor self-test enable.[set]
-  *
-  * @param  val   change the values of st in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Linear acceleration sensor self-test enable.[set]
+/// @param  val   change the values of st in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_self_test_set(iis328dq_st_t val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -773,13 +683,9 @@ int32_t Accelerometer::iis328dq_self_test_set(iis328dq_st_t val)
   return ret;
 }
 
-/**
-  * @brief  Linear acceleration sensor self-test enable.[get]
-  *
-  * @param  val   Get the values of st in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Linear acceleration sensor self-test enable.[get]
+/// @param  val   Get the values of st in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_self_test_get(iis328dq_st_t *val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -810,13 +716,9 @@ int32_t Accelerometer::iis328dq_self_test_get(iis328dq_st_t *val)
   return ret;
 }
 
-/**
-  * @brief  Big/Little Endian Data selection.[set]
-  *
-  * @param  val   change the values of ble in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Big/Little Endian Data selection.[set]
+/// @param  val   change the values of ble in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_data_format_set(iis328dq_ble_t val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -835,13 +737,9 @@ int32_t Accelerometer::iis328dq_data_format_set(iis328dq_ble_t val)
   return ret;
 }
 
-/**
-  * @brief  Big/Little Endian Data selection.[get]
-  *
-  * @param  val   Get the values of ble in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Big/Little Endian Data selection.[get]
+/// @param  val   Get the values of ble in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_data_format_get(iis328dq_ble_t *val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -870,24 +768,17 @@ int32_t Accelerometer::iis328dq_data_format_get(iis328dq_ble_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Filters
-  * @brief       This section group all the functions concerning the
-  *              filters configuration.
+  * @defgroup IIS328DQ_Filters IIS328DQ_Filters
+  * @brief This section group all the functions concerning the filters configuration.
   * @{
-  *
   */
 
-/**
-  * @brief  High pass filter cut-off frequency configuration.[set]
-  *
-  * @param  val   change the values of hpcf in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  High pass filter cut-off frequency configuration.[set]
+/// @param  val   change the values of hpcf in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_bandwidth_set(iis328dq_hpcf_t val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -906,13 +797,9 @@ int32_t Accelerometer::iis328dq_hp_bandwidth_set(iis328dq_hpcf_t val)
   return ret;
 }
 
-/**
-  * @brief  High pass filter cut-off frequency configuration.[get]
-  *
-  * @param  val   Get the values of hpcf in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  High pass filter cut-off frequency configuration.[get]
+/// @param  val   Get the values of hpcf in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_bandwidth_get(iis328dq_hpcf_t *val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -947,13 +834,9 @@ int32_t Accelerometer::iis328dq_hp_bandwidth_get(iis328dq_hpcf_t *val)
   return ret;
 }
 
-/**
-  * @brief  Select High Pass filter path.[set]
-  *
-  * @param  val   change the values of hpen in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Select High Pass filter path.[set]
+/// @param  val   change the values of hpen in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_path_set(iis328dq_hpen_t val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -973,13 +856,9 @@ int32_t Accelerometer::iis328dq_hp_path_set(iis328dq_hpen_t val)
   return ret;
 }
 
-/**
-  * @brief  Select High Pass filter path.[get]
-  *
-  * @param  val   Get the values of hpen in reg CTRL_REG2
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Select High Pass filter path.[get]
+/// @param  val   Get the values of hpen in reg CTRL_REG2
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_path_get(iis328dq_hpen_t *val)
 {
   iis328dq_ctrl_reg2_t ctrl_reg2;
@@ -1030,17 +909,13 @@ int32_t Accelerometer::iis328dq_hp_path_get(iis328dq_hpen_t *val)
   return ret;
 }
 
-/**
-  * @brief  Reading at this address zeroes instantaneously
-  *         the content of the internal high pass-filter.
-  *         If the high pass filter is enabled all three axes
-  *         are instantaneously set to 0g. This allows to
-  *         overcome the settling time of the high pass
-  *         filter.[get]
-  *
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Reading at this address zeroes instantaneously
+///         the content of the internal high pass-filter.
+///         If the high pass filter is enabled all three axes
+///         are instantaneously set to 0g. This allows to
+///         overcome the settling time of the high pass
+///         filter.[get]
+/// @retval Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_reset_get(void)
 {
   uint8_t dummy;
@@ -1052,13 +927,9 @@ int32_t Accelerometer::iis328dq_hp_reset_get(void)
   return ret;
 }
 
-/**
-  * @brief  Reference value for high-pass filter.[set]
-  *
-  * @param  val   change the values of ref in reg REFERENCE
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Reference value for high-pass filter.[set]
+/// @param  val   change the values of ref in reg REFERENCE
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_reference_value_set(uint8_t val)
 {
   int32_t ret;
@@ -1068,13 +939,9 @@ int32_t Accelerometer::iis328dq_hp_reference_value_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Reference value for high-pass filter.[get]
-  *
-  * @param  val   change the values of ref in reg REFERENCE
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Reference value for high-pass filter.[get]
+/// @param  val   change the values of ref in reg REFERENCE
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_hp_reference_value_get(uint8_t *val)
 {
   int32_t ret;
@@ -1086,24 +953,17 @@ int32_t Accelerometer::iis328dq_hp_reference_value_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Serial_Interface
-  * @brief       This section groups all the functions concerning serial
-  *              interface management.
+  * @defgroup IIS328DQ_Serial_Interface IIS328DQ_Serial_Interface
+  * @brief This section groups all the functions concerning serial interface management.
   * @{
-  *
   */
 
-/**
-  * @brief  SPI 3- or 4-wire interface.[set]
-  *
-  * @param  val   change the values of sim in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  SPI 3- or 4-wire interface.[set]
+/// @param  val   change the values of sim in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_spi_mode_set(iis328dq_sim_t val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -1122,13 +982,9 @@ int32_t Accelerometer::iis328dq_spi_mode_set(iis328dq_sim_t val)
   return ret;
 }
 
-/**
-  * @brief  SPI 3- or 4-wire interface.[get]
-  *
-  * @param  val   Get the values of sim in reg CTRL_REG4
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  SPI 3- or 4-wire interface.[get]
+/// @param  val   Get the values of sim in reg CTRL_REG4
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_spi_mode_get(iis328dq_sim_t *val)
 {
   iis328dq_ctrl_reg4_t ctrl_reg4;
@@ -1157,24 +1013,17 @@ int32_t Accelerometer::iis328dq_spi_mode_get(iis328dq_sim_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Interrupt_Pins
-  * @brief       This section groups all the functions that manage
-  *              interrupt pins.
+  * @defgroup IIS328DQ_Interrupt_Pins IIS328DQ_Interrupt_Pins
+  * @brief This section groups all the functions that manage interrupt pins.
   * @{
-  *
   */
 
-/**
-  * @brief  Data signal on INT 1 pad control bits.[set]
-  *
-  * @param  val   change the values of i1_cfg in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Data signal on INT 1 pad control bits.[set]
+/// @param  val   change the values of i1_cfg in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_int1_route_set(iis328dq_i1_cfg_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1193,13 +1042,9 @@ int32_t Accelerometer::iis328dq_pin_int1_route_set(iis328dq_i1_cfg_t val)
   return ret;
 }
 
-/**
-  * @brief  Data signal on INT 1 pad control bits.[get]
-  *
-  * @param  val   Get the values of i1_cfg in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Data signal on INT 1 pad control bits.[get]
+/// @param  val   Get the values of i1_cfg in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_int1_route_get(iis328dq_i1_cfg_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1234,14 +1079,10 @@ int32_t Accelerometer::iis328dq_pin_int1_route_get(iis328dq_i1_cfg_t *val)
   return ret;
 }
 
-/**
-  * @brief  Latch interrupt request on INT1_SRC register, with INT1_SRC
-  *         register cleared by reading INT1_SRC register.[set]
-  *
-  * @param  val   change the values of lir1 in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Latch interrupt request on INT1_SRC register, with INT1_SRC
+///         register cleared by reading INT1_SRC register.[set]
+/// @param  val   change the values of lir1 in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_notification_set(iis328dq_lir1_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1260,14 +1101,10 @@ int32_t Accelerometer::iis328dq_int1_notification_set(iis328dq_lir1_t val)
   return ret;
 }
 
-/**
-  * @brief  Latch interrupt request on INT1_SRC register, with INT1_SRC
-  *         register cleared by reading INT1_SRC register.[get]
-  *
-  * @param  val   Get the values of lir1 in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Latch interrupt request on INT1_SRC register, with INT1_SRC
+///         register cleared by reading INT1_SRC register.[get]
+/// @param  val   Get the values of lir1 in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_notification_get(iis328dq_lir1_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1294,13 +1131,9 @@ int32_t Accelerometer::iis328dq_int1_notification_get(iis328dq_lir1_t *val)
   return ret;
 }
 
-/**
-  * @brief  Data signal on INT 2 pad control bits.[set]
-  *
-  * @param  val   change the values of i2_cfg in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Data signal on INT 2 pad control bits.[set]
+/// @param  val   change the values of i2_cfg in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_int2_route_set(iis328dq_i2_cfg_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1319,13 +1152,9 @@ int32_t Accelerometer::iis328dq_pin_int2_route_set(iis328dq_i2_cfg_t val)
   return ret;
 }
 
-/**
-  * @brief  Data signal on INT 2 pad control bits.[get]
-  *
-  * @param  val   Get the values of i2_cfg in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Data signal on INT 2 pad control bits.[get]
+/// @param  val   Get the values of i2_cfg in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_int2_route_get(iis328dq_i2_cfg_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1360,14 +1189,10 @@ int32_t Accelerometer::iis328dq_pin_int2_route_get(iis328dq_i2_cfg_t *val)
   return ret;
 }
 
-/**
-  * @brief  Latch interrupt request on INT2_SRC register, with INT2_SRC
-  *         register cleared by reading INT2_SRC itself.[set]
-  *
-  * @param  val   change the values of lir2 in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Latch interrupt request on INT2_SRC register, with INT2_SRC
+///         register cleared by reading INT2_SRC itself.[set]
+/// @param  val   change the values of lir2 in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_notification_set(iis328dq_lir2_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1386,14 +1211,10 @@ int32_t Accelerometer::iis328dq_int2_notification_set(iis328dq_lir2_t val)
   return ret;
 }
 
-/**
-  * @brief  Latch interrupt request on INT2_SRC register, with INT2_SRC
-  *         register cleared by reading INT2_SRC itself.[get]
-  *
-  * @param  val   Get the values of lir2 in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Latch interrupt request on INT2_SRC register, with INT2_SRC
+///         register cleared by reading INT2_SRC itself.[get]
+/// @param  val   Get the values of lir2 in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_notification_get(iis328dq_lir2_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1420,13 +1241,9 @@ int32_t Accelerometer::iis328dq_int2_notification_get(iis328dq_lir2_t *val)
   return ret;
 }
 
-/**
-  * @brief  Push-pull/open drain selection on interrupt pads.[set]
-  *
-  * @param  val   change the values of pp_od in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Push-pull/open drain selection on interrupt pads.[set]
+/// @param  val   change the values of pp_od in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_mode_set(iis328dq_pp_od_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1445,13 +1262,9 @@ int32_t Accelerometer::iis328dq_pin_mode_set(iis328dq_pp_od_t val)
   return ret;
 }
 
-/**
-  * @brief  Push-pull/open drain selection on interrupt pads.[get]
-  *
-  * @param  val   Get the values of pp_od in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Push-pull/open drain selection on interrupt pads.[get]
+/// @param  val   Get the values of pp_od in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_mode_get(iis328dq_pp_od_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1478,13 +1291,9 @@ int32_t Accelerometer::iis328dq_pin_mode_get(iis328dq_pp_od_t *val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt active-high/low.[set]
-  *
-  * @param  val   change the values of ihl in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt active-high/low.[set]
+/// @param  val   change the values of ihl in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_polarity_set(iis328dq_ihl_t val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1503,13 +1312,9 @@ int32_t Accelerometer::iis328dq_pin_polarity_set(iis328dq_ihl_t val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt active-high/low.[get]
-  *
-  * @param  val   Get the values of ihl in reg CTRL_REG3
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt active-high/low.[get]
+/// @param  val   Get the values of ihl in reg CTRL_REG3
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_pin_polarity_get(iis328dq_ihl_t *val)
 {
   iis328dq_ctrl_reg3_t ctrl_reg3;
@@ -1538,24 +1343,17 @@ int32_t Accelerometer::iis328dq_pin_polarity_get(iis328dq_ihl_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_interrupt_on_threshold
-  * @brief       This section groups all the functions that manage
-  *              the interrupt on threshold event generation.
+  * @defgroup IIS328DQ_interrupt_on_threshold IIS328DQ_interrupt_on_threshold
+  * @brief This section groups all the functions that manage the interrupt on threshold event generation.
   * @{
-  *
   */
 
-/**
-  * @brief  Configure the interrupt 1 threshold sign.[set]
-  *
-  * @param  val   enable sign and axis for interrupt on threshold
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the interrupt 1 threshold sign.[set]
+/// @param  val   enable sign and axis for interrupt on threshold
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_on_threshold_conf_set(int1_on_th_conf_t val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -1578,13 +1376,9 @@ int32_t Accelerometer::iis328dq_int1_on_threshold_conf_set(int1_on_th_conf_t val
   return ret;
 }
 
-/**
-  * @brief   Configure the interrupt 1 threshold sign.[get]
-  *
-  * @param  val   enable sign and axis for interrupt on threshold
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief   Configure the interrupt 1 threshold sign.[get]
+/// @param  val   enable sign and axis for interrupt on threshold
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_on_threshold_conf_get(int1_on_th_conf_t *val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -1601,13 +1395,9 @@ int32_t Accelerometer::iis328dq_int1_on_threshold_conf_get(int1_on_th_conf_t *va
   return ret;
 }
 
-/**
-  * @brief  AND/OR combination of Interrupt 1 events.[set]
-  *
-  * @param  val   change the values of aoi in reg INT1_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  AND/OR combination of Interrupt 1 events.[set]
+/// @param  val   change the values of aoi in reg INT1_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_on_threshold_mode_set(iis328dq_int1_aoi_t val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -1625,13 +1415,9 @@ int32_t Accelerometer::iis328dq_int1_on_threshold_mode_set(iis328dq_int1_aoi_t v
   return ret;
 }
 
-/**
-  * @brief   AND/OR combination of Interrupt 1 events.[get]
-  *
-  * @param  val   Get the values of aoi in reg INT1_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief   AND/OR combination of Interrupt 1 events.[get]
+/// @param  val   Get the values of aoi in reg INT1_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_on_threshold_mode_get(iis328dq_int1_aoi_t *val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -1657,13 +1443,9 @@ int32_t Accelerometer::iis328dq_int1_on_threshold_mode_get(iis328dq_int1_aoi_t *
   return ret;
 }
 
-/**
-  * @brief  Interrupt generator 1 on threshold source register.[get]
-  *
-  * @param  val   registers INT1_SRC
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt generator 1 on threshold source register.[get]
+/// @param  val   registers INT1_SRC
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_src_get(iis328dq_int1_src_t *val)
 {
   int32_t ret;
@@ -1673,13 +1455,9 @@ int32_t Accelerometer::iis328dq_int1_src_get(iis328dq_int1_src_t *val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 1 threshold.[set]
-  *
-  * @param  val   change the values of ths in reg INT1_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 1 threshold.[set]
+/// @param  val   change the values of ths in reg INT1_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_treshold_set(uint8_t val)
 {
   iis328dq_int1_ths_t int1_ths;
@@ -1697,13 +1475,9 @@ int32_t Accelerometer::iis328dq_int1_treshold_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 1 threshold.[get]
-  *
-  * @param  val   change the values of ths in reg INT1_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 1 threshold.[get]
+/// @param  val   change the values of ths in reg INT1_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_treshold_get(uint8_t *val)
 {
   iis328dq_int1_ths_t int1_ths;
@@ -1715,13 +1489,9 @@ int32_t Accelerometer::iis328dq_int1_treshold_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Duration value for interrupt 1 generator.[set]
-  *
-  * @param  val   change the values of d in reg INT1_DURATION
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Duration value for interrupt 1 generator.[set]
+/// @param  val   change the values of d in reg INT1_DURATION
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_dur_set(uint8_t val)
 {
   iis328dq_int1_duration_t int1_duration;
@@ -1740,13 +1510,9 @@ int32_t Accelerometer::iis328dq_int1_dur_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Duration value for interrupt 1 generator.[get]
-  *
-  * @param  val   change the values of d in reg INT1_DURATION
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Duration value for interrupt 1 generator.[get]
+/// @param  val   change the values of d in reg INT1_DURATION
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_dur_get(uint8_t *val)
 {
   iis328dq_int1_duration_t int1_duration;
@@ -1759,13 +1525,9 @@ int32_t Accelerometer::iis328dq_int1_dur_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Configure the interrupt 2 threshold sign.[set]
-  *
-  * @param  val   enable sign and axis for interrupt on threshold
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the interrupt 2 threshold sign.[set]
+/// @param  val   enable sign and axis for interrupt on threshold
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_on_threshold_conf_set(int2_on_th_conf_t val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -1789,13 +1551,9 @@ int32_t Accelerometer::iis328dq_int2_on_threshold_conf_set(int2_on_th_conf_t val
   return ret;
 }
 
-/**
-  * @brief  Configure the interrupt 2 threshold sign.[get]
-  *
-  * @param  val   enable sign and axis for interrupt on threshold
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the interrupt 2 threshold sign.[get]
+/// @param  val   enable sign and axis for interrupt on threshold
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_on_threshold_conf_get(int2_on_th_conf_t *val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -1812,13 +1570,9 @@ int32_t Accelerometer::iis328dq_int2_on_threshold_conf_get(int2_on_th_conf_t *va
   return ret;
 }
 
-/**
-  * @brief  AND/OR combination of Interrupt 2 events.[set]
-  *
-  * @param  val   change the values of aoi in reg INT2_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  AND/OR combination of Interrupt 2 events.[set]
+/// @param  val   change the values of aoi in reg INT2_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_on_threshold_mode_set(iis328dq_int2_aoi_t val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -1836,13 +1590,9 @@ int32_t Accelerometer::iis328dq_int2_on_threshold_mode_set(iis328dq_int2_aoi_t v
   return ret;
 }
 
-/**
-  * @brief   AND/OR combination of Interrupt 2 events.[get]
-  *
-  * @param  val   Get the values of aoi in reg INT2_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief   AND/OR combination of Interrupt 2 events.[get]
+/// @param  val   Get the values of aoi in reg INT2_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_on_threshold_mode_get(iis328dq_int2_aoi_t *val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -1868,13 +1618,9 @@ int32_t Accelerometer::iis328dq_int2_on_threshold_mode_get(iis328dq_int2_aoi_t *
   return ret;
 }
 
-/**
-  * @brief  Interrupt generator 1 on threshold source register.[get]
-  *
-  * @param  val   registers INT2_SRC
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt generator 1 on threshold source register.[get]
+/// @param  val   registers INT2_SRC
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_src_get(iis328dq_int2_src_t *val)
 {
   int32_t ret;
@@ -1884,13 +1630,9 @@ int32_t Accelerometer::iis328dq_int2_src_get(iis328dq_int2_src_t *val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 2 threshold.[set]
-  *
-  * @param  val   change the values of ths in reg INT2_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 2 threshold.[set]
+/// @param  val   change the values of ths in reg INT2_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_treshold_set(uint8_t val)
 {
   iis328dq_int2_ths_t int2_ths;
@@ -1908,13 +1650,9 @@ int32_t Accelerometer::iis328dq_int2_treshold_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 2 threshold.[get]
-  *
-  * @param  val   change the values of ths in reg INT2_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 2 threshold.[get]
+/// @param  val   change the values of ths in reg INT2_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_treshold_get(uint8_t *val)
 {
   iis328dq_int2_ths_t int2_ths;
@@ -1926,13 +1664,9 @@ int32_t Accelerometer::iis328dq_int2_treshold_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Duration value for interrupt 2 generator.[set]
-  *
-  * @param  val   change the values of d in reg INT2_DURATION
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Duration value for interrupt 2 generator.[set]
+/// @param  val   change the values of d in reg INT2_DURATION
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_dur_set(uint8_t val)
 {
   iis328dq_int2_duration_t int2_duration;
@@ -1951,13 +1685,9 @@ int32_t Accelerometer::iis328dq_int2_dur_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief    Duration value for interrupt 2 generator.[get]
-  *
-  * @param  val   change the values of d in reg INT2_DURATION
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief    Duration value for interrupt 2 generator.[get]
+/// @param  val   change the values of d in reg INT2_DURATION
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_dur_get(uint8_t *val)
 {
   iis328dq_int2_duration_t int2_duration;
@@ -1972,24 +1702,17 @@ int32_t Accelerometer::iis328dq_int2_dur_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Wake_Up_Event
-  * @brief       This section groups all the functions that manage the
-  *              Wake Up event generation.
+  * @defgroup IIS328DQ_Wake_Up_Event IIS328DQ_Wake_Up_Event 
+  * @brief This section groups all the functions that manage the Wake Up event generation.
   * @{
-  *
   */
 
-/**
-  * @brief  Turn-on mode selection for sleep to wake function.[set]
-  *
-  * @param  val   change the values of turnon in reg CTRL_REG5
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Turn-on mode selection for sleep to wake function.[set]
+/// @param  val   change the values of turnon in reg CTRL_REG5
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_wkup_to_sleep_set(uint8_t val)
 {
   iis328dq_ctrl_reg5_t ctrl_reg5;
@@ -2008,13 +1731,9 @@ int32_t Accelerometer::iis328dq_wkup_to_sleep_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Turn-on mode selection for sleep to wake function.[get]
-  *
-  * @param  val   change the values of turnon in reg CTRL_REG5
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Turn-on mode selection for sleep to wake function.[get]
+/// @param  val   change the values of turnon in reg CTRL_REG5
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_wkup_to_sleep_get(uint8_t *val)
 {
   iis328dq_ctrl_reg5_t ctrl_reg5;
@@ -2029,24 +1748,17 @@ int32_t Accelerometer::iis328dq_wkup_to_sleep_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
 /**
-  * @defgroup    IIS328DQ_Six_Position_Detection
-  * @brief       This section groups all the functions concerning six
-  *              position detection (6D).
+  * @defgroup IIS328DQ_Six_Position_Detection IIS328DQ_Six_Position_Detection
+  * @brief This section groups all the functions concerning six position detection (6D).
   * @{
-  *
   */
 
-/**
-  * @brief  Configure the 6d on interrupt 1 generator.[set]
-  *
-  * @param  val   change the values of 6d in reg INT1_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the 6d on interrupt 1 generator.[set]
+/// @param  val   change the values of 6d in reg INT1_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_6d_mode_set(iis328dq_int1_6d_t val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -2064,13 +1776,9 @@ int32_t Accelerometer::iis328dq_int1_6d_mode_set(iis328dq_int1_6d_t val)
   return ret;
 }
 
-/**
-  * @brief  Configure the 6d on interrupt 1 generator.[get]
-  *
-  * @param  val   Get the values of 6d in reg INT1_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the 6d on interrupt 1 generator.[get]
+/// @param  val   Get the values of 6d in reg INT1_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_6d_mode_get(iis328dq_int1_6d_t *val)
 {
   iis328dq_int1_cfg_t int1_cfg;
@@ -2100,13 +1808,9 @@ int32_t Accelerometer::iis328dq_int1_6d_mode_get(iis328dq_int1_6d_t *val)
   return ret;
 }
 
-/**
-  * @brief  6D on interrupt generator 1 source register.[get]
-  *
-  * @param  val   registers INT1_SRC
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  6D on interrupt generator 1 source register.[get]
+/// @param  val   registers INT1_SRC
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_6d_src_get(iis328dq_int1_src_t *val)
 {
   int32_t ret;
@@ -2116,13 +1820,9 @@ int32_t Accelerometer::iis328dq_int1_6d_src_get(iis328dq_int1_src_t *val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 1 threshold.[set]
-  *
-  * @param  val   change the values of ths in reg INT1_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 1 threshold.[set]
+/// @param  val   change the values of ths in reg INT1_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_6d_treshold_set(uint8_t val)
 {
   iis328dq_int1_ths_t int1_ths;
@@ -2139,13 +1839,9 @@ int32_t Accelerometer::iis328dq_int1_6d_treshold_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 1 threshold.[get]
-  *
-  * @param  val   change the values of ths in reg INT1_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 1 threshold.[get]
+/// @param  val   change the values of ths in reg INT1_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int1_6d_treshold_get(uint8_t *val)
 {
   iis328dq_int1_ths_t int1_ths;
@@ -2157,13 +1853,9 @@ int32_t Accelerometer::iis328dq_int1_6d_treshold_get(uint8_t *val)
   return ret;
 }
 
-/**
-  * @brief  Configure the 6d on interrupt 2 generator.[set]
-  *
-  * @param  val   change the values of 6d in reg INT2_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the 6d on interrupt 2 generator.[set]
+/// @param  val   change the values of 6d in reg INT2_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_6d_mode_set(iis328dq_int2_6d_t val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -2182,13 +1874,9 @@ int32_t Accelerometer::iis328dq_int2_6d_mode_set(iis328dq_int2_6d_t val)
   return ret;
 }
 
-/**
-  * @brief  Configure the 6d on interrupt 2 generator.[get]
-  *
-  * @param  val   Get the values of 6d in reg INT2_CFG
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Configure the 6d on interrupt 2 generator.[get]
+/// @param  val   Get the values of 6d in reg INT2_CFG
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_6d_mode_get(iis328dq_int2_6d_t *val)
 {
   iis328dq_int2_cfg_t int2_cfg;
@@ -2218,13 +1906,9 @@ int32_t Accelerometer::iis328dq_int2_6d_mode_get(iis328dq_int2_6d_t *val)
   return ret;
 }
 
-/**
-  * @brief  6D on interrupt generator 2 source register.[get]
-  *
-  * @param  val   registers INT2_SRC
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  6D on interrupt generator 2 source register.[get]
+/// @param  val   registers INT2_SRC
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_6d_src_get(iis328dq_int2_src_t *val)
 {
   int32_t ret;
@@ -2234,13 +1918,9 @@ int32_t Accelerometer::iis328dq_int2_6d_src_get(iis328dq_int2_src_t *val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 2 threshold.[set]
-  *
-  * @param  val   change the values of ths in reg INT2_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 2 threshold.[set]
+/// @param  val   change the values of ths in reg INT2_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_6d_treshold_set(uint8_t val)
 {
   iis328dq_int2_ths_t int2_ths;
@@ -2258,13 +1938,9 @@ int32_t Accelerometer::iis328dq_int2_6d_treshold_set(uint8_t val)
   return ret;
 }
 
-/**
-  * @brief  Interrupt 2 threshold.[get]
-  *
-  * @param  val   change the values of ths in reg INT2_THS
-  * @retval       Interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+/// @brief  Interrupt 2 threshold.[get]
+/// @param  val   change the values of ths in reg INT2_THS
+/// @retval       Interface status (MANDATORY: return 0 -> no Error)
 int32_t Accelerometer::iis328dq_int2_6d_treshold_get(uint8_t *val)
 {
   iis328dq_int2_ths_t int2_ths;
@@ -2278,7 +1954,9 @@ int32_t Accelerometer::iis328dq_int2_6d_treshold_get(uint8_t *val)
 
 /**
   * @}
-  *
   */
 
+/**
+  * @}
+  */
 

@@ -294,12 +294,8 @@ static volatile uint8_t isTickNowSuppressed;    //   This field helps the tick I
 #define configLPTIM_SRC_LPTIM1
 #endif
 
-//============================================================================================================
-// vPortSetupTimerInterrupt()
-//
-//      This function overrides the "standard" port function, decorated with __attribute__((weak)), in port.c.
-// Call with interrupts masked.
-//
+/// @brief This function overrides the "standard" port function, decorated with __attribute__((weak)), in port.c.
+///        Call with interrupts masked.
 void vPortSetupTimerInterrupt( void )
 {
    //      Enable the APB clock to the LPTIM.  Then select either LSE or LSI as the kernel clock for the
@@ -408,16 +404,11 @@ void vPortSetupTimerInterrupt( void )
    NVIC_EnableIRQ( LPTIM_IRQn );
 }
 
-
-//============================================================================================================
-// vPortSuppressTicksAndSleep()
-//
-//      This function overrides the "official" port function, decorated with __attribute__((weak)), in port.c.
-// The idle task calls this function with the scheduler suspended, and only when xExpectedIdleTime is >= 2.
-//
-//      FreeRTOS version 10.4.0 or newer is recommended to ensure this function doesn't potentially return one
-// OS tick *after* the intended time.
-//
+/// @brief This function overrides the "official" port function, decorated with __attribute__((weak)), in port.c.
+///        The idle task calls this function with the scheduler suspended, and only when xExpectedIdleTime is >= 2.
+///        FreeRTOS version 10.4.0 or newer is recommended to ensure this function doesn't potentially return one
+///        OS tick *after* the intended time.
+/// @param xExpectedIdleTime 
 void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 {
    //      Limit the time we plan to spend in tickless idle.  LPTIM has only so much range.
@@ -708,10 +699,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
    }
 }
 
-
-//============================================================================================================
-// LPTIM_IRQHandler()
-//
+/// @brief LPTIM_IRQHandler
 void LPTIM_IRQHandler( void )
 {
    //      Whether we are running this ISR for a CMPOK interrupt or a CMPM interrupt (or both), we need to see

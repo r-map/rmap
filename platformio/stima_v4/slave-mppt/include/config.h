@@ -30,23 +30,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /*********************************************************************
 * MODULE
 *********************************************************************/
-/*!
-\def MODULE_MAIN_VERSION
-\brief Module main version.
-*/
+/// @brief Module main version.
 #define MODULE_MAIN_VERSION   (4)
 
-/*!
-\def MODULE_MINOR_VERSION
-\brief Module minor version.
-*/
+/// @brief Module minor version.
 #define MODULE_MINOR_VERSION  (2)
 
-/*!
-\def RMAP_PROCOTOL_VERSION
-\brief rmap protocol version
-*/
+/// @brief rmap protocol version
 #define RMAP_PROCOTOL_VERSION (1)
+
+// Random generator value for Local Test
+// #define USE_SIMULATOR
+
+/// Fill buffer data wuith 900 data value init
+// #define INIT_SIMULATOR
 
 /*!
 \def MODULE_TYPE
@@ -64,46 +61,77 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_POWER_MPPT)
 #endif
 
-// Enable control Error for Debug
+/// @brief Enable control Error for Debug
 #define DEBUG_MODE            (false)
 #define ERROR_HANDLER_CB      (false)
 
-// HW device enabled
+/*********************************************************************
+* HW DEVICES
+*********************************************************************/
+
+/// @brief Enable I2C1 interface
 #define ENABLE_I2C1           (true)
+/// @brief Enable I2C2 interface
 #define ENABLE_I2C2           (false)
+/// @brief Enable QSPI interface
 #define ENABLE_QSPI           (true)
+/// @brief Enable CAN BUS interface
 #define ENABLE_CAN            (true)
 
-// HW Diag PIN redefine
+/// @brief Enable HW Diag PIN redefine
 #define ENABLE_DIAG_PIN       (false)
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
+/// @brief Enable WatchDog Task and Module
 #define ENABLE_WDT            (true)
-#define WDT_TIMEOUT_BASE_US   (8000000)     // WatchDog HW us
-#define WDT_STARTING_TASK_MS  (60000)       // Init WDT Task Local ms
-#define WDT_CONTROLLER_MS     (2000)        // Task ms minimal check
+/// @brief WatchDog Hardware microseconds timeout
+#define WDT_TIMEOUT_BASE_US   (8000000)
+/// @brief Init WatchDog Task local milliseconds
+#define WDT_STARTING_TASK_MS  (60000)
+/// @brief Task milliseconds minimal check
+#define WDT_CONTROLLER_MS     (2000)  
+/// @brief Enable stack usage
 #define ENABLE_STACK_USAGE    (true)
-#define UNUSED_SUB_POSITION   (0)           // Monitor Sub Position Not Used Flag
-#define NORMAL_STATE          (0)           // Monitor No Sleep / No Suspend
-#define SLEEP_STATE           (1)           // Sleep Task For Wdt or LowPower Check
-#define SUSPEND_STATE         (2)           // Suspend Task from WDT
+/// @brief Monitor Sub Position not used flag
+#define UNUSED_SUB_POSITION   (0)          
+/// @brief Monitor No Sleep / No Suspend
+#define NORMAL_STATE          (0)  
+/// @brief Sleep Task For Wdt or LowPower Check         
+#define SLEEP_STATE           (1)   
+/// @brief Suspend Task from Wdt        
+#define SUSPEND_STATE         (2)           
 
-// Generic Semaphore Time acquire RTC
+/*********************************************************************
+* Generic Semaphore Time acquire RTC
+*********************************************************************/
+/// @brief Enable RTC Interface
 #define ENABLE_RTC            (true)
+/// @brief Delay for RTC in milliseconds
 #define RTC_WAIT_DELAY_MS     (100)
 
-// Address EEProm for reserved bootloader flag param (and future used)
+/*********************************************************************
+* Address EEProm for reserved bootloader flag param (and future used 2000 Bytes)
+*********************************************************************/
+/// @brief Starting EEPROM address
 #define START_EEPROM_ADDRESS           (0)
-#define SIZE_EEPROM_RESERVED           (450)
+/// @brief Size EEPROM reserved address. Must be > CONFIGURATION_EEPROM_END
+#define SIZE_EEPROM_RESERVED           (450)  
+/// @brief Bootloader start address                       
 #define BOOT_LOADER_STRUCT_ADDR        (START_EEPROM_ADDRESS)
+/// @brief Bootloader struct size
 #define BOOT_LOADER_STRUCT_SIZE        (sizeof(bootloader_t))
+/// @brief Bootloader struct end address  
 #define BOOT_LOADER_STRUCT_END         (START_EEPROM_ADDRESS + BOOT_LOADER_STRUCT_SIZE)
-// Private configuration board direct
+
+/*********************************************************************
+* Private configuration board direct
+*********************************************************************/
+/// @brief Start Address EEPROM configuration
 #define CONFIGURATION_EEPROM_ADDRESS   (20)
-// Start Standard UAVCAN Register
+/// @brief Start Standard UAVCAN Register
 #define REGISTER_EEPROM_ADDRESS        (START_EEPROM_ADDRESS + SIZE_EEPROM_RESERVED)
 
-// Monitor Serial speed
+/// @brief Monitor Debug Serial speed
 #define SERIAL_DEBUG_BAUD_RATE         (115200)
 
 // HW I2C Speed BUS and specific config
@@ -119,54 +147,99 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define I2C2_BUS_CLOCK_HZ (100000L)
 #endif
 
-// Queue Lenght
+/*********************************************************************
+* Queue Lenght
+*********************************************************************/
+/// @brief Request system message queue length
 #define SYSTEM_MESSAGE_QUEUE_LENGTH (4)
+/// @brief Elaborate data message queue length
 #define ELABORATE_DATA_QUEUE_LENGTH (3)
+/// @brief Request data message queue length
 #define REQUEST_DATA_QUEUE_LENGTH   (1)
+/// @brief Report data message queue length
 #define REPORT_DATA_QUEUE_LENGTH    (1)
+/// @brief Request sensor queue length
+#define RAIN_QUEUE_LENGTH           (1)
 
-// Task system_status and queue ID message
-#define ALL_TASK_ID                 (99)      // Send message to ALL Task
-#define SUPERVISOR_TASK_ID          (0)       // Send message to specific task..
+/*********************************************************************
+* Task system_status and queue ID message
+*********************************************************************/
+/// @brief All task ID. Send message to ALL Task
+#define ALL_TASK_ID                 (99)    
+/// @brief Supervisor task ID
+#define SUPERVISOR_TASK_ID          (0)    
+/// @brief CAN task ID
 #define CAN_TASK_ID                 (1)
+/// @brief Elaborate data task ID
 #define ELABORATE_TASK_ID           (2)
+/// @brief Sensor acquire task ID
 #define SENSOR_TASK_ID              (3)
+/// @brief Watch Dog task ID
 #define WDT_TASK_ID                 (4)
-#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) // Total Max Task for WDT Task Control
+/// @brief Total Max Task for WDT Task Control
+#define TOTAL_INFO_TASK             (WDT_TASK_ID + 1) 
 
-// Global queue wait timeout
+/*********************************************************************
+* Global queue wait and other timeout
+*********************************************************************/
+/// @brief Time to wait pushing data queue
 #define WAIT_QUEUE_REQUEST_PUSHDATA_MS    (500)
+/// @brief Time to wait pushing command queue
 #define WAIT_QUEUE_REQUEST_COMMAND_MS     (500)
 
-// Sample and default value for elaborate task
+/*********************************************************************
+* Parameter of buffer data dimension and acquire
+*********************************************************************/
+/// @brief Sample and default value for elaborate task 
 #define SAMPLES_COUNT_MAX                 (3600)
-#define SENSORS_ACQUISITION_DELAY_MS      (4000)
+/// @brief Default observation (RMAP) time in second 
 #define OBSERVATIONS_TIME_S               (60)
+/// @brief Default report (RMAP) time in second 
 #define REPORTS_TIME_S                    (900)
+
+/*********************************************************************
+* Parameter of sensor and elaboration function
+*********************************************************************/
+/// @brief Default delay from two function acquire data
+#define SENSORS_ACQUISITION_DELAY_MS      (4000)
 
 // Index Sensor
 #define POWER_BATTERY_CHARGE_INDEX        (0)
 #define POWER_BATTERY_CURRENT_INDEX       (1)
 #define POWER_INPUT_VOLTAGE_INDEX         (2)
 
-// Limit range for module sensor
+/// @brief Limit MAX data for get a valid data VBAT
 #define MAX_VALID_POWER_MPPT_VBAT         (15.0)
+/// @brief Limit MIN data for get a valid data VBAT
 #define MIN_VALID_POWER_MPPT_VBAT         (7.0)
+/// @brief Limit MAX data for get a valid data IBAT
 #define MAX_VALID_POWER_MPPT_IBAT         (10.0)
+/// @brief Limit MIN data for get a valid data IBAT
 #define MIN_VALID_POWER_MPPT_IBAT         (-2.0)
 
+/// @brief Samples min percent valid on elaboration data
 #define SAMPLE_ERROR_PERCENTAGE_MIN       (90.0)
+/// @brief Observation min percent valid on elaboration data
 #define OBSERVATION_ERROR_PERCENTAGE_MIN  (90.0)
 
+/// @brief RMAP Multiply value for VBAT
 #define POWER_BATTERY_VOLTAGE_MULT        (10)
+/// @brief RMAP Multiply value for VIN
 #define POWER_INPUT_VOLTAGE_MULT          (10)
+/// @brief RMAP Multiply value for ICHG
 #define POWER_BATTERY_CURRENT_MULT        (1000)
+/// @brief RMAP Multiply value for IIN
 #define POWER_INPUT_CURRENT_MULT          (1000)
 
+/// @brief Limit MIN for full battery flag charge
 #define BATTERY_CHARGE_MIN_FULL           (70)
+/// @brief Limit MIN for warning flag battery charge
 #define BATTERY_CHARGE_MIN_WARNING        (40)
+/// @brief Limit MIN for critical flag battery charge
 #define BATTERY_CHARGE_MIN_CRITICAL       (20)
+/// @brief Limit MIN for empty or error battery charge
 #define BATTERY_CHARGE_MIN_EMPTY          (0)
+/// @brief Limit MIN battery voltage for powerdown (scaled RMAP)
 #define INPUT_VOLTAGE_MIN_POWERDOWN       (10.5 * POWER_BATTERY_VOLTAGE_MULT)
 
 #endif

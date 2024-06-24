@@ -37,6 +37,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Constructor for the sensor Task
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param soilVWCSensorParam local parameters for the task
 SoilVWCSensorTask::SoilVWCSensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SoilVWCSensorParam_t soilVWCSensorParam) : Thread(taskName, stackSize, priority), param(soilVWCSensorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -64,8 +69,6 @@ void SoilVWCSensorTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void SoilVWCSensorTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -106,6 +109,7 @@ void SoilVWCSensorTask::TaskState(uint8_t state_position, uint8_t state_subposit
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void SoilVWCSensorTask::Run() {
   rmapdata_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
   elaborate_data_t edata;
@@ -370,12 +374,19 @@ float SoilVWCSensorTask::getADCData(uint8_t chanel_out, uint8_t *quality_data)
   return adc_in[chanel_out] / (adc_in_count[chanel_out] - adc_err_count[chanel_out]);
 }
 
+/// @brief Get System VREF internal temperature
+/// @return ambient external CPU temperature value
 int32_t SoilVWCSensorTask::getVrefTemp(void)
 {
   int32_t vRefVoltage = (__LL_ADC_CALC_VREFANALOG_VOLTAGE(analogRead(AVREF), LL_ADC_RESOLUTION));
   return (__LL_ADC_CALC_TEMPERATURE(vRefVoltage, analogRead(ATEMP), LL_ADC_RESOLUTION));
 }
 
+/// @brief Get ADC value with param optional calibration
+/// @param adc_value adc in value
+/// @param offset offset adjust value
+/// @param gain gain adjust value
+/// @return ADC value calibrated
 float SoilVWCSensorTask::getAdcCalibratedValue(float adc_value, float offset, float gain)
 {
   float value = (float)UINT16_MAX;
@@ -390,6 +401,10 @@ float SoilVWCSensorTask::getAdcCalibratedValue(float adc_value, float offset, fl
   return value;
 }
 
+/// @brief Get analog value converted from ADC with type input selected
+/// @param adc_value value read from adc
+/// @param adc_type ADC_Mode as type of input value selected type
+/// @return ADC value to real analog value
 float SoilVWCSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
 {
   float min, max;
@@ -429,6 +444,12 @@ float SoilVWCSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
   return value;
 }
 
+/// @brief Get real data Soil VWC
+/// @param adc_value in adc value calibrated
+/// @param adc_voltage_min VMIN Ref range of sensor
+/// @param adc_voltage_max VMAX Ref range of sensor
+/// @param adc_overflow bool if ADC get an overflow range value (setted to true)
+/// @return Real scaled data VWC from analog adc calibrated value
 float SoilVWCSensorTask::getSoilVWC(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow)
 {
   float value = adc_value;

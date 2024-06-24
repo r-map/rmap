@@ -35,6 +35,11 @@
 
 using namespace cpp_freertos;
 
+/// @brief Construct the Supervisor Task::SupervisorTask object
+/// @param taskName name of the task
+/// @param stackSize size of the stack
+/// @param priority priority of the task
+/// @param supervisorParam parameters for the task
 SupervisorTask::SupervisorTask(const char *taskName, uint16_t stackSize, uint8_t priority, SupervisorParam_t supervisorParam) : Thread(taskName, stackSize, priority), param(supervisorParam)
 {
   // Start WDT controller and TaskState Flags
@@ -62,8 +67,6 @@ void SupervisorTask::TaskMonitorStack()
 #endif
 
 /// @brief local watchDog and Sleep flag Task (optional)
-/// @param status system_status_t Status STIMAV4
-/// @param lock if used (!=NULL) Semaphore locking system status access
 /// @param millis_standby time in ms to perfor check of WDT. If longer than WDT Reset, WDT is temporanly suspend
 void SupervisorTask::TaskWatchDog(uint32_t millis_standby)
 {
@@ -104,6 +107,7 @@ void SupervisorTask::TaskState(uint8_t state_position, uint8_t state_subposition
   param.systemStatusLock->Give();
 }
 
+/// @brief RUN Task
 void SupervisorTask::Run()
 {
   // Request response for system queue Task controlled...
@@ -224,7 +228,6 @@ void SupervisorTask::Run()
 }
 
 /// @brief Load configuration from Register
-/// @param None
 void SupervisorTask::loadConfiguration()
 {
   // param.configuration configuration Module
@@ -448,7 +451,6 @@ void SupervisorTask::saveConfiguration(bool is_default)
 }
 
 /// @brief Print configuratione
-/// @param None
 void SupervisorTask::printConfiguration()
 {
   // param.configuration configuration Module

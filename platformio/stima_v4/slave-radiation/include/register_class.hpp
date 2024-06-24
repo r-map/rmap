@@ -89,7 +89,6 @@
 #define REGISTER_DATA_SERVICE           "rmap.service"
 #define REGISTER_RMAP_MASTER_ID         "rmap.master.id"
 
-
 // Class EEProm - Register Uavcan
 class EERegister {
 
@@ -105,7 +104,7 @@ public:
 
   /// Reads the specified register from the persistent storage into `inout_value`.
   /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,
-  /// the value will be stored in the persistent storage using @ref registerWrite(), overriding existing value.
+  /// the value will be stored in the persistent storage using registerWrite(), overriding existing value.
   /// The default will not be initialized if the argument is empty.
   void read(const char* const register_name, uavcan_register_Value_1_0* const inout_value);
 
