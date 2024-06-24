@@ -1,0 +1,24 @@
+%TF.GenerationSoftware,KiCad,Pcbnew,7.0.8*%
+%TF.CreationDate,2024-06-23T22:41:18+02:00*%
+%TF.ProjectId,Stima V4 Power,5374696d-6120-4563-9420-506f7765722e,rev?*%
+%TF.SameCoordinates,Original*%
+%TF.FileFunction,Paste,Bot*%
+%TF.FilePolarity,Positive*%
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW 7.0.8) date 2024-06-23 22:41:18*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+%ADD10R,8.000000X2.000000*%
+G04 APERTURE END LIST*
+D10*
+%TO.C,J2*%
+X193319415Y-112623600D03*
+X193319415Y-108813600D03*
+X193319415Y-105003600D03*
+X193319415Y-101193600D03*
+X193319415Y-97383600D03*
+%TD*%
+M02*

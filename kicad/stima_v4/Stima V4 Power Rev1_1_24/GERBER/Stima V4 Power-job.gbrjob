@@ -1,0 +1,160 @@
+{
+  "Header": {
+    "GenerationSoftware": {
+      "Vendor": "KiCad",
+      "Application": "Pcbnew",
+      "Version": "7.0.8"
+    },
+    "CreationDate": "2024-06-23T22:41:19+02:00"
+  },
+  "GeneralSpecs": {
+    "ProjectId": {
+      "Name": "Stima V4 Power",
+      "GUID": "5374696d-6120-4563-9420-506f7765722e",
+      "Revision": "rev?"
+    },
+    "Size": {
+      "X": 99.8442,
+      "Y": 80.2608
+    },
+    "LayerNumber": 4,
+    "BoardThickness": 1.6,
+    "Finish": "None"
+  },
+  "DesignRules": [
+    {
+      "Layers": "Outer",
+      "PadToPad": 0.2,
+      "PadToTrack": 0.2,
+      "TrackToTrack": 0.2,
+      "MinLineWidth": 0.2,
+      "TrackToRegion": 0.508,
+      "RegionToRegion": 0.508
+    },
+    {
+      "Layers": "Inner",
+      "PadToPad": 0.2,
+      "PadToTrack": 0.2,
+      "TrackToTrack": 0.2,
+      "TrackToRegion": 0.508,
+      "RegionToRegion": 0.508
+    }
+  ],
+  "FilesAttributes": [
+    {
+      "Path": "Stima V4 Power-Top Layer.gbr",
+      "FileFunction": "Copper,L1,Top",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Layer 1.gbr",
+      "FileFunction": "Copper,L2,Inr",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Layer 2.gbr",
+      "FileFunction": "Copper,L3,Inr",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Bottom Layer.gbr",
+      "FileFunction": "Copper,L4,Bot",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Top Paste.gbr",
+      "FileFunction": "SolderPaste,Top",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Bottom Paste.gbr",
+      "FileFunction": "SolderPaste,Bot",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Top Overlay.gbr",
+      "FileFunction": "Legend,Top",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Bottom Overlay.gbr",
+      "FileFunction": "Legend,Bot",
+      "FilePolarity": "Positive"
+    },
+    {
+      "Path": "Stima V4 Power-Top Solder.gbr",
+      "FileFunction": "SolderMask,Top",
+      "FilePolarity": "Negative"
+    },
+    {
+      "Path": "Stima V4 Power-Bottom Solder.gbr",
+      "FileFunction": "SolderMask,Bot",
+      "FilePolarity": "Negative"
+    },
+    {
+      "Path": "Stima V4 Power-Edge_Cuts.gbr",
+      "FileFunction": "Profile",
+      "FilePolarity": "Positive"
+    }
+  ],
+  "MaterialStackup": [
+    {
+      "Type": "Legend",
+      "Name": "Top Silk Screen"
+    },
+    {
+      "Type": "SolderPaste",
+      "Name": "Top Solder Paste"
+    },
+    {
+      "Type": "SolderMask",
+      "Name": "Top Solder Mask"
+    },
+    {
+      "Type": "Copper",
+      "Name": "Top Layer"
+    },
+    {
+      "Type": "Dielectric",
+      "Material": "FR4",
+      "Name": "Top Layer/Layer 1",
+      "Notes": "Type: dielectric layer 1 (from Top Layer to Layer 1)"
+    },
+    {
+      "Type": "Copper",
+      "Name": "Layer 1"
+    },
+    {
+      "Type": "Dielectric",
+      "Material": "FR4",
+      "Name": "Layer 1/Layer 2",
+      "Notes": "Type: dielectric layer 2 (from Layer 1 to Layer 2)"
+    },
+    {
+      "Type": "Copper",
+      "Name": "Layer 2"
+    },
+    {
+      "Type": "Dielectric",
+      "Material": "FR4",
+      "Name": "Layer 2/Bottom Layer",
+      "Notes": "Type: dielectric layer 3 (from Layer 2 to Bottom Layer)"
+    },
+    {
+      "Type": "Copper",
+      "Name": "Bottom Layer"
+    },
+    {
+      "Type": "SolderMask",
+      "Name": "Bottom Solder Mask"
+    },
+    {
+      "Type": "SolderPaste",
+      "Name": "Bottom Solder Paste"
+    },
+    {
+      "Type": "Legend",
+      "Name": "Bottom Silk Screen"
+    }
+  ]
+}

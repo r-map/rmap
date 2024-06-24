@@ -1,0 +1,2266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>C:\Users\Administrator\Desktop\Stima per Kicad\Stima 1\Stima V4 GSM Rev1_1_24\Progetto Kicad GSM\Stima V4_GSM R1_1.kicad_sch</source>
+    <date>26/05/2024 23:57:16</date>
+    <tool>Eeschema 7.0.8</tool>
+    <textvar name="ADDRESS1">V. Nuova Ponente 25</textvar>
+    <textvar name="ADDRESS2">Carpi (MO)</textvar>
+    <textvar name="ADDRESS3">Italy</textvar>
+    <textvar name="ADDRESS4"/>
+    <textvar name="CONFIGURATORNAME"/>
+    <textvar name="DOCUMENTNUMBER">1</textvar>
+    <textvar name="ISUSERCONFIGURABLE"/>
+    <textvar name="ORGANIZATION">DigitEco</textvar>
+    <textvar name="SHEETSYMBOLDESIGNATOR"/>
+    <textvar name="SHEETTOTAL">1</textvar>
+    <textvar name="SPICEMODELCACHE"/>
+    <textvar name="VERSIONCONTROL_PROJFOLDERREVNUMBER"/>
+    <textvar name="VERSIONCONTROL_REVNUMBER"/>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title>Stima V4 GSM</title>
+        <company/>
+        <rev/>
+        <date/>
+        <source>Stima V4_GSM R1_1.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="A3">
+      <value>ViteDado</value>
+      <footprint>Library:ViteDado4</footprint>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_ViteDado" description="Foro di fissaggio scheda"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Foro di fissaggio scheda"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>238c4ce8-49d7-4709-8c3e-16e3b4d18112</tstamps>
+    </comp>
+    <comp ref="A4">
+      <value>ViteDado</value>
+      <footprint>Library:ViteDado4</footprint>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_ViteDado" description="Foro di fissaggio scheda"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Foro di fissaggio scheda"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a6d27c9c-5ac9-43f5-8fea-bb669aaf7af3</tstamps>
+    </comp>
+    <comp ref="C1">
+      <value>0R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>48adb95b-cb7d-403a-9c8d-3fe0d451e031</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>33pF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">33pF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="33pF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a2b29916-cd94-4266-bffd-00c8e7cfd680</tstamps>
+    </comp>
+    <comp ref="C3">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1a1bb310-e057-4a73-9033-ff1abc4fecd2</tstamps>
+    </comp>
+    <comp ref="C4">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>22353026-c3c3-4892-b94a-743184c39ddb</tstamps>
+    </comp>
+    <comp ref="C5">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c8c4212d-ba3d-483d-b5a2-9869098b6be2</tstamps>
+    </comp>
+    <comp ref="C6">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d54f2aa8-202e-4e5c-adc3-37b16ad69360</tstamps>
+    </comp>
+    <comp ref="C7">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_3_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a3cc625d-4f2d-4b7f-9314-52a3d863c59b</tstamps>
+    </comp>
+    <comp ref="C8">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>abade71f-ec36-4592-b6f0-7fde7a16a2fc</tstamps>
+    </comp>
+    <comp ref="C9">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9a83f433-b41e-40d7-bff8-90f20c52b225</tstamps>
+    </comp>
+    <comp ref="C10">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">50V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="50V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6439d290-19c5-4a54-9c68-e9467450e914</tstamps>
+    </comp>
+    <comp ref="C11">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">50V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="50V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>af99f1c7-9aed-476a-be97-13d807fec46a</tstamps>
+    </comp>
+    <comp ref="C12">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">50V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_3_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="50V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>dd3bdce7-dc4d-4e12-b27a-607a81e30d12</tstamps>
+    </comp>
+    <comp ref="C13">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>43b29f80-7be4-4463-b258-ae9044319011</tstamps>
+    </comp>
+    <comp ref="C14">
+      <value>10uF</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">10uF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">16V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="10uF"/>
+      <property name="VOLTAGE" value="16V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7967dcd3-e46f-405e-8c45-0ef623665d78</tstamps>
+    </comp>
+    <comp ref="C15">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1770cc41-e657-466b-90bb-90844302c2d4</tstamps>
+    </comp>
+    <comp ref="C16">
+      <value>10uF</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">10uF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">16V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="10uF"/>
+      <property name="VOLTAGE" value="16V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>975354d1-e941-4c7e-81ac-dbb9cac2054a</tstamps>
+    </comp>
+    <comp ref="C17">
+      <value>100uF 10V</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100uF</field>
+        <field name="PACKAGE REFERENCE">Case B</field>
+        <field name="TYPE">Tantalio</field>
+        <field name="VOLTAGE">10V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Tag. SMD B" description="Tantalio"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="Case B"/>
+      <property name="ALTIUM_VALUE" value="100uF"/>
+      <property name="TYPE" value="Tantalio"/>
+      <property name="VOLTAGE" value="10V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Tantalio"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8957bcd0-ac84-4fc7-8421-cd816fdac1a6</tstamps>
+    </comp>
+    <comp ref="C18">
+      <value>100uF 10V</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100uF</field>
+        <field name="PACKAGE REFERENCE">Case B</field>
+        <field name="TYPE">Tantalio</field>
+        <field name="VOLTAGE">10V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Tag. SMD B" description="Tantalio"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="Case B"/>
+      <property name="ALTIUM_VALUE" value="100uF"/>
+      <property name="TYPE" value="Tantalio"/>
+      <property name="VOLTAGE" value="10V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Tantalio"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cc4ad886-75b4-40b4-aae5-478e192cbe6a</tstamps>
+    </comp>
+    <comp ref="C19">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>768a8dfe-a0c4-4ef4-b99b-77711afc49e3</tstamps>
+    </comp>
+    <comp ref="C20">
+      <value>100uF 10V</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100uF</field>
+        <field name="PACKAGE REFERENCE">Case B</field>
+        <field name="TYPE">Tantalio</field>
+        <field name="VOLTAGE">10V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Tag. SMD B" description="Tantalio"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="Case B"/>
+      <property name="ALTIUM_VALUE" value="100uF"/>
+      <property name="TYPE" value="Tantalio"/>
+      <property name="VOLTAGE" value="10V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Tantalio"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2b0d5aed-3532-4e69-a011-29b64975ed0f</tstamps>
+    </comp>
+    <comp ref="C21">
+      <value>100uF 10V</value>
+      <footprint>Library:Case B-TC3528-1411</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100uF</field>
+        <field name="PACKAGE REFERENCE">Case B</field>
+        <field name="TYPE">Tantalio</field>
+        <field name="VOLTAGE">10V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Tag. SMD B" description="Tantalio"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="Case B"/>
+      <property name="ALTIUM_VALUE" value="100uF"/>
+      <property name="TYPE" value="Tantalio"/>
+      <property name="VOLTAGE" value="10V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Tantalio"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>57accc49-309a-4814-95ee-49f37fd82d58</tstamps>
+    </comp>
+    <comp ref="C22">
+      <value>100nF</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100nF</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value="100nF"/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>febef59a-f563-49c9-b1c1-5d257b9df45f</tstamps>
+    </comp>
+    <comp ref="C23">
+      <value>0R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Multistrato X5R/X7R</field>
+        <field name="VOLTAGE">20V</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_C0603" description="Ceramic Chip Capacitor - Standard"/>
+      <property name="REVISION" value=""/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="TYPE" value="Multistrato X5R/X7R"/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="VOLTAGE" value="20V"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Ceramic Chip Capacitor - Standard"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5c23fa9f-e9a6-42fd-8baa-be5ed9b4165a</tstamps>
+    </comp>
+    <comp ref="DL1">
+      <value>BLUE</value>
+      <footprint>Library:0805-led</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">Smd 0805</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Led  SMD" description="Typical RED, GREEN, YELLOW, AMBER GaAs LED"/>
+      <property name="REVISION" value=""/>
+      <property name="TYPE" value=""/>
+      <property name="PACKAGE REFERENCE" value="Smd 0805"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Typical RED, GREEN, YELLOW, AMBER GaAs LED"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f36a9c48-1b59-48f0-9397-05bdbb0573c9</tstamps>
+    </comp>
+    <comp ref="DL2">
+      <value>GREEN</value>
+      <footprint>Library:0805-led</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">Smd 0805</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Led  SMD" description="Typical RED, GREEN, YELLOW, AMBER GaAs LED"/>
+      <property name="REVISION" value=""/>
+      <property name="TYPE" value=""/>
+      <property name="PACKAGE REFERENCE" value="Smd 0805"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Typical RED, GREEN, YELLOW, AMBER GaAs LED"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3d8857de-eb18-4064-9ada-3926a45991e8</tstamps>
+    </comp>
+    <comp ref="DZ1">
+      <value>PESD5Z3.3</value>
+      <footprint>Library:SOD 523(SC-79)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOD523</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5" description="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <property name="PACKAGE REFERENCE" value="SOD523"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4174cd80-0029-4de6-bdd9-f22f82ea7d35</tstamps>
+    </comp>
+    <comp ref="DZ2">
+      <value>PESD5Z5.0</value>
+      <footprint>Library:SOD 523(SC-79)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOD523</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5" description="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <property name="PACKAGE REFERENCE" value="SOD523"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4482d7b3-f6f2-46d9-b7a3-8c22b37fd2aa</tstamps>
+    </comp>
+    <comp ref="DZ3">
+      <value>PESD5Z5.0</value>
+      <footprint>Library:SOD 523(SC-79)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOD523</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5" description="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <property name="PACKAGE REFERENCE" value="SOD523"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>04c702e3-a7e8-4062-be62-4c35020667a6</tstamps>
+    </comp>
+    <comp ref="DZ4">
+      <value>PESD5Z5.0</value>
+      <footprint>Library:SOD 523(SC-79)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOD523</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5" description="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <property name="PACKAGE REFERENCE" value="SOD523"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0ec17b5b-f334-45be-93ca-649bb275de3f</tstamps>
+    </comp>
+    <comp ref="DZ5">
+      <value>ESDA6V1-5W6</value>
+      <footprint>Library:SOT363(SC70)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOT363-6L</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_ESDA6V1-5W6" description="TRANSIL array for data protection"/>
+      <property name="PACKAGE REFERENCE" value="SOT363-6L"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="TRANSIL array for data protection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>fc6d5fc6-9910-4560-9439-5ac90c2a31fe</tstamps>
+    </comp>
+    <comp ref="DZ6">
+      <value>PESD5Z5.0</value>
+      <footprint>Library:SOD 523(SC-79)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOD523</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5" description="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <property name="PACKAGE REFERENCE" value="SOD523"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a007b059-7e5b-4a25-a541-77e3f7dfd31b</tstamps>
+    </comp>
+    <comp ref="E1_MAIN1">
+      <value>RECE.20279.001E.01</value>
+      <footprint>Library:CONN_ANTENNA_SMD</footprint>
+      <fields>
+        <field name="LATESTREVISIONDATE">17-Jul-2002</field>
+        <field name="LATESTREVISIONNOTE">Re-released for DXP Platform.</field>
+        <field name="PACKAGEREFERENCE">PIN1</field>
+        <field name="PUBLISHED">24-Mar-1999</field>
+        <field name="PUBLISHER">Altium Limited</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Antenna" description="Generic Antenna"/>
+      <property name="PUBLISHED" value="24-Mar-1999"/>
+      <property name="LATESTREVISIONDATE" value="17-Jul-2002"/>
+      <property name="LATESTREVISIONNOTE" value="Re-released for DXP Platform."/>
+      <property name="PACKAGEREFERENCE" value="PIN1"/>
+      <property name="PUBLISHER" value="Altium Limited"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Generic Antenna"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c39340f9-1297-46fb-8e0b-ebddaa783262</tstamps>
+    </comp>
+    <comp ref="E2_GNSS1">
+      <value>RECE.20279.001E.01</value>
+      <footprint>Library:CONN_ANTENNA_SMD</footprint>
+      <fields>
+        <field name="LATESTREVISIONDATE">17-Jul-2002</field>
+        <field name="LATESTREVISIONNOTE">Re-released for DXP Platform.</field>
+        <field name="PACKAGEREFERENCE">PIN1</field>
+        <field name="PUBLISHED">24-Mar-1999</field>
+        <field name="PUBLISHER">Altium Limited</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_3_Antenna" description="Cavo adattatore antenna"/>
+      <property name="PUBLISHED" value="24-Mar-1999"/>
+      <property name="LATESTREVISIONDATE" value="17-Jul-2002"/>
+      <property name="LATESTREVISIONNOTE" value="Re-released for DXP Platform."/>
+      <property name="PACKAGEREFERENCE" value="PIN1"/>
+      <property name="PUBLISHER" value="Altium Limited"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Cavo adattatore antenna"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d7d140e0-a425-4765-beef-4cd33312892d</tstamps>
+    </comp>
+    <comp ref="E3_AUX1">
+      <value>RECE.20279.001E.01</value>
+      <footprint>Library:CONN_ANTENNA_SMD</footprint>
+      <fields>
+        <field name="LATESTREVISIONDATE">17-Jul-2002</field>
+        <field name="LATESTREVISIONNOTE">Re-released for DXP Platform.</field>
+        <field name="PACKAGEREFERENCE">PIN1</field>
+        <field name="PUBLISHED">24-Mar-1999</field>
+        <field name="PUBLISHER">Altium Limited</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Antenna" description="Generic Antenna"/>
+      <property name="PUBLISHED" value="24-Mar-1999"/>
+      <property name="LATESTREVISIONDATE" value="17-Jul-2002"/>
+      <property name="LATESTREVISIONNOTE" value="Re-released for DXP Platform."/>
+      <property name="PACKAGEREFERENCE" value="PIN1"/>
+      <property name="PUBLISHER" value="Altium Limited"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Generic Antenna"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>50dca59f-861d-47f3-9110-4c621fc6411d</tstamps>
+    </comp>
+    <comp ref="FIL1">
+      <value>BLM18PG300SN1D</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">BLM18BD  MURATA</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_BLM18BD" description="Chip ferrite"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="TYPE" value="BLM18BD  MURATA"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Chip ferrite"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>30094d3b-4f05-4cef-8ff1-cdedc1699134</tstamps>
+    </comp>
+    <comp ref="J1">
+      <value>SIM7100-6-1-15-00-A</value>
+      <footprint>Library:SIM CARD MICRO</footprint>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_mirrored_SIM CARD MICRO" description="Micro SIM CARD GCT SIM7100-6-1-15-00-A"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Micro SIM CARD GCT SIM7100-6-1-15-00-A"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>be11a008-5de3-43ee-b0d3-5cc65256e5a7</tstamps>
+    </comp>
+    <comp ref="L1">
+      <value>7447860147G</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47nH</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Vishay</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_Coil  SMD piccoli" description="Coil SMD piccoli"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47nH"/>
+      <property name="TYPE" value="Vishay"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Coil SMD piccoli"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3793eff8-b041-4dbe-96f0-c3b8c10f1aff</tstamps>
+    </comp>
+    <comp ref="L2">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Vishay</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Coil  SMD piccoli" description="Coil SMD piccoli"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="TYPE" value="Vishay"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Coil SMD piccoli"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0f260531-704d-4d8a-ae7c-ed70737954de</tstamps>
+    </comp>
+    <comp ref="L3">
+      <value>NM</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="TYPE">Vishay</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Coil  SMD piccoli" description="Coil SMD piccoli"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value=""/>
+      <property name="TYPE" value="Vishay"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Coil SMD piccoli"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>62d4fd22-d89a-4105-8eaf-d98fda00ac06</tstamps>
+    </comp>
+    <comp ref="Q1">
+      <value>BSS138P</value>
+      <footprint>Library:SOT23</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOT23</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_BSS138" description="Mosfet N-Channel Sot23"/>
+      <property name="PACKAGE REFERENCE" value="SOT23"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Mosfet N-Channel Sot23"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8b57b56d-d0a8-4b46-9efb-514c8875c859</tstamps>
+    </comp>
+    <comp ref="Q2">
+      <value>BC817</value>
+      <footprint>Library:SOT23</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOT23</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_BC817-25" description="NPN General-purpose Transistor"/>
+      <property name="PACKAGE REFERENCE" value="SOT23"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="NPN General-purpose Transistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>64c872be-9b6a-4c1b-9c1a-74370f2b41a1</tstamps>
+    </comp>
+    <comp ref="Q3">
+      <value>BC817</value>
+      <footprint>Library:SOT23</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOT23</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_BC817-25" description="NPN General-purpose Transistor"/>
+      <property name="PACKAGE REFERENCE" value="SOT23"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="NPN General-purpose Transistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4649c7ae-d024-4243-82dd-4aadaea24faf</tstamps>
+    </comp>
+    <comp ref="R1">
+      <value>4K7</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">4K7</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="4K7"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6fe87172-1e80-4944-8c32-a9f8389594ee</tstamps>
+    </comp>
+    <comp ref="R2">
+      <value>0R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">0R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="0R"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d4e47435-1af3-4b67-875a-d23bb330bb46</tstamps>
+    </comp>
+    <comp ref="R3">
+      <value>10R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">10R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="10R"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bf397604-bed4-4f07-b66a-c09b364d9cd1</tstamps>
+    </comp>
+    <comp ref="R4">
+      <value>47K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47K"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4dc33f8e-93ab-43cd-87aa-b57e118f2cc4</tstamps>
+    </comp>
+    <comp ref="R5">
+      <value>0R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">0R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="0R"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ed31c110-485f-4f0b-8a68-5331d8697896</tstamps>
+    </comp>
+    <comp ref="R6">
+      <value>200K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">200K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="200K"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>086c8b48-6e5b-419f-a125-0bedb9d47cde</tstamps>
+    </comp>
+    <comp ref="R7">
+      <value>2K2</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">2K2</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="2K2"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>811b999f-4020-4f40-821a-b8a2f638fd81</tstamps>
+    </comp>
+    <comp ref="R8">
+      <value>4K7</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">4K7</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="4K7"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>83b70acb-2bdc-48c5-82fe-7f949223fc1c</tstamps>
+    </comp>
+    <comp ref="R9">
+      <value>22R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">22R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="22R"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>19c11bb5-a9f8-4673-84cc-a6e9e7400d7f</tstamps>
+    </comp>
+    <comp ref="R10">
+      <value>47K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47K"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f44b7624-a219-4b6a-8367-c6b5f24d9d06</tstamps>
+    </comp>
+    <comp ref="R11">
+      <value>22R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">22R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="22R"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>18b5aae0-e58b-48d6-a2ce-b648d1057cc6</tstamps>
+    </comp>
+    <comp ref="R12">
+      <value>47R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47R"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c61b585f-5fb0-4565-b0dc-9f8c99ce021c</tstamps>
+    </comp>
+    <comp ref="R13">
+      <value>0R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">0R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="0R"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f3c7a36d-8f0c-4cb4-9d1f-bff99a7c18ca</tstamps>
+    </comp>
+    <comp ref="R14">
+      <value>2K2</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">2K2</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="2K2"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e9b56d16-c73a-4987-bed2-a08fcc4bffb9</tstamps>
+    </comp>
+    <comp ref="R15">
+      <value>22R</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">22R</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="22R"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3656d1d0-63a9-45ab-80fa-d1429668b77b</tstamps>
+    </comp>
+    <comp ref="R16">
+      <value>4K7</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">4K7</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="4K7"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2d339242-bcf9-428d-a96a-aa9128a541a0</tstamps>
+    </comp>
+    <comp ref="R17">
+      <value>47K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_3_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47K"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d2e36f56-d926-4d35-88f5-dfacd0a95125</tstamps>
+    </comp>
+    <comp ref="R18">
+      <value>47K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">47K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">1%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="47K"/>
+      <property name="PRECISION" value="1%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>96acc68c-85d9-4f45-9fda-57ca9069ae8e</tstamps>
+    </comp>
+    <comp ref="R19">
+      <value>100K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">100K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="100K"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7f02d65f-f99e-4a51-8df8-cb5466fbca12</tstamps>
+    </comp>
+    <comp ref="R20">
+      <value>15K</value>
+      <footprint>Library:0603</footprint>
+      <fields>
+        <field name="ALTIUM_VALUE">15K</field>
+        <field name="PACKAGE REFERENCE">0603</field>
+        <field name="POWER">1/10W</field>
+        <field name="PRECISION">5%</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603" description="Resistor 0603"/>
+      <property name="REVISION" value=""/>
+      <property name="ALTIUM_VALUE" value="15K"/>
+      <property name="PRECISION" value="5%"/>
+      <property name="PACKAGE REFERENCE" value="0603"/>
+      <property name="POWER" value="1/10W"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Resistor 0603"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8ab4fe05-2350-4138-a636-8e381c90fe4f</tstamps>
+    </comp>
+    <comp ref="U1">
+      <value>SIM7600E S2-107EP-Z304M</value>
+      <footprint>Library:SIM7600</footprint>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_SIM7600" description="LTE MODULE GSM"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="LTE MODULE GSM"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8dc26448-2a25-483a-8bcf-1191b4ebce31</tstamps>
+    </comp>
+    <comp ref="U2">
+      <value>LSF0101GWH</value>
+      <footprint>Library:SOT363(SC70)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOT363</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_LSF0101" description="1-bit bidirectional level translator"/>
+      <property name="PACKAGE REFERENCE" value="SOT363"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="1-bit bidirectional level translator"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>caf22e52-9d00-433e-b725-c7975801b2b0</tstamps>
+    </comp>
+    <comp ref="U3">
+      <value>UPIN27</value>
+      <footprint>Library:UPIN27_OK</footprint>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_UPIN27" description="Upin 27 p.2.54"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Upin 27 p.2.54"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a42f9538-8bc3-494d-a8e1-b8870cc754bc</tstamps>
+    </comp>
+    <comp ref="U4">
+      <value>TXU0204QPWRQ1</value>
+      <footprint>Library:TSSOP14</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">TSSOP14</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_TXU0204" description="Level Translator with SchmittTrigger Inputs and 3-State Outputs"/>
+      <property name="PACKAGE REFERENCE" value="TSSOP14"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Level Translator with SchmittTrigger Inputs and 3-State Outputs"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>39472a23-a9d5-4a96-86f2-2cba159df6e4</tstamps>
+    </comp>
+    <comp ref="U5">
+      <value>SC4216HSETRT</value>
+      <footprint>Library:SOT363(SC70)</footprint>
+      <fields>
+        <field name="PACKAGE REFERENCE">SOIC8-EDP</field>
+      </fields>
+      <libsource lib="Stima V4_GSM R1_1-altium-import" part="root_0_SC4216H" description="Low Dropout  3 Amp Regulator With Enable"/>
+      <property name="PACKAGE REFERENCE" value="SOIC8-EDP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Stima V4_GSM R1_1.kicad_sch"/>
+      <property name="ki_description" value="Low Dropout  3 Amp Regulator With Enable"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1107943a-d687-40cb-8569-d9c1525c5ded</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_Antenna">
+      <description>Generic Antenna</description>
+      <footprints>
+        <fp>CONN_ANTENNA_SMD</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_BC817-25">
+      <description>NPN General-purpose Transistor</description>
+      <footprints>
+        <fp>SOT23</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="B" type="passive"/>
+        <pin num="2" name="E" type="passive"/>
+        <pin num="3" name="C" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_BLM18BD">
+      <description>Chip ferrite</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_BSS138">
+      <description>Mosfet N-Channel Sot23</description>
+      <footprints>
+        <fp>SOT23</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="G" type="passive"/>
+        <pin num="2" name="S" type="passive"/>
+        <pin num="3" name="D" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_C0603">
+      <description>Ceramic Chip Capacitor - Standard</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_Coil  SMD piccoli">
+      <description>Coil SMD piccoli</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_ESDA6V1-5W6">
+      <description>TRANSIL array for data protection</description>
+      <footprints>
+        <fp>SOT363(SC70)</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="TVS1" type="passive"/>
+        <pin num="2" name="COM" type="passive"/>
+        <pin num="3" name="TVS2" type="passive"/>
+        <pin num="4" name="TVS3" type="passive"/>
+        <pin num="5" name="TVS4" type="passive"/>
+        <pin num="6" name="TVS5" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_LSF0101">
+      <description>1-bit bidirectional level translator</description>
+      <footprints>
+        <fp>SOT363(SC70)</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="REFA" type="passive"/>
+        <pin num="3" name="A1" type="passive"/>
+        <pin num="4" name="B1" type="passive"/>
+        <pin num="5" name="REFB" type="passive"/>
+        <pin num="6" name="EN" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_SC4216H">
+      <description>Low Dropout  3 Amp Regulator With Enable</description>
+      <footprints>
+        <fp>SO8-EDP-2 MIO</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="2" name="EN" type="passive"/>
+        <pin num="3" name="VIN" type="power_in"/>
+        <pin num="6" name="VO" type="power_in"/>
+        <pin num="7" name="FB" type="passive"/>
+        <pin num="8" name="GND" type="power_in"/>
+        <pin num="9" name="EP" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_SIM7600">
+      <description>LTE MODULE GSM</description>
+      <footprints>
+        <fp>SIM7600</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="PWRKEY" type="passive"/>
+        <pin num="4" name="RESET" type="passive"/>
+        <pin num="5" name="GND" type="power_in"/>
+        <pin num="6" name="SPI_CLK" type="passive"/>
+        <pin num="7" name="SPI_MISO" type="passive"/>
+        <pin num="8" name="SPI_MOSI" type="passive"/>
+        <pin num="9" name="SPI_CS" type="passive"/>
+        <pin num="10" name="GND" type="power_in"/>
+        <pin num="11" name="USB_VBUS" type="passive"/>
+        <pin num="12" name="USB_DN" type="passive"/>
+        <pin num="13" name="USB_DP" type="passive"/>
+        <pin num="14" name="GND" type="power_in"/>
+        <pin num="15" name="VDD_1V8" type="passive"/>
+        <pin num="16" name="USB_ID" type="passive"/>
+        <pin num="17" name="USIM_DATA" type="passive"/>
+        <pin num="18" name="USIM_RTS" type="passive"/>
+        <pin num="19" name="USIM_CLK" type="passive"/>
+        <pin num="20" name="USIM_VDD" type="passive"/>
+        <pin num="21" name="SD_CMD" type="passive"/>
+        <pin num="22" name="SD_DATA0" type="passive"/>
+        <pin num="23" name="SD_DATA1" type="passive"/>
+        <pin num="24" name="SD_DATA2" type="passive"/>
+        <pin num="25" name="SD_DATA3" type="passive"/>
+        <pin num="26" name="SD_CLK" type="passive"/>
+        <pin num="27" name="SDIO_DATA1" type="passive"/>
+        <pin num="28" name="SDIO_DATA2" type="passive"/>
+        <pin num="29" name="SDIO_CMD" type="passive"/>
+        <pin num="30" name="SDIO_DATA0" type="passive"/>
+        <pin num="31" name="SDIO_DATA3" type="passive"/>
+        <pin num="32" name="SDIO_CLK" type="passive"/>
+        <pin num="33" name="GPIO3" type="passive"/>
+        <pin num="34" name="GPIO6" type="passive"/>
+        <pin num="35" name="HSIC_STROBE" type="passive"/>
+        <pin num="36" name="HSIC_DATA" type="passive"/>
+        <pin num="37" name="GND" type="power_in"/>
+        <pin num="38" name="VBAT" type="power_in"/>
+        <pin num="39" name="VBAT" type="power_in"/>
+        <pin num="40" name="GND" type="power_in"/>
+        <pin num="41" name="GND" type="power_in"/>
+        <pin num="42" name="NC" type="passive"/>
+        <pin num="43" name="GND" type="power_in"/>
+        <pin num="44" name="VDD_AUX" type="power_in"/>
+        <pin num="45" name="ISINK" type="passive"/>
+        <pin num="46" name="ADC2" type="passive"/>
+        <pin num="47" name="ADC1" type="passive"/>
+        <pin num="48" name="SD_DET" type="passive"/>
+        <pin num="49" name="STATUS" type="passive"/>
+        <pin num="50" name="GPIO43" type="passive"/>
+        <pin num="51" name="NETLIGHT" type="passive"/>
+        <pin num="52" name="GPIO41" type="passive"/>
+        <pin num="53" name="USIM_DET" type="passive"/>
+        <pin num="54" name="FLIGHTMODE" type="passive"/>
+        <pin num="55" name="SCL" type="passive"/>
+        <pin num="56" name="SDA" type="passive"/>
+        <pin num="57" name="GND" type="power_in"/>
+        <pin num="58" name="GND" type="power_in"/>
+        <pin num="59" name="AUX_ANT" type="passive"/>
+        <pin num="60" name="GND" type="power_in"/>
+        <pin num="61" name="GND" type="power_in"/>
+        <pin num="62" name="VBAT" type="power_in"/>
+        <pin num="63" name="VBAT" type="power_in"/>
+        <pin num="64" name="GND" type="power_in"/>
+        <pin num="65" name="GND" type="power_in"/>
+        <pin num="66" name="RTS" type="passive"/>
+        <pin num="67" name="CTS" type="passive"/>
+        <pin num="68" name="RXD" type="passive"/>
+        <pin num="69" name="RI" type="passive"/>
+        <pin num="70" name="DCD" type="passive"/>
+        <pin num="71" name="TXD" type="passive"/>
+        <pin num="72" name="DTR" type="passive"/>
+        <pin num="73" name="PMC_OUT" type="passive"/>
+        <pin num="74" name="PMC_IN" type="passive"/>
+        <pin num="75" name="PMC_SYNC" type="passive"/>
+        <pin num="76" name="PMC_CLK" type="passive"/>
+        <pin num="77" name="GND" type="power_in"/>
+        <pin num="78" name="GND" type="power_in"/>
+        <pin num="79" name="GNSS_ANT" type="passive"/>
+        <pin num="80" name="GND" type="power_in"/>
+        <pin num="81" name="GND" type="power_in"/>
+        <pin num="82" name="MAIN_ANT" type="passive"/>
+        <pin num="83" name="COEX1" type="passive"/>
+        <pin num="84" name="COEX2" type="passive"/>
+        <pin num="85" name="USB_BOOT" type="passive"/>
+        <pin num="86" name="COEX3" type="passive"/>
+        <pin num="87" name="GPIO77" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_TXU0204">
+      <description>Level Translator with SchmittTrigger Inputs and 3-State Outputs</description>
+      <footprints>
+        <fp>TSSOP14</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="VCCA" type="power_in"/>
+        <pin num="2" name="A1" type="input"/>
+        <pin num="3" name="A2" type="input"/>
+        <pin num="4" name="AY3" type="output"/>
+        <pin num="5" name="AY4" type="output"/>
+        <pin num="7" name="GND" type="power_in"/>
+        <pin num="8" name="OE" type="input"/>
+        <pin num="10" name="B4" type="input"/>
+        <pin num="11" name="B3" type="input"/>
+        <pin num="12" name="BY2" type="output"/>
+        <pin num="13" name="BY1" type="output"/>
+        <pin num="14" name="VCCB" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_Tag. SMD B">
+      <description>Tantalio</description>
+      <footprints>
+        <fp>Case B-TC3528-1411</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_Transil SMD PESD5">
+      <description>Transil  Low capacitance unidirectional ElectroStatic Discharge (ESD) protection diodes</description>
+      <footprints>
+        <fp>SOD 523(SC-79)</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_UPIN27">
+      <description>Upin 27 p.2.54</description>
+      <footprints>
+        <fp>UPIN27_OK</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="5V" type="passive"/>
+        <pin num="2" name="3V3" type="passive"/>
+        <pin num="3" name="D7" type="passive"/>
+        <pin num="4" name="D8" type="passive"/>
+        <pin num="5" name="D9" type="passive"/>
+        <pin num="6" name="D10" type="passive"/>
+        <pin num="7" name="D11" type="passive"/>
+        <pin num="8" name="D12" type="passive"/>
+        <pin num="9" name="D13" type="passive"/>
+        <pin num="10" name="REF" type="passive"/>
+        <pin num="11" name="A0" type="passive"/>
+        <pin num="12" name="A1" type="passive"/>
+        <pin num="13" name="A2" type="passive"/>
+        <pin num="14" name="A3" type="passive"/>
+        <pin num="15" name="A4" type="passive"/>
+        <pin num="16" name="A5" type="passive"/>
+        <pin num="17" name="A6" type="passive"/>
+        <pin num="18" name="A7" type="passive"/>
+        <pin num="19" name="RX0" type="passive"/>
+        <pin num="20" name="TX0" type="passive"/>
+        <pin num="21" name="D2" type="passive"/>
+        <pin num="22" name="D3" type="passive"/>
+        <pin num="23" name="D4" type="passive"/>
+        <pin num="24" name="D5" type="passive"/>
+        <pin num="25" name="D6" type="passive"/>
+        <pin num="26" name="RST" type="passive"/>
+        <pin num="27" name="GND" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_ViteDado">
+      <description>Foro di fissaggio scheda</description>
+      <footprints>
+        <fp>ViteDado4</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_0_mirrored_SIM CARD MICRO">
+      <description>Micro SIM CARD GCT SIM7100-6-1-15-00-A</description>
+      <footprints>
+        <fp>SIM CARD MICRO</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="C1" name="VCC" type="passive"/>
+        <pin num="C2" name="RST" type="passive"/>
+        <pin num="C3" name="CLK" type="passive"/>
+        <pin num="C4" name="RFU" type="passive"/>
+        <pin num="C5" name="GND" type="passive"/>
+        <pin num="C6" name="VPP" type="passive"/>
+        <pin num="C7" name="I/O" type="passive"/>
+        <pin num="C8" name="RFU" type="passive"/>
+        <pin num="CD" name="CD" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_1_C0603">
+      <description>Ceramic Chip Capacitor - Standard</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_1_Coil  SMD piccoli">
+      <description>Coil SMD piccoli</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_1_Res 0603">
+      <description>Resistor 0603</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_2_C0603">
+      <description>Ceramic Chip Capacitor - Standard</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_2_Led  SMD">
+      <description>Typical RED, GREEN, YELLOW, AMBER GaAs LED</description>
+      <footprints>
+        <fp>0805-led</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_2_Res 0603">
+      <description>Resistor 0603</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_3_Antenna">
+      <description>Cavo adattatore antenna</description>
+      <footprints>
+        <fp>CONN_ANTENNA_SMD</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_3_C0603">
+      <description>Ceramic Chip Capacitor - Standard</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Stima V4_GSM R1_1-altium-import" part="root_3_Res 0603">
+      <description>Resistor 0603</description>
+      <footprints>
+        <fp>0603</fp>
+      </footprints>
+      <fields/>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Stima V4_GSM R1_1-altium-import">
+      <uri>C:/Users/Administrator/Desktop/Stima per Kicad/Stima 1/Stima V4 GSM Rev1_1_24/Stima V4_GSM R1_1-altium-import.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+1V8">
+      <node ref="C11" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C6" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R17" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U1" pin="15" pinfunction="VDD_1V8" pintype="passive"/>
+      <node ref="U2" pin="5" pinfunction="REFB" pintype="passive"/>
+      <node ref="U4" pin="14" pinfunction="VCCB" pintype="power_in"/>
+    </net>
+    <net code="2" name="+3V3">
+      <node ref="C10" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R6" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U3" pin="2" pinfunction="3V3" pintype="passive"/>
+      <node ref="U4" pin="1" pinfunction="VCCA" pintype="power_in"/>
+    </net>
+    <net code="3" name="+3V8">
+      <node ref="C15" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C16" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C17" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C18" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C19" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="DL1" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="DL2" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="DZ6" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="FIL1" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R19" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="R3" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="38" pinfunction="VBAT" pintype="power_in"/>
+      <node ref="U1" pin="39" pinfunction="VBAT" pintype="power_in"/>
+      <node ref="U5" pin="6" pinfunction="VO" pintype="power_in"/>
+    </net>
+    <net code="4" name="+5V">
+      <node ref="C13" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C14" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U3" pin="1" pinfunction="5V" pintype="passive"/>
+      <node ref="U5" pin="3" pinfunction="VIN" pintype="power_in"/>
+    </net>
+    <net code="5" name="/EN_PW_GSM">
+      <node ref="R12" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U3" pin="23" pinfunction="D4" pintype="passive"/>
+      <node ref="U5" pin="2" pinfunction="EN" pintype="passive"/>
+    </net>
+    <net code="6" name="/PWRKEY">
+      <node ref="R1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U3" pin="24" pinfunction="D5" pintype="passive"/>
+    </net>
+    <net code="7" name="/RI">
+      <node ref="U3" pin="25" pinfunction="D6" pintype="passive"/>
+      <node ref="U4" pin="5" pinfunction="AY4" pintype="output"/>
+    </net>
+    <net code="8" name="/RST">
+      <node ref="U2" pin="3" pinfunction="A1" pintype="passive"/>
+      <node ref="U3" pin="26" pinfunction="RST" pintype="passive"/>
+    </net>
+    <net code="9" name="/STATUS">
+      <node ref="R16" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U1" pin="49" pinfunction="STATUS" pintype="passive"/>
+    </net>
+    <net code="10" name="/USART2_RX">
+      <node ref="U3" pin="19" pinfunction="RX0" pintype="passive"/>
+      <node ref="U4" pin="4" pinfunction="AY3" pintype="output"/>
+    </net>
+    <net code="11" name="/USART2_TX">
+      <node ref="U3" pin="20" pinfunction="TX0" pintype="passive"/>
+      <node ref="U4" pin="2" pinfunction="A1" pintype="input"/>
+    </net>
+    <net code="12" name="GND">
+      <node ref="C10" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C11" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C12" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C13" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C14" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C15" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C16" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C17" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C18" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C19" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C20" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C21" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C22" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C3" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C4" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C5" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C7" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C8" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C9" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="DZ2" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="DZ3" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="DZ4" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="DZ5" pin="2" pinfunction="COM" pintype="passive"/>
+      <node ref="DZ6" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="J1" pin="C5" pinfunction="GND" pintype="passive"/>
+      <node ref="L2" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="L3" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="Q1" pin="2" pinfunction="S" pintype="passive"/>
+      <node ref="Q2" pin="2" pinfunction="E" pintype="passive"/>
+      <node ref="Q3" pin="2" pinfunction="E" pintype="passive"/>
+      <node ref="R10" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R18" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R20" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R4" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="10" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="14" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="2" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="37" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="40" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="41" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="43" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="5" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="57" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="58" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="60" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="61" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="64" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="65" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="77" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="78" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="80" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="81" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="6" pinfunction="EN" pintype="passive"/>
+      <node ref="U3" pin="27" pinfunction="GND" pintype="passive"/>
+      <node ref="U4" pin="7" pinfunction="GND" pintype="power_in"/>
+      <node ref="U5" pin="8" pinfunction="GND" pintype="power_in"/>
+      <node ref="U5" pin="9" pinfunction="EP" pintype="power_in"/>
+    </net>
+    <net code="13" name="Net-(C1-Pad1)">
+      <node ref="C1" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C23" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="L2" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="14" name="Net-(C1-Pad2)">
+      <node ref="C1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="C2" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="L3" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="15" name="Net-(C20-Pad1)">
+      <node ref="C20" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C21" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="C22" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="FIL1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U1" pin="62" pinfunction="VBAT" pintype="power_in"/>
+      <node ref="U1" pin="63" pinfunction="VBAT" pintype="power_in"/>
+    </net>
+    <net code="16" name="Net-(DL1-K)">
+      <node ref="DL1" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="R7" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="17" name="Net-(DL2-K)">
+      <node ref="DL2" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="R14" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="18" name="Net-(DZ1-A)">
+      <node ref="C6" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="DZ1" pin="2" pinfunction="A" pintype="passive"/>
+    </net>
+    <net code="19" name="Net-(DZ1-K)">
+      <node ref="C3" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="DZ1" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="Q1" pin="3" pinfunction="D" pintype="passive"/>
+      <node ref="U1" pin="3" pinfunction="PWRKEY" pintype="passive"/>
+    </net>
+    <net code="20" name="Net-(DZ2-K)">
+      <node ref="C2" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="DZ2" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="E2_GNSS1" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="L1" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="21" name="Net-(DZ3-K)">
+      <node ref="C4" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="DZ3" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="E1_MAIN1" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="R2" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="22" name="Net-(DZ4-K)">
+      <node ref="C9" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="DZ4" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="E3_AUX1" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="R5" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="23" name="Net-(DZ5-TVS1)">
+      <node ref="DZ5" pin="1" pinfunction="TVS1" pintype="passive"/>
+      <node ref="J1" pin="CD" pinfunction="CD" pintype="passive"/>
+      <node ref="R15" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="24" name="Net-(DZ5-TVS2)">
+      <node ref="C12" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="DZ5" pin="3" pinfunction="TVS2" pintype="passive"/>
+      <node ref="J1" pin="C1" pinfunction="VCC" pintype="passive"/>
+      <node ref="U1" pin="20" pinfunction="USIM_VDD" pintype="passive"/>
+    </net>
+    <net code="25" name="Net-(DZ5-TVS3)">
+      <node ref="DZ5" pin="4" pinfunction="TVS3" pintype="passive"/>
+      <node ref="J1" pin="C3" pinfunction="CLK" pintype="passive"/>
+      <node ref="R13" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="26" name="Net-(DZ5-TVS4)">
+      <node ref="DZ5" pin="5" pinfunction="TVS4" pintype="passive"/>
+      <node ref="J1" pin="C2" pinfunction="RST" pintype="passive"/>
+      <node ref="R11" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="27" name="Net-(DZ5-TVS5)">
+      <node ref="DZ5" pin="6" pinfunction="TVS5" pintype="passive"/>
+      <node ref="J1" pin="C7" pinfunction="I/O" pintype="passive"/>
+      <node ref="R9" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="28" name="Net-(L1-Pad2)">
+      <node ref="L1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="R3" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="29" name="Net-(Q1-G)">
+      <node ref="Q1" pin="1" pinfunction="G" pintype="passive"/>
+      <node ref="R1" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R4" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="30" name="Net-(Q2-B)">
+      <node ref="Q2" pin="1" pinfunction="B" pintype="passive"/>
+      <node ref="R10" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="R8" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="31" name="Net-(Q2-C)">
+      <node ref="Q2" pin="3" pinfunction="C" pintype="passive"/>
+      <node ref="R7" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="32" name="Net-(Q3-B)">
+      <node ref="Q3" pin="1" pinfunction="B" pintype="passive"/>
+      <node ref="R16" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R18" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="33" name="Net-(Q3-C)">
+      <node ref="Q3" pin="3" pinfunction="C" pintype="passive"/>
+      <node ref="R14" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="34" name="Net-(U1-AUX_ANT)">
+      <node ref="C8" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R5" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U1" pin="59" pinfunction="AUX_ANT" pintype="passive"/>
+    </net>
+    <net code="35" name="Net-(U1-GNSS_ANT)">
+      <node ref="C23" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="79" pinfunction="GNSS_ANT" pintype="passive"/>
+    </net>
+    <net code="36" name="Net-(U1-MAIN_ANT)">
+      <node ref="C5" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R2" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="82" pinfunction="MAIN_ANT" pintype="passive"/>
+    </net>
+    <net code="37" name="Net-(U1-NETLIGHT)">
+      <node ref="R8" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U1" pin="51" pinfunction="NETLIGHT" pintype="passive"/>
+    </net>
+    <net code="38" name="Net-(U1-RESET)">
+      <node ref="U1" pin="4" pinfunction="RESET" pintype="passive"/>
+      <node ref="U2" pin="4" pinfunction="B1" pintype="passive"/>
+    </net>
+    <net code="39" name="Net-(U1-RI)">
+      <node ref="U1" pin="69" pinfunction="RI" pintype="passive"/>
+      <node ref="U4" pin="10" pinfunction="B4" pintype="input"/>
+    </net>
+    <net code="40" name="Net-(U1-RXD)">
+      <node ref="U1" pin="68" pinfunction="RXD" pintype="passive"/>
+      <node ref="U4" pin="13" pinfunction="BY1" pintype="output"/>
+    </net>
+    <net code="41" name="Net-(U1-TXD)">
+      <node ref="U1" pin="71" pinfunction="TXD" pintype="passive"/>
+      <node ref="U4" pin="11" pinfunction="B3" pintype="input"/>
+    </net>
+    <net code="42" name="Net-(U1-USIM_CLK)">
+      <node ref="R13" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="19" pinfunction="USIM_CLK" pintype="passive"/>
+    </net>
+    <net code="43" name="Net-(U1-USIM_DATA)">
+      <node ref="R9" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="17" pinfunction="USIM_DATA" pintype="passive"/>
+    </net>
+    <net code="44" name="Net-(U1-USIM_DET)">
+      <node ref="R15" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R17" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="53" pinfunction="USIM_DET" pintype="passive"/>
+    </net>
+    <net code="45" name="Net-(U1-USIM_RTS)">
+      <node ref="R11" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="18" pinfunction="USIM_RTS" pintype="passive"/>
+    </net>
+    <net code="46" name="Net-(U2-GND)">
+      <node ref="C7" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R6" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U2" pin="1" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="2" pinfunction="REFA" pintype="passive"/>
+    </net>
+    <net code="47" name="Net-(U4-OE)">
+      <node ref="R12" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U4" pin="8" pinfunction="OE" pintype="input"/>
+    </net>
+    <net code="48" name="Net-(U5-FB)">
+      <node ref="R19" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="R20" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U5" pin="7" pinfunction="FB" pintype="passive"/>
+    </net>
+    <net code="49" name="unconnected-(A3-A-Pad1)">
+      <node ref="A3" pin="1" pinfunction="A" pintype="passive+no_connect"/>
+    </net>
+    <net code="50" name="unconnected-(A4-A-Pad1)">
+      <node ref="A4" pin="1" pinfunction="A" pintype="passive+no_connect"/>
+    </net>
+    <net code="51" name="unconnected-(J1-RFU-PadC4)">
+      <node ref="J1" pin="C4" pinfunction="RFU" pintype="passive+no_connect"/>
+    </net>
+    <net code="52" name="unconnected-(J1-RFU-PadC8)">
+      <node ref="J1" pin="C8" pinfunction="RFU" pintype="passive+no_connect"/>
+    </net>
+    <net code="53" name="unconnected-(J1-VPP-PadC6)">
+      <node ref="J1" pin="C6" pinfunction="VPP" pintype="passive+no_connect"/>
+    </net>
+    <net code="54" name="unconnected-(U1-ADC1-Pad47)">
+      <node ref="U1" pin="47" pinfunction="ADC1" pintype="passive+no_connect"/>
+    </net>
+    <net code="55" name="unconnected-(U1-ADC2-Pad46)">
+      <node ref="U1" pin="46" pinfunction="ADC2" pintype="passive+no_connect"/>
+    </net>
+    <net code="56" name="unconnected-(U1-COEX1-Pad83)">
+      <node ref="U1" pin="83" pinfunction="COEX1" pintype="passive+no_connect"/>
+    </net>
+    <net code="57" name="unconnected-(U1-COEX2-Pad84)">
+      <node ref="U1" pin="84" pinfunction="COEX2" pintype="passive+no_connect"/>
+    </net>
+    <net code="58" name="unconnected-(U1-COEX3-Pad86)">
+      <node ref="U1" pin="86" pinfunction="COEX3" pintype="passive+no_connect"/>
+    </net>
+    <net code="59" name="unconnected-(U1-CTS-Pad67)">
+      <node ref="U1" pin="67" pinfunction="CTS" pintype="passive+no_connect"/>
+    </net>
+    <net code="60" name="unconnected-(U1-DCD-Pad70)">
+      <node ref="U1" pin="70" pinfunction="DCD" pintype="passive+no_connect"/>
+    </net>
+    <net code="61" name="unconnected-(U1-DTR-Pad72)">
+      <node ref="U1" pin="72" pinfunction="DTR" pintype="passive+no_connect"/>
+    </net>
+    <net code="62" name="unconnected-(U1-FLIGHTMODE-Pad54)">
+      <node ref="U1" pin="54" pinfunction="FLIGHTMODE" pintype="passive+no_connect"/>
+    </net>
+    <net code="63" name="unconnected-(U1-GPIO3-Pad33)">
+      <node ref="U1" pin="33" pinfunction="GPIO3" pintype="passive+no_connect"/>
+    </net>
+    <net code="64" name="unconnected-(U1-GPIO6-Pad34)">
+      <node ref="U1" pin="34" pinfunction="GPIO6" pintype="passive+no_connect"/>
+    </net>
+    <net code="65" name="unconnected-(U1-GPIO41-Pad52)">
+      <node ref="U1" pin="52" pinfunction="GPIO41" pintype="passive+no_connect"/>
+    </net>
+    <net code="66" name="unconnected-(U1-GPIO43-Pad50)">
+      <node ref="U1" pin="50" pinfunction="GPIO43" pintype="passive+no_connect"/>
+    </net>
+    <net code="67" name="unconnected-(U1-GPIO77-Pad87)">
+      <node ref="U1" pin="87" pinfunction="GPIO77" pintype="passive+no_connect"/>
+    </net>
+    <net code="68" name="unconnected-(U1-HSIC_DATA-Pad36)">
+      <node ref="U1" pin="36" pinfunction="HSIC_DATA" pintype="passive+no_connect"/>
+    </net>
+    <net code="69" name="unconnected-(U1-HSIC_STROBE-Pad35)">
+      <node ref="U1" pin="35" pinfunction="HSIC_STROBE" pintype="passive+no_connect"/>
+    </net>
+    <net code="70" name="unconnected-(U1-ISINK-Pad45)">
+      <node ref="U1" pin="45" pinfunction="ISINK" pintype="passive+no_connect"/>
+    </net>
+    <net code="71" name="unconnected-(U1-NC-Pad42)">
+      <node ref="U1" pin="42" pinfunction="NC" pintype="passive+no_connect"/>
+    </net>
+    <net code="72" name="unconnected-(U1-PMC_CLK-Pad76)">
+      <node ref="U1" pin="76" pinfunction="PMC_CLK" pintype="passive+no_connect"/>
+    </net>
+    <net code="73" name="unconnected-(U1-PMC_IN-Pad74)">
+      <node ref="U1" pin="74" pinfunction="PMC_IN" pintype="passive+no_connect"/>
+    </net>
+    <net code="74" name="unconnected-(U1-PMC_OUT-Pad73)">
+      <node ref="U1" pin="73" pinfunction="PMC_OUT" pintype="passive+no_connect"/>
+    </net>
+    <net code="75" name="unconnected-(U1-PMC_SYNC-Pad75)">
+      <node ref="U1" pin="75" pinfunction="PMC_SYNC" pintype="passive+no_connect"/>
+    </net>
+    <net code="76" name="unconnected-(U1-RTS-Pad66)">
+      <node ref="U1" pin="66" pinfunction="RTS" pintype="passive+no_connect"/>
+    </net>
+    <net code="77" name="unconnected-(U1-SCL-Pad55)">
+      <node ref="U1" pin="55" pinfunction="SCL" pintype="passive+no_connect"/>
+    </net>
+    <net code="78" name="unconnected-(U1-SDA-Pad56)">
+      <node ref="U1" pin="56" pinfunction="SDA" pintype="passive+no_connect"/>
+    </net>
+    <net code="79" name="unconnected-(U1-SDIO_CLK-Pad32)">
+      <node ref="U1" pin="32" pinfunction="SDIO_CLK" pintype="passive+no_connect"/>
+    </net>
+    <net code="80" name="unconnected-(U1-SDIO_CMD-Pad29)">
+      <node ref="U1" pin="29" pinfunction="SDIO_CMD" pintype="passive+no_connect"/>
+    </net>
+    <net code="81" name="unconnected-(U1-SDIO_DATA0-Pad30)">
+      <node ref="U1" pin="30" pinfunction="SDIO_DATA0" pintype="passive+no_connect"/>
+    </net>
+    <net code="82" name="unconnected-(U1-SDIO_DATA1-Pad27)">
+      <node ref="U1" pin="27" pinfunction="SDIO_DATA1" pintype="passive+no_connect"/>
+    </net>
+    <net code="83" name="unconnected-(U1-SDIO_DATA2-Pad28)">
+      <node ref="U1" pin="28" pinfunction="SDIO_DATA2" pintype="passive+no_connect"/>
+    </net>
+    <net code="84" name="unconnected-(U1-SDIO_DATA3-Pad31)">
+      <node ref="U1" pin="31" pinfunction="SDIO_DATA3" pintype="passive+no_connect"/>
+    </net>
+    <net code="85" name="unconnected-(U1-SD_CLK-Pad26)">
+      <node ref="U1" pin="26" pinfunction="SD_CLK" pintype="passive+no_connect"/>
+    </net>
+    <net code="86" name="unconnected-(U1-SD_CMD-Pad21)">
+      <node ref="U1" pin="21" pinfunction="SD_CMD" pintype="passive+no_connect"/>
+    </net>
+    <net code="87" name="unconnected-(U1-SD_DATA0-Pad22)">
+      <node ref="U1" pin="22" pinfunction="SD_DATA0" pintype="passive+no_connect"/>
+    </net>
+    <net code="88" name="unconnected-(U1-SD_DATA1-Pad23)">
+      <node ref="U1" pin="23" pinfunction="SD_DATA1" pintype="passive+no_connect"/>
+    </net>
+    <net code="89" name="unconnected-(U1-SD_DATA2-Pad24)">
+      <node ref="U1" pin="24" pinfunction="SD_DATA2" pintype="passive+no_connect"/>
+    </net>
+    <net code="90" name="unconnected-(U1-SD_DATA3-Pad25)">
+      <node ref="U1" pin="25" pinfunction="SD_DATA3" pintype="passive+no_connect"/>
+    </net>
+    <net code="91" name="unconnected-(U1-SD_DET-Pad48)">
+      <node ref="U1" pin="48" pinfunction="SD_DET" pintype="passive+no_connect"/>
+    </net>
+    <net code="92" name="unconnected-(U1-SPI_CLK-Pad6)">
+      <node ref="U1" pin="6" pinfunction="SPI_CLK" pintype="passive+no_connect"/>
+    </net>
+    <net code="93" name="unconnected-(U1-SPI_CS-Pad9)">
+      <node ref="U1" pin="9" pinfunction="SPI_CS" pintype="passive+no_connect"/>
+    </net>
+    <net code="94" name="unconnected-(U1-SPI_MISO-Pad7)">
+      <node ref="U1" pin="7" pinfunction="SPI_MISO" pintype="passive+no_connect"/>
+    </net>
+    <net code="95" name="unconnected-(U1-SPI_MOSI-Pad8)">
+      <node ref="U1" pin="8" pinfunction="SPI_MOSI" pintype="passive+no_connect"/>
+    </net>
+    <net code="96" name="unconnected-(U1-USB_BOOT-Pad85)">
+      <node ref="U1" pin="85" pinfunction="USB_BOOT" pintype="passive+no_connect"/>
+    </net>
+    <net code="97" name="unconnected-(U1-USB_DN-Pad12)">
+      <node ref="U1" pin="12" pinfunction="USB_DN" pintype="passive+no_connect"/>
+    </net>
+    <net code="98" name="unconnected-(U1-USB_DP-Pad13)">
+      <node ref="U1" pin="13" pinfunction="USB_DP" pintype="passive+no_connect"/>
+    </net>
+    <net code="99" name="unconnected-(U1-USB_ID-Pad16)">
+      <node ref="U1" pin="16" pinfunction="USB_ID" pintype="passive+no_connect"/>
+    </net>
+    <net code="100" name="unconnected-(U1-USB_VBUS-Pad11)">
+      <node ref="U1" pin="11" pinfunction="USB_VBUS" pintype="passive+no_connect"/>
+    </net>
+    <net code="101" name="unconnected-(U1-VDD_AUX-Pad44)">
+      <node ref="U1" pin="44" pinfunction="VDD_AUX" pintype="power_in+no_connect"/>
+    </net>
+    <net code="102" name="unconnected-(U3-A0-Pad11)">
+      <node ref="U3" pin="11" pinfunction="A0" pintype="passive+no_connect"/>
+    </net>
+    <net code="103" name="unconnected-(U3-A1-Pad12)">
+      <node ref="U3" pin="12" pinfunction="A1" pintype="passive+no_connect"/>
+    </net>
+    <net code="104" name="unconnected-(U3-A2-Pad13)">
+      <node ref="U3" pin="13" pinfunction="A2" pintype="passive+no_connect"/>
+    </net>
+    <net code="105" name="unconnected-(U3-A3-Pad14)">
+      <node ref="U3" pin="14" pinfunction="A3" pintype="passive+no_connect"/>
+    </net>
+    <net code="106" name="unconnected-(U3-A4-Pad15)">
+      <node ref="U3" pin="15" pinfunction="A4" pintype="passive+no_connect"/>
+    </net>
+    <net code="107" name="unconnected-(U3-A5-Pad16)">
+      <node ref="U3" pin="16" pinfunction="A5" pintype="passive+no_connect"/>
+    </net>
+    <net code="108" name="unconnected-(U3-A6-Pad17)">
+      <node ref="U3" pin="17" pinfunction="A6" pintype="passive+no_connect"/>
+    </net>
+    <net code="109" name="unconnected-(U3-A7-Pad18)">
+      <node ref="U3" pin="18" pinfunction="A7" pintype="passive+no_connect"/>
+    </net>
+    <net code="110" name="unconnected-(U3-D2-Pad21)">
+      <node ref="U3" pin="21" pinfunction="D2" pintype="passive+no_connect"/>
+    </net>
+    <net code="111" name="unconnected-(U3-D3-Pad22)">
+      <node ref="U3" pin="22" pinfunction="D3" pintype="passive+no_connect"/>
+    </net>
+    <net code="112" name="unconnected-(U3-D7-Pad3)">
+      <node ref="U3" pin="3" pinfunction="D7" pintype="passive+no_connect"/>
+    </net>
+    <net code="113" name="unconnected-(U3-D8-Pad4)">
+      <node ref="U3" pin="4" pinfunction="D8" pintype="passive+no_connect"/>
+    </net>
+    <net code="114" name="unconnected-(U3-D9-Pad5)">
+      <node ref="U3" pin="5" pinfunction="D9" pintype="passive+no_connect"/>
+    </net>
+    <net code="115" name="unconnected-(U3-D10-Pad6)">
+      <node ref="U3" pin="6" pinfunction="D10" pintype="passive+no_connect"/>
+    </net>
+    <net code="116" name="unconnected-(U3-D11-Pad7)">
+      <node ref="U3" pin="7" pinfunction="D11" pintype="passive+no_connect"/>
+    </net>
+    <net code="117" name="unconnected-(U3-D12-Pad8)">
+      <node ref="U3" pin="8" pinfunction="D12" pintype="passive+no_connect"/>
+    </net>
+    <net code="118" name="unconnected-(U3-D13-Pad9)">
+      <node ref="U3" pin="9" pinfunction="D13" pintype="passive+no_connect"/>
+    </net>
+    <net code="119" name="unconnected-(U3-REF-Pad10)">
+      <node ref="U3" pin="10" pinfunction="REF" pintype="passive+no_connect"/>
+    </net>
+    <net code="120" name="unconnected-(U4-A2-Pad3)">
+      <node ref="U4" pin="3" pinfunction="A2" pintype="input+no_connect"/>
+    </net>
+    <net code="121" name="unconnected-(U4-BY2-Pad12)">
+      <node ref="U4" pin="12" pinfunction="BY2" pintype="output+no_connect"/>
+    </net>
+  </nets>
+</export>

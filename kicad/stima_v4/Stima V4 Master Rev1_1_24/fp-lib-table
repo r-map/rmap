@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Library_Master_impronte")(type "KiCad")(uri "${KIPRJMOD}/Library_Master_impronte.pretty")(options "")(descr ""))
+)

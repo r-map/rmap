@@ -93,7 +93,8 @@ void RegisterRPC::init(JsonRPC *streamRpc)
 /// @return execute level error or ok
 int RegisterRPC::admin(JsonObject params, JsonObject result)
 {
-  bool error_command = true;
+  bool error_command = true;              // Respond valid
+  system_message_t system_message = {0};  // system_message queue comunicate task
   for (JsonPair it : params)
   {
     if (strcmp(it.key().c_str(), "fdownload") == 0)
@@ -104,7 +105,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       {
         // Starting queue request reinit structure firmware upgradable (and start download...)
         // And waiting response. After command structure firmware are resetted (after download new check for valid firmware ready)
-        system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_reinit_fw = true;
         system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
@@ -152,7 +152,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       if (it.value().as<bool>() == true)
       {
         // Starting queue request truncate structure data on SD Card (Remote request)
-        system_message_t system_message = {0};
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_trunc_sd = true;
         system_message.param = CMD_PARAM_REQUIRE_RESPONSE;
@@ -182,7 +181,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       uint8_t node_id_rpc = it.value().as<unsigned int>();
       // Starting queue request direct command remote Node over Cyphal
       if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
-        system_message_t system_message = {0};
         system_message.task_dest = CAN_TASK_ID;
         system_message.command.do_factory = true;
         // Parameter is Node Slave ID (Command destination Node Id)
@@ -200,7 +198,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       uint8_t node_id_rpc = it.value().as<unsigned int>();
       // Starting queue request direct command remote Node over Cyphal
       if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
-        system_message_t system_message = {0};
         system_message.task_dest = CAN_TASK_ID;
         system_message.command.do_calib_acc = true;
         // Parameter is Node Slave ID (Command destination Node Id)
@@ -219,7 +216,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // Starting queue request direct command remote Node over Cyphal
       if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
         // Starting queue request direct commend reboot remote Node over Cyphal
-        system_message_t system_message = {0};
         system_message.task_dest = CAN_TASK_ID;
         system_message.command.do_reboot_node = true;
         // Parameter is Node Slave ID (Command destination Node Id)
@@ -238,7 +234,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       if(node_id_rpc == CMD_PARAM_MASTER_ADDRESS) {
         if(param.system_status->data_master.fw_upgradable) {
           // Starting queue request direct command firmware update remote Node over Cyphal
-          system_message_t system_message = {0};
           system_message.task_dest = SD_TASK_ID;
           system_message.command.do_update_fw = true;
           system_message.node_id = (Module_Type)node_id_rpc;
@@ -253,7 +248,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
         if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {
           if(param.system_status->data_slave[node_id_rpc].fw_upgradable) {
             // Starting queue request direct command firmware update remote Node over Cyphal
-            system_message_t system_message = {0};
             system_message.task_dest = CAN_TASK_ID;
             system_message.command.do_update_fw = true;
             // Parameter is Node Slave ID (Command destination Node Id)
@@ -293,7 +287,6 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       } else {
         // Starting queue request direct command remote Node over Cyphal
         if(param.configuration->board_slave[node_id_rpc].module_type != Module_Type::undefined) {        
-          system_message_t system_message = {0};
           system_message.task_dest = CAN_TASK_ID;
           system_message.command.do_reset_flags = true;
           // Parameter is Node Slave ID (Command destination Node Id)
