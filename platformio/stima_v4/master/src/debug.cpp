@@ -3,11 +3,10 @@
   * @file    debug.cpp
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
-  * @brief   debug and logger
+  * @brief   debug and logger for stimaV4 Master source file
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
   * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
   * <h2><center>All rights reserved.</center></h2>
   *
@@ -40,6 +39,10 @@
 
 using namespace cpp_freertos;
 
+/// @brief Put char to file output
+/// @param c char to write
+/// @param stream output mode file
+/// @return success
 int_t fputc(int_t c, FILE *stream)
 {
    // Standard output or error output?
@@ -58,6 +61,8 @@ int_t fputc(int_t c, FILE *stream)
    }
 }
 
+/// @brief init serial monitor
+/// @param baudrate speed monitor
 void init_debug(uint32_t baudrate) {
   #ifndef DISABLE_SERIAL
   Serial.begin(baudrate);
@@ -65,6 +70,9 @@ void init_debug(uint32_t baudrate) {
   #endif
 }
 
+/// @brief Print debug from ram
+/// @param fmt pointer to class FlashStringHelper
+/// @param any format output printf
 void print_debug(const char *fmt, ...)
 {
   va_list args;
@@ -76,6 +84,32 @@ void print_debug(const char *fmt, ...)
   #endif
 }
 
+/// @brief Display the contents of an array
+/// @param prepend String to prepend to the left of each line
+/// @param data Pointer to the data array
+/// @param length Number of bytes to display
+void print_debug_array(const char *prepend, const void *data, size_t length)
+{
+   for (uint8_t i = 0; i < length; i++)
+   {
+      // Beginning of a new line?
+      if ((i % 16) == 0)
+      {
+         TRACE_PRINTF("%s", prepend);
+      }
+      // Display current data byte
+      TRACE_PRINTF("%02" PRIX8 " ", *((const uint8_t *)data + i));
+      // End of current line?
+      if ((i % 16) == 15 || i == (length - 1))
+      {
+         TRACE_PRINTF("\r\n");
+      }
+   }
+}
+
+/// @brief Print debug from rom Flash
+/// @param fmt pointer to class FlashStringHelper
+/// @param any format output printf
 void print_debug_F(const __FlashStringHelper *fmt, ...)
 {
   osSuspendAllTasks();
@@ -89,6 +123,9 @@ void print_debug_F(const __FlashStringHelper *fmt, ...)
   osResumeAllTasks();
 }
 
+/// @brief Log debug from rom Flash into queue (Log file output)
+/// @param fmt pointer to class FlashStringHelper
+/// @param any format output printf
 void queue_debug_F(Queue *dataLogPutQueue, const __FlashStringHelper *fmt, ...)
 {
   // Only if queue not Full... rapid check
