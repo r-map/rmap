@@ -1,6 +1,6 @@
 
 #include "Arduino.h"
-#include "stimawifi-config.h"
+#include "stimawifi_config.h"
 #include "typedef.h"
 #include <frtosLog.h>
 #include "thread.hpp"
