@@ -107,7 +107,7 @@ class django2rpc_res(object):
 
     self.mqtt_host=mqtt_host
     self.subtopics=subtopics
-    self.client_id = "django2rpc"
+    self.client_id = "django2rpc_res_%d" % (os.getpid())
     self.mqttc = paho.Client(self.client_id, clean_session=False)
     self.terminateevent=terminate
     self.mqttuser=mqttuser

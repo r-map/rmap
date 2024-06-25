@@ -43,6 +43,7 @@ class report2observation(object):
     self.mqtttopicmaint=topicmaint
     
     self.mqttc.username_pw_set(self.mqttuser,self.mqttpassword)
+    self.mqttc.max_queued_messages_set(0)
 
     self.mqttc.on_message = self.on_message
     self.mqttc.on_connect = self.on_connect
@@ -80,8 +81,25 @@ class report2observation(object):
         self.mqttc.subscribe(topic, 1)   # qos 1
 
   def on_publish(self,mosq, userdata, mid):
-    logging.debug("pubblish %s with id %s" % (userdata, mid))
+    logging.debug("pubblished %s with id %s" % (userdata, mid))
 
+
+  def publish(self,topic,payload,retain=False,timeout=15.):
+
+      logging.info("publish %s : %s" % (topic,payload)) 
+      self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=1,retain=retain)
+      if messageinfo.rc != mqtt.MQTT_ERR_SUCCESS:
+              logging.error("publish rc %d" % messageinfo.rc) 
+      return messageinfo.rc
+
+      #if messageinfo.rc != mqtt.MQTT_ERR_SUCCESS:
+      #  return messageinfo.rc
+      #messageinfo.wait_for_publish(timeout)
+      #if (messageinfo.is_published()):
+      #  return mqtt.MQTT_ERR_SUCCESS
+      #else:
+      #  return 1
+    
 
   def on_message(self,mosq, userdata, msg):
 
@@ -148,10 +166,8 @@ class report2observation(object):
           return
 
       logging.info("user={} ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
-      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.info,qos=0,version=version)  # attention qos 0 for fast publish
+      #mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.info,qos=0,version=version)  # attention qos 0 for fast publish
 
-      mqtt.connect()
-      
       try:
         attributearray=st.get("a",{})
         dindex=0
@@ -167,14 +183,28 @@ class report2observation(object):
             datavar={bcode:{"t": dt,"v": val,"a":attributes}}
             
             logging.info("timerange={} level={} bcode={} val={} attr{}".format(timerange,level,bcode,val,attributes))
-            mqtt.data(timerange=timerange,level=level,datavar=datavar)
+            #mqtt.data(timerange=timerange,level=level,datavar=datavar)
+
+            for key,val in datavar.items():
+              if (version == 0) :
+                rc=self.publish(prefix+"/"+self.user+"/"+lonlat+"/"+self.network+"/"+
+                                timerange+"/"+level+"/"+key,
+                                payload=dumps(val)
+                                )
+              else:
+                rc=self.publish("1/"+prefix+"/"+self.user+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                                timerange+"/"+level+"/"+key,
+                                payload=dumps(val) 
+                                )
+
+
+              if rc != paho.MQTT_ERR_SUCCESS:
+                raise Exception("publish data",rc)
+            
           dindex+=1
       except:
         raise
             
-      finally:
-        mqtt.disconnect()
-
           
     except Exception as exception:
       logging.error("Topic %s error decoding or publishing; payload: [%s]" %

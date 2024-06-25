@@ -129,7 +129,7 @@ class rmapmqtt:
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
             last=time.time()
-            while (not self.connected and ((time.time()-last) < 10)):
+            while (not self.connected and ((time.time()-last) < self.timeout)):
                    self.loop(1)
             if not self.connected:
                    raise Exception("cannot connect")
