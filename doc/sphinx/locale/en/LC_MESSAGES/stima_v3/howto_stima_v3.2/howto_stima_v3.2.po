@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-08 23:18+0100\n"
+"POT-Creation-Date: 2024-03-20 21:23+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,123 +57,165 @@ msgid "|image0|"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:17
-msgid "Cioè si compone di 6 moduli che seguono:"
+msgid "|image9|"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:19
-msgid "Stima"
-msgstr ""
-
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:20
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:35
-msgid "i2c-th"
+msgid "Cioè si compone di 6 moduli che seguono:"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:21
-msgid "i2c-Power"
+msgid "Stima"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:22
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:54
-msgid "i2c-radiation"
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:37
+msgid "i2c-th"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:23
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:62
-msgid "i2c-wind"
+msgid "i2c-Power"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:24
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:70
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:56
+msgid "i2c-radiation"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:25
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:77
+msgid "i2c-wind"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:26
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:85
 msgid "i2c-rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:27
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:29
 msgid "Master"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:29
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:31
 msgid ""
 "In figuralo schema di massima della pila Master con jumper e "
 "configurazione:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:32
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:34
 msgid "|image1|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:37
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:39
 msgid ""
 "In figura lo schema di massima della pila i2c-th con jumper e "
 "configurazione:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:40
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:42
 msgid "|image2|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:43
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:45
 msgid "i2c-power"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:45
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:47
 msgid ""
 "In figura lo schema di massima della pila i2c-power con jumper e "
 "configurazione:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:48
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:50
 msgid "|image3|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:50
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:52
 msgid ""
 "In particolare per la scheda ADC è prevista una modifica con taglio pista"
 " e la sostituzione delle resistenza R3 e R7 da 20k a 8.2k."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:56
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:58
 msgid ""
 "In figura lo schema di massima della pila i2c-radiation con jumper e "
 "configurazione:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:59
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:61
 msgid "|image4|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:64
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:72
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:63
+msgid ""
+"Per il collegamento del sensore Radiometro ( come mostrato in foto ) "
+"collegare:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:65
+msgid "CAVO DELTAOHM NERO + BLU  -> RADIATION GND"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:66
+msgid "CAVO DELTAOHM ROSSO  -> RADIATION SEGNALE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:67
+msgid "CAVO DELTAOHM BIANCO -> RADIATION +12V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:69
+msgid "|image10|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:71
+msgid "Questo il cavo di colegamento al piranometro:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:73
+msgid "|image_piranometro|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:79
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:87
 msgid ""
 "In figura lo schema di massima della pila i2c-wind con jumper e "
 "configurazione:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:67
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:82
 msgid "|image5|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:75
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:90
 msgid "|image6|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:78
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:93
+msgid "Regolatore di carica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:95
+msgid "Vedi :download:`manuale <istruzioni-per-uso-regolatore-carica.pdf>`"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:99
 msgid "Schema di collegamento"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:80
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:101
 msgid "In figura è riportato lo schema di collegamento del quadro:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:82
-msgid "|image7|"
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:103
+msgid "|image_schema_generale| |image_schema_generale_2|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:84
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:106
 msgid "Segue invece schema dettaglio della morsettiera di confine:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:86
+#: ../../stima_v3/howto_stima_v3.2/howto_stima_v3.2.rst:108
 msgid "|image8|"
 msgstr ""
 
@@ -216,5 +258,14 @@ msgstr ""
 #~ msgid ""
 #~ "In figuralo schema di massima della "
 #~ "pila Stima con jumper e configurazione:"
+#~ msgstr ""
+
+#~ msgid "|image7|"
+#~ msgstr ""
+
+#~ msgid "|image7| |image_schema_generale|"
+#~ msgstr ""
+
+#~ msgid "|image7| |image_schema_generale| |image_schema_generale_2|"
 #~ msgstr ""
 

@@ -9,20 +9,25 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"POT-Creation-Date: 2024-06-25 19:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../stima_v3/stima_v3.rst:3
 msgid "Stima V3"
 msgstr ""
 
-#: ../../stima_v3/stima_v3.rst:12
-msgid "The C++ API documentation is also available as `doxgen documentation`__."
+#: ../../stima_v3/stima_v3.rst:14
+msgid "The C++ API documentation is also available as `doxygen documentation`__."
 msgstr ""
+
+#~ msgid ""
+#~ "The C++ API documentation is also "
+#~ "available as `doxgen documentation`__."
+#~ msgstr ""
 

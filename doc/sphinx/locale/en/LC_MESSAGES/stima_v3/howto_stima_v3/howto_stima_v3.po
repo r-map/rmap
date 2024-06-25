@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 19:36+0200\n"
+"POT-Creation-Date: 2024-02-23 10:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -385,8 +385,8 @@ msgid "kicad/r-map_v3/Microduino_GSM_DE/SIM800C_DE"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:232
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:867
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:910
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:883
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:926
 msgid "Stima I2C-HUB"
 msgstr ""
 
@@ -579,7 +579,7 @@ msgid "ingresso alimentazione 12-30V DC VCC (+)"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:328
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:949
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:965
 msgid "2"
 msgstr ""
 
@@ -592,7 +592,7 @@ msgid "ingresso alimentazione 12-30V DC GND (-)"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:329
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:950
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:966
 msgid "3"
 msgstr ""
 
@@ -617,7 +617,7 @@ msgid "uscita alimentazione batteria 12V DC GND (-)"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:331
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:951
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:967
 msgid "5"
 msgstr ""
 
@@ -630,7 +630,7 @@ msgid "LED di stato"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:332
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:952
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
 msgid "6"
 msgstr ""
 
@@ -643,7 +643,7 @@ msgid "uscita tensione di alimentazione HUB 5V DC VCC (+)"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:333
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:953
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:969
 msgid "7"
 msgstr ""
 
@@ -656,7 +656,7 @@ msgid "I2C SCL HUB"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:334
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:954
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
 msgid "8"
 msgstr ""
 
@@ -669,7 +669,7 @@ msgid "I2C SDA HUB"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:335
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:955
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
 msgid "9"
 msgstr ""
 
@@ -1334,7 +1334,7 @@ msgid "make atmega1284p_isp"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:821
-msgid "Compilazione del firmware in formato binario"
+msgid "Firmware in formato binario"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:823
@@ -1345,222 +1345,253 @@ msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:825
 msgid ""
-"Localizzare il file firmware.elf compilato, solitamente -  "
-"rmap/platformio/stima_v3/stima/.pio/build/1284p16m"
+"Localizzare il file FIRMWARE.BIN compilato, solitamente -  "
+"rmap/platformio/stima_v3/stima/bin/1284p16m/FIRMWARE:BIN"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:827
 msgid ""
-"Attraverso una consolle o il prompt dei comandi, eseguire -  "
-"~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy -I ihex -O "
-"binary firmware.elf FIRMWARE.BIN"
+"Verificare che la data di creazione corrisponda e che quindi il firmware "
+"sia aggiornato."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:831
-msgid "Upload del firmware tramite micro SD-Card attraverso Digitecoboot"
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:830
+msgid ""
+"Upload del firmware nel modulo master tramite micro SD-Card attraverso "
+"Digitecoboot"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:833
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:832
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:854
 msgid "Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:834
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:833
 msgid ""
 "Creare un file sulla scheda SD con il nome esattamente corrispondente "
 "alla versione del firmware: ad esempio \"3.6\""
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:836
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:835
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:855
 msgid ""
 "Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima "
 "GSM/GPRS, Stima I2C-TH o Stima-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:838
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:837
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:857
 msgid ""
 "Alimentare il modulo e attendere 30 secondi per la fine del caricamento "
 "del firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:840
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:839
 msgid ""
 "Spegnere il modulo e rimuovere eventualmente la micro SD-Card contenente "
 "il firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:842
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:841
 msgid "Verificare sul display LCD la corretta versione del firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:843
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:842
 msgid ""
 "Se necessario, inserire la micro SD-Card utile per il funzionamento del "
 "modulo (senza il file FIRMWARE.BIN)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:845
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:844
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:861
 msgid "Alimentare il modulo"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:850
-msgid "Configurazione moduli e sensori"
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:845
+msgid "Controllare sul dispay se la versione del firmware è corretta"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:846
+msgid ""
+"Non è necessario estrarre la SD card dal suo alloggiamento ed è possibile"
+" utilizzarla direttamente per il funzionamento della stazione"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:852
+msgid ""
+"Upload del firmware nei moduli non  master tramite micro SD-Card "
+"attraverso Digitecoboot"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:859
+msgid "Spegnere il modulo e rimuovere la micro SD-Card contenente il firmware"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:862
+msgid ""
+"Eventualmente controllare tramite USB che al boot venga comunicato la "
+"corretta versione del firmware."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:866
+msgid "Configurazione moduli e sensori"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:868
 msgid ""
 "Per configurare moduli e sensori utilizzare lo sketch "
 "sensor_config_menu_sdcard presente nella cartella platformio/stima_v3"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:855
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:871
 msgid ""
 "E' sicuramente necessario se si voglio utilizzare più sensori o moduli "
 "dello stesso tipo."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:858
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:874
 msgid "Fare riferimento al manuale utente per il suo utilizzo."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:862
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:878
 msgid "Assemblaggio stazione Stima"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:864
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:880
 msgid "Per assemblare una stazione Stima, è necessario disporre di:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:866
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:882
 msgid "Stima I2C-Master nella versione GSM/GPRS o Ethernet"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:868
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:908
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:884
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:924
 msgid "Stima I2C-TH"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:869
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:909
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:885
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:925
 msgid "Stima I2C-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:870
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:886
 msgid ""
 "Sensore di temperatura e umidità Digiteco TU022 (con sensore HYT221 o "
 "HYT271) oppure sensore di temperatura ADT7420 e sensore di umidità "
 "HIH6100"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:873
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:889
 msgid ""
 "Pluviometro Digiteco PL005 o Digiteco PL010 o qualsiasi altro pluviometro"
 " con uscita a contatto"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:875
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:891
 msgid "Cavi di collegamento:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:877
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:893
 msgid ""
 "per sensore di temperatura e umidità Digiteco TU022: cavo 4 poli con "
 "connettore a vite lato sensore e connettore 4 pin lato HUB"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:879
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:895
 msgid ""
 "o per sensori ADT7420 e HIH6100 con cavi a 4 poli per sensore a saldare "
 "lato sensore e connettore 4 pin lato HUB"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:881
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:897
 msgid ""
 "per pluviometro a contatto: cavo a 2 poli con connettore 4 pin lato "
 "modulo Stima I2C-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:884
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:900
 msgid "Antenna dual/quad band GPRS con connettore SMA per stazione GSM/GPRS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:885
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:901
 msgid "Contenitore stagno IP66 310x425x160"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:886
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:902
 msgid ""
 "Batteria sigillata al piombo 12V e relativi cavi di collegamento con "
 "fusibile di protezione"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:888
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:904
 msgid "Pannello fotovoltaico 20W o sorgente di alimentazione continua 12-30 V"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:890
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:906
 msgid ""
 "DigitecoPower: se presente batteria tampone 12V con pannello fotovoltaico"
 " o sorgente di alimentazione esterna DC"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:892
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:908
 msgid "Palo acciaio inox diametro 48 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:893
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:909
 msgid "Collare alluminio anodizzato per fissaggio a palo diametro 48 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:894
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:910
 msgid "Morsetto alluminio anodizzato per fissaggio a sensore diametro 40 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:895
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:911
 msgid ""
 "Braccetto alluminio anodizzato cilindrico per fissaggio del morsetto "
 "sensore al collare del palo"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:897
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:913
 msgid "Supporto per pluviometro"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:898
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:914
 msgid "Display I2C LCD con supporto in alluminio"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:899
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:915
 msgid "Supporti per moduli Stima su guida DIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:901
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:917
 msgid ""
 "Una volta aver collegato i sensori, i moduli Stima, compilato i firmware "
 "e configurato tutti i moduli, così come illustrato nei capitoli "
 "precedenti, la stazione è pronta per essere utilizzata."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:905
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:921
 msgid "Di seguito un esempio di installazione di una stazione Stima GSM/GPRS con:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:911
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:927
 msgid "DigitecoPower"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:912
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:928
 msgid "Batteria sigillata 12V"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:913
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:929
 msgid "Pannello fotovoltaico"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:915
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:931
 msgid "|image22|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:917
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:933
 msgid ""
 "A partire da sinistra, è visibile il modulo Stima GSM/GPRS dotato di "
 "connettore tipo SMA per il collegamento dell’antenna. Al centro è "
@@ -1571,304 +1602,304 @@ msgid ""
 "collegamento di ulteriori sensori e moduli su bus I\\ :sup:`2`\\ C."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:925
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:941
 msgid ""
 "Sono ben visibili i jumper, uno per porta, per la selezione della "
 "corrispondente tensione di alimentazione (5V o 3.3V) per i moduli Stima e"
 " per i sensori I2C."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:929
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:945
 msgid "|image23|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:931
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:947
 msgid "|image24|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:941
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:957
 msgid "Appendici"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:944
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:960
 msgid "Elenco PIN utilizzati"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:947
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:981
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:993
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1002
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1011
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:963
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:997
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1009
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1018
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1027
 msgid "File di definizione"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:947
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:981
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1011
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:963
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:997
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1027
 msgid "Macro"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:947
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:981
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:993
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1002
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1011
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:963
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:997
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1009
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1018
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1027
 msgid "valore"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:949
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:950
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:955
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:965
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:966
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
 msgid "sensor_config_menu_sdcard/src/sensor_config.ino"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:949
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:965
 msgid "encA"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:950
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:966
 msgid "encB"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:951
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:967
 msgid "stima/include/gsm_config.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:951
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:957
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:967
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
 msgid "SIM800_ON_OFF_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:952
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:953
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:954
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:956
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:957
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:969
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
 msgid "stima/src/stima-config.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:952
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:968
 msgid "RTC_INTERRUPT_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:953
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:969
 msgid "SDCARD_CHIP_SELECT_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:954
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
 msgid "CONFIGURATION_RESET_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:955
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
 msgid "encBtn"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:956
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
 msgid "W5500_CHIP_SELECT_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:956
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
 msgid "10"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:957
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
 msgid "GSM_ON_OFF_PIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:963
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:979
 msgid "Elenco indirizzi I2C"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:965
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:981
 msgid "moduli:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
 msgid "Rmap/registers-master.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
 msgid "I2C_MASTER_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:970
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
 msgid "(0x20)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
 msgid "Rmap/registers-rain.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
 msgid "I2C_RAIN_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:971
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
 msgid "(0x21)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:988
 msgid "Rmap/registers-power.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:988
 msgid "I2C_POWER_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:972
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:988
 msgid "(0x4A)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:989
 msgid "Rmap/registers-wind.h:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:989
 msgid "I2C_WIND_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:973
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:989
 msgid "(0x45)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:974
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:990
 msgid "Rmap/registers-th.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:974
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:990
 msgid "I2C_TH_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:974
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:985
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:990
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1001
 msgid "(0x23)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:975
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:991
 msgid "Rmap/registers-radiation.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:975
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:991
 msgid "I2C_SOLAR_RADIATION_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:975
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:991
 msgid "(0x47)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:978
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:994
 msgid "opzionali:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:983
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:999
 msgid "Rmap/registers-leaf.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:983
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:999
 msgid "I2C_LEAF_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:983
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:999
 msgid "(0x65)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1000
 msgid "Rmap/registers-opc.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1000
 msgid "I2C_OPC_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:984
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1000
 msgid "(0x55)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:985
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1001
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1002
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1003
 msgid "Rmap/registers-thr.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:985
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1001
 msgid "I2C_THR_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1002
 msgid "I2C_THR_TEMPERATURE_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:986
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1005
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1002
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1021
 msgid "(0x49)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1003
 msgid "I2C_THR_HUMIDITY_DEFAULT_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:987
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1014
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1003
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1030
 msgid "(0x27)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:990
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1006
 msgid "sensori:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:995
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1011
 msgid "HYT"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:995
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1011
 msgid "(0x28)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:996
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1012
 msgid "SHT"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:996
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1012
 msgid "(0x44)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:999
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1015
 msgid "ADC:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1004
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1020
 msgid "ADC  radiation"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1004
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1020
 msgid "(0x48)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1005
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1021
 msgid "ADC  power"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1008
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1024
 msgid "display LCD"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1013
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1014
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1029
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1030
 msgid "include/lcd_config.h"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1013
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1029
 msgid "LCD_I2C_ADDRESS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1013
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1029
 msgid "(0x3F)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1014
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:1030
 msgid "LCD_I2C_SECONDARY_ADDRESS"
 msgstr ""
 
@@ -2092,5 +2123,25 @@ msgstr ""
 #~ " gli indirizzi I2C e altri parametri"
 #~ " di funzionamento dei sensori e "
 #~ "moduli."
+#~ msgstr ""
+
+#~ msgid "Upload del firmware tramite micro SD-Card attraverso Digitecoboot"
+#~ msgstr ""
+
+#~ msgid "Compilazione del firmware in formato binario"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Localizzare il file firmware.elf compilato,"
+#~ " solitamente -  "
+#~ "rmap/platformio/stima_v3/stima/.pio/build/1284p16m"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Attraverso una consolle o il prompt "
+#~ "dei comandi, eseguire -  "
+#~ "~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy"
+#~ " -I ihex -O binary firmware.elf "
+#~ "FIRMWARE.BIN"
 #~ msgstr ""
 

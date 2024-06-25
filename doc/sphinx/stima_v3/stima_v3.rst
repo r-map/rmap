@@ -11,6 +11,6 @@ Stima V3
    stimacode
    user_manual/user_manual.rst
    
-The C++ API documentation is also available as `doxgen documentation`__.
+The C++ API documentation is also available as `doxygen documentation`__.
 
 __ doxygen/index.html

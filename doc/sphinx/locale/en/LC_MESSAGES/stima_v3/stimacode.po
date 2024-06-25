@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-28 17:48+0200\n"
+"POT-Creation-Date: 2024-06-25 19:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,27 @@ msgid "Private Members"
 msgstr ""
 
 #: ../../stima_v3/stimacode.rst
-msgid "Friends"
+msgid "Public Static Functions"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Protected Functions"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Private Functions"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Protected Attributes"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Private Static Functions"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Private Static Attributes"
 msgstr ""
 
 #: ../../stima_v3/stimacode.rst
@@ -61,4 +81,7 @@ msgstr ""
 #: ../../stima_v3/stimacode.rst
 msgid "Enums"
 msgstr ""
+
+#~ msgid "Friends"
+#~ msgstr ""
 

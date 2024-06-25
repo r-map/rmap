@@ -1,5 +1,5 @@
-Descrizione software
-********************
+Manuale software
+****************
 
 StimaV4 logica di funzionamento software
 ========================================
@@ -3144,3 +3144,20 @@ passato in risposta
 
 Altrimenti il report sarà composto da una struttura di valori nulli per
 indicare l’assenza di elaborazione.
+
+Documentazione del codice
+*************************
+
+The C++ API documentation for MASTER is available as `doxygen documentation </stima_v4/doxygen_v4/master/html/index.html>`__.
+
+The C++ API documentation for slave TH is available as `doxygen documentation </stima_v4/doxygen_v4/slave-th/html/index.html>`__. 
+
+The C++ API documentation for slave RAIN is available as `doxygen documentation </stima_v4/doxygen_v4/slave-rain/html/index.html>`__. 
+
+The C++ API documentation for slave RADIATION is available as `doxygen documentation </stima_v4/doxygen_v4/slave-radiation/html/index.html>`__. 
+
+The C++ API documentation for slave WIND is available as `doxygen documentation </stima_v4/doxygen_v4/slave-wind/html/index.html>`__. 
+
+The C++ API documentation for slave VWC is available as `doxygen documentation </stima_v4/doxygen_v4/slave-vwc/html/index.html>`__. 
+
+The C++ API documentation for slave MPPT is  available as `doxygen documentation </stima_v4/doxygen_v4/slave-mppt/html/index.html>`__. 

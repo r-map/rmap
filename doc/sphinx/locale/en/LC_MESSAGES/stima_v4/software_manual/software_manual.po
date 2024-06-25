@@ -1,0 +1,1771 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2021, CC BY-SA 4.0, Arpae https://www.arpae.it
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-25 20:05+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../stima_v4/software_manual/software_manual.rst:2
+msgid "Manuale software"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:5
+msgid "StimaV4 logica di funzionamento software"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:8
+msgid "Introduzione"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:10
+msgid ""
+"La realizzazione degli applicativi Master e Slave (open source) di stima "
+"V4, è stata effettuata utilizzato il framework ARDUINO sulla piattaforma "
+"HW STM32 (STM32Duino). Il sistema utilizzato si basa su sistema operativo"
+" in tempo reale FreeRTOS particolarmente diffuso sui microcontrollori e "
+"piccoli microprocessori, anch’esso distribuito sotto la licenza open "
+"source MIT. In generale tutte le librerie utilizzate nel progetto sono "
+"utilizzate e distribuite sotto questa tipologia di licenza."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:19
+msgid ""
+"La struttura del progetto è organizzata in directory (driver) e (task), "
+"facilmente comprensibili per suddividere le funzionalità di base. Nella "
+"sottodirectory driver saranno presenti i moduli che consentono l’accesso "
+"ai dispositivi HW dell’architettura StimaV4, mentre in task sono "
+"contenuti i veri e propri task di funzionamento sviluppati in C++ usando "
+"il wrapper sviluppato da Michael Becker https://michaelbecker.github.io"
+"/freertos-addons/ in grado di integrare in una classe C++ le funzionalità"
+" FreeRTOS nel singolo modulo e dare un’organizzazione chiara al software "
+"sviluppato."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:29
+msgid ""
+"Per quanto riguarda lo sviluppo in generale anche dove non sono "
+"utilizzate le classi C++ del wrapper di Michael Becker tutte le "
+"funzionalità sono state comunque organizzate in classi. L’accesso alle "
+"librerie come ad. esempio la libreria Canard che consente l’utilizzo "
+"della comunicazione CANBus (metodo di collegamento utilizzato tra i "
+"moduli master e slave del progetto) disponibili nelle sole versioni C, "
+"sono state interfacciate come classi C++ mediante la realizzazione di una"
+" classe pilota appoggiata alle funzioni C della libreria."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:38
+msgid ""
+"Particolare attenzione è stata fatta all’utilizzo delle variabili "
+"nell’applicativo. Per rendere il tutto più leggibile e avere quindi anche"
+" un sistema più semplice da manutenere nel tempo sono state eliminate "
+"tutte le variabili globali (ad eccezione di quelle utilizzate ad Arduino "
+"su HW ed istanze dei suoi moduli). Tutte le variabili di StimaV4 devono "
+"essere dichiarate nel main program e passate come argomenti ai vari task "
+"di utilizzo, con i metodi disponibili."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:46
+msgid ""
+"Il presente documento ha lo scopo di descrivere il funzionamento logico e"
+" la struttura del software, all’interno dei moduli sono presenti "
+"abbondanti commenti per comprendere le metodologie di sviluppo e "
+"l’utilizzo delle singole funzioni e/o variabili di definizione. Non "
+"verranno documentate le librerie utilizzate, come ad.es. la libreria "
+"Canard sopracitata dove è presente in rete documentazione specifica, "
+"consultabile su https://opencyphal.org/ che descrive ampiamente "
+"funzionalità e configurazione delle stesse. Lo stesso vale per le altre "
+"librerie presenti ArduinoJsonRPC, Cyclone ecc…"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:57
+msgid "Drivers"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:59
+msgid ""
+"All’interno della cartella drivers sarà sempre presente un file "
+"module_master_hal.cpp o module_slave_hal.cpp (master/slave) che "
+"sostanzialmente è la configurazione dell’interfaccia HW verso le librerie"
+" arduino. In questo modulo sono inizializzate le periferiche HW, e/o "
+"l’assegnamento dei PIN/Funzionalità che ci permettono di utilizzare le "
+"funzioni arduino come ad. Es SPI, I2C, UART ecc… Nel modulo sono "
+"redirezionati i PIN come da esempio sottostante, concedendo alle "
+"periferiche di base (se abilitate) con la struttura ARDUINO la reale "
+"configurazione hardware."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:85
+msgid ""
+"Sono in oltre presenti chiamate di inizializzazione di basso livello per "
+"la configurazione dei clock di sistema e dei vari dispositivi utilizzati "
+"e relative configurazioni per i clock sorgenti. Ogni dispositivo ha un "
+"clock sorgente specifico opportunamente dimensionato. La modifica di "
+"questi parametri seppur possibile può rendere il sistema instabile o "
+"inibire l’utilizzo di qualche periferica. La riduzione del clock di "
+"sistema ad intervalli diversi da quelli impostati necessità il ricalcolo "
+"e la modifica delle selezioni dei corretti divisori/moltiplicatori per "
+"mantenere i clock dei dispositivi nei range di validità."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:149
+msgid ""
+"Queste invece le chiamate per la configurazione dei dispositivi HW di "
+"basso livello, inizializzazione pin e altre attività richiamate dal "
+"framework verso le librerie STM di basso livello per la configurazione "
+"HW."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:167
+msgid ""
+"Questo modulo piuttosto specifico viene richiamato da STM32Duino quando "
+"viene inizializzata e/o utilizzata una periferica tra quelle disponibili "
+"HW. In linea generale e possibile modificare i clock di funzionamento per"
+" ottenere un risparmio energetico o per avere efficienza al massimo su un"
+" dispositivo e/o modificare la funzionalità di un PIN. La modifica di "
+"questo modulo può comunque portare ad un’instabilità del sistema in "
+"quanto il tutto è stato già progettato per ottenere una perfetta sinergia"
+" tra l’HW di StimaV4, STM32Duino e sistema operativo RTOS. "
+"Nell’eventualità di uno sviluppo di una nuova scheda HW, con la sola "
+"modifica di questo file adattato alla nuova interfaccia HW si dovrebbe "
+"ottenere un sistema ancora funzionante."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:179
+msgid ""
+"Altri file sempre presenti come eeprom e flash, rendono disponibile allo "
+"sviluppatore le funzionalità base che permettono l’accesso in lettura e "
+"scrittura a tali dispositivi. Nel main program sono definite le variabili"
+" di classe che istanziano i suddetti dispositivo HW e li rendono "
+"disponibili a tutti i moduli che ne hanno necessita semplicemente con il "
+"passaggio dell’indirizzo della classe nel wrapper del task."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:217
+msgid ""
+"Nell’esempio sopra nel main program è definita la variabile memFlash come"
+" istanza della classe Flash (presente in drivers), viene inserita nella "
+"struttura canParam (parametri Can) e successivamente passata al Task "
+"can_task che si occuperà della gestione della comunicazione Can BUS nel "
+"sistema."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:223
+msgid ""
+"La classe **Flash** , come la classe **Eeprom** sono a questo punto "
+"disponibili ai vari moduli, ma essendo in un contesto RTOS che può "
+"condividere i dispositivi tra i vari task, per ogni periferica non "
+"esclusiva è definito un semaforo di utilizzo per rendere le operazioni "
+"indivisibili (disponibilità, utilizzo e rilascio) tra loro e garantire il"
+" perfetto funzionamento dei dispositivi."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:256
+msgid ""
+"Nei moduli slave sono presenti ulteriori classi relativamente al loro "
+"utilizzo relative all’accelerometro e al modulo MPPT (LTC4015). Come per "
+"i moduli Eeprom e Flash si tratta di classi C++ che danno l’accesso ai "
+"dispositivi HW nel main program e/o nel relativo task di utilizzo."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:261
+msgid ""
+"**Freertos_CallBack.c** è una raccolta di chiamate HW di call_back "
+"relativi ad eccezioni e/o chiamate RTOS HW di sistema. All’interno del "
+"modulo sono state posizionate le chiamate per lo sleep power_down di "
+"sistema e tutte le eccezioni quali bus_fault, error_handler, "
+"memManageecc… che vengono richiamate a basso livello nella gestione di un"
+" eccezione STM32. Inoltre sono presenti le funzionalità di call_back del "
+"FreeRTOS per permettere di gestire il comportamento del sistema ed "
+"eventuale ripristino da un errore."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:270
+msgid ""
+"Ogni funzione base del freeRTOS è stata reedirezionata all’interno di "
+"questo modulo per semplificare la gestione dell’applicativo. Per quanto "
+"riguarda il LowPower è stata collegata nella funzione xTaskSleepPrivate, "
+"automaticamente richiamata dal FreeRTOS quando tutti i task sono in fase "
+"di sospensione per le modalità è il tempo minimo configurato in "
+"STM32Freertosconfig.h e STM32Freertosconfig_extra.h. Per uleriori "
+"approfondimenti sulla configurazione del sistema operativo riferirsi alle"
+" guide freertos disponibili su https://freertos.org. Per quanto riguarda "
+"StimaV4 la configurazione impostata permette il powerDown sia in modalità"
+" normale che in modalità Tickless, definita nel prossimo paragrafo."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:331
+msgid ""
+"**Freertos_LPTim.c** invece permette l’utilizzo dei timer LowPower STM32 "
+"(qua è necessaria una conoscenza approfondita del sistema STM32 e della "
+"gestione LowPower). In sostanza questo modulo si preoccupa di impostare "
+"come gestione del Tick di sistema (temporizzatore delle funzioni RTOS) al"
+" timer LowPower in modalità **TickLess**."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:337
+msgid ""
+"I timer LowPower a differenza dei timer “normali” opportunamente "
+"programmati proseguono la loro operatività anche se la CPU è posta in "
+"stato di STOP (bassissimo consumo). Con questa metodologia è stato "
+"programmato il timer LowPower per gestire le attività di sistema ed "
+"aggiornare il “Tick” anche quando i task possono essere sospesi per "
+"permettere un risparmio energetico sostanziale. In questo modo tutte le "
+"sorgenti di clock vengono fermate (risparmio energetico) ma la "
+"temporizzazione RTOS rimane sempre sincronizzata anche dopo la "
+"sospensione del sistema."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:347
+msgid ""
+"Il modulo lptim.c è stato opportunamente modificato ed adattato al "
+"sistema RTOS ed arduino in modo da permettere alle sue funzioni base come"
+" per esempio la classica chiamata millis() che restituisce i millisecondi"
+" trascorsi dall’avvio del programma fino al momento della sua chiamata e "
+"renderla perfettamente disponibile con valori reali anche dopo le "
+"chiamate Sleep che ne interromperebbero l’incremento. In sostanza si è "
+"agito sui contatori LPTim per controllare il tempo reale di standBy ed "
+"aggiornare in proporzione il timer di sistema reale. Questo ha permesso "
+"l’utilizzo trasparente al sistema RTOS e alle funzioni disponibili dalle "
+"librerie STM32Duino LowPower e RTC."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:358
+msgid ""
+"Nel file di definizioni STM32FreertosCoinfig_Extra.h (che definisce le "
+"opzioni EXTRA se utilizzate nel FreeRTOS) è possibile utilizzare o meno "
+"questa funzionalità in maniera del tutto automatica "
+"configUSE_TICKLESS_IDLE."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:371
+msgid ""
+"All’interno di Freertos_lptimTick.c in automatico il modulo ridefinisce "
+"le funzionalità vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime) "
+"che attivano la richiamata tramite macro valla funzione "
+"xTaskWakeUpPrivate che fisicamente fa entrare la CPU in modalità di basso"
+" consumo (quella selezionata in configurazione)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:394
+msgid ""
+"Se il modulo è attivato sostanzialmente viene attivato l’interrupt "
+"relativo al timer LPTim utilizzato (uno tra i disponibili anch’esso "
+"selezionabile nel file di configurazione) programmandone l’intervallo "
+"sulla base dei tempi configurata e lo rende il tick di sistema primario, "
+"inibendo la richiamata ad **osSystickHandler** che nel FreeRTOS di "
+"STM32Duino incrementa il tick autonomamente. Inoltre la funzione è stata "
+"adattata per registrare nel momento dell’attivazione delle modalità "
+"powerDown e del successivo WakeUp il conteggio dei tick reali di "
+"powerDown, verificando il contenuto dei registri LPTim che come sappiamo "
+"continuano la loro attività anche se la CPU è in modalità STOP. Al "
+"momento del risveglio i tick di sistema vengono aggiornati in proporzione"
+" al tempo di powerDown consentendo a tutte le funzioni di come Arduino "
+"millis() micros() ecc… la piena funzionalità in tutte le modalità di "
+"powerdown."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:410
+msgid "Task"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:412
+msgid ""
+"Nella cartella TASK, sono inseriti i singoli task in conformità alle "
+"modalità descritte in premessa, usando il wrapper sviluppato da Michael "
+"Becker. Ogni Task si occupa nello specifico della gestione di un’apparato"
+" e/o di una funzionalità (come ad.es. la comunicazione remota). Oltre ai "
+"parametri passati alla funzione del task, di particolare importanza il "
+"dimensionamento dello stack che deve essere sufficiente al contenimento "
+"delle variabili dinamiche e alle chiamate locali di altre funzioni. Dal "
+"task WatchDog è possibile monitorare in maniera dinamica l’andamento di "
+"ogni singolo stack in modo da utilizzare il giusto dimensionamento in "
+"completa sicurezza."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:449
+msgid ""
+"Se abilitati, i task disponibili (nel Master) sono quelli sopra elencati."
+" Di seguito le principali funzionalità degli stessi:"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:455
+#: ../../stima_v4/software_manual/software_manual.rst:542
+msgid "Supervisor"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:453
+#: ../../stima_v4/software_manual/software_manual.rst:541
+msgid "Supervisione del sistema"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:454
+#: ../../stima_v4/software_manual/software_manual.rst:542
+msgid "Caricamento e gestione della configurazione di sistema"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:455
+msgid "Gestione degli stati della comunicazione remota"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:461
+msgid "SdTask"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:458
+msgid "Gestione della SD Card"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:459
+msgid "Code per lettura archiviazione dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:460
+msgid "Code per gestione log"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:461
+msgid "Code per caricamento lettura firmware"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:465
+msgid "UsbSerial"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:464
+msgid "Gestione porta USB"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:465
+msgid "Gestione RPC locali"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:469
+msgid "LCD"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:468
+msgid "Gestione display"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:469
+msgid "Gestione encoder"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:475
+#: ../../stima_v4/software_manual/software_manual.rst:548
+msgid "Can"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:472
+#: ../../stima_v4/software_manual/software_manual.rst:545
+msgid "Gestione porta CAN"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:473
+msgid "Classe Canard interrogazione ai moduli Slave Remoti (Cypahl)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:474
+msgid "Sincronizzazione data/ora con gli slave remoti"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:475
+msgid "Interfacciamento tra CAN (Moduli remoti) e altri dispositivi locali"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:480
+msgid "Modem"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:478
+msgid "Gestione del modulo SIM7600E"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:479
+msgid "Avvio connessione PPP remota"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:480
+msgid "interfaccia NET CycloneTCP"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:484
+msgid "NTP"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:483
+msgid "Gestione connessione NTP"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:484
+msgid "sincronizzazione data/ora con server remoto"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:489
+msgid "HTTP"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:487
+msgid "Gestione delle connessioni http(s)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:488
+msgid "Gestione RPC Remote (tipicamente configurazione)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:489
+msgid "Dowload firmware"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:493
+msgid "MQTT"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:492
+msgid "Gestione della connessione mqtt(s)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:493
+msgid "pubblicazione dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:494
+msgid "Gestione RPC Remote"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:498
+#: ../../stima_v4/software_manual/software_manual.rst:566
+msgid "WDT"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:496
+#: ../../stima_v4/software_manual/software_manual.rst:564
+msgid "Gestione WatchDog di Sistema"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:497
+#: ../../stima_v4/software_manual/software_manual.rst:565
+msgid "Controllo operatività dei Task"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:498
+#: ../../stima_v4/software_manual/software_manual.rst:566
+msgid "Controllo bootLoader"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:502
+msgid ""
+"Per quanto riguarda i moduli slave, i task utilizzati sono relativi alla "
+"gestione del modulo di acquisizione dei sensori (periferia) verso il "
+"modulo master. Alcuni task sono concettualmente simili al modulo Master. "
+"Identica rimane invece la logica di integrazione tra i vari task."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:507
+msgid ""
+"L’esempio sottostante si riferisce al modulo TH, ma i vari moduli sono "
+"pressoché identici. Differiscono solamente nel task di interfaccia verso "
+"la sensoristica controllata (TemperatureHumidity_SensorTask) piuttosto "
+"che (Rain_SensorTask) nel caso del modulo di precipitazione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:530
+msgid ""
+"In StimaV4 ogni dispositivo slave è visto come un’unità indipendente che "
+"si occupa di interfacciarsi con la singola sensoristica in campo e "
+"trasformare il semplice modulo di lettura in un sistema intelligente in "
+"grado di gestirne direttamente le relative acquisizioni, temporizzazioni,"
+" eventuali accensioni e spegnimento (risparmio energetico) memorizzazioni"
+" ed elaborazioni, per fornire al master un risultato completo con un "
+"unico protocollo di comunicazione orientato ai dati (Cyphal) su CanBus "
+"particolarmente efficace in questo tipo di sistemi."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:546
+msgid "Classe Canard comunicazione con modulo Master (Cypahl)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:547
+msgid "Sincronizzazione data/ora con il master"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:548
+msgid "Avviamento delle funzioni LowPower dai flags remoti"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:551
+msgid "Accelerometer"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:551
+msgid "Gestione dell’accelerometro (inclinometro solo per pluviometro)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:556
+msgid "Sensor"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:554
+msgid "Acquisizione locale dei valori istantanei"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:555
+msgid "Gestione ON/OFF periferia dove previsto"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:556
+msgid "Inserimento dati nei buffer per elaborazioni"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:561
+msgid "Elaborate"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:559
+msgid "Gestione delle elaborazioni dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:560
+msgid "Gestione code per attesa comandi"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:561
+msgid "Presentazione report dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:569
+msgid "Task di WatchDog ( Master e Slave )"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:571
+msgid ""
+"Particolare attenzione è stata posta al TASK WDT watchDog. Il Task "
+"WatchDog si occupa della verifica del corretto funzionamento di tutti i "
+"task di sistema. Il WatchDog HW una volta programmato necessita di una "
+"chiamata di refresh che azzera il contatore WDT. Se il contatore WDT "
+"raggiunge un valore senza essere azzerato il sistema si riavvia."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:577
+msgid ""
+"Per integrare il WatchDog in un sistema RTOS è necessario che tutti i "
+"Task siano in funzione e rispondano al sistema di controllo, per questo "
+"motivo in tutti i task sono state inserite queste 3 funzioni che agiscono"
+" a livello locale. Tramite queste 3 funzioni sono possibili il "
+"monitoraggio dello stack utilizzato, a prevenzione degli eventuali "
+"overflow, la vera e propria chiama di watchDog che comunica al Task WDT "
+"il corretto funzionamento del task e la funzione di TaskState che "
+"comunica al Task WDT lo stato del task (attivo, sospeso, in pausa per un "
+"determinato numero di millisecondi ecc…) Il Task WDT attenderà da tutti i"
+" task attivi e funzionanti il flag di conferma di funzionamento, prima di"
+" azzerare il contatore HW che fisicamente agisce sul reset. Nel task WDT "
+"è possibile verificare stack e stato dei task ed eventualmente "
+"visualizzare e/o registrare su log gli errori."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:599
+msgid ""
+"Nello sviluppo dei task, il programmatore deve tener conto delle "
+"operazioni di WatchDog e monitor stack, gestendo il posizionamento "
+"corretto delle chiamate a queste funzioni."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:603
+msgid ""
+"Il task WDT si occupa inoltre del corretto controllo del WatchDog HW e "
+"dell’integrazione con il sistema di Boot. E’ stato inserito un sistema di"
+" controllo con flag su Eeprom che consentono al sistema di controllare e "
+"registrare se si sono verificati problemi di avvio. Nel caso particolare "
+"di aggiornamento remoto del firmware questo task prevede controllo e "
+"comunicazione del corretto avvio al bootloader, che in caso di non avvio "
+"del sistema dopo un aggiornamento firmware, ripristina la memoria flash "
+"all’ultimo stato funzionante (rollback)."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:612
+msgid ""
+"Questa la struttura bootLoader presente sia sul master che sugli slave ed"
+" interagisce con l’applicazione di avvio. Il sistema tramite la "
+"configurazione degli script LD presenti nel codice si avvia da una "
+"locazione di memoria prefissata, mentre il bootLoader parte "
+"dall’indirizzo di default. Il bootLoader, in condizioni normali, si "
+"preoccupa di avviare correttamente il programma spostando il "
+"programCounter e i registri dei vettori all’indirizzo di memorizzazione "
+"dell’applicativo sulla memoria Flash. Se richiesto un’aggiornamento "
+"firmware (segnalato con gli appositi flag) il sistema è in grado di "
+"riprogrammare la memoria Flash con la nuova versione di programma e "
+"avviare al termine il nuovo applicativo. L’operazione prevede il "
+"salvataggio sulla memoria flash esterna dell’attuale versione in modo che"
+" se una volta riprogrammato il dispositivo interviene il WatchDog prima "
+"dell’avvio del programma, il bootLoader provvederà in un operazione di "
+"rollBack al ripristino della versione precedente. I flag cosi come "
+"descritti sotto nella struttura segnalano tutte le possibili eventualità"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:655
+msgid "Comunicazione tra i task"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:657
+msgid ""
+"La comunicazione tra i task, comandi risposte e scambio dati, avviene "
+"tramite il meccanismo delle code RTOS. Il passaggio dei dati per esempio "
+"tra i dati acquisiti dal master CAN (come detto precedentemente il task "
+"CAN si occupa dell’interrogazione dei moduli slave per il recupero dei "
+"dati remoti) e SD Card (memorizzazione delle elaborazioni dati su SD "
+"Card) avviene con una coda specifica."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:664
+msgid ""
+"Analogamente il Task MQTT tramite una specifica coda fa richiesta dei "
+"dati al task SD Card (precedentemente memorizzati) prima di pubblicarli "
+"al server remoto."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:668
+msgid ""
+"Con questo sistema si è riusciti per esempio a separare i moduli "
+"concedendo al solo task SD Card, l’accesso al dispositivo HW e poter "
+"gestire in autonomia le proprie priorità e criticità."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:672
+msgid ""
+"Alcune code (inerenti alla comunicazione) sono di gestione dei task. "
+"Queste code sono utilizzate per dare comandi di avvio e sospensione ai "
+"task e gestirne l’operatività e sincronizzazione. Nel modulo master il "
+"task di supervisione, si occupa della gestione della comunicazione. "
+"Quando richiesta una connessione remota il task di supervisione attiva in"
+" sequenza il task di gestione del GSM, che si occupa di stabilire una "
+"connessione PPP remota, per poi passare in sequenza l’avvio dei task NTP,"
+" http, MQTT a seconda delle esigenze. Il task di supervisione una volta "
+"attivato un comando/task attenderà la relativa risposta dalla coda di "
+"gestione e così potrà decidere la sequenza di operazioni da compiere."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:683
+msgid ""
+"Una particolare coda systemMessage si occupa del passaggio di comandi con"
+" eventuali parametrizzazioni ai vari task. Questa coda viene utilizzata "
+"per il passaggio di un comando ad uno specifico TASK (inserendo l’ID del "
+"task) o a un particolare ID (ALL) che indica che il messaggio e valido "
+"per tutti i task (per esempio il comando di entrata in sleep del "
+"sistema). Lo sleep è comunicato a tutti i task, ma solo quando tutti i "
+"task hanno finito le relative operazioni (e confermato opportunamente) in"
+" totale sicurezza, può essere concesso il power down al sistema. Il "
+"systemMessage è utilizzato anche per l’invio di un comando tra un task e "
+"l’altro come ad esempio il comando tramite LCD-Encoder di calibrazione "
+"accelerometro, reset flag di sistema ecc… In questo caso deve essere "
+"selezionato il TASK di destinazione CAN (non importa il chiamante, può "
+"essere una RPC Remota SerialUSB o http o MQTT o per finire da comando "
+"LCD). Ogni task avrà al suo interno un sistema di gestione delle letture "
+"delle code in grado di determinare la presenza messaggio e se il "
+"messaggio è indirizzato al task locale. Nel caso il messaggio verrà "
+"prelevato dalla coda e processato. Se il messaggio è per tutti solo un "
+"task avrà la possibilità di eliminare il messaggio, tipicamente il "
+"Supervisor o il task CAN a seconda delle esigenze."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:710
+msgid "Esempio fasi di sleep per un Task:"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:710
+msgid "verifica messaggi in coda"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:710
+msgid "messaggio per tutti"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:706
+msgid "messaggio di sleep"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:707
+msgid ""
+"messa in stato di sospensione del WatchDog per un tempo pari al tempo "
+"configurato di sleep del task (tempo massimo che non pregiudica il "
+"funzionamento del sistema senza quel task attivo)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:708
+msgid "Entrata di task in sleep spegnimento periferiche locali"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:709
+msgid "Attivazione del Delay (lungo) che pone il task dormiente."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:710
+msgid "Risveglio e riattivazione periferiche locali"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:712
+msgid ""
+"Il resto è gestito dall’RTOS (quando tutti i task sono in sleep per un "
+"tempo superiore al tempo configurato minimo di attivazione del basso "
+"consumo il sistema entra in Sleep, cioè chiama la funzione xTaskSleep che"
+" è definita nel modulo drivers frertosCallback)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:717
+msgid ""
+"Al rientro dallo sleep il Task dovrà riaccendere le proprie perifieriche "
+"ed attendere gli eventuali timer di stabilizzazione degli stessi prima di"
+" rientrare in modalità operativa."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:761
+msgid ""
+"Queste le code definite nel main del modulo Master che permettono la "
+"comunicazione tra i vari task e le classi previste."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:792
+msgid ""
+"Questi invece i semafori che vengono utilizzati per la condivisione di "
+"risorse hw e/o per l’accesso ai parametri di sistema"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:816
+msgid "Configurazione di un task"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:818
+msgid ""
+"Ogni task lanciato dal main ha parametri di gestione che vengono passati "
+"al relativo task. Questi parametri sono definiti nel main e sono relativi"
+" ai dispositivi hw, semafori e/o code tra quelle viste in precedenza. "
+"Analizzando per esempio la configurazione del TASK CAN, vediamo i "
+"parametri che vengono passati. Analogamente tutti i task hanno una "
+"struttura similare a quella descritta sotto."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:865
+msgid ""
+"Il tipo CanParam_t (ogni task ne ha uno specifico) è definito all’interno"
+" del header del relativo task e appunto ne specifica i dispositivi "
+"utilizzati. Questi vengono passati per indirizzo alla classe che potrà "
+"quindi disporre delle risorse necessarie al suo funzionamento. Il task "
+"avrà all’interno della classe questa struttura generale per l’accesso "
+"alle risorse e ovviamente al suo interno altre variabili specifiche "
+"locali visibili solo all’interno della specifica classe."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:873
+msgid ""
+"I task sono organizzati a stati state_t, normalmente una fase di "
+"inizializzazione, avvio, gestione e sleep, dipendente dall’HW e o dalle "
+"operazioni richieste. Con questa gestione è possibile identificare le "
+"varie sezioni e al proprio interno poter gestire le relative operazioni e"
+" lo switch tra i task definendo bene le tempistiche di accesso a "
+"dispositivi o parametri. All’interno dell’header sono presenti le "
+"definizioni delle tempistiche di gestione dei task:"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:891
+msgid ""
+"Sono i tempi di gestione del task in modalità normale ogni (20 mSec), "
+"modalità real_time (quando il task deve essere sempre eseguito per "
+"specifici controlli (1 mSec), e quando il task può andare in sleep (tempo"
+" massimo di attesa prima dello switch nel contesto 850 mS). Nel CAN "
+"essendo necessario un heartBeat definito dalle specifiche Cypal di 1 "
+"secondo, si è scelto un tempo massimo all’interno del massimo rate dell "
+"heartBeat. Ogni task ha queste specifiche ma i tempi sono differenti a "
+"seconda delle esigenze di funzionamento."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:900
+msgid ""
+"All’avvio del TASK è necessaria la configurazione dell’interfaccia HW/SW "
+"per il setup bxCAN e delle velocità di collegamento. Queste operazioni "
+"sono effettuate a partire dalla lettura dei registri Cyphal CAN, tramite "
+"la classe di accesso (descritta più avanti). In avvio vengono inoltre "
+"attivate le funzioni Interrupt di ricezione CAN per l’utilizzo di bxCAN "
+"con i flag di interrupt necessari ad un funzionamento corretto del "
+"driver."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:908
+msgid ""
+"I dati di configurazione sono letti dai registri Cyphal. La loro modifica"
+" con qualsiasi programma come il tool Yakut in grado di modificare i "
+"parametri dei registri ne altera le funzionalità. E’ possibile per "
+"esempio ridurre la velocità dei moduli CAN se si presentano errori di "
+"comunicazione o se le distanze di collegamento prevedono velocità "
+"ridotte."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1011
+msgid ""
+"Nel CAN Task dopo l’inizializzazione nell’avvio RUN in specifico si hanno"
+" in sequenza le operazioni di configurazione dell’HW e della libreria "
+"Canard che agisce sul CAN Bus con il protocollo Cyphal, per poi passare "
+"all’avvio della configurazione delle sue funzionalità."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1016
+msgid ""
+"Nella fase di INIT si hanno la lettura dei registri Cyphal e la "
+"registrazione delle sottoscrizione ai messaggi Cyphal, la procedura di "
+"callback dei messaggi in ingresso ricevuti e l’impostazione degli ID dei "
+"nodi di rete."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1043
+msgid ""
+"Questa invece una tipica chiamata per la sottoscrizione dei servizi. La "
+"sottoscrizione registra un modulo ad un particolare evento, in questo "
+"caso il messaggio esterno di richiesta Info GetInfo e Comandi."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1079
+msgid ""
+"Se nella rete Cyphal un messaggio tra quelli registrati è indirizzato al "
+"nodo (me stesso) che ha effettuato la registrazione, al momento del "
+"trasferimento completo del messaggio verrà attivata la procedura di "
+"callback registrata in avvio e nella funzione chiamata sarà trasferito il"
+" messaggio in ingresso e la porta fissa o dinamica (che rappresenta il "
+"comando entrante)."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1086
+msgid ""
+"Successivamente si passa alla gestione temporizzata della rete con attesa"
+" e processo dei messaggi remoti e la pubblicazione dei propri e all’invio"
+" dei comandi ai nodi remoti."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1090
+msgid ""
+"Passato il tempo di acquisizione dati impostato in configurazione una "
+"serie di comandi risvegliano i nodi remoti dallo stato di basso consumo "
+"ed inviano la richiesta dei dati. Una volta acquisiti i valori questi "
+"vengono passati alla coda di push dei dati su SD card per l’archiviazione"
+" e il successivo prelievo da parte del supervisor per la pubblicazione al"
+" server Remoto. Il CAN tak si occupa inoltre di attendere tramite code "
+"gli eventuali comandi remoti provenienti da RPC o comandi locali LCD per "
+"inviarli ai destinatari tramite il CAN Bus, quali ad esempio "
+"l’aggiornamento del firmware con file transfer Cyphal."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1100
+msgid "Avvio della richiesta dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1148
+msgid ""
+"Attesa della risposta dati (se in attività, cioè dopo l’avvio di una "
+"richiesta)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1219
+msgid ""
+"Interprete del dato e del metodo di richiesta e trasmissione a coda SD "
+"Card per archiviazione dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1286
+msgid ""
+"Ogni funzionalità, comando, file transfer ecc. della rete Cyphal su CAN "
+"così come inserito nel progetto stimaV4 segue lo stesso iter, se il "
+"canale per quel nodo e per quel determinato comando è libero (non in "
+"pending) si può avviare e questo passa in uno stato di waiting con il "
+"timeout specifico. Successivamente l’ambiente conosce che è in corso un "
+"comando che potrà passare o allo stato di executed o di time_out librando"
+" il canale ad un altro eventuale comando o alla gestione delle retry. I "
+"flag VSC visti in precedenza indicano al master lo stato di un nodo "
+"remoto. Prima di inviare un comando al nodo remoto il flag di full_power "
+"viene abilitato in modo che solo quando il nodo remoto comunica di essere"
+" in full_power pronto quindi a ricevere messaggi senza rischio di perdite"
+" dati, il master invia la propria trasmissione e attende la risposta "
+"remota. Al termine quando tutti i relativi flags del modulo slave sono "
+"off come ad.es file_server, command_server, rmap_data_server il master "
+"potrà nuovamente indicare allo slave relativo di tornare in modalità "
+"normale."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1304
+msgid "Classe register"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1306
+msgid ""
+"La classe register è una particolare classe che è derivata da una "
+"modifica del file register.c dell’applicativo Cyphal. Questa classe si "
+"occupa di inizializzare, leggere e salvare particolari registri Cyphal ex"
+" “Uavcan”. La classe si integra con il protocollo descritto in precedenza"
+" e fornisce parametrizzazioni del protocollo e degli applicativi "
+"sviluppati, quindi con registri di scopo per il funzionamento del "
+"protocollo e delle sue sottoscrizioni e degli applicativi utente, come "
+"ad. esempio nei moduli TH l’intervallo di tempo di acquisizione dei "
+"sensori."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1316
+msgid ""
+"Tutti gli applicativi Master e Slave hanno particolari registri il cui "
+"accesso e garantito con le funzioni di protocollo ReadRegister, "
+"WriteRegister, ListRegister di Cypal, in modo da rendere configurabile il"
+" modulo senza modificare il software e/o le sue definizioni. "
+"Semplicemente accedendo ai relativi registri (di modulo o generali) anche"
+" con applicativi esterni che integrano il protocollo, è possibile leggere"
+" e alterarne i valori, modificando di fatto il suo funzionamento."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1324
+msgid ""
+"L’accesso ai registri è stato modificato per l’integrazioni con il modulo"
+" EEprom degli applicativi a partire dai sorgenti originali della libreria"
+" LibCanard che utilizzavano la SD Card (gestione a file) dei registri. Si"
+" è così proceduto ad interfacciare la memoria EEprom permanente dei "
+"moduli StimaV4."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1330
+msgid ""
+"La classe è stata scritta in conformità agli altri moduli Task per "
+"rendere omogeneo l’ambiente di sviluppo. La sua parametrizzazione segue "
+"lo stesso concetto utilizzati per i TASK, con una struttura locale a cui "
+"sono passate le istanze degli oggetti utilizzate (eeprom, semafori ecc…)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1335
+msgid ""
+"Questi i registri tipici del master con i relativi nomi accessibili sulla"
+" rete Cyphal"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1372
+msgid ""
+"Questi invece i semplici metodi della classe per accedere ai registri di "
+"sistema. Nel costruttore vengono passate le risorse necessarie alla "
+"classe per la gestione accesso alla memoria."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1398
+msgid "Classe RPC"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1400
+msgid ""
+"Anche in questo caso ci troviamo di fronte ad una particolare classe "
+"scritta per mantenere omogeneità con l’ambiente di sviluppo."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1403
+msgid ""
+"Questa classe è il tramite tra le RPC di sistema e la libreria Arduino "
+"JSON, per gestire le RPC remote che interagiscono con il sistema tramite "
+"comandi JSON."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1407
+msgid ""
+"Ogni modulo che ne ha necessità avrà un’istanza della classe e al suo "
+"interno i vari metodi di gestione dei comandi JSON (in trasmissione e "
+"risposta) diventano operazioni trasparenti."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1411
+msgid ""
+"La classe è utilizzata per esempio sui Task USB Serial (comandi locali da"
+" USB Seriale), CAN Bus (comandi locali su CAN BUS), http (comandi remoti "
+"da connessione http come il download della configurazione), MQTT (comandi"
+" remoti da connessione MQTT come ad esempio reboot, download firmware "
+"ecc..)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1417
+msgid ""
+"Trovandoci all’interno di un sistema RTOS, la chiamata alla classe da "
+"parte di un TASK deve sapere come i vari comandi interagiscono tra loro. "
+"Se un particolare comando deve attendere risposta da un particolare task "
+"per avere la certezza dell’esecuzione dello stesso ma proviene da un "
+"diverso Task, il sistema deve poterlo gestire in sicurezza. Nel codice "
+"sotto è visibile l’attesa non bloccante del task che ripassa il controllo"
+" al sistema operativo ma attende comunque la conferma dell’esecuzione del"
+" comando dal task interessato."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1426
+msgid ""
+"Prendiamo in esame ad. esempio un metodo JSON per l’inizializzazione "
+"remota della SD Card. Il task chiamante non è importante ma prima di dare"
+" risposta al task chiamante ci dobbiamo assicurare che il comando "
+"eseguito (in questo caso dal task SD Card) abbia terminato la sua "
+"esecuzione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1432
+msgid ""
+"Per effettuare il tutto in sicurezza, viene gestito lo switch dei "
+"contesti internamente e tramite le code di messaggi di sistema viste in "
+"precedenza si attiva la funzione e si attende la risposta. Al termine si "
+"può rientrare nel Task chiamante che può portare a termine le altre "
+"operazioni in corretta sequenza."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1438
+msgid ""
+"Il programmatore deve essere a conoscenza del tempo necessario per la "
+"gestione di questa operazione e per non incorre all’intervento del "
+"WatchDog, dovrà mettere lo stato del task in sospensione e/o abilitarlo "
+"per un lasso di tempo minimo necessario all’esecuzione dell’operazione, "
+"come spiegato in precedenza."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1444
+msgid ""
+"La classe, come quella register descritta in precedenza, è stata "
+"realizzata in conformità agli altri moduli Task per rendere omogeneo "
+"l’ambiente di sviluppo. La sua parametrizzazione segue lo stesso concetto"
+" utilizzato per i TASK, con una struttura locale a cui sono passate le "
+"istanze degli oggetti utilizzati (eeprom, semafori ecc…)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1518
+msgid "Debug e LOG"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1520
+msgid ""
+"Per utilizzare le funzioni di Debug e LOG all’interno del file "
+"debug_config.h sono definiti i livelli di TRACE dei messaggi, cioè il "
+"livello per ogni TASK di LOG. Ogni livello attiva più o meno messaggi a "
+"seconda di come sono stati inseriti nell’applicativo. Di seguito un "
+"esempio di definzione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1554
+msgid "I livelli possibili da debug.h"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1574
+msgid ""
+"NTP_TASK, come configurato sopra avrà per esempio solo i level INFO, "
+"quindi solo le stampe INFO o con indice minore potranno essere "
+"visualizzate."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1582
+msgid ""
+"Analogamente TRACE_LOG avrà la stessa funzionalità ma il messaggio non è "
+"inviato ad un TRACE Seriale per il monitor di sistema ma da una "
+"particolare coda (LOG) per il push dei messaggi su SD Card. Il livello "
+"trace e la modalità di utilizzo è identica tra i due metodi."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1588
+msgid "Connessione Modem, ntp, http, mqtt"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1590
+msgid ""
+"I task di gestione della connessione come specificato in precedenza sono "
+"gestiti dalle code di connessione. In particolare quando necessario "
+"l’avvio della comunicazione, sia esso per la temporizzazione di "
+"configurazione sia per una richiesta estemporanea per esempio da comando "
+"apposito tramite LCD, viene attivato il meccanismo di start dei task di "
+"comunicazione dal task supervisor."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1597
+msgid ""
+"Il Task di supervisione parte leggendo la configurazione di sistema per "
+"poi inizializzare le variabili locali di interesse. A questo punto il "
+"task si mette in attesa delle operazioni sopradescritte in attesa "
+"dell’avvio della comunicazione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1632
+msgid ""
+"In una prima fase, cosi come generalmente prevista nei vari task a "
+"seconda dell’operatività del TASK si provvede a determinare il tempo di "
+"funzionamento nel contesto. Questo rende possibile al modulo l’entrata in"
+" basso consumo se e quando tutti i task non hanno attività da effettuare."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1650
+msgid ""
+"Per avviare una comunicazione, vengono specificati le operazioni da "
+"effettuare (automatiche e/o manuali) tramite le parametrizzazioni dei "
+"flag do_mqtt, do_ntp, do_http_configuration ecc.."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1654
+msgid ""
+"Questi flag se abilitati informano il task della necessità di avviare "
+"quel tipo di connessione (e quindi di quello specifico TASK). Si passa "
+"adesso alla gestione dello stato di connessione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1698
+msgid ""
+"A seconda dello stato di connessione si effettuano le operazioni "
+"programmate. Si avvia inizialmente la connessione CONNECTION_INIT e "
+"successivamente a connessione correttamente stabilita si procede con "
+"l’operazione ad esempio di sincronizzazione NTP. In sequenza vengono "
+"effettuate NTP, http e MQTT. NTP è automatico alla prima connessione e "
+"successivamente viene richiamata 1 volta al giorno. http è su richiesta, "
+"normalmente e bypassata ma su richiesta di una RPC locale o remota viene "
+"inserita la richiesta per il controllo/download firmware e/o "
+"configurazione. MQTT è praticamente sempre presente perché almeno lo "
+"stato delle stazioni, anche in assenza di dati, viene trasmesso al server"
+" remoto."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1764
+msgid ""
+"Questa la fase di avvio connessione tramite coda e attesa risposta sul "
+"supervisor in sospensione del task. Una volta che il task avviato (modem "
+"in questo caso) avrà effettuato o meno la connessione, risponderà al "
+"supervisore informandolo della riuscita o meno dell’operazione. Se la "
+"connessione è andata a buon fine con lo stesso meccanismo verranno "
+"innescati in sequenza e con le stesse identiche modalità i vari task di "
+"rete necessari, ntp, http, mqtt. Al termine verrà inviato analogo comando"
+" per il processo di disconnessione (questo solo per il task modem) in "
+"modo da riposizionarci ad inizio in attesa di nuovo avvio comunicazione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1775
+msgid ""
+"Per la gestione della comunicazione fisica, ci si appoggia alla classe "
+"sim7600 che gestisce ad alto livello le funzionalità del modulo SIM7600E "
+"utilizzato nel progetto. La classe comprende tutti i metodi per la "
+"gestione completa del modulo, a partire dall’alimentazione del "
+"dispositivo passando dalla gestione dei dispositivi HW per la "
+"comunicazione, tutti i comandi AT fino alla creazione di una connessione "
+"PPP che viene passata al contesto CycloneTCP per i successivi task di "
+"comunicazione. Nell’istanza della classe vengono passati i pin utilizzati"
+" per l’accesso HW al modulo e le velocita di Baud RATE (di avvio e di "
+"operatività). Il modulo infatti si avvia ad una velocità della porta "
+"RS232 per poi passare ad un rate superiore che consente l’utilizzo a "
+"pieno delle velocità offerte dai nuovi standard 4G. Il tutto, gestione "
+"della porta RS232 e dei temporizzatori e clock sorgenti necessari è come "
+"sempre del tutto trasparente al programma principale."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1791
+msgid "Task NTP HTTP MQTT"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1793
+msgid ""
+"Prendiamo in esmpio un task tra quelli di comunicazione (NTP), ricordando"
+" che tutti i task di questo ambito agiscono nello stesso modo, ovviamente"
+" differenziandosi nei relativi metodi per la tipologia di connessione da "
+"effettuare. Per quanto riguarda metodi e relative configurazioni fare "
+"riferimento a https://www.oryx-embedded.com/doc/ dove l’ampia "
+"documentazione e guida permetterà di approfondire le istruzioni e "
+"metodologie utilizzabili."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1801
+msgid ""
+"Come descritto precedentemente, nel progetto StimaV4, viene stabilita una"
+" connessione PPP trasparente, tramite libreria Cyclone parzialmente "
+"adattata al funzionamento sull’architettura STM32 con modem e relativi "
+"comandi per SIM7600E SimCom. Una volta stabilità la connessione il tutto "
+"diventa trasparente, la variabile yarrowContext del main contiene una "
+"struttura dati accessibile ai moduli Cyclone e rendono disponibili tutte "
+"le funzionalità della libreria, come ad. Es. http, Udp, Smpt ecc…"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1809
+msgid ""
+"All’interno della directory delle librerie sono inserite le varie "
+"funzionalità di CycloneTCP utilizzabili."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1812
+msgid ""
+"Tornando alla gestione dei comandi sul Task di StimaV4 (NTP), la "
+"struttura che andiamo ad analizzare"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1871
+msgid ""
+"Successivamente alla fase di init, si entra in uno stato dormiente del "
+"Task, in attesa del risveglio (comando del supervisor). Se richiesta una "
+"sincronizzazione, viene avviato il relativo processo (is_syncronizing) "
+"che terminerà dopo la corretta esecuzione di tutte le istruzioni "
+"necessarie"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1956
+msgid ""
+"Il codice sopra è il termine corretto della sequenza comandi (con "
+"impostazione data e ora e gestione del relativo semaforo di accesso), "
+"infine viene inviata la risposta al task di supervisione dello stato "
+"effettuato o meno del comando per le successive elaborazioni. Al termine "
+"dell’invio della risposta il task ritorna dormiente in attesa di nuovo "
+"avvio."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1963
+msgid ""
+"La stessa struttura di avvio, comando e sospensione è applicata agli "
+"altri task http e mqtt."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1966
+msgid ""
+"I task MQTT e http, più complessi rispetto al task NTP, hanno al loro "
+"interno le funzionalità di lettura e scrittura dati sulle code previste "
+"verso il task SD (lettura dati e pubblicazione per MQTT), (scrittura dati"
+" firmware http) e condividono l’accesso alle RPC, con la specifica classe"
+" vista in precedenza per configurazione e comandi tramite comandi JSON."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:1973
+msgid ""
+"Analizzando per esempio http ci troviamo di fronte alla solita attesa "
+"dell’avvio del task tramite coda, successivamente a seconda della "
+"tipologia di comando richiesta (se soddisfatte le varie condizioni), si "
+"passa allo stato di invio richiesta remota per le connessioni da "
+"effettuare (firmware, configurazione) possibili. Altre eventuali "
+"richieste potrebbero essere facilmente inserite in questo contesto."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2058
+msgid ""
+"L’organizzazione a stati, così come proposta, contribuisce alla "
+"manutenibilità del software, differenziando in modo semplice le varie "
+"fasi di attività/connessione e le tempistiche di delay dei vari contesti,"
+" tra operazioni semplici e quelle più complesse, che richiedono al task "
+"maggiori tempi di funzionamento."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2064
+msgid ""
+"Dopo la fase di composizione della richiesta (http_state_send_request) "
+"con tutte le gestioni interne ed eventuali anomalie, si entra "
+"nell’interprete (http_state_get_response) dove le risposte ottenute dal "
+"server vengono analizzate e processate"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2149
+msgid ""
+"Per esempio, durante la fase di ricezione della configurazione (più "
+"genericamente definibile in ricezione RPC tramite http) si hanno la "
+"lettura del corpo messaggio http letto (le linee di comando RPC), il "
+"passaggio tramite accesso semaforico alla classe di gestione delle RPC, e"
+" la loro esecuzione con sospensione momentanea del controllo sul task "
+"locale per operazioni che potrebbero essere di lunga durata."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2156
+msgid ""
+"Nel caso dell’aggiornamento firmware il blocco dati letto, viene inviato "
+"ad una funzione specifica do_firmware_add_block invece che alla gestione "
+"RPC, che si occupa del passaggio dei dati verso la memoria SD con il "
+"sistema prescelto (Code). Si noti che la coda di attesa risposta blocca "
+"il processo per un lasso di tempo FILE_IO_DATA_QUEUE_TIMEOUT, che "
+"impedisce al sistema il blocco del programma sulla risposta per evitare "
+"WatchDog o altre situazioni anomale, ma consente la verifica del corretto"
+" scambio di dati. Questa modalità utilizzata in tutto il progetto deve "
+"essere opportunamente programmata per essere compatibile con i tempi "
+"generali di WatchDog ed eventuali tempi di sospensione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2213
+msgid ""
+"Per quanto riguarda Mqtt, analogamente agli altri task di connessione si "
+"hanno in sequenza gli stati di inizializzazione mqtt, connessione al "
+"server, pubblicazione degli stati dei flag, pubblicazione dei dati "
+"disconnessione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2218
+msgid ""
+"Per quanto riguarda la pubblicazione dei dati, questi vengono letti dai "
+"moduli remoti nel formato nativo del messaggio Cyphal trasmesso e salvati"
+" direttamente su SD dal task CanBus tramite l’apposita coda."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2228
+msgid ""
+"L’apposito casting in lettura della coda permette di avere la struttura "
+"completa, come definita nei file header RMAP dsdl di Cyphal, completo di "
+"dati e metadati sensore nel task mqtt, per le elaborazioni locali. Sotto "
+"la gestione di un tipo dati radiation in esempio per la radiazione "
+"solare. Tutti i moduli hanno una propria struttura con flags e misure "
+"differenti ma il concetto di funzionamento è univoco in tutti i moduli."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2267
+msgid ""
+"La funzione publishSensor_(name_sensor) si occupa fisicamente di "
+"preparare il messaggio nel formato RMAP e di postare il valore al server "
+"remoto, verificandone corretta esecuzione o eventuali errori di "
+"pubblicazione che sono gestiti nello stato principale della pubblicazione"
+" dei record Mqtt."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2274
+msgid "Classe Canard"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2276
+msgid ""
+"La classe canard, presente in ogni modulo (master e slave), contiene al "
+"suo interno le funzionalità di gestione della libreria Canard, da quelle "
+"più a “basso livello” (gestione memoria e frame di comunicazione) nei "
+"metodi privati, a quella dei singoli comandi di “alto livello” nei metodi"
+" pubblici."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2282
+msgid ""
+"Lo scopo della classe è di rendere più semplice l’accesso alle "
+"funzionalità della comunicazione Cyphal su CanBus senza doversi occupare "
+"delle inizializzazioni software dei moduli specifici bxCan, interrupt di "
+"sistema, O1Heap per la gestione della memoria della libreria. Nel task "
+"Can si accede a questa specifica classe e con qualche semplice chiamata "
+"si hanno a disposizione tutti i comandi di gestione della connessione "
+"Cyphal."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2290
+msgid ""
+"Internamente alla classe sono stati inseriti ulteriori metodi tramite "
+"flag di verifica per l’invio di specifici messaggi e il monitoraggio "
+"delle tempistiche di risposta (OK, in corso, timeOut) gestibili dal "
+"programma principale (in questo caso dal Task CAN). Ogni comando di ogni "
+"funzionalità prevista (trasmissione file, sincronizzazione data ora, "
+"acesso ai registri ecc…) oltre agli specifici parametri della particolare"
+" richiesta hanno i relativi metodi pending e timeout per determinare lo "
+"stato e la disponibilità di una funzionalità."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2299
+msgid ""
+"A differenza della classe master che contiene tutti i name space delle "
+"tipologie di sensori/dsdl definite per RMAP, le singole classi slave "
+"avranno solamente le relative classi per il singolo modulo."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2303
+msgid ""
+"La classe ha inoltre al suo interno alcuni tipi definiti per la gestione "
+"degli stati dei moduli. Di particolare interesse il VSC, Vendor Status "
+"Code, definito da Cyphal come utilizzo privato nella comunicazione del "
+"metodo Heartbeat. Questo codice di stato, è utilizzato in StimaV4 anche "
+"per la comunicazione tra i moduli dell’attivazione o meno dello sleep per"
+" il basso consumo. Quando il master richiede il full power ai moduli "
+"remoti attiva il relativo flag che comunica agli slave l’impossibilità di"
+" entrare in power down (es. quando viene aggiornato il firmware), "
+"viceversa il flag remoto conferma che un modulo è in basso consumo e non "
+"potrà interagire in comunicazione con comandi diretti. Se necessario "
+"trasmettere un comando diretto, lo slave dovrà prima essere risvegliato e"
+" alla conferma del flag rimosso potrà essere inviato il comando."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2316
+msgid ""
+"Al termine di tutto, se non necessaria una comunicazione particolare o "
+"privilegiata, il master comunicherà agli slave di rientrare in power "
+"down."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2320
+msgid ""
+"Questi messaggi di stato, tramite il flag VSC, vengono inviati nel "
+"messaggio heartbeat di Cyphal, che come specificato dal protocollo dovrà "
+"essere inviato entro due secondi prima di considerare un modulo OffLine."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2352
+msgid ""
+"Le definizioni dei tipi se di carattere globale sono sempre posti "
+"all’interno di local_typedef.h, altrimenti sono presenti nella "
+"definizione dell’ header del task o dellla relativa classe o modulo."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2373
+msgid "Moduli SLAVE"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2375
+msgid ""
+"Come già detto in precedenza, i moduli slave si differenziano dal master "
+"perché sono l’interfaccia verso il sensore e verso il master. I concetti "
+"espressi in precedenza riguardanti l’architettura software utilizzata "
+"rimangono gli stessi del Master, vedi FreeRTOS, LPTim, sleep, "
+"comunicazioni Task, code, semafori, ecc…"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2381
+msgid ""
+"La parte di interfacciamento verso il sensore ha ovviamente un task "
+"specifico differente tra i vari moduli (rain, th, mppt, wind ecc.) che "
+"fisicamente si occupa di acquisire i valori real time dal sensore in "
+"campo e rendere questo dato disponibile al task che effettua le "
+"elaborazioni."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2387
+msgid ""
+"I dati acquisiti sono poi inseriti in un buffer circolare che è letto dal"
+" task delle elaborazioni per calcolare le elaborazioni specifiche del "
+"sensore. Anche il task elaborazione è in parte differente tra i moduli "
+"per consentire il calcolo di elaborazioni specifiche come ad.es quelle "
+"relative al vento velocità e direzione, ma il concetto di buffer valori, "
+"code di richiesta valore istantaneo, di inserimento è richiesta dati è "
+"identico tra tutti gli slave. Identico rimane inolte il task CAN che "
+"pubblica le sue info e attende dal master i vari comandi per interagire "
+"con le elaborazioni su comandi del master."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2397
+msgid ""
+"Anche in questo caso abbiamo il concetto di configurazione locale del "
+"modulo (tramite i registri Cyphal e le classi già approfondite) che "
+"contiene le informazioni rispetto al modulo utilizzato e ai parametri di "
+"gestione che viene caricato e reso disponibile all’intero modulo tramite "
+"configuration. SystemStatus si occupa sempre dello stato del sistema "
+"“modulo”."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2404
+msgid ""
+"Per aggiungere un modulo slave al sistema, bisognerà partendo da un "
+"modulo esistente, preoccuparsi di sviluppare la parte di acquisizione del"
+" sensore"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2416
+msgid ""
+"Creando ed aggiungendo nel file di configurazione config.h il nuovo "
+"modulo e tutte le sue definizioni poi abilitandolo al posto di quello di "
+"Temperatura in questo caso."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2428
+msgid ""
+"“Modulo nuovo” dovrà preoccuparsi di adattare le funzionalità gestionale "
+"come ad esempio le funzioni PowerOn e PowerOff per spegnere il sensore ed"
+" entrare in basso consumo se possibile per quella tipologia di sensore, "
+"passare i parametri corretti al task di gestione agendo sulla struttura "
+"locale moduloConfigParam adattata alle esigenze (vedi sotto), passare i "
+"semafori e i dispositivi hw necessari. Nel caso del sensore TH oltre a "
+"confiurazione e stato di sistema, TwoWire chè è l’accesso a I2C e i "
+"relativi semafori di utilizzo della risorsa."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2437
+msgid ""
+"Successivamente è necessario aggiornare gli stati possibili di "
+"funzionamento per creare le varie fasi di attività del task (nel caso in "
+"esame il sensore TH con interfacciamento SensorDriver prevede la fase di "
+"CreazioneTask, attesa della configurazione disponibile, inizializzazione "
+"dispositivi, setup sensori, prepare e read specifici di SensorDriver, End"
+" ed eventuali stati di errore e loro risoluzione) con quelli necessari."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2533
+msgid ""
+"Infine dopo aver creato la sequenza di lettura e acquisizione, interagire"
+" con la coda buffer dati per le successive elaborazioni (prendendo in "
+"esame sempre il modulo TH la parte che si occupa di inserire il dato nel "
+"buffer a scorrimento)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2548
+msgid ""
+"L’altro passaggio da effettuare è quello di creare il tipo di dato Cyphal"
+" relativo (come detto in precedenza questo protocollo è particolarmente "
+"orientato ad un’oggetto quindi ad un sensore con tutt i i suoi stati). "
+"Per questo bisogna creare e compilare una DSDL che contiene dati, "
+"metadati flag e metodi richiesti da quel sensore. Come creare ed "
+"utilizzare una DSDL è spiegato sempre su openCyphal.org, ma a titolo "
+"illustrativo inseriamo la DSDL che dà origine alla struttura temperatura "
+"RMAP Cyphal. Una volta compilata la DSDL ed importato nel programma il "
+"relativo file .h vengono messe a disposizione del programma le funzioni "
+"di interpretazione compressione e decompressione dei dati per il "
+"trasporto su CAN (o altri metodi)."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2560
+msgid "DSDL Modulo di TH (Temperatura + umidità + metadati)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2572
+msgid ""
+"DSDL Misura di Temperatura (Tabella Temperatura + tabella confidence per "
+"attendibilità della misura)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2583
+msgid ""
+"DSDL Tabella B12101 da RMAP (definizione di temperatura bit utilizzati ed"
+" eventuali limiti)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2600
+msgid ""
+"Al termine della stesura e compilazione della DSDL segue l’importazione "
+"degli header per il nuovo modulo, tabella RMAP e misura e si rende "
+"necessario l’adattamento della classe_canard_nuovo_modulo. In sostanza "
+"lasciando inalterati tutti i metodi classici di Cyphal già inseriti "
+"(partendo dall’esempio di canard_class_th ci si deve solamente "
+"preoccupare di sostituire il modulo_th con il nuovo creato, per la "
+"memorizzazione dati e l’inserimento dei metodi/misure per l’avvio delle "
+"regolari sottoscrizioni Cyphal."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2609
+msgid ""
+"A questo punto tutti gli strumenti sono pronti e disponibili per creare "
+"un nuovo modulo su StimaV4 ed abilitarlo nel master."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2613
+msgid "Sensor TASK"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2615
+msgid ""
+"Analizzando più nel dettaglio un singolo modulo (prendiamo in esame "
+"quello della temperatura) possiamo vedere dal file config.h la "
+"configurazione del modulo dove vengono definiti i dispositivi HW da "
+"abilitare, gli indirizzi EEprom per la registrazione/lettura della "
+"configurazione, i dimensionamenti dei buffer e le temporizzazioni per i "
+"task di elaborazione, le temporizzazioni per i metodi di basso consumo e "
+"i limiti fisici del sensore collegato. Tutte le variabili sono ampiamente"
+" commentate e laddove il commento non è presente è perché il nome della "
+"variabile indica già in modo esaustivo la sua funzionalità."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2625
+msgid ""
+"Sensor_config.h invece entra nel dettaglio della tipologia di sensore e "
+"si occupa di definire la tipologia del sensore utilizzato e l’eventuale "
+"modalità ridondante. Stima V4 ha questa definizione REDUNDANT per "
+"aggiungere un sensore ridondante al principale dove previsto. Dalla "
+"configurazione è necessario abilitare il modulo utilizzato per "
+"l’integrazione con SensorDriver di StimaV4."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2632
+msgid ""
+"La configurazione di default inizializza i metodi per la libreria che "
+"vengono salvati sui registri Cyphal “SHT” per esempio per quanto riguarda"
+" il tipo di sensore, “I2C” per il tipo di driver. Questi vengono letti "
+"all’avvio del modulo e la loro modifica prevede l’abilitazione mediante "
+"la libreria per il tipo di sensore, modificando per esempio nell’ "
+"apposito registro della tipologia del sensore in “HYT” si modificherà il "
+"protocollo e la classe di riferimento per abilitare lo specifico sensore."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2641
+msgid ""
+"Per quanto riguarda il sensore SHT utilizzato nel progetto, è stata "
+"redatta una nuova classe che supporta tutti i metodi di utilizzati da "
+"SensorDriver (prepare, get ecc..) per renderli disponibili alla classe "
+"SensorDriver nei metodi privati. Il tipo di trasporto differente rispetto"
+" alla gestione di StimaV3, le modalità di configurazione e di "
+"collegamento tra i moduli ha fatto perdere in parte di significato "
+"all’indirizzo I2C dei moduli (che erano il bus di comunicazione e quindi "
+"il motore del sistema) e anche dei metodi utilizzati, relegando "
+"l’indirizzo I2C a semplice accesso al sensore e non al modulo in sè."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2651
+msgid ""
+"All’interno della libreria SHT, come in quella HYT, nelle relative "
+"definizioni sht.h hyt.h è possibile modificare gli indirizzi I2C fisici "
+"di accoppiamento per i sensori base ed eventuale ridondante per il loro "
+"accesso. L’utilizzo di altri sensori tipo ad.es. come SENSOR_STH, "
+"SENSOR_ITH, SENSOR_MTH, SENSOR_NTH, SENSOR_XTH utilizzati nei moduli di "
+"test sviluppati ad hoc per la verifica delle elaborazioni sono stati "
+"importati nella classe adattandone la chiamata dei metodi. Nella libreria"
+" RMAP sono disponibili nei file registers, registers-th, registers-th_v2 "
+"indirizzi comandi e metodi per la configurazione dei metodi/sensori "
+"sopradescritti."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2662
+msgid ""
+"Analizziamo le varie fasi in sequenza per SensorDriver nel task del "
+"sensore th_sensor_task"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2689
+msgid ""
+"Fase di Setup (con eventuale powerON se utilizzabile), reset stati I2C e "
+"passaggio a PREPARE"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2734
+msgid ""
+"Fase di Prepare (con gestione errori), attesa prevista dal Driver e "
+"passagio a lettura"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2785
+msgid ""
+"Fase di Lettura (con gestione errori), inserimento dati in buffer, attesa"
+" prevista dalla configurazione e riavvio"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2855
+msgid "Inserimento in coda buffer dati e passaggio a END (fine acquisizione)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2887
+msgid ""
+"END e riavvio procedura (gestione OFF sensore se prevista), messa in "
+"standBy per il tempo previsto dal driver e reinit procedura (nel caso di "
+"nuovo PowerON, si rieffettua anche tutta la fase di Setup sensore)"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2932
+msgid "Task Elaborate"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2934
+msgid ""
+"Per ultimo andiamo ad approfondire il task di elaborazione. Come già "
+"descritto questo task effettua elaborazioni su richiesta esterna tramite "
+"coda comandi e si occupa dell’archiviazione dei dati sulle strutture di "
+"buffer. Nel main del task si attendono appunto queste due code che ne "
+"gestiscono il funzionamento."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2940
+msgid "Coda di attesa per riempimento buffer a scorrimento dei dati"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2990
+msgid ""
+"Nel primo indice si può vedere un buffer particolare maintenance_sampe "
+"chè è un buffer circolare di dati bool per segnalare se il dato indice "
+"del buffer dei sensori (Temperatura e Umidità primari e ridondanti) sono "
+"validi oppure in fase di manutenzione. Se correlati ad un’attività di "
+"manutenzione temporale, attivabile dall’operatore locale tramite apposito"
+" comando su display, questi dati non saranno ritenuti idonei nel calcolo "
+"delle elaborazioni (vale ovviamente per tutti i moduli RAIN, WIND ecc…)."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:2999
+msgid "Attivazione eleaborazione tramite coda."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3023
+msgid ""
+"Qualsiasi task può avviare una richiesta di elaborazione sulla coda "
+"request_data ed attendere sulla relativa coda la risposta dati nella "
+"struttura report. La definizione delle report sono ovviamente dipendenti "
+"dalla tipologia di modulo e racchiudono tutte le elaborazioni del "
+"relativo sensore. La struttura di request è invece identica tra i moduli "
+"e tramite i parametri dei tempi di acquisizione e osservazione è in grado"
+" in qualsiasi momento di dare una risposta dinamica al chiamante in "
+"merito alle elaborazioni anche sulla base di tempi diversi (la "
+"sincronizzazione del tempo è garantita dal metodo timeSyncronization di "
+"Cyphal). In questo modo è possibile oltre al calcolo su tempi fissi di "
+"acquisizione dati della configurazione es. 900 secondi, una estemporanea "
+"richiesta remota proveniente da altra funzione per il calcolo su 1 ora "
+"completa di dati con osservazioni al minuto o altro intervallo a scelta, "
+"senza compromettere nulla sui dati in memoria."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3038
+msgid ""
+"All’inizio vengono prelevati i dati dalla coda a ritroso partendo "
+"dall’ultimo ed effettuare una corretta sequenza di accesso ai dati per il"
+" calcolo delle elaborazioni sulla base dei tempi richiesta, procedendo da"
+" un sample all’altro fino alla generazione di un’osservazione con una "
+"media progressiva. Il prelievo è effettuato con verifica dato e "
+"manutenzione, conteggio sample, recupero dato “mediato” in caso di "
+"ridondanza sensori"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3082
+msgid ""
+"Quando generata una osservazione viene aggiunta e registrata per arrivare"
+" al calcolo del report complessivo. Le variabili vengono reinizializzate "
+"per determinare il valore della successiva osservazioone fino al "
+"raggiungimento del totale delle osservazioni previste per il calcolo del "
+"report"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3134
+msgid ""
+"Al termine se le percentuali di dati che compongo l’osservazione e la "
+"relativa percentuale che compongono il report soddisfano i parametri "
+"minimi configurati in config.h del sensore, il report è valido e viene "
+"passato in risposta"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3145
+msgid ""
+"Altrimenti il report sarà composto da una struttura di valori nulli per "
+"indicare l’assenza di elaborazione."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3149
+msgid "Documentazione del codice"
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3151
+msgid ""
+"The C++ API documentation for MASTER is available as `doxygen "
+"documentation <doxygen_v4/master/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3153
+msgid ""
+"The C++ API documentation for slave TH is available as `doxygen "
+"documentation <doxygen_v4/slave-th/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3155
+msgid ""
+"The C++ API documentation for slave RAIN is available as `doxygen "
+"documentation <doxygen_v4/slave-rain/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3157
+msgid ""
+"The C++ API documentation for slave RADIATION is available as `doxygen "
+"documentation <doxygen_v4/slave-radiation/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3159
+msgid ""
+"The C++ API documentation for slave WIND is available as `doxygen "
+"documentation <doxygen_v4/slave-wind/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3161
+msgid ""
+"The C++ API documentation for slave VWC is available as `doxygen "
+"documentation <doxygen_v4/slave-vwc/html/index.html>`__."
+msgstr ""
+
+#: ../../stima_v4/software_manual/software_manual.rst:3163
+msgid ""
+"The C++ API documentation for slave MPPT is  available as `doxygen "
+"documentation <doxygen_v4/slave-mppt/html/index.html>`__."
+msgstr ""
+
+#~ msgid "Descrizione software"
+#~ msgstr ""
+
