@@ -33,7 +33,6 @@ void print_debug(const char *fmt, ...)
 
 /**
  * @brief Display the contents of an array
- * @param[in] stream Pointer to a FILE object that identifies an output stream
  * @param[in] prepend String to prepend to the left of each line
  * @param[in] data Pointer to the data array
  * @param[in] length Number of bytes to display

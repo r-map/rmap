@@ -63,7 +63,6 @@ Generated on: 2016-01-08
 */
 
 /*! @file
- *  @ingroup LTC4015
  *  @brief LTC4015 Register Map Definition Header
  *
  *
@@ -80,7 +79,6 @@ Generated on: 2016-01-08
  */
 
 /*! @defgroup LTC4015_register_map LTC4015 Register Map Definitions
- *  @ingroup LTC4015
  */
 
 #ifndef LTC4015_REG_DEFS_H_
@@ -88,7 +86,6 @@ Generated on: 2016-01-08
 
 #define LTC4015_ADDR_68 0x68 //!<LTC4015 I2C address in 7-bit format
 /*! @defgroup LTC4015_VBAT_LO_ALERT_LIMIT VBAT_LO_ALERT_LIMIT
- *  @ingroup LTC4015_register_map
  *  @brief VBAT_LO_ALERT_LIMIT Register
  *
  * |                   15:0 |

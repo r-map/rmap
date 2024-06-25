@@ -351,9 +351,9 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @brief Prepara il blocco messaggio dati per il modulo corrente istantaneo
 ///    NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
 /// @param sensore tipo di sensore richiesto rmap class_canard di modulo
+/// @param report report data
 /// @param rmap_data report data module output value per modulo sensore specifico publish
 ///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
-/// @return None
 /// Controllo ElaborateData report!!! .... Corretto sensore...
 void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Power_1_0 *rmap_data) {
     // Inserisco i dati reali
@@ -703,13 +703,13 @@ rmap_service_module_Power_Response_1_0 CanTask::processRequestGetModuleData(cana
           }
           break;
 
-        /// NOT USED
-        /// saturated uint3 stop_acq = 4
-        /// #define rmap_service_setmode_1_0_stop_acq (4U)
-        /// saturated uint3 loop_acq = 5
-        /// #define rmap_service_setmode_1_0_loop_acq (5U)
-        /// saturated uint3 continuos_acq = 6
-        /// #define rmap_service_setmode_1_0_continuos_acq (6U)
+        // NOT USED
+        // saturated uint3 stop_acq = 4
+        // #define rmap_service_setmode_1_0_stop_acq (4U)
+        // saturated uint3 loop_acq = 5
+        // #define rmap_service_setmode_1_0_loop_acq (5U)
+        // saturated uint3 continuos_acq = 6
+        // #define rmap_service_setmode_1_0_continuos_acq (6U)
 
         /// saturated uint3 test_acq = 7 (Solo x TEST)
         case rmap_service_setmode_1_0_test_acq:

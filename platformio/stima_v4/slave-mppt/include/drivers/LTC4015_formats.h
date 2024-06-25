@@ -64,7 +64,6 @@ Generated on: 2016-01-08
 
 
 /*! @file
- *  @ingroup LTC4015
  *  @brief LTC4015 library file defining data conversion macros and constants used
  *  by LTC4015.c
  *
