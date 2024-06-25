@@ -1,0 +1,26 @@
+var annotated_dup =
+[
+    [ "bootloader_t", "structbootloader__t.html", "structbootloader__t" ],
+    [ "canardClass", "classcanard_class.html", "classcanard_class" ],
+    [ "CanParam_t", "struct_can_param__t.html", "struct_can_param__t" ],
+    [ "CanTask", "class_can_task.html", "class_can_task" ],
+    [ "configuration_t", "structconfiguration__t.html", "structconfiguration__t" ],
+    [ "EEprom", "class_e_eprom.html", "class_e_eprom" ],
+    [ "EERegister", "class_e_e_register.html", "class_e_e_register" ],
+    [ "ElaborateDataParam_t", "struct_elaborate_data_param__t.html", "struct_elaborate_data_param__t" ],
+    [ "ElaborateDataTask", "class_elaborate_data_task.html", "class_elaborate_data_task" ],
+    [ "Flash", "class_flash.html", "class_flash" ],
+    [ "maintenance_t", "structmaintenance__t.html", "structmaintenance__t" ],
+    [ "Mppt", "class_mppt.html", "class_mppt" ],
+    [ "MpptSensorParam_t", "struct_mppt_sensor_param__t.html", "struct_mppt_sensor_param__t" ],
+    [ "MpptSensorTask", "class_mppt_sensor_task.html", "class_mppt_sensor_task" ],
+    [ "report_t", "structreport__t.html", "structreport__t" ],
+    [ "sample_t", "structsample__t.html", "structsample__t" ],
+    [ "SupervisorParam_t", "struct_supervisor_param__t.html", "struct_supervisor_param__t" ],
+    [ "SupervisorTask", "class_supervisor_task.html", "class_supervisor_task" ],
+    [ "system_message_t", "structsystem__message__t.html", "structsystem__message__t" ],
+    [ "system_status_t", "structsystem__status__t.html", "structsystem__status__t" ],
+    [ "task_t", "structtask__t.html", "structtask__t" ],
+    [ "WdtParam_t", "struct_wdt_param__t.html", "struct_wdt_param__t" ],
+    [ "WdtTask", "class_wdt_task.html", "class_wdt_task" ]
+];
