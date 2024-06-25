@@ -28,6 +28,16 @@ from rmap import rmapmqtt
 import traceback
 from  rmap import rmap_core
 
+# Encoder per la data
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o): 
+        if isinstance(o, datetime):
+            return o.strftime("%Y-%m-%dT%H:%M:%S")
+        else:
+            return json.JSONEncoder.default(o)
+# Funzione per fare il dump in JSON
+def dumps(o):
+    return json.dumps(o, cls=JSONEncoder)
 
 class report2observation(object):
 
@@ -87,8 +97,8 @@ class report2observation(object):
   def publish(self,topic,payload,retain=False,timeout=15.):
 
       logging.info("publish %s : %s" % (topic,payload)) 
-      self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=1,retain=retain)
-      if messageinfo.rc != mqtt.MQTT_ERR_SUCCESS:
+      messageinfo=self.mqttc.publish(topic,payload=payload,qos=1,retain=retain)
+      if messageinfo.rc != paho.MQTT_ERR_SUCCESS:
               logging.error("publish rc %d" % messageinfo.rc) 
       return messageinfo.rc
 
@@ -109,7 +119,8 @@ class report2observation(object):
       # "report/digiteco/1208611,4389056/fixed/0,0,900/103,2000,-,-/B12101 {"v":null,"t":"2019-03-16T08:15:00"}"
       # "report/+/+/+/+/+"
 
-
+      logging.info("message: %s  %s" % (msg.topic,msg.payload))
+                   
       topics=msg.topic.split("/")
 
       if (topics[0] =="1"):
@@ -165,7 +176,7 @@ class report2observation(object):
           logging.error("skip message: %s : %s"% (msg.topic,msg.payload))
           return
 
-      logging.info("user={} ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
+      logging.info("user={} ident={} username={} password={} lonlat={} network={} host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,network,self.mqtt_host,prefix))
       #mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.info,qos=0,version=version)  # attention qos 0 for fast publish
 
       try:
@@ -187,12 +198,12 @@ class report2observation(object):
 
             for key,val in datavar.items():
               if (version == 0) :
-                rc=self.publish(prefix+"/"+self.user+"/"+lonlat+"/"+self.network+"/"+
+                rc=self.publish(prefix+"/"+user+"/"+lonlat+"/"+network+"/"+
                                 timerange+"/"+level+"/"+key,
                                 payload=dumps(val)
                                 )
               else:
-                rc=self.publish("1/"+prefix+"/"+self.user+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                rc=self.publish("1/"+prefix+"/"+user+"/"+ident+"/"+lonlat+"/"+network+"/"+
                                 timerange+"/"+level+"/"+key,
                                 payload=dumps(val) 
                                 )
