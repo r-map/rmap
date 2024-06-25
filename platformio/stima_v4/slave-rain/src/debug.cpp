@@ -63,7 +63,6 @@ void init_debug(uint32_t baudrate) {
 
 /// @brief Print debug from ram
 /// @param fmt pointer to class FlashStringHelper
-/// @param any format output printf
 void print_debug(const char *fmt, ...)
 {
   va_list args;
@@ -100,7 +99,6 @@ void print_debug_array(const char *prepend, const void *data, size_t length)
 
 /// @brief Print debug from rom Flash
 /// @param fmt pointer to class FlashStringHelper
-/// @param any format output printf
 void print_debug_F(const __FlashStringHelper *fmt, ...)
 {
   osSuspendAllTasks();
