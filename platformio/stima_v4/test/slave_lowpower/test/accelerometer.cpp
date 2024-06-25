@@ -27,7 +27,7 @@
   ******************************************************************************
 */
 
-#include "drivers/Accelerometer.h"
+#include "drivers/accelerometer.h"
 
 Accelerometer::Accelerometer()
 {

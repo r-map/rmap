@@ -27,7 +27,7 @@
   ******************************************************************************
 */
 
-#include "drivers/Accelerometer.h"
+#include "drivers/accelerometer.h"
 
 /// @brief Constructor Class
 Accelerometer::Accelerometer()
