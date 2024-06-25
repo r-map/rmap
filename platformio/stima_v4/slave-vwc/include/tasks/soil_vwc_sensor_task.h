@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    soil_vwc_task.cpp
+  * @file    soil_vwc_sensor_task.cpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Module sensor header file

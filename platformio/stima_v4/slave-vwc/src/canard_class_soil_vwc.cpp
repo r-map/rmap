@@ -34,7 +34,6 @@
 
 // Callback per ISR Routine HAL STM32
 /// @brief ISR di sistema CAN1_RX0_IRQHandler HAL_CAN_IRQHandler STM32
-/// @param  None
 canardClass::CanardRxQueue *__CAN1_RX0_IRQHandler_PTR;
 extern "C" void CAN1_RX0_IRQHandler(void) {
     #if (ENABLE_CAN)
@@ -159,7 +158,6 @@ CanardMicrosecond canardClass::getMicros(GetMonotonicTime_Type syncro_type) {
 
 /// @brief Ritorna i secondi dall'avvio Canard per UpTime in  (in formato 64 BIT necessario per UAVCAN)
 ///         Non permette il reset n ei 70 minuti circa previsti per l'overflow della funzione uS a 32 Bit
-/// @param  None
 /// @return Secondi dall'avvio di Canard (per funzioni Heartbeat o altri scopi)
 uint32_t canardClass::getUpTimeSecond(void) {
     return (uint32_t)(_currMicros / MEGA);
@@ -190,7 +188,7 @@ void canardClass::send(const CanardMicrosecond tx_deadline_usec,
 
 /// @brief Send risposta al messaggio Canard con daeadline del tempo sincronizzato
 /// @param tx_deadline_usec microsecondi di validità del messaggio
-/// @param metadata metadata del messaggio
+/// @param request_metadata metadata del messaggio
 /// @param payload_size dimensione del messaggio
 /// @param payload messaggio da trasmettere
 void canardClass::sendResponse(const CanardMicrosecond tx_deadline_usec,
@@ -203,7 +201,6 @@ void canardClass::sendResponse(const CanardMicrosecond tx_deadline_usec,
 }
 
 /// @brief Test coda presenza dati in trasmissione di Canard
-/// @param  None
 /// @return true se ci sono dati da trasmettere
 bool canardClass::transmitQueueDataPresent(void) {
     // Transmit pending frames from the prioritized TX queues managed by libcanard.
@@ -218,7 +215,6 @@ bool canardClass::transmitQueueDataPresent(void) {
 
 /// @brief Trasmette la coda con timeStamp sincronizzato. Per inviare con real_time va aggiornata
 ///         la sincronizzazione prima della chiamata al relativo metodo di getMonotonicMicrosecond()
-/// @param  None
 void canardClass::transmitQueue(void) {
     // Transmit pending frames from the prioritized TX queues managed by libcanard.
     for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
@@ -269,20 +265,17 @@ void canardClass::transmitQueue(void) {
 // ***************************************************************
 
 /// @brief Azzera il buffer di ricezione dati collegato a BxCAN e ISR Interrupt
-/// @param  None
 void canardClass::receiveQueueEmpty(void) {
     _canard_rx_queue.wr_ptr=_canard_rx_queue.rd_ptr;
 }
 
 /// @brief Ritorna true se ci sono dati utili da gestire dal buffer di RX per BxCAN
-/// @param  None
 /// @return true se il buffer non è vuoto.
 bool canardClass::receiveQueueDataPresent(void) {
     return _canard_rx_queue.wr_ptr!=_canard_rx_queue.rd_ptr;
 }
 
 /// @brief Ritorna l'elemento corrente del buffer di BxCAN, pronto ad essere gestito con Canard
-/// @param  None
 /// @return Indice dell'elemento ricevuto
 uint8_t canardClass::receiveQueueElement(void) {
     if(_canard_rx_queue.wr_ptr>=_canard_rx_queue.rd_ptr) {
@@ -303,7 +296,6 @@ uint8_t canardClass::receiveQueueNextElement(uint8_t currElement) {
 /// @brief Gestione metodo ricezione coda messaggi dal buffer FIFO preparato di BxCAN
 ///         Il buffer gestito nella ISR CAN_Rx viene passato alla libreria Canard e in automatico
 ///         è gestita la richiamata di callBack per la funzione esterna di gestione su Rx Messaggi conformi
-/// @param  None
 void canardClass::receiveQueue(void) {
     // Leggo l'elemento disponibile in coda BUFFER RX FiFo CanardFrame + Buffer
     uint8_t getElement = receiveQueueNextElement(_canard_rx_queue.rd_ptr);
@@ -372,6 +364,7 @@ void canardClass::receiveQueue(char *logMessage) {
 /// @brief Setta il CallBack Function per il processo esterno di interprete su messaggio ricevuto
 ///         e conforme a Canard. Richiama la funzione esterna su CanardRxAccept Valido. Abilitato su SET
 /// @param ptrFunction puntatore alla funzione di callBack(canardClass&, const CanardRxTransfer*)
+/// @param param canard rx transfer parameters
 void canardClass::setReceiveMessage_CB(void (*ptrFunction) (canardClass&, const CanardRxTransfer*, void *param), void *param) {
     _attach_rx_callback_PTR = ptrFunction;
     _attach_rx_callback = true;
@@ -379,13 +372,11 @@ void canardClass::setReceiveMessage_CB(void (*ptrFunction) (canardClass&, const 
 }
 
 /// @brief Abilita il CallBack Function Canard RX Message CanardRxAccept
-/// @param  None
 void canardClass::enableReceiveMessage_CB(void) {
     _attach_rx_callback = true;
 }
 
 /// @brief Disabilita il CallBack Function Canard RX Message CanardRxAccept
-/// @param  None
 void canardClass::disableReceiveMessage_CB(void) {
     _attach_rx_callback = false;
 }
@@ -520,7 +511,6 @@ void canardClass::master::heartbeat::set_online(uint32_t dead_line_us) {
 }
 
 /// @brief Imposta il nodo OnLine, richiamato in heartbeat o altre comunicazioni client
-/// @param dead_line_us validità di tempo us a partire dal time_stamp sincronizzato interno
 CanardMicrosecond canardClass::master::heartbeat::last_online(void) {
     return _mastMicros;
 }
@@ -563,7 +553,6 @@ CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(Cana
 /// @brief Legge il tempo sincronizzato dal master, in Overload, regolato sui microsecondi locali
 ///         a partire dall'ultima sincronizzazione valida. Utilizzabile come FAKE_RTC() dopo una
 ///         ricezione di almeno un messagguo valido
-/// @param  None
 /// @return il tempo sincronizzato, regolato ed aggiustato al microsecondo, con l'unità master
 CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(void) {
     CanardMicrosecond realtime_us = getMicros();
@@ -614,21 +603,18 @@ void canardClass::master::file::start_request(uint8_t remote_node, uint8_t *para
 }
 
 /// @brief Nome del file in download
-/// @param  None
 /// @return puntatore e buffer al nome del file per il dowloading. Non necessità di inizializzazione buffer.
 char* canardClass::master::file::get_name(void) {
     return _filename;
 }
 
 /// @brief Legge il nodo master file server che richiede il caricamento del file
-/// @param  None
 /// @return node_id UAVCAN
 CanardNodeID canardClass::master::file::get_server_node(void) {
     return _node_id;
 }
 
 /// @brief Gestione file, verifica richiesta di download da un nodo remoto
-/// @param  None
 /// @return true se è in corso una procedura di ricezione file (start comando o download)
 bool canardClass::master::file::download_request(void) {
     return _updating;
@@ -636,7 +622,6 @@ bool canardClass::master::file::download_request(void) {
 
 /// @brief Gestione file, fine con successo del download file da un nodo remoto.
 ///         Il nodo non risponde più alle richieste del comando fino a nuovo restart.
-/// @param  None
 /// @return true se è finita la procedura di ricezione file con successo
 bool canardClass::master::file::is_download_complete(void) {
     return _updating_eof;
@@ -644,15 +629,12 @@ bool canardClass::master::file::is_download_complete(void) {
 
 /// @brief Gestione file, abbandona o termina richiesta di download da un nodo remoto.
 ///         Il nodo non risponde più alle richieste del comando fino a nuovo restart.
-/// @param  None
-/// @return true se è in corso una procedura di ricezione file (start comando o download)
 void canardClass::master::file::download_end(void) {
     _updating = false;
     _node_id = CANARD_NODE_ID_UNSET;
 }
 
 /// @brief Controlla se il file è di tipo firmware o altra tipologia
-/// @param  None
 /// @return true se il file in download è di tipo firmware
 bool canardClass::master::file::is_firmware(void)
 {
@@ -661,7 +643,6 @@ bool canardClass::master::file::is_firmware(void)
 }
 
 /// @brief Legge l'offset corrente
-/// @param  None
 /// @return l'offste corrente del file attualmente in download
 uint64_t canardClass::master::file::get_offset_rx(void) {
     return _offset;
@@ -674,7 +655,6 @@ void canardClass::master::file::set_offset_rx(uint64_t remote_file_offset) {
 }
 
 /// @brief Verifica se è il primo blocco di un file. Da utilizzare per rewrite file o init E2Prom Space
-/// @param  None
 /// @return true se il blocco ricevuto è il primo del file
 bool canardClass::master::file::is_first_data_block(void) {
     return _offset == 0;
@@ -682,7 +662,6 @@ bool canardClass::master::file::is_first_data_block(void) {
 
 /// @brief Gestione automatica totale retry del comando file all'interno della classe
 ///         MAX retry è gestito nel file di configurazione module_config.h
-/// @param  None
 /// @return true se ci sono ancora retry disponibili per il comando
 bool canardClass::master::file::next_retry(void) {
     if (++_updating_retry > NODE_GETFILE_MAX_RETRY) _updating_retry = NODE_GETFILE_MAX_RETRY;
@@ -713,7 +692,6 @@ void canardClass::master::file::start_pending(uint32_t timeout_us)
 }
 
 /// @brief Resetta lo stato dei flag pending per il metodo corrente
-/// @param None
 void canardClass::master::file::reset_pending(void)
 {
     _is_pending = false;
@@ -735,7 +713,6 @@ void canardClass::master::file::reset_pending(size_t message_len)
 }
 
 /// @brief Gestione timeout pending file. Controlla il raggiungimento del timeout
-/// @param  None
 /// @return true se entrata in timeout del comano
 bool canardClass::master::file::event_timeout(void)
 {
@@ -744,7 +721,6 @@ bool canardClass::master::file::event_timeout(void)
 }
 
 /// @brief Verifica se un comando per il relativo modulo è in attesa. Diventerà false o verrà attivato il timeout
-/// @param None
 /// @return true se un comando è in attesa
 bool canardClass::master::file::is_pending(void)
 {
@@ -756,7 +732,6 @@ bool canardClass::master::file::is_pending(void)
 // ***********************************************************************************
 
 /// @brief Invia il messaggio di HeartBeat ai nodi remoti
-/// @param  None
 /// @return true se il metodo è eseguito correttamente
 bool canardClass::slave_heartbeat_send_message(void)
 {
@@ -794,7 +769,6 @@ bool canardClass::slave_heartbeat_send_message(void)
 }
 
 /// @brief Invia il messaggio di PNP request (richiesta di node_id valido) al nodo server PNP (master)
-/// @param  None
 /// @return true se il metodo è eseguito correttamente
 bool canardClass::slave_pnp_send_request(uint64_t serial_number) {
     // PnP over Classic CAN, use message v1.0.
@@ -856,7 +830,6 @@ void canardClass::_fillServers(const CanardTreeNode* const tree, uavcan_node_por
 }
 
 /// @brief Invia il messaggio dei servizi attivi ai nodi remoti
-/// @param  None
 /// @return true se il metodo è eseguito correttamente
 bool canardClass::slave_servicelist_send_message(void)
 {
@@ -916,35 +889,30 @@ bool canardClass::slave_servicelist_send_message(void)
 // ***************************************************************
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
-/// @param  None
 /// @return Prossimo transfer_id valido in standard UAVCAN
 uint8_t canardClass::next_transfer_id::uavcan_node_heartbeat(void) {
     return next_transfer_id::_uavcan_node_heartbeat++;
 }
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
-/// @param  None
 /// @return Prossimo transfer_id valido in standard UAVCAN
 uint8_t canardClass::next_transfer_id::uavcan_node_port_list(void) {
     return next_transfer_id::_uavcan_node_port_list++;
 }
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
-/// @param  None
 /// @return Prossimo transfer_id valido in standard UAVCAN
 uint8_t canardClass::next_transfer_id::uavcan_pnp_allocation(void) {
     return next_transfer_id::_uavcan_pnp_allocation++;
 }
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
-/// @param  None
 /// @return Prossimo transfer_id valido in standard UAVCAN
 uint8_t canardClass::next_transfer_id::uavcan_file_read_data(void) {
     return next_transfer_id::_uavcan_file_read_data++;
 }
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
-/// @param  None
 /// @return Prossimo transfer_id valido in standard UAVCAN
 uint8_t canardClass::next_transfer_id::module_soil_vwc(void) {
     return next_transfer_id::_module_soil_vwc++;
@@ -957,20 +925,17 @@ uint8_t canardClass::next_transfer_id::module_soil_vwc(void) {
 // ********       COMMAND REMOTI E Stati gestionali       ********
 
 /// @brief Avvia una richiesta standard UAVCAN per il riavvio del sistema
-/// @param  None
 void canardClass::flag::request_system_restart(void) {
     _restart_required = true;
 }
 
 /// @brief Verifica una richiesta di riavvio del sistema standard UAVCAN.
-/// @param  None
 /// @return true se è stata avanzata una richiesta di riavvio
 bool canardClass::flag::is_requested_system_restart(void) {
     return _restart_required;
 }
 
 /// @brief Avvia la richiesta di sleep del modulo. Da chiamare prima di attivare il basso consumo generale
-/// @param  None
 void canardClass::flag::request_sleep(void) {
     // Con inibizione, non permetto lo sleep del modulo
     if(_inibith_sleep) return;
@@ -980,20 +945,17 @@ void canardClass::flag::request_sleep(void) {
 }
 
 /// @brief Verifica se attiva la funzione dello sleep del modulo Canard e hardware relativo
-/// @param  None
 /// @return true se il modulo è in sleep
 bool canardClass::flag::is_module_sleep(void) {
     return _enter_sleep;
 }
 
 /// @brief Permetto l'attivazione sleep, funzioni ed hardware, del modulo
-/// @param  None
 void canardClass::flag::disable_sleep(void) {
     _inibith_sleep = true;
 }
 
 /// @brief Inibisce l'attivazione sleep, funzioni ed hardware, del modulo
-/// @param  None
 void canardClass::flag::enable_sleep(void) {
     _inibith_sleep = false;
 }
@@ -1033,42 +995,36 @@ void canardClass::flag::set_local_module_error(bool moduleError) {
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return Modalità power (CanardClass::Power_Mode)
 Power_Mode canardClass::flag::get_local_power_mode(void) {
     return _heartLocalVSC.powerMode;
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return true se attivata la funzionalità di firmware uploading
 bool canardClass::flag::get_local_fw_uploading(void) {
     return _heartLocalVSC.fwUploading;
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return true se sono disponibili dati del modulo da presentare al master tramite SensorDrive
 bool canardClass::flag::get_local_data_ready(void) {
     return _heartLocalVSC.dataReady;
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return true se il modulo è pronto alle funzioni standard (start complete o fine manutenzione)
 bool canardClass::flag::get_local_module_ready(void) {
     return _heartLocalVSC.moduleReady;
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return true se il modulo è in errore HW
 bool canardClass::flag::get_local_module_error(void) {
     return _heartLocalVSC.moduleError;
 }
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
-/// @param  None
 /// @return
 uint8_t canardClass::flag::get_local_value_heartbeat_VSC(void) {
     return _heartLocalVSC.uint8_val;
@@ -1083,7 +1039,6 @@ void canardClass::flag::set_local_node_mode(uint8_t heartLocalMODE) {
 }
 
 /// @brief Ritorna la modalità node mode locale standard UAVCAN per la gestione heartbeat
-/// @param  None
 /// @return modalità node mode di UAVCAN
 uint8_t canardClass::flag::get_local_node_mode(void) {
     return _heartLocalMODE;
@@ -1101,7 +1056,6 @@ void canardClass::set_canard_node_id(CanardNodeID local_id) {
 }
 
 /// @brief Legge l'ID Nodo locale per l'istanza Canard privata della classe Canard
-/// @param None
 /// @return id nodo locale
 CanardNodeID canardClass::get_canard_node_id(void) {
     // Istanza del modulo canard
@@ -1109,7 +1063,6 @@ CanardNodeID canardClass::get_canard_node_id(void) {
 }
 
 /// @brief Controlla se il nodo è anonimo (senza ID Impostato)
-/// @param  None
 /// @return true se il nodo è anonimo (ID Non valido o non Settato)
 bool canardClass::is_canard_node_anonymous(void) {
     // Istanza del modulo canard
@@ -1124,7 +1077,6 @@ void canardClass::set_canard_master_id(CanardNodeID remote_id) {
 }
 
 /// @brief Get master node id for local set and flag operation automatic (sleep, power...)
-/// @param  None
 /// @return Master node ID
 CanardNodeID canardClass::get_canard_master_id(void) {
     // Istanza del modulo canard
@@ -1154,7 +1106,6 @@ void canardClass::_memFree(CanardInstance* const ins, void* const pointer) {
 }
 
 /// @brief Diagnostica Heap Data per Heartbeat e/o azioni interne
-/// @param  None
 /// @return O1HeapDiagnostics Info
 O1HeapDiagnostics canardClass::_memGetDiagnostics(void) {
     return o1heapGetDiagnostics(_heap);

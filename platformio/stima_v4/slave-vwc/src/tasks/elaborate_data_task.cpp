@@ -218,7 +218,7 @@ void ElaborateDataTask::Run() {
 }
 
 /// @brief Check data in and perform calculate of Optional Quality value
-/// @param data_in real value readed from sensor
+/// @param soil_vwc real value readed from sensor
 /// @return value uint_8 percent data quality value
 uint8_t ElaborateDataTask::checkSoilVWC(rmapdata_t soil_vwc) {
   // Optional check quality data function

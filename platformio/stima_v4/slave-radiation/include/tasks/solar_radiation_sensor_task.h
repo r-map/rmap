@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    solar_radiation_task.cpp
+  * @file    solar_radiation_sensor_task.cpp
   * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
   * @brief   Module sensor header file
