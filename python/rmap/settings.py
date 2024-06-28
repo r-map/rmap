@@ -598,7 +598,7 @@ else:
             'PORT':    DATABASE_PORT,
             }
         }
-
+    CONN_MAX_AGE = 300
 
 
 # Additional locations of static files
