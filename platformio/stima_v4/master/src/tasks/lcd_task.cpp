@@ -785,9 +785,27 @@ void LCDTask::display_print_main_interface(void) {
       !param.system_status->flags.http_error) {
     display.print(F(" OK"));
   } else {
-    // Add type of diag message to buffer
-    if ((param.system_status->flags.fw_updating)||(param.system_status->flags.file_server_running))
-      strcat(errors, "Updating firmware... ");
+    // Add type of diag message to buffer (Fw upgrade)
+    if ((param.system_status->flags.fw_updating)&&(param.system_status->flags.file_server_running)) {
+      strcat(errors, "Updating all firmware... ");
+      // Remove Flag message (Always external SETTED continuos if DIAG message in running...)
+      param.systemStatusLock->Take();
+      param.system_status->flags.fw_updating = false;
+      param.systemStatusLock->Give();
+    } else {
+      if (param.system_status->flags.fw_updating) {
+        strcat(errors, "Updating master firmware... ");
+        // Remove Flag message (Always external SETTED continuos if DIAG message in running...)
+        param.systemStatusLock->Take();
+        param.system_status->flags.fw_updating = false;
+        param.systemStatusLock->Give();
+      }
+      if (param.system_status->flags.file_server_running) {
+        strcat(errors, "Updating slave firmware... ");
+        // No Remove Flag message (Used external SETTED continuos for operation...)
+      }
+    }
+    // Plug and play
     if (param.system_status->flags.pnp_request) {
       strcat(errors, "pnp-");
       switch(param.system_status->flags.pnp_request) {
@@ -813,8 +831,12 @@ void LCDTask::display_print_main_interface(void) {
               strcat(errors, "unknown ");
               break;
       }
+      // Remove Flag message (Always external SETTED continuos if DIAG message in running...)
+      param.systemStatusLock->Take();
+      param.system_status->flags.pnp_request = 0;
+      param.systemStatusLock->Give();
     }
-    // Add type of error message to buffer
+    // PPP Connection error, add type of error message to buffer
     if (param.system_status->flags.ppp_error) {
       is_error = true;
       // ppp error [rssi,ber XYZ] X=REGISTRATION [X]GSM [Y]GPRS [Z]EUTRAN (->9 NOT ATTEMPT)
@@ -850,17 +872,6 @@ void LCDTask::display_print_main_interface(void) {
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
     snprintf(buffer_errors, sizeof(buffer_errors), "> %s", errors);
     display.print(buffer_errors);
-    // Remove Flag message (Always external SETTED continuos if DIAG message in running...)
-    if(param.system_status->flags.pnp_request) {
-      param.systemStatusLock->Take();
-      param.system_status->flags.pnp_request = false;
-      param.systemStatusLock->Give();
-    }
-    if(param.system_status->flags.fw_updating) {
-      param.systemStatusLock->Take();
-      param.system_status->flags.fw_updating = false;
-      param.systemStatusLock->Give();
-    }
   }
 
   // Security Remove flag config wait... Start success connection MQTT 
