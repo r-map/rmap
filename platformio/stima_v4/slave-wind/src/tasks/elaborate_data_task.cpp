@@ -598,13 +598,61 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
 
     if (valid_count_speed_per >= SAMPLE_ERROR_PERCENTAGE_MIN) {
       report.avg_speed = (rmapdata_t) avg_speed * WIND_CASTING_SPEED_MULT;
-      report.quality = (rmapdata_t) round(avg_quality);
+      report.quality = (rmapdata_t) round(avg_quality);      
       report.class_1 = (rmapdata_t) round((float)class_1 / (float)valid_count_speed * 100.0);
       report.class_2 = (rmapdata_t) round((float)class_2 / (float)valid_count_speed * 100.0);
       report.class_3 = (rmapdata_t) round((float)class_3 / (float)valid_count_speed * 100.0);
       report.class_4 = (rmapdata_t) round((float)class_4 / (float)valid_count_speed * 100.0);
       report.class_5 = (rmapdata_t) round((float)class_5 / (float)valid_count_speed * 100.0);
       report.class_6 = (rmapdata_t) round((float)class_6 / (float)valid_count_speed * 100.0);
+      // Check sum report round class (unlikely error)
+      uint8_t perc_sum = report.class_1 + report.class_2 + report.class_3 + report.class_4 + report.class_5 + report.class_6;
+      if (perc_sum != 100) {
+        uint8_t max_val = report.class_1;
+        uint8_t max_cls = 1;
+        if (report.class_2 >= max_val) {
+          max_val = report.class_2;
+          max_cls = 2;
+        }
+        if (report.class_3 >= max_val) {
+          max_val = report.class_3;
+          max_cls = 3;
+        }
+        if (report.class_4 >= max_val) {
+          max_val = report.class_4;
+          max_cls = 4;
+        }
+        if (report.class_5 >= max_val) {
+          max_val = report.class_5;
+          max_cls = 5;
+        }
+        if (report.class_6 >= max_val) {
+          max_val = report.class_6;
+          max_cls = 6;
+        }
+        if(perc_sum > 100) {
+          max_val = perc_sum - 100;
+          switch(max_cls) {
+            case 1: report.class_1 -= max_val; break;
+            case 2: report.class_2 -= max_val; break;
+            case 3: report.class_3 -= max_val; break;
+            case 4: report.class_4 -= max_val; break;
+            case 5: report.class_5 -= max_val; break;
+            case 6: report.class_6 -= max_val; break;
+          }
+        }
+        if(perc_sum < 100) {
+          max_val = 100 - perc_sum;
+          switch(max_cls) {
+            case 1: report.class_1 += max_val; break;
+            case 2: report.class_2 += max_val; break;
+            case 3: report.class_3 += max_val; break;
+            case 4: report.class_4 += max_val; break;
+            case 5: report.class_5 += max_val; break;
+            case 6: report.class_6 += max_val; break;
+          }
+        }
+      }
     }
 
     TRACE_DEBUG_F(F("-> report.vavg10_speed (%d)\r\n"), (rmapdata_t) report.vavg10_speed);
