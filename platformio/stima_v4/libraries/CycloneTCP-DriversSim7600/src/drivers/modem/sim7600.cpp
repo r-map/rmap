@@ -61,11 +61,11 @@ SIM7600::SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _hi
 void SIM7600::initPins(bool _set_direction)
 {
    if(_set_direction) {
-      pinMode(enable_power_pin, OUTPUT);
+      if (enable_power_pin) pinMode(enable_power_pin, OUTPUT);
       pinMode(power_pin, OUTPUT);
-      pinMode(ring_indicator_pin, INPUT);
+      if(ring_indicator_pin) pinMode(ring_indicator_pin, INPUT);
    }
-   // digitalWrite(enable_power_pin, LOW);
+   if (enable_power_pin) digitalWrite(enable_power_pin, LOW);
    digitalWrite(power_pin, LOW);
 }
 
@@ -185,7 +185,7 @@ sim7600_status_t SIM7600::switchOff(uint8_t power_off_method)
       cereg_stat = CREG_STAT_UNKNOWN;
 
       uartDeInit();
-      // digitalWrite(enable_power_pin, LOW);
+      if (enable_power_pin) digitalWrite(enable_power_pin, LOW);
       digitalWrite(power_pin, LOW);
       uartInitConfig(low_baud_rate);
 
@@ -246,7 +246,7 @@ sim7600_status_t SIM7600::switchModem(bool is_switching_on)
    case SIM7600_POWER_ENABLE:
       uartDeInit();
       digitalWrite(power_pin, HIGH);
-      // digitalWrite(enable_power_pin, HIGH);
+      if (enable_power_pin) digitalWrite(enable_power_pin, HIGH);
       uartInitConfig(low_baud_rate);
 
       delay_ms = SIM7600_POWER_ON_STABILIZATION_DELAY_MS;
@@ -342,7 +342,7 @@ sim7600_status_t SIM7600::switchModem(bool is_switching_on)
       // retry
       else if ((++retry) < SIM7600_GENERIC_RETRY_COUNT_MAX)
       {
-         // digitalWrite(enable_power_pin, LOW);
+         if (enable_power_pin) digitalWrite(enable_power_pin, LOW);
          digitalWrite(power_pin, LOW);
          is_error = false;
          sim7600_status = SIM7600_BUSY;

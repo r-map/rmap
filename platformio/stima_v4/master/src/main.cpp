@@ -470,8 +470,10 @@ void init_wire()
   Spi2.begin();
  #endif
 
-  // Start EN Pow GSM ready to SET
+  #if (!ENABLE_GSM_POWER_PIN)
+  // Start EN Pow GSM ready to SET, unused Control HW mode
   digitalWrite(PIN_GSM_EN_POW, HIGH);
+  #endif
 }
 
 /// @brief Setup RTC HW && LowPower Class STM32

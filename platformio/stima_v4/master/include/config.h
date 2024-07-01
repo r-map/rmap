@@ -88,6 +88,8 @@
 #define ENABLE_USBSERIAL      (true)
 /// @brief Enable SIM7600E interface
 #define ENABLE_SIM7600E       (MODULE_TYPE == STIMA_MODULE_TYPE_MASTER_GSM)
+/// @brief Enable SIM7600E powerPin Hw mode
+#define ENABLE_GSM_POWER_PIN  (false)
 
 // Enable (Wdt Task and Module) and relative Function (Stack, Info ecc...)
 /// @brief Enable WatchDog Task and Module

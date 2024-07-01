@@ -180,7 +180,12 @@ void ModemTask::Run() {
         break;
       }
 
+      // Check mode use power PIN Controller HW/SW
+      #if (ENABLE_GSM_POWER_PIN)
       sim7600 = SIM7600(interface, PPP0_BAUD_RATE_DEFAULT, PPP0_BAUD_RATE_MAX, PIN_GSM_EN_POW, PIN_GSM_PW_KEY, PIN_GSM_RI);
+      #else
+      sim7600 = SIM7600(interface, PPP0_BAUD_RATE_DEFAULT, PPP0_BAUD_RATE_MAX, 0, PIN_GSM_PW_KEY, PIN_GSM_RI);
+      #endif
 
       TRACE_VERBOSE_F(F("MODEM_STATE_INIT -> MODEM_STATE_WAIT_NET_EVENT\r\n"));
       state = MODEM_STATE_WAIT_NET_EVENT;
