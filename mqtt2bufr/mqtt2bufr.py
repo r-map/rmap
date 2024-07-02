@@ -27,7 +27,8 @@ from datetime import datetime
 
 import dballe
 import paho.mqtt.client as mqtt
-
+from  rmap.dtable import dtable
+from  rmap.ttntemplate import ttntemplate
 
 PACKAGE_BUGREPORT = "@PACKAGE_BUGREPORT@"
 PACKAGE_VERSION = "@PACKAGE_VERSION@"
@@ -181,9 +182,10 @@ def on_message(client, userdata, message):
         exporter = dballe.Exporter(encoding="BUFR")
         userdata["outfile"].write(exporter.to_binary(msg))
         userdata["outfile"].flush()
+
     except Exception:
         import traceback
-        traceback.print_exc()
+        sys.stderr.write(traceback.format_exc()+"\n")
 
 
 
@@ -217,9 +219,10 @@ def write_message(topic,payload,outfile,version,debug):
         exporter = dballe.Exporter(encoding="BUFR")
         outfile.write(exporter.to_binary(msg))
         outfile.flush()
+
     except Exception:
         import traceback
-        traceback.print_exc()
+        sys.stderr.write(traceback.format_exc()+"\n")
 
 
         
@@ -265,17 +268,21 @@ def main(host, keepalive, port, topics, username, password, debug,
             MQTT_SENSOR_TOPIC_LENGTH=38
             MQTT_MESSAGE_LENGTH=44
         
-        reclen=MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH
         with fileinput as f:
             while True:
 
-                message=f.read(MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
-                try:    
-                    topic,payload=message.split(" ")
-                except ValueError:
-                    break
-                
+                if (int(majorversion) > 3):
+                    topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8").strip('\x00')
+                    payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                    if (topic =="" and payload==""): break
+                else:
+                    record=f.read(MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                    sys.stderr.write("record: {}\n".format(record))
+                    if (record==""): break
+                    topic,payload=record.split(" ")
+                    
                 if not topic:
+                    sys.stderr.write("no topic\n")
                     break
                 topic=roottopic+topic
 
@@ -283,14 +290,70 @@ def main(host, keepalive, port, topics, username, password, debug,
                     sys.stderr.write("topic: {}\n".format(topic))
                 
                 #payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
-                if not topic:
+                if not payload:
+                    sys.stderr.write("no payload\n")
                     break
 
                 if(debug):
                     sys.stderr.write("payload: {}\n".format(payload))
-                
-                write_message(topic,payload,outfile,version,debug)
 
+
+                #try reduced form
+                st = json.loads(payload)
+                dt=st.get("t")
+
+                try:
+                    sys.stderr.write("try to decode with table d\n")
+                    d=st.get("d")
+                    if (d is not None):
+                        bcodes=dtable[str(d)]
+                        topics=[]
+                        for bcode in bcodes:
+                            topics.append("{}/{}".format(topic,bcode))
+
+                        attributearray=st.get("a",{})
+                        dindex=0
+                        for val in st.get("p"):
+                            if ( val is not None ):
+                                attributes={}
+                                aindex=0
+                                for abcode in attributearray.keys():
+                                    attributes[abcode]=attributearray[abcode][aindex]
+                                    aindex+=1                                          
+                                payload=json.dumps({"t": dt,"v": val,"a":attributes})
+            
+                                if(debug):
+                                    sys.stderr.write("topic:{} payload:{}\n".format(topics[dindex],payload))
+                                    write_message(topics[dindex],payload,outfile,version,debug)
+                            dindex+=1                                          
+                                                                  
+
+                    else:
+                        sys.stderr.write("No d form; try to decode with table e\n")
+                        e=st.get("e")
+                        if (e is not None):
+                            numtemplate=int(e)
+                            vals=st.get("p")
+                            #if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
+                            mytemplate=ttntemplate[numtemplate]
+                            pindex=0
+                            for bcode,param in list(mytemplate.items()):
+                                val=vals[pindex]
+                                if ( val is not None ):
+                                    topic=("{}/{}/{}/{}".format(topic,param["timerange"],param["level"],bcode))
+                                    payload=json.dumps({"t": dt,"v": val})
+                                    write_message(topic,payload,outfile,version,debug)
+                                    pindex+=1
+                        else:
+                            sys.stderr.write("no RMAP reduced form\n")
+                            write_message(topic,payload,outfile,version,debug)
+
+                
+                except:
+                    import traceback
+                    sys.stderr.write(traceback.format_exc()+"\n")
+                    break
+            
     else:
         mqttclient = mqtt.Client(userdata={
             "topics": topics,
@@ -332,7 +395,7 @@ if __name__ == '__main__':
                         help="file to read; require -i (default: standard input)",
                         default="-",type=argparse.FileType('rb'))
     parser.add_argument("-a", "--fileinfo",dest="fileinfo",
-                        help="info file to read; require -i (default: default info)",
+                        help="info file to read; require -i (default: default info.dat)",
                         default="info.dat",type=argparse.FileType('r'))
     parser.add_argument("-r", "--roottopic",
                         help="root topic used when reading from file (default %(default)s)",
@@ -364,7 +427,7 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--rmap_version",
                         help=("RMAP version (Stimav3 0 / Stimav4 1)"
                               "(default: %(default)s)"),
-                        type=int, default=0)
+                        type=int, default=1)
 
     args = parser.parse_args()
 

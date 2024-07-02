@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:          mqtt2bufr
-Version:       1.6
+Version:       1.7
 Release:       1%{?dist}
 Summary:       Tools to publish BUFR messages to MQTT and to convert MQTT messages to BUFR
 Group:         Development
@@ -12,7 +12,7 @@ License:       G.P.L.
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 #BuildRequires:  libtool jansson-devel libdballe-devel libwibble-devel popt-devel mosquitto-devel help2man
 BuildRequires:  gcc python3 python3-dballe python3-rmap help2man
-Requires:  python3 python3-dballe python3-rmap
+Requires:  python3 python3-dballe python3-rmap>=16.8
 
 %description
 Tools to publish BUFR messages to MQTT and to convert MQTT messages to BUFR.
