@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:          mqtt2bufr
-Version:       1.7
+Version:       1.8
 Release:       1%{?dist}
 Summary:       Tools to publish BUFR messages to MQTT and to convert MQTT messages to BUFR
 Group:         Development
