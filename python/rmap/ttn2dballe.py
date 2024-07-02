@@ -35,7 +35,7 @@ import _thread
 import traceback
 from .stations.models import StationMetadata
 from django.core.exceptions import ObjectDoesNotExist
-from rmap import rmap_core
+from rmap.ttntemplate import ttntemplate
 import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
 import binascii
 from django.db import connection
@@ -199,7 +199,7 @@ class ttn2dballe(object):
                 numtemplate=bitextract(template,start,nbit)
                 
                 #                             TEMPLATE NUMBER 1
-                if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
+                if numtemplate > 0 and numtemplate < len(ttntemplate):
 
                     try:
 
@@ -236,7 +236,7 @@ class ttn2dballe(object):
 
                 mqtt.connect()
                 
-                mytemplate=rmap_core.ttntemplate[numtemplate]
+                mytemplate=ttntemplate[numtemplate]
                 for bcode,param in list(mytemplate.items()):
                     
                     nbit=param["nbit"]

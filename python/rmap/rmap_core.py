@@ -41,13 +41,14 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 from . import exifutils
 from django.db import connection
-import collections
 import threading
 import dballe,io
 import functools
 import logging
 import time
 import requests
+from . import dtable
+from . import ttntemplate
 
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
@@ -354,25 +355,6 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
             oldsensor=Sensor.objects.get(board=myboard,name=name)
             oldsensor.delete()
             mysensor.save()
-
-dtable={"50":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
-              "B49205","B49206","B49207","B49208","B49209","B49210","B49211",
-              "B49212","B49213","B49214","B49215","B49216","B49217","B49218",
-              "B49219","B49220","B49221"],
-        "51":["B11211","B11212","B11213","B11214","B11215","B11216"],
-        "52":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
-              "B49205","B49206","B49207","B49208","B49209","B49210"]}
-
-ttntemplate=[]
-ttntemplate.append(collections.OrderedDict())  # null template 0
-ttntemplate.append(collections.OrderedDict())  # template 1: temperature and humidity
-ttntemplate[1]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
-ttntemplate[1]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
-
-ttntemplate.append(collections.OrderedDict())  # template 2: temperature and humidity
-ttntemplate[2]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
-ttntemplate[2]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
-ttntemplate[2]["B15198"]={"nbit":20,"offset":0,"scale":10000000000,"timerange":"254,0,0","level":"103,2000,-,-"}
 
             
 # the first is the default

@@ -26,7 +26,8 @@ import json
 import signal
 from rmap import rmapmqtt
 import traceback
-from  rmap import rmap_core
+from  rmap.ttntemplate import ttntemplate
+from  rmap.dtable import dtable
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):
@@ -150,7 +151,7 @@ class report2observation(object):
         timerange=topics[nexttopic]
         nexttopic += 1
         level=topics[nexttopic]
-        bcodes=rmap_core.dtable[str(d)]
+        bcodes=dtable[str(d)]
         timeranges=[]
         levels=[]
         for bcode in bcodes:
@@ -163,8 +164,8 @@ class report2observation(object):
           logging.info("Error; try to decode with table e")
           e=st["e"]
           numtemplate=int(e)
-          #if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
-          mytemplate=rmap_core.ttntemplate[numtemplate]
+          #if numtemplate > 0 and numtemplate < len(ttntemplate):
+          mytemplate=ttntemplate[numtemplate]
           bcodes=[]
           timeranges=[]
           levels=[]
