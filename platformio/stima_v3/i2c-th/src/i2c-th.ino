@@ -572,7 +572,6 @@ void sensors_reading_task () {
 	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
 	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
 	  sensors[i]->resetSetted();
-	  //if (strcmp(sensors[i]->getType(),SENSOR_TYPE_SHT)==0 &&
 	  if (strcmp(sensors[i]->getType(),SENSOR_TYPE_SHT)==0 &&
 	      (sensors[i]->getErrorCount() % SENSOR_ERROR_COUNT_MAX) == 0){
 	    /* SHT Hard Reset 
@@ -589,11 +588,12 @@ void sensors_reading_task () {
    case SENSORS_READING_POWER_OFF:
 
         LOGN(F("Power off SHT sensor"));     
-        void thPowerOff ();
+        thPowerOff ();
+	Wire.end();
 	pinMode(SDA,OUTPUT);
 	pinMode(SCL,OUTPUT);
-	pinMode(SCL,LOW);
-	pinMode(SDA,LOW);
+	digitalWrite(SCL,LOW);
+	digitalWrite(SDA,LOW);
 	delay_ms=10;
 	start_time_ms = millis();
 	state_after_wait = SENSORS_READING_POWER_ON;
@@ -603,9 +603,9 @@ void sensors_reading_task () {
    case SENSORS_READING_POWER_ON:
 
         LOGN(F("Power on SHT sensor"));     
-        void thPowerOn ();
-     	pinMode(SDA,INPUT);
-     	pinMode(SCL,INPUT);
+        thPowerOn ();
+     	digitalWrite(SDA,INPUT);
+     	digitalWrite(SCL,INPUT);
 	init_wire();
 	delay_ms=3;
 	start_time_ms = millis();
