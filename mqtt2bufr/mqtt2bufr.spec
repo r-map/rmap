@@ -11,7 +11,7 @@ Source:        mqtt2bufr-%{version}.tar.gz
 License:       G.P.L.
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 #BuildRequires:  libtool jansson-devel libdballe-devel libwibble-devel popt-devel mosquitto-devel help2man
-BuildRequires:  gcc python3 python3-dballe python3-rmap help2man
+BuildRequires:  gcc python3 python3-dballe python3-rmap >= 16.8 help2man
 Requires:  python3 python3-dballe python3-rmap >= 16.8
 
 %description
