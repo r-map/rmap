@@ -190,6 +190,9 @@ def on_message(client, userdata, message):
 
 
 def write_message(topic,payload,outfile,version,debug):
+    if(debug):
+        sys.stderr.write("RMAP Version: {}\n".format(version))
+
     try:
         m = parse_message(topic,payload,version,debug)
         if m is None:
@@ -257,23 +260,32 @@ def main(host, keepalive, port, topics, username, password, debug,
                 roottopic=i.readline()[:-1]
                 MQTT_SENSOR_TOPIC_LENGTH=int(i.readline())
                 MQTT_MESSAGE_LENGTH=int(i.readline())
-            if(debug):
-                sys.stderr.write("version: {}.{}\n".format(int(majorversion),int(minorversion)))
-                sys.stderr.write("roottopic: {}\n".format(roottopic))
-                sys.stderr.write("topic len  : {}\n".format(MQTT_SENSOR_TOPIC_LENGTH))
-                sys.stderr.write("payload len: {}\n".format(MQTT_MESSAGE_LENGTH))
+                # sent status is optional
+                try:
+                    MQTT_SENT_LENGTH=int(i.readline())
+                except:
+                    MQTT_SENT_LENGTH=0
         except:
             if(debug):
                 sys.stderr.write("ERROR reading info file; trying with default\n")
             MQTT_SENSOR_TOPIC_LENGTH=38
             MQTT_MESSAGE_LENGTH=44
-        
+            MQTT_SENT_LENGTH=0
+
+        if(debug):
+            sys.stderr.write("version: {}.{}\n".format(int(majorversion),int(minorversion)))
+            sys.stderr.write("roottopic: {}\n".format(roottopic))
+            sys.stderr.write("topic len  : {}\n".format(MQTT_SENSOR_TOPIC_LENGTH))
+            sys.stderr.write("payload len: {}\n".format(MQTT_MESSAGE_LENGTH))
+            sys.stderr.write("sent len: {}\n".format(MQTT_SENT_LENGTH))
+            
         with fileinput as f:
             while True:
 
+                sent=f.read(MQTT_SENT_LENGTH)
                 if (int(majorversion) > 3):
-                    topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8").strip('\x00')
-                    payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
+                    topic=f.read(MQTT_SENSOR_TOPIC_LENGTH).decode("utf-8","ignore").split('\x00')[0]
+                    payload=f.read(MQTT_MESSAGE_LENGTH).decode("utf-8","ignore").split('\x00')[0]
                     if (topic =="" and payload==""): break
                 else:
                     record=f.read(MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
