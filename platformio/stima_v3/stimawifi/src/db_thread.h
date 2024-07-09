@@ -10,6 +10,7 @@ struct db_data_t {
   BinarySemaphore* recoverysemaphore;
   BinaryQueue* recoveryqueue;
   dbStatus_t* status;
+  station_t* station;
 };
 
 
@@ -34,10 +35,10 @@ class dbThread : public Thread {
  private:
   bool doDb(const mqttMessage_t& );
   int db_exec( const char*);
-  bool db_obsolete();
+  bool db_obsolete(bool& obsolete);
   bool db_remove();
   void db_setup();
-  bool data_purge(int messages);
+  bool data_purge(const bool flush, int messages);
   bool data_recovery();
   bool data_set_recovery();
   bool db_restart();
