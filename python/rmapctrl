@@ -115,8 +115,9 @@ def ctrl(cwd):
                                 mypassword = myboard.transportmqtt.mqttpassword
 
                                 if (mypassword):
-                                    #print(myuser+":"+make_password(mypassword))
-                                    print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+make_password(mypassword))
+                                    #fake salt is for do not change password file to optimize mosquitto reload
+                                    #print(myuser+":"+make_password(mypassword,"fake-salt"))
+                                    print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+make_password(mypassword,"fake-salt"))
                         
     if (options.exportmqttpskkey):
         from django.contrib.auth.models import User
