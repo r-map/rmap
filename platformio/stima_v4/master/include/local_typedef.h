@@ -306,6 +306,7 @@ typedef struct
       bool display_on;           ///< Display powered ON (Require Istant and other data)
       bool run_connection;       ///< Flag indicate connection in run (Connection operation ex.must inibith sleep) 
       bool run_module_configure; ///< Flag indicate require check module configure (at least one module not configured)
+      bool do_remote_cfg_exec;   ///< Flag indicate require check module configure command sended to queue (no other operation before ending configuration)
       bool full_wakeup_forced;   ///< Flag indicate request wakeup forced from RPC remote or local GET Data
       bool full_wakeup_request;  ///< Flag indicate request wakeup for starting operation with slave in full power mode
       bool file_server_running;  ///< True if file server are running

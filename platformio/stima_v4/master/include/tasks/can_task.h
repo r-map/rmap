@@ -163,6 +163,7 @@ class CanTask : public cpp_freertos::Thread {
   typedef enum {
     CAN_STATE_CREATE,
     CAN_STATE_INIT,
+    CAN_STATE_LOAD_CONFIG,
     CAN_STATE_SETUP,
     CAN_STATE_CHECK
   } State_t;

@@ -1201,9 +1201,6 @@ void CanTask::Run() {
     bool is_running_update_send_cmd = false;    // Command queue started for one fw upgrading (Waiting end event for next)
     uint8_t index_running_update_boards;        // Index of board actual running in file server upload event
 
-    // Starting message trace one time for event if required
-    bool message_traced = false;
-
     // Starting acquire IST and value control var
     uint32_t getUpTimeSecondCurr;
     uint32_t curEpoch;
@@ -1277,20 +1274,16 @@ void CanTask::Run() {
                 }
             }
 
-            // Setup Class CB and NodeId
+            // Init, waiting loading configuration (traceing message)
             case CAN_STATE_INIT:
+                TRACE_INFO_F(F("Can task: Init, waiting loading configuration before START\r\n"));
+                state = CAN_STATE_LOAD_CONFIG;
 
-                // Waiting loading configuration complete before start application
-                if (param.system_status->configuration.is_loaded) {
-                    state = CAN_STATE_INIT;
-                } else {
-                    if(!message_traced) {
-                        TRACE_INFO_F(F("Can task: Waiting configuration before START\r\n"));
-                        message_traced = true;
-                    }
-                    break;
-                }
-                message_traced = false;
+            // Setup Class waiting configuration and load and set CB and NodeId
+            case CAN_STATE_LOAD_CONFIG:
+
+                // Waiting configuration complete loaded before start application
+                if (!param.system_status->configuration.is_loaded) break;
 
                 TRACE_INFO_F(F("Can task: STARTING Configuration\r\n"));
                 // Avvio inizializzazione (Standard UAVCAN MSG). Reset su INIT END OK
@@ -2533,11 +2526,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2562,11 +2553,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2590,11 +2579,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2618,11 +2605,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2646,11 +2631,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.cmd_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2673,8 +2656,7 @@ void CanTask::Run() {
                                         // No required Starting message server on Reboot Command
                                     } else {
                                         // IS NEED to Request FullPower Mode for type of command
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Command server: Start full power for sending command at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2768,11 +2750,9 @@ void CanTask::Run() {
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.reg_server_running = true;
                                         param.systemStatusLock->Give();
-                                        message_traced = false;
                                     } else {
                                         // IS NEED to Request FullPower Mode for setting register
-                                        if(!message_traced) {
-                                            message_traced = true;
+                                        if(!param.system_status->flags.full_wakeup_request) {
                                             TRACE_VERBOSE_F(F("Register server: Start full power for sending register at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                             param.systemStatusLock->Take();
                                             param.system_status->flags.full_wakeup_request = true;
@@ -2860,6 +2840,8 @@ void CanTask::Run() {
                                 clCanard.slave[system_message.node_id].get_node_id());
                         }
                         if (clCanard.slave[reg_server_queueId].register_access.is_executed()) {
+                            // Continuo la programmazione
+                            regServerEnd = false;
                             // Rimuovo gli stati
                             clCanard.slave[reg_server_queueId].register_access.reset_pending();
                             // Command OK.
@@ -2875,8 +2857,10 @@ void CanTask::Run() {
                     }
                 } else {
                     // Security off pending status
-                    for(uint8_t reg_server_queueId=0; reg_server_queueId<MAX_NODE_CONNECT; reg_server_queueId++) {
-                        clCanard.slave[reg_server_queueId].register_access.reset_pending();
+                    if(!param.system_status->flags.cfg_server_running) {
+                        for(uint8_t reg_server_queueId=0; reg_server_queueId<MAX_NODE_CONNECT; reg_server_queueId++) {
+                            clCanard.slave[reg_server_queueId].register_access.reset_pending();
+                        }
                     }
                 }
                 // ************************* END REGISTER SERVER *************************
@@ -2890,7 +2874,8 @@ void CanTask::Run() {
                 // La procedura parte solo senza register_server in funzione (un solo avvio ammesso)
                 // Si avvia generalmente dopo il PnP o su un modulo parzialmente configurato con solo il node_id
                 if((param.system_status->flags.run_module_configure)&&
-                    (!param.system_status->flags.cfg_server_running)) {
+                    (!param.system_status->flags.cfg_server_running)&&
+                    (!param.system_status->flags.do_remote_cfg_exec)) {
                     for(uint8_t cfg_remote_queueId=0; cfg_remote_queueId<MAX_NODE_CONNECT; cfg_remote_queueId++) {
                         // Check Configurazione non attiva su un nodo configurato e online
                         // FALSE se il nodo non è configurato nei reglistri Metadati e Porte RMAP
@@ -2912,6 +2897,9 @@ void CanTask::Run() {
                                 system_message.command.do_remote_cfg = true;
                                 system_message.node_id = cfg_remote_queueId;
                                 param.systemMessageQueue->Enqueue(&system_message, 0);
+                                param.systemStatusLock->Take();
+                                param.system_status->flags.do_remote_cfg_exec = true;
+                                param.systemStatusLock->Give();
                             }
                         }
                     }
@@ -3224,8 +3212,11 @@ void CanTask::Run() {
                     }
                     // End of configure procedure complete request
                     if(cfgConfigureEnd) {
+                        TRACE_VERBOSE_F(F("Module slave programming completed configured, remove flags\r\n"));
                         param.systemStatusLock->Take();
                         param.system_status->flags.cfg_server_running = false;
+                        localSystemStatus->flags.run_module_configure = false;
+                        param.system_status->flags.do_remote_cfg_exec = false;
                         param.systemStatusLock->Give();
                     }
                 }
@@ -3260,7 +3251,7 @@ void CanTask::Run() {
                             // Reset del pending comando
                             clCanard.slave[register_server_queueId].register_access.reset_pending();
                             if(remote_configure[register_server_queueId]) {
-                                // Pass to NEXT REGISTER increment swotch position end to REGISTER_COMPLETE value
+                                // Pass to NEXT REGISTER increment switch position end to REGISTER_COMPLETE value
                                 remote_configure[register_server_queueId]++;
                                 TRACE_VERBOSE_F(F("Register server: Recive register R/W response from node in configure sequence: [ %d ]. Register access [ %s ]\r\n"), clCanard.slave[register_server_queueId].get_node_id(), OK_STRING);
                             } else {
@@ -3381,11 +3372,9 @@ void CanTask::Run() {
                                     param.systemStatusLock->Give();
                                     // Set STATE for boards request in firmware upgrade
                                     clCanard.slave[(uint8_t)system_message.node_id].file_server.start_state();
-                                    message_traced = false;
                                 } else {
                                     // IS NEED to Request FullPower Mode for type of command
-                                    if(!message_traced) {
-                                        message_traced = true;
+                                    if(!param.system_status->flags.full_wakeup_request) {
                                         TRACE_VERBOSE_F(F("Command server: Start full power for sending firmware at node: [ %d ]"), clCanard.slave[system_message.node_id].get_node_id());
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.full_wakeup_request = true;
