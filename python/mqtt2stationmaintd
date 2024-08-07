@@ -380,80 +380,80 @@ class MyMQTTClass(mqtt.Client):
     def changeStatusSendMail(self,mystation,myboard,mypreviousboard):
 
         # status v
-        changed_statusb=[None,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-        changed_statusv=[None,False,False,False,False,False,False,False,False]
+        changed_statusb=[False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
+        changed_statusv=[False,False,False,False,False,False,False,False]
         
         diff=False
         logging.info("board status {} {}".format(mypreviousboard.boardmaintstatus.statusb1,myboard.boardmaintstatus.statusb1))
 
         if (mypreviousboard.boardmaintstatus.statusb1  != myboard.boardmaintstatus.statusb1):
             diff=True
-            changed_statusb[1]=True
+            changed_statusb[0]=True
             
         if (mypreviousboard.boardmaintstatus.statusb2  != myboard.boardmaintstatus.statusb2):
             diff=True
-            changed_statusb[2]=True
+            changed_statusb[1]=True
                 
         if (mypreviousboard.boardmaintstatus.statusb3  != myboard.boardmaintstatus.statusb3):
             diff=True
-            changed_statusb[3]=True
+            changed_statusb[2]=True
                     
         if (mypreviousboard.boardmaintstatus.statusb4  != myboard.boardmaintstatus.statusb4):
             diff=True
-            changed_statusb[4]=True
+            changed_statusb[3]=True
         
         if (mypreviousboard.boardmaintstatus.statusb5  != myboard.boardmaintstatus.statusb5):
             diff=True
-            changed_statusb[5]=True
+            changed_statusb[4]=True
         
         if (mypreviousboard.boardmaintstatus.statusb6  != myboard.boardmaintstatus.statusb6):
             diff=True
-            changed_statusb[6]=True
+            changed_statusb[5]=True
 
         if (mypreviousboard.boardmaintstatus.statusb7  != myboard.boardmaintstatus.statusb7):
             diff=True
-            changed_statusb[7]=True
+            changed_statusb[6]=True
         
         if (mypreviousboard.boardmaintstatus.statusb8  != myboard.boardmaintstatus.statusb8):
             diff=True
-            changed_statusb[8]=True
+            changed_statusb[7]=True
         
         if (mypreviousboard.boardmaintstatus.statusb9  != myboard.boardmaintstatus.statusb9):
             diff=True
-            changed_statusb[9]=True
+            changed_statusb[8]=True
         
         if (mypreviousboard.boardmaintstatus.statusb10 != myboard.boardmaintstatus.statusb10):
             diff=True
-            changed_statusb[10]=True
+            changed_statusb[9]=True
         
         if (mypreviousboard.boardmaintstatus.statusb11 != myboard.boardmaintstatus.statusb11):
             diff=True
-            changed_statusb[11]=True
+            changed_statusb[10]=True
         
         if (mypreviousboard.boardmaintstatus.statusb12 != myboard.boardmaintstatus.statusb12):
             diff=True
-            changed_statusb[12]=True
+            changed_statusb[11]=True
         
         if (mypreviousboard.boardmaintstatus.statusb13 != myboard.boardmaintstatus.statusb13):
             diff=True
-            changed_statusb[13]=True
+            changed_statusb[12]=True
         
         if (mypreviousboard.boardmaintstatus.statusb14 != myboard.boardmaintstatus.statusb14):
             diff=True
-            changed_statusb[14]=True
+            changed_statusb[13]=True
         
         if (mypreviousboard.boardmaintstatus.statusb15 != myboard.boardmaintstatus.statusb15):
             diff=True
-            changed_statusb[15]=True
+            changed_statusb[14]=True
         
         if (mypreviousboard.boardmaintstatus.statusb16 != myboard.boardmaintstatus.statusb16):
             diff=True
-            changed_statusb[16]=True
+            changed_statusb[15]=True
         
 
         if (mypreviousboard.boardmaintstatus.statusv1 != myboard.boardmaintstatus.statusv1):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[0]=True
             
         if (mypreviousboard.boardmaintstatus.statusv2 != myboard.boardmaintstatus.statusv2):
             diff=True
@@ -461,33 +461,32 @@ class MyMQTTClass(mqtt.Client):
         
         if (mypreviousboard.boardmaintstatus.statusv3 != myboard.boardmaintstatus.statusv3):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[2]=True
             
         if (mypreviousboard.boardmaintstatus.statusv4 != myboard.boardmaintstatus.statusv4):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[3]=True
         
         if (mypreviousboard.boardmaintstatus.statusv5 != myboard.boardmaintstatus.statusv5):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[4]=True
         
         if (mypreviousboard.boardmaintstatus.statusv6 != myboard.boardmaintstatus.statusv6):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[5]=True
         
         if (mypreviousboard.boardmaintstatus.statusv7 != myboard.boardmaintstatus.statusv7):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[6]=True
         
         if (mypreviousboard.boardmaintstatus.statusv8 != myboard.boardmaintstatus.statusv8):
             diff=True
-            changed_statusv[1]=True
+            changed_statusv[7]=True
 
         if (not diff):
             logging.info("no difference no mail")
             return	   		       
         
-        #context={"mystation":mystation,"myboard":myboard,
         context={"station":mystation,"board":myboard,"url":"http://"+Site.objects.get(id=rmap.settings.SITE_ID).domain,
                  "changed_statusb":changed_statusb,
                  "changed_statusv":changed_statusv}

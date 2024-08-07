@@ -22,7 +22,7 @@
       {% trans 'Disactive' %}
     {% endif %}
   </td>
-<td> {{ station.user }}   </td>
+<td> {{ station.user }}    </td>
 <td> {{ station.lat }}     </td>
 <td> {{ station.lon }}     </td>
 <td> {{ station.category }}</td>
@@ -52,7 +52,7 @@
     <tr>
 
       <th>{% trans 'Red if changed' %}</th>
-      <th{% if changed_statusb.1 %} style="background-color:Tomato;"{% endif %}>{% trans 'B1' %}</th>
+      <th{% if changed_statusb.1  %} style="background-color:Tomato;"{% endif %}>{% trans 'B1' %}</th>
       <th{% if changed_statusb.2  %} style="background-color:Tomato;"{% endif %}>{% trans 'B2' %}</th>
       <th{% if changed_statusb.3  %} style="background-color:Tomato;"{% endif %}>{% trans 'B3' %}</th>
       <th{% if changed_statusb.4  %} style="background-color:Tomato;"{% endif %}>{% trans 'B4' %}</th>
@@ -77,64 +77,60 @@
 
     </tr>
   
-      {% if board.active  %}
+    <tr>
+      <th>{% trans 'Red if alert' %}</th>
+      
+      <td{% if board.boardmaintstatus.statusb1  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb1 }}</td>
+      <td{% if board.boardmaintstatus.statusb2  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb2 }}</td>
+      <td{% if board.boardmaintstatus.statusb3  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb3 }}</td>
+      <td{% if board.boardmaintstatus.statusb4  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb4 }}</td>
+      <td{% if board.boardmaintstatus.statusb5  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb5 }}</td>
+      <td{% if board.boardmaintstatus.statusb6  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb6 }}</td>
+      <td{% if board.boardmaintstatus.statusb7  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb7 }}</td>
+      <td{% if board.boardmaintstatus.statusb8  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb8 }}</td>
+      <td{% if board.boardmaintstatus.statusb9  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb9 }}</td>
+      <td{% if board.boardmaintstatus.statusb10 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb10}}</td>
+      <td{% if board.boardmaintstatus.statusb11 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb11}}</td>
+      <td{% if board.boardmaintstatus.statusb12 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb12}}</td>
+      <td{% if board.boardmaintstatus.statusb13 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb13}}</td>
+      <td{% if board.boardmaintstatus.statusb14 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb14}}</td>
+      <td{% if board.boardmaintstatus.statusb15 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb15}}</td>
+      <td{% if board.boardmaintstatus.statusb16 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb16}}</td>
+      
+      <td{% if board.boardmaintstatus.statusv1 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv1|default_if_none:'-'}}</td>
+      <td{% if board.boardmaintstatus.statusv2 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv2|default_if_none:'-'}}</td>
+      <td{% if board.boardmaintstatus.statusv3 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv3|default_if_none:'-'}}</td>
+      <td{% if board.boardmaintstatus.statusv4 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv4|default_if_none:'-'}}</td>
+      <td{% if board.boardmaintstatus.statusv5 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv5|default_if_none:'-'}}</td>
+      
+    </tr>
     
-        <tr>
-    	  <th>{% trans 'Red if alert' %}</th>
+    <tr>
+      <th>{% trans 'Description' %}</th>
 
-          <td{% if board.boardmaintstatus.statusb1  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb1 }}</td>
-          <td{% if board.boardmaintstatus.statusb2  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb2 }}</td>
-          <td{% if board.boardmaintstatus.statusb3  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb3 }}</td>
-          <td{% if board.boardmaintstatus.statusb4  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb4 }}</td>
-          <td{% if board.boardmaintstatus.statusb5  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb5 }}</td>
-          <td{% if board.boardmaintstatus.statusb6  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb6 }}</td>
-          <td{% if board.boardmaintstatus.statusb7  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb7 }}</td>
-          <td{% if board.boardmaintstatus.statusb8  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb8 }}</td>
-          <td{% if board.boardmaintstatus.statusb9  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb9 }}</td>
-          <td{% if board.boardmaintstatus.statusb10 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb10}}</td>
-          <td{% if board.boardmaintstatus.statusb11 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb11}}</td>
-          <td{% if board.boardmaintstatus.statusb12 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb12}}</td>
-          <td{% if board.boardmaintstatus.statusb13 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb13}}</td>
-          <td{% if board.boardmaintstatus.statusb14 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb14}}</td>
-          <td{% if board.boardmaintstatus.statusb15 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb15}}</td>
-          <td{% if board.boardmaintstatus.statusb16 %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusb16}}</td>
-
-          <td{% if board.boardmaintstatus.statusv1 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv1|default_if_none:'-'}}</td>
-          <td{% if board.boardmaintstatus.statusv2 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv2|default_if_none:'-'}}</td>
-          <td{% if board.boardmaintstatus.statusv3 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv3|default_if_none:'-'}}</td>
-          <td{% if board.boardmaintstatus.statusv4 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv4|default_if_none:'-'}}</td>
-          <td{% if board.boardmaintstatus.statusv5 > 0  %} style="background-color:Tomato;"{% endif %}> {{ board.boardmaintstatus.statusv5|default_if_none:'-'}}</td>
-	  
-	</tr>
-
-        <tr>
-	  <th>{% trans 'Description' %}</th>
-
-          <td>{% if board.boardmaintstatus.statusb1  %} {{board.boardmaintstatus.statusb_explain.1}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb2  %} {{board.boardmaintstatus.statusb_explain.2}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb3  %} {{board.boardmaintstatus.statusb_explain.3}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb4  %} {{board.boardmaintstatus.statusb_explain.4}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb5  %} {{board.boardmaintstatus.statusb_explain.5}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb6  %} {{board.boardmaintstatus.statusb_explain.6}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb7  %} {{board.boardmaintstatus.statusb_explain.7}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb8  %} {{board.boardmaintstatus.statusb_explain.8}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb9  %} {{board.boardmaintstatus.statusb_explain.9}}{% endif %}</td> 
-          <td>{% if board.boardmaintstatus.statusb10 %} {{board.boardmaintstatus.statusb_explain.10}}{% endif %}</td>	  
-          <td>{% if board.boardmaintstatus.statusb11 %} {{board.boardmaintstatus.statusb_explain.11}}{% endif %}</td>
-          <td>{% if board.boardmaintstatus.statusb12 %} {{board.boardmaintstatus.statusb_explain.12}}{% endif %}</td>
-          <td>{% if board.boardmaintstatus.statusb13 %} {{board.boardmaintstatus.statusb_explain.13}}{% endif %}</td>
-          <td>{% if board.boardmaintstatus.statusb14 %} {{board.boardmaintstatus.statusb_explain.14}}{% endif %}</td>
-          <td>{% if board.boardmaintstatus.statusb15 %} {{board.boardmaintstatus.statusb_explain.15}}{% endif %}</td>
-          <td>{% if board.boardmaintstatus.statusb16 %} {{board.boardmaintstatus.statusb_explain.16}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb1  %} {{board.boardmaintstatus.statusb_explain.0}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb2  %} {{board.boardmaintstatus.statusb_explain.1}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb3  %} {{board.boardmaintstatus.statusb_explain.2}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb4  %} {{board.boardmaintstatus.statusb_explain.3}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb5  %} {{board.boardmaintstatus.statusb_explain.4}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb6  %} {{board.boardmaintstatus.statusb_explain.5}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb7  %} {{board.boardmaintstatus.statusb_explain.6}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb8  %} {{board.boardmaintstatus.statusb_explain.7}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb9  %} {{board.boardmaintstatus.statusb_explain.8}}{% endif %}</td> 
+      <td>{% if board.boardmaintstatus.statusb10 %} {{board.boardmaintstatus.statusb_explain.9}}{% endif %}</td>	  
+      <td>{% if board.boardmaintstatus.statusb11 %} {{board.boardmaintstatus.statusb_explain.10}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb12 %} {{board.boardmaintstatus.statusb_explain.11}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb13 %} {{board.boardmaintstatus.statusb_explain.12}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb14 %} {{board.boardmaintstatus.statusb_explain.13}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb15 %} {{board.boardmaintstatus.statusb_explain.14}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusb16 %} {{board.boardmaintstatus.statusb_explain.15}}{% endif %}</td>
 
 	  
-	  <td>{% if board.boardmaintstatus.statusv1 > 0  %} {{board.boardmaintstatus.statusv_explain.0}}{% endif %}</td>
-	  <td>{% if board.boardmaintstatus.statusv2 > 0  %} {{board.boardmaintstatus.statusv_explain.1}}{% endif %}</td>
-	  <td>{% if board.boardmaintstatus.statusv3 > 0  %} {{board.boardmaintstatus.statusv_explain.2}}{% endif %}</td>
-	  <td>{% if board.boardmaintstatus.statusv4 > 0  %} {{board.boardmaintstatus.statusv_explain.3}}{% endif %}</td>
-	  <td>{% if board.boardmaintstatus.statusv5 > 0  %} {{board.boardmaintstatus.statusv_explain.4}}{% endif %}</td>
-
-	</tr>
-	
-      {% endif %}
+      <td>{% if board.boardmaintstatus.statusv1 > 0  %} {{board.boardmaintstatus.statusv_explain.0}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusv2 > 0  %} {{board.boardmaintstatus.statusv_explain.1}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusv3 > 0  %} {{board.boardmaintstatus.statusv_explain.2}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusv4 > 0  %} {{board.boardmaintstatus.statusv_explain.3}}{% endif %}</td>
+      <td>{% if board.boardmaintstatus.statusv5 > 0  %} {{board.boardmaintstatus.statusv_explain.4}}{% endif %}</td>
+      
+    </tr>
     </table>
