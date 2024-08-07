@@ -1,4 +1,4 @@
-#!/usr/libexec/platform-python -s
+#!/usr/libexec/platform-python
 # mqtt2stationmaintd - Update station information with the last status
 # received from MQTT maint rootpath
 #
