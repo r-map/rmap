@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/libexec/platform-python -s
 # mqtt2stationmaintd - Update station information with the last status
 # received from MQTT maint rootpath
 #
@@ -35,6 +35,11 @@ import paho.mqtt.client as mqtt
 import logging,traceback
 from rmap.stations.models import StationMaintStatus,StationMetadata,Board,BoardMaintStatus
 from datetime import datetime
+from django.contrib.auth.models import User, Group #,Permission
+from django.db.models import Q
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.contrib.sites.models import Site
 
 from rmap import daemon
 import rmap.settings
@@ -292,6 +297,7 @@ class MyMQTTClass(mqtt.Client):
                         try:
                             myboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]
                                                         ,stationmetadata=mystation)
+							
                         except Board.DoesNotExist :
                             logging.error("board not present on DB; ignore it: {}".format(m["boardstatus"]["boardslug"]))
                     
@@ -311,7 +317,7 @@ class MyMQTTClass(mqtt.Client):
                                             ,   (8, "statusb9" ),  (9,"statusb10"), (10,"statusb11"), (11,"statusb12")
                                             ,   (12,"statusb13"), (13,"statusb14"), (14,"statusb15"), (15,"statusb16")):
 
-                                exec("myboard.boardmaintstatus."+statusb+"  = (m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1")
+                                exec("myboard.boardmaintstatus."+statusb+"  = bool((m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1)")
 
 
                             for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
@@ -319,8 +325,19 @@ class MyMQTTClass(mqtt.Client):
                                 if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
                                 exec("myboard.boardmaintstatus."+statusv+" =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
 
-                            myboard.boardmaintstatus.save()
 
+                            test=bool((m["boardstatus"]["statusb"] >> 0) & 1)
+                            logging.info("test {}".format(test))
+
+                            mypreviousboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]                            
+                                                        ,stationmetadata=mystation)
+                            try:
+                              self.changeStatusSendMail(mystation,myboard,mypreviousboard)
+                            except:
+                              logging.error("error sending email for status change")	
+			      
+                            myboard.boardmaintstatus.save()
+                            
                         else:
 
                             logging.info("add maint information date {} to station {} {} board {}".format
@@ -336,7 +353,7 @@ class MyMQTTClass(mqtt.Client):
                                             ,   (4, "statusb5" ),  (5,"statusb6" ), (6, "statusb7" ), (7, "statusb8" )
                                             ,   (8, "statusb9" ),  (9,"statusb10"), (10,"statusb11"), (11,"statusb12")
                                             ,   (12,"statusb13"), (13,"statusb14"), (14,"statusb15"), (15,"statusb16")):
-                                exec("myboard.boardmaintstatus."+statusb+"  = (m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1")
+                                exec("myboard.boardmaintstatus."+statusb+"  = bool((m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1)")
 
                             for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
                                             ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
@@ -359,7 +376,141 @@ class MyMQTTClass(mqtt.Client):
         except Exception:
             logging.error(traceback.format_exc())
 
+            
+    def changeStatusSendMail(self,mystation,myboard,mypreviousboard):
 
+        # status v
+        changed_statusb=[None,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
+        changed_statusv=[None,False,False,False,False,False,False,False,False]
+        
+        diff=False
+        logging.info("board status {} {}".format(mypreviousboard.boardmaintstatus.statusb1,myboard.boardmaintstatus.statusb1))
+
+        if (mypreviousboard.boardmaintstatus.statusb1  != myboard.boardmaintstatus.statusb1):
+            diff=True
+            changed_statusb[1]=True
+            
+        if (mypreviousboard.boardmaintstatus.statusb2  != myboard.boardmaintstatus.statusb2):
+            diff=True
+            changed_statusb[2]=True
+                
+        if (mypreviousboard.boardmaintstatus.statusb3  != myboard.boardmaintstatus.statusb3):
+            diff=True
+            changed_statusb[3]=True
+                    
+        if (mypreviousboard.boardmaintstatus.statusb4  != myboard.boardmaintstatus.statusb4):
+            diff=True
+            changed_statusb[4]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb5  != myboard.boardmaintstatus.statusb5):
+            diff=True
+            changed_statusb[5]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb6  != myboard.boardmaintstatus.statusb6):
+            diff=True
+            changed_statusb[6]=True
+
+        if (mypreviousboard.boardmaintstatus.statusb7  != myboard.boardmaintstatus.statusb7):
+            diff=True
+            changed_statusb[7]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb8  != myboard.boardmaintstatus.statusb8):
+            diff=True
+            changed_statusb[8]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb9  != myboard.boardmaintstatus.statusb9):
+            diff=True
+            changed_statusb[9]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb10 != myboard.boardmaintstatus.statusb10):
+            diff=True
+            changed_statusb[10]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb11 != myboard.boardmaintstatus.statusb11):
+            diff=True
+            changed_statusb[11]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb12 != myboard.boardmaintstatus.statusb12):
+            diff=True
+            changed_statusb[12]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb13 != myboard.boardmaintstatus.statusb13):
+            diff=True
+            changed_statusb[13]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb14 != myboard.boardmaintstatus.statusb14):
+            diff=True
+            changed_statusb[14]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb15 != myboard.boardmaintstatus.statusb15):
+            diff=True
+            changed_statusb[15]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusb16 != myboard.boardmaintstatus.statusb16):
+            diff=True
+            changed_statusb[16]=True
+        
+
+        if (mypreviousboard.boardmaintstatus.statusv1 != myboard.boardmaintstatus.statusv1):
+            diff=True
+            changed_statusv[1]=True
+            
+        if (mypreviousboard.boardmaintstatus.statusv2 != myboard.boardmaintstatus.statusv2):
+            diff=True
+            changed_statusv[1]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusv3 != myboard.boardmaintstatus.statusv3):
+            diff=True
+            changed_statusv[1]=True
+            
+        if (mypreviousboard.boardmaintstatus.statusv4 != myboard.boardmaintstatus.statusv4):
+            diff=True
+            changed_statusv[1]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusv5 != myboard.boardmaintstatus.statusv5):
+            diff=True
+            changed_statusv[1]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusv6 != myboard.boardmaintstatus.statusv6):
+            diff=True
+            changed_statusv[1]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusv7 != myboard.boardmaintstatus.statusv7):
+            diff=True
+            changed_statusv[1]=True
+        
+        if (mypreviousboard.boardmaintstatus.statusv8 != myboard.boardmaintstatus.statusv8):
+            diff=True
+            changed_statusv[1]=True
+
+        if (not diff):
+            logging.info("no difference no mail")
+            return	   		       
+        
+        #context={"mystation":mystation,"myboard":myboard,
+        context={"station":mystation,"board":myboard,"url":"http://"+Site.objects.get(id=rmap.settings.SITE_ID).domain,
+                 "changed_statusb":changed_statusb,
+                 "changed_statusv":changed_statusv}
+
+        # work with permissions
+        #perm = Permission.objects.get(codename='maint_mail_alert')  
+        #users = User.objects.filter(Q(groups__permissions=perm) | Q(user_permissions=perm) ).distinct()
+        #recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
+
+        # work with groups
+        users = Group.objects.get(name="status alert recipients").user_set.all()
+        recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
+        message_html = render_to_string('changed_status_email.html', context)
+        logging.info("send email: {}".format(recipient_list))
+
+        send_mail("Status for station: "+mystation.name+" board: "+myboard.name+" is changed", 
+                  "Status for station: "+mystation.name+" board: "+myboard.name+" is changed; details in this mail in HTML part only ...",
+                  from_email=None,
+                  recipient_list=recipient_list,
+                  html_message=message_html,
+                  fail_silently = False)
+
+        
 mqtt2stationmaint = daemon.Daemon(
     stdin="/dev/null",
     stdout=rmap.settings.logfilemqtt2stationmaintd,

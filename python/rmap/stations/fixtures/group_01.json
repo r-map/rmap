@@ -1,0 +1,9 @@
+[
+  {
+    "model": "auth.group",
+    "fields": {
+      "name": "status alert recipients",
+      "permissions": []
+    }
+  }
+]
