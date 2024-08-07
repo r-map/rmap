@@ -47,7 +47,7 @@ void WdtTask::Run() {
   bool firsCheck = true;
   uint16_t stackUsage;
   char strTask[12] = {0};
-  uint8_t last_day_boot_rst;
+  uint8_t last_hour_boot_rst;
 
   // WDT Start to Normal...
   param.systemStatusLock->Take();
@@ -64,26 +64,30 @@ void WdtTask::Run() {
     // Reset one time for day (reset and wdt index if event occurs. Send to Master)
     if(firsCheck) {
       // Init last day at first
-      last_day_boot_rst = rtc.getDay();
+      last_hour_boot_rst = rtc.getHours();
       // Init Valid connection dateTime for internal security check
       param.system_status->datetime.epoch_mqtt_last_connection = rtc.getEpoch();
     } else {
-      // Check day is changed
-      if(last_day_boot_rst != rtc.getDay()) {
-        last_day_boot_rst = rtc.getDay();
-        // Reset counter if occurs event
-        if((param.boot_request->tot_reset) || (param.boot_request->wdt_reset)) {
-          // Reset counter on new or restored firmware
-          param.boot_request->tot_reset = 0;
-          param.boot_request->wdt_reset = 0;
-          // Save info bootloader block
-          param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
-        }
-        // Reset counter error MQTT index lost data connection server error
-        if(param.system_status->connection.mqtt_data_exit_error) {
-          param.systemStatusLock->Take();
-          param.system_status->connection.mqtt_data_exit_error = 0;
-          param.systemStatusLock->Give();
+      // Check hour is 12 ov every day for reset Flags automatic mode
+      if(last_hour_boot_rst != rtc.getHours()) {
+        // Update last hour check
+        last_hour_boot_rst = rtc.getHours();
+        // Is 12 UTC... -> Reset flags
+        if(last_hour_boot_rst == 12) {
+          // Reset counter if occurs event
+          if((param.boot_request->tot_reset) || (param.boot_request->wdt_reset)) {
+            // Reset counter on new or restored firmware
+            param.boot_request->tot_reset = 0;
+            param.boot_request->wdt_reset = 0;
+            // Save info bootloader block
+            param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t*) param.boot_request, sizeof(bootloader_t));
+          }
+          // Reset counter error MQTT index lost data connection server error
+          if(param.system_status->connection.mqtt_data_exit_error) {
+            param.systemStatusLock->Take();
+            param.system_status->connection.mqtt_data_exit_error = 0;
+            param.systemStatusLock->Give();
+          }
         }
       }
       // Check complete connection status valid (last connection operation, all procedure are OK...)
