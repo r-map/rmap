@@ -37,7 +37,7 @@
               <td> <a href="{% url 'mystationstatus-detail' station.user.username station.slug %}">{{ station.name }}</a> </td>
 	      <td> <a href="{% url 'mystationstatus-list' station.user.username %}">{{ station.user}}</a></td>
 	      <td> {{ station.stationmaintstatus.laststatus}}</td>
-	      <td> {{ station.stationmaintstatus.lastupdate}}</td>
+	      <td{% if station.stationmaintstatus.late %} style="background-color:Tomato;"{% endif %}> {{ station.stationmaintstatus.lastupdate}}</td>
 	      <td> {{ station.stationmaintstatus.firmwaremajor }}.{{ station.stationmaintstatus.firmwareminor }}</td>
 
 	      <td {% if station.status_bits  %}style="background-color:Tomato;"{% endif %} > {% if station.status_bits %}Error{% else %}Ok{% endif %}</td>

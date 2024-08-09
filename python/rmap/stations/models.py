@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 from rmap.registration.signals import user_activated
 import random
+from datetime import datetime, timedelta, timezone
 
 try:
     import dballe
@@ -764,6 +765,34 @@ class StationMaintStatus(models.Model):
     firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware major version"))
     firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware minor version"))
 
+
+    @property
+    def late(self):
+
+        """Late is true when the last status is not connect and the last
+        status change is > 4 time the mqttsampletime (or defaut of one hour)"""
+
+        if (self.laststatus == 'conn'):
+            return False
+        
+        for board in self.station.board_set.all():
+            # try to get sampletime: from mqtt transport of one board of the station
+            # we use the first found
+            if (hasattr(board, 'transportmqtt')):
+
+                try:
+                    if board.transportmqtt.active:
+                        #board have mqtttransport active; use it
+                        td=timedelta(seconds=board.transportmqtt.mqttsampletime)*4
+                except:
+                    td=timedelta(hours=1)
+        
+                if ((datetime.now(timezone.utc)-td) > self.lastupdate):
+                    return True
+
+        return False
+
+    
 # status b
 statusb_explain_matrix={}
 statusb_explain_matrix[0]= ["None",    "None",    "None",      "None",    "None",      "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
