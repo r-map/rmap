@@ -775,20 +775,22 @@ class StationMaintStatus(models.Model):
         if (self.laststatus == 'conn'):
             return False
         
-        for board in self.station.board_set.all():
-            # try to get sampletime: from mqtt transport of one board of the station
-            # we use the first found
-            if (hasattr(board, 'transportmqtt')):
+        td=timedelta(hours=1)
 
-                try:
-                    if board.transportmqtt.active:
-                        #board have mqtttransport active; use it
-                        td=timedelta(seconds=board.transportmqtt.mqttsampletime)*4
-                except:
-                    td=timedelta(hours=1)
+        # try to get sampletime: from mqtt transport of one board of the station
+        try:
+            for board in self.station.board_set.all():
+                if (board.active):
+                    # we use the first found
+                    if (hasattr(board, 'transportmqtt')):
+                        if (board.transportmqtt.active):
+                            #board have mqtttransport active; use it
+                            td=timedelta(seconds=board.transportmqtt.mqttsampletime)*4
+        except:
+            pass
         
-                if ((datetime.now(timezone.utc)-td) > self.lastupdate):
-                    return True
+        if ((datetime.now(timezone.utc)-td) > self.lastupdate):
+            return True
 
         return False
 
