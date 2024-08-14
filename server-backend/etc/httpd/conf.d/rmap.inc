@@ -3,8 +3,6 @@
  Alias /showroom /var/www/html/showroom
  Alias /arkiweb  /var/www/html/arkiweb
 
- SecRuleEngine On
-
  #Alias /static/admin /usr/lib/python2.7/site-packages/django/contrib/admin/static/admin
  #<Directory "/usr/lib/python2.7/site-packages/django/contrib/admin/static/admin">
  #	    Require all granted
@@ -42,5 +40,9 @@
     Allow from 127.0.0.1
     Allow from <insert IP of data-ingestion machine>    
  </Location>
+
+
+SecRuleEngine On
+
 
 ErrorDocument 503 "Service Unavailable"

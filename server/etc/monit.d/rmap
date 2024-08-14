@@ -186,10 +186,13 @@ check process amqp2dballed_report_fixed with pidfile /var/run/rmap/amqp2dballed_
 check process mosquitto with pidfile /var/run/mosquitto/mosquitto.pid
     start program = "/bin/systemctl start mosquitto.service"
     stop program = "/bin/systemctl stop mosquitto.service"
-    if failed port 1883 protocol mqtt USERNAME rmap PASSWORD div26ic then restart
+    if failed port 1883 protocol mqtt USERNAME rmap PASSWORD <password> TIMEOUT 15 SECONDS RETRY 2 then alert
+    if failed port 1883 protocol mqtt USERNAME rmap PASSWORD <password> TIMEOUT 30 SECONDS for 3 times within 3 cycles then restart
 
-check program mosquitto_queued_messages with path "/usr/local/bin/check_mosquitto rmap div26ic"  TIMEOUT 30 SECONDS
+
+check program mosquitto_queued_messages with path "/usr/local/bin/check_mosquitto"  TIMEOUT 50 SECONDS
     depends on mosquitto
     start program = "/bin/systemctl start mosquitto.service"
     stop program = "/bin/systemctl stop mosquitto.service"
-    if status > 0 then restart
+    if status > 0 then alert
+    if status > 0 for 3 times within 3 cycles then restart
