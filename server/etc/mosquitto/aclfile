@@ -11,13 +11,15 @@ topic #
 
 pattern write sample/%u/#
 pattern write report/%u/#
-
 pattern write maint/%u/#
-
 pattern write rpc/%u/#
-
 
 pattern read sample/%u/#
 pattern read report/%u/#
 pattern read maint/%u/#
 pattern read rpc/%u/#
+
+#pattern 1/sample/%u/#
+#pattern 1/report/%u/#
+#pattern 1/maint/%u/#
+#pattern 1/rpc/%u/#

@@ -1,0 +1,16 @@
+#bash
+# Mail settings
+set mail-format {
+from: my_user_from@my_domain.it
+subject: [$HOST] Monit alert — $EVENT $SERVICE
+message: $EVENT Service $SERVICE
+Date: $DATE
+Action: $ACTION
+Host: $HOST
+Description: $DESCRIPTION
+
+Monit
+}
+set mailserver mailrelay.my_domain.local port 25
+# email address to receive Monit alerts
+set alert my_user_to@my_domain.it

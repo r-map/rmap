@@ -309,7 +309,7 @@
 set daemon  60              # check services at 1-minute intervals
 set log syslog
 set httpd port 5925 and
-   allow admin:monit      # require user 'admin' with password 'monit'
+   allow rmap:<set your admin password>        # require user 'rmap' with password < >
    allow @monit           # allow users of group 'monit' to connect (rw)
    allow @users readonly  # allow users of group 'users' to connect readonly
 include /etc/monit.d/*

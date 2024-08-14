@@ -1,0 +1,57 @@
+per_listener_settings false
+log_type error
+log_type warning
+#log_type notice
+#log_type information
+#log_type debug
+#connection_messages true
+
+persistence true
+persistence_location /rmap/mosquitto/
+persistent_client_expiration 1d
+
+listener 1883
+allow_anonymous true
+#use_username_as_clientid true
+#password_file /etc/mosquitto/pwfile
+#acl_file /etc/mosquitto/aclfile
+
+auth_plugin /usr/lib64/auth-plug.so
+#auth_plugin /usr/lib64/plugin_debug.so
+#number of seconds to cache ACL lookups. 0 disables
+auth_opt_acl_cacheseconds        1300
+#number of seconds to cache AUTH lookups. 0 disables
+auth_opt_auth_cacheseconds       1300
+#maximum number of seconds to add/remove to ACL lookups cache TTL. 0 disables
+auth_opt_acl_cachejitter         0
+#maximum number of seconds to add/remove to AUTH lookups cache TTL. 0 disables
+auth_opt_auth_cachejitter        0
+
+# DISABLE FILES
+auth_opt_backends http
+#auth_opt_backends http,files
+
+# FILES
+#auth_opt_backends files
+auth_opt_password_file /etc/mosquitto/file.pwd
+auth_opt_acl_file /etc/mosquitto/aclfile
+
+## HTTP
+#auth_opt_backends http
+auth_opt_http_hostname localhost
+auth_opt_http_ip 127.0.0.1
+auth_opt_http_port 80
+# auth per user with check by http server
+#auth_opt_http_getuser_uri /auth/auth
+
+#auth per user with check by auth plugin with sha
+auth_opt_http_getuser_uri /auth/auth_sha
+
+#auth per user / per station with check by auth plugin with sha
+auth_opt_http_getuser_uri /auth/sha
+
+auth_opt_http_superuser_uri /auth/superuser
+auth_opt_http_aclcheck_uri /auth/acl
+
+auth_plugin_deny_special_chars false
+

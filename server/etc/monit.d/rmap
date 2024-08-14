@@ -1,4 +1,25 @@
 
+
+  check process mqtt2amqpd_sample_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock
+    start program = "/usr/bin/mqtt2amqpd --rmapversion=v1 --datalevel=sample --stationtype=fixed    --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.log restart"
+    stop program  = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=fixed    --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock  stop"
+#    depends on rmap
+
+  check process mqtt2amqpd_sample_mobile_v1 with pidfile /var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock
+    start program = "/usr/bin/mqtt2amqpd --rmapversion=v1 --datalevel=sample --stationtype=mobile    --pidfile=/var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.log restart"
+    stop program  = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=mobile    --pidfile=/var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock stop"
+#    depends on rmap
+
+check process mqtt2amqpd_report_mobile_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_mobile_v1.lock
+    start program = "/usr/bin/mqtt2amqpd --rmapversion=v1 --datalevel=report --stationtype=mobile  --pidfile=/var/run/rmap/mqtt2amqpd_report_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_mobile_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_mobile_v1.log restart"
+    stop program  = "/usr/bin/mqtt2amqpd --datalevel=report --stationtye=mobile  --pidfile=/var/run/rmap/mqtt2amqpd_report_mobile_v1.lock  stop"
+#    depends on rmap
+
+check process mqtt2amqpd_report_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_fixed_v1.lock
+    start program = "/usr/bin/mqtt2amqpd --rmapversion=v1 --datalevel=report --stationtype=fixed  --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_fixed_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_fixed_v1.log restart"
+    stop program  = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=fixed  --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  stop"
+#    depends on rmap
+
 #  check process dbusgpiod with pidfile /var/run/dbusgpio/dbusgpiod.lock
 #    start program = "/usr/bin/dbusgpiod restart"
 #    stop program  = "/usr/bin/dbusgpiod stop"
@@ -155,3 +176,20 @@ check process amqp2dballed_report_fixed with pidfile /var/run/rmap/amqp2dballed_
 #    start program = "/usr/bin/systemctl start httpd.service"
 #    stop program  = "/usr/bin/systemctl stop httpd.service"
 
+
+  check process rpcd with pidfile /var/run/rmap/rpcd.lock
+    start program = "/usr/bin/rpcd restart"
+    stop program  = "/usr/bin/rpcd stop"
+
+
+
+check process mosquitto with pidfile /var/run/mosquitto/mosquitto.pid
+    start program = "/bin/systemctl start mosquitto.service"
+    stop program = "/bin/systemctl stop mosquitto.service"
+    if failed port 1883 protocol mqtt USERNAME rmap PASSWORD div26ic then restart
+
+check program mosquitto_queued_messages with path "/usr/local/bin/check_mosquitto rmap div26ic"  TIMEOUT 30 SECONDS
+    depends on mosquitto
+    start program = "/bin/systemctl start mosquitto.service"
+    stop program = "/bin/systemctl stop mosquitto.service"
+    if status > 0 then restart
