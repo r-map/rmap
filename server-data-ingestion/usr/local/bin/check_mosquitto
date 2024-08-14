@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set +x
+set -e
+export HOME=/tmp
+USER=`grep  ^mqttuser /etc/rmap/rmap-site.cfg | cut -d "=" -f 2`
+PASSWORD=`grep  ^mqttpassword /etc/rmap/rmap-site.cfg | cut -d "=" -f 2`
+
+/usr/bin/mosquitto_sub -E -c    -u $USER -P $PASSWORD -q 1 -V 311 -i monit_sub -t test/monit
+/usr/bin/mosquitto_pub          -u $USER -P $PASSWORD -q 1 -V 311 -i monit_pub -t test/monit -m check
+/usr/bin/mosquitto_sub -W 20 -c -u $USER -P $PASSWORD -q 1 -V 311 -i monit_sub -t test/monit |grep -q check
+
+exit $?
