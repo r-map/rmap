@@ -207,17 +207,16 @@ Aggiunta repository e installazione pacchetti
 ::
 
   dnf -y install epel-release
-  dnf install yum-plugin-copr
-  dnf copr enable simc/stable
-  dnf copr enable pat1/rmap
-  dnf config-manager --set-enabled powertools
-  dnf copr enable simc/cosudo
-  dnf install python3-rmap
-  python3-django-cors-headers
-  dnf install python3-django-dynamic-map-borinud
-  dnf install mosquitto mosquitto-auth-plug
-  dnf install arkimet
-  dnf install stunnel
+  dnf -y install yum-plugin-copr
+  dnf -y copr enable simc/stable
+  dnf -y copr enable pat1/rmap
+  dnf -y config-manager --set-enabled powertools
+  dnf -y copr enable simc/cosudo
+  dnf -y install python3-rmap
+  dnf -y install python3-django-dynamic-map-borinud
+  dnf -y install mosquitto mosquitto-auth-plug
+  dnf -y install arkimet
+  dnf -y install stunnel
   useradd rmap
   
 /etc/selinux/config::
