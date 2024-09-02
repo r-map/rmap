@@ -196,7 +196,7 @@ def ctrl(cwd):
         management.call_command("collectstatic")
 
     if (options.dumpdata):
-        management.call_command("dumpdata",use_natural_foreign_keys = True, use_natural_primary_keys = True, exclude=["sessions","admin","contenttypes","auth.Permission"])
+        management.call_command("dumpdata",use_natural_foreign_keys = True, use_natural_primary_keys = True, exclude=["sites","sessions","admin","contenttypes","auth.Permission"])
 
     if (options.loaddata is not None):
         print("loaddata",options.loaddata)
