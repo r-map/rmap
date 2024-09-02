@@ -155,6 +155,7 @@ void SensorDriver::resetPrepared(bool is_test){
 
 void SensorDriver::resetSetted(){
   *_is_setted = false;
+  _error_count = 0;
 }
 
 const char *SensorDriver::getDriver() {
