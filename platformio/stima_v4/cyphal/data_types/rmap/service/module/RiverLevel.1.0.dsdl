@@ -17,6 +17,6 @@ bool is_adc_unit_overflow
 uint8 rbt_event
 uint8 wdt_event
 
-rmap.sensors.HLevel.1.0 LEV
+rmap.sensors.RiverLevel.1.0 LVM
 
 @sealed
