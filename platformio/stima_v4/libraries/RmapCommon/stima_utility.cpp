@@ -77,6 +77,10 @@ void getStimaNameByType(char *name, uint8_t type, uint8_t offset) {
     case STIMA_MODULE_TYPE_VWC:
       strncpy(name, STIMA_MODULE_NAME_VWC + offset, STIMA_MODULE_NAME_LENGTH);
       break;
+    
+    case STIMA_MODULE_TYPE_LEVEL:
+      strncpy(name, STIMA_MODULE_NAME_LEVEL + offset, STIMA_MODULE_NAME_LENGTH);
+      break;
 
     default:
       strncpy(name, "ERROR", STIMA_MODULE_NAME_LENGTH);
@@ -112,6 +116,10 @@ void getStimaDescriptionByType(char *description, uint8_t type) {
 
     case STIMA_MODULE_TYPE_LEAF:
       strncpy(description, STIMA_MODULE_DESCRIPTION_LEAF, STIMA_MODULE_DESCRIPTION_LENGTH);
+      break;
+    
+    case STIMA_MODULE_TYPE_LEVEL:
+      strncpy(description, STIMA_MODULE_DESCRIPTION_LEVEL, STIMA_MODULE_DESCRIPTION_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_WIND:
@@ -162,6 +170,10 @@ void getStimaLcdDescriptionByType(char *lcd_description_A, char* lcd_description
 
     case STIMA_MODULE_TYPE_LEAF:
       strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_LEAF, STIMA_LCD_DESCRIPTION_LENGTH);
+      break;
+    
+    case STIMA_MODULE_TYPE_LEVEL:
+      strncpy(lcd_description_A, STIMA_LCD_DESCRIPTION_LEVEL, STIMA_LCD_DESCRIPTION_LENGTH);
       break;
 
     case STIMA_MODULE_TYPE_WIND:
@@ -216,6 +228,10 @@ void getStimaLcdUnitTypeByType(char *lcd_unit_type_A, char *lcd_unit_type_B, cha
     case STIMA_MODULE_TYPE_LEAF:
       strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_PERCENTS, STIMA_LCD_UNIT_TYPE_LENGTH);
       break;
+    
+    case STIMA_MODULE_TYPE_LEVEL:
+      strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_METERS, STIMA_LCD_UNIT_TYPE_LENGTH);
+      break;
 
     case STIMA_MODULE_TYPE_WIND:
       strncpy(lcd_unit_type_A, STIMA_LCD_UNIT_TYPE_METERS_PER_SECOND, STIMA_LCD_UNIT_TYPE_LENGTH);
@@ -268,6 +284,10 @@ void getStimaLcdDecimalsByType(uint8_t *decimals_A, uint8_t *decimals_B, uint8_t
 
     case STIMA_MODULE_TYPE_LEAF:
       *decimals_A = STIMA_LCD_DECIMALS_ZERO;
+      break;
+    
+    case STIMA_MODULE_TYPE_LEVEL:
+      *decimals_A = STIMA_LCD_DECIMALS_ONE;
       break;
 
     case STIMA_MODULE_TYPE_WIND:
@@ -333,6 +353,9 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
   } else if (strstr(file_name, STIMA_MODULE_NAME_LEAF)) {
     *type = STIMA_MODULE_TYPE_LEAF;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEAF);
+  } else if (strstr(file_name, STIMA_MODULE_NAME_LEVEL)) {
+    *type = STIMA_MODULE_TYPE_LEAF;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEVEL);
   } else if (strstr(file_name, STIMA_MODULE_NAME_WIND)) {
     *type = STIMA_MODULE_TYPE_WIND;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_WIND);

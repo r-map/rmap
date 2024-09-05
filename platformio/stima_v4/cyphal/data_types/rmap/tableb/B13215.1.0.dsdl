@@ -1,0 +1,6 @@
+# Livello (mm)
+# fattore scala naturale
+# MAX 30000 mm
+uint15 MAX = 30000
+uint15 value
+@sealed
