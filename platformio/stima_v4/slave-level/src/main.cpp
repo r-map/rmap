@@ -232,7 +232,7 @@ void setup() {
   static SupervisorTask supervisor_task("SupervisorTask", 300, OS_TASK_PRIORITY_04, supervisorParam);
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_LEVEL)
-  static LevelSensorTask level_sensor_task("RadiationTask", 350, OS_TASK_PRIORITY_03, levelSensorParam);
+  static LevelSensorTask level_sensor_task("LevelTask", 350, OS_TASK_PRIORITY_03, levelSensorParam);
 #endif
   static ElaborateDataTask elaborate_data_task("ElaborateDataTask", 400, OS_TASK_PRIORITY_02, elaborateDataParam);
 
