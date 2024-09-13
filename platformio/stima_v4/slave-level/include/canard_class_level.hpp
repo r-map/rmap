@@ -46,8 +46,8 @@
 #include <uavcan/time/Synchronization_1_0.h>
 #include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
-#include <rmap/_module/Radiation_1_0.h>
-#include <rmap/service/_module/Radiation_1_0.h>
+#include <rmap/_module/RiverLevel_1_0.h>
+#include <rmap/service/_module/RiverLevel_1_0.h>
 
 #ifndef _CANARD_CLASS_H
 #define _CANARD_CLASS_H
@@ -61,7 +61,7 @@ class canardClass {
 
         // Tipologie elaborazioni/sensori modulo(i)
         enum Sensor_Type : uint8_t {
-            dsa
+            lvm
         };
 
         // Modalità di accesso a getMicros()
@@ -284,15 +284,15 @@ class canardClass {
         // *************************************************
 
         // Dati e Metadati del modulo locale
-        rmap_module_Radiation_1_0 module_solar_radiation;
+        rmap_module_RiverLevel_1_0 module_level;
 
         // Subject ID porte e servizi modulo locale
         class port_id
         {
             public:
 
-            CanardPortID publisher_module_solar_radiation;
-            CanardPortID service_module_solar_radiation;
+            CanardPortID publisher_module_level;
+            CanardPortID service_module_level;
 
         } port_id;
 
@@ -301,7 +301,7 @@ class canardClass {
         {
             public:
 
-            bool module_solar_radiation;
+            bool module_level;
             bool port_list;
 
         } publisher_enabled;
@@ -315,7 +315,7 @@ class canardClass {
             uint8_t uavcan_node_port_list(void);
             uint8_t uavcan_pnp_allocation(void);
             uint8_t uavcan_file_read_data(void);
-            uint8_t module_solar_radiation(void);
+            uint8_t module_level(void);
 
             private:
 
@@ -323,7 +323,7 @@ class canardClass {
             uint8_t _uavcan_node_port_list;
             uint8_t _uavcan_pnp_allocation;
             uint8_t _uavcan_file_read_data;
-            uint8_t _module_solar_radiation;
+            uint8_t _module_level;
 
         } next_transfer_id;
 

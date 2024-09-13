@@ -70,8 +70,8 @@
 #include <uavcan/time/Synchronization_1_0.h>
 #include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
-#include <rmap/_module/Radiation_1_0.h>
-#include <rmap/service/_module/Radiation_1_0.h>
+#include <rmap/_module/RiverLevel_1_0.h>
+#include <rmap/service/_module/RiverLevel_1_0.h>
 // Standard Library
 #include <stdio.h>
 #include <stdlib.h>
@@ -158,12 +158,12 @@ private:
   static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name);
   static bool putFlashFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
   static bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
-  static void prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Radiation_1_0 *rmap_data);
-  static void prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_Radiation_Response_1_0 *rmap_data);
+  static void prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_RiverLevel_1_0 *rmap_data);
+  static void prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_RiverLevel_Response_1_0 *rmap_data);
   static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param);
   static void processMessagePlugAndPlayNodeIDAllocation(canardClass &clsCanard,  const uavcan_pnp_NodeIDAllocationData_1_0* const msg);
   static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(canardClass &clsCanard, const uavcan_node_ExecuteCommand_Request_1_1* req, uint8_t remote_node);
-  static rmap_service_module_Radiation_Response_1_0 processRequestGetModuleData(canardClass &clsCanard, rmap_service_module_Radiation_Request_1_0* req, CanParam_t *param);
+  static rmap_service_module_RiverLevel_Response_1_0 processRequestGetModuleData(canardClass &clsCanard, rmap_service_module_RiverLevel_Request_1_0* req, CanParam_t *param);
   static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req);
   static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo();
   static void processRequestUpdateRTC(canardClass &clsCanard, const uavcan_pnp_NodeIDAllocationData_1_0* const msg);

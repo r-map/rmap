@@ -354,23 +354,13 @@ bool CanTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t
 /// @param report report data
 /// @param rmap_data report data module output value per modulo sensore specifico publish
 ///                  oppure in overload metodo tramite metodo Response applucapile al servizio request
-void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_Radiation_1_0 *rmap_data) {
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_module_RiverLevel_1_0 *rmap_data) {
     // Inserisco i dati reali
     switch (sensore) {
-        case canardClass::Sensor_Type::dsa:
+        case canardClass::Sensor_Type::lvm:
             // Prepara i dati SMP (Sample)
-            rmap_data->DSA.radiation.val.value = report->avg;
-            rmap_data->DSA.radiation.confidence.value = report->quality;
-            break;
-    }
-}
-void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_Radiation_Response_1_0 *rmap_data) {
-    // Inserisco i dati reali
-    switch (sensore) {
-        case canardClass::Sensor_Type::dsa:
-            // Prepara i dati SMP (Sample)
-            rmap_data->DSA.radiation.val.value = report->avg;
-            rmap_data->DSA.radiation.confidence.value = report->quality;
+            rmap_data->LVM.river_level.val.value = report->avg;
+            rmap_data->LVM.river_level.confidence.value = report->quality;
             break;
     }
 }
@@ -382,9 +372,9 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
     if ((!clCanard.is_canard_node_anonymous()) &&
-        (clCanard.publisher_enabled.module_solar_radiation) &&
-        (clCanard.port_id.publisher_module_solar_radiation <= CANARD_SUBJECT_ID_MAX)) {
-        rmap_module_Radiation_1_0 module_solar_radiation_msg = {0};
+        (clCanard.publisher_enabled.module_level) &&
+        (clCanard.port_id.publisher_module_level <= CANARD_SUBJECT_ID_MAX)) {
+        rmap_module_RiverLevel_1_0 module_level_msg = {0};
 
         request_data_t request_data = {0};
         report_t report_pub = {0};
@@ -397,32 +387,32 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
         // SET Dynamic metadata (Request data from master Only Data != Sample)
-        clCanard.module_solar_radiation.DSA.metadata.timerange.P2 = request_data.report_time_s;
+        clCanard.module_level.LVM.metadata.timerange.P2 = request_data.report_time_s;
 
         // coda di richiesta dati
         param->requestDataQueue->Enqueue(&request_data);
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg, (rmapdata_t) report_pub.quality);
+        TRACE_INFO_F(F("--> CAN level report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg, (rmapdata_t) report_pub.quality);
 
         // Preparo i dati
-        prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report_pub, &module_solar_radiation_msg);
+        prepareSensorsDataValue(canardClass::Sensor_Type::lvm, &report_pub, &module_level_msg);
         // Metadata
-        module_solar_radiation_msg.DSA.metadata = clCanard.module_solar_radiation.DSA.metadata;
+        module_level_msg.LVM.metadata = clCanard.module_level.LVM.metadata;
 
         // Serialize and publish the message:
-        uint8_t serialized[rmap_module_Radiation_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+        uint8_t serialized[rmap_module_RiverLevel_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
-        const int8_t err = rmap_module_Radiation_1_0_serialize_(&module_solar_radiation_msg, &serialized[0], &serialized_size);
+        const int8_t err = rmap_module_RiverLevel_1_0_serialize_(&module_level_msg, &serialized[0], &serialized_size);
         LOCAL_ASSERT(err >= 0);
         if (err >= 0) {
             const CanardTransferMetadata meta = {
                 .priority = CanardPrioritySlow,
                 .transfer_kind = CanardTransferKindMessage,
-                .port_id = clCanard.port_id.publisher_module_solar_radiation,
+                .port_id = clCanard.port_id.publisher_module_level,
                 .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id = (CanardTransferID)(clCanard.next_transfer_id.module_solar_radiation()),  // Increment!
+                .transfer_id = (CanardTransferID)(clCanard.next_transfer_id.module_level()),  // Increment!
             };
             // Messaggio rapido 1/4 di secondo dal timeStamp Sincronizzato
             clCanard.send(MEGA / 4, &meta, serialized_size, &serialized[0]);
@@ -590,7 +580,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case canardClass::Command_Private::enable_publish_rmap:
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clCanard.publisher_enabled.module_solar_radiation = true;
+            clCanard.publisher_enabled.module_level = true;
             TRACE_INFO_F(F("ATTIVO Trasmissione dati in publish\r\n"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -598,7 +588,7 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
         case canardClass::Command_Private::disable_publish_rmap:
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
-            clCanard.publisher_enabled.module_solar_radiation = false;
+            clCanard.publisher_enabled.module_level = false;
             TRACE_INFO_F(F("DISATTIVO Trasmissione dati in publish\r\n"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
@@ -637,8 +627,8 @@ uavcan_node_ExecuteCommand_Response_1_1 CanTask::processRequestExecuteCommand(ca
 /// @param req richiesta
 /// @param param parametri CAN
 /// @return dati rmap_servizio di modulo
-rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_Radiation_Request_1_0* req, CanParam_t *param) {
-    rmap_service_module_Radiation_Response_1_0 resp = {0};
+rmap_service_module_RiverLevel_Response_1_0 CanTask::processRequestGetModuleData(canardClass &clCanard, rmap_service_module_RiverLevel_Request_1_0* req, CanParam_t *param) {
+    rmap_service_module_RiverLevel_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
     // req->parameter.command (Comando esterno ricevuto 3 BIT)
@@ -676,7 +666,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
             last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
             // SET Dynamic metadata (Request data from master Only Data != Sample)
-            clCanard.module_solar_radiation.DSA.metadata.timerange.P2 = request_data.report_time_s;
+            clCanard.module_level.LVM.metadata.timerange.P2 = request_data.report_time_s;
           }
 
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)
@@ -694,7 +684,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           param->reportDataQueue->Dequeue(&report_srv);
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
-          TRACE_INFO_F(F("--> CAN solar radiation report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg, (rmapdata_t) report_srv.quality);
+          TRACE_INFO_F(F("--> CAN level report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg, (rmapdata_t) report_srv.quality);
 
           // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
           resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)
@@ -703,7 +693,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
           resp.revision = MODULE_MINOR_VERSION;
           // Preparo la risposta con i dati recuperati dalla coda (come da request CAN)
           // Esiste il solo caso ::dsa sia per get istant che archivio
-          prepareSensorsDataValue(canardClass::Sensor_Type::dsa, &report_srv, &resp);
+          prepareSensorsDataValue(canardClass::Sensor_Type::lvm, &report_srv, &resp);
           break;
 
         // NOT USED
@@ -726,7 +716,7 @@ rmap_service_module_Radiation_Response_1_0 CanTask::processRequestGetModuleData(
     }
 
     // Copio i metadati fissi e mobili
-    resp.DSA.metadata = clCanard.module_solar_radiation.DSA.metadata;
+    resp.LVM.metadata = clCanard.module_level.LVM.metadata;
 
     return resp;
 }
@@ -958,19 +948,19 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
     {
         // Gestione delle richieste esterne
-        if (transfer->metadata.port_id == clCanard.port_id.service_module_solar_radiation) {
+        if (transfer->metadata.port_id == clCanard.port_id.service_module_level) {
             // Richiesta ai dati e metodi di sensor drive
-            rmap_service_module_Radiation_Request_1_0 req = {0};
+            rmap_service_module_RiverLevel_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
             TRACE_INFO_F(F("<<-- Ricevuto richiesta dati da master\r\n"));
             // The request object is empty so we don't bother deserializing it. Just send the response.
-            if (rmap_service_module_Radiation_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
+            if (rmap_service_module_RiverLevel_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
-                rmap_service_module_Radiation_Response_1_0 module_radiation_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
+                rmap_service_module_RiverLevel_Response_1_0 module_level_resp = processRequestGetModuleData(clCanard, &req, (CanParam_t *) param);
                 // Serialize and publish the message:
-                uint8_t serialized[rmap_service_module_Radiation_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+                uint8_t serialized[rmap_service_module_RiverLevel_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
-                const int8_t res = rmap_service_module_Radiation_Response_1_0_serialize_(&module_radiation_resp, &serialized[0], &serialized_size);
+                const int8_t res = rmap_service_module_RiverLevel_Response_1_0_serialize_(&module_level_resp, &serialized[0], &serialized_size);
                 if (res >= 0) {
                     // Risposta standard con validità time out RMAP_DATA personalizzato dal timeStamp Sincronizzato
                     clCanard.sendResponse(CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC, &transfer->metadata, serialized_size, &serialized[0]);
@@ -1367,28 +1357,28 @@ void CanTask::Run() {
 
                 // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
                 #ifdef USE_PORT_PUBLISH_RMAP_FIXED
-                clCanard.port_id.publisher_module_solar_radiation = (CanardPortID)SUBJECTID_PUBLISH_RMAP;
+                clCanard.port_id.publisher_module_level = (CanardPortID)SUBJECTID_PUBLISH_RMAP;
                 #else
-                clCanard.port_id.publisher_module_solar_radiation =
+                clCanard.port_id.publisher_module_level =
                     getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
-                        REGISTER_DATA_PUBLISH, rmap_module_Radiation_1_0_FULL_NAME_AND_VERSION_);
+                        REGISTER_DATA_PUBLISH, rmap_module_RiverLevel_1_0_FULL_NAME_AND_VERSION_);
                 #endif
                 #ifdef USE_PORT_SERVICE_RMAP_FIXED
-                clCanard.port_id.service_module_solar_radiation = (CanardPortID)PORT_SERVICE_RMAP;
+                clCanard.port_id.service_module_level = (CanardPortID)PORT_SERVICE_RMAP;
                 #else
-                clCanard.port_id.service_module_solar_radiation =
+                clCanard.port_id.service_module_level =
                     getModeAccessID(canardClass::Introspection_Port::ServicePortID,
-                        REGISTER_DATA_SERVICE, rmap_service_module_Radiation_1_0_FULL_NAME_AND_VERSION_);
+                        REGISTER_DATA_SERVICE, rmap_service_module_RiverLevel_1_0_FULL_NAME_AND_VERSION_);
                 #endif
 
                 // Set configured Module Ready (IF service_id is valid)
                 // If Not Master receive flag module not ready and start configuration aumatically
-                if(clCanard.port_id.service_module_solar_radiation != UINT16_MAX)
+                if(clCanard.port_id.service_module_level != UINT16_MAX)
                     clCanard.flag.set_local_module_ready(true);
 
                 // ************************* LETTURA REGISTRI METADATI RMAP ****************************
                 // POSITION ARRAY METADATA CONFIG: (TOT ELEMENTS = SENSOR_METADATA_COUNT)
-                // SENSOR_METADATA_DSA                   (0)
+                // SENSOR_METADATA_LVM                   (0)
                 // *********************************** L1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1399,7 +1389,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.level.L1.value = val.natural16.value.elements[SENSOR_METADATA_LVM];
                 // *********************************** L2 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1410,7 +1400,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_L2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.level.L2.value = val.natural16.value.elements[SENSOR_METADATA_LVM];
                 // ******************************* LevelType1 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1421,7 +1411,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.level.LevelType1.value = val.natural16.value.elements[SENSOR_METADATA_LVM];
                 // ******************************* LevelType2 *****************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1432,7 +1422,7 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_LEVEL_TYPE2, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.level.LevelType2.value = val.natural16.value.elements[SENSOR_METADATA_LVM];
                 // *********************************** P1 *********************************************
                 uavcan_register_Value_1_0_select_natural16_(&val);
                 val.natural16.value.count = SENSOR_METADATA_COUNT;
@@ -1443,20 +1433,20 @@ void CanTask::Run() {
                 localRegister->read(REGISTER_METADATA_TIME_P1, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.timerange.P1.value = val.natural16.value.elements[SENSOR_METADATA_LVM];
                 // *********************************** P2 *********************************************
                 // P2 Non memorizzato sul modulo, parametro dipendente dall'acquisizione locale
-                clCanard.module_solar_radiation.DSA.metadata.timerange.P2 = 0;
+                clCanard.module_level.LVM.metadata.timerange.P2 = 0;
                 // *********************************** P2 *********************************************
                 uavcan_register_Value_1_0_select_natural8_(&val);
                 val.natural8.value.count = SENSOR_METADATA_COUNT;
                 // Default are single different value for type sensor
-                val.natural8.value.elements[SENSOR_METADATA_DSA] = SENSOR_METADATA_LEVEL_P_IND_DSA;
+                val.natural8.value.elements[SENSOR_METADATA_LVM] = SENSOR_METADATA_LEVEL_P_IND_LVM;
                 localRegisterAccessLock->Take();
                 localRegister->read(REGISTER_METADATA_TIME_PIND, &val);
                 localRegisterAccessLock->Give();
                 LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == SENSOR_METADATA_COUNT));
-                clCanard.module_solar_radiation.DSA.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_DSA];
+                clCanard.module_level.LVM.metadata.timerange.Pindicator.value = val.natural8.value.elements[SENSOR_METADATA_LVM];
 
                 // Passa alle sottoscrizioni
                 state = CAN_STATE_SETUP;
@@ -1530,8 +1520,8 @@ void CanTask::Run() {
 
                 // Service servers: -> Risposta per dati e metadati sensore modulo corrente da master (Yakut, Altri)
                 if (!clCanard.rxSubscribe(CanardTransferKindRequest,
-                                        clCanard.port_id.service_module_solar_radiation,
-                                        rmap_service_module_Radiation_Request_1_0_EXTENT_BYTES_,
+                                        clCanard.port_id.service_module_level,
+                                        rmap_service_module_RiverLevel_Request_1_0_EXTENT_BYTES_,
                                         CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
                 }
@@ -1701,8 +1691,8 @@ void CanTask::Run() {
                 // Pubblica i dati del nodo corrente se configurata e abilitata la funzione
                 // Ovviamente il nodo non può essere anonimo per la pubblicazione...
                 if ((!clCanard.is_canard_node_anonymous()) &&
-                    (clCanard.publisher_enabled.module_solar_radiation) &&
-                    (clCanard.port_id.publisher_module_solar_radiation <= CANARD_SUBJECT_ID_MAX)) {
+                    (clCanard.publisher_enabled.module_level) &&
+                    (clCanard.port_id.publisher_module_level <= CANARD_SUBJECT_ID_MAX)) {
                     if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_rmap_data)
                     {
                         // Update publisher

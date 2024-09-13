@@ -113,10 +113,10 @@ canardClass::canardClass() {
     master.file.download_end();
 
     // Inizializzazioni locali da module_config.h
-    port_id.publisher_module_solar_radiation = UINT16_MAX;
-    port_id.service_module_solar_radiation = UINT16_MAX;
+    port_id.publisher_module_level = UINT16_MAX;
+    port_id.service_module_level = UINT16_MAX;
 
-    publisher_enabled.module_solar_radiation = DEFAULT_PUBLISH_MODULE_DATA;
+    publisher_enabled.module_level = DEFAULT_PUBLISH_MODULE_DATA;
     publisher_enabled.port_list = DEFAULT_PUBLISH_PORT_LIST;
 
     // Configura il trasporto dal registro standard uavcan. Capacità e CANARD_MTU_MAX
@@ -850,10 +850,10 @@ bool canardClass::slave_servicelist_send_message(void)
             m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_;
             m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_port_List_0_1_FIXED_PORT_ID_;
             // Aggiungo i publisher interni validi privati (quando abilitati)
-            if ((port_id.publisher_module_solar_radiation <= CANARD_SUBJECT_ID_MAX)&&
-                (publisher_enabled.module_solar_radiation))
+            if ((port_id.publisher_module_level <= CANARD_SUBJECT_ID_MAX)&&
+                (publisher_enabled.module_level))
             {
-                m.publishers.sparse_list.elements[(*cnt)++].value = port_id.publisher_module_solar_radiation;
+                m.publishers.sparse_list.elements[(*cnt)++].value = port_id.publisher_module_level;
             }
         }
 
@@ -914,8 +914,8 @@ uint8_t canardClass::next_transfer_id::uavcan_file_read_data(void) {
 
 /// @brief Gestione transfer ID UAVCAN per la classe relativa
 /// @return Prossimo transfer_id valido in standard UAVCAN
-uint8_t canardClass::next_transfer_id::module_solar_radiation(void) {
-    return next_transfer_id::_module_solar_radiation++;
+uint8_t canardClass::next_transfer_id::module_level(void) {
+    return next_transfer_id::_module_level++;
 }
 
 // ***************************************************************

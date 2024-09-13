@@ -51,7 +51,7 @@ typedef struct
    float adc_gain;         //!< adc gain
    float analog_min;       //!< min sensor analog value for selected range
    float analog_max;       //!< max sensor analog value for selòected range
-   uint8_t is_active;      //!< Chanel active, for Radiation is selected first active (One chanel)
+   uint8_t is_active;      //!< Chanel active, for Level is selected first active (One chanel)
    Adc_Mode adc_type;      //!< adc input type selection
 } sensor_configuration_t;
 

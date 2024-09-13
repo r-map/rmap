@@ -426,23 +426,23 @@ float LevelSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
 
 /// @brief Get real data level
 /// @param adc_value in adc value calibrated
-/// @param adc_voltage_min VMIN Ref range of sensor
-/// @param adc_voltage_max VMAX Ref range of sensor
+/// @param adc_current_min IMIN Ref range of sensor
+/// @param adc_current_max IMAX Ref range of sensor
 /// @param adc_overflow bool if ADC get an overflow range value (setted to true)
 /// @return Real scaled data Level from analog adc calibrated value
-float LevelSensorTask::getLevel(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow)
+float LevelSensorTask::getLevel(float adc_value, float adc_current_min, float adc_current_max, bool *adc_overflow)
 {
   float value = adc_value;
   *adc_overflow = false;
 
-  if ((value < (adc_voltage_min + LEVEL_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + LEVEL_ERROR_VOLTAGE_MAX)))
+  if ((value < (adc_current_min + LEVEL_ERROR_CURRENT_MIN)) || (value > (adc_current_max + LEVEL_ERROR_CURRENT_MAX)))
   {
     *adc_overflow = true;
     value = UINT16_MAX;
   }
   else
   {
-    value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * LEVEL_MAX);
+    value = ((value - adc_current_min) / (adc_current_max - adc_current_min) * LEVEL_MAX);
 
     if (value <= LEVEL_ERROR_MIN) value = LEVEL_MIN;
     if (value >= LEVEL_ERROR_MAX) value = LEVEL_MAX;

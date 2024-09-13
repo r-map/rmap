@@ -73,6 +73,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief Enable if you want average Global Solar Radiation sensor.
 #define USE_SENSOR_DSA              (false)
 
+/// @brief Enable if you want average Level sensor.
+#define USE_SENSOR_LVM              (false)
+
 /// @brief Enable if you want vectorial average Wind Speed and Direction over 10'.
 #define USE_SENSOR_DWA              (false)
 
@@ -208,9 +211,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define USE_TH_SENSORS                        (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + USE_SENSOR_STH + USE_SENSOR_ITH + USE_SENSOR_MTH + USE_SENSOR_NTH + USE_SENSOR_XTH)
 #define USE_RAIN_SENSORS                      (USE_SENSOR_TBR + USE_SENSOR_TBS)
-#define USE_RADIAITION_SENSORS                (USE_SENSOR_DSR + USE_SENSOR_VSR + USE_SENSOR_DSA)
+#define USE_RADIATION_SENSORS                (USE_SENSOR_DSR + USE_SENSOR_VSR + USE_SENSOR_DSA)
 #define USE_WIND_SENSORS                      (USE_SENSOR_DWA + USE_SENSOR_DWB + USE_SENSOR_DWC + USE_SENSOR_DWD + USE_SENSOR_DWE + USE_SENSOR_DWF)
 #define USE_POWER_MPPT_SENSORS                (USE_SENSOR_DEP)
+#define USE_LEVEL_SENSOR                      (USE_SENSOR_LVM)
 
 #if (USE_TH_SENSORS && (USE_RAIN_SENSORS == 0))
 #define USE_MODULE_TH                         (true)
@@ -218,12 +222,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MODULE_RAIN                       (true)
 #elif (USE_TH_SENSORS && USE_RAIN_SENSORS && USE_THR)
 #define USE_MODULE_THR                        (true)
-#elif (USE_RADIAITION_SENSORS)
+#elif (USE_RADIATION_SENSORS)
 #define USE_MODULE_SOLAR_RADIATION            (true)
 #elif (USE_WIND_SENSORS)
 #define USE_MODULE_WIND                       (true)
 #elif (USE_POWER_MPPT_SENSORS)
 #define USE_MODULE_POWER_MPPT                 (true)
+#elif (USE_LEVEL_SENSOR)
+#define USE_MODULE_LEVEL                      (true)
 #endif
 
 /// @brief Max count of all used sensor.
