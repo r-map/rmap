@@ -330,9 +330,9 @@ void SupervisorTask::loadConfiguration()
     // Select type register (uint_8)
     uavcan_register_Value_1_0_select_natural8_(&val);
     val.natural8.value.count       = MAX_ADC_CHANELS;
-    // Loading Default ( Active low Voltave 0-3 Volt Input )
+    // Loading Default ( Active Current Input 4-20 mA Input )
     for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-      val.natural8.value.elements[idx] = Adc_Mode::mVolt;
+      val.natural8.value.elements[idx] = Adc_Mode::mA;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.adc.type", &val);
     param.registerAccessLock->Give();
@@ -393,9 +393,9 @@ void SupervisorTask::loadConfiguration()
     // Select type register (real_32)
     uavcan_register_Value_1_0_select_real32_(&val);
     val.real32.value.count       = MAX_ADC_CHANELS;
-    // Loading Default ( Analog Min is LEVEL_VOLTAGE_MIN )
+    // Loading Default ( Analog Min is LEVEL_CURRENT_MIN )
     for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-      val.real32.value.elements[idx] = LEVEL_VOLTAGE_MIN;
+      val.real32.value.elements[idx] = LEVEL_CURRENT_MIN;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.adc.min", &val);
     param.registerAccessLock->Give();
@@ -414,9 +414,9 @@ void SupervisorTask::loadConfiguration()
     // Select type register (real_32)
     uavcan_register_Value_1_0_select_real32_(&val);
     val.real32.value.count       = MAX_ADC_CHANELS;
-    // Loading Default ( Analog Max is LEVEL_VOLTAGE_MAX )
+    // Loading Default ( Analog Max is LEVEL_CURRENT_MAX )
     for(idx=0; idx<MAX_ADC_CHANELS; idx++)
-      val.real32.value.elements[idx] = LEVEL_VOLTAGE_MAX;
+      val.real32.value.elements[idx] = LEVEL_CURRENT_MAX;
     param.registerAccessLock->Take();
     param.clRegister->read("rmap.module.sensor.adc.max", &val);
     param.registerAccessLock->Give();
@@ -463,9 +463,9 @@ void SupervisorTask::saveConfiguration(bool is_default)
     for(idx=0; idx<MAX_ADC_CHANELS; idx++) {
       param.configuration->sensors[idx].adc_gain = 1;
       param.configuration->sensors[idx].adc_offset = 0;
-      param.configuration->sensors[idx].adc_type = Adc_Mode::Volt;
-      param.configuration->sensors[idx].analog_min = LEVEL_VOLTAGE_MIN;
-      param.configuration->sensors[idx].analog_max = LEVEL_VOLTAGE_MAX;
+      param.configuration->sensors[idx].adc_type = Adc_Mode::mA;
+      param.configuration->sensors[idx].analog_min = LEVEL_CURRENT_MIN;
+      param.configuration->sensors[idx].analog_max = LEVEL_CURRENT_MAX;
       param.configuration->sensors[idx].is_active = 0;
     }
     // Enable first chanel

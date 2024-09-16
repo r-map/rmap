@@ -364,6 +364,16 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
             break;
     }
 }
+void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *report, rmap_service_module_RiverLevel_Response_1_0 *rmap_data) {
+    // Inserisco i dati reali
+    switch (sensore) {
+        case canardClass::Sensor_Type::lvm:
+            // Prepara i dati SMP (Sample)
+            rmap_data->LVM.river_level.val.value = report->avg;
+            rmap_data->LVM.river_level.confidence.value = report->quality;
+            break;
+    }
+}
 
 /// @brief Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
 /// @param clCanard classe
