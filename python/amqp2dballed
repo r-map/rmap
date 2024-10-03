@@ -99,6 +99,7 @@ class Threaded_bufr2dballe(threading.Thread):
 
         self._logging.info('Threaded_bufr2dballe Started')
         timestart=time.time()
+        saved_message=None
         rw_lock = fasteners.InterProcessReaderWriterLock(self._lockfile)  # for processes
         while True:
 
@@ -117,9 +118,13 @@ class Threaded_bufr2dballe(threading.Thread):
             messages=[]
             size=0
             go=True
-            while not self._send_queue.empty() and go:
-                message=self._send_queue.get()
-
+            while (not saved_message is None or not self._send_queue.empty()) and go:
+                if saved_message is None:
+                    message=self._send_queue.get()
+                else:
+                    message=saved_message
+                    saved_message=None
+                    
                 #if len(message.body) > PACKET_MAX_SIZE:
                 #    self._logging.error("Message too big, skip it; tag %d, size %d" % (message.delivery_tag,len(message.body)))
                 #    self._receive_queue.put_nowait(Message(False,message.delivery_tag))
@@ -128,9 +133,10 @@ class Threaded_bufr2dballe(threading.Thread):
                 if size <= PACKET_MAX_SIZE or len(messages)==0:
                     messages.append(message)
                 else:
-                    self._logging.warning("max size for packet, requeue last message of size %s bytes" % len(message.body))
-                    # requeue message for late
-                    self._send_queue.put(message)
+                    self._logging.warning("max size for packet, last message of size %s bytes will be send the next time" % len(message.body))
+                    # save message for late
+                    #self._send_queue.put(message)
+                    saved_message=message
                     go=False
                     
             if len(messages) > 0:
@@ -148,15 +154,15 @@ class Threaded_bufr2dballe(threading.Thread):
                     importer = dballe.Importer("BUFR")
 
                     self._logging.debug("acquire lock on DB for write")
-                    with rw_lock.write_lock():                    
+                    with rw_lock.write_lock():
                         self._logging.debug("lock acquired")
+                        count=0
+                        messages=[]
                         with importer.from_file(totalbodyfile) as f:
-                            count=0
-                            messages=[]
                             for dballemessage in f:
                                 count+=1
                                 messages.append(dballemessage)
-                                if count > MESSAGES_MAX_NUMBER:
+                                if count >= MESSAGES_MAX_NUMBER:
                                     # Start a transaction for one segment of MESSAGES_MAX_NUMBER messages
                                     with db.transaction() as tr:
                                         for message in messages:
