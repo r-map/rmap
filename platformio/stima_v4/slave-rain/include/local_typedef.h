@@ -113,6 +113,17 @@ typedef struct
      uint16_t error_count;          //!< Count of error event
    } events;
 
+   ///< Module error or alert timings continuos verify
+   struct
+   {
+     #if(ENABLE_ACCELEROMETER)
+     uint32_t epoch_bubble_level_error;   //!< Bubble software accelerometer error epoch event start
+     bool bubble_level_error;             //!< Bubble software accelerometer error
+     #endif
+     uint32_t epoch_clogged_up;           //!< Sensor is clogged up epoch event start
+     bool clogged_up;                     //!< Sensor is clogged up
+   } running;
+
 } system_status_t;
 
 /// @brief System message for queue

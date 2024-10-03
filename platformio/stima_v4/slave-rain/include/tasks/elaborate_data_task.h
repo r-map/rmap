@@ -45,11 +45,15 @@
 
 #include "debug_F.h"
 
+#include <STM32RTC.h>
+
 using namespace cpp_freertos;
 
 // Main TASK Switch Delay
 #define ELABORATE_TASK_WAIT_DELAY_MS      (20)
 #define ELABORATE_TASK_SLEEP_DELAY_MS     (850)
+
+#define CLOGGED_TIMINGS_VERIFY            (28800)
 
 /// @brief struct array for module data
 typedef struct {
@@ -107,6 +111,9 @@ private:
 
   void make_report(uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
   uint8_t checkRain(void);
+
+  // Rtc check event access
+  STM32RTC &rtc = STM32RTC::getInstance();
 
   State_t state;
   ElaborateDataParam_t param;

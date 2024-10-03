@@ -45,6 +45,8 @@
 #include "drivers/module_slave_hal.hpp"
 #include "drivers/accelerometer.h"
 
+#include <STM32RTC.h>
+
 // Register EEprom
 #include "register_class.hpp"
 
@@ -56,8 +58,10 @@ using namespace cpp_freertos;
 #define ACCELEROMETER_TASK_WAIT_DELAY_MS    (20)
 #define ACCELEROMETER_TASK_SLEEP_DELAY_MS   (850)
 
-#define BUBBLE_ANGLE_ERROR                  (0.03)
-#define BUBBLE_ANGLE_MIRROR                 (0.80)
+#define BUBBLE_ANGLE_ERROR                  (0.04)
+#define BUBBLE_ANGLE_MIRROR                 (0.75)
+
+#define BUBBLE_TIMINGS_VERIFY               (14400)
 
 /// @brief struct local elaborate data parameter
 typedef struct {
@@ -109,6 +113,9 @@ private:
   void setupModule(void);
   bool readModule(void);
   void powerDownModule(void);
+
+  // Rtc check event access
+  STM32RTC &rtc = STM32RTC::getInstance();
 
   AccelerometerState_t state;
   AccelerometerParam_t param;

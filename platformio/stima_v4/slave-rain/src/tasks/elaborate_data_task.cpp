@@ -281,18 +281,35 @@ void ElaborateDataTask::Run() {
 /// @return Quality of measure (0-100%)
 uint8_t ElaborateDataTask::checkRain(void) {
   float quality = 100.0;
+  bool bIsClogged;
 
   #if (USE_CLOGGED_UP_CONTROL)
   // Checking signal CLOGGED_UP (on Event or Reset... remote calling)
-  param.systemStatusLock->Take();
   #if (CLOGGED_EVENT_VALUE)
-  param.system_status->events.is_clogged_up = digitalRead(CLOGGED_UP_PIN);
+  bIsClogged = digitalRead(CLOGGED_UP_PIN);
   #else
-  param.system_status->events.is_clogged_up = !digitalRead(CLOGGED_UP_PIN);
+  bIsClogged = !digitalRead(CLOGGED_UP_PIN);
   #endif
+  param.systemStatusLock->Take();
+  if(bIsClogged) {  
+    if(param.system_status->running.clogged_up) {
+      // Check event for real alarm set value
+      if((rtc.getEpoch() - param.system_status->running.epoch_clogged_up) > CLOGGED_TIMINGS_VERIFY) {
+        param.system_status->events.is_clogged_up = true;
+      }
+    } else {
+      // Start alert flags
+      param.system_status->running.clogged_up = true;
+      param.system_status->running.epoch_clogged_up = rtc.getEpoch();
+    }
+  } else {
+    // Restore alert flag
+    param.system_status->running.clogged_up = false;
+    param.system_status->events.is_clogged_up = false;
+  }
   param.systemStatusLock->Give();
-  if(param.system_status->events.is_clogged_up) {
-      TRACE_INFO_F(F("Sensor: read status of clogged up... [ ALERT ]\r\n"));
+  if(bIsClogged) {
+      TRACE_INFO_F(F("Sensor: ALERT read status of clogged up... [ ALARM: %d ]\r\n"), param.system_status->events.is_clogged_up);
   }
   #endif
 

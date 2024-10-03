@@ -170,10 +170,11 @@ void AccelerometerTask::Run()
     case ACCELEROMETER_STATE_INIT:
       TRACE_VERBOSE_F(F("ACCELEROMETER_STATE_INIT -> ACCELEROMETER_STATE_CHECK_HARDWARE\r\n"));
       state = ACCELEROMETER_STATE_CHECK_HARDWARE;
-      // Signal reset error to system state
+      // Signal reset error error and status to system state
       param.systemStatusLock->Take();
       param.system_status->events.is_accelerometer_error = true;
       param.system_status->events.is_bubble_level_error = false;
+      param.system_status->running.bubble_level_error = false;
       param.systemStatusLock->Give();
       Delay(Ticks::MsToTicks(ACCELEROMETER_WAIT_CHECK_HARDWARE));
       hardware_check_attempt = 0;
@@ -216,14 +217,23 @@ void AccelerometerTask::Run()
            ((abs(value_y) > BUBBLE_ANGLE_ERROR) && (abs(value_y) < BUBBLE_ANGLE_MIRROR)) ||
            ((abs(value_z) > BUBBLE_ANGLE_ERROR) && (abs(value_z) < BUBBLE_ANGLE_MIRROR)))
         {
-          if(!param.system_status->events.is_bubble_level_error) {
+          if(!param.system_status->running.bubble_level_error) {
+            // Start alert flags
             param.systemStatusLock->Take();
-            param.system_status->events.is_bubble_level_error = true;
+            param.system_status->running.bubble_level_error = true;
+            param.system_status->running.epoch_bubble_level_error = rtc.getEpoch();
             param.systemStatusLock->Give();
+          } else {
+            // Check event for real alarm set value
+            if((rtc.getEpoch() - param.system_status->running.epoch_bubble_level_error) > BUBBLE_TIMINGS_VERIFY) {
+              param.system_status->events.is_bubble_level_error = true;
+            }
           }
         } else {
-          if(param.system_status->events.is_bubble_level_error) {
+          // Restore alert flag
+          if(param.system_status->running.bubble_level_error) {
             param.systemStatusLock->Take();
+            param.system_status->running.bubble_level_error = false;
             param.system_status->events.is_bubble_level_error = false;
             param.systemStatusLock->Give();
           }
