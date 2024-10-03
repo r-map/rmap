@@ -121,6 +121,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_VWC                       (29)
 
 /*!
+\def STIMA_MODULE_TYPE_VWC
+\brief This module acquire soil sensor.
+*/
+#define STIMA_MODULE_TYPE_LEVEL                     (30)
+
+/*!
 \def STIMA_MODULE_OFFSET_IDENT_V4
 \brief The module'name offset ident to remove "stimav4." from complete header
 */
@@ -187,6 +193,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_NAME_LEAF                      ("stima4.module_leaf")
 #define STIMA_MODULE_DESCRIPTION_LEAF               ("Slave module leaf, CAN Cyphal V1.0")
 
+/*!
+\def STIMA_MODULE_NAME_LEVEL
+\brief The module'name for acquiring leaf wetness.
+*/
+#define STIMA_MODULE_NAME_LEVEL                     ("stima4.module_level")
+#define STIMA_MODULE_DESCRIPTION_LEVEL              ("Slave module level, CAN Cyphal V1.0")
+
 
 /*!
 \def STIMA_MODULE_NAME_WIND
@@ -237,6 +250,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_RPC_SENSOR_NAME_DWF                   ("DWF")
 #define STIMA_RPC_SENSOR_NAME_MPP                   ("MPP")
 #define STIMA_RPC_SENSOR_NAME_DSA                   ("DSA")
+#define STIMA_RPC_SENSOR_NAME_LVM                   ("LVM")
 #define STIMA_RPC_SENSOR_NAME_VWC                   ("SVW")
 
 /*!
@@ -245,6 +259,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_GAS                   ("Air gas")
 #define STIMA_LCD_DESCRIPTION_HUMIDITY              ("Humidity")
 #define STIMA_LCD_DESCRIPTION_LEAF                  ("Leaf wetness")
+#define STIMA_LCD_DESCRIPTION_LEVEL                 ("Level")
 #define STIMA_LCD_DESCRIPTION_OPC                   ("Air particle")
 #define STIMA_LCD_DESCRIPTION_POWER_CHARGE          ("Battery charge")
 #define STIMA_LCD_DESCRIPTION_POWER_INPUT           ("Input voltage")

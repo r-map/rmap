@@ -537,6 +537,10 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                         TRACE_VERBOSE_F(F("Anonimous module RADIATION"));
                         defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::radiation, msg.unique_id_hash);
                         break;
+                    case Module_Type::level:
+                        TRACE_VERBOSE_F(F("Anonimous module LEVEL"));
+                        defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::level, msg.unique_id_hash);
+                        break;
                     case Module_Type::vwc:
                         TRACE_VERBOSE_F(F("Anonimous module VWC"));
                         defaultNodeId = clCanard.getPNPValidIdFromNodeType(Module_Type::vwc, msg.unique_id_hash);
@@ -951,6 +955,14 @@ void CanTask::processReceivedTransfer(canardClass &clCanard, const CanardRxTrans
                             clCanard.slave[queueId].rmap_service.reset_pending(respCastRadiation, sizeof(*respCastRadiation));
                         }
                     }
+                    if(clCanard.slave[queueId].get_module_type() == Module_Type::level) {
+                        rmap_service_module_RiverLevel_Response_1_0 *respCastLevel = (rmap_service_module_RiverLevel_Response_1_0 *)castLocalBuffer;
+                        size_t size = transfer->payload_size;
+                        if (rmap_service_module_RiverLevel_Response_1_0_deserialize_(respCastLevel, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+                        {
+                            clCanard.slave[queueId].rmap_service.reset_pending(respCastLevel, sizeof(*respCastLevel));
+                        }
+                    }
                     if(clCanard.slave[queueId].get_module_type() == Module_Type::vwc) {
                         rmap_service_module_VWC_Response_1_0 *respCastVWC = (rmap_service_module_VWC_Response_1_0 *)castLocalBuffer;
                         size_t size = transfer->payload_size;
@@ -1224,6 +1236,7 @@ void CanTask::Run() {
     rmap_service_module_Rain_Response_1_0* retRainData;
     rmap_service_module_Wind_Response_1_0* retWindData;
     rmap_service_module_Radiation_Response_1_0* retRadiationData;
+    rmap_service_module_RiverLevel_Response_1_0* retLevelData;
     rmap_service_module_VWC_Response_1_0* retVwcData;
     rmap_service_module_Power_Response_1_0* retPwrData;
     uint8_t bit8Flag; // Compose Error Status Flag for each Module Type
@@ -1392,6 +1405,16 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::vwc;
                 param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_VWC;
                 param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_VWC;
+                param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
+                #endif
+                #ifdef USE_MODULE_FIXED_LEVEL
+                idxFixed++;
+                param.configuration->board_slave[idxFixed].can_address = 66;
+                param.configuration->board_slave[idxFixed].module_type = Module_Type::level;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_LEVEL;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_LEVEL;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -1589,6 +1612,17 @@ void CanTask::Run() {
                             }
                         }
                         // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::level) {     
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindResponse,
+                                                    clCanard.slave[queueId].rmap_service.get_port_id(),
+                                                    rmap_service_module_RiverLevel_Response_1_0_EXTENT_BYTES_,
+                                                    CANARD_RMAPDATA_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
                         if(clCanard.slave[queueId].get_module_type() == Module_Type::vwc) {     
                             // Alloco la stottoscrizione in funzione del tipo di modulo
                             // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
@@ -1656,6 +1690,17 @@ void CanTask::Run() {
                             if (!clCanard.rxSubscribe(CanardTransferKindMessage,
                                                     clCanard.slave[queueId].publisher.get_subject_id(),
                                                     rmap_module_Radiation_1_0_EXTENT_BYTES_,
+                                                    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
+                                LOCAL_ASSERT(false);
+                            }
+                        }
+                        // Controllo le varie tipologie di request/service per il nodo
+                        if(clCanard.slave[queueId].get_module_type() == Module_Type::level) {            
+                            // Alloco la stottoscrizione in funzione del tipo di modulo
+                            // Service client: -> Sottoscrizione per ModuleTH (come master)
+                            if (!clCanard.rxSubscribe(CanardTransferKindMessage,
+                                                    clCanard.slave[queueId].publisher.get_subject_id(),
+                                                    rmap_module_RiverLevel_1_0_EXTENT_BYTES_,
                                                     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                                 LOCAL_ASSERT(false);
                             }
@@ -2293,6 +2338,85 @@ void CanTask::Run() {
                                         rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
                                         rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
                                         memcpy(rmap_archive_data.block, retRadiationData, sizeof(*retRadiationData));
+                                        // Send queue to SD for direct archive data
+                                        // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
+                                        // Clean queue if is full to send alwayl the last data on getted value
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
+                                    }
+                                    break;
+
+                                case Module_Type::level:
+                                    // Cast to th module
+                                    retLevelData = (rmap_service_module_RiverLevel_Response_1_0*) clCanard.slave[queueId].rmap_service.get_response();
+                                    // data RMAP type is ready to send into queue Archive Data for Saving on SD Memory
+                                    // Get parameter data
+                                    #if TRACE_LEVEL >= TRACE_INFO
+                                    getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
+                                    #endif
+                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
+                                    if((param.system_status->data_slave[queueId].module_version!=retLevelData->version) ||
+                                       (param.system_status->data_slave[queueId].module_revision!=retLevelData->revision)) {
+                                        param.systemStatusLock->Take();
+                                        param.system_status->data_slave[queueId].module_version = retLevelData->version;
+                                        param.system_status->data_slave[queueId].module_revision = retLevelData->revision;
+                                        // Module type also setted on load config module CAN
+                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
+                                        // Reset flag before recheck exixting firmware available
+                                        param.system_status->data_slave[queueId].fw_upgradable = false;
+                                        // Check if module can be updated
+                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
+                                                if((param.system_status->boards_update_avaiable[checkId].version > retLevelData->version) ||
+                                                    ((param.system_status->boards_update_avaiable[checkId].version == retLevelData->version) && 
+                                                    (param.system_status->boards_update_avaiable[checkId].revision > retLevelData->revision))) {
+                                                    // Found an upgradable boards
+                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        param.systemStatusLock->Give();
+                                    }
+                                    // TRACE Info data
+                                    TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
+                                        stimaName, clCanard.slave[queueId].get_node_id(), retLevelData->state);
+                                    TRACE_VERBOSE_F(F("Value (DSA) Level %d\r\n"), retLevelData->LVM.river_level.val.value);
+                                    // Get security remote state on maintenance mode from 4.2 Version
+                                    if((retLevelData->version>4)||((retLevelData->version==4)&&(retLevelData->revision>=2))) {
+                                        param.system_status->data_slave[queueId].maintenance_mode = (retLevelData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
+                                    }
+                                    retLevelData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
+                                    if(param.system_status->data_slave[queueId].maintenance_mode) {
+                                        TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
+                                    }
+                                    // Put istant data in system_status
+                                    if(retLevelData->state == rmap_service_setmode_1_0_get_istant) {
+                                        // Only istant request LCD or other device
+                                        param.systemStatusLock->Take();
+                                        // Set data istant value (switch depends from request, istant = sample, Data = Avg.)
+                                        param.system_status->data_slave[queueId].data_value[0] = retLevelData->LVM.river_level.val.value;
+                                        param.system_status->data_slave[queueId].is_new_ist_data_ready = true;
+                                        param.systemStatusLock->Give();
+                                    } else if(retLevelData->state == rmap_service_setmode_1_0_get_last) {
+                                        // data value id rmap_service_setmode_1_0_get_last into queue SD
+                                        // Copy Flag State
+                                        bit8Flag = 0;
+                                        if(retLevelData->is_adc_unit_error) bit8Flag|=0x01;
+                                        if(retLevelData->is_adc_unit_overflow) bit8Flag|=0x02;
+                                        param.systemStatusLock->Take();
+                                        param.system_status->flags.new_data_to_send = true;
+                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        param.system_status->data_slave[queueId].byteStateFlag[0] = retLevelData->rbt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[1] = retLevelData->wdt_event;
+                                        param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
+                                        param.systemStatusLock->Give();
+                                        // Copy Data
+                                        memset(&rmap_archive_data, 0, sizeof(rmap_archive_data_t));
+                                        // Set Module Type, Date Time as Uint32 GetEpoch_Style, and Block Data Cast to RMAP Type
+                                        rmap_archive_data.module_type = clCanard.slave[queueId].get_module_type();
+                                        rmap_archive_data.date_time = param.system_status->datetime.epoch_sensors_get_value;
+                                        memcpy(rmap_archive_data.block, retLevelData, sizeof(*retLevelData));
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
@@ -3016,6 +3140,9 @@ void CanTask::Run() {
                                         break;
                                     case Module_Type::radiation:
                                         sensorCount = SENSOR_METADATA_RADIATION_COUNT;
+                                        break;
+                                    case Module_Type::level:
+                                        sensorCount = SENSOR_METADATA_LEVEL_COUNT;
                                         break;
                                     case Module_Type::power:
                                         sensorCount = SENSOR_METADATA_POWER_COUNT;

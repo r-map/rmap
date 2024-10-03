@@ -76,6 +76,7 @@
 #define PORT_RMAP_RADIATION  53
 #define PORT_RMAP_MPPT       54
 #define PORT_RMAP_VWC        55
+#define PORT_RMAP_LEVEL      56
 #define PORT_RMAP_MASTER     100
 
 /// @brief Parametri default per Modulo Slave (INIT_PARAMETER)
@@ -98,6 +99,7 @@
 #define USE_MODULE_FIXED_WIND
 #define USE_MODULE_FIXED_RADIATION
 #define USE_MODULE_FIXED_VWC
+#define USE_MODULE_FIXED_LEVEL
 #define USE_MODULE_FIXED_POWER
 #endif
 
@@ -175,3 +177,6 @@
 #define SENSOR_METADATA_VWC2            1
 #define SENSOR_METADATA_VWC3            2
 #define SENSOR_METADATA_VWC_COUNT       3
+// LEVEL
+#define SENSOR_METADATA_LVM             0
+#define SENSOR_METADATA_LEVEL_COUNT     1

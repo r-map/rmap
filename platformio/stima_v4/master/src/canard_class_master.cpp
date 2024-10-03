@@ -1466,6 +1466,9 @@ void canardClass::slave::rmap_service::set_module_type(Module_Type module_type) 
         case Module_Type::radiation:
             _response = malloc(sizeof(rmap_service_module_Radiation_Response_1_0));
             break;
+        case Module_Type::level:
+            _response = malloc(sizeof(rmap_service_module_RiverLevel_Response_1_0));
+            break;
         case Module_Type::power:
             _response = malloc(sizeof(rmap_service_module_Power_Response_1_0));
             break;
