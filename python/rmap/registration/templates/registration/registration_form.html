@@ -87,8 +87,13 @@
       sottoscritto/a, acquisite le informazioni fornite dal titolare
       del trattamento ai sensi dell'articolo 13 del D.Lgs. 196/2003
       disponibili a
-      <a href=https://www.arpae.it/it/privacy-e-cookies>Informativa
-      privacy e uso dei cookies</a>, l'interessato presta il suo consenso al trattamento
+      {% endblocktrans %}
+      {% comment %}
+        <a href=https://www.arpae.it/it/privacy-e-cookies>{% trans "Informativa privacy e uso dei cookies" %}</a>
+      {% endcomment %}
+       <a href="https://www.arci.it/app/uploads/2018/08/0-1_NAZION_informativa-utenti.pdf">{% trans "Informativa privacy" %}</a>
+      {% blocktrans %}
+      ,l'interessato presta il suo consenso al trattamento
       dei dati personali per i fini indicati nella suddetta
       informativa. Nello specifico presta il suo consenso per la
       comunicazione dei dati personali per le finalità ed ai soggetti
