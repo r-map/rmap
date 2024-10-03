@@ -366,14 +366,10 @@ def main(self):
                         # Turn on delivery confirmations
                         channel.confirm_delivery()
 
-                        if channel.basic_publish(exchange=exchange,
+                        channel.basic_publish(exchange=exchange,
                                                  routing_key=routing_key,
                                                  body=totalbody,
-                                                 properties=properties):
-                            logging.info('Message publish was confirmed')
-                        else:
-                            logging.info('Message could not be confirmed')
-
+                                                 properties=properties)
                         logging.info(" [x] message Sent ")
                         connection.close()
 
