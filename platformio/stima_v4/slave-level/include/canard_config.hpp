@@ -68,7 +68,7 @@
 
 // Parametri default per Modulo Slave (INIT_PARAMETER)
 #define NODE_VALUE_UNSET  255
-#define NODE_SLAVE_ID     63
+#define NODE_SLAVE_ID     66
 #define PORT_SERVICE_RMAP (PORT_RMAP_LEVEL)
 #define SUBJECTID_PUBLISH_RMAP (PORT_RMAP_LEVEL)
 
