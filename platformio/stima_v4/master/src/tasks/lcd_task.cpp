@@ -512,6 +512,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
       case Module_Type::level:
         value_display_A = param.system_status->data_slave[channel].data_value[0];
         if ((value_display_A < MIN_VALID_LEVEL) || (value_display_A > MAX_VALID_LEVEL)) bMeasValid_A = false;
+        value_display_A = value_display_A / 1000;
         break;
       case Module_Type::power:
         printMeasB = true;

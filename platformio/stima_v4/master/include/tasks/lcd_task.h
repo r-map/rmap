@@ -72,7 +72,7 @@
 #define MIN_VALID_WIND_DIR      (0.0)
 #define MAX_VALID_RADIATION     (2000.0)
 #define MIN_VALID_RADIATION     (0.0)
-#define MAX_VALID_LEVEL         (30000.0)
+#define MAX_VALID_LEVEL         (60000.0)
 #define MIN_VALID_LEVEL         (0.0)
 #define MAX_VALID_RAIN          (1000.0)
 #define MIN_VALID_RAIN          (0.0)

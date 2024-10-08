@@ -213,7 +213,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ADC_VOLTAGE_MIN_V                 (0.0)
 #define ADC_VOLTAGE_MAX_MV                (3300.0)
 #define ADC_VOLTAGE_MIN_MV                (0.0)
-#define ADC_CURRENT_MAX_MA                (20.0)
+#define ADC_CURRENT_MAX_MA                (66.6)
 #define ADC_CURRENT_MIN_MA                (0.0)
 
 /// @brief Limit MAX resolution adc value for module sensor
@@ -229,17 +229,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief Limit Error current MAX valid range for module sensor
 #define LEVEL_ERROR_CURRENT_MAX (LEVEL_CURRENT_MAX + 0.2)
 /// @brief Limit Error current MIN valid range for module sensor
-#define LEVEL_ERROR_CURRENT_MIN (LEVEL_CURRENT_MIN - 0.1)
+#define LEVEL_ERROR_CURRENT_MIN (LEVEL_CURRENT_MIN - 0.5)
 
-/// @brief Limit MAX valid range for module sensor (mt)
-#define LEVEL_MAX               (6.0)
-/// @brief Limit MIN valid range for module sensor (mt)
+/// @brief Limit MAX valid range for module sensor (mt or 600 cm)
+#define LEVEL_MAX               (6000)
+/// @brief Limit MIN valid range for module sensor (mt or 0 cm)
 #define LEVEL_MIN               (0.0)
 
 /// @brief Sensibility MIN sensor start range valid data
-#define LEVEL_SENSIBILITY       (0.03)
+#define LEVEL_SENSIBILITY       (30)
 /// @brief Limit MAX error valid range for module sensor
-#define LEVEL_ERROR_MAX         (6.0)
+#define LEVEL_ERROR_MAX         (6000)
 /// @brief Limit MIN error valid range for module sensor
 #define LEVEL_ERROR_MIN         (0.0)
 

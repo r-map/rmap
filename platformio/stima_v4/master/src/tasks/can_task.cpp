@@ -1394,7 +1394,7 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].can_address = 64;
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::power;
                 param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_MPPT;
-                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_MPP;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_MPPT;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
