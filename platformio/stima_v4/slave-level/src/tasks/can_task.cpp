@@ -396,9 +396,6 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
         request_data.report_time_s = last_req_rpt_time;         // richiedo i dati in conformità a standard request (report)
         request_data.observation_time_s = last_req_obs_time;    // richiedo i dati in conformità a standard request (observation)
 
-        // SET Dynamic metadata (Request data from master Only Data != Sample)
-        clCanard.module_level.LVM.metadata.timerange.P2 = request_data.report_time_s;
-
         // coda di richiesta dati
         param->requestDataQueue->Enqueue(&request_data);
 
@@ -675,8 +672,6 @@ rmap_service_module_RiverLevel_Response_1_0 CanTask::processRequestGetModuleData
             request_data.observation_time_s = req->parameter.obs_sectime;   // richiedo i dati mediati su request secondi
             last_req_rpt_time = req->parameter.run_sectime; // report_time_request_backup;
             last_req_obs_time = req->parameter.obs_sectime; // observation_time_request_backup;
-            // SET Dynamic metadata (Request data from master Only Data != Sample)
-            clCanard.module_level.LVM.metadata.timerange.P2 = request_data.report_time_s;
           }
 
           // Preparo il ritorno dei flag event status del sensore (Prima di request/reset)

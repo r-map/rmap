@@ -2381,7 +2381,7 @@ void CanTask::Run() {
                                     // TRACE Info data
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retLevelData->state);
-                                    TRACE_VERBOSE_F(F("Value (DSA) Level %d\r\n"), retLevelData->LVM.river_level.val.value);
+                                    TRACE_VERBOSE_F(F("Value (LVM) Level %d\r\n"), retLevelData->LVM.river_level.val.value);
                                     // Get security remote state on maintenance mode from 4.2 Version
                                     if((retLevelData->version>4)||((retLevelData->version==4)&&(retLevelData->revision>=2))) {
                                         param.system_status->data_slave[queueId].maintenance_mode = (retLevelData->state & CAN_FLAG_IS_MAINTENANCE_MODE);

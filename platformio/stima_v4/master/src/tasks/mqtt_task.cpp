@@ -1936,7 +1936,8 @@ error_t MqttTask::makeSensorMessageLevel(rmap_measures_RiverLevel_1_0 level, Dat
 
   if (level.val.value <= rmap_tableb_B13215_1_0_MAX)
   {
-    if (snprintf(message, message_length, "{\"v\":%ld,", level.val.value) <= 0)
+    // Addattamento del valore in centrimetri (mm/10)
+    if (snprintf(message, message_length, "{\"v\":%ld,", (uint16_t)(level.val.value / 10)) <= 0)
     {
       error = ERROR_FAILURE;
     }
@@ -1952,6 +1953,24 @@ error_t MqttTask::makeSensorMessageLevel(rmap_measures_RiverLevel_1_0 level, Dat
   if (!error)
   {
     error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (level.confidence.value <= rmap_tableb_B33199_1_0_MAX)
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", level.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
   }
 
   if (!error)
