@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
   * @file    elaborate_data_task.h
-  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @author  Cristiano Souza Paz <c.souzapaz@digiteco.it>
   * @brief   Elaborate data sensor to CAN header file
   ******************************************************************************
   * @attention

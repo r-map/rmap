@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
   * @file    level_sensor_task.cpp
-  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
   * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+  * @author  Cristiano Souza Paz <c.souzapaz@digiteco.it>
   * @brief   Module sensor source file
   ******************************************************************************
   * @attention
