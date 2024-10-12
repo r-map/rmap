@@ -145,7 +145,7 @@ class report2observation(object):
       dt=st.get("t")
 
       try:
-        logging.info("try to decode with table d")
+        logging.debug("try to decode with table d")
 
         d=st["d"]
         timerange=topics[nexttopic]
@@ -161,7 +161,7 @@ class report2observation(object):
         
       except:
         try:
-          logging.info("Error; try to decode with table e")
+          logging.debug("Error; try to decode with table e")
           e=st["e"]
           numtemplate=int(e)
           #if numtemplate > 0 and numtemplate < len(ttntemplate):
