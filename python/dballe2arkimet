@@ -27,7 +27,7 @@ import datetime
 import dballe
 import fasteners
 
-_version=1.0
+_version=1.1
 stderr=sys.stderr
 stdout=sys.stdout
 
@@ -58,22 +58,22 @@ parser.add_argument('-f', '--file', dest='outputfile', action='store',
 parser.add_argument('-e', '--date', dest='date', action='store',
                     default=default_date,
                     help='reference date (AAAA-MM-DD). Default: <today-7days>')
-#parser.add_argument('-t', '--time', dest='time', action='store',
-#                    default="00:00:00",
-#                    help='reference time (HH:MM:SS). Default: %(default)s')
+parser.add_argument('-t', '--time', dest='time', action='store',
+                    default="00:00:00",
+                    help='reference time (HH:MM:SS). Default: %(default)s')
 parser.add_argument('-p', '--tempprefix', dest='tempprefix', action='store',
                     default="/tmp/",
                     help='Prefix for temporary work directory. Default: %(default)s')
 parser.add_argument("--cachedir", metavar="dir", action="store",type=str, default=None,
                     help="cache directory for warped channels. Default: %(default)s")
-parser.add_argument("-v","--verbose", action="store",type=bool,default=False,
+parser.add_argument("-v","--verbose", action="store_true",
                     help="set verbosity level to DEBUG, Default: %(default)s")
 
 
 opts = parser.parse_args()
 
 date=datetime.date(*[int(e) for e in opts.date.split("-")])
-
+time=datetime.time(*[int(e) for e in opts.time.split(":")])
 
 class Error(Exception):
     """Base class for exceptions in this module."""
@@ -135,10 +135,10 @@ class makeenv(object):
             logging.info("tempprefix is a dangerous path: do not remove temporary working directoy")
 
 
-def dballe2arkimet(date):
+def dballe2arkimet(date,time):
 
     logging.info("Start to migrate data to arkimet")
-    rec={"yearmax":date.year,  "monthmax":date.month , "daymax":date.day }
+    rec={"yearmax":date.year,  "monthmax":date.month , "daymax":date.day , "hourmax":time.hour, "minumax":time.minute ,"secmax":time.second }
     tmpdatafile="tmpdatafile"
     db = dballe.DB.connect(opts.dsn)
 
@@ -210,9 +210,9 @@ def main():
             logging.info("Acquire lock on DB")
             with rw_lock.write_lock():
                 logging.info("Lock on DB acquired")
-                dballe2arkimet(date)
+                dballe2arkimet(date,time)
         else:
-            dballe2arkimet(date)
+            dballe2arkimet(date,time)
 
     except :
         logger.exception("Error happen" )
