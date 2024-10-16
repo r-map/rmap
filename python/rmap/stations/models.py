@@ -714,7 +714,8 @@ class Board(models.Model):
         (26,"Module acquire radiation sensor"),
         (27,"Module acquire gas (NO2, CO2)"),
         (28,"Module acquire power regulator mppt"),
-        (29,"Module acquire soil humidity")
+        (29,"Module acquire soil humidity"),
+        (30,"Module acquire level river")
     )
 
     name = models.CharField(max_length=255,help_text=_("board name"))
@@ -818,6 +819,7 @@ statusv_explain_matrix[25]= ["ERR_CAN %",  "Number reboot",  "Number reboot watc
 statusv_explain_matrix[26]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[28]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[29]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[30]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):

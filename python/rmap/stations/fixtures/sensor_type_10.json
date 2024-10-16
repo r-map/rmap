@@ -1,0 +1,26 @@
+[
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B13215",
+          "description": "River level",
+          "unit": "m",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "m"
+      }
+  },
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "River level driver",
+          "type": "LEV",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B13215"]
+	  ]
+      }
+  }
+]

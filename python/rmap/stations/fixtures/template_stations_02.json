@@ -1,0 +1,554 @@
+[
+ {
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V4 semplice con livello idrometrico",
+    "active": false,
+    "slug": "stima-v4-semplice-river_level",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 17e-05,
+    "lon": 17e-05,
+    "network": "fixed",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav4",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "masterv4",
+    "active": true,
+    "slug": "masterv4",
+    "category": null,
+    "type": 11,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 100,
+    "subject": "node.master",
+    "subject_id": 100,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_mppt",
+    "active": true,
+    "slug": "module_mppt",
+    "category": null,
+    "type": 28,
+    "sn": 180150005,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Power MPPT",
+    "driver": "CAN",
+    "type": [
+      "MPP"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "265,1,-,-",
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 64,
+    "subject": "node.mppt",
+    "subject_id": 64,
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_river_level",
+    "active": true,
+    "slug": "module_river_level",
+    "category": null,
+    "type": 30,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "River level",
+    "driver": "CAN",
+    "type": [
+      "LEV"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "1,-,-,-",
+    "board": [
+      "module_river_level",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 66,
+    "subject": "node.lev",
+    "subject_id": 66,
+    "board": [
+      "module_river_level",
+      [
+        "stima-v4-semplice-river_level",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Stima V4 semplice con livello idrometrico e pioggia",
+    "active": false,
+    "slug": "stima-v4-semplice-river_level-rain",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 18e-05,
+    "lon": 18e-05,
+    "network": "fixed",
+    "mqttrootpath": "report",
+    "mqttmaintpath": "maint",
+    "type": "stimav4",
+    "category": "template"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "masterv4",
+    "active": true,
+    "slug": "masterv4",
+    "category": null,
+    "type": 11,
+    "sn": null,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level-rain",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 900,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportserial",
+  "fields": {
+    "active": true,
+    "baudrate": 115200,
+    "device": "/dev/ttyUSB0",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 100,
+    "subject": "node.master",
+    "subject_id": 100,
+    "board": [
+      "masterv4",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_mppt",
+    "active": true,
+    "slug": "module_mppt",
+    "category": null,
+    "type": 28,
+    "sn": 180150005,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level-rain",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Power MPPT",
+    "driver": "CAN",
+    "type": [
+      "MPP"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "0,0,{P2:d}",
+    "level": "265,1,-,-",
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 64,
+    "subject": "node.mppt",
+    "subject_id": 64,
+    "board": [
+      "module_mppt",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_river_level",
+    "active": true,
+    "slug": "module_river_level",
+    "category": null,
+    "type": 30,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level-rain",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "River level",
+    "driver": "CAN",
+    "type": [
+      "LEV"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "1,-,-,-",
+    "board": [
+      "module_river_level",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 66,
+    "subject": "node.lev",
+    "subject_id": 66,
+    "board": [
+      "module_river_level",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "module_rain",
+    "active": true,
+    "slug": "module_rain",
+    "category": null,
+    "type": 20,
+    "sn": 180150002,
+    "stationmetadata": [
+      "stima-v4-semplice-river_level-rain",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation report",
+    "driver": "CAN",
+    "type": [
+      "TBR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "1,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Precipitation rate report",
+    "driver": "CAN",
+    "type": [
+      "TPR"
+    ],
+    "i2cbus": null,
+    "address": null,
+    "node": null,
+    "timerange": "2,0,{P2:d}",
+    "level": "1,-,-,-",
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportcan",
+  "fields": {
+    "active": true,
+    "cansampletime": 60,
+    "node_id": 61,
+    "subject": "node.p",
+    "subject_id": 61,
+    "board": [
+      "module_rain",
+      [
+        "stima-v4-semplice-river_level-rain",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+}    
+]

@@ -398,7 +398,7 @@ def superuser(request):
                 
         except ObjectDoesNotExist:
             pass
-            
+        
     response=HttpResponse("deny")
     response.status_code=403
     return response
