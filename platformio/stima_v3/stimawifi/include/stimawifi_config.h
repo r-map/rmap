@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2024-07-04T00:00"    // date and time
-#define MAJOR_VERSION    "20240704"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2024-10-16T00:00"    // date and time
+#define MAJOR_VERSION    "20241016"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 #define WIFI_SSED "STIMA-config"

@@ -4,16 +4,25 @@
 unsigned short int displaypos;
 
 // reset data used as summary
-void measureThread::reset_summary_data() {
-  data->summarydata->temperature=NAN;
-  data->summarydata->humidity=-999;
-  data->summarydata->pm2=-999;
-  data->summarydata->pm10=-999;
-  data->summarydata->co2=-999;
+void measureThread::reset_summary_data_in_progress() {
+  summarydata_in_progress.temperature=NAN;
+  summarydata_in_progress.humidity=-999;
+  summarydata_in_progress.pm2=-999;
+  summarydata_in_progress.pm10=-999;
+  summarydata_in_progress.co2=-999;
+}
+
+// update data used as summary from working buffer
+void measureThread::update_summary_data() {
+  data->summarydata->temperature=summarydata_in_progress.temperature;
+  data->summarydata->humidity=   summarydata_in_progress.humidity;
+  data->summarydata->pm2=        summarydata_in_progress.pm2;
+  data->summarydata->pm10=       summarydata_in_progress.pm10;
+  data->summarydata->co2=        summarydata_in_progress.co2;
 }
 
 // set summary data from measure
-void measureThread::get_summary_data(uint8_t i) {
+void measureThread::get_summary_data_in_progress(uint8_t i) {
   
   StaticJsonDocument<500> doc;
   DeserializationError error = deserializeJson(doc,(const char*)sensorm[i].json_values);
@@ -25,20 +34,20 @@ void measureThread::get_summary_data(uint8_t i) {
       if (pair.value().isNull()) {
 	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B12101")==0){
-	  data->summarydata->temperature=NAN;
+	  summarydata_in_progress.temperature=NAN;
 	}
 	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B13003")==0){
-	  data->summarydata->humidity=-999;
+	  summarydata_in_progress.humidity=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15198")==0){
-	  data->summarydata->pm2=-999;
+	  summarydata_in_progress.pm2=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15195")==0){
-	  data->summarydata->pm10=-999;
+	  summarydata_in_progress.pm10=-999;
 	}
 	if (strcmp(pair.key().c_str(),"B15242")==0){
-	  data->summarydata->co2=-999;
+	  summarydata_in_progress.co2=-999;
 	}
 
       } else {
@@ -47,30 +56,30 @@ void measureThread::get_summary_data(uint8_t i) {
 	
 	//if (strcmp(pair.key().c_str(),"B12101")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B12101")==0){
-	  data->summarydata->temperature=round((val-27315)/10.)/10;
+	  summarydata_in_progress.temperature=round((val-27315)/10.)/10;
 	}
 	//if (strcmp(pair.key().c_str(),"B13003")==0 && (strcmp(sensorm[i].getSensorDriver()->getType(),"SHT")==0)){
 	if (strcmp(pair.key().c_str(),"B13003")==0){
-	  data->summarydata->humidity=round(val);
+	  summarydata_in_progress.humidity=round(val);
 	}
 	if (strcmp(pair.key().c_str(),"B15198")==0){
-	  data->summarydata->pm2=round(val/10.);
+	  summarydata_in_progress.pm2=round(val/10.);
 	}
 	if (strcmp(pair.key().c_str(),"B15195")==0){
-	  data->summarydata->pm10=round(val/10.);
+	  summarydata_in_progress.pm10=round(val/10.);
 	}
 	if (strcmp(pair.key().c_str(),"B15242")==0){
-	  data->summarydata->co2=round(val/1.8);
+	  summarydata_in_progress.co2=round(val/1.8);
 	}
       }
     }
   }
 
-  data->logger->notice(F("measure get temperature: %D"),data->summarydata->temperature);
-  data->logger->notice(F("measure get humidity: %d"),data->summarydata->humidity);
-  data->logger->notice(F("measure get PM2: %d"),data->summarydata->pm2);
-  data->logger->notice(F("measure get PM10: %d"),data->summarydata->pm10);
-  data->logger->notice(F("measure get CO2: %d"),data->summarydata->co2);
+  data->logger->notice(F("measure get temperature: %D"),summarydata_in_progress.temperature);
+  data->logger->notice(F("measure get humidity: %d"),summarydata_in_progress.humidity);
+  data->logger->notice(F("measure get PM2: %d"),summarydata_in_progress.pm2);
+  data->logger->notice(F("measure get PM10: %d"),summarydata_in_progress.pm10);
+  data->logger->notice(F("measure get CO2: %d"),summarydata_in_progress.co2);
 
 }
 
@@ -175,7 +184,7 @@ void measureThread::doMeasure() {
 
   //LockGuard guard(data->i2cmutex);
 
-  reset_summary_data();
+  reset_summary_data_in_progress();
   
   data->status->sensor=unknown;  
   data->status->novalue=unknown;
@@ -212,9 +221,7 @@ void measureThread::doMeasure() {
 	// send to publish queue
 	//enqueueMqttMessage(sensorm[i].json_values,sensorm[i].json_values,data->sensors[i].timerange,data->sensors[i].level, data );
 	enqueueMqttMessage(i);
-	data->i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
-	get_summary_data(i);
-	data->i2cmutex->Unlock();
+	get_summary_data_in_progress(i);
 	sensorm[i].setDataReady(false);      
       }    
     }
@@ -240,6 +247,10 @@ void measureThread::doMeasure() {
       break;
     }
   }
+
+  data->i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
+  update_summary_data();
+  data->i2cmutex->Unlock();
 
   if(data->status->novalue==unknown) data->status->novalue=ok;
   if(data->status->sensor==unknown) data->status->sensor=ok;

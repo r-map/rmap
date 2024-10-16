@@ -598,7 +598,7 @@ void dbThread::Run() {
 
   if (SD.cardType() == CARD_NONE) {
     SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
-    SPI.setDataMode(SPI_MODE0);
+    //SPI.setDataMode(SPI_MODE3);
     //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
     if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, true)){
       data->logger->notice(F("db SD mount OK"));

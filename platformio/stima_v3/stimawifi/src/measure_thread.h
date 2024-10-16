@@ -35,11 +35,13 @@ protected:
   virtual void Run();
     
 private:
-  void reset_summary_data();
+  void reset_summary_data_in_progress();
+  void update_summary_data();
   void doMeasure();
   void enqueueMqttMessage(uint8_t i );
-  void get_summary_data(uint8_t i);
+  void get_summary_data_in_progress(uint8_t i);
   measure_data_t* data;
+  summarydata_t summarydata_in_progress;
   SensorDriver* sd[SENSORS_MAX];
   sensorManage sensorm[SENSORS_MAX];
   uint8_t sensors_count;
