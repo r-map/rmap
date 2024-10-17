@@ -46,6 +46,7 @@ public:
   publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 > mqttclient;
+  uint8_t errorcount;
 };
 
 #endif

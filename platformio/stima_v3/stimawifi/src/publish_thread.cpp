@@ -306,6 +306,7 @@ publishThread::publishThread(publish_data_t* publish_data)
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->connect=unknown;
   data->status->publish=unknown;
+  errorcount=0;
   //Start();
 };
 
@@ -369,11 +370,18 @@ void publishThread::Run() {
       mqttDisconnect();
       if (mqttConnect(true)) {   // manage mqtt reconnect as RMAP standard
 	data->logger->notice(F("publish MQTT connected"));
+	errorcount = 0;
 	data->status->connect=ok;
       } else {
 	data->status->connect=error;
 	data->logger->error(F("publish MQTT connect failed"));
 	data->status->publish=error;
+	errorcount++;
+	if (errorcount > 15) {
+	  data->logger->error(F("publish too much error: drop WiFi"));
+	  WiFi.disconnect();
+	  errorcount = 0;
+	}
 	delay(3000);
       }
     }
