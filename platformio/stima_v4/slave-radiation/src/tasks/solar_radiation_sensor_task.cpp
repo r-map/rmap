@@ -366,7 +366,7 @@ int32_t SolarRadiationSensorTask::getVrefTemp(void)
 /// @param adc_value adc in value
 /// @param offset offset adjust value
 /// @param gain gain adjust value
-/// @return ADC value calibrated
+/// @return ADC value calibrated and checked with input area validation limit
 float SolarRadiationSensorTask::getAdcCalibratedValue(float adc_value, float offset, float gain)
 {
   float value = (float)UINT16_MAX;
@@ -376,6 +376,8 @@ float SolarRadiationSensorTask::getAdcCalibratedValue(float adc_value, float off
     value = adc_value;
     value += offset;
     value *= gain;
+    if(value <= ADC_MIN) value = ADC_MIN;
+    if(value >= ADC_MAX) value = ADC_MAX;
   }
 
   return value;
