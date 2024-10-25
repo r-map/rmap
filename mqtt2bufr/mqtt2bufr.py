@@ -423,7 +423,7 @@ if __name__ == '__main__':
                         default="-",type=argparse.FileType('rb'))
     parser.add_argument("-a", "--fileinfo",dest="fileinfo",
                         help="info file to read; require -i (default: default info.dat)",
-                        default="info.dat",type=argparse.FileType('r'))
+                        default="info.dat")
     parser.add_argument("-r", "--roottopic",
                         help="root topic used when reading from file (default %(default)s)",
                         default="test/myuser/1212345,4512345/fixed/")
