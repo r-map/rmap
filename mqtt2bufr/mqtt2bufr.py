@@ -78,7 +78,8 @@ def parse_topic(topic,version):
     else:
         g = match.groupdict()
         return {
-            "ident": None if g["ident"] == "-" else g["ident"],
+            "user": g.get("user"),
+            "ident": None if g["ident"] == "-" else None if g["ident"]=="" else g["ident"],
             "lon": int(g["lon"]),
             "lat": int(g["lat"]),
             "rep_memo": g["rep"],
@@ -150,6 +151,10 @@ def on_message(client, userdata, message):
         if m is None:
             return
         msg = dballe.Message("generic")
+        if  userdata["userasident"]:
+            if (m["user"] is not None):
+                msg.set_named("ident", dballe.var("B01011", m["user"]))
+
         if m["ident"] is not None:
             msg.set_named("ident", dballe.var("B01011", m["ident"]))
 
@@ -189,7 +194,7 @@ def on_message(client, userdata, message):
 
 
 
-def write_message(topic,payload,outfile,version,debug):
+def write_message(topic,payload,outfile,version,userasident,debug):
     if(debug):
         sys.stderr.write("RMAP Version: {}\n".format(version))
 
@@ -200,7 +205,12 @@ def write_message(topic,payload,outfile,version,debug):
                 sys.stderr.write("ERROR parsing message\n")
             return
         msg = dballe.Message("generic")
-        if m["ident"] is not None:
+
+        if  userasident:
+            if (m["user"] is not None):
+                msg.set_named("ident", dballe.var("B01011", m["user"]))
+        
+        if (m["ident"] is not None):
             msg.set_named("ident", dballe.var("B01011", m["ident"]))
         msg.set_named("longitude", dballe.var("B06001", m["lon"]))
         msg.set_named("latitude", dballe.var("B05001", m["lat"]))
@@ -248,7 +258,7 @@ def handle_signals(mqttclient):
 
 def main(host, keepalive, port, topics, username, password, debug,
          overwrite_date, outfile,
-         readfromfile,fileinput,roottopic,fileinfo,version):
+         readfromfile,fileinput,roottopic,fileinfo,version,userasident):
     
     if (readfromfile):
 
@@ -289,7 +299,8 @@ def main(host, keepalive, port, topics, username, password, debug,
                     if (topic =="" and payload==""): break
                 else:
                     record=f.read(MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH).decode("utf-8").strip('\x00')
-                    sys.stderr.write("record: {}\n".format(record))
+                    if(debug):
+                        sys.stderr.write("record: {}\n".format(record))
                     if (record==""): break
                     topic,payload=record.split(" ")
                     
@@ -315,7 +326,8 @@ def main(host, keepalive, port, topics, username, password, debug,
                 dt=st.get("t")
 
                 try:
-                    sys.stderr.write("try to decode with table d\n")
+                    if(debug):
+                        sys.stderr.write("try to decode with table d\n")
                     d=st.get("d")
                     if (d is not None):
                         bcodes=dtable[str(d)]
@@ -336,12 +348,13 @@ def main(host, keepalive, port, topics, username, password, debug,
             
                                 if(debug):
                                     sys.stderr.write("topic:{} payload:{}\n".format(topics[dindex],payload))
-                                    write_message(topics[dindex],payload,outfile,version,debug)
+                                write_message(topics[dindex],payload,outfile,version,userasident,debug)
                             dindex+=1                                          
                                                                   
 
                     else:
-                        sys.stderr.write("No d form; try to decode with table e\n")
+                        if(debug):
+                            sys.stderr.write("No d form; try to decode with table e\n")
                         e=st.get("e")
                         if (e is not None):
                             numtemplate=int(e)
@@ -354,11 +367,12 @@ def main(host, keepalive, port, topics, username, password, debug,
                                 if ( val is not None ):
                                     topic=("{}/{}/{}/{}".format(topic,param["timerange"],param["level"],bcode))
                                     payload=json.dumps({"t": dt,"v": val})
-                                    write_message(topic,payload,outfile,version,debug)
+                                    write_message(topic,payload,outfile,version,userasident,debug)
                                     pindex+=1
                         else:
-                            sys.stderr.write("no RMAP reduced form\n")
-                            write_message(topic,payload,outfile,version,debug)
+                            if(debug):
+                                sys.stderr.write("no RMAP reduced form\n")
+                            write_message(topic,payload,outfile,version,userasident,debug)
 
                 
                 except:
@@ -372,7 +386,8 @@ def main(host, keepalive, port, topics, username, password, debug,
             "debug": debug,
             "overwrite_date": overwrite_date,
             "outfile": outfile,
-            "version": version
+            "version": version,
+            "userasident": userasident
         })
         
         if username:
@@ -437,10 +452,11 @@ if __name__ == '__main__':
                         help=("date is ignored and is oveerwritten with "
                               "current date"))
     parser.add_argument("-m", "--rmap_version",
-                        help=("RMAP version (Stimav3 0 / Stimav4 1)"
-                              "(default: %(default)s)"),
-                        type=int, default=1)
-
+                        help="RMAP version (0 <legacy> / 1 <last version>) (default: %(default)s)",
+                        type=int, default=1,choices=[0,1])
+    parser.add_argument("-n", "--nouserasident",dest="userasident", action="store_false",
+                        help="do not use user as ident for fixed station too (default use ident)")
+    
     args = parser.parse_args()
 
     main(
@@ -449,5 +465,6 @@ if __name__ == '__main__':
         debug=args.debug, overwrite_date=args.overwrite_date,
         outfile=sys.stdout.buffer,
         readfromfile=args.readfromfile,fileinput=args.fileinput,
-        roottopic=args.roottopic,fileinfo=args.fileinfo,version=args.rmap_version
+        roottopic=args.roottopic,fileinfo=args.fileinfo,version=args.rmap_version,
+        userasident=args.userasident
     )
