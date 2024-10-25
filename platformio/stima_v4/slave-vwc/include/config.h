@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_MAIN_VERSION   (4)
 
 /// @brief Module minor version.
-#define MODULE_MINOR_VERSION  (2)
+#define MODULE_MINOR_VERSION  (3)
 
 /// @brief rmap protocol version
 #define RMAP_PROCOTOL_VERSION (1)
@@ -226,6 +226,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SOIL_VWC_VOLTAGE_MAX              (2000.0)
 /// @brief Limit MIN voltage adc range for module sensor
 #define SOIL_VWC_VOLTAGE_MIN              (1000.0)
+/// @brief Limit MIN voltage adc range sensor absent
+#define SOIL_VWC_VOLTAGE_ABSENT           (200.0)
 
 /// @brief Limit MAX error valid range for module sensor
 #define SOIL_VWC_ERROR_VOLTAGE_MAX        (500.0)
