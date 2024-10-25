@@ -187,9 +187,8 @@ void SupervisorTask::Run()
         #if (FIXED_CONFIGURATION)
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
-        strSafeCopy(param.configuration->mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC, MQTT_ROOT_TOPIC_LENGTH);
         // Acquisition from module
-        param.configuration->report_s = 900;
+        param.configuration->report_s = 180;
         param.configuration->observation_s = 60;
         param.system_status->flags.config_empty = false;
         #endif
@@ -990,7 +989,6 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       param.configuration->report_s = CONFIGURATION_DEFAULT_REPORT_S;
 
       strSafeCopy(param.configuration->ident, CONFIGURATION_DEFAULT_IDENT, IDENT_LENGTH);
-      strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_DATA_LEVEL, DATA_LEVEL_LENGTH);
       strSafeCopy(param.configuration->network, CONFIGURATION_DEFAULT_NETWORK, NETWORK_LENGTH);
 
       param.configuration->latitude = CONFIGURATION_DEFAULT_LATITUDE;
@@ -1041,16 +1039,14 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       param.configuration->board_master.serial_number = StimaV4GetSerialNumber();
 
       #if ((USE_MQTT)&&(FIXED_CONFIGURATION))
-      uint8_t temp_psk_key[] = {0x1A, 0xF1, 0x9D, 0xC0, 0x05, 0xFF, 0xCE, 0x92, 0x77, 0xB4, 0xCF, 0xC6, 0x96, 0x41, 0x04, 0x25};
-      osMemcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
-
-      strSafeCopy(param.configuration->mqtt_username, "userv4", MQTT_USERNAME_LENGTH);
-      strSafeCopy(param.configuration->stationslug, "verifica", STATIONSLUG_LENGTH);
-
-      param.configuration->latitude = 4512345;
-      param.configuration->longitude = 1212345;
-
-      strSafeCopy(param.configuration->board_master.boardslug, "stimav4", BOARDSLUG_LENGTH);
+      uint8_t temp_psk_key[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      memcpy(param.configuration->client_psk_key, temp_psk_key, CLIENT_PSK_KEY_LENGTH);
+      param.configuration->latitude = 4444444;
+      param.configuration->longitude = 1111111;
+      strSafeCopy(param.configuration->mqtt_username, "username", MQTT_USERNAME_LENGTH);
+      strSafeCopy(param.configuration->mqtt_password, "password", MQTT_PASSWORD_LENGTH);
+      strSafeCopy(param.configuration->stationslug, "stationslug", STATIONSLUG_LENGTH);
+      strSafeCopy(param.configuration->board_master.boardslug, "masterv4", BOARDSLUG_LENGTH);
       strSafeCopy(param.configuration->board_slave[0].boardslug, "stimacan1", BOARDSLUG_LENGTH);
       strSafeCopy(param.configuration->board_slave[1].boardslug, "stimacan2", BOARDSLUG_LENGTH);
       strSafeCopy(param.configuration->board_slave[2].boardslug, "stimacan3", BOARDSLUG_LENGTH);
@@ -1059,10 +1055,8 @@ bool SupervisorTask::saveConfiguration(bool is_default)
       strSafeCopy(param.configuration->board_slave[5].boardslug, "stimacan6", BOARDSLUG_LENGTH);
       strSafeCopy(param.configuration->board_slave[6].boardslug, "stimacan7", BOARDSLUG_LENGTH);
       strSafeCopy(param.configuration->board_slave[7].boardslug, "stimacan8", BOARDSLUG_LENGTH);
-
-      strSafeCopy(param.configuration->gsm_apn, GSM_APN_FASTWEB, GSM_APN_LENGTH);
-      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_FASTWEB, GSM_NUMBER_LENGTH);
-
+      strSafeCopy(param.configuration->gsm_apn, GSM_APN_TIM, GSM_APN_LENGTH);
+      strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_TIM, GSM_NUMBER_LENGTH);
       #endif
     }
 

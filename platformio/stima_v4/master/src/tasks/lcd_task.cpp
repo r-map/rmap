@@ -518,7 +518,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         printMeasB = true;
         printMeasC = true;
         value_display_A = (float)param.system_status->data_slave[channel].data_value[0];
-        value_display_B = (float)param.system_status->data_slave[channel].data_value[1] / CURRENT_CHARGE_SCALE;
+        value_display_B = (float)param.system_status->data_slave[channel].data_value[1] / INPUT_VOLTAGE_SCALE;
         value_display_C = (float)param.system_status->data_slave[channel].data_value[2];
         if ((value_display_A < MIN_VALID_POWER_CHG) || (value_display_A > MAX_VALID_POWER_CHG)) bMeasValid_A = false;
         if ((value_display_B < MIN_VALID_POWER_V) || (value_display_B > MAX_VALID_POWER_V)) bMeasValid_B = false;

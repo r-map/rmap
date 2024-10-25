@@ -30,8 +30,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief Maximum lenght of value plus terminator for one constant data.
 #define CONSTANTDATA_VALUE_LENGTH                    (33)
 
-/// @brief Data level length
-#define DATA_LEVEL_LENGTH  (20)
 /// @brief Network length
 #define NETWORK_LENGTH     (20)
 /// @brief Ident length

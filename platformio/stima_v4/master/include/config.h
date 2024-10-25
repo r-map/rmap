@@ -347,14 +347,11 @@
 /// @brief Default board slug.
 #define NAME_BSLUG_BOARD_PREFIX ("stimacan")
 
-/// @brief Default data level.
-#define CONFIGURATION_DEFAULT_DATA_LEVEL (DATA_LEVEL_REPORT)
-
 /// @brief Default ident.
 #define CONFIGURATION_DEFAULT_IDENT ("")
 
 /// @brief Default network.
-#define CONFIGURATION_DEFAULT_NETWORK (NETWORK_FIXED)
+#define CONFIGURATION_DEFAULT_NETWORK (NETWORK_AGRMET)
 
 /// @brief Default latitude.
 #define CONFIGURATION_DEFAULT_LATITUDE (4412345)
