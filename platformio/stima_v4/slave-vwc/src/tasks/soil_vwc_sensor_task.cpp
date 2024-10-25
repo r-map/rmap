@@ -459,7 +459,8 @@ float SoilVWCSensorTask::getSoilVWC(float adc_value, float adc_voltage_min, floa
 
   if ((value < (adc_voltage_min + SOIL_VWC_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + SOIL_VWC_ERROR_VOLTAGE_MAX)))
   {
-    *adc_overflow = true;
+    // Activate flag only with sensor is a real connected to ADC
+    if(value > SOIL_VWC_VOLTAGE_ABSENT) *adc_overflow = true;
     value = UINT16_MAX;
   }
   else
