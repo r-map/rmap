@@ -263,7 +263,7 @@ def main(host, keepalive, port, topics, username, password, debug,
     if (readfromfile):
 
         try:
-            with fileinfo as i:
+            with open(fileinfo) as i:
                 model=i.readline()
                 majorversion=i.readline()
                 minorversion=i.readline()
@@ -454,8 +454,8 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--rmap_version",
                         help="RMAP version (0 <legacy> / 1 <last version>) (default: %(default)s)",
                         type=int, default=1,choices=[0,1])
-    parser.add_argument("-n", "--nouserasident",dest="userasident", action="store_false",
-                        help="do not use user as ident for fixed station too (default use ident)")
+    parser.add_argument("-n", "--userasident",dest="userasident", action="store_true",
+                        help="use user as ident for fixed station too (default do not use users as ident)")
     
     args = parser.parse_args()
 
