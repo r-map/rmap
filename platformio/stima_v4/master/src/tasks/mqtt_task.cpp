@@ -429,7 +429,8 @@ void MqttTask::Run()
       if(param.system_status->modem.perc_modem_connection_valid >= MIN_ERR_REPORT_CONNECTION_VALID) {
         byteState[indexPosition++] = 0;
       } else {
-        byteState[indexPosition++] = 100 - param.system_status->modem.perc_modem_connection_valid;
+        // Flags step error only 10% value (10, 20, 30 .. 100 %) prevert small change error for flag byte index server
+        byteState[indexPosition++] = (uint8_t)((100.0 - (float)param.system_status->modem.perc_modem_connection_valid) / 10.0) * 10;
       }
       byteState[indexPosition++] = param.boot_request->tot_reset;
       byteState[indexPosition++] = param.boot_request->wdt_reset;
@@ -489,7 +490,11 @@ void MqttTask::Run()
           }
           indexPosition = 0;
           // Report inverted OK (100- for Error...)
-          byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].perc_can_comm_err;
+          if(param.system_status->data_slave[iNodeSlave].perc_can_comm_err <= MIN_ERR_CAN_CHECK_FLAG_PERC) {
+            byteState[indexPosition++] = 0;
+          } else {
+            byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].perc_can_comm_err;
+          }
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[0];
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[1];
           byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];

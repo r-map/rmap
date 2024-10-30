@@ -52,6 +52,8 @@
 #define SUPERVISOR_TASK_DEEP_POWER_DELAY_MS     (5000)
 #define SUPERVISOR_TASK_SLEEP_DELAY_MS          (1000)
 
+#define MIN_ATTEMPTED_CONNECTION_VALID          (5)
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>
 #include "drivers/eeprom.h"

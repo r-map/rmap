@@ -43,6 +43,8 @@
 #define MQTT_TASK_PUBLISH_DELAY_MS        (5)
 #define MQTT_TASK_PUBLISH_RETRY           (5)
 
+#define MIN_ERR_CAN_CHECK_FLAG_PERC       (10)
+
 /*!
 \def USE_MINIMAL_WAIT_SECOND_CONNECT
 \brief Enable using function delay minimal second waiting maintenance MQTT connection active
@@ -56,7 +58,7 @@
 #define MQTT_NET_WAIT_TIMEOUT_SUSPEND     (120000)                    // Time out mqtt suspend operation timeout
 #define MQTT_NET_WAIT_TIMEOUT_PUBLISH     (MQTT_TIMEOUT_MS + 2500)    // Time out mqtt suspend operation timeout
 
-#define MIN_ERR_REPORT_CONNECTION_VALID   (90.0)
+#define MIN_ERR_REPORT_CONNECTION_VALID   (80)
 
 #define MQTT_PUB_CMD_DEBUG_PREFIX         (">")
 #define MQTT_SUB_CMD_DEBUG_PREFIX         ("<")

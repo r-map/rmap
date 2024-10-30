@@ -306,7 +306,7 @@ void SupervisorTask::Run()
           param.system_status->command.do_mqtt_connect = false;
           param.system_status->command.do_ntp_synchronization = false;
 
-          if(param.system_status->modem.connection_attempted) {
+          if(param.system_status->modem.connection_attempted > MIN_ATTEMPTED_CONNECTION_VALID) {
             param.system_status->modem.perc_modem_connection_valid = (uint8_t)
               (((float)(param.system_status->modem.connection_completed / (float)param.system_status->modem.connection_attempted)) * 100.0);
           } else {
@@ -347,8 +347,7 @@ void SupervisorTask::Run()
       state = SUPERVISOR_STATE_CONNECTION_OPERATION;
 
       // Update percentage good connection vs attemtped
-      param.systemStatusLock->Take();
-      if(param.system_status->modem.connection_attempted) {
+      if(param.system_status->modem.connection_attempted > MIN_ATTEMPTED_CONNECTION_VALID) {
         param.system_status->modem.perc_modem_connection_valid = (uint8_t)
           (((float)(param.system_status->modem.connection_completed / (float)param.system_status->modem.connection_attempted)) * 100.0);
       } else {
