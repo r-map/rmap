@@ -3,7 +3,7 @@
 #ifndef MEASURE_THREAD_H_
 #define MEASURE_THREAD_H_
 
-struct measure_data_t {
+struct measure_data_t {    // thread communication data
   int id;
   frtosLogging* logger;
   Queue* mqttqueue;

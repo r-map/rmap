@@ -2,21 +2,28 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2024-10-17T00:00"    // date and time
-#define MAJOR_VERSION    "20241017"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2024-10-31T00:00"    // date and time
+#define MAJOR_VERSION    "20241031"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
+// SSID and password of WiFi for setup
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
+
+// defaul sample time to get measure from sensors
 #define DEFAULT_SAMPLETIME 30
+
+// udp port to use for communicate with androd gps_forwarder app
 #define UDP_PORT 8888
 
+// display I2C address
 #define OLEDI2CADDRESS 0X3C
 
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
+
 // Length of datetime string %04u-%02u-%02uT%02u:%02u:%02u
 #define DATE_TIME_STRING_LENGTH                       (25)
 
@@ -26,14 +33,19 @@
 // minimum thread stack size for warning
 #define STACK_MIN_WARNING 100
 
+// port for http server
 #define STIMAHTTP_PORT 80
 
 #define FIRMWARE_TYPE "LOLIN_C3_MINI"
+
+// set to 1 if we use PMS sensor
 #define PMS_RESET 0
 
+// define pins for I2C
 #define SCL_PIN SCL
 #define SDA_PIN SDA
 
+// define reset and LED pins
 #if defined(ARDUINO_LOLIN_C3_MINI)
 //C3 mini
 // https://www.wemos.cc/en/latest/_static/files/sch_c3_mini_v2.1.0.pdf
@@ -56,13 +68,15 @@
 #define LED_PIN 34       // not connected to neopixel
 #endif
 
-// for sensor_t
+// size for sensor_t
 #define SENSORDRIVER_DRIVER_LEN 5
 #define SENSORDRIVER_TYPE_LEN 5
 #define SENSORDRIVER_META_LEN 30
 
-#define CH 8            // character height px for display
+// character height px for display
+#define CH 8
 
+// define parameter for queues len and communication
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
 #define DATA_BURST (15)
 #define DATA_BURST_RECOVERY (DATA_BURST)
@@ -75,8 +89,7 @@
 #define MQTT_QUEUE_SPACELEFT_RECOVERY (DATA_BURST*2)
 
 // SD card SPI PIN assignment
-
-//Micro SD Card Shield
+// Micro SD Card Shield
 #define C3SCK 1   
 #define C3MISO 0  
 #define C3MOSI 4  
@@ -91,18 +104,20 @@
 // SPI clock
 #define SPICLOCK 10000000
 
-// SD card max number of file
+// SD card max number of file opened
 #define SDMAXFILE 6
 
-
+// SD card file name for archive
+#define SDCARD_INFO_FILE_NAME    ("/info.dat")
 #define SDCARD_ARCHIVE_FILE_NAME ("/archive.dat")
 
-// littlefs max number of file
+// littlefs max number of file opened on EEPROM
 #define LFMAXFILE 4
 
-// time in seconds saved on SD card for archive and recovery
+// time in seconds saved on sqlite on SD card for tmp archive and recovery
 #define SDRECOVERYTIME (3600*24*1)
 
+// sqlite setup
 /*
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
   There is 520 KB of available SRAM (320 KB of DRAM and 200 KB of
@@ -131,8 +146,8 @@
 */
 #define MQTT_PACKET_SIZE               (220)
 
+// MQTT broker port
 # define MQTT_SERVER_PORT (1883)
-
 
 /*!
 \def CONSTANTDATA_BTABLE_LENGTH

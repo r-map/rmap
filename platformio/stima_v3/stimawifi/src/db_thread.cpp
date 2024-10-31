@@ -163,11 +163,7 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
   data->logger->notice(F("db Start purge"));       
 
   //The values emitted by the RETURNING clause are the values as seen
-  //by the top-level DELETE, INSERT, or UPDATE statement and do not
-  //reflect any subsequent value changes made by triggers. Thus, if
-  //the database includes AFTER triggers that modifies some of the
-  //values of each row inserted or updated, the RETURNING clause emits
-  //the original values that are computed before those triggers run
+  //by the top-level DELETE, INSERT, or UPDATE statement
 
   char sql[100];
   //char sql[] = "DELETE FROM messages WHERE datetime < strftime('%s',?)";
@@ -264,7 +260,7 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
 }
 
 
-// set data in specific datetime range as unset for recovery
+// set data in specific datetime range as unsent for recovery
 // of messages for retrasmission
 bool dbThread::data_set_recovery(void){
   int rc;
@@ -610,7 +606,7 @@ void dbThread::Run() {
   }
 
   // open and write info.dat file
-  File infoFile = SD.open("/info.dat", FILE_WRITE);
+  File infoFile = SD.open(SDCARD_INFO_FILE_NAME, FILE_WRITE);
   if (!infoFile){
     data->logger->error(F("db failed to open info file for writing"));
   }

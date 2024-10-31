@@ -6,7 +6,7 @@
 #ifndef PUBLISH_THREAD_H_
 #define PUBLISH_THREAD_H_
 
-
+// thread exchange data struct
 struct publish_data_t {
   int id;
   frtosLogging* logger;

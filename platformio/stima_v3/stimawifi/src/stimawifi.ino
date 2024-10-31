@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 TODO
-* manage remote procedure call
+* manage remote procedure call when it will be required
 */
 
 /*
@@ -38,43 +38,56 @@ ultime misurazioni effettuate
 
 L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
 in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
-
+Dopo essere passati dal DB sqlite i file vengono trasferiti in un 
+archivio, integrato in modalità append.
 Per poter utilizzare la stazione in modalità "mobile" ossia con
-posizione continuamente modificabile ci sono due possibilità:
+posizione continuamente aggiornata ci sono due possibilità:
 * connettere un modulo GPS con Ublox neo6m
 * utilizzare l'app android GPSD_forwarder
-
 La configurazione è gestita sul server e i thread sono attivati
 automaticamente. Quando la geolocalizzazione è possibile i dati
 vengono generati, in caso contrario no.
+E' attivo un web server accessibile quando ci si connette allo stesso Wifi
+a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
+
+http://<station slug>             Full main page
+http://<station slug>/data.json   Data in json format
+http://<station slug>/geo         Coordinate of the station
+
+I dati sono visualizzabile da browser sempre se connessi allo stesso WiFi
+autenticandosi sul server RMAP e accedendo alla propria pagina personale,
+selezionando la stazione e poi alla voce "Mostra i dettagli stazione" e poi
+"Dati locali in tempo reale".
+Il reset delle configurazioni è effettuabile a stazione disalimentata
+collegando a massa il pin RESET_PIN (4) o premendo il pulsante A della
+board del display, alimentare la stazione e dopo 10 secondi scollegare il
+RESET_PIN o rilasciare il pulsante.
 
 Il frusso dei dati nelle code è il seguente:
 
 i dati e metadati sono generati da threadMeasure e accodati nella coda
-mqttqueue per la pubblicazione, ricevuti da threadPublish; se non c'è spazio
-vanno dirattamente nella coda dbqueue per l'archiviazione su SD card.
-threadMeasure è attivato periodicamente.  threadPublish prova la
-pubblicazione MQTT, in ogni caso dopo un tentativo vengono accodati
-per l'archiviazione nella coda dbqueue flaggati relativamente al
-risultato della pubblicazione.  Dopo il tenativo di invio al broker MQTT
-i dati vengono inviati alla coda dbqueue per l'archiviazione.
-Il thread threadDb gestisce la scrittura dei dati con eventuale
-sovrascrittura nel database.
-Il thread threadDb viene attivato periodicamente
-per recuperare l'invio dei dati archiviati e non ancora trasmessi
-inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
-sufficiente spazio nella coda. Il thread threadDb esegue a priorità
-più alta degli altri per garanetire l'archiviazione in tempi utili per
-non riempire le code.
-I dati vengo continuamente ripuliti eliminando dal database i dati
-più vecchi. Se all'avvio i dati presenti nel db risultano essere
-tutti vecchi l'intero DB viene rinomitato e ricreato vuoto.
+mqttqueue per la pubblicazione, ricevuti da threadPublish per la 
+pubblicazione sul broker MQTT; se non c'è spazio
+vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
+threadMeasure è attivato periodicamente.
+threadPublish prova la pubblicazione MQTT.
+Dopo ogni tentativo di pubblicazione al broker MQTT
+i dati vengono accodati per l'archiviazione nella coda dbqueue
+etichettati relativamente al risultato della pubblicazione.
+Il thread threadDb gestisce due tipi di archiviazione dati.
+Il primo (DB) che contiene gli ultimi dati misurati (solitamente 24 ore)
+con sovrascrittura nel database e una etichetta a indicare lo stato di 
+pubblicazione; fino a quando i dati sono presenti in questo
+DB i dati possono essere recuperati per la pubblicazione fino al successo della
+pubblicazione.
+Quando i dati nel DB invecchiano oltre il limite vengono trasferiti nell'archivio
+dove potranno essere riletti solo tramite un PC.
 Ogni thread ha una struttura dati che descrive
 lo stato di funzionamento. Il thread loop di arduino effettua una
 sintesi degli stati di tutti i thread e li visualizza tramite i
 colori del LED e tramite il display opzionale.
 
-Threads
+Threads:
 
   thread loop arduino
 
@@ -84,7 +97,8 @@ insieme ad alcuni parametri univoci della stazione. Tramite questi
 ultimi la configurazione stazione viene scaricata dal server. Il
 thread governa la visualizzazione sul display e la colorazione del
 LED. Inoltre è possibile visualizzare i dati misurati tramite un
-browser.  La libreria TimeAlarm gestisce l'attivazione dei segnali ai
+browser indirizzandolo sulla pagina personale sul server RMAP.
+La libreria TimeAlarm gestisce l'attivazione dei segnali ai
 thread per attivazioni perioche.
 
   threadMeasure
@@ -93,7 +107,8 @@ Questo thread si occupa di interrogare i sensori, associare i metadati
 e accodarli per la pubblicazione e archiviazione. I sensori vengono
 interrogati in parallelo tramite delle macchine a stati finiti.
 Inoltre viene prodotta una struttura di dati di riassunto delle misure
-effettuate.
+effettuate. Insieme alla libreria di driver per sensori viene gestita
+la loro inizializzazione e il restart in caso di ripetuti errori.
 
   threadPublish
 
@@ -104,19 +119,33 @@ associate le coordinate ai dati.
 
   threadDb
 
-Archivia i dati su SD card. Il formato è quello portabile di sqlite3 e
+Archivia i dati su SD card. Il formato del DB è quello portabile di sqlite3 e
 possono essere letti tramite la stessa libreria da PC. Più scritture
 con gli stessi metadati aggiornano i dati, non creano record
-duplicati.
+duplicati. L'archivio invece è composto da due file, uno di descrizione
+e il secondo con i dati.
+Il thread threadDb viene attivato periodicamente
+per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
+inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
+sufficiente spazio nella coda di pubblicazione per altri thread.
+Il thread threadDb esegue a priorità più alta degli altri per garantire
+l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
+I dati vengo continuamente traferiti dal DB all'archivio eliminando dal 
+database i dati più vecchi trasferendoli in un semplice archivio su file
+sempre sull'SD card. I dati in archivio possono essere letti e traferiti
+sul server RMAP tramite mqtt2bufr, un tool della suite RMAP.
+Se all'avvio i dati presenti nel DB risultano essere
+tutti vecchi i dati vengono traferiti all'archivio e l'intero DB viene eliminato
+e ricreato vuoto per limiti di memoria e performance.
 
   threadUdp
 
-Legge i dati UDP inviati dalla app GPSD forwarder riempiendo una
-struttura dati con la geolocalizzazione e un timestamp.
+Legge i dati UDP inviati dalla app GPSD forwarder di uno smartphone
+riempiendo una struttura dati con la geolocalizzazione e un timestamp.
 
   threadGps
 
-Legge i dati dal GPS (porta seriale) riempiendo una struttura dati con
+Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
 la geolocalizzazione e un timestamp.
 
 */
@@ -184,6 +213,7 @@ void display_summary_data(char* status) {
   u8g2.sendBuffer(); 
 }
 
+// Print date and time to loggin system
 void printLocalTime()
 {
   struct tm timeinfo;
@@ -214,7 +244,16 @@ void timeavailable(struct timeval *t)
   }
 }
 
-// HTTP response
+// HTTP response with json data
+// data is a fixed selection of total dataset read from sensors and sintetic status
+// key are:
+// TEMP
+// HUMID
+// PM2
+// PM10
+// CO2
+// STAT
+
 String Json(){
 
   String str ="{"
@@ -239,6 +278,7 @@ String Json(){
 
   return str;
 }
+
 // HTTP response for browser in smartphone
 // The browser get a page from server, query the phone for geolocation,
 // send coordinate with an ajax request to ESP
@@ -321,7 +361,8 @@ String Data(){
   return str;
 }
 
-// HTTP response
+// function to prepare HTML response main page
+// https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
 String FullPage(){
   String ptr = "<!DOCTYPE html> <html>\n"
     "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n"
@@ -901,7 +942,8 @@ void setup() {
   #include "soc/rtc_cntl_reg.h"
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
   */
-  
+
+  // Initialize GPIO, library and sensors
   pinMode(RESET_PIN, INPUT_PULLUP);
   
   pixels.begin();            //INITIALIZE NeoPixel strip object (REQUIRED)
@@ -930,6 +972,8 @@ void setup() {
   Serial.begin(115200);
   //Serial.setDebugOutput(true);
 
+  // if loggin on SDcard is enabled initialize SDcard
+  // initialize logging
 #if (ENABLE_SDCARD_LOGGING)      
 
   delay(10000);
@@ -1023,6 +1067,7 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
+    // reset configuration on  on EEPROM
     LittleFS.begin(false,"/littlefs",LFMAXFILE);    
     LittleFS.format();
     frtosLog.notice(F("Reset wifi configuration"));
@@ -1063,6 +1108,7 @@ void setup() {
     wifiManager.resetSettings();
   }
 
+  // configure NTP
   //sntp_init();
   //sntp_setoperatingmode(SNTP_OPMODE_POLL);
   //sntp_setservername(0, station.ntp_server);
@@ -1189,7 +1235,8 @@ void setup() {
       u8g2.sendBuffer();
     }
   }
-  
+
+  // perform remote configuration
   String remote_config= rmap_get_remote_config();
 
   if ( remote_config == String() ) {
@@ -1198,9 +1245,11 @@ void setup() {
   }else{
     writeconfig_rmap(remote_config);
   }
-  
+
+  // check for a firmware upgrade from server
   firmware_upgrade();
-  
+
+  // if here we do not have configuration reboot
   if (!rmap_config(remote_config) == 0) {
     frtosLog.error(F("station not configurated"));
     //frtosLog.notice(F("Reset wifi configuration"));
@@ -1221,7 +1270,6 @@ void setup() {
     delay(5000);
     reboot();
   }
-  
   
   // Set up mDNS responder:
   // - first argument is the domain name, in this example
@@ -1256,6 +1304,7 @@ void setup() {
     u8g2.sendBuffer();
   }
 
+  // wait for  date and time setup from NTP
   if (WiFi.status() == WL_CONNECTED) {
     //if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(60000)) == ESP_OK) {  // alternative starting from idf 5.1 with esp_netif_sntp.h
     int retry = 0;
@@ -1298,8 +1347,8 @@ void setup() {
       //u8g2.print(F("RESTART"));
       u8g2.sendBuffer();
 
-      //delay(5000);
-      //reboot(); //timeout - reset board
+      // delay(5000);
+      // reboot(); //timeout - reset board
     }
   } else {
     time_t time=now();
@@ -1314,24 +1363,24 @@ void setup() {
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
 
   
-  Alarm.timerRepeat(10, dataRecovery);    // timer for data recoveru from DB
-  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
+  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
-  time_t reboottime;                                    // we reset everythings one time a week
+  time_t reboottime;                                    
   if (pmspresent){
-    reboottime=3600*24;                                 // pms stall sometime
+    reboottime=3600*24;                                        // pms stall sometime, we reboot more
   }else{
-    reboottime=3600*24*7;                               // every week
+    reboottime=3600*24*7;                                      // we reset everythings one time a week
   }
   frtosLog.notice(F("reboot every: %d"),reboottime);
-  Alarm.timerRepeat(reboottime,reboot);                 // reboot
+  Alarm.timerRepeat(reboottime,reboot);                        // timer for reboot
 
   // upgrade firmware
-  //Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
-  Alarm.timerRepeat(3600*24,firmware_upgrade);          // every day  
+  //Alarm.alarmRepeat(4,0,0,firmware_upgrade);                 // 4:00:00 every day  
+  Alarm.timerRepeat(3600*24,firmware_upgrade);                 // check for firmware upgrade every day  
   
-  // Add service to MDNS-SD
+  // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
   
   // if mobile station start geolocation thread
@@ -1358,15 +1407,12 @@ void setup() {
 void loop() {
   // set the priority of this thread
   vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
-
   //disableLoopWDT();
-  // set the priority of this thread
-  //vTaskPrioritySet(NULL, 5);
   webserver.handleClient();
   //MDNS.update();
-  Alarm.delay(0);
+  Alarm.delay(0);       // check for alarms
   delay(1000);
 
   //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
-  if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");
+  if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");   // check memory collision
 }

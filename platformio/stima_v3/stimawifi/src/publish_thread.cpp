@@ -266,7 +266,7 @@ void publishThread::archive() {
   }else{
     data->logger->error(F("publish dequeue mqtt message"));
   }
- }
+}
 
 // if required connect to the broker, publish maint message, publish constant data messages
 // try to send message to the broker
@@ -401,7 +401,7 @@ void publishThread::Run() {
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
-    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data->logger->error(F("publish stack"));
+    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data->logger->error(F("publish stack"));  // check for memory collision
   }
 };
 

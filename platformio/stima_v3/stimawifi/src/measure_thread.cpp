@@ -83,6 +83,7 @@ void measureThread::get_summary_data_in_progress(uint8_t i) {
 
 }
 
+// encode and enqueue in a proper queue one message
 void measureThread::enqueueMqttMessage(uint8_t i ) {
   
   mqttMessage_t mqtt_message;
@@ -179,7 +180,7 @@ void measureThread::enqueueMqttMessage(uint8_t i ) {
   }
 }
 
-// execute all measure required
+// execute all required measure 
 void measureThread::doMeasure() {
 
   //LockGuard guard(data->i2cmutex);
@@ -308,15 +309,15 @@ void measureThread::Cleanup()
 void measureThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
   for(;;){
-    // wait for notification from the main task when we have to do measurements
+    // wait for notification from the main task; start when we have to do measurements
     WaitForNotification();
-    if (timeStatus() == timeSet) doMeasure();
+    if (timeStatus() == timeSet) doMeasure();  // measure il we can use a timestamp
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     //data->logger->notice("measure stack: %d",uxTaskGetStackHighWaterMark(NULL));
-    if (uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error("measure stack");
+    if (uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error("measure stack"); //check memory collision
   }
 };
   
