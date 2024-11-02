@@ -215,7 +215,7 @@ Aggiunta repository e installazione pacchetti
   dnf -y install python3-rmap
   dnf -y install python3-django-dynamic-map-borinud
   dnf -y install mosquitto mosquitto-auth-plug
-  dnf -y install arkimet
+  dnf -y install arkimet dballe
   dnf -y install stunnel
   useradd rmap
   
@@ -237,6 +237,67 @@ Aggiunta repository e installazione pacchetti
 
    mkdir /var/log/rmap
    chown -R rmap:rmap /var/log/rmap
+
+
+Generate ssl auto signed certificate
+::
+
+   mkdir certs
+   cd certs
+   
+   1 – Since we don’t have a certificate authority, we’ll create a local CA using SSL:
+   openssl genrsa -des3 -out ca.key 2048
+   enter a pass phrase with at least 4 characters. Remember it as it will be used several times.
+   
+   2 – Then we’ll create a signing request for our local CA
+   openssl req -new -key ca.key -out ca.csr -sha256
+   Enter the same passphrase chosen in the previous step. It’s safe to leave all other fields empty, for the sake of our setup’s simplicity.
+
+   3 – Then we can create our CA root certificate, valid for 180 days:
+   openssl x509 -req -in ca.csr -signkey ca.key -out ca-root.crt -days 180 -sha256
+   Again, enter the preciously chosen passphrase when requested to do so
+
+   4 – We’ll then create our certificate key
+   openssl genrsa -out localhost.key 2048
+
+   5 – And using the key, we’ll create a certificate request:
+   openssl req -new -key localhost.key -out localhost.csr -sha256
+   Note: when being prompted for the “Common Name”, use “localhost”, as this will be the way we’ll reference the MQTT broker locally.
+   If you have a DNS entry pointing to the host server, you can use that too. All remaining fields can be left empty.
+
+   6 – Lastly, we’ll create the certificate, using the certificate request created in step 5 and the CA root certificate created in step 5, also valid for 180 days
+   openssl x509 -req -in mosquitto.csr -CA ca-root.crt -CAkey ca.key -CAcreateserial -out localhost.crt -days 180
+
+   When you’re done you should have the following files in the directory:
+
+    ca-root.crt – Certificate authority root certificate
+    ca.csr – Certificate authority certificate signing request
+    ca.key – Certificate Authority certificate Key
+    localhost.crt – Mosquitto certificate
+    localhost.csr – Mosquitto certificate signing request
+    localhost.key – Mosquitto certificate key
+
+   
+
+Firewall
+........
+::
+
+   dnf -y install firwalld
+   systemctrl enable firewalld
+   systemctrl start firewalld
+   firewall-cmd --permanent --zone=public --add-port=80/tcp
+   firewall-cmd --permanent --zone=public --add-port=442/tcp
+   firewall-cmd --permanent --zone=public --add-port=443/tcp
+   firewall-cmd --permanent --zone=public --add-port=5925/tcp
+   firewall-cmd --permanent --zone=public --add-port=1883/tcp
+   firewall-cmd --permanent --zone=public --add-port=5671/tcp
+   firewall-cmd --permanent --zone=public --add-port=5672/tcp
+   firewall-cmd --permanent --zone=public --add-port=8883/tcp
+   firewall-cmd --permanent --zone=public --add-port=8884/tcp
+   firewall-cmd --permanent --zone=public --add-port=15672/tcp
+
+   firewall-cmd --reload
 
 postgresql
 ..........
@@ -269,6 +330,7 @@ postgresql
 
    su - postgres
    createuser -P -e rmapadmin
+   < insert rmapadmin as password >
    createdb --owner=rmapadmin rmapadmin
    exit
 
@@ -287,6 +349,8 @@ postgresql
    
    su - postgres
    createuser -P -e rmap
+   < insert rmap as password >
+
    createdb --owner=rmap report_fixed
    createdb --owner=rmap report_mobile
    createdb --owner=rmap sample_fixed
@@ -314,9 +378,13 @@ Collect static files from django apps:
    rmapctrl --collectstatic
    rmdir /root/global_static
 
+::
    dnf install python3-mod_wsgi
    dnf install mod_security mod_security_crs
+   dnf install mod_ssl
 
+   
+::
    useradd -r rmap
    mkdir /home/rmap
    chown rmap:rmap /home/rmap
@@ -324,6 +392,9 @@ Collect static files from django apps:
    chown rmap:rmap /rmap/cache
    mkdir  /usr/share/rmap/media
    chown rmap:rmap  /usr/share/rmap/media
+
+   cp -r ~/certs /etc/httpd
+   chown -R apache /etc/httpd/certs
    
 `/etc/httpd/conf.modules.d/00-mpm.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.modules.d/00-mpm.conf>`_
 
@@ -331,12 +402,14 @@ Collect static files from django apps:
 
 `/etc/httpd/conf.d/rmap.inc <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.inc>`_
 
+`/etc/httpd/conf.d/ssl.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/ssl.conf>`_
+
 `/etc/httpd/modsecurity.d/crs-setup.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/modsecurity.d/crs-setup.conf>`_
 
 ::
    
-   chkconfig httpd on``
-   service httpd start``
+   chkconfig httpd on
+   service httpd start
 
 
 Stunnel
@@ -355,8 +428,8 @@ Create file with psk keys:
 
 ::
    
-   chkconfig stunnel on``
-   service stunnel start``
+   chkconfig stunnel on
+   service stunnel start
 
 
 Arkimet
@@ -369,8 +442,17 @@ Arkimet
    mkdir /home/arkimet
    chown arkimet:arkimet /home/arkimet
    mkdir /rmap/arkimet/
+
+::
    chown -R arkimet:rmap /rmap/arkimet/
    chmod -R g+w  /rmap/arkimet/
+
+oppure:
+
+::
+   chown -R rmap:rmap /rmap/arkimet/
+
+::
    mkdir /var/log/arkimet
    chown -R arkimet:arkimet /var/log/arkimet
 
@@ -412,14 +494,14 @@ remove everythings and add in /etc/mosquitto/mosquitto.conf
    pid_file /var/run/mosquitto/mosquitto.pid
 
 ::
-   
+
+   cp -r ~/certs /etc/mosquitto/
+   chown -R mosquitto /etc/mosquitto/certs
+
    touch /etc/mosquitto/pwfile
    chkconfig mosquitto on
    service mosquitto start
 
-if the package use systemV create:
-
-`/etc/monit.d/mosquitto <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/mosquitto>`_
 
 
 Rabbitmq
@@ -439,6 +521,9 @@ Rabbitmq
 `/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_
 
 ::
+
+   cp -r ~/certs /etc/rabbitmq/
+   chown -R rabbitmq /etc/rabbitmq/certs
 
    mkdir -p /rmap/rabbitmq/mnesia/
    chown -R rabbitmq:rabbitmq /rmap/rabbitmq
@@ -464,12 +549,13 @@ Monit
 
 ::
    
-   yum install monit
+   dnf -y install monit
 
 `/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monitrc>`_
 
 `/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/rmap>`_
 
+`/usr/local/bin/check_mosquitto <https://raw.githubusercontent.com/r-map/rmap/master/server/usr/local/bin/check_mosquitto>`_
 ::
    
  chkconfig monit on
@@ -484,11 +570,14 @@ Cron
    chown -R rmap:rmap /rmap/dballe
 
 
-`/etc/cron.d/arpae_aq_ckan <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_
-
 `/etc/cron.d/dballe2arkimet <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/dballe2arkimet>`_
 
 `/etc/cron.d/luftdaten <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/luftdaten>`_
+
+
+Opzionali per provider esterni con appositi convertitori:
+
+`/etc/cron.d/arpae_aq_ckan <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_
 
 `/etc/cron.d/makeexplorer <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/makeexplorer>`_
 
