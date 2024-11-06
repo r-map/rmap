@@ -406,6 +406,8 @@ Collect static files from django apps:
 
 `/etc/httpd/modsecurity.d/crs-setup.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/modsecurity.d/crs-setup.conf>`_
 
+`/etc/httpd/modsecurity.d/local_rules/modsecurity_localrules.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/modsecurity.d/local_rules/modsecurity_localrules.conf>`_
+
 ::
    
    chkconfig httpd on
