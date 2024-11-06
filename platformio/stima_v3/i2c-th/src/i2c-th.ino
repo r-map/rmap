@@ -594,7 +594,7 @@ void sensors_reading_task () {
 	pinMode(SCL,OUTPUT);
 	digitalWrite(SCL,LOW);
 	digitalWrite(SDA,LOW);
-	delay_ms=10;
+	delay_ms=500;
 	start_time_ms = millis();
 	state_after_wait = SENSORS_READING_POWER_ON;
 	sensors_reading_state = SENSORS_READING_WAIT_STATE;
