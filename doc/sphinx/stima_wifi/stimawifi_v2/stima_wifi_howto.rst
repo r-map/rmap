@@ -1,5 +1,5 @@
-Stima-wifi
-==========
+Stima WiFi V2
+=============
 
 | |Stima wifi con Honeywell HPM e sensore Temperatura e Umidità|
 

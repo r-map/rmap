@@ -1,5 +1,5 @@
-Stimawifi
-=========
+Stima WiFi
+==========
 
 Manuale utente
 --------------

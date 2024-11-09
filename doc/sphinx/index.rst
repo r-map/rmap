@@ -10,12 +10,13 @@ Benvenuti alla documentazione di RMAP e Stima
    :maxdepth: 5
 
    rmap_rfc/rfc
+   obsolete/index
    stima_v3/stima_v3
    stima_v4/stima_v4
-   stima_wifi/stima_wifi_howto
+   stima_wifi/index
    server_rmap/server_rmap
    videotutorial/videotutorial
-
-
+   dispense/index
+   
 * :ref:`genindex`
 * :ref:`search`
