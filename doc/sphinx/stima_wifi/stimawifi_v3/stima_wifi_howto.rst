@@ -139,6 +139,9 @@ Platformio (Piattaforma per lo sviluppo embedded)
 Collegamento dei sensori
 ------------------------
 
+.. video:: stimawifi_v3_board_e_pila.mp4
+   :width: 100%
+	
 Prima di procedere con questa fase, disalimentare la stazione di
 monitoraggio.
 
@@ -149,6 +152,8 @@ funzionamento.
 Per farlo bisogna assemblare i cavi di collegamento secondo gli schemi
 forniti dal produttore dei sensori facendo in modo che corrispondono
 alla piedinatura dei connettori presenti sulla stazione Stima.
+
+.. image:: board.jpg
 
 Dopo aver messo a punto la cavetteria bisogna collegare i sensori
 ognuno secondo lo standard facendo attenzione alla polarità ed al
@@ -270,6 +275,17 @@ internet. In caso l’istituto preveda questa modalità di navigazione
 sarà necessario derogare in base al mac address della stazione o
 creando una sottorete Wi-Fi dedicata.
 
+Reset della configurazione
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Quando necessario, ad esempio per un cambio di configurazione
+dell'access point wifi, è possibile procedere al reset delle
+configurazioni effettuando un reset con l'apposito ponticello mentre il ponticello di riconfigurazione è cortocirduitato.
+Questo video mostra una modalità per procedere alla riconfigurazione.
+
+.. video:: stimawifi_v3_reset.mp4
+   :width: 100%
+	   
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 

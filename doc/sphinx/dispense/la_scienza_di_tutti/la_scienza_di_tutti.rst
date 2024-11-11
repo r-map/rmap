@@ -15,6 +15,7 @@ professionisti e istituzioni scientiﬁche”
 
 Oxford English Dictionary
 
+Pannello riassuntivo :download:`pdf <Citizen_scienze_4_PP.pdf>`
 
 Citizen science
 ---------------

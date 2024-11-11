@@ -39,7 +39,8 @@ release = '3'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-   "breathe" 
+    "breathe",
+    "sphinxcontrib.video",
 ]
 
 breathe_projects = { "stimacode": "../doxygen/xml/" }
