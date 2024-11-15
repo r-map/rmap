@@ -1,25 +1,32 @@
-/**@file debug_F.h */
-
-/*********************************************************************
-<h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
-authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-<http://www.gnu.org/licenses/>.
-**********************************************************************/
+/**
+ ******************************************************************************
+ * @file    debug_F.h
+ * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+ * @author  Moreno Gasperini <m.gasperini@digiteco.it>
+ * @brief   Debug constants and functions
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
+ * <h2><center>All rights reserved.</center></h2>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************
+*/
 
 #ifndef _DEBUG_F_H
 #define _DEBUG_F_H
@@ -92,16 +99,6 @@ void queue_debug_F(Queue *dataLogPutQueue, const __FlashStringHelper *fmt, ...);
 #else
    #define TRACE_VERBOSE_F(...)
    #define LOG_VERBOSE_F(...)
-#endif
-
-//C++ guard
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// C++ guard
-#ifdef __cplusplus
-}
 #endif
 
 #endif

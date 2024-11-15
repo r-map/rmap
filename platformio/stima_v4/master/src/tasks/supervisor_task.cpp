@@ -241,17 +241,19 @@ void SupervisorTask::Run()
       }
 
       #if (!DISABLE_CONNECTION)
-
-      // Get RND(XX = 60) Second Offset Start connection for avoid overcharging RMAP Server
+      #if (!TEST_CONNECTION)
+      #if (RANDOM_RUN_CONNECTION_SERVER_SEC)
+      // Get RND(XX = RANDOM_RUN_CONNECTION_SERVER_SEC) Second Offset Start connection for avoid overcharging RMAP Server
       if(!bGetNextSecondOffsetStart) {
         bGetNextSecondOffsetStart = true;
-        bSecondOffsetStart = random(60);
+        bSecondOffsetStart = random(RANDOM_RUN_CONNECTION_SERVER_SEC);
       }
       // Waiting coutdown on Timing
       if((param.system_status->flags.new_start_connect)&&(bSecondOffsetStart > 0)) {
         bSecondOffsetStart -= (SUPERVISOR_TASK_SLEEP_DELAY_MS / 1000);
         break;
       }
+      #endif
 
       // Check date RTime for syncro operation (if required)
       rtc.getTime(&hh, &nn, &ss, &ms);
@@ -264,7 +266,6 @@ void SupervisorTask::Run()
         param.systemStatusLock->Give();
       }
 
-      #if (!TEST_CONNECTION)
       // Checking starting Connection inibition next Start... If something Wrong... (Default 10 min)
       // RPC Request Command as (configure or download firmware) will start immediatly
       if(((rtc.getEpoch() - param.system_status->datetime.epoch_connect_run) > MIN_INIBITH_CONNECT_RETRY_S)||
@@ -363,7 +364,6 @@ void SupervisorTask::Run()
       param.systemStatusLock->Give();
 
       #endif
-
       #endif
 
       break;
@@ -453,6 +453,7 @@ void SupervisorTask::Run()
           {
             // No more action. Mqtt is not required (Also connected or dropped)
             param.system_status->connection.is_mqtt_disconnected = true;
+            TRACE_VERBOSE_F(F("SUPERVISOR_STATE_CONNECTION_OPERATION -> SUPERVISOR_CONNECTION_END\r\n"));
             state_check_connection = CONNECTION_END;
             break;
           }
@@ -819,11 +820,7 @@ bool SupervisorTask::loadConfiguration()
     param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
   }
 
-  // Always FIX configuration eeprom saved paramtere with FIRMWARE fixed parameter
-  param.configuration->module_main_version = MODULE_MAIN_VERSION;
-  param.configuration->module_minor_version = MODULE_MINOR_VERSION;
-  param.configuration->module_type = (Module_Type)MODULE_TYPE;
-
+  // Check VERSION and TYPE for verify EEProm read parameter are good
   #if (INIT_PARAMETER)
   status = saveConfiguration(CONFIGURATION_DEFAULT);
   #else
@@ -833,7 +830,10 @@ bool SupervisorTask::loadConfiguration()
   }
   #endif
 
-  // Set local parameter EXTRA param for specific GSM/GPRS/EDGE/LTE CONNECTION SIM
+  // Force minor versione configuration param with FIRMWARE minor version
+  param.configuration->module_minor_version = MODULE_MINOR_VERSION;
+
+// Set local parameter EXTRA param for specific GSM/GPRS/EDGE/LTE CONNECTION SIM
   // Other local parametre to save...
   #if(SAVE_LOCAL_ASSIGN_CONFIGURATION_PARAMETER)
     // VALID VALUE ->
@@ -890,6 +890,20 @@ bool SupervisorTask::loadConfiguration()
     // Force update configuration
     update_cfg = true;
     #endif
+  #else
+    // Check NETWORK_GSM_BASE Parameter with Default (if some parameter are wrong)
+  if((param.configuration->network_type!=0)||
+     (param.configuration->network_type!=2)||
+     (param.configuration->network_type!=13)||
+     (param.configuration->network_type!=14)||
+     (param.configuration->network_type!=38)||
+     (param.configuration->network_regver>3)) {
+    strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
+    param.configuration->monitor_flags = CONFIGURATION_GSM_DEFAULT_MONITOR_FLAGS;
+    param.configuration->network_type = CONFIGURATION_GSM_DEFAULT_NETWORK;
+    param.configuration->network_regver = CONFIGURATION_GSM_DEFAULT_REGISTRATION;
+    update_cfg = true;
+  }
   #endif
 
   // Update configuration required

@@ -2,11 +2,12 @@
  ******************************************************************************
  * @file    debug.h
  * @author  Marco Baldinetti <m.baldinetti@digiteco.it>
+ * @author  Moreno Gasperini <m.gasperini@digiteco.it>
  * @brief   Debug constants and functions
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; Copyright (C) 2022 Marco Baldinetti <m.baldinetti@digiteco.it></center></h2>
+ * <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
  * <h2><center>All rights reserved.</center></h2>
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +26,7 @@
  * <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************
- */
+*/
 
 #ifndef _DEBUG_H
 #define _DEBUG_H
@@ -68,8 +69,6 @@
 #ifndef TRACE_LEVEL
    #define TRACE_LEVEL TRACE_LEVEL_DEBUG
 #endif
-
-void print_debug(const char *fmt, ...);
 
 // Trace output redirection
 #ifndef TRACE_PRINTF
@@ -160,6 +159,8 @@ void print_debug(const char *fmt, ...);
 
 // Debug related functions
 void init_debug(uint32_t baudrate);
+
+void print_debug(const char *fmt, ...);
 
 void print_debug_array(const char *prepend, const void *data, size_t length);
 

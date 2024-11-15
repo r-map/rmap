@@ -2057,10 +2057,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retTHData->state);
                                     TRACE_VERBOSE_F(F("Value (ITH) TP %d, UH: %d\r\n"), retTHData->ITH.temperature.val.value, retTHData->ITH.humidity.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retTHData->version>4)||((retTHData->version==4)&&(retTHData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retTHData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retTHData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retTHData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2136,10 +2134,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retRainData->state);
                                     TRACE_VERBOSE_F(F("Value (TBR) Rain %d\r\n"), retRainData->TBR.rain.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retRainData->version>4)||((retRainData->version==4)&&(retRainData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retRainData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retRainData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retRainData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2221,10 +2217,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retWindData->state);
                                     TRACE_VERBOSE_F(F("Value (DWA) Speed %d, Dir: %d\r\n"), retWindData->DWA.speed.val.value, retWindData->DWA.direction.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retWindData->version>4)||((retWindData->version==4)&&(retWindData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retWindData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retWindData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retWindData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2303,10 +2297,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retRadiationData->state);
                                     TRACE_VERBOSE_F(F("Value (DSA) Radiation %d\r\n"), retRadiationData->DSA.radiation.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retRadiationData->version>4)||((retRadiationData->version==4)&&(retRadiationData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retRadiationData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retRadiationData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retRadiationData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2382,10 +2374,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retLevelData->state);
                                     TRACE_VERBOSE_F(F("Value (LVM) Level %d\r\n"), retLevelData->LVM.river_level.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retLevelData->version>4)||((retLevelData->version==4)&&(retLevelData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retLevelData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retLevelData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retLevelData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2462,10 +2452,8 @@ void CanTask::Run() {
                                         stimaName, clCanard.slave[queueId].get_node_id(), retPwrData->state);
                                     TRACE_VERBOSE_F(F("Value (MPP) Batt Chg. %d, In V. %d, Batt Curr. %d\r\n"),
                                         retPwrData->MPP.battery_charge.val.value, retPwrData->MPP.input_voltage.val.value, retPwrData->MPP.battery_current.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retPwrData->version>4)||((retPwrData->version==4)&&(retPwrData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retPwrData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retPwrData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retPwrData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));
@@ -2550,10 +2538,8 @@ void CanTask::Run() {
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retVwcData->state);
                                     TRACE_VERBOSE_F(F("Value (VWC) Soil moisture 1,2,3 [ %d, %d, %d ]\r\n"), retVwcData->VWC1.vwc.val.value, retVwcData->VWC2.vwc.val.value, retVwcData->VWC3.vwc.val.value);
-                                    // Get security remote state on maintenance mode from 4.2 Version
-                                    if((retVwcData->version>4)||((retVwcData->version==4)&&(retVwcData->revision>=2))) {
-                                        param.system_status->data_slave[queueId].maintenance_mode = (retVwcData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
-                                    }
+                                    // Get security remote state on maintenance mode from relative state flags
+                                    param.system_status->data_slave[queueId].maintenance_mode = (retVwcData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retVwcData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;
                                     if(param.system_status->data_slave[queueId].maintenance_mode) {
                                         TRACE_INFO_F(F("Warning this module is in maintenance mode!!!\r\n"));

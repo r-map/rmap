@@ -53,6 +53,7 @@
 #define SUPERVISOR_TASK_SLEEP_DELAY_MS          (1000)
 
 #define MIN_ATTEMPTED_CONNECTION_VALID          (5)
+#define RANDOM_RUN_CONNECTION_SERVER_SEC        (60)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <Wire.h>

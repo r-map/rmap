@@ -37,12 +37,6 @@
 
 using namespace cpp_freertos;
 
-/* 
-  List of preferred ciphersuites
-  https://ciphersuite.info/cs/?security=recommended&singlepage=true&page=2&tls=all&sort=asc
-  defined in tasks/mqtt_task.h -> const uint16_t cipherSuites[] = TYPE_VALUE
-*/
-
 /// @brief Construct a new Mqtt Task:: Mqtt Task object
 /// @param taskName name of the task
 /// @param stackSize size of the stack
@@ -58,7 +52,7 @@ MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, M
   localRpcLock = param.rpcLock;
   localStreamRpc = param.streamRpc;
   localSystemStatus = param.system_status;
-  localPtrMqttClientContext = &mqttClientContext;
+  localConfiguration = param.configuration;
 
   state = MQTT_STATE_INIT;
   version = MQTT_VERSION_3_1_1;
@@ -188,10 +182,7 @@ void MqttTask::Run()
         TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);      
         // do mqtt connection
         if (connection_request.do_mqtt_connect)
-        {
-          // Set local pointer MqttServer to config string
-          MqttServer = param.configuration->mqtt_server;
-          
+        {          
           // Start new connection sequence
           mqtt_connection_estabilished = false;
 
@@ -252,11 +243,6 @@ void MqttTask::Run()
       {
         // Shared Pointer
         MqttYarrowContext = param.yarrowContext;
-        MqttClientPSKKey = param.configuration->client_psk_key;
-
-        // Set PSK identity
-        snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", param.configuration->mqtt_username, param.configuration->stationslug, param.configuration->board_master.boardslug);
-
         // MQTT over TLS
         mqttClientSetTransportProtocol(&mqttClientContext, MQTT_TRANSPORT_PROTOCOL_TLS);
         // Register TLS initialization callback
@@ -920,8 +906,10 @@ void MqttTask::Run()
         if(rmap_data_error) {
           TRACE_ERROR_F(F("MQTT: RMAP Reading Data, exit from upload Data Queue [ %s ]\r\n"), ERROR_STRING);
         }
-        // Trace END Data response
-        TRACE_INFO_F(F("Uploading data RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+        // TRACE END Data response
+        if(countData) {
+          TRACE_INFO_F(F("Uploading data from RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+        }
       }
       // *****************************************
       //  END GET RMAP Data Queue and Append MQTT
@@ -3568,6 +3556,7 @@ error_t MqttTask::makeSensorMessageBatteryCharge(rmap_measures_BatteryCharge_1_0
 error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tlsContext)
 {
   error_t error;
+  char MqttClientPSKIdentity[MQTT_USERNAME_LENGTH + MQTT_PASSWORD_LENGTH + STATIONSLUG_LENGTH];
 
   //Debug message
   TRACE_INFO_F(F("MQTT TLS initialization callback\r\n"));
@@ -3579,25 +3568,26 @@ error_t MqttTask::mqttTlsInitCallback(MqttClientContext *context, TlsContext *tl
     return error;
 
   //Preferred cipher suite list
-  error = tlsSetCipherSuites(tlsContext, MqttCipherSuites, sizeof(MqttCipherSuites));
+  error = tlsSetCipherSuites(tlsContext, MqttCipherSuites, sizeof(MqttCipherSuites) / 2);
   // Any error to report?
   if(error)
     return error;
 
   //Set the fully qualified domain name of the server
-  error = tlsSetServerName(tlsContext, MqttServer);
+  error = tlsSetServerName(tlsContext, localConfiguration->mqtt_server);
   //Any error to report?
   if(error)
     return error;
 
   //Set the PSK identity to be used by the client
+  snprintf(MqttClientPSKIdentity, sizeof(MqttClientPSKIdentity), "%s/%s/%s", localConfiguration->mqtt_username, localConfiguration->stationslug, localConfiguration->board_master.boardslug);
   error = tlsSetPskIdentity(tlsContext, MqttClientPSKIdentity);
   //Any error to report?
   if(error)
     return error;
 
   //Set the pre-shared key to be used
-  error = tlsSetPsk(tlsContext, MqttClientPSKKey, CLIENT_PSK_KEY_LENGTH);
+  error = tlsSetPsk(tlsContext, localConfiguration->client_psk_key, CLIENT_PSK_KEY_LENGTH);
   //Any error to report?
   if(error)
     return error;

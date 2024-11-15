@@ -1,0 +1,6 @@
+# Time leaf (sec)
+# fattore scala x1
+# MAX 12h (sec)
+uint16 MAX = 43200
+uint16 value
+@sealed
