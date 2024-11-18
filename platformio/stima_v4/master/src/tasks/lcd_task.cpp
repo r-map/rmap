@@ -509,6 +509,10 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         value_display_A = param.system_status->data_slave[channel].data_value[0];
         if ((value_display_A < MIN_VALID_RADIATION) || (value_display_A > MAX_VALID_RADIATION)) bMeasValid_A = false;
         break;
+      case Module_Type::leaf:
+        value_display_A = param.system_status->data_slave[channel].data_value[0];
+        if ((value_display_A < MIN_VALID_LEAF) || (value_display_A > MAX_VALID_LEAF)) bMeasValid_A = false;
+        break;
       case Module_Type::level:
         value_display_A = param.system_status->data_slave[channel].data_value[0];
         if ((value_display_A < MIN_VALID_LEVEL) || (value_display_A > MAX_VALID_LEVEL)) bMeasValid_A = false;
@@ -828,6 +832,9 @@ void LCDTask::display_print_main_interface(void) {
               break;
           case Module_Type::level:
               strcat(errors, "level ");
+              break;
+          case Module_Type::leaf:
+              strcat(errors, "leaf ");
               break;
           case Module_Type::vwc:
               strcat(errors, "vwc ");

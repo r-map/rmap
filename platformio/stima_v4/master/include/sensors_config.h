@@ -215,6 +215,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_WIND_SENSORS                      (USE_SENSOR_DWA + USE_SENSOR_DWB + USE_SENSOR_DWC + USE_SENSOR_DWD + USE_SENSOR_DWE + USE_SENSOR_DWF)
 #define USE_POWER_MPPT_SENSORS                (USE_SENSOR_DEP)
 #define USE_LEVEL_SENSOR                      (USE_SENSOR_LVM)
+#define USE_LEAF_SENSOR                       (USE_SENSOR_LWT)
 
 #if (USE_TH_SENSORS && (USE_RAIN_SENSORS == 0))
 #define USE_MODULE_TH                         (true)
@@ -230,6 +231,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define USE_MODULE_POWER_MPPT                 (true)
 #elif (USE_LEVEL_SENSOR)
 #define USE_MODULE_LEVEL                      (true)
+#elif (USE_LEAF_SENSOR)
+#define USE_MODULE_LEAF                       (true)
 #endif
 
 /// @brief Max count of all used sensor.

@@ -438,6 +438,7 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           case STIMA_MODULE_TYPE_TH:
           case STIMA_MODULE_TYPE_WIND:
           case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+          case STIMA_MODULE_TYPE_LEAF:
           case STIMA_MODULE_TYPE_LEVEL:
           case STIMA_MODULE_TYPE_POWER_MPPT:
             // Set module index (defualt START from 0xFF to point 0 index at start)
@@ -492,6 +493,9 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
             break;
           case STIMA_MODULE_TYPE_SOLAR_RADIATION:
             param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_RADIATION;
+            break;
+          case STIMA_MODULE_TYPE_LEAF:
+            param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_LEAF;
             break;
           case STIMA_MODULE_TYPE_LEVEL:
             param.configuration->board_slave[slaveId].can_port_id = PORT_RMAP_LEVEL;
@@ -558,6 +562,14 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           break;
         case Module_Type::radiation:
           if(strcmp(subject, "node.rad") == 0) {
+            param.configurationLock->Take();
+            param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
+            param.configurationLock->Give();
+          }
+          else error_command = true;
+          break;
+        case Module_Type::leaf:
+          if(strcmp(subject, "node.leaf") == 0) {
             param.configurationLock->Take();
             param.configuration->board_slave[slaveId].can_publish_id = it.value().as<unsigned int>();
             param.configurationLock->Give();
@@ -680,6 +692,12 @@ int RegisterRPC::configure(JsonObject params, JsonObject result)
           case Module_Type::radiation:
             if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_DSA) == 0) {
               sensorId = SENSOR_METADATA_DSA;
+            }
+            else error_command = true;
+            break;
+          case Module_Type::leaf:
+            if (strcmp(it.value().as<const char *>(), STIMA_RPC_SENSOR_NAME_BFT) == 0) {
+              sensorId = SENSOR_METADATA_BFT;
             }
             else error_command = true;
             break;

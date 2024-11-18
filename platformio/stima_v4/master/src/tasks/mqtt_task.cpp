@@ -138,6 +138,7 @@ void MqttTask::Run()
   rmap_service_module_TH_Response_1_0 *rmapDataTH;
   rmap_service_module_Rain_Response_1_0 *rmapDataRain;
   rmap_service_module_Radiation_Response_1_0 *rmapDataRadiation;
+  rmap_service_module_Leaf_Response_1_0 *rmapDataLeaf;
   rmap_service_module_RiverLevel_Response_1_0 *rmapDataLevel;
   rmap_service_module_Wind_Response_1_0 *rmapDataWind;
   rmap_service_module_VWC_Response_1_0 *rmapDataVWC;
@@ -694,6 +695,42 @@ void MqttTask::Run()
                     if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DSA])
                     {
                       error = publishSensorRadiation(&mqttClientContext, qos, rmapDataRadiation->DSA, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
+                    }
+
+                    if (error)
+                    {
+                      // Connection to MQTT server lost data?
+                      state = MQTT_STATE_DISCONNECT_LOST_DATA;
+                      TRACE_ERROR_F(F("MQTT_STATE_PUBLISH (Error) -> MQTT_STATE_DISCONNECT_LOST_DATA\r\n"));
+                      break;
+                    }
+                    else
+                    {
+                      // Executed publishing of line data
+                      param.systemStatusLock->Take();
+                      param.system_status->connection.is_mqtt_publishing = true;
+                      param.system_status->connection.mqtt_data_published++;
+                      param.systemStatusLock->Give();
+                    }
+                    break;
+                  }
+                }
+
+                break;
+              case Module_Type::leaf:
+                rmapDataLeaf = (rmap_service_module_Leaf_Response_1_0 *)rmap_get_response.rmap_data.block;
+                #if (ENABLE_STACK_USAGE)
+                TaskMonitorStack();
+                #endif
+
+                // check if the sensor was configured or not
+                for (uint8_t slaveId = 0; slaveId < BOARDS_COUNT_MAX; slaveId++)
+                {
+                  if (param.configuration->board_slave[slaveId].module_type == Module_Type::leaf)
+                  {
+                    if (!error && param.configuration->board_slave[slaveId].is_configured[SENSOR_METADATA_DSA])
+                    {
+                      error = publishSensorLeaf(&mqttClientContext, qos, rmapDataLeaf->BFT, rmap_date_time_val, param.configuration, topic, sizeof(topic), sensors_topic, sizeof(sensors_topic), message, sizeof(message));
                     }
 
                     if (error)
@@ -1899,6 +1936,127 @@ error_t MqttTask::publishSensorRadiation(MqttClientContext *context, MqttQosLeve
   }
 
   // publish radiation value
+  do
+  {
+    TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);
+    error = mqttClientPublish(context, topic, message, strlen(message), qos, false, NULL);
+    TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+    if (error)
+    {
+      error_count++;
+    }
+    TaskWatchDog(MQTT_TASK_PUBLISH_DELAY_MS);
+    Delay(Ticks::MsToTicks(MQTT_TASK_PUBLISH_DELAY_MS));
+  } while (error && (error_count < MQTT_TASK_PUBLISH_RETRY));
+  TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, message, error ? ERROR_STRING : OK_STRING);
+
+  return error;
+}
+
+/// @brief create mqtt message for leaf value
+/// @param leaf uavcan rmap measurement
+/// @param dateTime datetime value
+/// @param message text of the message
+/// @param message_length length of the message
+/// @return error_t 
+error_t MqttTask::makeSensorMessageLeaf(rmap_measures_Leaf_1_0 leaf, DateTime dateTime, char *message, size_t message_length)
+{
+  error_t error = NO_ERROR;
+  osMemset(message, 0, message_length);
+
+  if (leaf.val.value <= rmap_tableb_B13212_1_0_MAX)
+  {
+    if (snprintf(message, message_length, "{\"v\":%ld,", leaf.val.value) <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+  else
+  {
+    if (snprintf(message, message_length, "{\"v\":null,") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  if (!error)
+  {
+    error = makeDate(dateTime, &(message[strlen(message)]), message_length);
+  }
+
+  if (!error)
+  {
+    if (leaf.confidence.value <= rmap_tableb_B33199_1_0_MAX)
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":%u}", leaf.confidence.value) <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+    else
+    {
+      if (snprintf(&(message[strlen(message)]), message_length, "\"a\":{\"B33199\":null}") <= 0)
+      {
+        error = ERROR_FAILURE;
+      }
+    }
+  }
+
+  if (!error)
+  {
+    if (snprintf(&(message[strlen(message)]), message_length, "}") <= 0)
+    {
+      error = ERROR_FAILURE;
+    }
+  }
+
+  return error;
+}
+
+/// @brief Publish radiation sensor
+/// @param context mqtt client context
+/// @param qos mqtt Qos level
+/// @param sensor uavcan sensor 
+/// @param dateTime datetime 
+/// @param configuration struct of configuration
+/// @param topic string of the topic
+/// @param topic_length length of the topic
+/// @param sensors_topic string of sensor topic
+/// @param sensors_topic_length length of sensor topic
+/// @param message string of message
+/// @param message_length length of message
+/// @return error_t
+error_t MqttTask::publishSensorLeaf(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Leaf_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length)
+{
+  uint8_t error_count;
+  error_t error = NO_ERROR;
+
+  // ----------------------------------------------------------------------------
+  // Leaf
+  // ----------------------------------------------------------------------------
+  // make leaf topic
+  error = makeSensorTopic(sensor.metadata, "B13212", sensors_topic, sensors_topic_length);
+  // make leaf message
+  if (!error)
+  {
+    error = makeSensorMessageLeaf(sensor.leaf, dateTime, message, message_length);
+  }
+  // make common topic
+  if (!error)
+  {
+    error = makeCommonTopic(configuration, topic, sensors_topic, topic_length);
+  }
+
+  // Prevents attempts to transmit other data after an error
+  if (error) return error;
+  error_count = 0;
+
+  // Saving Data Backup Older Data Format (if SD Card Ready...)
+  if ((!error)&&(param.system_status->flags.sd_card_ready)) {
+    putRmapBackupArchiveData(dateTime, sensors_topic, message);
+  }
+
+  // publish leaf value
   do
   {
     TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_PUBLISH);

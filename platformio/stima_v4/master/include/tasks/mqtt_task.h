@@ -93,6 +93,8 @@
 #include <rmap/service/_module/Power_1_0.h>
 #include <rmap/_module/Radiation_1_0.h>
 #include <rmap/service/_module/Radiation_1_0.h>
+#include <rmap/_module/Leaf_1_0.h>
+#include <rmap/service/_module/Leaf_1_0.h>
 #include <rmap/_module/RiverLevel_1_0.h>
 #include <rmap/service/_module/RiverLevel_1_0.h>
 #include <rmap/_module/VWC_1_0.h>
@@ -285,6 +287,9 @@ private:
 
   error_t publishSensorRadiation(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Radiation_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length);
   error_t makeSensorMessageRadiation(rmap_measures_Radiation_1_0 radiation, DateTime dateTime, char *message, size_t message_length);
+  
+  error_t publishSensorLeaf(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_Leaf_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length);
+  error_t makeSensorMessageLeaf(rmap_measures_Leaf_1_0 leaf, DateTime dateTime, char *message, size_t message_length);
   
   error_t publishSensorLevel(MqttClientContext *context, MqttQosLevel qos, rmap_sensors_RiverLevel_1_0 sensor, DateTime dateTime, configuration_t *configuration, char *topic, size_t topic_length, char *sensors_topic, size_t sensors_topic_length, char *message, size_t message_length);
   error_t makeSensorMessageLevel(rmap_measures_RiverLevel_1_0 level, DateTime dateTime, char *message, size_t message_length);

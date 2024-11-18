@@ -55,6 +55,8 @@
 #include <rmap/service/_module/Power_1_0.h>
 #include <rmap/_module/Radiation_1_0.h>
 #include <rmap/service/_module/Radiation_1_0.h>
+#include <rmap/_module/Leaf_1_0.h>
+#include <rmap/service/_module/Leaf_1_0.h>
 #include <rmap/_module/RiverLevel_1_0.h>
 #include <rmap/service/_module/RiverLevel_1_0.h>
 #include <rmap/_module/VWC_1_0.h>
