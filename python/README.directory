@@ -1,0 +1,85 @@
+amatyr
+	obsolete django project to visualize one station data
+
+app_dist
+	project linked only to rmap monolitic package used to build
+	separate packages
+
+borinud
+	django app for standard web services following RMAP specification
+
+borinud_sos
+	incomplete django app for standard web services following
+	SOS specification
+
+contacts
+	django app for site contacts
+
+data
+	data for android app
+
+doc
+	data model graphic documentation
+
+firmware_updater
+	django app for firmware updater Stimawifi station
+
+firmware_updater_stima
+	django app for firmware updater Stima V4 station
+
+geoid_heighs
+	geoid heighs sqlite DB used by android app with GPS
+
+geoimage
+	django app for georeferced images
+
+global_static
+	static files used by django apps (not only one)
+
+graphite-dballe
+	graphite django app adapted to RMAP
+
+http2mqtt
+	django app web service api simple version alternative to mqtt publish
+
+insertdata
+	django app for manual data providers
+
+kivy_garden
+	local garden for android app
+
+locale
+	localization files
+
+oscpy
+	module for OpenSoundControl is an UDP based network protocol
+	used in android app
+
+rainbow
+	django app serving rainbo site personalization
+
+rmap
+	rmap main django app amd modules
+
+rpc
+	django app for remote procedure call
+
+service
+	service for android app
+
+showdata
+	django app for graphical rapresentation of data
+	as spatial view and timeseries view
+
+test
+	some test scripts
+
+testdata
+	data used as sample data
+
+test
+	python tests to be implemented
+
+ticket
+	ticket prototype django app
+

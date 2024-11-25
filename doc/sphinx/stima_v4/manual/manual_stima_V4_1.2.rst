@@ -1,11 +1,9 @@
 Manuale d'uso e manutenzione
 ****************************
 
-Versione pdf :download:`pdf <manual_stima_V4_1.2.pdf>`
-
-Versione open documet :download:`odt <manual_stima_V4_1.2.odt>`
-
-Versione docx :download:`odt <manual_stima_V4_1.2.docx>`
+* Versione pdf :download:`pdf <manual_stima_V4_1.2.pdf>`
+* Versione open documet :download:`odt <manual_stima_V4_1.2.odt>`
+* Versione docx :download:`docx <manual_stima_V4_1.2.docx>`
 
 
 

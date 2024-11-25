@@ -1,0 +1,54 @@
+arduino
+	obsolete library and formware for arduino SDK
+
+arpae_aq_ckan_to_bufr
+	getter and importer from ARPAE ckan db for air quality data
+
+doc
+	documentation source
+
+fritzing
+	simple schematic and PCB for fritzing EDA
+
+kicad
+	all Stima schematic and PCB for Kicad
+
+luftdaten_to_bufr
+	getter and importer from luftdaten DB
+
+mqtt2bufr
+	mqtt to bufr and vice versa following RMAP specification
+
+pic
+	obsolete firmware for i2c-power pic version
+
+pipe2dba
+	osolete importer from pipe
+
+platformio
+	all Stima firmware project for platformio
+
+python
+	python source code for RMAP server and tools
+
+rabbitmq
+	saved configuration for rabbitmq broker
+
+raspberry
+	obsolete software for Stima base raspberry version
+
+rpm
+	rpm spec files to be updated
+
+server
+	configuration files for RMAP server full version
+	(changed from default installation)
+
+server-backend
+	configuration files for RMAP server backend only  version
+	(changed from default installation)
+
+server-data-ingestion
+	configuration files for RMAP server data-ingestion only  version
+	(changed from default installation)
+

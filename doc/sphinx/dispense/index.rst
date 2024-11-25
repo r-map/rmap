@@ -12,3 +12,9 @@ Dispense
    
 * :ref:`genindex`
 * :ref:`search`
+
+Presentazione
+"""""""""""""
+
+* Presentazione generale in pdf :download:`pdf <presentazione_totale.pdf>`
+* Presentazione generale come presentazione  :download:`odp <presentazione_totale.odp>`

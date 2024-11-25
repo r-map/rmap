@@ -1,6 +1,21 @@
 Stima WiFi V3
 =============
 
+* Citizen Science // Progetto RMAP // La Stazione STiMA
+  
+  - Versione pdf :download:`pdf <stimawifi_intro.pdf>`
+  - Versione open documet :download:`odp <stimawifi_intro.odp>`
+
+* Stazione Stima // Hardware // Sensori
+  
+  - Versione pdf :download:`pdf <stimawifi_hardware.pdf>`
+  - Versione open documet :download:`odp <stimawifi_hardware.odp>`
+    
+* Configurazione // Firmware + Software // Python + Json // NodeRed
+  
+  - Versione pdf :download:`pdf <stimawifi_programming.pdf>`
+  - Versione open documet :download:`odp <stimawifi_programming.odp>`
+
 
 Introduzione
 ------------
@@ -20,6 +35,8 @@ analizzati, lo scopo ed i criteri di messa in opera sono molto
 differenti.  Il kit di autocostruzione è progettato per poter essere
 assemblato senza richiedere particolari capacità o competenze, giusto
 un po’ di attenzione e manualità.
+
+.. image:: stimawifi.png
 
 Messa in opera della stazione
 -----------------------------
@@ -368,6 +385,8 @@ protetto dalle intemperie secondi gli standard vigenti.
 
 Installazione schermo solare e sensore temperatura
 --------------------------------------------------
+
+.. image:: schermo.png
 
 Ancora da scrivere
 ^^^^^^^^^^^^^^^^^^
