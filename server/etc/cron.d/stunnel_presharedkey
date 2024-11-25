@@ -2,6 +2,4 @@
 
 MAILTO=root
 
-45 03 * * *  root /usr/bin/rmapctrl --exportmqttpsk > /etc/stunnel/file.psk; /bin/systemctl restart stunnel.service
-
-
+45 03 * * *  root /usr/bin/rmapctrl --exportmqttpsk > /etc/stunnel/file.psk.new; cmp /etc/stunnel/file.psk /etc/stunnel/file.psk.new; if [ $? -ne 0 ]; then echo "stunnel restart"; mv -f /etc/stunnel/file.psk.new /etc/stunnel/file.psk; /bin/systemctl restart stunnel.service; fi
