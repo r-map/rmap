@@ -230,7 +230,7 @@ class  mydaemon(daemon.Daemon):
         op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
         op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
         op.add_option("-v", "--rmapversion",dest="rmapversion", help="RMAP MQTT version (v0/v1) (default %default)", default="v0")
-        op.add_option("-u", "--nouserasident",dest="userasident", action="store_false", help="use user as ident for fixed station too (False for the new functionality) (default %default <legacy mode>)", default=True)
+        op.add_option("-u", "--nouserasident",dest="userasident", action="store_false", help="do not use user as ident for fixed station too (default use ident)", default=True)
         #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
         return op 	  				 
 
