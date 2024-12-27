@@ -37,6 +37,8 @@
 #include "critical.hpp"
 #include "semaphore.hpp"
 #include "SD.h"
+#include <SdFat.h>
+//#include <ArduinoLog.h>
 #include <StreamUtils.h>
 #include <DS1307RTC.h>
 #include <esp_task_wdt.h>

@@ -87,6 +87,16 @@ lo stato di funzionamento. Il thread loop di arduino effettua una
 sintesi degli stati di tutti i thread e li visualizza tramite i
 colori del LED e tramite il display opzionale.
 
+Per archiviare i dati è necessario avere un corretto timestamp.
+Data e ora possono essere impostati tramite:
+* NTP
+* GPS
+* UDP
+
+Se presente un RTC locale (DS1307) data e ora sono impostate sull'RTC
+automaticamente con uno dei metodi precedenti e poi se tutti i metodi
+precedenti non sono più disponibili riletti dall'RTC.
+
 Threads:
 
   thread loop arduino
@@ -942,7 +952,7 @@ void setup() {
   #include "soc/rtc_cntl_reg.h"
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable Brownout detector
   */
-
+  
   // Initialize GPIO, library and sensors
   pinMode(RESET_PIN, INPUT_PULLUP);
   
@@ -950,12 +960,22 @@ void setup() {
   pixels.clear();            // Turn OFF all pixels ASAP
   pixels.setBrightness(125); // Set BRIGHTNESS (max = 255)
   
+  /*
   pinMode(PMS_RESET, OUTPUT);
   //reset pin for sensor
   digitalWrite(PMS_RESET,LOW); // reset low
   delay(500);
   digitalWrite(PMS_RESET,HIGH);
+  */
+  
+  Wire.begin();
+  //Wire.begin(SDA_PIN,SCL_PIN);
+  Wire.setClock(I2C_BUS_CLOCK);
 
+  //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
+  Serial.begin(115200);
+  //Serial.setDebugOutput(true);
+  
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   bool reset=digitalRead(RESET_PIN) == LOW;
   if (button.get() == 0)
@@ -963,14 +983,43 @@ void setup() {
     if (button.BUTTON_A)
     {
       //String keyString[] = {"None", "Press", "Long Press", "Double Press", "Hold"};
-      //frtosLog.notice(F("BUTTON A: %s"),keyString[button.BUTTON_A].c_str());
+      //Serial.print(F("BUTTON A: "));
+      //Serial.println(keyString[button.BUTTON_A]);
       if (button.BUTTON_A == KEY_VALUE_HOLD) reset=true;
     }
   }
 
-  //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
-  Serial.begin(115200);
-  //Serial.setDebugOutput(true);
+  if (reset) {
+
+    Serial.println(F("Try to reformat SD card."));
+    SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+
+    // SdCardFactory constructs and initializes the appropriate card.
+    SdCardFactory cardFactory;
+    ExFatFormatter exFatFormatter;
+    FatFormatter fatFormatter;
+    #define SD_CONFIG SdSpiConfig(C3SS, DEDICATED_SPI)
+    uint8_t  sectorBuffer[512];
+    SdCard* m_card = cardFactory.newCard(SD_CONFIG);
+    if (!m_card || m_card->errorCode()){
+      Serial.println(F("Error: card init failed."));
+    }else{
+      uint32_t cardSectorCount = m_card->sectorCount();
+      if (!cardSectorCount){
+	Serial.println(F("Error: get sector count failed."));
+      }else{
+	// Format exFAT if larger than 32GB.
+	bool rtn = cardSectorCount > 67108864
+	  ? exFatFormatter.format(m_card, sectorBuffer, &Serial)
+	  : fatFormatter.format(m_card, sectorBuffer, &Serial);
+	
+	if (rtn){
+	  Serial.println(F("OK SD card formatted."));
+	}
+      }
+    }
+  }
+    
 
   // if loggin on SDcard is enabled initialize SDcard
   // initialize logging
@@ -994,8 +1043,10 @@ void setup() {
     if (logFile) {
       //logFile.seekEnd(0);
       frtosLog.begin(LOG_LEVEL, &loggingStream,loggingmutex);
-    } else {
+      //Log.begin(LOG_LEVEL_VERBOSE, &loggingStream);
+  } else {
       frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
+      //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
       frtosLog.error(F("logging begin with sdcard\n"));
     }
   }
@@ -1008,6 +1059,7 @@ void setup() {
 
   // set runtime log level to the same of compile time
   frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
+  //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 #endif
   
   frtosLog.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
@@ -1017,10 +1069,6 @@ void setup() {
 
   httpClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   
-  Wire.begin();
-  //Wire.begin(SDA_PIN,SCL_PIN);
-  Wire.setClock(I2C_BUS_CLOCK);
-
   // check return value of
   // the Write.endTransmisstion to see if
   // a device did acknowledge to the address.
@@ -1063,7 +1111,7 @@ void setup() {
       u8g2.setCursor(0, 2*CH); 
       u8g2.print(F("Reset wifi"));
       u8g2.setCursor(0, 3*CH); 
-      u8g2.print(F("configuration"));
+      u8g2.print(F("Reset conf"));
       u8g2.sendBuffer();
       delay(3000);
     }
@@ -1373,7 +1421,7 @@ void setup() {
   }else{
     reboottime=3600*24*7;                                      // we reset everythings one time a week
   }
-  frtosLog.notice(F("reboot every: %d"),reboottime);
+  frtosLog.notice(F("reboot every: %l"),reboottime);
   Alarm.timerRepeat(reboottime,reboot);                        // timer for reboot
 
   // upgrade firmware
