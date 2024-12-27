@@ -869,6 +869,7 @@ protected:
    enum {
       INIT,
       READ,
+      CHECK_STATUS,
       END
    } _get_state;
 

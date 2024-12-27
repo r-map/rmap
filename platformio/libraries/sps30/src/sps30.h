@@ -20,9 +20,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  **********************************************************************
- * Version 1.1 / August 2019
- * Simplified for RMAP and no blocking use
- *
  * Version 1.0   / January 2019
  * - Initial version by paulvha
  *
@@ -42,14 +39,113 @@
  *
  * version 1.3.2 / May 2019
  * - added support to detect SAMD I2C buffer size
+ *
+ * Version 1.3.6 / October 2019
+ * - fixed I2C_Max_bytes () error when I2C is excluded
+ * - improve receive buffer checks larger than 3 bytes
+ *
+ * Version 1.3.7 / December 2019
+ *  - fixed ESP32 serial connection / flushing
+ *
+ * version 1.3.8 / January 2020
+ *  - optimized the fix from October 2019 for I2C max bytes
+ *
+ * version 1.3.9 / February 2020
+ *  - optimized autodetection for SAMD SERCOM and ESP32 to undef softwareSerial
+ *  - removed to typedef warnings
+ *
+ * version 1.3.10 / April 2020
+ *  - changed debug message handling
+ *  - added DEBUGSERIAL to define the Serial port for messages
+ *  - some typo's and cosmetic update
+ *  - still backward compatible with earlier sketches
+ *
+ * version 1.4  / April 2020
+ *  - Based on the new SPS30 datasheet (March 2020) a number of functions
+ *    are added or updated. Some are depending on the new firmware.
+ *  - Added sleep() and wakeup(). Requires firmware 2.0
+ *  - Added GetVersion() to obtain the current firmware / hardware info
+ *  - Added GetStatusReg() to obtain SPS30 status information. Requires firmware 2.2
+ *  - Added structure SPS30_version for GetVersion
+ *  - Added internal function to check on correct firmware level
+ *  - Added INCLUDE_FWCHECK in SPS30.h to enable /disable check.
+ *  - Changed probe() to obtain firmware levels instead of serial number.
+ *  - Changed on how to obtaining product-type
+ *  - Depreciated GetArticleCode(). Still supporting backward compatibility
+ *  - Update the example sketches to include version levels
+ *  - Added example11 for sleep(), wakeup() and GetStatusreg()
+ *  - Update to documentation
+ *  - Added the new datasheet in extras-folder
+ *
+ * version 1.4.1  / May 2020
+ *  - fixed issue in setOpmode() when NO UART is available.
+ *  - added setOpmode() to exclude in small footprint
+ *
+ * version 1.4.2  / May 2020
+ *  - added NANO 33 IOT board  = SAMD21G18A (addition from Firepoo)
+ *  - added option to select in sketch any serial or wire channel to use (many user requests)
+ *  - added example12 and example13 sketches to demonstrate any channel selection option
+ *
+ * version 1.4.3 / June 2020
+ *  - update to I2C_WAKEUP code
+ *
+ * version 1.4.4 / July 2020
+ *  - added embedded support for Arduino Due
+ *  - As I now have a SPS30 firmware level 2.2 to test, corrected GetStatusReg() and SetOpMode()
+ *  - changed Example11 to demonstrate reading status register only
+ *  - added Example14 to demonstrate sleep and wakeup function.
+ *
+ * version 1.4.5 / August 2020
+ *  - added example20 for connecting multiple SPS30 (5!) to single board
+ *  - updated sps30.odt around multiple SPS30 connected to Mega2560, DUE and ESP32
+ *
+ * version 1.4.6 / September 2020
+ *  - corrected return code in instruct()
+ *
+ * version 1.4.7 / September 2020
+ *  - corrected another return code in instruct()
+ *
+ * version 1.4.8 / October 2020
+ *  - added support for Artemis / Apollo3 for SoftwareSerial detection
+ *  - added check on return code in GetStatusReg()
+ *  - added setClock() for I2C as the Artemis/Apollo3 is standard 400K
+ *  - added flushing in case of Checkzero() (problem in Artemis)
+ *
+ * version 1.4.9 / December 2020
+ *  - autodetection for Nano BLE 33 to undef SoftwareSerial
+ *
+ * version 1.4.10 / February 2021
+ *  - Fixed typos in autodetection for Nano BLE 33 / Apollo3 for SoftwareSerial detection
+ *
+ * version 1.4.11 / July 2021
+ *  - fixed error handling in Getvalues()
+ *
+ * version 1.4.15 / January 2023
+ *  - autodetection for Nano MBED i2C size (needed for NANO BLE 33 and nRF52480)
+ *
+ * Version 1.4.16 / January 2023
+ *  - fixed error Serial2 is not defined by default anymore ESP32C3 over Espressif 5.0.0 and also over Espressif 6.0.0
+ *
+ * Version 1.4.17 / October 2023
+ *  - added support for UNO-R4 WIFI in SERIALPORT1
+ *  - added support (adding reset delay) for UNO-R4 WIFI / MINIMA on I2C
+ *
+ * Version 1.4.rmap / Dicember 2024
+ * Simplified for RMAP and no blocking use
+ *
  *********************************************************************
 */
 #ifndef SPS30_H
 #define SPS30_H
 
 #include "config.h"
+#define byte uint8_t
 
-#include "Arduino.h"                // Needed for Stream
+/**
+ * library version levels
+ */
+#define DRIVER_MAJOR 1
+#define DRIVER_MINOR 4
 
 #ifndef USEARDUINOLOGLIB
 #define SPS30LOGV(x, ...)
@@ -62,13 +158,13 @@
 
 #if defined INCLUDE_I2C
 
-    #if defined SOFTI2C_ESP32       // in case of SCD30
+    #if defined SOFTI2C_ESP32       // in case of use in combination with SCD30
         #include <SoftWire/SoftWire.h>
     #else
         #include "Wire.h"           // for I2c
     #endif
 
-    /* Version 1.3.0
+    /** Version 1.3.0
      *
      * The read results is depending on the Wire / I2c buffer size, defined in Wire.h.
      *
@@ -89,7 +185,7 @@
         #define I2C_LENGTH  BUFFER_LENGTH
     #endif
 
-    #if defined I2C_BUFFER_LENGTH       // ESP32
+    #if defined I2C_BUFFER_LENGTH       // ESP32 & UNO-R4(255) - 1.4.17
         #undef  I2C_LENGTH
         #define I2C_LENGTH  I2C_BUFFER_LENGTH
     #endif
@@ -118,21 +214,30 @@
 /**
  *  The communication it can be :
  *   I2C_COMMS              use I2C communication
- *   SERIALPORT             use UART communication
- *   NONE_COMMS             No port defined
+ *   SOFTWARE_SERIAL        Arduino variants and ESP8266 (On ESP32 software Serial is NOT very stable)
+ *   SERIALPORT             ONLY IF there is NO monitor attached
+ *   SERIALPORT1            Arduino MEGA2560, 32U4, UNO-R4-WIFI,Sparkfun ESP32 Thing : MUST define new pins as defaults are used for flash memory)
+ *   SERIALPORT2            Arduino MEGA2560, Due and ESP32 (NOT ESP32C3 + Espressif version 5.0.0 and higher)
+ *   SERIALPORT3            Arduino MEGA2560 and Due only for now
+ *   NONE                   No port defined
  *
  * Softserial has been left in as an option, but as the SPS30 is only
- * working on 115K the connection will probably NOT work on any device.
+ * working on 115K the connection will probably NOT work on most devices.
  */
+
 enum serial_port {
-			  NONE_COMMS = 0,
-			  I2C_COMMS = 1,
-			  SERIALPORT = 2
+    I2C_COMMS = 0,
+    SOFTWARE_SERIAL = 1,
+    SERIALPORT = 2,
+    SERIALPORT1 = 3,
+    SERIALPORT2 = 4,
+    SERIALPORT3 = 5,
+    COMM_TYPE_SERIAL = 6,      // added 1.4.2
+    NONE = 6
 };
 
 /* structure to return all values */
-struct sps_values
-{
+struct sps_values {
     float   MassPM1;        // Mass Concentration PM1.0 [μg/m3]
     float   MassPM2;        // Mass Concentration PM2.5 [μg/m3]
     float   MassPM4;        // Mass Concentration PM4.0 [μg/m3]
@@ -159,6 +264,18 @@ struct sps_values
    */
 };
 
+/* used to get single value */
+#define v_MassPM1 1
+#define v_MassPM2 2
+#define v_MassPM4 3
+#define v_MassPM10 4
+#define v_NumPM0 5
+#define v_NumPM1 6
+#define v_NumPM2 7
+#define v_NumPM4 8
+#define v_NumPM10 9
+#define v_PartSize 10
+
 /* needed for conversion float IEE754 */
 typedef union {
     byte array[4];
@@ -173,40 +290,72 @@ typedef union {
 
 /*************************************************************/
 /* error codes */
-#define SPS30ERR_OK          0x00
-#define SPS30ERR_DATALENGTH  0X01
-#define SPS30ERR_UNKNOWNCMD  0x02
-#define SPS30ERR_ACCESSRIGHT 0x03
-#define SPS30ERR_PARAMETER   0x04
-#define SPS30ERR_OUTOFRANGE  0x28
-#define SPS30ERR_CMDSTATE    0x43
-#define SPS30ERR_TIMEOUT     0x50
-#define SPS30ERR_PROTOCOL    0x51
+#define SPS30_ERR_OK          0x00
+#define SPS30_ERR_DATALENGTH  0X01
+#define SPS30_ERR_UNKNOWNCMD  0x02
+#define SPS30_ERR_ACCESSRIGHT 0x03
+#define SPS30_ERR_PARAMETER   0x04
+#define SPS30_ERR_OUTOFRANGE  0x28
+#define SPS30_ERR_CMDSTATE    0x43
+#define SPS30_ERR_TIMEOUT     0x50
+#define SPS30_ERR_PROTOCOL    0x51
+#define SPS30_ERR_FIRMWARE    0x88        // added version 1.4
 
+/* Receive buffer length. Expected is 40 bytes max
+ * but you never know in the future.. */
+#if defined SMALLFOOTPRINT
+#define MAXRECVBUFLENGTH 50         // for light boards
 
-#if not defined SMALLFOOTPRINT
+#else
+#define MAXRECVBUFLENGTH 128
 
-typedef struct Description {
+struct Description {
     uint8_t code;
     char    desc[80];
 };
+#endif
 
-/* error descripton */
-struct Description ERR_desc[10] =
-{
-  {SPS30ERR_OK, "All good"},
-  {SPS30ERR_DATALENGTH, "Wrong data length for this command (too much or little data)"},
-  {SPS30ERR_UNKNOWNCMD, "Unknown command"},
-  {SPS30ERR_ACCESSRIGHT, "No access right for command"},
-  {SPS30ERR_PARAMETER, "Illegal command parameter or parameter out of allowed range"},
-  {SPS30ERR_OUTOFRANGE, "Internal function argument out of range"},
-  {SPS30ERR_CMDSTATE, "Command not allowed in current state"},
-  {SPS30ERR_TIMEOUT, "No response received within timeout period"},
-  {SPS30ERR_PROTOCOL, "Protocol error"},
-  {0xff, "Unknown Error"}
+/**
+ * added version 1.4
+ *
+ * New call was explained to obtain the version levels
+ * datasheet SPS30 March 2020, page 14
+ *
+ */
+struct SPS30_version {
+    uint8_t major;                  // Firmware level
+    uint8_t minor;
+    uint8_t HW_version;             // zero on I2C
+    uint8_t SHDLC_major;            // zero on I2C
+    uint8_t SHDLC_minor;            // zero on I2C
+    uint8_t DRV_major;
+    uint8_t DRV_minor;
 };
-#endif // SMALLFOOTPRINT
 
+/**
+ * added version 1.4
+ *
+ * Status register result
+ *
+ * REQUIRES FIRMWARE LEVEL 2.2
+ */
+enum SPS_status {
+    STATUS_OK = 0,
+    STATUS_SPEED_ERROR = 1,
+    STATUS_LASER_ERROR = 2,
+    STATUS_FAN_ERROR = 4
+};
+
+/**
+ * added version 1.4
+ *
+ * Measurement can be done in FLOAR or unsigned 16bits
+ * page 6 datasheet SPS30 page 6.
+ *
+ * This driver only uses float
+ */
+#define START_MEASURE_FLOAT         0X03
+#define START_MEASURE_UNS16         0X05
 
 /* Receive buffer length. Expected is 40 bytes max
  * but you never know in the future.. */
@@ -216,28 +365,34 @@ struct Description ERR_desc[10] =
 //#define MAXRECVBUFLENGTH 128
 //#endif
 
-#define MAXRECVBUFLENGTH 40
+//#define MAXRECVBUFLENGTH 40
 
 /*************************************************************/
 /* SERIAL COMMUNICATION INFORMATION */
 #define SER_START_MEASUREMENT       0x00
 #define SER_STOP_MEASUREMENT        0x01
 #define SER_READ_MEASURED_VALUE     0x03
+#define SER_SLEEP                   0x10        // added 1.4
+#define SER_WAKEUP                  0x11        // added 1.4
 #define SER_START_FAN_CLEANING      0x56
 #define SER_RESET                   0xD3
-
-#define SER_READ_DEVICE_INFO        0xD0    // GENERIC device request
-#define SER_READ_DEVICE_PRODUCT_NAME    0xF1
-#define SER_READ_DEVICE_ARTICLE_CODE    0xF2
-#define SER_READ_DEVICE_SERIAL_NUMBER   0xF3
 
 #define SER_AUTO_CLEANING_INTERVAL  0x80    // Generic autoclean request
 #define SER_READ_AUTO_CLEANING          0x81    // read autoclean
 #define SER_WRITE_AUTO_CLEANING         0x82    // write autoclean
 
+#define SER_READ_DEVICE_INFO        0xD0    // GENERIC device request
+#define SER_READ_DEVICE_PRODUCT_TYPE    0xF0     // CHANGED 1.4
+#define SER_READ_DEVICE_RESERVED1       0xF1     // CHANGED 1.4
+#define SER_READ_DEVICE_RESERVED2       0xF2     // CHANGED 1.4
+#define SER_READ_DEVICE_SERIAL_NUMBER   0xF3
+
+#define SER_READ_VERSION            0xD1         // Added 1.4
+#define SER_READ_STATUS             0xD2         // Added 1.4
+
 #define SHDLC_IND   0x7e                   // header & trailer
 #define TIME_OUT    5000                   // timeout to prevent deadlock read
-#define RX_DELAY_MS 200                    // wait between write and read
+#define RX_DELAY_MS 100                    // wait between write and read
 
 /*************************************************************/
 /* I2C COMMUNICATION INFORMATION  */
@@ -245,11 +400,17 @@ struct Description ERR_desc[10] =
 #define I2C_STOP_MEASUREMENT        0x0104
 #define I2C_READ_DATA_RDY_FLAG      0x0202
 #define I2C_READ_MEASURED_VALUE     0x0300
+#define I2C_SLEEP                   0X1001  // ADDED 1.4
+#define I2C_WAKEUP                  0X1103  // ADDED 1.4 / update 1.4.3
+#define I2C_START_FAN_CLEANING      0x5607
 #define I2C_AUTO_CLEANING_INTERVAL  0x8004
 #define I2C_SET_AUTO_CLEANING_INTERVAL      0x8005
-#define I2C_START_FAN_CLEANING      0x5607
-#define I2C_READ_ARTICLE_CODE       0xD025
+
+#define I2C_READ_PRODUCT_TYPE       0xD002 // CHANGED 1.4
 #define I2C_READ_SERIAL_NUMBER      0xD033
+#define I2C_READ_VERSION            0xD100 // ADDED 1.4
+#define I2C_READ_STATUS_REGISTER    0xD206 // ADDED 1.4
+#define I2C_CLEAR_STATUS_REGISTER   0xD210 // ADDED 1.4 / update 1.4.4
 #define I2C_RESET                   0xD304
 
 #define SPS30_ADDRESS 0x69                 // I2c address
@@ -259,18 +420,34 @@ class SPS30
 {
   public:
 
-#if defined INCLUDE_UART
-    SPS30(Stream *serial=NULL);
-#else
     SPS30(void);
-#endif
+
 
     /**
      * @brief Initialize the communication port
      *
      * @param port : communication channel to be used (see sps30.h)
      */
-    bool begin(serial_port port = I2C_COMMS); //If user doesn't specify I2C will be used
+    bool begin(serial_port port = I2C_COMMS); // If user doesn't specify I2C will be used
+
+    /**
+     * @brief Manual assigment of the serial communication port  added 1.4.2
+     *
+     * @param serialPort: serial communication port to use
+     *
+     * User must have preformed the serialPort.begin(115200) in the sketch.
+     */
+    bool begin(Stream *serialPort);
+    bool begin(Stream &serialPort);
+
+    /**
+     * @brief Manual assigment I2C communication port added 1.4.2
+     *
+     * @param port : I2C communication channel to be used
+     *
+     * User must have preformed the wirePort.begin() in the sketch.
+     */
+    bool begin(TwoWire *wirePort);
 
     /**
      * @brief : Perform SPS-30 instructions
@@ -280,6 +457,14 @@ class SPS30
     bool start() {return(Instruct(SER_START_MEASUREMENT));}
     bool stop() {return(Instruct(SER_STOP_MEASUREMENT));}
     bool clean() {return(Instruct(SER_START_FAN_CLEANING));}
+
+    /**
+     * Added 1.4
+     * @brief Set SPS30 to sleep or wakeup
+     * Requires Firmwarelevel 2.0
+     */
+    uint8_t sleep() {return(SetOpMode(SER_SLEEP));}
+    uint8_t wakeup(){return(SetOpMode(SER_WAKEUP));}
 
     /**
      * @brief : Set or get Auto Clean interval
@@ -294,15 +479,64 @@ class SPS30
 
     /**
      * @brief : retrieve device information from the SPS-30
+     *
+     * On none of the device so far Article code and Product name are
+     * available.
      */
     uint8_t GetSerialNumber(char *ser, uint8_t len) {return(Get_Device_info( SER_READ_DEVICE_SERIAL_NUMBER, ser, len));}
-    uint8_t GetArticleCode(char *ser, uint8_t len)  {return(Get_Device_info( SER_READ_DEVICE_ARTICLE_CODE, ser, len));}
-    uint8_t GetProductName(char *ser, uint8_t len)  {return(Get_Device_info(SER_READ_DEVICE_PRODUCT_NAME, ser, len));}
+    uint8_t GetProductName(char *ser, uint8_t len)  {return(Get_Device_info(SER_READ_DEVICE_PRODUCT_TYPE, ser, len));}      // CHANGED 1.4
+
+    /**
+     * CHANGED 1.4
+     * Depreciated in Datasheet March 2020
+     * left for backward compatibility with older sketches
+     */
+    uint8_t GetArticleCode(char *ser, uint8_t len)  {ser[0] = 0x0; return SPS30_ERR_OK;}
+
+    /** ADDED 1.4
+     * @brief : retrieve software/hardware version information from the SPS-30
+     *
+     */
+    uint8_t GetVersion(SPS30_version *v);
+
+    /** ADDED 1.4
+     * @brief : Read Device Status from the SPS-30
+     *
+     * REQUIRES FIRMWARE 2.2
+     * The commands are accepted and positive acknowledged on lower level
+     * firmware, but do not execute.
+     *
+     * @param  *status
+     *  return status as an 'or':
+     *   STATUS_OK = 0,
+     *   STATUS_SPEED_ERROR = 1,
+     *   STATUS_SPEED_CURRENT_ERROR = 2,
+     *   STATUS_FAN_ERROR = 4
+     *
+     * @return
+     *  SPS30_ERR_OK = ok, no isues found
+     *  else SPS30_ERR_OUTOFRANGE, issues found
+     */
+    uint8_t GetStatusReg(uint8_t *status);
 
     /**
      * @brief : retrieve all measurement values from SPS-30
      */
     uint8_t GetValues(struct sps_values *v);
+
+    /**
+     * @brief : retrieve a specific value from the SPS-30
+     */
+    float GetMassPM1()  {return(Get_Single_Value(v_MassPM1));}
+    float GetMassPM2()  {return(Get_Single_Value(v_MassPM2));}
+    float GetMassPM4()  {return(Get_Single_Value(v_MassPM4));}
+    float GetMassPM10() {return(Get_Single_Value(v_MassPM10));}
+    float GetNumPM0()   {return(Get_Single_Value(v_NumPM0));}
+    float GetNumPM1()   {return(Get_Single_Value(v_NumPM1));}
+    float GetNumPM2()   {return(Get_Single_Value(v_NumPM2));}
+    float GetNumPM4()   {return(Get_Single_Value(v_NumPM4));}
+    float GetNumPM10()  {return(Get_Single_Value(v_NumPM10));}
+    float GetPartSize() {return(Get_Single_Value(v_PartSize));}
 
 #if defined INCLUDE_I2C
     /**
@@ -315,6 +549,8 @@ class SPS30
      * 10 = All values are expected to be valid
      */
     uint8_t I2C_expect();
+#else
+    uint8_t I2C_expect() {return 0;}
 #endif
 
   private:
@@ -324,15 +560,23 @@ class SPS30
     uint8_t _Send_BUF[10];
     uint8_t _Receive_BUF_Length;
     uint8_t _Send_BUF_Length;
-    serial_port _Sensor_Comms;  // comunication channel to use
-    bool _started;              // indicate the measurement has started
+
+    serial_port _Sensor_Comms;          // communication channel to use
+    bool _started;                      // indicate the measurement has started
+    bool _sleep;                        // indicate that SPS30 is in sleep (added 1.4)
+    bool _WasStarted;                   // restart if SPS30 was started before setting sleep (added 1.4)
+    uint8_t Reported[11];               // use as cache indicator single value
+    uint8_t _I2C_Max_bytes;
+    uint8_t _FW_Major, _FW_Minor;       // holds firmware major (added 1.4)
 
     /** shared supporting routines */
     uint8_t Get_Device_info(uint8_t type, char *ser, uint8_t len);
     bool Instruct(uint8_t type);
+    uint8_t SetOpMode(uint8_t mode);            // added 1.4
+    bool FWCheck(uint8_t major, uint8_t minor); // added 1.4
     float byte_to_float(int x);
     uint32_t byte_to_U32(int x);
-    uint8_t Serial_RX = 0, Serial_TX = 0; // softserial or Serial1 on ESP32
+    float Get_Single_Value(uint8_t value);
 
 #if defined INCLUDE_UART
     /** UART / serial related */
@@ -353,6 +597,7 @@ class SPS30
 
 #if defined INCLUDE_I2C
     /** I2C communication */
+    TwoWire *_i2cPort;      // holds the I2C port
     void I2C_init();
     void I2C_fill_buffer(uint16_t cmd, uint32_t interval = 0);
     uint8_t I2C_ReadToBuffer(uint8_t count, bool chk_zero);
@@ -360,7 +605,7 @@ class SPS30
     uint8_t I2C_SetPointer();
     bool I2C_Check_data_ready();
     uint8_t I2C_calc_CRC(uint8_t data[2]);
-    uint8_t I2C_Max_bytes;
+
 #endif // INCLUDE_I2C
 
 };

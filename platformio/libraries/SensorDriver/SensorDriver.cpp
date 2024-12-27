@@ -4521,7 +4521,7 @@ void SensorDriverSps::setup() {
 
     if (!_sps30.begin(I2C_COMMS)){
       _error_count++;
-      LOGV(F("SPS probe error"));
+      LOGV(F("SPS begin error"));
       return;
     }
     if (!_sps30.probe()){
@@ -4538,7 +4538,7 @@ void SensorDriverSps::setup() {
     delay(100);
     
     char buf[32];    
-    if (_sps30.GetSerialNumber(buf, 32) != SPS30ERR_OK) {
+    if (_sps30.GetSerialNumber(buf, 32) != SPS30_ERR_OK) {
       _error_count++;
       LOGE(F("SPS GetSerialNumber error [ %s ]"), ERROR_STRING);      
       return;
@@ -4602,10 +4602,10 @@ void SensorDriverSps::get(int32_t *values, uint8_t length, bool is_test) {
     // get data
     // data might not have been ready
 
-    if (_sps30.GetValues(&val) == SPS30ERR_OK){
+    if (_sps30.GetValues(&val) == SPS30_ERR_OK){
       _is_success = true;
       _error_count = 0;
-      _get_state = END;
+      _get_state = CHECK_STATUS;
     } else {
       LOGE(F("sps get read error"));
       _error_count++;
@@ -4614,6 +4614,39 @@ void SensorDriverSps::get(int32_t *values, uint8_t length, bool is_test) {
     }
     _delay_ms = 0;
     _start_time_ms = millis();
+    break;
+
+  case CHECK_STATUS:
+
+    uint8_t st;
+    uint8_t ret;
+    ret = _sps30.GetStatusReg(&st); 
+    if ( ret == SPS30_ERR_OK) {
+      _is_success = true;
+      _error_count = 0;
+    } else if (ret == SPS30_ERR_FIRMWARE) {
+      _is_success = true;
+      _error_count = 0;
+      LOGN(F("sps firmware to old to check status"));
+    } else {
+      LOGE(F("sps get status error"));
+      _error_count++;
+      _is_success = false;
+
+      // a fan failure is only determined after checking each second.
+      if (st & STATUS_SPEED_ERROR)
+	LOGE(F("Fan is turning too fast or too slow"));
+      if (st & STATUS_LASER_ERROR)
+	LOGE(F("Laser failure"));
+      // this error will be displayed at least once after removing the blockage
+      if (st & STATUS_FAN_ERROR)
+	LOGE(F("Fan failure, fan is / was mechanically blocked or broken"));      
+    }
+    
+    _get_state = END;
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
     break;
     
   case END:

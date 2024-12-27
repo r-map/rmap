@@ -1,4 +1,26 @@
 /**
+ * ADDED version 1.4
+ * New firmware levels have been slipped streamed into the SPS30
+ * The datasheet from March 2020 shows added / updated functions on new
+ * firmware level. E.g. sleep(), wakeup(), status register are new
+ *
+ * On serial connection the new functions are accepted and positive
+ * acknowledged on lower level firmware, but execution does not seem
+ * to happen or should be expected.
+ *
+ * On I2C reading Status register gives an error on lower level firmware.
+ * Sleep and wakeup are accepted and positive acknowledged on lower level
+ * firmware, but execution does not seem to happen or should be expected.
+ *
+ * Starting version 1.4 of this driver a firmware level check has been implemented
+ * and in case a function is called that requires a higher level than
+ * on the current SPS30, it will return an error.
+ * By setting INCLUDE_FWCHECK to 0, this check can be disabled
+ */
+#define INCLUDE_FWCHECK 1
+
+
+/**
  * To EXCLUDE I2C communication, maybe for resource reasons,
  * comment out the line below.
  */
@@ -48,4 +70,4 @@
 
 
 // enable logging
-//#define USEARDUINOLOGLIB
+#define USEARDUINOLOGLIB
