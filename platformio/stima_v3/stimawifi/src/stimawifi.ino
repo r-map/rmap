@@ -61,7 +61,11 @@ selezionando la stazione e poi alla voce "Mostra i dettagli stazione" e poi
 Il reset delle configurazioni è effettuabile a stazione disalimentata
 collegando a massa il pin RESET_PIN (4) o premendo il pulsante A della
 board del display, alimentare la stazione e dopo 10 secondi scollegare il
-RESET_PIN o rilasciare il pulsante.
+RESET_PIN o rilasciare il pulsante. Il reset della configurazione effettua:
+* rimozione delle configurazioni del wifi
+* rimozione delle configurazioni stazione (utente slug password)
+* completa formattazione dell'SD card con rimozione definitiva di 
+  tutti i dati presenti
 
 Il frusso dei dati nelle code è il seguente:
 
