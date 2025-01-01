@@ -59,7 +59,7 @@ autenticandosi sul server RMAP e accedendo alla propria pagina personale,
 selezionando la stazione e poi alla voce "Mostra i dettagli stazione" e poi
 "Dati locali in tempo reale".
 Il reset delle configurazioni è effettuabile a stazione disalimentata
-collegando a massa il pin RESET_PIN (4) o premendo il pulsante A della
+collegando a massa il pin RESET_PIN  o premendo il pulsante A della
 board del display, alimentare la stazione e dopo 10 secondi scollegare il
 RESET_PIN o rilasciare il pulsante. Il reset della configurazione effettua:
 * rimozione delle configurazioni del wifi
@@ -91,7 +91,7 @@ lo stato di funzionamento. Il thread loop di arduino effettua una
 sintesi degli stati di tutti i thread e li visualizza tramite i
 colori del LED e tramite il display opzionale.
 
-Per archiviare i dati è necessario avere un corretto timestamp.
+Per pubblicare e archiviare i dati è necessario avere un corretto timestamp.
 Data e ora possono essere impostati tramite:
 * NTP
 * GPS
@@ -100,6 +100,9 @@ Data e ora possono essere impostati tramite:
 Se presente un RTC locale (DS1307) data e ora sono impostate sull'RTC
 automaticamente con uno dei metodi precedenti e poi se tutti i metodi
 precedenti non sono più disponibili riletti dall'RTC.
+
+Senza un corretto timestamp i dati non possono essere gestiti e
+vengono subito ignorati.
 
 Threads:
 
@@ -1005,8 +1008,18 @@ void setup() {
     #define SD_CONFIG SdSpiConfig(C3SS, DEDICATED_SPI)
     uint8_t  sectorBuffer[512];
     SdCard* m_card = cardFactory.newCard(SD_CONFIG);
-    if (!m_card || m_card->errorCode()){
-      Serial.println(F("Error: card init failed."));
+    if (!m_card) {
+      Serial.println(F("Invalid SD_CONFIG"));
+    } else if (m_card->errorCode()) {
+      if (m_card->errorCode() == SD_CARD_ERROR_CMD0) {
+	Serial.println(F("No card, wrong chip select pin, or wiring error?"));
+      }
+      Serial.print(F("SD errorCode: "));
+      printSdErrorSymbol(&Serial, m_card->errorCode());
+      Serial.print(F(" = "));
+      Serial.println(m_card->errorCode());
+      Serial.print(F("SD errorData = "));
+      Serial.println(int(m_card->errorData()));
     }else{
       uint32_t cardSectorCount = m_card->sectorCount();
       if (!cardSectorCount){

@@ -1,5 +1,6 @@
 
 #include "Arduino.h"
+#include "pins_stima.h"
 #include "stimawifi_config.h"
 #include "typedef.h"
 #include <frtosLog.h>

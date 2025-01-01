@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2024-12-27T00:00"    // date and time
-#define MAJOR_VERSION    "20241227"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-01-01T00:00"    // date and time
+#define MAJOR_VERSION    "20250101"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -50,8 +50,8 @@
 //C3 mini
 // https://www.wemos.cc/en/latest/_static/files/sch_c3_mini_v2.1.0.pdf
 // pin to connect to ground for reset wifi configuration
-#define RESET_PIN 4
-#define LED_PIN 7
+#define RESET_PIN D7
+#define LED_PIN D3
 #endif
 
 #if defined(ARDUINO_LOLIN_S3_MINI)
@@ -90,16 +90,16 @@
 
 // SD card SPI PIN assignment
 // Micro SD Card Shield
-#define C3SCK 1   
-#define C3MISO 0  
-#define C3MOSI 4  
+#define C3SCK D5   
+#define C3MISO D6  
+#define C3MOSI D7
 
 //https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
-#define C3SS 6
+#define C3SS D4
 
 //WIFI D1 mini - Data logger shield for D1 mini with RTC and MicroSD
 //https://en.m.nu/esp8266-shields/wifi-d1-mini-data-logger-shield-for-d1-mini-with-rtc-and-microsd
-//#define C3SS 5
+//#define C3SS D8
 
 // SPI clock
 #define SPICLOCK 10000000
