@@ -32,6 +32,8 @@ seguenti software e servizi (sono elencati solo quelli significativi):
 
 |image0|
 
+.. _dataingestion-reference:
+     
 Data ingestion
 ..............
 Il data ingestion riguarda principalmente l’accoglimento di dati da
@@ -60,6 +62,8 @@ non usano AMQP o non usano il formato BUFR (e.g. Luftdaten).
 
 |image1|
 
+.. _configurazionestazioni-reference:
+
 Configurazione delle stazioni
 .............................
 
@@ -69,6 +73,8 @@ o AMQP, previa autenticazione presso il corrispondente servizio di
 autenticazione.
 |image2|
 
+.. _registrazioneutenti-reference:
+
 Registrazione utenti
 ....................
 
@@ -77,6 +83,8 @@ classico processo di iscrizione: l’utente compila una form e riceve una
 email per la conferma dell’avvenuta registrazione. Ovviamente, c’è un
 dialogo con il servizio di autenticazione.
 |image3|
+
+.. _visualizzazionedati-reference:
 
 Visualizzazione dei dati
 ........................
@@ -88,6 +96,8 @@ Questo sistema è probabilmente necessario per i dati della rete
 amatoriale e quindi è necessario che il servizio corrispondente di data
 ingestion sia collegato all’importatore dei dati su DB-All.e e Arkimet.
 |image4|
+
+.. _cosudo-reference:
 
 Cosudo
 ......
@@ -107,6 +117,8 @@ server rmap.cc, deve essere reso privato.
 Non è ancora operativo e mancano i flussi di alimentazione dei dati.
 |image5|
 
+.. _inserimentomanuale-reference:
+
 Inserimento manuale dei dati
 ............................
 
@@ -115,6 +127,8 @@ operatori, di dati e immagini via HTTP e AMQP. I dati attualmente sono
 le osservazioni della neve e del tempo (quest’ultimo all’interno del
 progetto RainBO). Si appoggia al sistema di autenticazione.
 |image6|
+
+.. _raindo-reference:
 
 RainBO
 ......
@@ -125,6 +139,8 @@ delle viste personalizzate per i seguenti servizi:
 -  Visualizzazione dei dati
 -  Inserimento manuale dei dati
 -  Registrazione utenti
+
+.. _interfacciaweb-reference:
 
 Interfaccia web
 ...............
@@ -194,7 +210,301 @@ Porte utilizzate
 | 15672   | HTTP                          | rabbit-mq | Management Plugin                      |     X      |         X           |      X       |
 +---------+-------------------------------+-----------+----------------------------------------+------------+---------------------+--------------+
 
-	    
+
+
+Documentazione implementazione
+------------------------------
+
+Il funzionamento del back-end e del front-end è basato su due broker,
+una suite di applicazioni Django, alcuni tools e da una suite di daemon.
+
+Broker MQTT
+...........
+
+Mosquitto ...
+
+
+Broker AMQP
+...........
+
+Rabbit-mq ....
+
+Nomenclatura convenzionale
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Descrizione applicazioni Django
+...............................
+
+Il funzionamento del back-end e del front-end è garantito da una suite
+di applicazioni Django
+
+
+stations app
+~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+Questa applicazione sovranintende alla gestione delle stazioni
+gestendone la crezione, configurazione e aggiornamento dei metadati,
+mantenedo aggiornati lo stato di funzionamento e autodiagnostica, le
+versioni del firmware utilizzate, e le informazioni di autenticazione
+e autorizzazione.
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_stations.png
+	   :width: 100% 
+
+table UserProfile
+
+relazione one to one con loggetto User del Django authentication system
+utilizzato per estendere i metadati di un utente
+
+table StationMetadata
+
+metadati principali di una stazione
+
+
+URL
+'''
+
+* '^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^stationstatus/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^stationmqttmonitor/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^stationsupload/json/$'
+* '^stationconfig/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)$'
+* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$'
+* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json_dump/$'
+* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/configv3/$'
+* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/(?P<board_slug>[-_\w]*)/json/$'
+* '^delstation/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^stationlocaldata/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^stationsonmap/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+
+
+firmware_updater e firmware_updater_stima app
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_firmware.png
+
+Le due tabelle differiscono per la versionatura del firmware in un
+caso utilizzando un campo date e nell'altro revisione e versione.
+
+URL
+'''
+
+* '^firmware/$', views.index, name='firmware_index'),
+* '^firmware/update/(?P<name>[-_\w]+)/$', views.update, name='firmware_update'),
+
+* '^firmware/stima/v4/$'
+* '^firmware/stima/v4/update/(?P<name>[-_\w]+)/$'
+
+geoimage app
+~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_geoimage.png
+
+URL
+'''
+
+* '^geoimage/geoimagesonmap/(?P<ident>[-_\w]+)/$'
+* '^geoimage/geoimagebyid/(?P<id>[-_\w]+)/$'
+* '^geoimage/geoimagedelete/(?P<id>[-_\w]+)/$'
+* '^geoimage/geoimagesbycoordinate/(?P<lon>[-_\w.]+)/(?P<lat>[-_\w.]+)/$'
+
+
+
+rpc app
+~~~~~~~
+
+Descrizione
+'''''''''''
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_rpc.png
+
+URL
+'''
+
+* '^rpcs/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^rpc/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/(?P<id>[-_\w]+)/$'
+* '^rpc-submit-free/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^rpc-submit/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+
+
+ticket app
+~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_ticket.png
+
+URL
+'''
+
+* '^tickets/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* '^ticket/(?P<ticket>[-_\w]+)/$'
+* '^ticket_image/(?P<image_id>[-_\w]+)/$'
+* '^ticket_attachment/(?P<attachment_id>[-_\w]+)/$'
+* '^tickets_assigned/(?P<user_ass>[-_\w]+)/$'
+* '^tickets_subscribed/(?P<user_sub>[-_\w]+)/$'
+
+	      
+borinud app
+~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+URL
+'''
+
+::
+   
+  basepattern = ('^borinud/api/v1/(?P<format>\w+)'
+  '/(?P<ident>\w+|\*|-)'
+  '/(?P<coords>(?P<lon>\-?\+?\d+|-),(?P<lat>\-?\+?\d+|-)|\*)'
+  '/(?P<network>[-\w]+|\*)'
+  '/(?P<trange>(?P<tr>\d+|-|\*),(?P<p1>\d+|-|\*),(?P<p2>\d+|-|\*)|\*)'
+  '/(?P<level>(?P<lt1>\d+|-|\*),(?P<lv1>\d+|-|\*),(?P<lt2>\d+|-|\*),(?P<lv2>\d+|-|\*)|\*)'
+  '/(?P<var>B\d{5}|\*)')
+
+* '^borinud/$'
+* basepattern + '/summaries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$'
+* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$'
+* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$'
+* basepattern + '/stationdata$'
+* basepattern + '/stations$'
+
+
+graphite-dballe  app
+~~~~~~~~~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+URL
+'''
+
+insertdata app
+~~~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+URL
+'''
+
+* '^insertdata/image$'
+* '^insertdata/manualdata$'
+* '^insertdata/newstation$'
+* '^insertdata/stationmodify/(?P<slug>[-_\w]+)/(?P<bslug>[-_\w]+)/$'
+
+showdata app
+~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+URL
+'''
+::
+   
+  basepattern = (
+  '^showdata/(?P<ident>\w+|\*|-)'
+  '/(?P<coords>(?P<lon>\-?\+?\d+|-),(?P<lat>\-?\+?\d+|-)|\*)'
+  '/(?P<network>[-\w]+|\*)'
+  '/(?P<trange>(?P<tr>\d+|-|\*),(?P<p1>\d+|-|\*),(?P<p2>\d+|-|\*)|\*)'
+  '/(?P<level>(?P<lt1>\d+|-|\*),(?P<lv1>\d+|-|\*),(?P<lt2>\d+|-|\*),(?P<lv2>\d+|-|\*)|\*)'
+  '/(?P<var>B\d{5}|\*)')
+
+* '^showdata/$'
+* basepattern + '/timeseries/(?P<year>\d{4})$', views.timeseries,name="timeseriesyearly")
+* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.timeseries,name="timeseriesmonthly")
+* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.timeseries,name="timeseriesdaily")
+* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.timeseries,name="timeserieshourly")
+* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.spatialseries,name="spatialserieshourly")
+* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.spatialseries,name="spatialseriesdaily")
+* basepattern + '/stationdata$', views.stationdata,name="stationdata")
+* basepattern + '/stations$', views.stations,name="stations")
+
+Daemon
+......
+
+Il daemon sono hanno i seguento comandi:
+* run
+* start
+* stop
+
+le altre opzioni sono documentate con l'opzione --help
+
+
+* amqp2amqp_identvalidationd
+* amqp2amqp_jsonline2bufrd
+* amqp2arkimetd
+* amqp2dballed
+* amqp2djangod
+* amqp2geoimaged
+* amqp2mqttd
+* composereportd
+* dballe2arkimet
+* mqtt2amqpd
+* mqtt2dballed
+* mqtt2graphited
+* mqtt2stationmaintd
+* report2observationd
+* rpcd
+* stationd
+* ttn2dballed
+
+
+
+Tools
+.....
+
+Il tools disponibili sono:
+
+* rmapgui
+* rmapweb
+* rmapctrl
+* rmap-explorer
+* rmap-configure
+
+
+Struttura cartelle
+..................
+
+.. include:: ../../../README.directory
+		   
+		   
+Data ingestion
+..............
+
+Da rimuove solo di riferimento per sphinx
+
+Si possono consultare le :ref:`funzionalità <dataingestion-reference>`
+
+
 Installazione server completo basato su  Rocky Linux 8
 ------------------------------------------------------
 
@@ -446,15 +756,18 @@ Arkimet
    mkdir /rmap/arkimet/
 
 ::
+   
    chown -R arkimet:rmap /rmap/arkimet/
    chmod -R g+w  /rmap/arkimet/
 
 oppure:
 
 ::
+   
    chown -R rmap:rmap /rmap/arkimet/
 
 ::
+   
    mkdir /var/log/arkimet
    chown -R arkimet:arkimet /var/log/arkimet
 
