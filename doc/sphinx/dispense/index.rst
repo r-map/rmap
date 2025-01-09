@@ -9,6 +9,10 @@ Dispense
    partecipa/partecipa
    la_scienza_di_tutti/la_scienza_di_tutti
    qualità_aria/qualità_aria
+   probabilità/probabilità
+   cambiamento_climatico/cambiamento_climatico
+   metodo_scientifico/metodo_scientifico
+   complottismo/complottismo
    
 * :ref:`genindex`
 * :ref:`search`

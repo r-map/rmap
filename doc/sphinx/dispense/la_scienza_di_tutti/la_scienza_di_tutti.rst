@@ -466,3 +466,4 @@ visualizzazione dei dati o per condurre esperimenti.
 I dati raccolti, distribuiti con licenza libera (CC 4.0), sono a
 disposizione di chi voglia usarli per capire meglio l'ambiente in cui
 viviamo
+
