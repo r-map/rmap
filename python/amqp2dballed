@@ -18,7 +18,7 @@
 
 TIMESTEP = 15              # execute dbadb import everi TIMESTEP seconds
 PACKET_MAX_SIZE = 1000000  # max size in bytes for one dballe import
-MESSAGES_MAX_NUMBER = 100  # max number of bufr for transaction (with posgresql 100 is the better value by benchmark)
+MESSAGES_MAX_NUMBER = 500  # max number of bufr for transaction (with posgresql 100/1000 is the better value by benchmark)
 
 import os,io,signal
 import logging,logging.handlers
@@ -140,7 +140,7 @@ class Threaded_bufr2dballe(threading.Thread):
                     go=False
                     
             if len(messages) > 0:
-                self._logging.debug("elaborate %s messages" % len(messages))
+                self._logging.info("elaborate %s messages" % len(messages))
                 totalbody=b""
                 totaltag=[]
                 for message in messages:
@@ -149,29 +149,39 @@ class Threaded_bufr2dballe(threading.Thread):
                 try:
 
                     totalbodyfile = io.BytesIO(totalbody) 
-                    # Connect to the database
-                    db = dballe.DB.connect(self._dsn)
-                    importer = dballe.Importer("BUFR")
 
                     self._logging.debug("acquire lock on DB for write")
                     with rw_lock.write_lock():
                         self._logging.debug("lock acquired")
+                        # Connect to the database
+                        db = dballe.DB.connect(self._dsn)
+                        importer = dballe.Importer("BUFR")
                         count=0
                         messages=[]
                         with importer.from_file(totalbodyfile) as f:
-                            for dballemessage in f:
-                                count+=1
-                                messages.append(dballemessage)
-                                if count >= MESSAGES_MAX_NUMBER:
-                                    # Start a transaction for one segment of MESSAGES_MAX_NUMBER messages
-                                    with db.transaction() as tr:
-                                        for message in messages:
-                                            try:
-                                                tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
-                                            except KeyError:
-                                                self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
-                                    count=0
-                                    messages=[]
+                            try:
+                                for dballemessage in f:
+                                    count+=1
+                                    messages.append(dballemessage)
+                                    if count >= MESSAGES_MAX_NUMBER:
+                                        # Start a transaction for one segment of MESSAGES_MAX_NUMBER messages
+                                        self._logging.info("start transaction")
+                                        with db.transaction() as tr:
+                                            for message in messages:
+                                                try:
+                                                    self._logging.debug("start dballe import")
+                                                    tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
+                                                except KeyError:
+                                                    self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+                                        count=0
+                                        messages=[]
+                            except ValueError as exception:
+                                self._logging.error("Error in bufr decoding")
+                                self._logging.error('Exception occured: ' + str(exception))
+                                self._logging.error(traceback.format_exc())
+
+
+                                    
                         if count >0:                      # send last not completed segment
                             # Start a transaction
                             with db.transaction() as tr:
@@ -195,7 +205,7 @@ class Threaded_bufr2dballe(threading.Thread):
                     self._logging.error(traceback.format_exc())
                     status=False
                         
-                self._logging.info("Task done: importing in dballe terminated")
+                self._logging.info("Packet done: importing in dballe terminated")
                 self._send_queue.task_done()
                 self._logging.debug("enqueue confirm tag:")
                 for tag in totaltag:
