@@ -201,6 +201,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/report2observationd.1"])
             subprocess.check_call(["help2man","-N","--no-discard-stderr","-o","man/man1/rpcd.1","./rpcd"])
             subprocess.check_call(["gzip", "-f","man/man1/rpcd.1"])
+            subprocess.check_call(["help2man","-N","--no-discard-stderr","-o","man/man1/rmap-manage.1","./rmap-manage"])
+            subprocess.check_call(["gzip", "-f","man/man1/rmap-manage.1"])
 
         except:
             pass
@@ -471,7 +473,7 @@ setup(name='rmap',
           'stationd','mqtt2graphited','mqtt2amqpd','mqtt2stationmaintd','ttn2dballed','toamqp'
           ,'poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_jsonline2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
-          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd','rmap-explorer','rpcd'],
+          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd','rmap-explorer','rpcd','rmap-manage'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson"
