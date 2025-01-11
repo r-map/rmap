@@ -1394,6 +1394,7 @@ esempio:
    {"jsonrpc":"2.0","result":{"B12101":27315},"id":0}
 
    
+.. _rmaprfc_http-reference:
    
 HTTP
 ^^^^

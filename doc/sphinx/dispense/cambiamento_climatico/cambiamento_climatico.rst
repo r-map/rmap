@@ -57,3 +57,12 @@ Cause del cambiamento climatico
 	 referrerpolicy="strict-origin-when-cross-origin"
 	 allowfullscreen></iframe>
 
+
+
+
+documenti uffiali sul cambiamento climatico
+-------------------------------------------
+
+2024 - a second record-breaking year, following the exceptional 2023
+
+`Global Climate Highlights 2024 <https://climate.copernicus.eu/global-climate-highlights-2024>`_

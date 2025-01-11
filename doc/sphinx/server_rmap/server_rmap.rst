@@ -218,19 +218,562 @@ Documentazione implementazione
 Il funzionamento del back-end e del front-end è basato su due broker,
 una suite di applicazioni Django, alcuni tools e da una suite di daemon.
 
+
+Configurazione stazioni
+.......................
+
+Le configurazioni risiedono sul server. Possono essere scaricate e uplodate sul server.
+Le configurazioni devono essere trasferite alle stazioni e devono sempre essere allineate.
+Le stazioni Stima si possono configurare con i seguenti formati e trasporti:
+
++-------------------------+---------------+------------+------------+-------+-----------------+
+|                         | trasporto     | trasporto  | tasporto   | SD    | download/upload |
+|                         | Seriale       | HTTP       | http PSK   | card  | server          |
++-------------------------+---------------+------------+------------+-------+-----------------+
+| JSON-RPC                |       #       |            |            |       |                 |
++-------------------------+---------------+------------+------------+-------+-----------------+
+| notification JSON-RPC   |               |     #      |     #      |       |                 |
++-------------------------+---------------+------------+------------+-------+-----------------+
+| dump DB in json         |               |     #      |            |       |       #         |
++-------------------------+---------------+------------+------------+-------+-----------------+
+| file binario            |               |            |            |   #   |                 |
++-------------------------+---------------+------------+------------+-------+-----------------+
+
+queste configurazioni sono utilizzate differentemente a seconda del
+modello di stazione:
+
++-----------+----------+-----------------------+-----------------+--------------+
+|           | JSON-RPC | notification JSON-RPC | dump DB in json | file binario |
++-----------+----------+-----------------------+-----------------+--------------+
+| StimaWifi |          |                       |       #         |              |
++-----------+----------+-----------------------+-----------------+--------------+
+| Stima V3  |    #     |                       |                 |      #       |
++-----------+----------+-----------------------+-----------------+--------------+
+| Stima V4  |    #     |          #            |                 |              |
++-----------+----------+-----------------------+-----------------+--------------+
+
+  
+Specifiche per immagini georeferenziate
+.......................................
+
+Le immagini devono essere in formato jpeg e usare exif per i metadati.
+
+Vengono utilizzati i seguenti metadati:
+
+* Latitude/Longitude (GPSIFD.GPSLatitude/GPSIFD.GPSLongitude)
+* reftime            (ImageIFD.DateTime)
+* imagedescription   (ImageIFD.ImageDescription)
+* usercomment        (ExifIFD.UserComment)
+
+  
+Specifiche per file di configurazione stazione
+..............................................
+
+Il file è un dump in json del DB usato da Django relativo solo alle
+tabelle di interesse per la configurazione. Questo un esempio:
+
+::
+   
+    [
+    {
+      "model": "stations.stationmetadata",
+      "fields": {
+	"name": "stimawifi",
+	"active": true,
+	"slug": "stimawifi",
+	"user": [
+	  "paperino"
+	],
+	"ident": "",
+	"lat": 44.48858,
+	"lon": 11.37099,
+	"network": "fixed",
+	"mqttrootpath": "sample",
+	"mqttmaintpath": "maint",
+	"category": "good",
+	"type": "stimav2"
+      }
+    },
+    {
+      "model": "stations.board",
+      "fields": {
+	"name": "default",
+	"active": true,
+	"slug": "default",
+	"category": "template",
+	"type": 0,
+	"sn": null,
+	"stationmetadata": [
+	  "stimawifi",
+	  [
+	    "paperino"
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.sensor",
+      "fields": {
+	"active": true,
+	"name": "Dust",
+	"driver": "I2C",
+	"type": [
+	  "SPS"
+	],
+	"i2cbus": null,
+	"address": 105,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	  "default",
+	  [
+	    "stimawifi",
+	    [
+	      "paperino"
+	    ]
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.sensor",
+      "fields": {
+	"active": true,
+	"name": "Temperature_Humidity",
+	"driver": "I2C",
+	"type": [
+	  "SHT"
+	],
+	"i2cbus": null,
+	"address": 68,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	  "default",
+	  [
+	    "stimawifi",
+	    [
+	      "paperino"
+	    ]
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.sensor",
+      "fields": {
+	"active": true,
+	"name": "CO2",
+	"driver": "I2C",
+	"type": [
+	  "SCD"
+	],
+	"i2cbus": null,
+	"address": 97,
+	"node": null,
+	"timerange": "254,0,0",
+	"level": "103,2000,-,-",
+	"board": [
+	  "default",
+	  [
+	    "stimawifi",
+	    [
+	      "paperino"
+	    ]
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.transportmqtt",
+      "fields": {
+	"active": true,
+	"mqttsampletime": 30,
+	"mqttserver": "test.rmap.it",
+	"mqttuser": "paperino",
+	"mqttpassword": "wFCeWf4ZqY",
+	"mqttpskkey": "648A67186FBF033E8A508282EEA74767",
+	"board": [
+	  "default",
+	  [
+	    "stimawifi",
+	    [
+	      "paperino"
+	    ]
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.transporttcpip",
+      "fields": {
+	"active": true,
+	"name": "stima",
+	"ntpserver": "it.pool.ntp.org",
+	"gsmapn": "ibox.tim.it",
+	"pppnumber": "*99#",
+	"board": [
+	  "default",
+	  [
+	    "stimawifi",
+	    [
+	      "paperino"
+	    ]
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.stationconstantdata",
+      "fields": {
+	"active": true,
+	"btable": "B01019",
+	"value": "stimawifi",
+	"stationmetadata": [
+	  "stimawifi",
+	  [
+	    "paperino"
+	  ]
+	]
+      }
+    },
+    {
+      "model": "stations.stationconstantdata",
+      "fields": {
+	"active": true,
+	"btable": "B07030",
+	"value": "400",
+	"stationmetadata": [
+	  "stimawifi",
+	  [
+	    "paperino"
+	  ]
+	]
+      }
+    }
+    ]
+
+Esempio di notification JSON-RPC
+................................
+
+::
+
+    {"jsonrpc": "2.0", "method": "configure", "params": {"reset": true}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"sd": {"B01019": "stimawifi"}}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"sd": {"B07030": "400"}}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttrootpath": "1/sample/paperino//1137099,4448858/fixed/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttmaintpath": "1/maint/paperino//1137099,4448858/fixed/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttrpcpath": "1/rpc/paperino//1137099,4448858/fixed/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttsampletime": 30, "mqttserver": "test.rmap.it"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttuser": "paperino", "mqttpassword": "77CeWf4ZqY"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"mqttpskkey": "0x328467156FBF033E8A508282EEA74767"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"stationslug": "stimawifi", "boardslug": "default"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"ntpserver": "it.pool.ntp.org"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"gsmapn": "ibox.tim.it"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "SPS", "node": null, "address": 105, "mqttpath": "254,0,0/103,2000,-,-/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "SHT", "node": null, "address": 68, "mqttpath": "254,0,0/103,2000,-,-/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "SCD", "node": null, "address": 97, "mqttpath": "254,0,0/103,2000,-,-/"}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "configure", "params": {"save": true}}
+    {"jsonrpc":"2.0","result":{},"id":0}
+    {"jsonrpc": "2.0", "method": "reboot"}
+    {"jsonrpc":"2.0","result":{},"id":0}
+
+
+
 Broker MQTT
 ...........
 
-Mosquitto ...
+Le stazioni Stima comunicano i dati al broker differentemente a
+seconda della versione:
+
+-  **stazioni StimaWiFi**: comunicano in WiFi in chiaro, tramite
+   protocollo MQTT
+-  **stazioni Stima V3**: comunicano in GSM in chiaro, tramite
+   protocollo MQTT
+-  **stazioni Stima V4**: comunicano in TLS con PSK (Pre-Shared Key),
+   tramite protocollo MQTTS (PSK)
+
+Il broker MQTT (mosquitto) authentica e autorizza tramite un apposito
+plugin.  Utilizza l'hash delle password utente, le chiavi PSK, le ACL;
+queste vengono ottenute da file o da un server di autenticazione
+tramite API http.  La generazione del file se necessario piò essere
+fatta con il tool rmapctrl.
+
+Mosquitto comunica tramite un terzo protocollo, MQTT con SSL/TLS su
+Websocket utilizzato per funzionalità di monitoraggio delle stazioni
+meteo; tramite javascript nel web browser.  Gli operatori che
+gestiscono le varie stazioni meteo possono attivare il monitoraggio su
+websocket per verificare i messaggi pubblicati dalla stazione sul
+broker evitando la necessità di avere un apposito client MQTT.
+
+E’ presente anche un altro demone (**report2observationd**) che
+effettua una trasformazione dei messaggi che arrivano inizialmente
+compressi (vedi forme compresse protocollo RMAP over MQTT), li
+decomprime e li pubblica nuovamente, per cui arrivano sul broker MQTT
+in forma decompressa.
+
+Ogni stazione può pubblicare solamente sul topic mqtt per cui è stata
+configurata e quindi autorizzata, in base a utente, rete, latitudine e
+longitudine. Ogni autenticazione e autorizzazione corrisponde a una
+richiesta http, ma con apposita cache del plugin di mosquitto.
+
+Il plugin di mosquitto è una versione appositamente modificata:
+https://github.com/r-map/mosquitto-auth-plug
+
+Se configurato a tale scopo il broker alle richieste di
+autenticazione/autorizzazione, nel caso in cui non sia disponibile il
+servizio http ricade su un file statico. Quando la configurazione
+hardware lo indichi come opportuno (separazione fisica della data
+ingestion) il file statico, utilizzato come sistema di autenticazione
+di backup, deve essere sincronizzato tramite procedura schedulata dal
+server di backend verso il server di data ingestion in modo da
+consentire comunque l’autenticazione delle stazioni anche in caso di
+failure del backend (il sistema non consentirà per esempio l’aggiunta
+o lo spostamento di stazioni ma non si bloccherà la pubblicazione dei
+dati).
+
+I dati, una volta autenticate le stazioni sul backend e pubblicati
+tramite il broker MQTT sono disponibili ai subscriber, principalmente
+ai daemoni per la conversione di formato e l'invio come messaggi AMQP.
+
+Generazione dei file di autenticazione/autorizzazione
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Per mantenere allineato il processo di autenticazione sul broker MQTT
+e consentire l’autenticazione delle stazioni, anche in caso di failure
+del server di backend, è utilizzabile il tool **rmapctrl** che deve
+generere i seguenti file:
+
+-  file.pwd
+-  aclfile
+-  file.psk
+
+Una volta copiati i file in **/etc/mosquitto/** sul server di data
+ingestion, è necessario effettuare un reload del servizio
+**mosquitto.service** in modo che i file aggiornati vengano recepiti
+correttamente; questo normalmente viene fatto solo in caso di modifica
+degli stessi file.
+
+
+.. _MQTT_URL-reference:
+
+URL
+~~~
+
+Se le URLs configurate tornano HTTP status code == 2xx, allora la
+authentication / authorization ha successo. Se lo status code == 4xx,
+authentication / authorization fallisce. Per uno status code == 5xx o
+server Unreachable, la richiesta HTTP sarà ritentata fino al raggiungimento di
+http_retry_count. Se tutti i tentativi falliscono e nessun altro backend ha successo,
+allora torna un errore e il client è disconnesso.
+
+Configurazioni Mosquitto per il back-end http:
+
+differenti modi di autenticare l'utente:
+
+* auth_opt_http_getuser_uri /auth/auth
+* auth_opt_http_getuser_uri /auth/auth_sha
+* auth_opt_http_getuser_uri /auth/sha
+* auth_opt_http_getuser_uri /auth/pskkey
+
+verifica autorizzazioni:
+
+* auth_opt_http_superuser_uri /auth/superuser
+* auth_opt_http_aclcheck_uri /auth/acl
 
 
 Broker AMQP
 ...........
 
-Rabbit-mq ....
+Il brocker AMQP (rabbitmq) svolge queste funzioni principali:
+
+* fornisce AMQP come protocollo per lo scambio dati
+* gestisce lo scambio interno dei messaggi sostanzialmente come
+  sistema di buffering persistente
+* gestisce accoglienza e autorizzazione relativamente a:
+  - dati in formato json (secondo specifiche RMAP)
+  - immagini georeferenziate
+  - configurazioni stazioni
+  mettendo poi a disposizione questi dati ad appositi archiviatori
+* mette a disposizione un sistema per lo scambio dati tra fornitori e
+  consumatori di dati (grosse moli di dati)
+
+
+.. |fanoutexchange| image:: ./Pictures/10000000000002BA000001CF10D58739AA10CEF3.png
+   :width: 11.18cm
+   :height: 7.334cm
+.. |overview| image:: ./Pictures/10000001000007600000037539E6A3FD1D30171B.png
+   :width: 14.986cm
+   :height: 7.022cm
+.. |exchanges| image:: ./Pictures/10000001000002F6000001694EE7486645E83327.png
+   :width: 10.589cm
+   :height: 5.313cm
+.. |exchange| image:: ./Pictures/100000010000034B00000253E938A43FC98A0D1A.png
+   :width: 10.292cm
+   :height: 7.417cm
+.. |queue| image:: ./Pictures/10000001000006600000033B3F9646A30A7792D1.png
+   :width: 11.566cm
+   :height: 6.343cm
+
+Viene utilizzato un solo tipo di exchange: fanout
+	    
+|fanoutexchange|
+
+I producer inviano dati agli **Exchange** e i consumer li prelevano
+dalle **Queue**.
+La gestione e il monitoraggio del broker avviene tramite l’accesso
+all’interfaccia web di RabbitMQ.
+All’accesso viene visualizzata la dashboard con statistiche varie,
+messaggi accodati, accodati, connessioni, ecc…
+
+|overview|
+
+Il numero di messaggi in stato *Ready* può essere un buon indicatore
+in caso di problemi, se il numero cresce in maniera importante e i
+messaggi non vengono scodati.
+
+Nella sezione **Exchanges** è possibile
+gestire quelli esistenti oppure configurarne di nuovi.
+
+|exchanges|
+
+Cliccando sul nome del Exchange si viene rimandati al dettaglio della
+sua configurazione e alla definizione dei **Bindings**, ovvero dove
+vengono indirizzati i messaggi pubblicati: la **Queue** di
+destinazione
+
+Exchanges → Queue
+
+ad esempio:
+rmap.mqtt.bufr.report_fixed → arpaer.out.bufr.report_fixed&validated
+
+|exchange|
+
+Nella sezione **Queues & Streams** vengono gestite e definite le code
+di destinazione dei messaggi collezionati dal **Exchange**.
+
+Qui posso controllare il numero di messaggi disponibili nella coda,
+non ancora confermati, ecc…  Solitamente se tutto funziona
+correttamente la coda dovrebbe risultare sempre vuota, in quanto il
+**consumer** ha recuperato correttamente tutti i messaggi pubblicati.
+
+|queue|
+
+In questa sezione è possibile spostare i messaggi da una coda ad
+un’altra (**Move messages**), cancellare definitivamente la coda e
+tutti i suoi messaggi (**Delete Queue**) oppure cancellare tutti i
+messaggi all'interno della coda (**Purge Messages**).
+
+Nella sezione **Admins** vengono definiti gli utenti necessari solo al
+broker AMQP e non utilizzati dal resto del sistema di
+authenticazione. Questi saranno quindi solo fornitori e consumatori di
+dati esterni.  Qui vengono definite le autorizzazioni dell'utente
+secondo una precisa definizione di regexp. A esempio per l’utente
+**paperino** sono le seguenti:
+
+-  virtual host utilizzato è il default, ovvero “ / ”
+-  non ha permessi di configurazione (campo vuoto in fase di
+   definizione)
+-  ha permessi di lettura e scrittura in tutto ciò (exchange e queue)
+   che inizia con il suo nome utente (**^paperino\..\***), in cui potrà
+   leggere e pubblicare dati
+
+Definizione nuovo fornitore o consumatore di dati
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+La definizione di un nuovo fornitore di dati o consumatore di dati è
+ottenuta da:
+
+-  creazione utente con privilegi write e read con regular expression
+   **^utente\..\***
+-  creazione queue con eventuale *Message TTL* (se vuoto è indefinito,
+   altrimenti imposta il valore massimo in millisecondi di permanenza dei
+   messaggi nella queue, una volta superato quel valore i messaggi
+   vengono rimossi)
+-  creazione exchange con binding alla queue creata al punto precedente
 
 Nomenclatura convenzionale
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+La sintassi utilizzata nella definizione di exchange e code è
+autoesplicativa e basata sul punto come separatore tra campi
+
+Fornitore:
+-  **exchange** → *utente.in.formato.descrizione*
+
+Consumatore:
+-  **queue** → *utente.out.formato.descrizione*
+
+*utente* = nome utente definito in fase di creazione
+*in/out* = direzione operazione (*in* per fornitore, *out* per consumatore)
+*formato* = tipologia di output (es. json, xml, bufr)
+*descrizione* = label descrittiva dei dati in transito
+
+Ogni utente ha accesso in lettura e scrittura a exchange e code che
+iniziano con il **Name** del proprio utente.
+
+Nelle coda è definito il parametro **Message TTL** con un valore ad
+esempio di 604800000 (millisecondi) pari a 7 giorni, per cui tutti i
+messaggi pubblicati al suo interno rimarranno disponibili nella coda
+per 7 giorni, i messaggi più vecchi rimossi automaticamente.
+
+Sistema di autenticazione e autorizzazione di RMAP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Il broker utilizza inoltre il sistema di autenticazione e
+autorizzazione di RMAP per autenticare la ricezione di messaggi:
+
+* fotografie: formato jpeg
+* configurazione stazioni: formato json
+
+
+.. _AMQP_URL-reference:
+  
+URL
+~~~
+
+Autentica utente o amministratore:
+
+* user_path     "http://localhost/auth/user"
+
+Sempre autorizzato tutti vhost:
+
+* vhost_path    "http://localhost/auth/vhost"
+
+Autorizzate risorse che iniziano con un punto "." e "configuration" o "photo":
+
+* resource_path "http://localhost/auth/resource"
+
+Le successive verifiche di autenticazione vengono fatte dai daemon di
+importazione dati che verificano che l'utente utilizzato per
+l'autenticazione AMQP siano corrispondenti ai metadati dei dati
+inviati.
+
+Per fotografie e configurazioni questa attualmente è una metodologia
+disattivata a vantaggio della metodologia HTTP.
+  
+
+Log
+...
+
+Tutti i log relativi ai daemon coinvolti in RMAP si trovano nella directory **/var/log/rmap/**.
 
 
 Descrizione applicazioni Django
@@ -258,32 +801,215 @@ DataBase
 	   :width: 100% 
 
 table UserProfile
-
-relazione one to one con loggetto User del Django authentication system
-utilizzato per estendere i metadati di un utente
+#################
+relazione one to one con l'oggetto User del Django authentication system
+utilizzato per estendere i metadati di un utente.
 
 table StationMetadata
+#####################
+Metadati principali di una stazione.
+Identificativi che compongono la chieve univoca per il DataBase dati:
 
-metadati principali di una stazione
+* ident: identificativo per stazioni mobili
+* lat/lon: coordinate
+* network: rete di stazioni omogenee a cui appartiene
+
+Identificativi univoci per il DataBase dati:
+
+* user: utente
+* slug: identificativo sintetico della stazione
+
+table StationConstantdata
+#########################
+Coppia btable,value che compongono i dati costanti di stazione.
+
+table Board
+###########
+Board (moduli) che fanno parte di una stazione. Una Board prevede uno o più transporti di comunicazione, 
+uno o più sensori, uno stato di funzionamento e uno stato del firmware.
+
+table Transport*
+################
+Definiscono i paramtri di comunicazione per ogni trasporto.
+
+table Sensor
+############
+Sensori connessi a una board.
+Identificativi che compongono la chiave univoca per il DataBase dati:
+
+* level: livello rappresentativo delle misure
+* timernage: elaborazione statistica
+
+Definisce il driver utilizzato per il bus che bisogna utilizzare per
+comunicare con il sensore insieme ad alcuni parametri per
+identificarlo e per comunicare con lui.
+
+table SensorType
+################
+
+Definisce un tipo di sensore: il livello dei dati (sample o report) e
+il tipo che determina il driver da utilizzare per comunicare con il
+sensore. Ogni sensore può riportare più misure definite dalla tabelle btable.
+
+table Btable
+############
+
+Elenco dei Bcode della tabella B definita in modo univoco dalle
+specifiche RMAP (tabella B WMO). Sono abbinati descrizione e unità di misura 
+prima e dopo un eventuale applicazione dei fattori di scala.
+
+table BoardMaintStatus
+######################
+
+Definisce lo stato di una Board così come comunicati dalla stazione (Stima V4).
+Prevede valori booleani e numerici.
+
+table BoardFirmwareMetadata
+###########################
+
+Mantiene uno stato aggiornato dei firmware delle board presenti in stazione.
+Il campo mac viene utilizzato:
+
+* valorizzato al primo tentativo di aggiornamento
+* verificato i successivi aggiornamenti
+* i restanti campi sono aggiornati solo se la verifica ha successo
+
+questo serve come semplice metodo di autenticazione della richiesta
+http di aggiornamento del firmware delle board. Se l'hardware viene
+cambiato a una stazione preesistente il mac deve essere resettato.
+
+table StationMaintStatus
+########################
+
+Questa tabella viene aggiornata tramite la messaggistica a standard
+RMAP nel root topic "maint" dei dati pubblicati MQTT. Mantiene la
+versione del firmware di stazione (versione globale, solitamente della
+board master), l'utimo aggiornamento della connessione e lo stato
+della connessione.
+
+table StationImage
+##################
+Associa ad ogni stazione delle fotografie con commenti e metadati
+utili per dettagliare la sua collocazione e caratteristiche.
 
 
 URL
 '''
+Sono riportate solo le versioni delle URL con tutti i parametri, anche omittibili
 
-* '^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
-* '^stationstatus/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
-* '^stationmqttmonitor/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
-* '^stationsupload/json/$'
-* '^stationconfig/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)$'
-* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$'
-* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json_dump/$'
-* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/configv3/$'
-* '^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/(?P<board_slug>[-_\w]*)/json/$'
-* '^delstation/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
-* '^stationlocaldata/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
-* '^stationsonmap/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
+* **'^$'** home page
+* **'^wizard/$'**       wizard inizio configurazione stazione BASE (solo su stazione BASE)
+* **'^wizard2/$'**      wizard seconda pagina configurazione stazione BASE (solo su stazione BASE) 
+* **'^wizard_done/$'**  wizard fine configurazione stazione BASE (solo su stazione BASE)
+* **'^wizard_error/$'** wizard errore configurazione stazione BASE (solo su stazione BASE)
+* **'^admin/doc/'**    documentatione admin di Django
+* **^admin/'**         admin di Django
+  
+* **'^registrazione/register/$'**   pagina di registrazione utenti
+* **'^registrazione/'**  radice di tutti i path necessari per la registrazione utenti
+  
+* **'^auth/user'**        autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
+* **'^auth/vhost'**       autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
+* **'^auth/resource'**    autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
+
+* **'^auth/auth$'**       autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/auth_sha$'**   autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/sha$'**        autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/pskkey$'**     autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/superuser$'**  autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/acl$'**        autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+
+* **'^accounts/profile/(?P<mystation_slug>[-\w]+)/(?P<stationimage_id>[-\w]+)/$'**
+  pagina di amministrazione dell'utente/della stazione utente
+* **'^robots.txt$'**   robots.txt per i motori di ricerca
+  
+* **'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** elenco
+  stazioni con metadati riassuntivi
+* **'^stationstatus/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** elenco
+  stazioni con stato e autodiagnostica
+* **'^stationmqttmonitor/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'**
+  monitoraggio web della comunicazione MQTT
+
+* **'^stationsupload/json/$'** upload della configurazione stazione se
+  l'utente è autenticato e se la stazione uplodata corrisponde
+  all'utente stesso (è il metodo attualmente utilizzato in sostituzione di AMQP)
+  
+* **'^stationconfig/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)$'** serie
+  di RPC per configurare una stazione in modalità "notification"
+
+* **'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$'**
+  configurazione stazione in formato json; se l'utente è autenticato
+  il json è completo di password, nel caso contrario sono assenti; il
+  timerange viene completato con P2=mqttsampletime; da utilizzare per
+  la configurazione stazione
+    
+* **'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json_dump/$'**
+  dump della configurazione stazione in formato json; se l'utente è autenticato
+  il json è completo di password, nel caso contrario sono assenti; il
+  timerange non viene completato lasciando P2 per essere completato successivamente.
+  
+* **'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/configv3/$'**
+  restituisce un file binario da utilizzare su SD card per la
+  configurazione stazioni Stima V3
+
+* **'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/(?P<board_slug>[-_\w]*)/json/$'**
+  configurazione di una board di una stazione in formato json; se
+  l'utente è autenticato il json è completo di password, nel caso
+  contrario sono assenti; il timerange viene completato con
+  P2=mqttsampletime; da utilizzare per la configurazione stazione
+
+* **'^delstation/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** cancellazione di una stazione
+  
+* **'^stationlocaldata/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** visualizza
+  i dati misurati dalla stazione StimaWiFi se risulta collegata nella
+  stessa rete locale con avahi/bonjour
+  
+* **'^stationsonmap/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** visualizza le
+  stazioni su mappa
+
+  
+network app
+~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+Ogni stazione è associata a un network. In questa app viene
+visualizzata la lista dei network e i metadati di ogni network.  Non
+esiste un link automatico tra i network pubblicati dalle stazioni e i
+network presenti in questa app.  Se lo stesso network è presente sia
+nei dati che in questa app, i metadati presenti in questa app vengono
+visualizzati quando richiesto.
 
 
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_network.png
+	   
+URL
+'''
+
+* **'^network/(?P<name>[-\w]+)/$'**    navigazione e visualizzazione network
+
+
+http2mqtt app
+~~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+Questa app permette di pubblicare i dati tramite http.  Le specifiche
+seguono le RMAP RFC per http con le specifiche a questo link
+:ref:`http2mqtt <rmaprfc_http-reference>`
+
+
+URL
+'''
+* **'^http2mqtt/$'**
+
+
+  
 firmware_updater e firmware_updater_stima app
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -439,14 +1165,10 @@ URL
   '/(?P<var>B\d{5}|\*)')
 
 * '^showdata/$'
-* basepattern + '/timeseries/(?P<year>\d{4})$', views.timeseries,name="timeseriesyearly")
-* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.timeseries,name="timeseriesmonthly")
-* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.timeseries,name="timeseriesdaily")
-* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.timeseries,name="timeserieshourly")
-* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.spatialseries,name="spatialserieshourly")
-* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.spatialseries,name="spatialseriesdaily")
-* basepattern + '/stationdata$', views.stationdata,name="stationdata")
-* basepattern + '/stations$', views.stations,name="stations")
+* basepattern + '/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$'
+* basepattern + '/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$'
+* basepattern + '/stationdata$'
+* basepattern + '/stations$'
 
 Daemon
 ......

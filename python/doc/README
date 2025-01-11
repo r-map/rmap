@@ -1,7 +1,8 @@
 #Creates a GraphViz dot file with django_extensions
 ../rmapctrl --syncdb
-python ../manage.py graph_models  -g --output=model_firmware.png firmware_updater firmware_updater_stima
-python ../manage.py graph_models  -g --output=model_geoimage.png geoimage
-python ../manage.py graph_models  -g --output=model_rpc.png rpc
-python ../manage.py graph_models  -g --output=model_stations.png stations
-python ../manage.py graph_models  -g --output=model_ticket.png ticket
+python ../rmap-manage graph_models  -g --output=model_firmware.png firmware_updater firmware_updater_stima
+python ../rmap-manage graph_models  -g --output=model_network.png network
+python ../rmap-manage graph_models  -g --output=model_geoimage.png geoimage
+python ../rmap-manage graph_models  -g --output=model_rpc.png rpc
+python ../rmap-manage graph_models  -g --output=model_stations.png stations
+python ../rmap-manage graph_models  -g --output=model_ticket.png ticket
