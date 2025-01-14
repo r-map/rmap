@@ -218,6 +218,68 @@ Documentazione implementazione
 Il funzionamento del back-end e del front-end è basato su due broker,
 una suite di applicazioni Django, alcuni tools e da una suite di daemon.
 
+I dati seguono flussi e archivi differenti secondo questa classificazione:
+
++-------------------------+----------------+------------------+
+|                         | stazione fissa |  Stazione mobile |
++-------------------------+----------------+------------------+
+| livello dati sample     | sample_fixed   | sample_mobile    |
++-------------------------+----------------+------------------+
+| livello dei dati report | report_fixed   | report_mobile    |
++-------------------------+----------------+------------------+
+
+Le quattro categorie corrispondono quindi a differenti root path MQTT,
+differenti exchange e queue AMQP, differenti daemon.
+Corrispondono anche a quattro differenti DataBase di DB.all.e per i dati recenti e a quattro
+macro dataset Arkimet poi eventualmente sottosezionati.
+Ecco un esempio di struttura dataset di Arkimet:
+
+::
+
+ ├── report_fixed
+ │   ├── agrmet
+ │   ├── boa
+ │   ├── claster
+ │   ├── dpcn-basilicata
+ │   ├── dpcn-bolzanoboze
+ │   ├── dpcn-calabria
+ │   ├── dpcn-campania
+ │   ├── dpcn-lazio
+ │   ├── dpcn-liguria
+ │   ├── dpcn-lombardia
+ │   ├── dpcn-marche
+ │   ├── dpcn-molise
+ │   ├── dpcn-piemonte
+ │   ├── dpcn-puglia
+ │   ├── dpcn-sardegna
+ │   ├── dpcn-sicilia
+ │   ├── dpcn-umbria
+ │   ├── dpcn-veneto
+ │   ├── fixed
+ │   ├── locali
+ │   ├── mnw
+ │   ├── report_fixed_duplicates
+ │   ├── report_fixed_error
+ │   ├── simnbo
+ │   ├── simnpr
+ │   ├── spdsra
+ │   └── urbane
+ ├── report_mobile
+ │   ├── report_mobile
+ │   ├── report_mobile_duplicates
+ │   └── report_mobile_error
+ ├── sample_fixed
+ │   ├── sample_fixed
+ │   │   └── sample_fixed
+ │   ├── sample_fixed_duplicates
+ │   └── sample_fixed_error
+ └── sample_mobile
+     ├── sample_mobile
+     ├── sample_mobile_duplicates
+     └── sample_mobile_error
+
+
+
 
 Configurazione stazioni
 .......................
@@ -523,12 +585,6 @@ gestiscono le varie stazioni meteo possono attivare il monitoraggio su
 websocket per verificare i messaggi pubblicati dalla stazione sul
 broker evitando la necessità di avere un apposito client MQTT.
 
-E’ presente anche un altro demone (**report2observationd**) che
-effettua una trasformazione dei messaggi che arrivano inizialmente
-compressi (vedi forme compresse protocollo RMAP over MQTT), li
-decomprime e li pubblica nuovamente, per cui arrivano sul broker MQTT
-in forma decompressa.
-
 Ogni stazione può pubblicare solamente sul topic mqtt per cui è stata
 configurata e quindi autorizzata, in base a utente, rete, latitudine e
 longitudine. Ogni autenticazione e autorizzazione corrisponde a una
@@ -553,8 +609,11 @@ I dati, una volta autenticate le stazioni sul backend e pubblicati
 tramite il broker MQTT sono disponibili ai subscriber, principalmente
 ai daemoni per la conversione di formato e l'invio come messaggi AMQP.
 
+
+Tools
+~~~~~
+
 Generazione dei file di autenticazione/autorizzazione
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Per mantenere allineato il processo di autenticazione sul broker MQTT
 e consentire l’autenticazione delle stazioni, anche in caso di failure
@@ -573,6 +632,18 @@ degli stessi file.
 
 
 .. _MQTT_URL-reference:
+
+Daemon
+~~~~~~
+
+report2observationd
+
+Il demone (**report2observationd**) effettua una trasformazione dei
+messaggi che arrivano inizialmente compressi (vedi :ref:`estensioni
+<rmaprfc_estensioni-reference>` protocollo RMAP over MQTT), li
+decomprime e li pubblica nuovamente, per cui arrivano sul broker MQTT
+in forma decompressa.
+
 
 URL
 ~~~
@@ -743,6 +814,8 @@ autorizzazione di RMAP per autenticare la ricezione di messaggi:
 * fotografie: formato jpeg
 * configurazione stazioni: formato json
 
+Questo metodo di uplodare foto e configurazioni eè per il momento da
+considerarsi obsoleto.
 
 .. _AMQP_URL-reference:
   
@@ -769,6 +842,22 @@ inviati.
 Per fotografie e configurazioni questa attualmente è una metodologia
 disattivata a vantaggio della metodologia HTTP.
   
+Daemon
+~~~~~~
+
+* amqp2amqp_identvalidationd : valida gli ident per la pubblicazione dati da coda AMQP a coda AMQP
+* amqp2amqp_jsonline2bufrd : conversione da formato jsonline a bufr da coda AMQP a coda AMQP
+* amqp2arkimetd : archiviazione diretta da coda AMQP a arkimet (obsoleto)
+* amqp2dballed : archiviazione dati da coda AMQP a DBall.e; le opzioni
+   - -d DATALEVEL, --datalevel=DATALEVEL
+     sample or report
+   - -s STATIONTYPE, --stationtype=STATIONTYPE
+     fixed or mobile
+     quali delle 4 istanze eseguire
+* amqp2djangod : importazioni delle configurazioni stazione da coda AMQP a framework Django
+* amqp2geoimaged : importazione delle immagini georeferenziate da coda AMQP
+* amqp2mqttd : pubblica i dati da una coda AMQP al broker MQTT
+
 
 Log
 ...
@@ -793,6 +882,11 @@ gestendone la crezione, configurazione e aggiornamento dei metadati,
 mantenedo aggiornati lo stato di funzionamento e autodiagnostica, le
 versioni del firmware utilizzate, e le informazioni di autenticazione
 e autorizzazione.
+
+Espone l'interfaccia di amministrazione di Django tramite la quale è
+possibile fare operazioni particolari di amministrazione non ancora
+gestite da apposite funzioni da web.
+
 
 DataBase
 ''''''''
@@ -855,8 +949,9 @@ table Btable
 ############
 
 Elenco dei Bcode della tabella B definita in modo univoco dalle
-specifiche RMAP (tabella B WMO). Sono abbinati descrizione e unità di misura 
-prima e dopo un eventuale applicazione dei fattori di scala.
+specifiche RMAP (tabella B WMO).  Fa parte delle chiavi univoche del
+DB dati.  Sono abbinati descrizione e unità di misura prima e dopo un
+eventuale applicazione dei fattori di scala.
 
 table BoardMaintStatus
 ######################
@@ -898,30 +993,27 @@ URL
 Sono riportate solo le versioni delle URL con tutti i parametri, anche omittibili
 
 * **'^$'** home page
-* **'^wizard/$'**       wizard inizio configurazione stazione BASE (solo su stazione BASE)
-* **'^wizard2/$'**      wizard seconda pagina configurazione stazione BASE (solo su stazione BASE) 
-* **'^wizard_done/$'**  wizard fine configurazione stazione BASE (solo su stazione BASE)
-* **'^wizard_error/$'** wizard errore configurazione stazione BASE (solo su stazione BASE)
-* **'^admin/doc/'**    documentatione admin di Django
-* **^admin/'**         admin di Django
-  
-* **'^registrazione/register/$'**   pagina di registrazione utenti
-* **'^registrazione/'**  radice di tutti i path necessari per la registrazione utenti
+* **'^wizard/$'**         wizard inizio configurazione stazione BASE (solo su stazione BASE)
+* **'^wizard2/$'**        wizard seconda pagina configurazione stazione BASE (solo su stazione BASE) 
+* **'^wizard_done/$'**    wizard fine configurazione stazione BASE (solo su stazione BASE)
+* **'^wizard_error/$'**   wizard errore configurazione stazione BASE (solo su stazione BASE)
+* **'^admin/doc/'**       documentatione admin di Django
+* **^admin/'**            admin di Django
   
 * **'^auth/user'**        autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
 * **'^auth/vhost'**       autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
 * **'^auth/resource'**    autenticazione/autorizzazione rabbit-mq; guarda :ref:`amqp <AMQP_URL-reference>`
 
-* **'^auth/auth$'**       autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
-* **'^auth/auth_sha$'**   autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
-* **'^auth/sha$'**        autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
-* **'^auth/pskkey$'**     autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
-* **'^auth/superuser$'**  autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
-* **'^auth/acl$'**        autenticazione/autorizzazione mosuiqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/auth$'**       autenticazione/autorizzazione mosqtto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/auth_sha$'**   autenticazione/autorizzazione mosquitto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/sha$'**        autenticazione/autorizzazione mosquitto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/pskkey$'**     autenticazione/autorizzazione mosquitto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/superuser$'**  autenticazione/autorizzazione mosquitto; guarda :ref:`mqtt <MQTT_URL-reference>`
+* **'^auth/acl$'**        autenticazione/autorizzazione mosquitto; guarda :ref:`mqtt <MQTT_URL-reference>`
 
 * **'^accounts/profile/(?P<mystation_slug>[-\w]+)/(?P<stationimage_id>[-\w]+)/$'**
   pagina di amministrazione dell'utente/della stazione utente
-* **'^robots.txt$'**   robots.txt per i motori di ricerca
+* **'^robots.txt$'**      robots.txt per i motori di ricerca
   
 * **'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** elenco
   stazioni con metadati riassuntivi
@@ -966,6 +1058,50 @@ Sono riportate solo le versioni delle URL con tutti i parametri, anche omittibil
   
 * **'^stationsonmap/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'** visualizza le
   stazioni su mappa
+
+Tools
+'''''
+
+* rmap-configure
+  TODO
+
+
+
+registration app
+~~~~~~~~~~~~~~~~
+
+Descrizione
+'''''''''''
+
+Se la funzione è abilitata da configurazione questa app gestisce la
+possibilità che gli utenti si registrino in modo sutonomo dovendo
+fornire come minimi una email.
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_registration.png
+	   
+URL
+'''
+  
+* **'^registrazione/register/$'**   pagina di registrazione utenti
+* **'^registrazione/'**  radice di tutti i path necessari per la registrazione utenti
+
+  * **'^registrazione/activate/complete/$'**
+  * **'^registrazione/activate/resend/$'**
+  * **'^registrazione/activate/(?P<activation_key>\w+)/$'**
+  * **'^registrazione/register/complete/$'**
+  * **'^registrazione/register/closed/$'**
+  * **'^registrazione/register/$'**
+  * **'^registrazione/login/$'**
+  * **'^registrazione/logout/$'**
+  * **'^registrazione/password/change/$'**
+  * **'^registrazione/password/change/done/$'**
+  * **'^registrazione/password/reset/$'**
+  * **'^registrazione/password/reset/complete/$'**
+  * **'^registrazione/password/reset/done/$'**
+  * **'^registrazione/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$'**
 
   
 network app
@@ -1016,6 +1152,113 @@ firmware_updater e firmware_updater_stima app
 Descrizione
 '''''''''''
 
+**firmware_updater: Versione per StimaWifi**
+
+Ogni firmware è caratterizzato da un nome e da una versione
+il nome è a piacere, la versione è una data parsabile da questo modulo python:
+https://dateutil.readthedocs.io/en/stable/parser.html
+
+la richiesta può essere http o https, ma normalmente http.
+
+Viene verificata la presenza di alcuni header nella richiesta http specifici per ESP8266/ESP32:
+
+* HTTP_USER_AGENT deve essere uguale a ESP8266-http-Update/ESP32-http-Update
+  Se user-agent divers torna 403
+* HTTP_X_ESP8266_SKETCH_SIZE/HTTP_X_ESP32_SKETCH_SIZE deve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* X_ESP8266_AP_MAC/HTTP_X_ESP32_AP_MAC deve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* HTTP_X_ESP8266_FREE_SPACE/HTTP_X_ESP32_FREE_SPACE deve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* HTTP_X_ESP8266_SKETCH_MD5/HTTP_X_ESP32_SKETCH_MD5deve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* HTTP_X_ESP8266_CHIP_SIZE/HTTP_X_ESP32_CHIP_SIZEdeve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* HTTP_X_ESP8266_SDK_VERSION/HTTP_X_ESP32_SDK_VERSIONdeve essere
+  impostato (ma non è utilizzato) altrimenti torna 403
+* X_ESP8266_STA_MAC/HTTP_X_ESP32_STA_MAC Essendo la richiesta
+  d'aggiornamento del firmware non autenticata, la board dispone di un
+  MAC che viene inviato nell'header X_ESP8266_STA_MAC il cui hash
+  viene salvato la prima volta sul server e tutte le volte successive
+  deve fare match per poter aggiornare le info sul server.
+
+* X-ESP8266-VERSION: l'header VERSION è codificata in json ad esempio:
+  X-ESP8266-VERSION: {"ver":"2022-11-01T12:00:00"}
+  - ver : versione attuale del firmware nel formato datetime ISO
+  Nello stesso json possono essere inviati anche:
+  - user   (utente)
+  - slug   (station slug)
+  - bslug  (board slug)
+
+  nel qual caso sul server vengono aggiornate le informazioni relative
+  alla board con versione inviata alla board per l'aggiornamento e la
+  data e ora dell'invio (eventualmente utile per effettuare un commit
+  dell'aggiornamento).
+ 
+risposta:
+
+* Se il firmware non esiste torna 500
+* Se la versione non è corretta torna 300
+* Se non c'è un nuovo firmware torna 304
+* Se l'md5 del firmware attualmente running è uguale a quello dell'ultimo firmware disponibile torna 304
+
+altrimenti risponde con il firmware con header 'x-MD5' pari all'md5 del firmware che segue
+
+Il tutto si riassume con questa richiesta tramite curl:
+
+::
+
+  curl --user-agent "ESP8266-http-Update" -H "X-ESP8266-STA-MAC:
+  1234" -H "X-ESP8266-AP-MAC: 1234" -H "X-ESP8266-FREE-SPACE: 1234" -H
+  "X-ESP8266-SKETCH-SIZE: 1234" -H "X-ESP8266-CHIP-SIZE: 1234" -H
+  "X-ESP8266-SDK-VERSION: 1234" -H "X-ESP8266-SKETCH-MD5: 1234" -H
+  'X-ESP8266-VERSION: {"ver":"2022-11-01T12:00:00"}'
+  "http://test.rmap.cc/firmware/update/stima4/" -v
+
+URL
+'''
+
+* '^firmware/$'
+* '^firmware/update/(?P<name>[-_\w]+)/$'
+
+**firmware_updater_stima: versione per Stima V4**
+
+* HTTP_USER_AGENT deve essere uguale a STIMA4-http-Update
+  Se user-agent divers torna 403
+* HTTP_X_STIMA4_BOARD_MAC Essendo la richiesta d'aggiornamento del
+  firmware non autenticata, la board dispone di un MAC che viene
+  inviato nell'header HTTP_X_STIMA4_BOARD_MAC il cui hash viene salvato la
+  prima volta sul server e tutte le volte successive deve fare match
+  per poter aggiornare le info sul server.
+
+* HTTP_X_STIMA4_VERSION l'header VERSION è codificata in json ad esempio:
+  X_STIMA4_VERSION: {"version":4,"revision":5,"user":"userv4","slug":"stimav4","bslug":"stimacan1"}
+  - version: versione attuale del firmware
+  - revision: revisione attuale del firmware
+  Nello stesso json possono essere inviati anche:
+  - user:    utente
+  - slug:    station slug
+  - bslug:   board slug
+
+  nel qual caso sul server vengono aggiornate le informazioni relative
+  alla board con versione inviata alla board per l'aggiornamento e la
+  data e ora dell'invio (eventualmente utile per effettuare un commit
+  dell'aggiornamento).
+
+risposta:
+
+* Se il firmware non esiste torna 500
+* Se la versione non è corretta torna 300
+* Se non c'è un nuovo firmware torna 304
+
+altrimenti risponde con il firmware con header 'x-MD5' pari all'md5 del firmware che segue
+
+URL
+'''
+
+* '^firmware/stima/v4/$'
+* '^firmware/stima/v4/update/(?P<name>[-_\w]+)/$'
+
 DataBase
 ''''''''
 
@@ -1024,20 +1267,14 @@ DataBase
 Le due tabelle differiscono per la versionatura del firmware in un
 caso utilizzando un campo date e nell'altro revisione e versione.
 
-URL
-'''
-
-* '^firmware/$', views.index, name='firmware_index'),
-* '^firmware/update/(?P<name>[-_\w]+)/$', views.update, name='firmware_update'),
-
-* '^firmware/stima/v4/$'
-* '^firmware/stima/v4/update/(?P<name>[-_\w]+)/$'
-
+  
 geoimage app
 ~~~~~~~~~~~~
 
 Descrizione
 '''''''''''
+
+TODO
 
 DataBase
 ''''''''
@@ -1060,6 +1297,8 @@ rpc app
 Descrizione
 '''''''''''
 
+TODO
+
 DataBase
 ''''''''
 
@@ -1074,11 +1313,34 @@ URL
 * '^rpc-submit/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$'
 
 
+Daemon
+''''''
+
+* rpcd : legge dal DB Django le eventuali RPC da eseguire inviandole
+  tramite MQTT alle stazioni; Riceve le risposte e le inserisce nel DB
+  Django
+
+Tools
+'''''
+  
+* rmapctrl
+  
+  - --rpc_mqtt_admin_fdownload_v4 :
+    firmware download request to admin RPC over MQTT for Stima V4
+  - --username=USERNAME  : work on station managed by this username
+  - --station_slug=STATION_SLUG : work on station defined by this slug
+  - --purge_rpc : remove non active RPC (submitted, running and
+    completed)
+  - --purge_rpc_completed : remove non active RPC and completed
+
+
 ticket app
 ~~~~~~~~~~
 
 Descrizione
 '''''''''''
+
+TODO
 
 DataBase
 ''''''''
@@ -1101,6 +1363,8 @@ borinud app
 
 Descrizione
 '''''''''''
+
+TODO
 
 URL
 '''
@@ -1129,14 +1393,20 @@ graphite-dballe  app
 Descrizione
 '''''''''''
 
+TODO
+
 URL
 '''
+
+TODO
 
 insertdata app
 ~~~~~~~~~~~~~~
 
 Descrizione
 '''''''''''
+
+TODO
 
 URL
 '''
@@ -1151,6 +1421,8 @@ showdata app
 
 Descrizione
 '''''''''''
+
+TODO
 
 URL
 '''
@@ -1173,44 +1445,91 @@ URL
 Daemon
 ......
 
-Il daemon sono hanno i seguento comandi:
-* run
-* start
-* stop
+Il daemon hanno i seguento comandi:
+* run : esegue nel terminale
+* start : esegue come daemon
+* stop : termina l'esecuzione del daemon
 
-le altre opzioni sono documentate con l'opzione --help
+le altre opzioni sono documentate con l'opzione --help.
+Qui una sintesi di funzionalità e opzioni:
 
+I daemon specifici per una app sono stati descritti precedentemente
+nella apposizta sezione della app.
 
-* amqp2amqp_identvalidationd
-* amqp2amqp_jsonline2bufrd
-* amqp2arkimetd
-* amqp2dballed
-* amqp2djangod
-* amqp2geoimaged
-* amqp2mqttd
-* composereportd
-* dballe2arkimet
-* mqtt2amqpd
-* mqtt2dballed
-* mqtt2graphited
-* mqtt2stationmaintd
-* report2observationd
-* rpcd
-* stationd
-* ttn2dballed
+* mqtt2amqpd :
+  
+  - -d DATALEVEL, --datalevel=DATALEVEL :  sample or report
+  - -s STATIONTYPE, --stationtype=STATIONTYPE :  fixed or mobile
+  - -u --nouserasident  : do not use user as ident for fixed station too
+    (default use ident)
+
+  conversione dei dati da RMAP over MQTT a formato bufr e messaggio
+  AMQP; sono necessarie 4 istanze per differenti datalevel e
+  stationtype. ; l'opzione --nouserasident decide il tipo di
+  conversione da effettuare: se lo user è utilizzato come ident i dati
+  prodotti saranno utili per la visualizzazione dentro il server RMAP,
+  ma formalmente scorretti; se l'opzione è attivata i dati prodotti
+  saranno formalmente corretti e scambiali internazionalmente.  E'
+  possibile attivare 8 istanze: 4 per l'archiviazione locale e 4 per
+  la distribuzione oppure le prima 4 nella data ingestion e le altre 4
+  nel backend.
+
+* mqtt2stationmaintd : preleva i messaggi diagnostici pubblicati dalle
+  stazioni in MQTT e li inserisce in archivio Django
+* composereportd : effettua le elaborazioni necessarie per calcolare i
+  report a partire dai sample; ad esempio esegue le medie ogni 15',
+  calcola valori minimi e massimi, dopo aver calcolato le osservazioni
+  da campionamenti. Legge e scrive da DBall.e sample_fixed a DBall.e
+  report_fixed
+    
+* mqtt2dballed : conversione diretta da RMAP over MQTT a DBall.e (obsoleta)
+* mqtt2graphited : conversione da RMAP over MQTT agli archivi specifici di graphite (obsoleta)
+* stationd: daemon che effettua le misure e le elabora, le invia da una stazione di misura basata su Linux/Python (obsoleta)
+* ttn2dballed : daemon che effettua la traslazione da dati pubblicati tramite LoraWan TTN a MQTT RMAP (obsoleta)
 
 
 
 Tools
 .....
 
-Il tools disponibili sono:
+I tools specifici per una app sono stati descritti precedentemente
+nella apposizta sezione della app.
 
-* rmapgui
-* rmapweb
-* rmapctrl
-* rmap-explorer
-* rmap-configure
+Altri tools disponibili sono:
+
+* rmapgui : esegue la app interattiva tramite libreria Kivy per dispositivi touch
+* rmapweb  : esegue un server http senza necessità di apache
+* rmapctrl : esegue comandi inizializzazione e mantenimento del sistema RMAP
+  - --syncdb : initialize rmap DB (default False)
+  - --collectstatic :  Collect static files from multiple apps into a single
+  path (default False)
+  - --dumpdata          :  dump Data Base (default False)
+  - --loaddata=LOADDATA :  restore Data Base (default none)
+  
+* rmap-explorer per generare gli explorer dei DB DBall.e e accelerare i summary
+  - rmap-explorer --write --type report_fixed
+  - rmap-explorer --write --type report_mobile
+  - rmap-explorer --write --type sample_fixed
+  - rmap-explorer --write --type sample_mobile
+* dballe2arkimet : permette la migrazione dei dati ormai "stabilizzati" da DBall.e a Arkimet
+
+* rmap-manage : comandi per il sistema Django
+
+
+Configurazione
+..............
+
+TODO
+  
+Operazioni per l'aggiornamento
+..............................
+
+TODO
+
+Operazioni periodiche di manutenzione
+.....................................
+
+TODO
 
 
 Struttura cartelle
@@ -1219,14 +1538,6 @@ Struttura cartelle
 .. include:: ../../../README.directory
 		   
 		   
-Data ingestion
-..............
-
-Da rimuove solo di riferimento per sphinx
-
-Si possono consultare le :ref:`funzionalità <dataingestion-reference>`
-
-
 Installazione server completo basato su  Rocky Linux 8
 ------------------------------------------------------
 

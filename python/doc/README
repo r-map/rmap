@@ -6,3 +6,4 @@ python ../rmap-manage graph_models  -g --output=model_geoimage.png geoimage
 python ../rmap-manage graph_models  -g --output=model_rpc.png rpc
 python ../rmap-manage graph_models  -g --output=model_stations.png stations
 python ../rmap-manage graph_models  -g --output=model_ticket.png ticket
+python ../rmap-manage graph_models  -g --output=model_registration.png  registration

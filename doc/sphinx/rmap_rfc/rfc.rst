@@ -1037,6 +1037,9 @@ la chiave "t".
 
 payload : **{ "v": VALUE, "a": { "BXXYYY": VALUE, … } }**
 
+
+.. _rmaprfc_estensioni-reference:
+
 Estensioni
 ^^^^^^^^^^
 
