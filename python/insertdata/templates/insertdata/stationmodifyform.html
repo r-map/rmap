@@ -23,6 +23,46 @@
 <h3 id="striped-rows">{% trans 'Modify station' %} <a href=  {% url 'profile-details' station.slug  %} >{{ station.name }}</a></h3>
 <h3 id="striped-rows"><a href={% url 'profile' %}>{% trans 'Cancel' %}</a> </h3>
 
+
+
+<div class="table-responsive">
+  <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+    <div class="boardformset" class="tab-pane fade">      	
+      <div class="form-group">      
+	<h3 class="blockquote text-left">{% trans 'Modify station boards' %}</h3>      
+	{{ boardformset.non_form_errors.as_ul }}
+	<table id="formset" class="form">
+	  {{ boardformset.management_form }}
+	  {% for form in boardformset.forms %}
+	  {% if forloop.first %}
+	  <thead><tr>
+	      {% for field in form.visible_fields %}
+	      <th>{{ field.label|capfirst }}</th>
+	      {% endfor %}
+	  </tr></thead>
+	  {% endif %}
+	  <tr class="{% cycle row1 row2 %}">
+	    {% for field in form.visible_fields %}
+	    <td>
+	      {# Include the hidden fields in the form #}
+	      {% if forloop.first %}
+	      {% for hidden in form.hidden_fields %}
+	      {{ hidden }}
+	      {% endfor %}
+	      {% endif %}
+	      {{ field.errors.as_ul }}
+	      {{ field }}
+	    </td>
+	    {% endfor %}
+	  </tr>
+	  {% endfor %}
+	</table>
+      </div>
+    <input type="submit" name="station_submit" value={%trans "Submit" %} class="btn">
+  </form>
+</div>
+
+
 <div class="table-responsive">
   <table class="table">
     <thead>
@@ -81,7 +121,7 @@
 	</div>
       </div>
     </div>
-    <input type="submit" value={%trans "Submit" %} class="btn">
+    <input type="submit" name="board_submit" value={%trans "Submit" %} class="btn">
   </form>
 </div>
 

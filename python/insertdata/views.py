@@ -33,6 +33,8 @@ from django.core import serializers
 from django.forms import BoundField, Field
 from rmap.stations.models import TransportMqtt,TransportTcpip,TransportCan,TransportAmqp,Sensor
 
+import traceback
+
 #from crispy_forms.helper import FormHelper
 #from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit
 #from crispy_forms.bootstrap import TabHolder,Tab, Div
@@ -447,6 +449,7 @@ def insertDataRainboWeatherData(request):
                     form = RainboWeatherForm() # An unbound Rainbo form
                 except Exception as e:
                     print(e)
+                    print(traceback.format_exc())
                     return render(request, html_template,{'form': form,"error":True})
 
             return render(request, html_template,{'form': form ,"success":True})
@@ -808,6 +811,7 @@ def insertNewStation(request):
                 
             except IntegrityError as e:
                 print(e)
+                print(traceback.format_exc())
                 return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
                                                                              ,'stationonmapform':stationonmapform
                                                                              ,'newstationform':newstationform
@@ -815,6 +819,7 @@ def insertNewStation(request):
                     
             except Exception as e:
                 print(e)
+                print(traceback.format_exc())
                 return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
                                                                              ,'stationonmapform':stationonmapform
                                                                              ,'newstationform':newstationform,"error":True})
@@ -861,7 +866,7 @@ def stationModify(request,slug):
     from django.forms import modelform_factory
     StationMetadataForm=modelform_factory(StationMetadata, fields = ["name","active","slug","ident","lat","lon","network"])
     StationConstantDataFormSet = inlineformset_factory(StationMetadata,StationConstantData, fields=["active", "btable","value"],extra=1)
-    BoardFormSet = inlineformset_factory(StationMetadata,Board, fields=["name", "slug"])
+    BoardFormSet = inlineformset_factory(StationMetadata,Board, fields=["name", "slug"],extra=1)
 
     try:
         
@@ -869,19 +874,51 @@ def stationModify(request,slug):
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             stationmetadataform = StationMetadataForm(request.POST,instance=mystation)
             constantformset = StationConstantDataFormSet(request.POST, request.FILES,instance=mystation)
-            #boardformset = BoardFormSet(request.POST, request.FILES,instance=mystation)
-            
-            if stationmetadataform.is_valid() and constantformset.is_valid():
-                stationmetadataform.save()
-                constantformset.save()
+            boardformset = BoardFormSet(request.POST, request.FILES,instance=mystation)
+
+            valid=True
+            if 'station_submit' in request.POST:
+                if boardformset.is_valid():
+                    boardformset.save()
+                else:
+                    valid=False
+
+                    
+            if 'board_submit' in request.POST:
+                if stationmetadataform.is_valid():
+                    stationmetadataform.save()
+                else:
+                    valid=False
+                    
+                if constantformset.is_valid():
+                    constantformset.save()
+                else:
+                    valid=False
+
+            if (valid):
+                mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+                stationmetadataform = StationMetadataForm(instance=mystation)
+                constantformset = StationConstantDataFormSet(instance=mystation)
+                boardformset = BoardFormSet(instance=mystation)
                 return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
                                                                             "constantformset":constantformset,
                                                                             "station":mystation,
+                                                                            "boardformset":boardformset,
                                                                             "saved":True})
-            
+
+            if 'station_submit' in request.POST:
+                mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+                stationmetadataform = StationMetadataForm(instance=mystation)
+                constantformset = StationConstantDataFormSet(instance=mystation)
+               
+            if 'board_submit' in request.POST:
+                mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+                boardformset = BoardFormSet(instance=mystation)
+                
             return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
                                                                         "constantformset":constantformset,
                                                                         "station":mystation,
+                                                                        "boardformset":boardformset,
                                                                         "invalid":True})
 
         else:
@@ -890,16 +927,28 @@ def stationModify(request,slug):
             #queryset=Board.objects.filter(stationmetadata=mystation)
             #boardformset = BoardFormSet(queryset=queryset)
             constantformset = StationConstantDataFormSet(instance=mystation)
-            #boardformset = BoardFormSet(instance=mystation)
+            boardformset = BoardFormSet(instance=mystation)
             return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
                                                                         "constantformset":constantformset,
                                                                         "station":mystation,
+                                                                        "boardformset":boardformset,
                                                                         })
             
     except Exception as e:
         print(e)
+        print(traceback.format_exc())
         #stationmetadataform = StationMetadataForm() # An unbound form
-        return render(request, 'insertdata/stationmodifyform.html',{"error":True})
+        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+        stationmetadataform = StationMetadataForm(instance=mystation)
+        #queryset=Board.objects.filter(stationmetadata=mystation)
+        #boardformset = BoardFormSet(queryset=queryset)
+        constantformset = StationConstantDataFormSet(instance=mystation)
+        boardformset = BoardFormSet(instance=mystation)
+        return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                        "constantformset":constantformset,
+                                                                        "station":mystation,
+                                                                        "boardformset":boardformset,
+                                                                        "error":True})
 
 @login_required
 def boardModify(request,slug,bslug):
@@ -907,6 +956,7 @@ def boardModify(request,slug,bslug):
     from django.forms import inlineformset_factory
     from django.forms import modelform_factory
     BoardForm=modelform_factory(Board, fields = ["name","active","slug"])
+    BoardFormSet = inlineformset_factory(StationMetadata,Board, fields = ["name","active","slug"],extra=1)
     SensorFormSet = inlineformset_factory(Board,Sensor, fields=["active","name","driver","type","i2cbus","address","node","timerange","level"],extra=1)
     TransportMqttFormSet = inlineformset_factory(Board,TransportMqtt, fields=["active", "mqttsampletime","mqttserver","mqttuser","mqttpassword","mqttpskkey"])
     TransportTcpipFormSet = inlineformset_factory(Board,TransportTcpip, fields=["active","name","ntpserver","gsmapn","pppnumber"])
@@ -924,15 +974,35 @@ def boardModify(request,slug,bslug):
             transporttcpipformset = TransportTcpipFormSet(request.POST, instance=myboard)
             transportcanformset   = TransportCanFormSet  (request.POST, instance=myboard)
             transportamqpformset  = TransportAmqpFormSet (request.POST, instance=myboard)
-            
-            if boardform.is_valid() and transportmqttformset.is_valid() :
+
+            valid=False
+            if (boardform.is_valid()
+                and sensorformset.is_valid()
+                and transportmqttformset.is_valid()
+                and transporttcpipformset.is_valid()
+                and transportcanformset.is_valid()
+                and transportamqpformset.is_valid()):
+                
                 boardform.save()
                 sensorformset.save()
                 transportmqttformset.save()
                 transporttcpipformset.save()
                 transportcanformset.save()
                 transportamqpformset.save()
+                valid=True
+                
+            mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
+            myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
 
+            boardform = BoardForm(instance=myboard)
+            boardformset          = BoardForm(instance=mystation)
+            sensorformset         = SensorFormSet        (instance=myboard)            
+            transportmqttformset  = TransportMqttFormSet (instance=myboard)
+            transporttcpipformset = TransportTcpipFormSet(instance=myboard)
+            transportcanformset   = TransportCanFormSet  (instance=myboard)
+            transportamqpformset  = TransportAmqpFormSet (instance=myboard)
+
+            if (valid):
                 return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
                                                                           "sensorformset":sensorformset,
                                                                           "transportmqttformset":transportmqttformset,
@@ -942,8 +1012,9 @@ def boardModify(request,slug,bslug):
                                                                           "station":mystation,
                                                                           "board":myboard,
                                                                           "saved":True})
-            
-            return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
+
+            else:
+                return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
                                                                       "sensorformset":sensorformset,
                                                                       "transportmqttformset":transportmqttformset,
                                                                       "transporttcpipformset":transporttcpipformset,
@@ -956,8 +1027,9 @@ def boardModify(request,slug,bslug):
         else:
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
-            
+
             boardform = BoardForm(instance=myboard)
+            boardformset          = BoardForm(instance=mystation)
             sensorformset         = SensorFormSet        (instance=myboard)            
             transportmqttformset  = TransportMqttFormSet (instance=myboard)
             transporttcpipformset = TransportTcpipFormSet(instance=myboard)
@@ -975,6 +1047,7 @@ def boardModify(request,slug,bslug):
             
     except Exception as e:
         print(e)
+        print(traceback.format_exc())
         #stationmetadataform = StationMetadataForm() # An unbound form            
         mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
         myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
