@@ -848,12 +848,13 @@ Daemon
 * amqp2amqp_identvalidationd : valida gli ident per la pubblicazione dati da coda AMQP a coda AMQP
 * amqp2amqp_jsonline2bufrd : conversione da formato jsonline a bufr da coda AMQP a coda AMQP
 * amqp2arkimetd : archiviazione diretta da coda AMQP a arkimet (obsoleto)
-* amqp2dballed : archiviazione dati da coda AMQP a DBall.e; le opzioni
-   - -d DATALEVEL, --datalevel=DATALEVEL
-     sample or report
-   - -s STATIONTYPE, --stationtype=STATIONTYPE
-     fixed or mobile
-     quali delle 4 istanze eseguire
+* amqp2dballed : archiviazione dati da coda AMQP a DBall.e; utilizza
+  il lock per l'accesso in scrittura a DBall.e e le opzioni
+  - -d DATALEVEL, --datalevel=DATALEVEL
+  sample or report
+  - -s STATIONTYPE, --stationtype=STATIONTYPE
+  fixed or mobile
+  quali delle 4 istanze eseguire
 * amqp2djangod : importazioni delle configurazioni stazione da coda AMQP a framework Django
 * amqp2geoimaged : importazione delle immagini georeferenziate da coda AMQP
 * amqp2mqttd : pubblica i dati da una coda AMQP al broker MQTT
@@ -886,6 +887,29 @@ e autorizzazione.
 Espone l'interfaccia di amministrazione di Django tramite la quale è
 possibile fare operazioni particolari di amministrazione non ancora
 gestite da apposite funzioni da web.
+
+Le stazioni si possono creare e modificare in vari modi:
+
+* tramite interfaccia web e template: ci sono un certo numero di
+  configurazioni predefinite per stazioni standard che possono essere
+  utilizzate modificando solo alcuni parametri specifici quali le
+  coordinate, nme etc.
+* tramite linea di comando, tramite il tool rmap-config con una serie
+  di passaggi è possibile creare da un template o definendo tutti i
+  dettagli
+* tramite l'interfaccia admin di Django con una sequenza di operazioni
+  è possibile creare e modificare una stazione; consigliato solo per
+  modifiche
+
+I template non sono altro che stazioni definite come tutte le altre
+con l'unica caratteristica nella Category:template ("used to generate
+new station") oltre a essere disattivate per non entrare negli elenchi
+delle stazioni "reali".
+
+All'installazione vengono precaricate alcuni template tramite le fixture di Django; ad esempio: https://github.com/r-map/rmap/blob/master/python/rmap/stations/fixtures/template_stations_02.json
+
+Le definizioni stazioni possono essere trasferite tra differenti
+istanze del server (server remoto e DB Django locale).
 
 
 DataBase
@@ -1062,9 +1086,33 @@ Sono riportate solo le versioni delle URL con tutti i parametri, anche omittibil
 Tools
 '''''
 
-* rmap-configure
-  TODO
+**rmap-configure**
 
+Esempio di configurazione di una stazione Stima V4
+
+::
+
+   rmap-configure --wizard --station_slug teststation --stationname Stima V4 test station --username myuser --password password --server test.rmap.cc --lat 45.54321 --lon 12.54321 --height 234 --mqttrootpath report --mqttmaintpath maint --network test
+   rmap-configure --addboard --boardtype 11 --serialactivate --mqttactivate --tcpipactivate --canactivate --tcpipntpserver it.pool.ntp.org --tcpipname stima --tcpipgsmapn internet.wind --tcpippppnumber *99***1# --station_slug teststation --board_slug masterv4 --username myuser --server test.rmap.cc --mqttuser myuser --mqttpassword h23jhjhjh --mqttpskkey 1BF19DC005FFCE9277B4CFC696410426 --mqttsamplerate 900 --cannodeid 100 --cansubject node.master --cansubjectid 100 --cansamplerate 60
+   rmap-configure --addsensors_by_template none --station_slug teststation --board_slug masterv4 --username myuser
+   rmap-configure --addboard --boardtype 21 --serialnumber 0xABCDEF1 --serialactivate --canactivate --station_slug teststation --board_slug module_th --username myuser --cannodeid 60 --cansubject node.th --cansubjectid 60 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_th --station_slug teststation --board_slug module_th --username myuser
+   rmap-configure --addboard --boardtype 20 --serialnumber 0xABCDEF2 --serialactivate --canactivate --station_slug teststation --board_slug module_rain --username myuser --cannodeid 61 --cansubject node.p --cansubjectid 61 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_p --station_slug teststation --board_slug module_rain --username myuser
+   rmap-configure --addboard --boardtype 25 --serialnumber 0xABCDEF3 --serialactivate --canactivate --station_slug teststation --board_slug module_wind --username myuser --cannodeid 62 --cansubject node.wind --cansubjectid 62 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_w --station_slug teststation --board_slug module_wind --username myuser
+   rmap-configure --addboard --boardtype 26 --serialnumber 0xABCDEF4 --serialactivate --canactivate --station_slug teststation --board_slug module_radiation --username myuser --cannodeid 63 --cansubject node.rad --cansubjectid 63 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_r --station_slug teststation --board_slug module_radiation --username myuser
+   rmap-configure --addboard --boardtype 28 --serialnumber 0xABCDEF5 --serialactivate --canactivate --station_slug teststation --board_slug module_mppt --username myuser --cannodeid 64 --cansubject node.mppt --cansubjectid 64 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_m --station_slug teststation --board_slug module_mppt --username myuser
+   rmap-configure --addboard --boardtype 29 --serialnumber 0xABCDEF6 --serialactivate --canactivate --station_slug teststation --board_slug module_svwc --username myuser --cannodeid 65 --cansubject node.svwc --cansubjectid 65 --cansamplerate 60
+   rmap-configure --addsensors_by_template stima4_report_s --station_slug teststation --board_slug module_svwc --username myuser
+
+   # configurazione tramite porta seriale
+   rmap-configure --config_station --station_slug teststation --username myuser --transport serial --device /dev/ttyACM0 --stima_version 4
+
+   # upload configurazione al server
+   #rmap-configure --upload_to_server --station_slug teststation --username myuser --password password --server test.rmap.cc
 
 
 registration app
@@ -1274,7 +1322,9 @@ geoimage app
 Descrizione
 '''''''''''
 
-TODO
+Tramite interfaccia web è possibile inserire immagini georeferenziate, visualizzare 
+anteprime sulla mappa, navigare le immagini su un sito nel tempo e cancellarle.
+
 
 DataBase
 ''''''''
@@ -1289,15 +1339,64 @@ URL
 * '^geoimage/geoimagedelete/(?P<id>[-_\w]+)/$'
 * '^geoimage/geoimagesbycoordinate/(?P<lon>[-_\w.]+)/(?P<lat>[-_\w.]+)/$'
 
-
-
+  
 rpc app
 ~~~~~~~
 
 Descrizione
 '''''''''''
 
-TODO
+Le stazioni possono eseguire Remote Procedure Call secondo le spscifiche;
+https://www.jsonrpc.org/specification
+e l'implementazione su MQTT in :ref:`rmap rfc <rmaprfc_rpc-reference>`.
+
+Ogni RPC è caratterizzata da un id incrementato in seuqenza per ogni
+stazione.  Una RPC è attiva quando è solo stata richiesta, ma non
+ancora inviata tramite MQTT.
+
+* date corrisponde  a quando è stata richiesta una RPC (stato sumbitted)
+* datecmd corrisponde a quando l'RPC è stata inviata tramite MQTT (stato running)
+* dateres corrisponde a quando è stata ricevuta una risposta (stato completed)
+
+* method : metodo della RPC
+* params : parametri della RPC
+* result : risultato della RPC
+* error : messaggio di errore
+
+Una RPC assume quindi differenti stati:
+* submitted : è stata richiesta una RPC
+* running : l'RPC è stata inviata tramite MQTT
+* completed : è stata ricevuta una risposta
+
+Lo stato submitted può essere attivato tramite interfaccia web o tool
+a linea di comando.
+
+Da questo momento la gestione della RPC passa al daemon rpcd che
+periodicamente richiede al DB le RPC da gestire (stato submitted) e le
+invia alle stazioni tramite MQTT. Rimane poi sottoscritto al topic
+MQTT per la risposta che una volta ricevuta viene inserita in DB.
+
+I tempi di esecuzione delle RPC possono essere molto lunghi vista
+caratteristica della connessione delle stazioni che non è permanente.
+
+Se le stazioni non ricevono la richiesta di RPC o non inviano la
+riposta lo stato dell'RPC rimane "running".
+
+L'interfaccia WEB che permette l'attivazione di una RPC ha due modalità:
+* modalità semplice che utilizza RPC predefinite:
+
+  - reboot  : riavvio stazione
+  - reboot e firmware update : riavvio con eventuale firmware update
+    del firmware precedentemente scaricato  (solo Stima V4)
+  - recovery last day of data : richiede reinvio dei dati delle ultime 24 ore
+  - admin firmware download : richiede il download di un eventuale firmware più recente  (solo Stima V4)
+  - admin configuration download : richiede il download della
+    configurazione stazione eventualmente aggiornata  (solo Stima V4)
+
+* modalità a formato libero dove vengono richiesti:
+
+  - metodo
+  - parametri
 
 DataBase
 ''''''''
@@ -1325,11 +1424,12 @@ Tools
   
 * rmapctrl
   
-  - --rpc_mqtt_admin_fdownload_v4 :
-    firmware download request to admin RPC over MQTT for Stima V4
-  - --username=USERNAME  : work on station managed by this username
-  - --station_slug=STATION_SLUG : work on station defined by this slug
-  - --purge_rpc : remove non active RPC (submitted, running and
+  - --rpc_mqtt_admin_fdownload_v4 : invia richiesta RPC per un firmware download
+    over MQTT per stazioni Stima V4
+    - --username=USERNAME : work on station managed by this username
+    - --station_slug=STATION_SLUG : work on station defined by this slug
+
+  - --purge_rpc : remove all non active RPC (submitted, running and
     completed)
   - --purge_rpc_completed : remove non active RPC and completed
 
@@ -1340,7 +1440,17 @@ ticket app
 Descrizione
 '''''''''''
 
-TODO
+L'app gestisce i ticket relativi alle stazioni: 
+* è relativo a una stazione
+* può essere attivo o no
+* può essere assegnato a più utenti (chi deve risolvere il problema)
+* più utenti possono essere abbonati (notifica delle modifiche)
+* possono essere associate immagini
+* possono essere associati allegati
+* a ogni ticket si susseguono azioni per risolverlo e poi disattivarlo
+
+L'app non è completa e i ticket si possono inserire e gestire solo dall'interfaccia admin di Django.
+E' necessario aggiungere anche le notifiche tramite email
 
 DataBase
 ''''''''
@@ -1364,7 +1474,10 @@ borinud app
 Descrizione
 '''''''''''
 
-TODO
+Borinud mette a disposizioni delle API WEB per il download dei dati.
+Le fonti dei dati possono essere differenti e multiple: DBall.e e
+Arkimet.  Oltre ai database utilizza gli explorer per mantenere
+aggiornati e veloci i cataloghi dei dati presenti.
 
 URL
 '''
@@ -1386,19 +1499,65 @@ URL
 * basepattern + '/stationdata$'
 * basepattern + '/stations$'
 
+Tools
+'''''
 
+**rmap-explorer**: viene eseguito in crontab per aggiornare gli
+explorer di DBall.e in **/rmap/dballe**
+
+**dballe2arkimet** : oltre a trasferire i dati da DBall.e a arkimet
+aggiorna gli explorer di arkimet in **/rmap/arkimet**.  L'aggiornamento
+degli explorer di arkimet avviene in modo incrementale ogni volta che
+si aggiunge un blocco dati a Arkimet.  Se dovesse avvenire un
+disallineamento o un intervento manuale sul DB è possibile ricreare
+gli explorer di Arkimet tramite questo script:
+
+::
+
+    #!/usr/bin/python3
+    import dballe
+
+    from pathlib import Path
+
+    dstypes=["report_fixed","report_mobile","sample_fixed","sample_mobile"]
+
+    for dstype in dstypes:
+	for path in Path(dstype).rglob('*.bufr'):
+	    file=path.as_posix()
+	    print(file)
+
+	    # update from file
+	    with dballe.Explorer(dstype+".json") as explorer:
+		with explorer.update() as updater:
+		    importer = dballe.Importer("BUFR")
+		    with importer.from_file(file) as message:
+			try:
+			    updater.add_messages(message)
+			except Exception as e:
+			    print (e)
+
+		print ("updated from file")
+		#print (explorer.all_reports)
+		#print (explorer.all_levels)
+		#print (explorer.all_tranges)
+		#print (explorer.all_varcodes)
+		print (explorer.stats)
+
+  
 graphite-dballe  app
 ~~~~~~~~~~~~~~~~~~~~
 
 Descrizione
 '''''''''''
 
-TODO
+Questa app è una versione embedded di `graphite <https://graphite.readthedocs.io/en/stable/index.html>`_
+che utilizza borinud come `storage-backends <https://graphite.readthedocs.io/en/stable/storage-backends.html>`_
 
 URL
 '''
 
-TODO
+Consultare la `documentazione <https://graphite.readthedocs.io/en/stable/render_api.html>`_.
+
 
 insertdata app
 ~~~~~~~~~~~~~~
@@ -1511,7 +1670,9 @@ Altri tools disponibili sono:
   - rmap-explorer --write --type report_mobile
   - rmap-explorer --write --type sample_fixed
   - rmap-explorer --write --type sample_mobile
-* dballe2arkimet : permette la migrazione dei dati ormai "stabilizzati" da DBall.e a Arkimet
+* dballe2arkimet : permette la migrazione dei dati ormai
+  "stabilizzati" da DBall.e a Arkimet: utilizza il lock per l'accesso
+  in scrittura a DBall.e
 
 * rmap-manage : comandi per il sistema Django
 

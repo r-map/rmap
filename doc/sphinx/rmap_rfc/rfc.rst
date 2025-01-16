@@ -1144,6 +1144,9 @@ Tabella E
                   "B15198"]={"timerange":"254,0,0","level":"103,2000,-,-"}}
    }
 
+
+.. _rmaprfc_rpc-reference:
+
 Remote procedure over MQTT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
