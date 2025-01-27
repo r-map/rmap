@@ -5871,7 +5871,7 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
 
     //try to read serial number
     char buf[32];
-    if (_sps30->GetSerialNumber(buf, 32) == SPS30ERR_OK) {
+    if (_sps30->GetSerialNumber(buf, 32) == SPS30_ERR_OK) {
       IF_SDSDEBUG(SDDBGSERIAL.print(F("#SP30 Serial number : ")));
       if(strlen(buf) > 0) {
 	IF_SDSDEBUG(SDDBGSERIAL.println(buf));
@@ -5936,7 +5936,7 @@ int SensorDriverSPSoneshot::get(uint32_t values[],size_t lenvalues)
   
   // get data
   // data might not have been ready
-  if (_sps30->GetValues(&val) != SPS30ERR_OK){
+  if (_sps30->GetValues(&val) != SPS30_ERR_OK){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps getvalues error")));
 #ifdef ONESHOT_SWITCHOFF
     _sps30->stop();
