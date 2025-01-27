@@ -40,8 +40,8 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2023-10-31T00:00"    // date and time
-#define MAJOR_VERSION    "20231031"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-01-27T00:00"    // date and time
+#define MAJOR_VERSION    "20250127"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
@@ -1462,8 +1462,8 @@ void setup() {
     LOGW(F("filesystem conversion done"));
   } else
 #endif
-    if (LittleFS.begin()) {
-      LOGN(F("mounted LittleFS file system"));
+  if (LittleFS.begin()) {
+    LOGN(F("mounted LittleFS file system"));
     readconfig();    
   } else {
     LOGE(F("failed to mount FS"));
@@ -1710,13 +1710,13 @@ void setup() {
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
-  time_t reboottime;
+  unsigned long reboottime;
   if (pmspresent){
     reboottime=3600*24;            // pms stall sometime
   }else{
     reboottime=3600*24*7;          // every week
   }
-  LOGN(F("reboot every: %d"),reboottime);
+  LOGN(F("reboot every: %l sec"),reboottime);
   Alarm.timerRepeat(reboottime,reboot);                 // reboot
 
   // upgrade firmware
