@@ -9,7 +9,7 @@ on:
     - 'platformio/stima_v2/stimawifi/**.h'
     - 'platformio/stima_v2/stimawifi/**platformio.ini'      
     - '**stima_v2.yml'
-    - 'libraries/**'
+    - 'platformio/libraries/**'
   #  branches: [ master ]
   pull_request:
 

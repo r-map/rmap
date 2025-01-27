@@ -9,7 +9,7 @@ on:
     - 'platformio/stima_v3/**.h'
     - 'platformio/stima_v3/**platformio.ini'      
     - '**stima_v3.yml'
-    - 'libraries/**'
+    - 'platformio/libraries/**'
   #  branches: [ master ]
   pull_request:
   workflow_dispatch:
