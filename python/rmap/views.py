@@ -608,7 +608,7 @@ from django.contrib.auth.decorators import login_required
 @login_required
 #@never_cache
 def profile(request):
-    stations=StationMetadata.objects.filter(active=True,user__username=request.user.get_username())
+    stations=StationMetadata.objects.filter(user__username=request.user.get_username())
     return render(request, 'profile.html',{ 'user' : request.user.get_username(),"stations":stations})
 
 @login_required
