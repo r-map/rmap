@@ -1152,7 +1152,8 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_registration.png
-	   
+	   :width: 100% 
+   
 URL
 '''
   
@@ -1193,7 +1194,8 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_network.png
-	   
+	   :width: 100% 
+   
 URL
 '''
 
@@ -1334,6 +1336,7 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_firmware.png
+	   :width: 100% 
 
 Le due tabelle differiscono per la versionatura del firmware in un
 caso utilizzando un campo date e nell'altro revisione e versione.
@@ -1353,6 +1356,7 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_geoimage.png
+	   :width: 100% 
 
 URL
 '''
@@ -1425,6 +1429,7 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_rpc.png
+	   :width: 100% 
 
 URL
 '''
@@ -1449,11 +1454,11 @@ Tools
   
   - --rpc_mqtt_admin_fdownload_v4 : invia richiesta RPC per un firmware download
     over MQTT per stazioni Stima V4
+
     - --username=USERNAME : work on station managed by this username
     - --station_slug=STATION_SLUG : work on station defined by this slug
 
-  - --purge_rpc : remove all non active RPC (submitted, running and
-    completed)
+  - --purge_rpc : remove all non active RPC (submitted, running and completed)
   - --purge_rpc_completed : remove non active RPC and completed
 
 
@@ -1479,6 +1484,7 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_ticket.png
+	   :width: 100% 
 
 URL
 '''
@@ -1581,6 +1587,7 @@ DataBase
 ''''''''
 
 .. image:: ../../../python/doc/model_graphite-rmap.png
+	   :width: 100% 
 
 
 URL
@@ -1677,6 +1684,7 @@ username, nome stazione "Auto mobile" e  board_slug "default".
 I dati non vengono inseriti in DB direttamente ma vengono pubblicati
 sul broker MQTT.
 
+URL
 '''
 
 * '^insertdata/image$'
@@ -1817,6 +1825,7 @@ Operazioni per l'aggiornamento
 ..............................
 
 ::
+   
    dnf install python3-rmap
    cd /tmp/
    rmap-manage migrate
@@ -1838,17 +1847,17 @@ Operazioni periodiche di manutenzione
 
 * rmapctrl
 
-  - --purge_rpc           remove non active RPC (submitted, running and completed)
-  - --purge_rpc_completed remove non active RPC and completed
+  - --purge_rpc : remove non active RPC (submitted, running and completed)
+  - --purge_rpc_completed : remove non active RPC and completed
 
 **Backup del Data Base Django:**
 
 * rmapctrl
-  - --dumpdata            dump Data Base
+
+  - --dumpdata : dump Data Base
 
     * --station_slug=STATION_SLUG work on station defined by this slug
-
-- --loaddata=LOADDATA   restore Data Base 
+    * --loaddata=LOADDATA :  restore Data Base 
 
 
 Struttura cartelle
