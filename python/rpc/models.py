@@ -12,7 +12,7 @@ class Rpc(models.Model):
     dbid = models.AutoField(primary_key=True)
     stationmetadata = models.ForeignKey(StationMetadata,on_delete=models.CASCADE)
     id = models.IntegerField(editable=False,default=0)
-    active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Active ticket"))
+    active = models.BooleanField(_("Active"),default=True,null=False,blank=False,help_text=_("Active RPC"))
     date = models.DateTimeField(_('Date'), default=timezone.now)
     datecmd = models.DateTimeField(_('Date command'), default=None, null=True,blank=True)
     method = models.CharField(_('method'), max_length=40, null=False)

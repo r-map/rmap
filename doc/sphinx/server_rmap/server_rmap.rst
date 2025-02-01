@@ -520,6 +520,8 @@ tabelle di interesse per la configurazione. Questo un esempio:
 Esempio di notification JSON-RPC
 ................................
 
+configurazione stazione Stima V4:
+
 ::
 
     {"jsonrpc": "2.0", "method": "configure", "params": {"reset": true}}
@@ -860,6 +862,19 @@ Daemon
 * amqp2mqttd : pubblica i dati da una coda AMQP al broker MQTT
 
 
+Stunnel
+.......
+
+Stunnel permette l'accesso https tramite PSK su apache che invece non lo supporta.
+Viene utilizzato dalle stazioni Stima V4 per servizi non disponibili tramite MQTT (aggiornamento firmware e configurazioni) 
+Stunnel utilizza un file di autenticazione statico con le psk keys; l'aggiornamento è temporizzato tramite crontab
+::
+   
+   rmapctrl --exportmqttpsk > /etc/stunnel/file.psk
+
+se il file è modificato stunnel viene fatto ripartire.
+
+
 Log
 ...
 
@@ -906,7 +921,15 @@ con l'unica caratteristica nella Category:template ("used to generate
 new station") oltre a essere disattivate per non entrare negli elenchi
 delle stazioni "reali".
 
-All'installazione vengono precaricate alcuni template tramite le fixture di Django; ad esempio: https://github.com/r-map/rmap/blob/master/python/rmap/stations/fixtures/template_stations_02.json
+All'installazione vengono precaricate alcuni template tramite le
+fixture di Django; ad esempio:
+https://github.com/r-map/rmap/blob/master/python/rmap/stations/fixtures/template_stations_02.json
+
+Bisogna prestare attenzione al fatto che le stazioni e quindi anche i
+tamplate stazione non possono avere le stesse coordinate e quindi su
+questo vanno differenziate, non avendo comunque tali valori
+significato in quanto valorizzati solo al momento della creazione di
+una vera stazione.
 
 Le definizioni stazioni possono essere trasferite tra differenti
 istanze del server (server remoto e DB Django locale).
@@ -1553,8 +1576,31 @@ Descrizione
 Questa app è una versione embedded di `graphite <https://graphite.readthedocs.io/en/stable/index.html>`_
 che utilizza borinud come `storage-backends <https://graphite.readthedocs.io/en/stable/storage-backends.html>`_
 
+
+DataBase
+''''''''
+
+.. image:: ../../../python/doc/model_graphite-rmap.png
+
+
 URL
 '''
+
+* ^graphite/ ^render/
+* ^graphite/ ^composer/
+* ^graphite/ ^metrics/
+* ^graphite/ ^browser/
+* ^graphite/ ^account/
+* ^graphite/ ^dashboard/
+* ^graphite/ ^whitelist/
+* ^graphite/ ^version/
+* ^graphite/ ^events/
+* ^graphite/ ^tags/
+* ^graphite/ ^functions/
+* ^graphite/ ^s/(?P<path>.*)
+* ^graphite/ ^S/(?P<link_id>[a-zA-Z0-9]+)/?$
+* ^graphite/ ^$
+
 
 Consultare la `documentazione <https://graphite.readthedocs.io/en/stable/render_api.html>`_.
 
@@ -1565,9 +1611,72 @@ insertdata app
 Descrizione
 '''''''''''
 
-TODO
+Con questa app è possibile inserire immagini georeferenziate, dati e
+creare nuovi punti di osservazione.
 
-URL
+Quindi questa app è utilizzata anche per definire nuovi punti di
+osservazione e quindi stazioni sia manuali che automatiche.
+
+Dal menù partecipa la creazione di una nuovo punto di osservazione si
+attua tramite una apposita form:
+
+* tramite una ricerca partendo dall'indirizzo
+* tramite un marker sulla mappa
+
+salvo alcuni specifici metadati quali:
+
+* nome
+* latitudine e longitudine
+* altezza
+
+tutti gli altri metadati vengono definiti tramite un template di
+stazioni tipiche.  **Template stazione**: i template per le stazioni
+con configurazione predefinita non sono altro che comuni stazioni in
+DB StationMetadata non attive e con Category = "template" ("used to
+generate new station"), ma sono normalmente attribuite all'utente
+"rmap".  E' possibile quindi usare differenti metodi per creare un
+nuovo template, ad esempio creando una nuova stazione da web partendo
+da un template preesistente e modificandola a piacere; la
+classificazione come template in questo caso sarà possibile solo da
+interfaccia admin di Django modificando la Category a "template"
+("used to generate new station").
+
+Dalla propria pagina personale la
+modifica si può effettuare su:
+
+* metadati della stazione
+* metadati della singola board
+
+Dal menù partecipa è possibile inserire immagini georeferenziate
+tramite una apposita form:
+
+* su punti di osservazione predefiniti
+* tramite una ricerca partendo dall'indirizzo
+* tramite un marker sulla mappa
+
+E' ammesso definire un breve ritardo la il momento dell'osservazione e
+quello della pubblicazione.
+
+Le immagini vengono inserite direttamente nel dataBase.
+
+Dal menù partecipa è possibile inserire dati
+tramite una apposita form:
+
+* su punti di osservazione predefiniti
+* tramite una ricerca partendo dall'indirizzo
+* tramite un marker sulla mappa
+
+I dati sono pubblicati come "report".  Esiste una differenza
+sostanziale tra l'inserimento dei dati su punti osservazione
+predefiniti (stazioni) e no: nel caso di punti predefiniti i dati sono
+pubblicati con root topic "fixed" altrimenti "mobile" dando quindi ai
+dati differenti DB come destinazione.  Nel caso di DB "mobile" la rete
+sarà "mobile", lo slug stazione "auto_mobile" che risulta quindi essere un valore riservato, ident pari alla
+username, nome stazione "Auto mobile" e  board_slug "default".
+
+I dati non vengono inseriti in DB direttamente ma vengono pubblicati
+sul broker MQTT.
+
 '''
 
 * '^insertdata/image$'
@@ -1581,7 +1690,9 @@ showdata app
 Descrizione
 '''''''''''
 
-TODO
+Mostra i dati su mappa o con grafici con apposita navigazione nel
+tempo e nello spazio potendo passare da una vista all'altra.
+Per i grafici viene utilizzata l'app graphite-rmap.
 
 URL
 '''
@@ -1601,6 +1712,26 @@ URL
 * basepattern + '/stationdata$'
 * basepattern + '/stations$'
 
+
+other apps
+~~~~~~~~~~
+
+TODO
+
+* django_hosts
+* corsheaders
+* leaflet
+* djgeojson
+* imagekit
+* cookielaw
+* tagging
+* django_extensions
+* rainbo
+* borinud_sos
+* contacts
+* dynamic (cosudo)
+* hijack
+  
 Daemon
 ......
 
@@ -1685,12 +1816,39 @@ TODO
 Operazioni per l'aggiornamento
 ..............................
 
-TODO
+::
+   dnf install python3-rmap
+   cd /tmp/
+   rmap-manage migrate
+   rmap-manage collectstatic
+
 
 Operazioni periodiche di manutenzione
 .....................................
 
-TODO
+**Pulizia sessions**
+
+* rmap-manage clearsessions
+
+**Pulizia registration**
+
+* rmap-manage cleanupregistration
+  
+**Pulizia RPC:**
+
+* rmapctrl
+
+  - --purge_rpc           remove non active RPC (submitted, running and completed)
+  - --purge_rpc_completed remove non active RPC and completed
+
+**Backup del Data Base Django:**
+
+* rmapctrl
+  - --dumpdata            dump Data Base
+
+    * --station_slug=STATION_SLUG work on station defined by this slug
+
+- --loaddata=LOADDATA   restore Data Base 
 
 
 Struttura cartelle
