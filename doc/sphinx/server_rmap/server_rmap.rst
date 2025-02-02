@@ -43,7 +43,7 @@ all’interno del sistema. I client che devono inviare dati via MQTT o
 AMQP devono passare da un sistema di autenticazione e autorizzazione,
 sostanzialmente per garantire che i dati siano inviati solo da utenti
 autenticati e che non vadano a sovrapporsi a dati altrui. Entrambi i
-broker interrogano il sistema di autenticazione\ **,** un servizio web
+broker interrogano il sistema di autenticazione, un servizio web
 che implementa gli endpoint richiesti da RabbitMQ e Mosquitto. Il
 servizio di autorizzazione su AMQP (cioè cosa può pubblicare un utente
 autenticato) è invece delegato al demone *identvalidationd*, che prende
@@ -865,9 +865,11 @@ Daemon
 Stunnel
 .......
 
-Stunnel permette l'accesso https tramite PSK su apache che invece non lo supporta.
-Viene utilizzato dalle stazioni Stima V4 per servizi non disponibili tramite MQTT (aggiornamento firmware e configurazioni) 
-Stunnel utilizza un file di autenticazione statico con le psk keys; l'aggiornamento è temporizzato tramite crontab
+Stunnel permette l'accesso https tramite PSK su apache che invece non
+lo supporta.  Viene utilizzato dalle stazioni Stima V4 per servizi non
+disponibili tramite MQTT (aggiornamento firmware e configurazioni)
+Stunnel utilizza un file di autenticazione statico con le psk keys;
+l'aggiornamento è temporizzato tramite crontab
 ::
    
    rmapctrl --exportmqttpsk > /etc/stunnel/file.psk
@@ -878,7 +880,8 @@ se il file è modificato stunnel viene fatto ripartire.
 Log
 ...
 
-Tutti i log relativi ai daemon coinvolti in RMAP si trovano nella directory **/var/log/rmap/**.
+Tutti i log relativi ai daemon coinvolti in RMAP si trovano nella
+directory **/var/log/rmap/**.
 
 
 Descrizione applicazioni Django
@@ -1273,9 +1276,11 @@ risposta:
 * Se il firmware non esiste torna 500
 * Se la versione non è corretta torna 300
 * Se non c'è un nuovo firmware torna 304
-* Se l'md5 del firmware attualmente running è uguale a quello dell'ultimo firmware disponibile torna 304
+* Se l'md5 del firmware attualmente running è uguale a quello
+  dell'ultimo firmware disponibile torna 304
 
-altrimenti risponde con il firmware con header 'x-MD5' pari all'md5 del firmware che segue
+altrimenti risponde con il firmware con header 'x-MD5' pari all'md5
+del firmware che segue.
 
 Il tutto si riassume con questa richiesta tramite curl:
 
@@ -1303,7 +1308,7 @@ URL
   inviato nell'header HTTP_X_STIMA4_BOARD_MAC il cui hash viene salvato la
   prima volta sul server e tutte le volte successive deve fare match
   per poter aggiornare le info sul server.
-
+  
 * HTTP_X_STIMA4_VERSION l'header VERSION è codificata in json ad esempio:
   X_STIMA4_VERSION: {"version":4,"revision":5,"user":"userv4","slug":"stimav4","bslug":"stimacan1"}
   - version: versione attuale del firmware
@@ -1721,24 +1726,67 @@ URL
 * basepattern + '/stations$'
 
 
-other apps
-~~~~~~~~~~
+Altre app
+~~~~~~~~~
 
-TODO
+**Queste sono applicazioni minori, obsolete o non complete:**
 
-* django_hosts
-* corsheaders
-* leaflet
-* djgeojson
-* imagekit
-* cookielaw
-* tagging
-* django_extensions
-* rainbo
-* borinud_sos
-* contacts
-* dynamic (cosudo)
-* hijack
+* **rainbo**: progetto EU rainbo, permette di avere viste specifiche per
+  inserimento e visualizzazione dati https://partecipa.rainbolife.eu/
+* **borinud_sos**: SOS standard OGC dal 2007
+  http://www.opengeospatial.org/standards/sos Standard che definisce
+  l’interfaccia di un servizio web per l’interrogazione di
+  osservazioni, metadati dei sensori e rappresentazione delle
+  caratteristiche osservate Tre servizi di base:
+
+  * GetCapabilities: informazioni sul servizio e sui sensori disponibli
+  * DescribeSensor: metadati del sensore (SensorML)
+  * GetObservation: valori misurati dai sensori (Observations and
+    Measurements) compatibilità con rmap Una procedure può coincidere
+    con un sensore
+    e.g. -/1212345,4312345/rmap/254,0,0/103,2000,-,-/B12101 Una
+    observed property può coincidere con La terna (timerange, livello,
+    var) e.g. 254,0,0/103,2000,-,-/B12101 La sola var e.g. B12101 Una
+    feature of interest può coincidere con la stazione
+    e.g. -/1212345,4312345/rmap
+
+* **contacts**: gestisce invio mail per contattare l'amministratore;
+  utilizzata dall'app rainbo
+
+**Queste sono app esterne al pacchetto RMAP utilizzate dalle app RMAP:** 
+
+* **dynamic** (cosudo): fare riferimento a :
+  https://github.com/ARPA-SIMC/cosudo
+* **django_hosts**: this Django app routes requests for specific hosts to
+  different URL schemes defined in modules called "hostconfs".
+* **corsheaders**: a Django App that adds Cross-Origin Resource Sharing
+  (CORS) headers to responses. This allows in-browser requests to your
+  Django application from other origins.
+* **leaflet**: allows you to use Leaflet in your Django projects.
+* **djgeojson**: is a set of tools to manipulate GeoJSON with Django :
+
+  * (De)Serializer for (Geo)Django objects, querysets and lists
+  * Base views to serve GeoJSON map layers from models
+  * GeoJSON model and form fields to avoid spatial database backends
+    (compatible with *django-leaflet* for map widgets)
+  
+* **imagekit**: for processing images. Need a thumbnail? A black-and-white
+  version of a user-uploaded image? ImageKit will make them for you. If
+  you need to programatically generate one image from another, you need
+  ImageKit.
+  ImageKit comes with a bunch of image processors for common tasks like resizing
+  and cropping, but you can also create your own.
+* **cookielaw**: helps your Django project comply with the
+  EU cookie regulations <http://www.aboutcookies.org/default.aspx?page=3
+  by displaying a cookie information banner until it is dismissed by the user.
+* **tagging**: a generic tagging application for Django projects, which allows association
+  of a number of tags with any Model instance and makes retrieval of tags
+  simple.
+* **django_extensions**: is a collection of custom extensions for the Django Framework.
+  These include management commands, additional database fields,
+  admin extensions and much more.
+* **hijack**: With Django Hijack, admins can log in and work on behalf
+  of other users without having to know their credentials.
   
 Daemon
 ......
@@ -1819,8 +1867,14 @@ Altri tools disponibili sono:
 Configurazione
 ..............
 
-TODO
-  
+Il file di configurazione al lancio dei tools e delle app viene
+cercato nella cartella corrente con nome file rmap.cfg.  Questi i
+default: https://github.com/r-map/rmap/blob/master/python/rmap.cfg
+
+Se il file è assente viene utilizzato il file installato in /etc/rmap/rmap-site.cfg.
+Questi i default: https://github.com/r-map/rmap/blob/master/python/rmap-site.cfg
+
+
 Operazioni per l'aggiornamento
 ..............................
 
@@ -1828,12 +1882,39 @@ Operazioni per l'aggiornamento
    
    dnf install python3-rmap
    cd /tmp/
+   mkdir /tmp/global_static
    rmap-manage migrate
    rmap-manage collectstatic
 
 
-Operazioni periodiche di manutenzione
-.....................................
+Operazioni straordinarie/periodiche di manutenzione
+...................................................
+
+**Operazioni di supporto a utenti**
+
+Tramite l'app hijack è ppossibile impersonare l'identità di qualsiasi
+utente e agire, quando necessario, come tale.
+
+**Sostituzione hardware delle stazioni stimawifi e stima V4**
+
+Durante la fase di aggiornamento del firmware le stazioni nell'header
+della richiesta inviano HTTP_X_STIMA4_BOARD_MAC o
+X_ESP8266_STA_MAC/HTTP_X_ESP32_STA_MAC. Essendo la richiesta
+d'aggiornamento del firmware non autenticata, la board dispone di un
+MAC che viene inviato nell'header X_ESP8266_STA_MAC il cui hash viene
+salvato la prima volta sul server e tutte le volte successive deve
+fare match per poter aggiornare le info sul server.
+Il campo mac viene utilizzato:
+
+* valorizzato al primo tentativo di aggiornamento
+* verificato i successivi aggiornamenti
+* i restanti campi sono aggiornati solo se la verifica ha successo
+
+Questo serve come semplice metodo di autenticazione della richiesta
+http di aggiornamento del firmware delle board. Se l'hardware viene
+cambiato a una stazione preesistente il mac deve essere resettato
+tramite l'interfaccia admin di Django: il campo è **mac** della
+tabella **BoardFirmwareMetadata**.
 
 **Pulizia sessions**
 
@@ -1857,7 +1938,8 @@ Operazioni periodiche di manutenzione
   - --dumpdata : dump Data Base
 
     * --station_slug=STATION_SLUG work on station defined by this slug
-    * --loaddata=LOADDATA :  restore Data Base 
+
+  - --loaddata=LOADDATA :  restore Data Base 
 
 
 Struttura cartelle
