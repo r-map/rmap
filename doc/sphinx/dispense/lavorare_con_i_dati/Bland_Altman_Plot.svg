@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" width="100%" height="100%" viewBox="0 0 749.063 536.250" version="1.1">
+  <desc>Matlab Figure Converted by PLOT2SVG written by Juerg Schwizer</desc>
+  <g id="topgroup">
+  <rect x="0" y="0" width="749.063" height="536.250" fill="#ffffff" stroke="none"/>
+  <g id="ID000000">
+  <clipPath id="ID000001">
+    <rect x="97.378" y="40.219" width="580.523" height="437.044"/>
+  </clipPath>
+      <polygon fill="#ffffff" fill-opacity="1.00" stroke="none" stroke-width="0.5pt" stroke-opacity="1.00" stroke-dasharray="none" points="97.378,477.262 677.902,477.262 677.902,40.219 97.378,40.219 "/>
+      <polygon fill="#ffffff" fill-opacity="1.00" stroke="none" stroke-width="0.5pt" stroke-opacity="1.00" stroke-dasharray="none" points="97.378,40.219 677.902,40.219 677.902,40.219 97.378,40.219 "/>
+      <polygon fill="#ffffff" fill-opacity="1.00" stroke="none" stroke-width="0.5pt" stroke-opacity="1.00" stroke-dasharray="none" points="97.378,477.262 97.378,477.262 97.378,40.219 97.378,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="171.007,477.262 171.007,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="246.223,477.262 246.223,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="321.438,477.262 321.438,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="396.654,477.262 396.654,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="471.869,477.262 471.869,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="547.085,477.262 547.085,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="622.301,477.262 622.301,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,430.845 677.902,430.845 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,379.561 677.902,379.561 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,328.277 677.902,328.277 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,276.992 677.902,276.992 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,225.708 677.902,225.708 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,174.424 677.902,174.424 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,123.140 677.902,123.140 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,71.855 677.902,71.855 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="171.007,40.219 171.007,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="246.223,40.219 246.223,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="321.438,40.219 321.438,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="396.654,40.219 396.654,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="471.869,40.219 471.869,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="547.085,40.219 547.085,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="622.301,40.219 622.301,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,40.219 677.902,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,430.845 97.378,430.845 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,379.561 97.378,379.561 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,328.277 97.378,328.277 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,276.992 97.378,276.992 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,225.708 97.378,225.708 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,174.424 97.378,174.424 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,123.140 97.378,123.140 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,71.855 97.378,71.855 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="2.0,2.0" points="97.378,477.262 97.378,40.219 "/>
+    <g>
+<g id="ID000002" clip-path="url(#ID000001)">
+<g>
+<circle cx="429.765" cy="252.250" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="329.529" cy="304.459" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="501.376" cy="184.979" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="390.108" cy="295.277" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="462.612" cy="236.732" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="347.865" cy="275.553" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="528.867" cy="234.974" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="221.588" cy="304.115" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="440.049" cy="262.111" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="373.090" cy="264.068" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="475.571" cy="208.222" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="408.046" cy="235.274" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="355.971" cy="319.781" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="381.033" cy="277.200" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="604.530" cy="220.221" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="336.097" cy="255.356" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="344.276" cy="225.958" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="366.198" cy="321.519" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="518.328" cy="347.388" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="359.770" cy="130.262" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="380.602" cy="233.015" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="336.651" cy="279.872" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="467.305" cy="330.581" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="174.254" cy="221.323" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="654.466" cy="145.709" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="164.276" cy="393.835" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="437.299" cy="154.573" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="596.682" cy="473.964" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="489.963" cy="85.964" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="367.120" cy="279.715" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="396.747" cy="247.966" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="97.378" cy="175.809" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="677.902" cy="371.198" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="408.191" cy="241.334" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="379.481" cy="251.853" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="405.162" cy="269.599" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="392.375" cy="259.780" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="331.586" cy="150.958" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="203.034" cy="467.108" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="651.416" cy="107.359" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="301.730" cy="217.030" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="235.718" cy="314.030" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="282.333" cy="290.117" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="461.291" cy="188.724" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="369.477" cy="276.450" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="488.605" cy="491.015" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="274.922" cy="79.980" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="489.219" cy="244.236" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="438.771" cy="136.207" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="450.267" cy="290.165" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="509.145" cy="367.976" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="371.697" cy="260.428" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="372.546" cy="261.618" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="371.047" cy="242.157" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="409.443" cy="279.783" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+<circle cx="370.173" cy="252.344" r="2.500" fill="#0000ff" stroke="none" stroke-width="0.5pt"/>
+</g>
+</g>
+<g id="ID000003" clip-path="url(#ID000001)">
+      <polyline fill="none" stroke="#0000ff" stroke-width="1.5pt" stroke-dasharray="none" points="97.378,258.741 677.902,258.741 "/>
+<g>
+</g>
+</g>
+<g id="ID000004">
+  <g transform="translate(621.652,254.803)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#0000ff" id="trsvg25-de" systemLanguage="de"><tspan id="trsvg1-de">Mittelwert</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#0000ff" id="trsvg25"><tspan id="trsvg1">MEAN:</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(621.652,275.803)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#0000ff" id="trsvg26-de" systemLanguage="de"><tspan id="trsvg2-de">-0,164</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#0000ff" id="trsvg26"><tspan id="trsvg2">-0.164</tspan></text></switch>
+    </g>
+  </g>
+</g>
+<g id="ID000005" clip-path="url(#ID000001)">
+      <polyline fill="none" stroke="#ff0000" stroke-width="1.5pt" stroke-dasharray="8.0,2.0" points="97.378,91.503 677.902,91.503 "/>
+<g>
+</g>
+</g>
+<g id="ID000006">
+  <g transform="translate(601.543,87.565)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg27-de" systemLanguage="de"><tspan id="trsvg3-de">+1,96 σ</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg27"><tspan id="trsvg3">+1.96SD:</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(601.543,108.565)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg28-de" systemLanguage="de"><tspan id="trsvg4-de">+0,162</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg28"><tspan id="trsvg4">+0.162</tspan></text></switch>
+    </g>
+  </g>
+</g>
+<g id="ID000007" clip-path="url(#ID000001)">
+      <polyline fill="none" stroke="#ff0000" stroke-width="1.5pt" stroke-dasharray="8.0,2.0" points="97.378,425.978 677.902,425.978 "/>
+<g>
+</g>
+</g>
+<g id="ID000008">
+  <g transform="translate(605.902,422.041)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg29-de" systemLanguage="de"><tspan id="trsvg5-de">-1,96 σ</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg29"><tspan id="trsvg5">-1.96SD:</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(605.902,443.041)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg30-de" systemLanguage="de"><tspan id="trsvg6-de">-0,491</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="start" font-size="13pt" fill="#ff0000" id="trsvg30"><tspan id="trsvg6">-0.491</tspan></text></switch>
+    </g>
+  </g>
+</g>
+<g id="ID000009">
+  <g transform="translate(387.640,28.028)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg31-de" systemLanguage="de"><tspan id="trsvg7-de">Bland-Altman-Diagramm</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg31"><tspan id="trsvg7">Bland-Altman Plot</tspan></text></switch>
+    </g>
+  </g>
+</g>
+<g id="ID000010">
+  <g transform="translate(386.702,516.460)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg32-de" systemLanguage="de"><tspan id="trsvg8-de">Mittelwert zweier Messungen/Messmethoden</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg32"><tspan id="trsvg8">average of two measures</tspan></text></switch>
+    </g>
+  </g>
+</g>
+<g id="ID000011">
+  <g transform="translate(53.301,260.147)">
+    <g transform="rotate(-90.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg33-de" systemLanguage="de"><tspan id="trsvg9-de">Differenz zweier Messungen/Messmethoden</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg33"><tspan id="trsvg9">difference between two measures</tspan></text></switch>
+    </g>
+  </g>
+</g>
+    </g>
+    <g>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="171.007,477.262 171.007,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="246.223,477.262 246.223,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="321.438,477.262 321.438,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="396.654,477.262 396.654,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="471.869,477.262 471.869,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="547.085,477.262 547.085,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="622.301,477.262 622.301,471.457 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,477.262 677.902,477.262 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="171.007,40.219 171.007,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="246.223,40.219 246.223,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="321.438,40.219 321.438,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="396.654,40.219 396.654,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="471.869,40.219 471.869,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="547.085,40.219 547.085,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="622.301,40.219 622.301,46.024 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,40.219 677.902,40.219 "/>
+  <g transform="translate(171.007,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg34-de" systemLanguage="de"><tspan id="trsvg10-de">-0,3</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg34"><tspan id="trsvg10">-0.3</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(246.223,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg35-de" systemLanguage="de"><tspan id="trsvg11-de">-0,2</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg35"><tspan id="trsvg11">-0.2</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(321.438,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg36-de" systemLanguage="de"><tspan id="trsvg12-de">-0,1</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg36"><tspan id="trsvg12">-0.1</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(396.654,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg37"><tspan id="trsvg13">0</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(471.869,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg38-de" systemLanguage="de"><tspan id="trsvg14-de">0,1</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg38"><tspan id="trsvg14">0.1</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(547.085,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg39-de" systemLanguage="de"><tspan id="trsvg15-de">0,2</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg39"><tspan id="trsvg15">0.2</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(622.301,501.491)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg40-de" systemLanguage="de"><tspan id="trsvg16-de">0,3</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="middle" font-size="13pt" fill="#000000" id="trsvg40"><tspan id="trsvg16">0.3</tspan></text></switch>
+    </g>
+  </g>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,430.845 103.183,430.845 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,379.561 103.183,379.561 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,328.277 103.183,328.277 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,276.992 103.183,276.992 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,225.708 103.183,225.708 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,174.424 103.183,174.424 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,123.140 103.183,123.140 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,71.855 103.183,71.855 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,477.262 97.378,40.219 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,430.845 672.096,430.845 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,379.561 672.096,379.561 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,328.277 672.096,328.277 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,276.992 672.096,276.992 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,225.708 672.096,225.708 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,174.424 672.096,174.424 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,123.140 672.096,123.140 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,71.855 672.096,71.855 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="677.902,477.262 677.902,40.219 "/>
+  <g transform="translate(85.768,436.751)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg41-de" systemLanguage="de"><tspan id="trsvg17-de">-0,5</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg41"><tspan id="trsvg17">-0.5</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,385.467)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg42-de" systemLanguage="de"><tspan id="trsvg18-de">-0,4</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg42"><tspan id="trsvg18">-0.4</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,334.183)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg43-de" systemLanguage="de"><tspan id="trsvg19-de">-0,3</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg43"><tspan id="trsvg19">-0.3</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,282.899)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg44-de" systemLanguage="de"><tspan id="trsvg20-de">-0,2</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg44"><tspan id="trsvg20">-0.2</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,231.614)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg45-de" systemLanguage="de"><tspan id="trsvg21-de">-0,1</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg45"><tspan id="trsvg21">-0.1</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,180.330)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg46"><tspan id="trsvg22">0</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,129.046)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg47-de" systemLanguage="de"><tspan id="trsvg23-de">0,1</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg47"><tspan id="trsvg23">0.1</tspan></text></switch>
+    </g>
+  </g>
+  <g transform="translate(85.768,77.762)">
+    <g transform="rotate(-0.0)">
+      <switch><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg48-de" systemLanguage="de"><tspan id="trsvg24-de">0,2</tspan></text><text x="0.000" y="0.000" font-family="Helvetica" text-anchor="end" font-size="13pt" fill="#000000" id="trsvg48"><tspan id="trsvg24">0.2</tspan></text></switch>
+    </g>
+  </g>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,477.262 97.378,472.892 "/>
+      <polyline fill="none" stroke="#000000" stroke-width="0.5pt" stroke-dasharray="none" points="97.378,477.262 97.378,477.262 "/>
+    </g>
+  </g>
+  </g>
+</svg>

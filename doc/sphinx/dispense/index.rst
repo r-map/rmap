@@ -13,6 +13,7 @@ Dispense
    cambiamento_climatico/cambiamento_climatico
    metodo_scientifico/metodo_scientifico
    complottismo/complottismo
+   lavorare_con_i_dati/lavorare_con_i_dati
    
 * :ref:`genindex`
 * :ref:`search`

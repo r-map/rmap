@@ -57,6 +57,8 @@ Campionamento e processo di misurazione
    per ottenere osservazioni rappresentative con incertezze accettabili
    nelle stime delle medie e variabilità.
 
+.. _data_level-reference:
+   
 Data Level
 ^^^^^^^^^^
 

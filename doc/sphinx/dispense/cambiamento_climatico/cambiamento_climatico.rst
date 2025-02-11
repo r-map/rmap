@@ -58,10 +58,8 @@ Cause del cambiamento climatico
 	 allowfullscreen></iframe>
 
 
-
-
-Documenti uffiali sul cambiamento climatico
--------------------------------------------
+Documenti ufficiali sul cambiamento climatico
+---------------------------------------------
 
 2024 - a second record-breaking year, following the exceptional 2023
 
@@ -70,3 +68,34 @@ Documenti uffiali sul cambiamento climatico
 climatereanalyzer.org
 
 * `Explore Climate Change <https://climatereanalyzer.org/clim/explore/>`_
+
+La mostra sul cambiamento climatico: Atmosfere Possibili
+--------------------------------------------------------
+
+.. image :: out-0.jpg
+	   :width: 100%
+.. image :: out-1.jpg
+	   :width: 100%
+.. image :: out-2.jpg
+	   :width: 100%
+.. image :: out-3.jpg
+	   :width: 100%
+.. image :: out-4.jpg
+	   :width: 100%
+.. image :: out-5.jpg
+	   :width: 100%
+.. image :: out-6.jpg
+	   :width: 100%
+.. image :: out-7.jpg
+	   :width: 100%
+.. image :: out-8.jpg
+	   :width: 100%
+.. image :: out-9.jpg
+	   :width: 100%
+.. image :: out-10.jpg
+	   :width: 100%
+.. image :: out-11.jpg
+	   :width: 100%
+.. image :: out-12.jpg
+	   :width: 100%
+  

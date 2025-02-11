@@ -100,6 +100,36 @@ Tipi di informazioni raccolte tramite progetti di crowdsourcing
 +--------------------------------+-------------------------------------------------------+
 
 
+
+
+Caffè-scienza
+-------------
+
+**Scopo** dei caffè-scienza è quello di demitizzare la comunicazione
+scientifica, togliendola dal piedistallo cattedratico. Molto spesso,
+infatti, si pensa alla comunicazione scientifica come a un flusso di
+informazioni a senso unico, dagli esperti verso i comuni cittadini,
+che devono semplicemente assorbire qualche concetto. È vero che molte
+delle nozioni tecniche necessarie per prendere una decisione ponderata
+non sono patrimonio di tutti, e che spesso per comprenderle bisogna
+possedere competenze specifiche, ma è anche vero che il metodo
+scientifico prevede la discussione da pari a pari, senza preclusioni o
+diritti ex cathedra.  Il movimento dei caffè scientifici è nato negli
+anni 2000 in Francia e in Gran Bretagna e da allora si è diffuso in
+tutti i continenti.
+
+**Il metodo** dei caffè-scienza è molto semplice: ci ritroviamo in un
+posto piacevole e rilassante, in compagnia di qualche esperto
+dell’argomento in questione e allietati da un caffè, un bicchiere di
+birra o un succo di frutta, chiacchieriamo dell’argomento in
+programma.
+
+**Un caffè-scienza non è una conferenza**: gli esperti introducono e
+dicono la loro, ma questa parte è limitata al minimo. Il motore
+dell’incontro sono sempre le domande, gli interventi e le discussioni
+del pubblico, il tutto animato—o smorzato—da un moderatore.
+  
+
 Sistemi di rilevamento meteorologico
 ------------------------------------
 
