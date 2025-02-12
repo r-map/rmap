@@ -391,8 +391,8 @@ la conoscenza scientifica sarebbe fondamentalmente consensuale. Questa
 visione consensuale della scienza può aiutarci ad affrontare l’attuale
 crisi di fiducia.
 
-VERITÀ E POST-VERITÀ Dall'indagine alla post-indagine
------------------------------------------------------
+Verità e post-verità; dall'indagine alla post-indagine
+------------------------------------------------------
 Filippo Ferrari e Sebastiano Moruzzi
 
 Testi e immagini sono rilasciati sotto Licenza Creative Commons CC BY-SA 4.0
