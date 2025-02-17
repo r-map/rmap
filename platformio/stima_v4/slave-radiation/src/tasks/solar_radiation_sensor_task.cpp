@@ -288,7 +288,7 @@ void SolarRadiationSensorTask::powerOn(uint8_t chanel_out)
 void SolarRadiationSensorTask::powerOff()
 {
   digitalWrite(PIN_EN_5VA, LOW);  // Disable Analog Comparator (xIAN)
-  #if(SOLAR_RADIATION_TASK_SWITCH_POWER_ALIM_SENS)
+  #if(SOLAR_RADIATION_TASK_SWITCH_POWER_ENABLED)
   digitalWrite(PIN_OUT0, LOW);   // Disable Output Chanel alim
   digitalWrite(PIN_OUT1, LOW);   // Disable Output Chanel alim
   digitalWrite(PIN_OUT2, LOW);   // Disable Output Chanel alim
