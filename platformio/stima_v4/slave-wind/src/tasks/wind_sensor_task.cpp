@@ -130,7 +130,7 @@ void WindSensorTask::Run() {
   TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
 
   // Start Serial
-  SerialWindSonic.begin(9600);
+  SerialWindSonic.begin(GWS_SERIAL_BAUD);
 
   powerOff();
 
