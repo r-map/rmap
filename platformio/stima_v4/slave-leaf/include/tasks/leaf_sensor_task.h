@@ -130,9 +130,13 @@ private:
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
   float getLeaf(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow);
+  void resetLeafCounter();
 
   // Global flag powered
   bool is_power_on;
+
+  // Value of register count Leaf for Leaf calculation
+  inline static uint16_t leaf_count;
 
   // Value of chanel ADC
   uint8_t adc_in_count[MAX_ADC_CHANELS];

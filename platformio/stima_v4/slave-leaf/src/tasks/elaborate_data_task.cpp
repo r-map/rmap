@@ -124,7 +124,7 @@ void ElaborateDataTask::Run() {
   #if defined(USE_SIMULATOR) && defined(INIT_SIMULATOR)
   for(uint16_t iInit=0; iInit<900; iInit++) {
     edata.value = 500 + random(200);
-    TRACE_VERBOSE_F(F("Leaf: %d\r\n"), edata.value);
+    TRACE_VERBOSE_F(F("Leaf count: %d (s)\r\n"), edata.value);
     addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, false);
     addValue<sample_t, uint16_t, rmapdata_t>(&leaf_samples, SAMPLES_COUNT_MAX, edata.value);
   }
@@ -166,7 +166,7 @@ void ElaborateDataTask::Run() {
           #ifdef USE_SIMULATOR
           edata.value = 500 + random(200);
           #endif
-          TRACE_VERBOSE_F(F("Leaf: %d\r\n"), edata.value);
+          TRACE_VERBOSE_F(F("Leaf count: %d (s)\r\n"), edata.value);
           addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
           addValue<sample_t, uint16_t, rmapdata_t>(&leaf_samples, SAMPLES_COUNT_MAX, edata.value);
           break;

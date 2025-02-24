@@ -154,7 +154,8 @@ void LeafSensorTask::Run() {
     switch (state)
     {
     case SENSOR_STATE_WAIT_CFG:
-      // check if configuration is done loaded
+      
+      // Check if configuration is done loaded
       if (param.system_status->flags.is_cfg_loaded)
       {
         // Select read chanel first from config
@@ -165,6 +166,9 @@ void LeafSensorTask::Run() {
             break;
           }
         }
+        // After power UP (stabilization or not if always powered...) Reset measure counter (Next start reading data)
+        resetLeafCounter();
+
         TRACE_VERBOSE_F(F("WAIT -> INIT\r\n"));
         state = SENSOR_STATE_INIT;
       }
@@ -174,7 +178,8 @@ void LeafSensorTask::Run() {
       break;
 
     case SENSOR_STATE_INIT:
-      TRACE_INFO_F(F("Initializing sensors...\r\n"));
+      
+    TRACE_INFO_F(F("Initializing sensors...\r\n"));
       #if (LEAF_TASK_LOW_POWER_ENABLED) // Auto power chanel with switching mode and power time waiting...
       powerOn(adc_channel);
       #endif
@@ -207,8 +212,7 @@ void LeafSensorTask::Run() {
         // Gain - offset to ADC to real value, and connvert to scale used (mV for LEAF for each ADC Type method used)
         value = getAdcCalibratedValue(value, param.configuration->sensors[adc_channel].adc_offset, param.configuration->sensors[adc_channel].adc_gain);
         value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
-        if (param.configuration->sensors[adc_channel].adc_type == Adc_Mode::Volt) value *= 1000.0;
-        TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value));
+        TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value * 1000.0));
         // Read value into U.M. Real Leaf (Sample value)
         value = getLeaf(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
       }
@@ -233,7 +237,8 @@ void LeafSensorTask::Run() {
       break;
 
     case SENSOR_STATE_READ:
-      edata.value = value;
+      
+      edata.value = leaf_count;
       edata.index = LEAF_INDEX;
       
       param.elaborateDataQueue->Enqueue(&edata, Ticks::MsToTicks(WAIT_QUEUE_REQUEST_PUSHDATA_MS));
@@ -242,6 +247,7 @@ void LeafSensorTask::Run() {
       break;
 
     case SENSOR_STATE_END:
+      
       #if (LEAF_TASK_LOW_POWER_ENABLED)
       powerOff();
       #endif
@@ -432,29 +438,35 @@ float LeafSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
 /// @param adc_voltage_max VMAX Ref range of sensor
 /// @param adc_overflow bool if ADC get an overflow range value (setted to true)
 /// @return Real scaled data Leaf from analog adc calibrated value
-float LeafSensorTask::getLeaf(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow)
-{
+float LeafSensorTask::getLeaf(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow) {
   float value = adc_value;
   *adc_overflow = false;
 
-  if ((value < (adc_voltage_min + LEAF_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + LEAF_ERROR_VOLTAGE_MAX)))
-  {
+  if ((value < LEAF_ERROR_VOLTAGE_MIN) || (value > LEAF_ERROR_VOLTAGE_MAX)) {
     *adc_overflow = true;
     value = UINT16_MAX;
-  }
-  else
-  {
+  } else {
     value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * LEAF_MAX);
 
     if (value <= LEAF_ERROR_MIN) value = LEAF_MIN;
     if (value >= LEAF_ERROR_MAX) value = LEAF_MAX;
   }
 
+  // If the value is less than sensibility param and the value is greater than zero => set value to zero
   if((value >= LEAF_MIN)&&(value <= LEAF_SENSIBILITY)) {
     value = LEAF_MIN;
   }
 
+  // Increment leaf counter if value is lesser than threshold
+  if (value >= LEAF_VOLTAGE_THRESHOLD) {
+    leaf_count++;
+  }
+
   return round(value);
+}
+
+void LeafSensorTask::resetLeafCounter() {
+  leaf_count = 0;
 }
 
 #endif

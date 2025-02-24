@@ -197,6 +197,30 @@ void SupervisorTask::Run()
         TRACE_ERROR_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
+      // ****************************************************************************************
+      // BEGIN HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
+      // Read init button state
+      current_init_pin = digitalRead(PIN_BTN);
+      // Check if the rising edge of button is done
+      if (current_init_pin && !previous_init_pin) {
+        // Reset to defaults?
+        // #if (ENABLE_I2C1)
+        //   param.boot_request->app_executed_ok = true;
+        //   param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t *) &param.boot_request, sizeof(param.boot_request));
+        // #endif
+        // Reset Factory register value
+        param.clRegister->doFactoryReset();
+        // Reinit Configuration with default classic value
+        saveConfiguration(CONFIGURATION_DEFAULT);
+        // Reboot
+        NVIC_SystemReset();   
+      }
+      // Update flags
+      previous_init_pin = current_init_pin;
+      // ****************************************************************************************
+      // END HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
       break;
 
     case SUPERVISOR_STATE_END:
