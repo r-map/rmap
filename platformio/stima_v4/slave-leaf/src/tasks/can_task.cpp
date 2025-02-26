@@ -359,7 +359,7 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::bft:
             // Prepara i dati SMP (Sample)
-            rmap_data->BFT.leaf.val.value = report->avg;
+            rmap_data->BFT.leaf.val.value = report->count;
             rmap_data->BFT.leaf.confidence.value = report->quality;
             break;
     }
@@ -369,7 +369,7 @@ void CanTask::prepareSensorsDataValue(uint8_t const sensore, const report_t *rep
     switch (sensore) {
         case canardClass::Sensor_Type::bft:
             // Prepara i dati SMP (Sample)
-            rmap_data->BFT.leaf.val.value = report->avg;
+            rmap_data->BFT.leaf.val.value = report->count;
             rmap_data->BFT.leaf.confidence.value = report->quality;
             break;
     }
@@ -404,7 +404,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN leaf report\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg, (rmapdata_t) report_pub.quality);
+        TRACE_INFO_F(F("--> CAN leaf report\t%d\t%d\r\n"), (rmapdata_t) report_pub.count, (rmapdata_t) report_pub.quality);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::bft, &report_pub, &module_leaf_msg);
@@ -694,7 +694,7 @@ rmap_service_module_Leaf_Response_1_0 CanTask::processRequestGetModuleData(canar
           param->reportDataQueue->Dequeue(&report_srv);
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
-          TRACE_INFO_F(F("--> CAN leaf report\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg, (rmapdata_t) report_srv.quality);
+          TRACE_INFO_F(F("--> CAN leaf report\t%d\t%d\r\n"), (rmapdata_t) report_srv.count, (rmapdata_t) report_srv.quality);
 
           // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
           resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)

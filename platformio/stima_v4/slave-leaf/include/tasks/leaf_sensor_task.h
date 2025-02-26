@@ -130,7 +130,7 @@ private:
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
   float getLeaf(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow);
-  void resetLeafCounter();
+  boolean getBooleanLeaf(float value);
 
   // Global flag powered
   bool is_power_on;

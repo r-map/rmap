@@ -147,8 +147,8 @@ typedef struct
 /// @brief Report module
 typedef struct
 {
-   rmapdata_t avg;        //!< Measure for VWC input chanel
-   rmapdata_t quality;    //!< Quality of measure for VWC input chanel
+   rmapdata_t count;      //!< Measure for leaf input chanel
+   rmapdata_t quality;    //!< Quality of measure for leaf input chanel
 } report_t;
 
 /// @brief Backup && Upload Firmware TypeDef (BootLoader)

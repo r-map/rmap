@@ -4,6 +4,7 @@
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
 Marco Baldinetti <marco.baldinetti@digiteco.it>
+Cristano Souza Paz Fiorio <c.souzapaz@digiteco.it> 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -201,7 +202,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  * Parameter of sensor and elaboration function
  *********************************************************************/
 /// @brief Default delay from two function acquire data
-#define SENSORS_ACQUISITION_DELAY_MS (1000)
+#define SENSORS_ACQUISITION_DELAY_MS (5000)
 
 // Index Sensor
 #define LEAF_INDEX (0)
