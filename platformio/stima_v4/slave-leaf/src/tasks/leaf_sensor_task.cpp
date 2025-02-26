@@ -436,7 +436,7 @@ float LeafSensorTask::getLeaf(float adc_value, float adc_voltage_min, float adc_
 }
 
 boolean LeafSensorTask::getBooleanLeaf(float value) {
-    if (value >= LEAF_VOLTAGE_THRESHOLD) return true;
+    if (value < LEAF_VOLTAGE_THRESHOLD) return true;
     return false;
 }
 
