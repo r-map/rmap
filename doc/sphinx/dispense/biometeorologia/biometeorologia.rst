@@ -233,6 +233,16 @@ Indici Termici Empirici
 Wet Bulb Globe Temperature (WBGT)
 .................................
 
+Il WBGT è stato sviluppato alla fine degli anni '50 per il Corpo dei
+Marines degli Stati Uniti a Parris Island, nella Carolina del Sud.
+Il WBGT è stato successivamente utilizzato dai ricercatori come indice
+generale di stress da calore facilmente misurabile. Col tempo il suo
+uso si è esteso. Poiché il suo uso è raccomandato dalla norma ISO
+7243, viene spesso utilizzato nelle linee guida per la salute e la
+sicurezza sul lavoro in ambienti caldi. È stato raccomandato per l'uso
+negli sport che richiedono uno sforzo continuo, come la
+maratona. Viene anche utilizzato per i cavalli negli eventi equestri.
+
 Il WBGT è un indicatore di stress da caldo espresso in °C che
 considera la combinazione di diverse importanti variabili per la
 valutazione delle condizioni microclimatiche, e in particolare la
@@ -291,6 +301,31 @@ A partire dal valore della temperatura di bulbo umido si ricava
 l'umidità assoluta di un ambiente.
 
 https://it.wikipedia.org/wiki/Temperatura_di_bulbo_umido
+
+
+E' possibile usare una approssimazione che non tiene conto delle
+variazioni dell'intensità della radiazione solare o della velocità del
+vento e presuppone un livello di radiazione moderatamente elevato in
+condizioni di vento leggero.
+
+L'uso di questa approssimazione può portare a stime errate dello
+stress termico, soprattutto in condizioni di nuvolosità e vento. In
+queste condizioni è probabile che l'approssimazione porti a una
+sovrastima dello stress. L'approssimazione sovrastima anche le
+condizioni notturne e mattutine quando il sole è basso o sotto
+l'orizzonte.
+
+La formula semplificata è:
+
+WBGT = 0,567 * T + 0,393 * e + 3,94
+
+dove:
+
+* T = temperatura di bulbo secco (°C)
+* e = Pressione del vapore acqueo (hPa)
+
+.. image:: wbgt_approximation.gif
+
 
 Indice di Thom (Discomfort Index)
 .................................
@@ -363,6 +398,8 @@ mescolamento dell’aria a contatto con la pelle.
 
 Questa sensazione è ciò che il Wind Chill tenta di misurare.
 
+.. image:: tabella-wind-chill.jpg
+
 Autori: Osczevski R.,Bluestein M. (2001)
 Formula:
 
@@ -389,6 +426,19 @@ Rischio di congelamento definito in letteratura:
 | WC< - 55   | Rischio estremamente elevato                                      |
 +------------+-------------------------------------------------------------------+
 
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+| Da 4 a –6°C      | FREDDO, impressione sgradevole                                                                                            |
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+| Da –7°C a –17°C  | MOLTO FREDDO, impressione molto sgradevole                                                                                |
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+| Da –18°C a –28°C | GELIDO, congelamento possibile. La pelle esposta può gelare in 5 minuti. Evitare l’attività all’aperto                    |
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+| Da –29°C a –56°C | ESTREMAMENTE FREDDO, congelamento probabile. La pelle esposta può gelare in un minuto. L’attività all’aperto è pericolosa |
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+| Oltre –56°C      | GELATO, congelamento sicuro. La pelle esposta può gelare in 30 secondi                                                    |
++------------------+---------------------------------------------------------------------------------------------------------------------------+
+
+.. image:: tabella-wind-chill.jpg
  
 Temperatura Apparente
 .....................

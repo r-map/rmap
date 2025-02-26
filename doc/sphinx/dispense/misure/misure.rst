@@ -7,20 +7,6 @@ Come effettuare corrette misurazioni di parametri ambientali.
 Definizioni
 ===========
 
-Campionamenti e osservazioni
-----------------------------
-
-- Campionamento è il processo per ottenere una discretizzata sequenza
-  di misure di una quantità.
-
-- Campione è una singola misura, tipicamente una di una serie di
-  letture di un sistema di sensoristica.
-
-
-- Una osservazione (misurazione) è il risultato del processo di
-  campionamento. Nel contesto di analisi di serie, un'osservazione è
-  derivato da un numero di campioni.
-
 Data Level
 ----------
 
