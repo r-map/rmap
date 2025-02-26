@@ -140,14 +140,21 @@ base dei modelli di forzatura antropica. Il divario tra il mondo reale
 e quello modellato ci dice che siamo ben lontani dal comprendere il
 cambiamento climatico.
 
-La politica climatica si basa su modelli inadeguati
+**La politica climatica si basa su modelli inadeguati**
 
 I modelli climatici hanno molte lacune e non sono neanche lontanamente
 plausibili come strumenti di politica globale. Essi gonfiano l'effetto
 dei gas serra come la CO2. Inoltre, ignorano il fatto che arricchire
 l'atmosfera di CO2 è benefico.
 
-La CO2 è cibo per le piante, la base di tutta la vita sulla Terra.
+::
+   Malgrado sussistano ancora alcune incertezze sui modelli climatici,
+   questi sono stati in grado di riprodurre episodi del passato ed
+   hanno anche fornito previsioni che sono state poi confermate dalle
+   osservazioni.
+
+
+**La CO2 è cibo per le piante, la base di tutta la vita sulla Terra.**
 
 La CO2 non è un inquinante. È essenziale per tutta la vita sulla
 Terra. La fotosintesi è una benedizione. Una maggiore quantità di CO2
@@ -155,6 +162,16 @@ Terra. La fotosintesi è una benedizione. Una maggiore quantità di CO2
 nell'aria ha favorito la crescita della biomassa vegetale globale. È
 un bene anche per l'agricoltura, in quanto aumenta la resa delle
 colture in tutto il mondo.
+
+::
+   Sebbene sotto certi aspetti la CO2 possa essere considerato un
+   inquinante (come nel caso della acidificazione degli oceani), il
+   maggior impatto ambientale della anidride carbonica è conseguente
+   alla sua qualità di gas serra. Pur essendo l’effetto serra di per
+   sé un effetto che avviene normalmente in natura quando è troppo
+   accentuato provoca un forte riscaldamento che ha effetti assai
+   dannosi in agricoltura, per la salute e nell’ambiente in generale.
+
 
 Il riscaldamento globale non ha aumentato i disastri naturali
 
@@ -182,14 +199,8 @@ La Dichiarazione Mondiale sul Clima (WCD) ha riunito una grande
 varietà di scienziati competenti provenienti da tutto il mondo*. La
 notevole conoscenza ed esperienza di questo gruppo è indispensabile
 per raggiungere una visione equilibrata, spassionata e competente del
-cambiamento climatico.
-
-D'ora in poi il gruppo funzionerà come "Global Climate Intelligence
-Group". Il Gruppo CLINTEL fornirà consulenze sollecitate e non
-sollecitate sui cambiamenti climatici e sulla transizione energetica a
-governi e aziende di tutto il mondo.
-
-* Non è il numero di esperti, ma la qualità delle argomentazioni che conta.
+cambiamento climatico. * Non è il numero di esperti, ma la qualità
+delle argomentazioni che conta.
 
 
 Perché fidarsi della scienza?

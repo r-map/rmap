@@ -5,15 +5,16 @@ Dispense
 .. toctree::
    :maxdepth: 5
 
-   misure/protocollo_misurazioni
+   misure/misure
    partecipa/partecipa
    la_scienza_di_tutti/la_scienza_di_tutti
-   qualità_aria/qualità_aria
-   probabilità/probabilità
+   qualita_aria/qualita_aria
+   probabilita/probabilita
    cambiamento_climatico/cambiamento_climatico
    metodo_scientifico/metodo_scientifico
    complottismo/complottismo
    lavorare_con_i_dati/lavorare_con_i_dati
+   biometeorologia/biometeorologia
    
 * :ref:`genindex`
 * :ref:`search`

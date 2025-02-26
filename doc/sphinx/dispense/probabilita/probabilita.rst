@@ -341,7 +341,7 @@ R = P x D
 
 * R = rischio
 * P = probabilità o frequenza del verificarsi delle conseguenze
-* D = magnitudo (gravità) delle conseguenze (danno)
+* D = danno/magnitudo (gravità) delle conseguenze
 
 Riduzione del Rischio
 """""""""""""""""""""
