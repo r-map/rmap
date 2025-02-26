@@ -1,5 +1,5 @@
-Biometeorologia
-===============
+Biometeorologia umana
+=====================
 
 La biometeorologia è una disciplina scientifica interdisciplinare che
 analizza le interazioni tra la biosfera e l'atmosfera
@@ -438,7 +438,6 @@ Rischio di congelamento definito in letteratura:
 | Oltre –56°C      | GELATO, congelamento sicuro. La pelle esposta può gelare in 30 secondi                                                    |
 +------------------+---------------------------------------------------------------------------------------------------------------------------+
 
-.. image:: tabella-wind-chill.jpg
  
 Temperatura Apparente
 .....................
