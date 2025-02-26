@@ -88,7 +88,7 @@
 #define TEMPERATURE_SCALE       (100.0)
 #define TEMPERATURE_OFFSET      (27315.0)
 #define RAIN_GAUGE_SCALE        (10.0)
-#define WIND_SPEED_SCALE        (10.0)
+#define WIND_SPEED_SCALE        (100.0)
 #define INPUT_VOLTAGE_SCALE     (10.0)
 #define SOIL_MOISTURE_SCALE     (10.0)
 
