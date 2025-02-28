@@ -488,7 +488,7 @@ strumentazione
 Temperatura e umidità
 =====================
 
-SHIELDS
+Schermi
 -------
 
 La capannina meteorologica
@@ -506,111 +506,133 @@ sensori di temperatura durante l'osservazione / manutenzione.
 Istruzioni per la costruzione di una capannina meteorologica
 ............................................................
 
-The instrument shelter should be constructed of approximately 2 cm thick
-White Pine or similar wood and painted white, inside and out. A lock
-should be installed to prevent tampering with the instruments. Mounting
-blocks should be installed on the interior to insure that the max/min
-thermometer does not touch the back wall. The parts should be screwed
-together or glued and nailed. The plans are specified in metric units.
-Therefore, you may need to make minor adjustments to dimensions
-depending on the local standard dimensions of wood in your region. It is
-easier to purchase prefabricated louvered panels, and they are usually
-available for purchase. The primary criteria for constructing louvres is
-that they provide for ventilation of the instrument shelter while
-preventing sunlight and rain from entering directly. To prevent sunlight
-from entering the shelter we suggest that each louvre slat overlap
-slightly with adjacent slats. See Figure AT-IC-1.
+La capannina per gli strumenti deve essere costruito con uno spessore
+di circa 2 cm di pino bianco o legno simile e dipinto di bianco, sia
+all'interno che all'esterno. È necessario installare una serratura per
+impedire la manomissione degli strumenti. All'interno devono essere
+installati dei blocchi di montaggio per garantire che il termometro
+max/min non tocchi la parete posteriore. Le parti devono essere
+avvitate o incollate e inchiodate. I piani sono specificati in unità
+metriche.
+
+Pertanto, potrebbe essere necessario apportare piccole modifiche alle
+dimensioni in base alle dimensioni standard del legno nella propria
+regione. È più facile acquistare pannelli a lamelle prefabbricati, che
+di solito sono disponibili per l'acquisto. Il criterio principale per
+la costruzione delle feritoie è quello di garantire la ventilazione
+della pensilina dello strumento, impedendo al contempo l'ingresso
+diretto di luce solare e pioggia. Per evitare che la luce del sole
+penetri nel rifugio, si consiglia di sovrapporre leggermente ogni
+lamella alle lamelle adiacenti. Vedere la figura:
 
 .. image :: misure-000.png
 
-There should also be a
-gap between slats of approximately 1 cm, and the slat angle should be
-roughly 50-60 degrees from horizontal. For shelter mounting
-instructions, see image:
+Inoltre, lo spazio tra le lamelle deve essere di circa 1 cm e l'angolo
+delle lamelle deve essere di circa 50-60 gradi rispetto
+all'orizzontale. Per le istruzioni di montaggio della pensilina,
+vedere l'immagine:
 
 .. image :: misure-001.png
 
-Radiation Shield
-................
+Schermo solare
+..............
 
-A radiation shield or screen should be designed to provide an enclosure
-with an internal temperature that is both uniform and the same as that
-of the outside air. It should completely surround the thermometers and
-exclude radiant heat, precipitation and other phenomena that might
-influence the measurement. Screens with forced ventilation, in which air
-is drawn over the thermometer element by a fan, may help to avoid biases
-when the microclimate inside the screen deviates from the surrounding
-air mass. Such a deviation only occurs when the natural wind speed is
-very low (< 1 m s–1). When such artificial ventilation is used, care
-should be taken to prevent the deposition of aerosols and rain droplets
-on the sensor which decrease its temperature towards the wet-bulb
-temperature. As a shield material, highly polished, non-oxidized metal
-is favourable because of its high reflectivity and low heat absorption.
-Nevertheless, thermally insulating plastic-based material is preferable
-because of its simple maintenance requirements. Thermally insulating
-material must be used if the system relies on natural ventilation.
+Lo schermo o la protezione dalle radiazioni deve essere progettato per
+fornire un involucro con una temperatura interna uniforme e uguale a
+quella dell'aria esterna. Deve circondare completamente i termometri
+ed escludere il calore radiante, le precipitazioni e altri fenomeni
+che potrebbero influenzare la misurazione. Gli schermi con
+ventilazione forzata, in cui l'aria viene aspirata sull'elemento
+termometrico da un ventilatore, possono aiutare a evitare distorsioni
+quando il microclima all'interno dello schermo si discosta dalla massa
+d'aria circostante. Tale deviazione si verifica solo quando la
+velocità del vento naturale è molto bassa (< 1 m s-1). Quando si
+utilizza una ventilazione artificiale di questo tipo, occorre fare
+attenzione a evitare la deposizione di aerosol e gocce di pioggia sul
+sensore, che ne riducono la temperatura verso la temperatura di bulbo
+umido. Come materiale di schermatura, il metallo altamente lucidato e
+non ossidato è favorevole a causa della sua elevata riflettività e del
+basso assorbimento di calore. Tuttavia, il materiale termicamente
+isolante a base di plastica è preferibile per i suoi semplici
+requisiti di manutenzione. Il materiale termoisolante deve essere
+utilizzato se il sistema si basa sulla ventilazione naturale.
 
-Louvred screens
-...............
+Schermi a lamelle
+.................
 
-Most of the numerous varieties of louvred screen rely on natural
-ventilation. The walls of such a screen should preferably be
-double-louvred and the floor should be made of staggered boards, but
-other types of construction may be found to meet the above requirements.
-The roof should be doublelayered, with provisions for ventilation of the
-space between the two layers. In cold climates, owing to the high
-reflectivity of snow (up to 88 per cent), the screen should also have a
-double floor. At the same time, however, the floor should easily drop or
-tilt so that any snow entering the screen during a storm can be removed.
-The size and construction of the screen should be such that it keeps the
-heat capacity as low as practicable and allows ample space between the
-instruments and the walls. The latter feature excludes all possibility
-of direct contact between the thermometer sensing elements and the
-walls, and is particularly important in the tropics where insolation may
-heat the sides to the extent that an appreciable temperature gradient is
-caused in the screen. Direct contact between the sensing elements and
-the thermometer mounting should also be avoided. The screen should be
-painted both inside and outside with white, non-hygroscopic paint. When
-double walls are provided, the layer of air between them serves to
-reduce the amount of heat that would otherwise be conducted from the
-outer wall to the inner enclosure, especially in strong sunshine. When
-the wind is appreciable, the air between the walls is changed
-continually so that the conduction of heat inwards from the outer walls
-is further decreased. The free circulation of air throughout the screen
-helps the temperature of the inner wall adapt to ambient air changes. In
-this way, the influence of the inner wall upon the temperature of the
-thermometer is reduced. Also, the free circulation of air within the
-screen enables the thermometer to follow the ambient air changes more
-quickly than if radiative exchanges alone were operative. However, the
-air circulating through the screen spends a finite time in contact with
-the outer walls and may have its temperature altered thereby. This
-effect becomes appreciable when the wind is light and the temperature of
-the outer wall is markedly different from the air temperature. Thus, the
-temperature of the air in a screen can be expected to be higher than the
-true air temperature on a day
+La maggior parte delle numerose varietà di schermi a lamelle o
+piattelli si basa sulla ventilazione naturale. Le pareti di una
+zanzariera di questo tipo dovrebbero essere preferibilmente a doppia
+lastra e il pavimento dovrebbe essere costituito da tavole sfalsate,
+ma è possibile trovare altri tipi di costruzione che soddisfino i
+requisiti di cui sopra.
+
+Il tetto dovrebbe essere a doppio strato, con disposizioni per la
+ventilazione dello spazio tra i due strati. Nei climi freddi, a causa
+dell'elevata riflettività della neve (fino all'88%), lo schermo
+dovrebbe avere anche un doppio pavimento. Allo stesso tempo, però, il
+pavimento dovrebbe essere facilmente abbassabile o inclinabile, in
+modo da poter rimuovere la neve che entra nello schermo durante una
+tempesta.
+
+Le dimensioni e la costruzione dello schermo devono essere tali da
+mantenere la capacità termica il più bassa possibile e consentire un
+ampio spazio tra gli strumenti e le pareti. Quest'ultima
+caratteristica esclude ogni possibilità di contatto diretto tra gli
+elementi di rilevamento del termometro e le pareti, ed è
+particolarmente importante ai tropici, dove l'insolazione può
+riscaldare i lati fino a causare un gradiente di temperatura
+apprezzabile nello schermo. Si deve anche evitare il contatto diretto
+tra gli elementi di rilevamento e il supporto del termometro.
+
+Lo schermo deve essere dipinto sia all'interno che all'esterno con
+vernice bianca non igroscopica. Quando sono previste pareti doppie, lo
+strato d'aria tra di esse serve a ridurre la quantità di calore che
+altrimenti verrebbe condotta dalla parete esterna verso l'interno,
+soprattutto in caso di forte irraggiamento solare. Quando il vento è
+notevole, l'aria tra le pareti viene cambiata continuamente, in modo
+da ridurre ulteriormente la conduzione di calore verso l'interno dalle
+pareti esterne. La libera circolazione dell'aria in tutto lo schermo
+aiuta la temperatura della parete interna ad adattarsi ai cambiamenti
+dell'aria ambiente. In questo modo, si riduce l'influenza della parete
+interna sulla temperatura del termometro. Inoltre, la libera
+circolazione dell'aria all'interno dello schermo consente al
+termometro di seguire i cambiamenti dell'aria ambiente più rapidamente
+rispetto a quanto accadrebbe se fossero attivi solo gli scambi
+radiativi. Tuttavia, l'aria che circola attraverso lo schermo
+trascorre un tempo limitato a contatto con le pareti esterne e può
+subire un'alterazione della temperatura. Questo effetto diventa
+apprezzabile quando il vento è leggero e la temperatura della parete
+esterna è notevolmente diversa da quella dell'aria. Pertanto, la
+temperatura dell'aria in uno schermo può essere superiore alla
+temperatura reale dell'aria in una giornata.
+
 
 Temperatura dell'aria
 ---------------------
 
-Definition
-..........
+Definizione
+...........
 
-WMO (1992) defines temperature as a physical quantity characterizing the
-mean random motion of molecules in a physical body. Temperature is
-characterized by the behaviour whereby two bodies in thermal contact
-tend to an equal temperature. Thus, temperature represents the
-thermodynamic state of a body, and its value is determined by the
-direction of the net flow of heat between two bodies. WMO defines air
-temperature as “the temperature indicated by a thermometer exposed to
-the air in a place sheltered from direct solar radiation”.
+Il WMO (1992) definisce la temperatura come una grandezza fisica che
+caratterizza il moto medio casuale delle molecole in un corpo
+fisico. La temperatura è caratterizzata dal comportamento per cui due
+corpi in contatto termico tendono a una temperatura uguale. La
+temperatura rappresenta quindi lo stato termodinamico di un corpo e il
+suo valore è determinato dalla direzione del flusso netto di calore
+tra due corpi. La WMO definisce la temperatura dell'aria come "la
+temperatura indicata da un termometro esposto all'aria in un luogo
+riparato dalla radiazione solare diretta".
 
-* Measurement Units and scales: Kelvin
-* Range: 233.15 K / 323.15 K
-* Resolution: 0.1 K
-* Uncertainty: 0.5 K
-* time constant: 20s
-* Sampling: 1Hz
-* Output observation Averaging time: 60s
+
+* Unità di misura e scala: Kelvin
+* Intervallo: 233,15 K / 323,15 K
+* Risoluzione: 0.1 K
+* Incertezza: 0,5 K
+* Costante di tempo: 20s
+* Campionamento: 1Hz
+* Tempo di mediazione dell'osservazione in uscita: 60s
+
 
 Collocazione degli strumenti
 ............................
@@ -624,94 +646,82 @@ essere compresa tra 180 cm e 200 cm.
 Umidità dell'aria
 -----------------
 
-.. _definition-1:
+Definizione
+...........
 
-Definition
-..........
+Le definizioni semplici delle grandezze più frequentemente utilizzate
+nella misurazione dell'umidità sono le seguenti:
 
-The simple definitions of the most frequently used quantities in
-humidity measurements are as follows:
 
--  Dewpoint temperature Td: The temperature at which moist air saturated
-      with respect to water at a given pressure has a saturation mixing
-      ratio equal
+- Temperatura del punto di rugiada Td: la temperatura alla quale, a
+  pressione costante, l'aria (o, più precisamente, la miscela
+  aria-vapore) diventa satura di vapore acqueo.
 
-to the given mixing ratio;
 
--  Relative humidity U: The ratio in per cent of the observed vapour
-      pressure to the saturation vapour pressure with respect to water
-      at the same temperature and pressure;
+- Umidità relativa U: il rapporto in percentuale tra la tensione di
+  vapore osservata e la tensione di vapore di saturazione alla stessa
+  temperatura e pressione;
+  
 
-.. _measurement-units-and-scales-1:
-
-Measurement Units and scales
-............................
+Unità di misura e scala
+.......................
 
 +-----------------------------------------------+----------------------+
-| Dew Point Temperature                         | Kelvin               |
+|  Temperatura del punto di rugiada             | Kelvin               |
 +-----------------------------------------------+----------------------+
-| Relative Humidity                             | percent %            |
+| Umidità relativa                              | percento %           |
 +-----------------------------------------------+----------------------+
 
-.. _range-1:
-
-Range
-.....
+Campo di misura
+...............
 
 +-------------------------------------+--------------------------------+
-| Dew Point Temperature               | 233.15 K / 303.15 K            |
+| Temperatura del punto di rugiada    | 233.15 K / 303.15 K            |
 +-------------------------------------+--------------------------------+
-| Relative Humidity                   | 0 - 100                        |
+| Umidità relativa                    | 0 - 100                        |
 +-------------------------------------+--------------------------------+
 
-.. _resolution-1:
 
-Resolution
-..........
-
-+------------------------------------------------------+---------------+
-| Dew Point Temperature                                | 0.1 K         |
-+------------------------------------------------------+---------------+
-| Relative Humidity                                    | 2%            |
-+------------------------------------------------------+---------------+
-
-.. _uncertainty-1:
-
-Uncertainty
+Risoluzione
 ...........
 
 +------------------------------------------------------+---------------+
-| Dew Point Temperature                                | 0.5 K         |
+| Temperatura del punto di rugiada                     | 0.1 K         |
 +------------------------------------------------------+---------------+
-| Relative Humidity                                    | 5%            |
+| Umidità relativa                                     | 2%            |
 +------------------------------------------------------+---------------+
 
-.. _time-constant-1:
 
-time constant
-.............
+Incertezza
+..........
+
++------------------------------------------------------+---------------+
+| Temperatura del punto di rugiada                     | 0.5 K         |
++------------------------------------------------------+---------------+
+| Umidità relativa                                     | 5%            |
++------------------------------------------------------+---------------+
+
+Costante di tempo
+.................
 
 +--------------------------------------------------------+-------------+
-| Dew Point Temperature                                  | 20 s        |
+| Temperatura del punto di rugiada                       | 20 s        |
 +--------------------------------------------------------+-------------+
-| Relative Humidity                                      | 40 s        |
+| Umidità relativa                                       | 40 s        |
 +--------------------------------------------------------+-------------+
 
-.. _sampling-1:
 
-Sampling
-........
+Frequenza campionamento
+.......................
 
 10 Hz
 
-.. _output-observation-averaging-time-1:
 
-Output observation Averaging time
-.................................
+Periodo di media per l'osservazione
+...................................
 
 60 s
 
-.. _collocazione-degli-strumenti-1:
 
 Collocazione degli strumenti
 ............................

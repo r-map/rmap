@@ -281,7 +281,9 @@ da una sfera di rame cava del diametro di 150 mm (o 100 mm), rivestita
 di vernice nera opaca e contenente un normale termometro con il bulbo
 fissato al centro della sfera, senza fonte di calore.
 
-http://www.engineeringmechanics.cz/pdf/20_3_319.pdf   
+Per approfondire "operative temperature and globe temperature" pdf :download:`pdf <20_3_319.pdf>`
+
+http://www.engineeringmechanics.cz/pdf/20_3_319.pdf
 
 **temperatura di bulbo umido**
 
@@ -401,6 +403,7 @@ Questa sensazione è ciò che il Wind Chill tenta di misurare.
 .. image:: tabella-wind-chill.jpg
 
 Autori: Osczevski R.,Bluestein M. (2001)
+
 Formula:
 
 WC =13.12+(0.6215 * T)-(11.37 * V^0.16) +(0.3965 * T * V^0.16)

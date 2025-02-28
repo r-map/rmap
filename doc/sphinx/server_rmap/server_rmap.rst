@@ -212,8 +212,8 @@ Porte utilizzate
 
 
 
-Documentazione implementazione
-------------------------------
+Implementazione
+---------------
 
 Il funzionamento del back-end e del front-end è basato su due broker,
 una suite di applicazioni Django, alcuni tools e da una suite di daemon.
@@ -1148,8 +1148,8 @@ Descrizione
 '''''''''''
 
 Se la funzione è abilitata da configurazione questa app gestisce la
-possibilità che gli utenti si registrino in modo sutonomo dovendo
-fornire come minimi una email.
+possibilità che gli utenti si registrino in modo autonomo dovendo
+fornire come minimo una email.
 
 DataBase
 ''''''''
@@ -1887,12 +1887,75 @@ Operazioni per l'aggiornamento
    rmap-manage collectstatic
 
 
+Autenticazione e autorizzazioni apps Django
+...........................................
+
+Se la registration app risulta abilitata tramite il parametro di
+configurazione REGISTRATION_OPEN l'app gestisce la
+possibilità che gli utenti si registrino in modo autonomo.
+
+Se la funzione è disabilitata  gli utenti possono essere aggiunti
+manualmente tramite Django authentication system dall'interfaccia di
+amministrazione di Django nella sezione Autenticazione e
+Autorizzazione.
+
+Le autorizzazioni vengono gestite tramite i gruppi del Django
+authentication system dall'interfaccia di amministrazione di Django
+nella sezione Autenticazione e Autorizzazione.
+
+Gruppi:
+
+* "**dashboard**" : gli utenti di questo gruppo possono modificare e
+  salvare le dashboard di graphite
+* "**status alert recipients**" : gli utenti di questo gruppo ricevono
+  le mail di segnalazione dell'autodiagnostica
+
+* "**firmware**" : gestione aggiornamento firmware direttamente
+  dall'interfaccia di amministrazione di Django
+  
+  * il gruppo deve essere impostato con tutti i privilegi firmware_updater*
+  * il gruppo deve essere impostato con tutti i privilegi firmware_updater_stima*
+
+* "**ticket**" : gestione tickets direttamente dall'interfaccia di
+  amministrazione di Django
+
+  * il gruppo deve essere impostato con tutti i privilegi ticket*
+
+Gruppi opzionali:
+  
+* "**controllo qualità**" : autorizzazione per l'app cosudo per
+  estrazione grib
+
+  
+* "**rpc**" : abilita gestione RPC direttamente dall'interfaccia di
+  amministrazione di Django
+
+  * il gruppo deve essere impostato con tutti i privilegi rpc*
+
+* "**station metadata admin**" : abilita modifica delle configurazioni
+  stazione direttamente dall'interfaccia di amministrazione di Django
+
+  * il gruppo deve essere impostato con tutti i privilegi stations*
+
+  
+Oltre ai gruppi un utente può avere privilegi:
+
+* Privilegi di staff : Stabilisce se l'utente può accedere
+  all'interfaccia di amministrazione.
+* Privilegi di superutente : Attribuisce all'utente tutti i privilegi,
+  senza che sia necessario assegnarli esplicitamente.
+
+Con i privilegi di superutente da interfaccia admin di django nella
+gestione utenti è possibile con il pulsante "**hijack**" impersonare
+l'identità di qualsiasi utente e agire, quando necessario, come tale.
+
+  
 Operazioni straordinarie/periodiche di manutenzione
 ...................................................
 
 **Operazioni di supporto a utenti**
 
-Tramite l'app hijack è ppossibile impersonare l'identità di qualsiasi
+Tramite l'app hijack è possibile impersonare l'identità di qualsiasi
 utente e agire, quando necessario, come tale.
 
 **Sostituzione hardware delle stazioni stimawifi e stima V4**
