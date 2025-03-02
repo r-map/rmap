@@ -218,8 +218,8 @@ delle strutture complesse.
 :ref:`Data level nelle RMAP RFC<data_level-reference>`
 
 
-Campionamento delle variabili meteorologiche
---------------------------------------------
+Campionamento delle variabili
+-----------------------------
 
 Le variabili atmosferiche come la velocità del vento, la temperatura,
 la pressione e l'umidità sono funzioni di quattro dimensioni: due
@@ -419,8 +419,6 @@ Qui alcune considerazioni sulla costante di tempo:
 https://www.unirc.it/documentazione/materiale_didattico/597_2011_289_11765.pdf
 
 
-
-
 Taratura e calibrazione
 =======================
 
@@ -456,8 +454,12 @@ sostituzione, dove il campione genera direttamente la grandezza di
 riferimento che viene fatta misurare allo strumento in calibrazione;
 
 
+Misure meteorologiche
+=====================
+
+
 Criteri generali per la scelta del sito
-=======================================
+---------------------------------------
 
 La stazione meteorologica deve sorgere in un luogo piano e libero,
 possibilmente il suolo deve essere coperto da un tappeto erboso da cui
@@ -486,13 +488,13 @@ strumentazione
 
 
 Temperatura e umidità
-=====================
+---------------------
 
 Schermi
--------
+.......
 
 La capannina meteorologica
-..........................
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 La capannina solitamente di legno (scarsa conducibilità termica) e
 colorata con vernice bianca riflettente (minima assorbimento di
@@ -504,7 +506,7 @@ disposta verso nord, evita che l'insolazione diretta penetri fino ai
 sensori di temperatura durante l'osservazione / manutenzione.
 
 Istruzioni per la costruzione di una capannina meteorologica
-............................................................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 La capannina per gli strumenti deve essere costruito con uno spessore
 di circa 2 cm di pino bianco o legno simile e dipinto di bianco, sia
@@ -535,7 +537,7 @@ vedere l'immagine:
 .. image :: misure-001.png
 
 Schermo solare
-..............
+^^^^^^^^^^^^^^
 
 Lo schermo o la protezione dalle radiazioni deve essere progettato per
 fornire un involucro con una temperatura interna uniforme e uguale a
@@ -558,7 +560,7 @@ requisiti di manutenzione. Il materiale termoisolante deve essere
 utilizzato se il sistema si basa sulla ventilazione naturale.
 
 Schermi a lamelle
-.................
+^^^^^^^^^^^^^^^^^
 
 La maggior parte delle numerose varietà di schermi a lamelle o
 piattelli si basa sulla ventilazione naturale. Le pareti di una
@@ -609,10 +611,10 @@ temperatura reale dell'aria in una giornata.
 
 
 Temperatura dell'aria
----------------------
+.....................
 
 Definizione
-...........
+^^^^^^^^^^^
 
 Il WMO (1992) definisce la temperatura come una grandezza fisica che
 caratterizza il moto medio casuale delle molecole in un corpo
@@ -635,7 +637,7 @@ riparato dalla radiazione solare diretta".
 
 
 Collocazione degli strumenti
-............................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 I sensori di temperatura vengono racchiusi entro involucri che
 proteggono dalla radiazione diretta, generalmente ventilati anche in
@@ -644,14 +646,13 @@ rendimento dei sensori stessi. L'altezza del sensore dal terreno deve
 essere compresa tra 180 cm e 200 cm.
 
 Umidità dell'aria
------------------
+.................
 
 Definizione
-...........
+^^^^^^^^^^^
 
 Le definizioni semplici delle grandezze più frequentemente utilizzate
 nella misurazione dell'umidità sono le seguenti:
-
 
 - Temperatura del punto di rugiada Td: la temperatura alla quale, a
   pressione costante, l'aria (o, più precisamente, la miscela
@@ -662,9 +663,10 @@ nella misurazione dell'umidità sono le seguenti:
   vapore osservata e la tensione di vapore di saturazione alla stessa
   temperatura e pressione;
   
+Specifiche
+^^^^^^^^^^
 
-Unità di misura e scala
-.......................
+**Unità di misura e scala**
 
 +-----------------------------------------------+----------------------+
 |  Temperatura del punto di rugiada             | Kelvin               |
@@ -672,8 +674,7 @@ Unità di misura e scala
 | Umidità relativa                              | percento %           |
 +-----------------------------------------------+----------------------+
 
-Campo di misura
-...............
+**Campo di misura**
 
 +-------------------------------------+--------------------------------+
 | Temperatura del punto di rugiada    | 233.15 K / 303.15 K            |
@@ -681,9 +682,7 @@ Campo di misura
 | Umidità relativa                    | 0 - 100                        |
 +-------------------------------------+--------------------------------+
 
-
-Risoluzione
-...........
+**Risoluzione**
 
 +------------------------------------------------------+---------------+
 | Temperatura del punto di rugiada                     | 0.1 K         |
@@ -691,9 +690,7 @@ Risoluzione
 | Umidità relativa                                     | 2%            |
 +------------------------------------------------------+---------------+
 
-
-Incertezza
-..........
+**Incertezza**
 
 +------------------------------------------------------+---------------+
 | Temperatura del punto di rugiada                     | 0.5 K         |
@@ -701,8 +698,7 @@ Incertezza
 | Umidità relativa                                     | 5%            |
 +------------------------------------------------------+---------------+
 
-Costante di tempo
-.................
+**Costante di tempo**
 
 +--------------------------------------------------------+-------------+
 | Temperatura del punto di rugiada                       | 20 s        |
@@ -711,20 +707,18 @@ Costante di tempo
 +--------------------------------------------------------+-------------+
 
 
-Frequenza campionamento
-.......................
+**Frequenza campionamento**
 
 10 Hz
 
 
-Periodo di media per l'osservazione
-...................................
+**Periodo di media per l'osservazione**
 
 60 s
 
 
 Collocazione degli strumenti
-............................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 I sensori di umidità vengono racchiusi entro involucri che proteggono
 dalla radiazione diretta, generalmente ventilati anche in modo
@@ -733,9 +727,8 @@ dei sensori stessi. L'altezza del sensore dal terreno deve essere
 compresa tra 180 cm e 200 cm.
 
 
-
 Osservazioni manuali
-====================
+--------------------
 
 All'interno del progetto RMAP vengono archiviate misure manuali delle
 seguenti grandezze:
@@ -748,10 +741,10 @@ nel seguito viene data una descrizione della metodologia da seguire
 per produrre misure corrette di tali grandezze.
 
 Altezza del manto nevoso (total snow depth)
--------------------------------------------
+...........................................
 
 Quando fare la misura
-.....................
+^^^^^^^^^^^^^^^^^^^^^
 
 L'altezza totale del manto nevoso va fatta in due casi:
 
@@ -771,7 +764,7 @@ prodotti osservativi a valle fino ad alterare le analisi globali di
 ECMWF.
 
 Collocazione del sito di misura
-...............................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Il sito di misura deve consistere di una superficie piana regolare non
 soggetta ad accumuli anomali rispetto all'area circostante. Il sito
@@ -801,7 +794,7 @@ campionamenti.
 
 
 Strumenti di misura
-...................
+^^^^^^^^^^^^^^^^^^^
 
 La misura del manto nevoso va fatta utilizzando un righello rigido di
 lunghezza sufficiente o, meglio ancora, un metro ripiegabile di legno
@@ -811,7 +804,7 @@ simile a quello in figura.
 .. image:: Metro_ripiegabile.jpg
 
 Come fare la misura
-...................
+^^^^^^^^^^^^^^^^^^^
 
 Quando si fa la misura bisogna seguire le seguenti procedure:
 
@@ -825,7 +818,7 @@ Quando si fa la misura bisogna seguire le seguenti procedure:
 .. image::  Errore_parallasse_no.png
 
 Visibilità
-----------
+..........
 
 La misura di visibilità va fatta possibilmente individuando una serie
 di oggetti o ostacoli (case gruppi di alberi, cartelli stradali,
@@ -838,7 +831,7 @@ dovrebbe essere rilevata in diverse direzioni. Il valore più basso tra
 queli rilevati rappresenta la misura finale di visibilità.
 
 Tempo presente
---------------
+..............
 
 Quando si seleziona il tipo di "Tempo presente" bisogna procedere alla
 selezione di una voce tra quelle riportate nell'elenco. L'elenco è
@@ -920,3 +913,120 @@ questa procedura, inserirà automaticamente l'evento più significativo.
 +--------+---------------------------------------------------------------------------------------+
 | 199    | Tromba d'aria (Tornado)                                                               |
 +--------+---------------------------------------------------------------------------------------+
+
+
+Misure Qualità dell'aria
+========================
+
+Classificazione delle stazioni di monitoraggio
+----------------------------------------------
+
+Non tutte le stazioni di monitoraggio della qualità dell’aria sono
+uguali. Possono differenziarsi per il tipo di sensori installati, per
+la loro posizione, e per il tipo di misurazione a cui sono preposte.
+
+L’Agenzia Europea per l’Ambiente (https://www.eea.europa.eu/it) ha
+stilato dei criteri per la classificazione di questo tipo di
+centraline a seconda della loro tipologia e delle caratteristiche
+dell’ambiente in cui sono installate. Senza voler scendere troppo nei
+dettagli, possiamo dividere le stazioni in tre grandi categorie:
+
+misurazione dell’inquinamento da TRAFFICO (T): stazioni che misurano
+il livello di inquinamento generato prevalentemente da emissioni da
+traffico, provenienti da strade limitrofe con intensità di traffico
+medio alta;
+
+misurazione dell’inquinamento di FONDO (B): stazioni posizione lontano
+da specifiche fonti di inquinamento (industrie, traffico,
+riscaldamento residenziale, etc.) che non sono influenzate, cioè, da
+una fonte prevalente di inquinamento.
+
+monitoraggio di fonti di inquinamento INDUSTRIALI (I): stazioni
+ubicate in una zona in cui l’inquinamento sia generato in prevalenza
+da singole industrie o da vicine zone industriali
+
+Anche l’ambiente che accoglie la stazione viene categorizzato dalla
+stessa direttiva e suddiviso in aree di tipo Urbano (U), Suburbano (S)
+e Rurale (R).
+
+Le aree urbane sono quelle densamente popolate, quelle suburbane, o
+periferiche, sono caratterizzate da un'alternanza di aree edificate ed
+aree libere da edifici, quelle rurali possono essere caratterizzate
+per esclusione.
+
+Questa classificazione di massima viene affinata in base all’attività
+umana prevalente in aree Residenziali (R), Commerciali (C),
+Industriali (I), Agricole (A) e Naturali (N).
+
+Le stazioni vengono indicate con una sigla che ne rappresenta il tipo,
+ad esempio, ad una stazione di misurazione del traffico situata in
+un’area urbana a vocazione commerciale sarà attribuito il codice TU-C,
+ad una che misura l’inquinamento di fondo in periferia, quello BS-R
+(in caso la prevalenza di strutture antropiche sia di tipo
+residenziale).
+
+Non tutte le combinazioni di questi fattori possono essere utilizzate,
+ad esempio non sarà mai possibile classificare una stazione come TU-N
+perché per definizione un’area urbana, registra una forte presenza
+umana.  A seconda dell’ambiente che le ospita, si considera che le
+stazioni coprano un’area che va da circa 200m² di una stazione
+installata in ambito urbano a diverse decine di chilometri per le
+stazioni situate in un ambiente rurale, o a centinaia di chilometri
+quadrati nel caso di aree rurali remote (distanti più di 50 km da
+centri abitati e zone industriali).
+
+Le misurazioni attese dalle stazioni, quindi, dipenderanno dalla loro
+tipologia. La valutazione delle letture effettuate dovrà tenere conto
+delle stazioni circostanti e di altri fattori che sarebbe fuori luogo
+elencare in questo documento ma che possono essere un valido spunto di
+discussione da approfondire in classe.
+
+Nelle linee guida per la predisposizione delle reti di monitoraggio
+della qualità dell’aria, l’Istituto Superiore per la Protezione e la
+Ricerca Ambientale individua le scuole come luoghi adatti
+all’installazione di stazioni di background urbano e suburbano.
+
+Criteri per la selezione del sito di installazione
+--------------------------------------------------
+
+Per far sì che i dati raccolti dalle stazioni possano essere
+paragonabili, è importante che il posizionamento di queste ultime sia
+il più possibile omogeneo. Due sensori che misurano la concentrazione
+di particolato, posizionati su un palazzo, e posti uno a piano strada,
+e l’altro sul lastrico solare, ad esempio, daranno, nello stesso
+istante, valori che possono essere molto diversi tra di loro.
+
+Le linee guida sono particolarmente dettagliate sul tipo di
+posizionamento dei punti di misura di una stazione in base ai
+parametri monitorati ed al tipo di stazione.
+
+Allo stato attuale, le stazioni Stima misurano, oltre a temperatura ed
+umidità, PM2.5, PM10, CO2. Idealmente una stazione che registra questo
+tipo di parametri, dovrebbe essere posizionata ad altezza uomo intorno
+ai 2m dal livello del suolo, ma, per proteggere l’apparato da
+manomissioni e furti, si può prendere in considerazione la possibilità
+di posizionarle ad un’altezza che varia tra i 2 e 4 metri.
+
+Visto che le concentrazioni di particolato diminuiscono con l’altezza,
+sarebbe opportuno che tutte le stazioni fossero installate ad
+un'altezza simile.
+
+Anche la distanza dall’edificio che dovesse dare loro supporto
+influenza le misurazioni. Se possibile, bisognerebbe usare una staffa
+che distanzi la stazione di almeno 20 centimetri dal muro che la
+sostiene.
+
+È importante assicurarsi che ci sia un buon circolo d'aria attorno
+alla stazione. In caso contrario i valori registrati potrebbero essere
+sottostimati. Anche una posizione troppo esposta potrebbe portare a
+valutazioni inesatte. Ad esempio, la turbolenza prodotta dai veicoli
+in transito potrebbe portare a misurazioni più alte dei valori
+realmente.
+
+La stazione Stima ha bisogno di essere alimentata continuamente e di
+trasmettere periodicamente i campioni perché possano essere
+trasformati in osservazioni utilizzabili.  Per fare ciò è necessario
+assicurarsi che il punto prescelto permetta alla stazione di
+collegarsi tramite rete Wi-Fi ad internet. Potrete trovare alcuni
+criteri per permettere un utilizzo sicuro e protetto della connessione
+più avanti in questa guida.

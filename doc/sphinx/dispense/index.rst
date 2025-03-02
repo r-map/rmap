@@ -7,10 +7,10 @@ Dispense
 
    misure/misure
    partecipa/partecipa
-   la_scienza_di_tutti/la_scienza_di_tutti
+   la_scienza_partecipata/la_scienza_partecipata
    qualita_aria/qualita_aria
    probabilita/probabilita
-   cambiamento_climatico/cambiamento_climatico
+   riscaldamento_globale/riscaldamento_globale
    metodo_scientifico/metodo_scientifico
    complottismo/complottismo
    lavorare_con_i_dati/lavorare_con_i_dati
