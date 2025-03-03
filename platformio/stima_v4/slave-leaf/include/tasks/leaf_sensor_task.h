@@ -121,9 +121,9 @@ private:
   void powerOn(uint8_t chanel_out);
   void powerOff();
   
-  void resetADCData(uint8_t chanel_out);
-  uint8_t addADCData(uint8_t chanel_out);
-  float getADCData(uint8_t chanel_out, uint8_t *quality_data);
+  static void resetADCData(uint8_t chanel_out);
+  static uint8_t addADCData(uint8_t chanel_out);
+  static float getADCData(uint8_t chanel_out, uint8_t *quality_data);
 
   int32_t getVrefTemp(void);
   
@@ -139,9 +139,9 @@ private:
   inline static uint16_t leaf_count;
 
   // Value of chanel ADC
-  uint8_t adc_in_count[MAX_ADC_CHANELS];
-  uint8_t adc_err_count[MAX_ADC_CHANELS];
-  uint64_t adc_in[MAX_ADC_CHANELS];
+  inline static uint8_t adc_in_count[MAX_ADC_CHANELS];
+  inline static uint8_t adc_err_count[MAX_ADC_CHANELS];
+  inline static uint64_t adc_in[MAX_ADC_CHANELS];
 
   State_t state;
   LeafSensorParam_t param;

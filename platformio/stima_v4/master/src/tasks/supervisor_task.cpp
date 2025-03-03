@@ -892,11 +892,11 @@ bool SupervisorTask::loadConfiguration()
     #endif
   #else
     // Check NETWORK_GSM_BASE Parameter with Default (if some parameter are wrong)
-  if((param.configuration->network_type!=0)||
-     (param.configuration->network_type!=2)||
-     (param.configuration->network_type!=13)||
-     (param.configuration->network_type!=14)||
-     (param.configuration->network_type!=38)||
+  if((param.configuration->network_type!=0)&&
+     (param.configuration->network_type!=2)&&
+     (param.configuration->network_type!=13)&&
+     (param.configuration->network_type!=14)&&
+     (param.configuration->network_type!=38)&&
      (param.configuration->network_regver>3)) {
     strSafeCopy(param.configuration->network_order, CONFIGURATION_DEFAULT_GSM_NETWORK_ORDER, GSM_ORDER_NETWORK_LENGTH);
     param.configuration->monitor_flags = CONFIGURATION_GSM_DEFAULT_MONITOR_FLAGS;
