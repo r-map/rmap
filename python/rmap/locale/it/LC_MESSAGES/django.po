@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-05 11:08+0000\n"
-"PO-Revision-Date: 2025-03-05 12:52+0100\n"
+"POT-Creation-Date: 2025-03-05 12:37+0000\n"
+"PO-Revision-Date: 2025-03-05 13:42+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -1386,18 +1386,40 @@ msgstr "Installa l'App RMAPper altri sistemi operativi"
 msgid "Publish data on http for MQTT broker"
 msgstr "Publica i dati in http sul broker MQTT"
 
+#: rmap/templates/base.html:102
+msgid "Mailing List"
+msgstr ""
+
 #: rmap/templates/base.html:107
 msgid "Documentation"
 msgstr "Documentazione"
 
+#: rmap/templates/base.html:109
+msgid "Documentation: all documentation about RMAP and Stima project"
+msgstr "Tutta la documentazione sui progetti RMAP e Stima"
+
 #: rmap/templates/base.html:112
-#, fuzzy
-#| msgid "Documentation"
 msgid "Develop documentation"
-msgstr "Documentazione"
+msgstr "Documentazione per lo sviluppo"
 
 #: rmap/templates/base.html:114
 msgid "RMAP standard"
+msgstr ""
+
+#: rmap/templates/base.html:115
+msgid "Stima V3"
+msgstr ""
+
+#: rmap/templates/base.html:116
+msgid "Stima V4"
+msgstr ""
+
+#: rmap/templates/base.html:117
+msgid "Stima WiFi"
+msgstr ""
+
+#: rmap/templates/base.html:118
+msgid "Server RMAP"
 msgstr ""
 
 #: rmap/templates/base.html:119
@@ -1406,6 +1428,14 @@ msgstr "Il progetto sul sito di RaspiBO"
 
 #: rmap/templates/base.html:122
 msgid "Develop external resource"
+msgstr "Risorse esterne per lo sviluppo"
+
+#: rmap/templates/base.html:124
+msgid "GitHub devel platform with source code"
+msgstr "Piattaforma di sviluppo GitHub con il codice sorgente"
+
+#: rmap/templates/base.html:128
+msgid "Repository software RPM"
 msgstr ""
 
 #: rmap/templates/base.html:129
@@ -1491,16 +1521,12 @@ msgid "Category"
 msgstr "Categoria"
 
 #: rmap/templates/changed_status_email.html:14
-#, fuzzy
-#| msgid "Show station details"
 msgid "View updated details"
-msgstr "Mostra i dettagli stazione"
+msgstr "Mostra i dettagli aggiornati"
 
 #: rmap/templates/changed_status_email.html:22
-#, fuzzy
-#| msgid " disactive"
 msgid "Disactive"
-msgstr " Inattiva"
+msgstr "Inattiva"
 
 #: rmap/templates/changed_status_email.html:33
 #: rmap/templates/stations/stationmetadata_detail.html:53
@@ -1535,10 +1561,8 @@ msgid "Last status update"
 msgstr "Ultimo aggiornamento dello stato"
 
 #: rmap/templates/changed_status_email.html:34
-#, fuzzy
-#| msgid "Firmware version"
 msgid "Station firmware version"
-msgstr "Versione del Firmware"
+msgstr "Versione del Firmware stazione"
 
 #: rmap/templates/changed_status_email.html:38
 #: rmap/templates/stations/stationmetadata_detail.html:66
@@ -1562,7 +1586,7 @@ msgstr "Ultimo aggiornamento firmware"
 
 #: rmap/templates/changed_status_email.html:54
 msgid "Red if changed"
-msgstr ""
+msgstr "Rosso se cambiato"
 
 #: rmap/templates/changed_status_email.html:55
 #: rmap/templates/stations/stationstatus_detail.html:112
@@ -1671,7 +1695,7 @@ msgstr ""
 
 #: rmap/templates/changed_status_email.html:81
 msgid "Red if alert"
-msgstr ""
+msgstr "Rosso se allarme"
 
 #: rmap/templates/mystation.html:13
 msgid "Configuration wizard"
@@ -1864,7 +1888,7 @@ msgstr "successivo"
 #: rmap/templates/stations/stationmetadata_list.html:71
 #: rmap/templates/stations/stationstatus_list.html:68
 msgid "last &raquo;"
-msgstr ""
+msgstr "ultimo &raquo;"
 
 #: rmap/templates/stations/stationsonmap.html:14
 msgid "Selected user"
