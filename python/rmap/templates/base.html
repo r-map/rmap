@@ -106,28 +106,34 @@
 		  <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-book fa-fw"></i> {% trans "Documentation" %} <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                      <li><a href="https://doc.rmap.cc">Documentation: Rmap standard RFC and Stima HowTo</a></li>
+                      <li><a href="https://doc.rmap.cc">Documentation: all documentation about RMAP and Stima project</a></li>
+
+                      <li role="separator" class="divider"></li>
+                      <li class="dropdown-header">{% trans "Develop documentation" %}</li>
+
+		      <li><a href="https://doc.rmap.cc/rmap_rfc/rfc.html">{% trans "RMAP standard" %}</a></li>
+		      <li><a href="https://doc.rmap.cc/stima_v3/stima_v3.html">Stima V3</a></li>
+		      <li><a href="https://doc.rmap.cc/stima_v4/stima_v4.html">Stima V4</a></li>
+		      <li><a href="https://doc.rmap.cc/stima_wifi/index.html">Stima WiFi</a></li>
+		      <li><a href="https://doc.rmap.cc/server_rmap/server_rmap.html">Server RMAP</a></li>
                       <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">{% trans "The project on RaspiBO site" %}</a></li>
-		    </ul>
-		  </li>
-		  
-		  <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-code fa-fw"></i> {% trans "Develop" %} <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-		      <li><a href="https://doc.rmap.cc/stima_v3/development_guide/development_guide.html">{% trans "Guide" %}</a></li>
-		      <li><a href="https://doc.rmap.cc/stima_v3/howto_stima_v3/howto_stima_v3.html">HowTo Stima V3</a></li>
-		      <li><a href="https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html">HowTo Stima WiFi</a></li>
-		      <li><a href="https://doc.rmap.cc/server_rmap/server_rmap.html">HowTo Server RMAP</a></li>
 
-
-		      <li><a href="https://github.com/r-map">Rmap at GitHub</a></li>
-		      <li><a href="https://play.google.com/apps/testing/org.test.rmap">{% trans "Become beta tester for RMAP App for Android" %}</a></li>
+                      <li role="separator" class="divider"></li>
+                      <li class="dropdown-header">{% trans "Develop external resource" %}</li>
+		      
+		      <li><a href="https://github.com/r-map">GitHub devel platform with source code</a></li>
 		      <!-- <li><a href="//{{site.domain}}/repo/rmap/fedora/20/RPMS/arm/repoview/">Repository software Pidora (raspberry)</a></li>
 		      <li><a href="//{{site.domain}}/repo/rmap/fedora/20/SRPMS/repoview/">Repository software sorgenti</a></li>
 		      <li><a href="//{{site.domain}}/repo/rmap/fedora/20/RPMS/i386/repoview/">Repository software Fedora 20 i386</a></li> -->
 		      <li><a href="https://copr.fedorainfracloud.org/coprs/pat1/rmap/">Repository software RPM</a></li>
-                      <li role="separator" class="divider"></li>
-                      <li class="dropdown-header">{% trans "Admin" %}</li>
+		      <li><a href="https://play.google.com/apps/testing/org.test.rmap">{% trans "Become beta tester for RMAP App for Android" %}</a></li>
+
+		    </ul>
+		  </li>
+		  
+		  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-code fa-fw"></i> {% trans "Admin" %} <span class="caret"></span></a>
+                    <ul class="dropdown-menu">		      
                       <li><a href="http://{{site.domain}}:5925/">{% trans "Manage processes" %}</a></li>
 		      <li><a href="//{{site.domain}}/admin">{% trans "Django admin" %}</a></li>
                       <li><a href="http://{{site.domain}}:15672/">{% trans "Rabbitmq admin" %}</a></li>

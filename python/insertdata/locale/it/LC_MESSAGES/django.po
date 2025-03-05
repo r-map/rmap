@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-23 14:44+0000\n"
-"PO-Revision-Date: 2023-11-23 15:49+0100\n"
+"POT-Creation-Date: 2025-03-05 11:08+0000\n"
+"PO-Revision-Date: 2025-03-05 12:50+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -83,7 +83,8 @@ msgstr "Modifica trasporto AMQP"
 #: insertdata/templates/insertdata/manualdataform.html:50
 #: insertdata/templates/insertdata/newstationform.html:71
 #: insertdata/templates/insertdata/rainbodataform.html:183
-#: insertdata/templates/insertdata/stationmodifyform.html:84
+#: insertdata/templates/insertdata/stationmodifyform.html:61
+#: insertdata/templates/insertdata/stationmodifyform.html:124
 msgid "Submit"
 msgstr "Invia"
 
@@ -221,27 +222,27 @@ msgid "No phenomenon in progress"
 msgstr "Nessun fenomeno in atto"
 
 #: insertdata/templates/insertdata/rainbodataform.html:125
-#: insertdata/views.py:151
+#: insertdata/views.py:153
 msgid "Visibility"
 msgstr "Visibilità"
 
 #: insertdata/templates/insertdata/rainbodataform.html:132
-#: insertdata/views.py:154
+#: insertdata/views.py:156
 msgid "Rain"
 msgstr "Pioggia"
 
 #: insertdata/templates/insertdata/rainbodataform.html:139
-#: insertdata/views.py:152
+#: insertdata/views.py:154
 msgid "Snow"
 msgstr "Neve"
 
 #: insertdata/templates/insertdata/rainbodataform.html:146
-#: insertdata/views.py:153
+#: insertdata/views.py:155
 msgid "Thunderstorm"
 msgstr "Temporale"
 
 #: insertdata/templates/insertdata/rainbodataform.html:153
-#: insertdata/views.py:155
+#: insertdata/views.py:157
 msgid "Tornado"
 msgstr "Tromba d'aria"
 
@@ -254,198 +255,202 @@ msgid "Station chage completed successfully"
 msgstr "Modifica della stazione completata con successo"
 
 #: insertdata/templates/insertdata/stationmodifyform.html:23
-#: insertdata/templates/insertdata/stationmodifyform.html:57
+#: insertdata/templates/insertdata/stationmodifyform.html:97
 msgid "Modify station"
 msgstr "Modifica stazione"
 
-#: insertdata/templates/insertdata/stationmodifyform.html:30
+#: insertdata/templates/insertdata/stationmodifyform.html:32
+msgid "Modify station boards"
+msgstr "Modifica board stazione"
+
+#: insertdata/templates/insertdata/stationmodifyform.html:70
 msgid "Modify boards"
 msgstr "Modifica Boards"
 
-#: insertdata/templates/insertdata/stationmodifyform.html:67
+#: insertdata/templates/insertdata/stationmodifyform.html:107
 msgid "Modify station constant data"
 msgstr "Modifica i dati costanti di stazione"
 
-#: insertdata/templates/insertdata/stationmodifyform.html:73
+#: insertdata/templates/insertdata/stationmodifyform.html:113
 msgid "Modify constant data"
 msgstr "Modifica i dati costanti"
 
-#: insertdata/views.py:110
+#: insertdata/views.py:112
 msgid "Your station"
 msgstr "Tua stazione"
 
-#: insertdata/views.py:110
+#: insertdata/views.py:112
 msgid "Select configurated station"
 msgstr "Seleziona la stazione configurata"
 
-#: insertdata/views.py:115
+#: insertdata/views.py:117
 msgid "now"
 msgstr "adesso"
 
-#: insertdata/views.py:116
+#: insertdata/views.py:118
 msgid "observed 1 our before"
 msgstr "osservato 1 ora fa"
 
-#: insertdata/views.py:117
+#: insertdata/views.py:119
 msgid "observed 2 hours before"
 msgstr "osservato 2 ora fa"
 
-#: insertdata/views.py:118
+#: insertdata/views.py:120
 msgid "observed 3 hours before"
 msgstr "osservato 3 ora fa"
 
-#: insertdata/views.py:119
+#: insertdata/views.py:121
 msgid "observed 4 hours before"
 msgstr "osservato 4 ora fa"
 
-#: insertdata/views.py:120
+#: insertdata/views.py:122
 msgid "observed 5 hours before"
 msgstr "osservato 5 ora fa"
 
-#: insertdata/views.py:121
+#: insertdata/views.py:123
 msgid "observed 6 hours before"
 msgstr "osservato 6 ora fa"
 
-#: insertdata/views.py:124
+#: insertdata/views.py:126
 msgid "Time elapsed"
 msgstr "Tempo trascorso"
 
-#: insertdata/views.py:125
+#: insertdata/views.py:127
 msgid "Time elapsed from observation time"
 msgstr "Tempo trascorso dal momento dell'osservazione"
 
-#: insertdata/views.py:134
+#: insertdata/views.py:136
 msgid "Visibility(m.)"
 msgstr "Visibilità (m.)"
 
-#: insertdata/views.py:135
+#: insertdata/views.py:137
 msgid "Snow height(cm.)"
 msgstr "Altezza neve (cm.)"
 
-#: insertdata/views.py:140
+#: insertdata/views.py:142
 msgid "Present weather"
 msgstr "Tempo presente"
 
-#: insertdata/views.py:150
+#: insertdata/views.py:152
 msgid "not significant"
 msgstr ""
 
-#: insertdata/views.py:150
+#: insertdata/views.py:152
 msgid "Not_significant"
 msgstr ""
 
-#: insertdata/views.py:151
+#: insertdata/views.py:153
 msgid "haze"
 msgstr ""
 
-#: insertdata/views.py:151
+#: insertdata/views.py:153
 msgid "fog"
 msgstr ""
 
-#: insertdata/views.py:152
+#: insertdata/views.py:154
 msgid "weak"
 msgstr ""
 
-#: insertdata/views.py:152
+#: insertdata/views.py:154
 msgid "moderate"
 msgstr ""
 
-#: insertdata/views.py:152
+#: insertdata/views.py:154
 msgid "intense"
 msgstr ""
 
-#: insertdata/views.py:153
+#: insertdata/views.py:155
 msgid "moderate with rain"
 msgstr ""
 
-#: insertdata/views.py:153
+#: insertdata/views.py:155
 msgid "moderate with hail"
 msgstr ""
 
-#: insertdata/views.py:153
+#: insertdata/views.py:155
 msgid "intense with rain"
 msgstr ""
 
-#: insertdata/views.py:153
+#: insertdata/views.py:155
 msgid "intense with hail"
 msgstr ""
 
-#: insertdata/views.py:154
+#: insertdata/views.py:156
 msgid "drizzle"
 msgstr ""
 
-#: insertdata/views.py:154
+#: insertdata/views.py:156
 msgid "rain"
 msgstr ""
 
-#: insertdata/views.py:154
+#: insertdata/views.py:156
 msgid "freezing on the ground"
 msgstr ""
 
-#: insertdata/views.py:155
+#: insertdata/views.py:157
 msgid "tornado"
-msgstr "Tromba d'aria"
+msgstr "tromba d'aria"
 
-#: insertdata/views.py:165
+#: insertdata/views.py:167
 msgid "fallen tree"
 msgstr ""
 
-#: insertdata/views.py:165
+#: insertdata/views.py:167
 msgid "icy road"
 msgstr ""
 
-#: insertdata/views.py:165
+#: insertdata/views.py:167
 msgid "flooding"
 msgstr ""
 
-#: insertdata/views.py:165
+#: insertdata/views.py:167
 msgid "pothole"
 msgstr ""
 
-#: insertdata/views.py:165
+#: insertdata/views.py:167
 msgid "Impact detected"
 msgstr "Tipo di impatto"
 
-#: insertdata/views.py:174
+#: insertdata/views.py:176
 msgid "Search address"
 msgstr "Indirizzo per la ricerca"
 
-#: insertdata/views.py:174
+#: insertdata/views.py:176
 msgid "Insert street, city,country, state"
 msgstr "Inserire via, città, cap, stato"
 
-#: insertdata/views.py:200
+#: insertdata/views.py:202
 msgid "New station name"
 msgstr "Nuovo nome stazione"
 
-#: insertdata/views.py:200
+#: insertdata/views.py:202
 msgid "The name of the station to insert"
 msgstr "Nome della stazione da inserire"
 
-#: insertdata/views.py:202
+#: insertdata/views.py:204
 msgid "Latitude"
 msgstr "Latitudine"
 
-#: insertdata/views.py:202
+#: insertdata/views.py:204
 msgid "Latitude in decimal degrees"
 msgstr "Latitudine in gradi sessadecimali"
 
-#: insertdata/views.py:203
+#: insertdata/views.py:205
 msgid "Longitude"
 msgstr "Longitudine"
 
-#: insertdata/views.py:203
+#: insertdata/views.py:205
 msgid "Longitude in decimal degrees"
 msgstr "Longitudine in gradi sessadecimali"
 
-#: insertdata/views.py:204
+#: insertdata/views.py:206
 msgid "Station height (m.)"
 msgstr "Altezza stazione (m)"
 
-#: insertdata/views.py:205
+#: insertdata/views.py:207
 msgid "Station model"
 msgstr "Modello stazione"
 
-#: insertdata/views.py:205
+#: insertdata/views.py:207
 msgid "The model of the station to insert"
 msgstr "Modello della stazione da inserire"

@@ -499,7 +499,7 @@ AUTO_REFRESH_INTERVAL = 60
 DASHBOARD_REQUIRE_AUTHENTICATION = True
 # Require Django change/delete permissions to save or delete dashboards.
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
-DASHBOARD_REQUIRE_PERMISSIONS = True
+DASHBOARD_REQUIRE_PERMISSIONS = False
 # Name of a group to which the user must belong to save or delete dashboards.  Alternative to
 # DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
