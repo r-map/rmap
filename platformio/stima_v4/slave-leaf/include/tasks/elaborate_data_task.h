@@ -104,8 +104,8 @@ private:
   #endif
   void TaskWatchDog(uint32_t millis_standby);
   void TaskState(uint8_t state_position, uint8_t state_subposition, task_flag state_operation);
-
   void make_report(bool is_init = true, uint16_t report_time_s = REPORTS_TIME_S, uint8_t observation_time_s = OBSERVATIONS_TIME_S);
+  uint8_t getLeafPercentage(bool leaf);
   uint8_t checkLeaf(rmapdata_t main_leaf);
 
   State_t state;

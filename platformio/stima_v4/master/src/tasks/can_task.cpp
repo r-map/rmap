@@ -1402,16 +1402,6 @@ void CanTask::Run() {
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
                 #endif
-                #ifdef USE_MODULE_FIXED_LEAF
-                idxFixed++;
-                param.configuration->board_slave[idxFixed].can_address = 63;
-                param.configuration->board_slave[idxFixed].module_type = Module_Type::leaf;
-                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_LEAF;
-                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_LEAF;
-                param.configuration->board_slave[idxFixed].serial_number = 0;
-                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
-                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
-                #endif
                 #ifdef USE_MODULE_FIXED_POWER
                 idxFixed++;
                 param.configuration->board_slave[idxFixed].can_address = 64;
@@ -1438,6 +1428,16 @@ void CanTask::Run() {
                 param.configuration->board_slave[idxFixed].module_type = Module_Type::level;
                 param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_LEVEL;
                 param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_LEVEL;
+                param.configuration->board_slave[idxFixed].serial_number = 0;
+                for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
+                    param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
+                #endif
+                #ifdef USE_MODULE_FIXED_LEAF
+                idxFixed++;
+                param.configuration->board_slave[idxFixed].can_address = 67;
+                param.configuration->board_slave[idxFixed].module_type = Module_Type::leaf;
+                param.configuration->board_slave[idxFixed].can_port_id = PORT_RMAP_LEAF;
+                param.configuration->board_slave[idxFixed].can_publish_id = PORT_RMAP_LEAF;
                 param.configuration->board_slave[idxFixed].serial_number = 0;
                 for(uint8_t isCfg=0; isCfg<CAN_SENSOR_COUNT_MAX; isCfg++)
                     param.configuration->board_slave[idxFixed].is_configured[isCfg] = true;
@@ -2418,7 +2418,7 @@ void CanTask::Run() {
                                     // TRACE Info data
                                     TRACE_INFO_F(F("RMAP recived response data module from [ %s ], node id: %d. Response code: %d\r\n"),
                                         stimaName, clCanard.slave[queueId].get_node_id(), retLeafData->state);
-                                    TRACE_VERBOSE_F(F("Value (DSA) Leaf %d\r\n"), retLeafData->BFT.leaf.val.value);
+                                    TRACE_VERBOSE_F(F("Value (BFT) Leaf %d\r\n"), retLeafData->BFT.leaf.val.value);
                                     // Get security remote state on maintenance mode from relative state flags
                                     param.system_status->data_slave[queueId].maintenance_mode = (retLeafData->state & CAN_FLAG_IS_MAINTENANCE_MODE);
                                     retLeafData->state &= CAN_FLAG_MASK_MAINTENANCE_MODE;

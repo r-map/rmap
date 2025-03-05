@@ -63,12 +63,13 @@
 #define PORT_RMAP_RADIATION  53
 #define PORT_RMAP_MPPT       54
 #define PORT_RMAP_VWC        55
-#define PORT_RMAP_LEAF       56
+#define PORT_RMAP_LEVEL      56
+#define PORT_RMAP_LEAF       57
 #define PORT_RMAP_MASTER     100
 
 // Parametri default per Modulo Slave (INIT_PARAMETER)
 #define NODE_VALUE_UNSET  255
-#define NODE_SLAVE_ID     63
+#define NODE_SLAVE_ID     67
 #define PORT_SERVICE_RMAP (PORT_RMAP_LEAF)
 #define SUBJECTID_PUBLISH_RMAP (PORT_RMAP_LEAF)
 

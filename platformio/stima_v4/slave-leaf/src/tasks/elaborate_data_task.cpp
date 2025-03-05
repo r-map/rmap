@@ -122,7 +122,7 @@ void ElaborateDataTask::Run() {
             edata.value = true;
         else
             edata.value = false;
-        TRACE_VERBOSE_F(F("Leaf count: %d\r\n"), edata.value);
+        TRACE_VERBOSE_F(F("Leaf: %d%%\r\n"), getLeafPercentage(edata.value));
         addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, false);
         addValue<sample_t, uint16_t, rmapdata_t>(&leaf_samples, SAMPLES_COUNT_MAX, edata.value);
     }
@@ -159,7 +159,7 @@ void ElaborateDataTask::Run() {
 #ifdef USE_SIMULATOR
                         edata.value = true;
 #endif
-                        TRACE_VERBOSE_F(F("Leaf count: %d\r\n"), edata.value);
+                        TRACE_VERBOSE_F(F("Leaf: %d%%\r\n"), getLeafPercentage(edata.value));
                         addValue<maintenance_t, uint16_t, bool>(&maintenance_samples, SAMPLES_COUNT_MAX, param.system_status->flags.is_maintenance);
                         addValue<sample_t, uint16_t, rmapdata_t>(&leaf_samples, SAMPLES_COUNT_MAX, edata.value);
                         break;
@@ -187,6 +187,12 @@ void ElaborateDataTask::Run() {
         DelayUntil(Ticks::MsToTicks(ELABORATE_TASK_WAIT_DELAY_MS));
     }
 }
+
+uint8_t ElaborateDataTask::getLeafPercentage(bool leaf) {
+    if (leaf) return 100;
+    else return 0;
+}
+
 
 /// @brief Check data in and perform calculate of Optional Quality value
 /// @param leaf real value readed from sensor
