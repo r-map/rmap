@@ -22,8 +22,8 @@ def summary_to_procedure(summ):
 
 
 def summary_to_observed_property(summ):
-    trange = [str(v) if v is not None else "-" for v in summ["trange"]]
-    level = [str(v) if v is not None else "-" for v in summ["level"]]
+    trange = [str(v) if v is not None else "-" for v in (summ["pindicator"],summ["p1"],summ["p2"])]
+    level = [str(v) if v is not None else "-" for v in (summ["leveltype1"],summ["l1"],summ["leveltype2"],summ["l2"])]
     var = summ["var"]
     return "urn:rmap:property:{trange}/{level}/{var}".format(
         trange=",".join(trange), level=",".join(level), var=var,
@@ -32,8 +32,8 @@ def summary_to_observed_property(summ):
 
 def summary_to_station(summ):
     ident = summ["ident"] if summ["ident"] is not None else "-"
-    lon = summ.key("lon").enqi()
-    lat = summ.key("lat").enqi()
+    lon = summ["lon"]
+    lat = summ["lat"]
     rep = summ["rep_memo"]
     return "urn:rmap:station:{ident}/{lon},{lat}/{rep}".format(
         ident=ident, lon=lon, lat=lat, rep=rep,
@@ -55,7 +55,7 @@ def procedure_to_record(procedure):
     res = reg.match(procedure)
     if res is not None:
         r = res.groupdict()
-        rec = dballe.Record()
+        rec = {}
         if r["ident"] == "-":
             rec["ident"] = None
         else:
@@ -117,7 +117,7 @@ def get_capabilities_1_0_0(request):
     4. The offering description is static (could be the station name).
     """
     db = get_db()
-    summaries = list(db.query_summary(dballe.Record()))
+    summaries = db.query_summary({})
     observed_properties = set(summary_to_observed_property(s) for s in summaries)
     return render(request, "borinud_sos/xml/1.0/GetCapabilities.xml", {
         "sos_full_url": request.build_absolute_uri(),
@@ -139,7 +139,10 @@ def describe_sensor_1_0_0(request):
     procedure = request.GET['procedure']
     rec = procedure_to_record(procedure)
     cur = db.query_summary(rec)
-    sensor = cur[0]
+    sensor={"lon":None,"lat":None}
+    for s in cur:
+        sensor=s
+        break
     return render(request, "borinud_sos/xml/1.0/DescribeSensor.xml", {
         "name": procedure,
         "lon": sensor["lon"],
@@ -212,7 +215,7 @@ def get_observation_1_0_0(request):
         "procedure": procedure,
         "observed_property": observed_property,
         "feature_of_interest": feature_of_interest,
-        "datemin": values[0]["date"] if len(values) == 0 else "",
-        "datemax": values[-1]["date"] if len(values) == 0 else "",
+        "datemin": values[0]["date"] if len(values) > 0 else "",
+        "datemax": values[-1]["date"] if len(values) > 0 else "",
         "values": values,
     })
