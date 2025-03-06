@@ -3,6 +3,43 @@ Misurare
 
 Come effettuare corrette misurazioni di parametri ambientali.
 
+Metrologia
+==========
+
+Scienza della misurazione e delle sue applicazioni
+
+
+
+* Vocabolario internazionale di metrologia
+  * https://www.ceinorme.it/it/normazione-it/vim/vim-content-it
+  * Terminologia per le misurazioni analitiche Introduzione al VIM 3
+  :download:`pdf <TAM_2011_IT.pdf>`
+* https://www.iso.org/obp/ui/
+
+.. image:: metrologia.jpg
+
+Monitoraggio ambientale
+=======================
+
+Il monitoraggio ambientale descrive i processi e le attività che
+devono aver luogo per caratterizzare e monitorare la qualità
+dell'ambiente.
+
+Il monitoraggio ambientale viene utilizzato quando le attività umane
+comportano un rischio di effetti dannosi sull'ambiente naturale o
+viceversa.  serve per stabilire lo stato attuale di un ambiente o
+tendenze dei parametri ambientali.
+
+I risultati del monitoraggio saranno rivisti, analizzati
+statisticamente e pubblicati. La progettazione di un programma di
+monitoraggio deve pertanto tenere conto dell'uso finale dei dati prima
+dell'inizio del monitoraggio.
+
+* Aria
+* Acqua
+* Suolo
+
+Componenti fisiche, chimiche, biologiche, radiologiche ...
 
 Definizioni
 ===========
@@ -417,7 +454,7 @@ decimo di grado con campionamneti ogni 30 secondi
 
 Qui alcune considerazioni sulla costante di tempo:
 https://www.unirc.it/documentazione/materiale_didattico/597_2011_289_11765.pdf
-
+:download:`pdf <597_2011_289_11765.pdf>`
 
 Taratura e calibrazione
 =======================
@@ -438,12 +475,36 @@ definirne la funzionalità, o per verificarne la rispondenza a dei
 requisiti. Inoltre permette di sapere qual è la variazione del valore
 della grandezza.
 
+**Curva di taratura**
+
+Una curva di taratura è una funzione di trasferimento che collega
+l'ingresso all'uscita. Il metodo si basa sul rapporto proporzionale
+tra la concentrazione e un dato segnale analitico (proprietà).
+
+.. image:: curvataratura.png
+
 La calibrazione
 ---------------
 
 L'insieme di operazioni svolte su un sistema di misura, affinché esso
 fornisca indicazioni prescritte in corrispondenza di determinati
 valori di una grandezza da sottoporre a misurazione
+
+La calibrazione consiste nel confrontare i valori ottenuti da uno
+strumento di misura con la corrispondente misura di uno strumento di
+riferimento (o standard). Secondo l'Ufficio internazionale dei pesi e
+delle misure, la calibrazione è "un'operazione che, in condizioni
+specifiche, stabilisce in una prima fase una relazione tra i valori e
+le incertezze di misura provviste di standard e indicazioni
+corrispondenti alle incertezze di misura associate e in una seconda
+fase, utilizza queste informazioni per stabilire un rapporto per
+ottenere un risultato di misura da un'indicazione".
+
+Da questa definizione si può dedurre che per calibrare uno strumento o
+uno standard è necessario uno strumento con una maggiore precisione
+(riferimento) che fornisca il valore convenzionale (misure di
+riferimento)
+
 
 Metodologia
 -----------
@@ -453,6 +514,22 @@ letta dallo strumento in calibrazione e da quello campione; a
 sostituzione, dove il campione genera direttamente la grandezza di
 riferimento che viene fatta misurare allo strumento in calibrazione;
 
+
+La validazione dei dati
+=======================
+
+Per validazione dei dati si intende «il processo attraverso il quale
+si valuta se l’informazionepuò essere considerata consona alle
+finalità per le quali è stata prodotta» (ISTAT, 2001).
+
+L’attività di validazione può essere allora definita, sempre secondo
+l’ISTAT, come «l’insiemedelle operazioni attraverso le quali si
+giudica lo scarto esistente fra gli obiettivi di qualità programmati
+in sede di progettazione dell’indagine [...] e i risultati
+effettivamente conseguiti».
+
+http://www.isprambiente.gov.it/contentfiles/00003800/3874-rapporti-02-27.pdf/
+ :download:`pdf <3874-rapporti-02-27.pdf>`
 
 Misure meteorologiche
 =====================

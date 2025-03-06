@@ -15,8 +15,156 @@ professionisti e istituzioni scientiﬁche”
 
 Oxford English Dictionary
 
+Ma le definizioni sono molteplici
+
+* Associazione Europea di Citizen Science
+  Dieci principi di Citizen Science
+  https://ecsa.citizen-science.net/wp-content/uploads/2021/06/ECSA_Ten_principles_of_CS_Italian.pdf
+* http://citizenscience.org/
+* https://ecsa.citizen-science.net
+* https://www.tcss.center/english
+* https://scistarter.org
+
 Pannello riassuntivo :download:`pdf <Citizen_scienze_4_PP.pdf>`
 
+La rivoluzione scientifica del seicento
+---------------------------------------
+
+* Comunicare tutto a tutti.
+* Abbattere definitivamente il paradigma della segretezza
+* Eliminare tutti gli ostacoli che si oppongono alla libera
+  circolazione della conoscenza scientifica.
+* Tutti i risultati della ricerca devono essere accessibili a chiunque
+
+Paolo Rossi (storico)
+
+Scienza aperta
+--------------
+
+l’accesso libero e gratuito alla conoscenza scientifica è un bene in
+sé, perché rendendo del tutto libero il suo scambio, la conoscenza
+aumenta.
+
+Cinque diverse scuole di pensiero nel movimento della scienza aperta:
+
+* **“democratica”**, il cui obiettivo è rendere la conoscenza
+  scientifica liberamente disponibile per chiunque;
+* **“pragmatica”**, che mira a rendere più efficiente la ricerca
+  attraverso la collaborazione tra scienziati;
+* **“infrastrutturale”**, che si concentra sugli strumenti
+  (elettronici) per rendere effettivamente aperta la scienza;
+* **“valutativa”**, che cerca di mettere a punto sistemi di
+  valutazione alternativi del lavoro scientifico
+
+Scienza aperta “pubblica”
+-------------------------
+
+Cerca di abbattere definitivamente le mura della torre d’avorio che
+separa la “repubblica della scienza” dal resto della società,
+proponendo il coinvolgimento attivo dei cittadini nell’impresa
+scientifica. L’obiettivo è la Citizen science da raggiungere
+attraverso lo science blogging e, più in generale, il social
+networking. In poche parole, impegnando gli scienziati in un dialogo
+fitto e diretto con i cittadini mediante gli strumenti del Web 2.0.
+
+La scienza deve uscire dai confini della comunità degli esperti per
+rendersi accessibile a un audience più vasta. L’assunzione base è che
+le tecnologie del social Web e del Web 2.0 consentono e anzi quasi
+impongono agli scienziati:
+
+* di “aprire” i risultati della ricerca ai non-esperti, rendendoli
+  comprensibili;
+* di “aprire” i processi di ricerca chiamando il grande pubblico a
+  parteciparvi.
+
+La citizen science è ancora “top-down”?
+---------------------------------------
+
+Fecher e Friesike sostengono che molti progetti di citizen science
+seguono una logica top-down: sono i ricercatori professionali a
+gestire il gioco e a conservare il ruolo di leader nel processo di
+ricerca, utilizzando i cittadini comuni non come partner alla pari, ma
+come forza lavoro gratuita.
+
+Qualcuno sostiene persino che molti progetti di citizen science non
+sono pensati affatto per coinvolgere cittadini con qualifiche e
+capacità tali da poter influenzare la ricerca in maniera
+significativa.
+
+
+Crowdsourcing
+-------------
+
+Il crowdsourcing è la pratica di coinvolgere una "folla" (in inglese
+"crowd") o un gruppo per un obiettivo comune Questo fenomeno può
+fornire alle organizzazioni l'accesso a nuove idee e soluzioni, un
+maggiore coinvolgimento dei consumatori, opportunità di co-creazione,
+ottimizzazione dei compiti e riduzione dei costi.
+
+Internet e i social media hanno avvicinato le organizzazioni ai loro
+stakeholder, ponendo le basi per nuovi modi di collaborare e creare
+valore insieme come mai prima d'ora.
+
+Nella scienza e nella sanità, il crowdsourcing può democratizzare la
+risoluzione dei problemi e accelerare l'innovazione.
+
+Living Lab
+----------
+
+Un living lab è un concetto ed approccio all'attività di ricerca,
+incentrato sull'utente e sull'ecosistema di Open innovation, operando
+spesso in un contesto territoriale (città, agglomerato urbano,
+regione) e integrando processi d'innovazione e di ricerca in una
+partnership tra persone, pubblico e privato.
+
+Il modello si basa sul concetto di open innovation in cui l'approccio
+alla ricerca prevede il coinvolgimento della comunità di utenti, non
+solo come soggetti osservati, ma anche come fonte della creazione, non
+più solo al centro dell'innovazione, ma piuttosto veri e propri
+"driver" del cambiamento.  L'esplorazione, la sperimentazione e la
+valutazione delle idee innovative fanno dei living labs piuttosto un
+ambiente esperienziale in cui gli utenti sono immersi , "vivono" per
+l'appunto, in uno spazio creativo da cui nasce la progettazione
+sociale e prendono vita servizi e prodotti del futuro.
+
+Smart city, smart citizen e citizen science
+-------------------------------------------
+
+Smart city: territorio urbano che permette di soddisfare le esigenze
+dei cittadini, delle imprese e delle istituzioni, mediante l'ausilio
+di strumenti innovativi e partecipazione attiva.
+
+Ad esempio, reti di sensori per il controllo di parametri ambientali.
+
+Per la Comunità Europea, il grado di intelligenza di una città
+dovrebbe essere valutato secondo economia, mobilità, ambiente,
+persone, tenore di vita e governo.
+
+All'interno di questo ambiente, il cittadino può (deve) avere un ruolo attivo (smart citizen)
+
+Un esempio di partecipazione attiva può essere ritrovata nella citizen
+science, una modalità di ricerca scientifica condotta totalmente o in
+parte da scienziati non professionisti
+
+
+Citizen science e aspetti educativi
+-----------------------------------
+
+La Citizen science rappresenta un potente strumento per far acquisire
+agli studenti quelle particolari competenze per eccellere nel campo
+delle scienze, della tecnologia e della matematica in quanto i
+partecipanti ai progetti di citizen science acquisiscono competenze
+realizzando “vera”scienza anche al di fuori dell’ambito strettamente
+scolastico invitando, nel contempo, a sviluppare sempre più numerosi
+progetti di Citizen science.
+
+D'altra parte recentemente si è incominciato, nell'ambito della
+ricerca educativa, anche a valutare la valenza della citizen science
+nell'ambito dell’apprendimento trasformativo (trasformative learning)
+in cui gli allievi reinterpretano il senso dell'esperienza per la
+costruzione di significato e apprendimento.
+
+  
 Citizen science
 ---------------
 
@@ -121,6 +269,25 @@ programma.
 dicono la loro, ma questa parte è limitata al minimo. Il motore
 dell’incontro sono sempre le domande, gli interventi e le discussioni
 del pubblico, il tutto animato—o smorzato—da un moderatore.
+
+Smart city, smart citizen e citizen science
+-------------------------------------------
+
+Smart city: territorio urbano che permette di soddisfare le esigenze
+dei cittadini, delle imprese e delle istituzioni, mediante l'ausilio
+di strumenti innovativi e partecipazione attiva
+
+Ad esempio, reti di sensori per il controllo di parametri ambientali.
+Per la Comunità Europea, il grado di intelligenza di una città
+dovrebbe essere valutato secondo economia, mobilità, ambiente,
+persone, tenore di vita e governo.
+
+All'interno di questo ambiente, il cittadino può (deve) avere un ruolo
+attivo (smart citizen)
+
+Un esempio di partecipazione attiva può essere ritrovata nella citizen
+science, una modalità di ricerca scientifica condotta totalmente o in
+parte da scienziati non professionisti
 
 
 Linee guida STEM del Ministero dell'Istruzione e del Merito

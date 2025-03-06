@@ -1,6 +1,24 @@
 Qualità dell'aria
 =================
 
+La legislazione europea dice che in una città come Bologna bastano due
+o tre stazioni per la misura della qualità dell'aria.
+
+Sono sufficienti per monitorare gli aspetti generali dell'inquinamento
+urbano, poi però esistono punti di accumulo locali (sotto i portici,
+nelle strade strette), differenze tra il primo e l'ultimo piano,
+emissioni locali (impianti), anche episodiche (cantieri, ingorghi,
+caminetti accesi), inquinamento dentro le case...
+
+Non basterebbero centinaia di centraline per monitorare tutta questa
+varietà di situazioni, e i costi delle reti di misura sono già adesso
+difficili da sostenere.
+
+L'Agenzia Ambientale Europea promuove l'integrazione di strumenti
+diversi: satelliti, modelli, poche stazioni con strumenti avanzati e
+reti di microsensori a basso costo gestite da volontari (scuole,
+associazioni, cittadini).
+
 INQUINAMENTO DELL'ARIA - Cosa stiamo respirando
 -----------------------------------------------
 

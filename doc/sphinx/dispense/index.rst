@@ -15,6 +15,9 @@ Dispense
    complottismo/complottismo
    lavorare_con_i_dati/lavorare_con_i_dati
    biometeorologia/biometeorologia
+   software_hardware_dati_liberi/software_hardware_dati_liberi
+   data_model/data_model
+   global_observing_system/global_observing_system
    
 * :ref:`genindex`
 * :ref:`search`
