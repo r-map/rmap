@@ -58,9 +58,9 @@ SDK Arduino
 
 -  sezionare in -> strumenti
 
-| ``       Scheda: Microduino Core+ (644pa)``
-| ``       Processore: ATmega644pa@16M5V``
-| ``       Porta: (quella disponibile) ``
+   | Scheda: Microduino Core+ (644pa)``
+   | Processore: ATmega644pa@16M5V``
+   | Porta: (quella disponibile) ``
 
 -  selezionare in -> Sketch -> Verifica e compila
 
@@ -131,12 +131,12 @@ Bisogna modificare l'indirizzo i2c del sensore hih.
 alla porta seriale inviare i comandi:
 
 | ``Sensor to config:``
-| `` w = i2c-wind``
-| `` s = i2c-windsonic``
-| `` t = i2c-th``
-| `` r = i2c-rain``
-| `` h = hih humidity sensor``
-| ``? = help - this page``
+| ``w = i2c-wind``
+| ``s = i2c-windsonic``
+| ``t = i2c-th``
+| ``r = i2c-rain``
+| ``h = hih humidity sensor``
+| ``? = help - this page``
 
 h
 
@@ -212,16 +212,16 @@ alla porta seriale inviare i comandi:
 
 | ``Terminal ready``
 | ``Start sensor config``
-| ``       Sensor configuration - 1.0``
+| ``     Sensor configuration - 1.0``
 | ``scan I2C bus:``
-| ``  i = scan one time``
+| `` i = scan one time``
 | ``Sensor to config:``
-| ``  w = i2c-wind``
-| ``  s = i2c-windsonic``
-| ``  t = i2c-th``
-| ``  r = i2c-rain``
-| ``  h = hih humidity sensor``
-| ``? = help - this page``
+| `` w = i2c-wind``
+| `` s = i2c-windsonic``
+| `` t = i2c-th``
+| `` r = i2c-rain``
+| `` h = hih humidity sensor``
+| ``? = help - this page``
 
 ``digit new i2c address for i2c-th (1-127)``
 
@@ -361,13 +361,15 @@ rmap_config.h
 In sketchbook/libraries/PubSubClient/PubSubClient.h modificare come
 segue:
 
-| ``// if use sim800 client``
-| ``#include "sim800Client.h"``
-| ``#define TCPCLIENT sim800Client``
-| ``// if use arduino_uip or etherclient``
-| ``//#include "Client.h"``
-| ``//#include "Stream.h"``
-| ``//#define TCPCLIENT Client``
+::
+   
+   // if use sim800 client
+   #include "sim800Client.h"
+   #define TCPCLIENT sim800Client
+   // if use arduino_uip or etherclient
+   //#include "Client.h"
+   //#include "Stream.h"
+   //#define TCPCLIENT Client
 
 Caricare il firmware rmap tramite microduino FT232RL.
 
@@ -461,13 +463,15 @@ rmap_config.h
 In sketchbook/libraries/PubSubClient/PubSubClient.h modificare come
 segue:
 
-| ``// if use sim800 client``
-| ``//#include "sim800Client.h"``
-| ``//#define TCPCLIENT sim800Client``
-| ``// if use arduino_uip or etherclient``
-| ``#include "Client.h"``
-| ``#include "Stream.h"``
-| ``#define TCPCLIENT Client``
+::
+   
+   // if use sim800 client
+   //#include "sim800Client.h"
+   //#define TCPCLIENT sim800Client
+   // if use arduino_uip or etherclient
+   #include "Client.h"
+   #include "Stream.h"
+   #define TCPCLIENT Client
 
 Caricare il firmware rmap tramite microduino FT232RL.
 
@@ -639,13 +643,22 @@ CO           <-> CO
 Firmware STIMA-BlueTooth
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-``   installare arduino 1.6.5 da ``\ ```https://www.arduino.cc/en/Main/Software`` <https://www.arduino.cc/en/Main/Software>`__\ `` o tramite la propria distribuzione``
+installare arduino 1.6.5 da:
 
-| ``   scaricare l'ultima versione del software stima (file stimasketchbook) da ``\ ```https://github.com/r-map/rmap/releases`` <https://github.com/r-map/rmap/releases>`__
-| ``   scompattare il file zip``
+https://www.arduino.cc/en/Main/Software
 
-| ``   aprire l'ide arduino e in file -> impostazioni -> percorso della cartella degli sketch selezionare la cartella sketchbook appena scompattata dal file scaricato``
-| ``   chiudere e riaprire l'ide``
+o tramite la propria distribuzione
+
+scaricare l'ultima versione del software stima (file stimasketchbook) da
+
+https://github.com/r-map/rmap/releases
+
+* scompattare il file zip
+* aprire l'ide arduino e in file -> impostazioni -> percorso della
+  cartella degli sketch
+* selezionare la cartella sketchbook appena
+  scompattata dal file scaricato
+* chiudere e riaprire l'ide
 
 .. _modulo_stima_bluetooth_1:
 
@@ -670,24 +683,25 @@ opzione solo ai più esperti.
 In sketchbook/rmap/rmap copiare il file stima_bluetooth.h in
 rmap_config.h
 
-| ``   sezionare in -> strumenti``
-| ``       Scheda: Microduino Core+ (644pa)``
-| ``       Processore: ATmega644pa@16M5V``
-| ``       Porta: (quella disponibile) ``
+* sezionare in -> strumenti
 
-``   selezionare in -> Sketch -> Verifica e compila ``
+  * Scheda: Microduino Core+ (644pa)``
+  * Processore: ATmega644pa@16M5V
+  * Porta: (quella disponibile)
+
+* selezionare in -> Sketch -> Verifica e compila
 
 Ora per uplodare il firmware sul microprocessore dovrete collegare tra
 loro SOLO
 
-| ``   MICRODUINO Core+ ATMEGA644PA``
-| ``   MICRODUINO Shield USB/TTL ``
+* MICRODUINO Core+ ATMEGA644PA
+* MICRODUINO Shield USB/TTL
 
 poi selezionate nella IDE di arduino:
 
-``   selezionare in -> Sketch -> Carica``
+* selezionare in -> Sketch -> Carica
 
-.. _modulo_stima_master_2:
+  .. _modulo_stima_master_2:
 
 modulo Stima-master
 ^^^^^^^^^^^^^^^^^^^
@@ -704,9 +718,9 @@ In sketchbook/rmap/rmap copiare il file stima_master.h in rmap_config.h
 
 sezionare in -> strumenti
 
-| ``   Scheda: Microduino Core+ (1284pa)``
-| ``   Processore: ATmega1284pa@16M5V``
-| ``   Porta: (quella disponibile) ``
+* Scheda: Microduino Core+ (1284pa)
+* Processore: ATmega1284pa@16M5V
+* Porta: (quella disponibile)
 
 sezionare in -> strumenti -> cartella degli sketch -> rmap -> rmap
 
@@ -722,9 +736,9 @@ rmap_config.h
 
 sezionare in -> strumenti
 
-| ``   Scheda: Microduino Core+ (644pa)``
-| ``   Processore: ATmega644pa@16M5V``
-| ``   Porta: (quella disponibile) ``
+* Scheda: Microduino Core+ (644pa)
+* Processore: ATmega644pa@16M5V
+* Porta: (quella disponibile)
 
 sezionare in -> strumenti -> cartella degli sketch -> rmap -> rmap
 
@@ -748,20 +762,22 @@ con gli opportuni valori.
 In sketchbook/libraries/PubSubClient/PubSubClient.h modificare come
 segue:
 
-| ``// if use sim800 client``
-| ``#include "sim800Client.h"``
-| ``#define TCPCLIENT sim800Client``
-
-| ``// if use arduino_uip or etherclient``
-| ``//#include "Client.h"``
-| ``//#include "Stream.h"``
-| ``//#define TCPCLIENT Client``
+::
+   
+   // if use sim800 client
+   #include "sim800Client.h"
+   #define TCPCLIENT sim800Client
+   
+   // if use arduino_uip or etherclient
+   //#include "Client.h"
+   //#include "Stream.h"
+   //#define TCPCLIENT Client
 
 sezionare in -> strumenti
 
-| ``   Scheda: Microduino Core+ (1284pa)``
-| ``   Processore: ATmega1284pa@16M5V``
-| ``   Porta: (quella disponibile) ``
+* Scheda: Microduino Core+ (1284pa)
+* Processore: ATmega1284pa@16M5V
+* Porta: (quella disponibile)
 
 sezionare in -> strumenti -> cartella degli sketch -> rmap -> rmap
 
@@ -791,25 +807,33 @@ installando il pacchetto python-pip. Per installare da utente non
 privilegiato l'ambiente rmap si può usare virtualenv e pip; da terminale
 eseguire:
 
-| ``virtualenv --system-site-packages rmap``
-| ``source rmap/bin/activate``
-
-``pip install --upgrade rmap``
+::
+   
+   virtualenv --system-site-packages rmap
+   source rmap/bin/activate
+   
+   pip install --upgrade rmap
 
 Poi attivare l'interfaccia utente grafica:
 
-| ``source rmap/bin/activate``
-| ``rmapgui``
+::
+   
+   source rmap/bin/activate
+   rmapgui
 
 In alternativa si può provare a installare Kivy tramite pip:
 
-| ``pip install cython``
-| ``pip install kivy``
+::
+   
+   pip install cython
+   pip install kivy
 
 Per aggiornare l'App una volta chiusa la finestra grafica nella finestra
 dei comandi al prompt digitare:
 
-``pip install --upgrade rmap``
+::
+   
+   pip install --upgrade rmap
 
 Windows
 ^^^^^^^
@@ -819,16 +843,29 @@ https://kivy.org/docs/installation/installation-windows.html
 
 poi:
 
-``python -m pip install rmap``
+::
+   
+   python -m pip install rmap
 
 Le istruzioni che seguono sono per una vecchia modalità per un vecchio
 pacchetto:
 
-| ``L'installazione in windows è molto semplice in quanto il file d scaricare è autoscompattante e comprende tutto l'ambiente necessario a``
-| ``Rmap. Sacricare quindi il file rmapwindows da: ``\ ```https://github.com/r-map/rmap/releases/`` <https://github.com/r-map/rmap/releases/>`__\ `` ed eseguirlo per scompattarlo.``
-| ``Per far partire l'applicazione a questo punto basterà eseguire il file rmapgui contenuto nella cartella rmap``
-| ``Per aggiornare l'App una volta chiusa la finestra grafica nella finestra dei comandi al prompt digitare:``
-| ``pip install --upgrade rmap``
+L'installazione in windows è molto semplice in quanto il file da
+scaricare è autoscompattante e comprende tutto l'ambiente necessario a
+Rmap.  Sacricare quindi il file rmapwindows da:
+
+https://github.com/r-map/rmap/releases
+
+ed eseguirlo per scompattarlo.
+
+Per far partire l'applicazione a questo punto basterà eseguire il file
+rmapgui contenuto nella cartella rmap
+
+Per aggiornare l'App una volta chiusa la finestra grafica nella
+finestra dei comandi al prompt digitare:
+::
+   
+  pip install --upgrade rmap
 
 .. _mac_osx:
 
@@ -866,8 +903,8 @@ sarete in possesso di uno user e di una password.
 A questo punto dovrete trasferire la vostra configurazione sulla eeprom
 del microcontrollore; per farlo:
 
-| ``   ponticellate sulla board Stima-I2C i pin contrassegnati con "SET" con un jumper.``
-| ``   collegate il modulo con la board Microduino FT232RL alla USB del vostro PC. ``
+* ponticellate sulla board Stima-I2C i pin contrassegnati con "SET" con un jumper.
+* collegate il modulo con la board Microduino FT232RL alla USB del vostro PC.
 
 .. _configurazione_tramite_lapplicazione_grafica:
 
@@ -877,7 +914,8 @@ Configurazione tramite l'applicazione grafica
 Dovrete accedere al menu "Impostazioni" che si aprirà automaticamente al
 primo avvio e accedere alle sottosezioni:
 
-``   Nella sezione "Rmap" dovrete inserire "RMAP user" e "RMAP password" ottenuti durante la registrazione a rmap.cc ``
+Nella sezione "Rmap" dovrete inserire "RMAP user" e "RMAP password"
+ottenuti durante la registrazione a rmap.cc.
 
 Dopo aver accoppiato il dispositivo bluetooth (dispositivo HC-05
 inserendo come pin "1234") si può attivare il programma. In windows
@@ -892,29 +930,31 @@ la comunicazione seriale.
 
 Ora dal menu Impostazioni selezionate la sezione "Sensors" e impostate:
 
-| ``   per il modulo Stima-Bluetooth``
-| ``       Name: HC-05``
-| ``       Station: BT_fixed``
-| ``       Board:``
-| ``           su android: BT_fixed``
-| ``           su linux: BT_fixed_LINUX``
-| ``           su windows: BT_fixed_WINDOWS``
-| ``           su OSX: BT_fixed_OSX ``
-| ``       Template: test_indirect``
-| ``       Remote Board: stima_bt``
-| ``       Remote Template: test ``
-| ``   per il modulo Stima-Master o Stima-gsm``
-| ``       Station: ETH_fixed``
-| ``       Board:``
-| ``           su linux: rmapgui_LINUX``
-| ``           su windows: rmapgui_WINDOWS``
-| ``           su OSX: rmapgui_OSX ``
-| ``       Template: test_indirect``
-| ``       Remote Board: master_eth_fixed``
-| ``       Remote Template: test (test_master se avete la board nRF24) ``
-| ``   per il modulo Stima-Satellite``
-| ``       come per il modulo Stima-Master ma come Remote Board: satellite_eth_fixed ``
-
+::
+   
+      per il modulo Stima-Bluetooth
+          Name: HC-05
+          Station: BT_fixed
+          Board:
+              su android: BT_fixed
+              su linux: BT_fixed_LINUX
+              su windows: BT_fixed_WINDOWS
+              su OSX: BT_fixed_OSX 
+          Template: test_indirect
+          Remote Board: stima_bt
+          Remote Template: test
+      per il modulo Stima-Master o Stima-gsm
+          Station: ETH_fixed
+          Board:
+              su linux: rmapgui_LINUX
+              su windows: rmapgui_WINDOWS
+              su OSX: rmapgui_OSX 
+          Template: test_indirect
+          Remote Board: master_eth_fixed
+          Remote Template: test (test_master se avete la board nRF24)
+      per il modulo Stima-Satellite
+          come per il modulo Stima-Master ma come Remote Board: satellite_eth_fixed
+   
 Nella sezione "Location" potete inserire manualmente le vostre
 coordinate e selezionare "Close" attivando la stazione. Se non conoscete
 le vostre coordinate dalla pagina "Posizione" selezionate accuratamente

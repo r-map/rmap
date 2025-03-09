@@ -638,6 +638,8 @@ https://github.com/ARPA-SIMC/dballe/blob/master/tables/dballe.txt
 |                 | TEMPERATURE     |                 |                 |
 +-----------------+-----------------+-----------------+-----------------+
 
+.. _formati-reference:
+
 Formati
 -------
 

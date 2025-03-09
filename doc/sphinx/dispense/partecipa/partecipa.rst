@@ -1,6 +1,7 @@
 
-Istruzioni per partecipare a RMAP
-=================================
+
+Partecipare a RMAP
+==================
 
 Sequenza delle operazioni:
 

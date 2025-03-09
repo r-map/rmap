@@ -1,6 +1,9 @@
 Qualità dell'aria
 =================
 
+Per un problema multi-scala, monitoraggio multi-scala
+-----------------------------------------------------
+
 La legislazione europea dice che in una città come Bologna bastano due
 o tre stazioni per la misura della qualità dell'aria.
 
@@ -19,6 +22,8 @@ diversi: satelliti, modelli, poche stazioni con strumenti avanzati e
 reti di microsensori a basso costo gestite da volontari (scuole,
 associazioni, cittadini).
 
+.. image:: pennellone.jpg
+
 INQUINAMENTO DELL'ARIA - Cosa stiamo respirando
 -----------------------------------------------
 
@@ -34,6 +39,148 @@ INQUINAMENTO DELL'ARIA - Cosa stiamo respirando
 
 Video dei Cartoni Morti
 
+Principali agenti indoor e potenziali fonti interne
+...................................................
+
+Il Joint Research Centre (JCR) dell’UE ha condotto uno studio dal
+quale è emerso che negli spazi interni sono presenti maggiori quantità
+di sostanze nocive rispetto che all’aperto. Non sono rari i livelli di
+concentrazione che col tempo hanno degli effetti dannosi sulla salute.
+
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| FONTI                                                                  | INQUINANTI                                                               |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Processi di combustione a gas o carbone per                            | Prodotti di combustione (CO, NOx, SO2, particolato)                      |
+|                                                                        |                                                                          |
+| riscaldare e/o cucinare,                                               |                                                                          |
+|                                                                        |                                                                          |
+| camini e stufe a legna, gas di scarico veicoli                         |                                                                          |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Materiali da costruzione e isolanti                                    | amianto, fibre vetrose artificiali, Particolato, Radon; Agenti           |
+|                                                                        |                                                                          |
+|									 | biologici (per presenza di umidità e/o polvere)                          |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Materiali di rivestimento e moquette                                   | formaldeide, acrilati, COV e Agenti biologici (per presenza di umidità   |
+|                                                                        |                                                                          |
+|									 | e/o polvere)                                                             |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Arredi                                                                 | formaldeide, COV e Agenti biologici (per presenza di umidità e/o         |
+|                                                                        |                                                                          |
+|									 | polvere)                                                                 |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Liquidi e prodotti per la pulizia                                      | alcoli, fenoli, COV                                                      |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Fotocopiatrici                                                         | ozono (O3), polvere di toner, idrocarburi volatili (COV)                 |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Fumo di sigaretta                                                      | idrocarburi policiclici, COV formaldeide, CO, particolato fine           |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Impianti di condizionamento                                            | CO2 e COV (per scarso numero di ricambi orari o eccesso di riciclo);     |
+|                                                                        |                                                                          |
+| 									 | Agenti biologici (per mancanza di pulizia/manutenzione)                  |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Polvere                                                                | Agenti biologici (allergeni indoor: acari)                               |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Individui                                                              | CO2 e Agenti biologici (batteri, virus ecc.)                             |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Animali                                                                | Allergeni indoor (peli ecc)                                              |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+| Sorgenti naturali (lave, tufi, graniti, ecc.)                          | Radon                                                                    |
++------------------------------------------------------------------------+--------------------------------------------------------------------------+ 
+
+
+Particelle di aerosol atmosferico
+---------------------------------
+
+
+Conosciute anche come particolato atmosferico (PM), le particelle di
+aerosol consistono in una miscela complessa di particelle solide e
+goccioline liquide di sostanze organiche e inorganiche nell’aria.
+
+I componenti principali del PM sono solfati, nitrati, ammoniaca,
+cloruro di sodio, carbone nero, polvere minerale e acqua.
+
+Classificazione del Pmx: x sta per diametro della particella, che è
+uguale a o minore di x μm. PM2,5, per esempio, definisce particelle
+con diametri inferiori o uguali a 2,5 μm.
+
+
+.. image:: pm.jpg
+
+Rischi per la salute
+....................
+
+Le particelle più dannose per la salute sono quelle con un diametro
+pari o inferiore a 10 μm, poiché tali piccole particelle possono
+penetrare nella barriera polmonare umana ed entrare nel sistema
+sanguigno.
+
+«L’Organizzazione Mondiale della Sanità (OMS) ha designato il
+particolato atmosferico aerotrasportato come cancerogeno del
+Gruppo 1. Gli studi hanno dimostrato che non vi è alcun livello sicuro
+di esposizione al PM e con l’aumento di concentrazione di PM nell’aria
+il tasso di cancro aumenta in modo proporzionale». [res.mdpi.com]
+
+**Indice di qualità dell’aria (IQA)**
+
+Negli Stati Uniti, l’agenzia per la protezione dell’ambiente (EPA)
+stabilisce gli standard per le concentrazioni accettabili di
+particolato atmosferico PM2,5 e PM10 attraverso lo standard nazionale
+di qualità dell’aria ambiente (NAAQS) per il particolato atmosferico.
+
+.. image:: iqa.jpg
+	   
+https://www.gpo.gov/fdsys/pkg/FR-2013-01-15/pdf/2012-30946.pdf
+
+
+
+Biossido di carbonio
+--------------------
+
+La concentrazione media di CO2 nell’aria atmosferica al 2015 è di circa 719 mg/m3 (400,83 ppmv)
+
+
+Di solito le concentrazioni di CO2 nell’aria indoor sono più elevate e
+dipendono dal numero e dalla presenza degli occupanti di un ambiente,
+che richiedono continuamente ossigeno e che producono CO2 come
+sottoprodotto del sistema respiratorio.  Di conseguenza un sostanziale
+incremento di CO2 comporta una corrispondente diminuzione della
+concentrazione di ossigeno (O2) nell’aria stessa e quindi un rischio
+per la salute umana.
+
+
+CO2, l’indicatore più importante per la qualità dell’aria
+
+La maggior parte delle persone passa ogni giorno più di 20 ore
+all’interno di ambienti chiusi. La CO2 (anidride carbonica) presente
+nell’aria è l'indicatore più importante della qualità dell'aria.
+
+Concentrazioni di C02 di riferimento
+....................................
+
+ Uno studio di Pettenkofer (1858) ha comprovato che le persone che si
+ trovano in stanze con una concentrazione di CO2 al di sotto dello
+ 0,1% (1.000 ppm) si sentono a loro agio, mentre si sentono
+ chiaramente a disagio in stanze con concentrazioni al di sopra dello
+ 0,2% (2.000 ppm).
+ 
+In Germania viene fissato come valore limite per gli spazi abitativi
+lo 0,15% (1.500 ppm) di CO2. Se si vuole fare un confronto, si
+consideri che in una camera da letto non ventilata oppure anche in una
+classe piena possono essere misurati dei valori di concentrazione che
+sono spesso il triplo (fino a 5.000 ppm).
+
+Per mantenere la concentrazione di CO2 al massimo allo 0,15% (1.500
+ppm) devono essere immessi mediamente 25 m³/h di aria nuova per
+persona (se si sta per esempio praticando uno sport anche di più).
+
+:download:`pdf <16_15_web.pdf>`
+
+https://www.iss.it/documents/20126/45616/16_15_web.pdf
+
+.. figure:: biossidodicarbonio.png
+
+   Un’elevata concentrazione di CO2 provoca il calo della
+   concentrazione e sonnolenza.
 
 
 Co-creare un futuro più salutare
@@ -95,7 +242,7 @@ stradali).
 
 
 Inquinamento e Riscaldamento domestico
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+......................................
 
 Più del 40% del PM10 primario è emesso dagli impianti domestici a
 biomassa in Emilia Romagna. Le regole sulle biomasse sono solo una
@@ -107,7 +254,7 @@ software INEMAR (INventario EMissioni ARia) (2017), fonte: ARPAE
 
 
 Che fare?
-^^^^^^^^^
+.........
 
 Ci serve ridurre i consumi energetici legati al riscaldamente e al
 raffrescamento ottimizando l’efficienza energetica delle nostre
@@ -130,7 +277,7 @@ causa-effetto, e identificare le opportunità di azione. In questa
 missione riconosciamo una ampia geografia della responsabilità.
 
 Bibliografia
-^^^^^^^^^^^^
+............
 
 * https://eur-lex.europa.eu/legal-content/IT/TXT/PDF/?uri=CELEX:32008L0050&from=IT
 * https://www.isprambiente.gov.it/files/aria/lineeguidaretimonitoraggio.pdf
