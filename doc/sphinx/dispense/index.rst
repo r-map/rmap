@@ -14,6 +14,7 @@ Dispense
    probabilita/probabilita
    misure/misure
    lavorare_con_i_dati/lavorare_con_i_dati
+   isoladicaloreurbana/isoladicaloreurbana
    biometeorologia/biometeorologia
    qualita_aria/qualita_aria
    riscaldamento_globale/riscaldamento_globale

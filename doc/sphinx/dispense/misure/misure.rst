@@ -992,6 +992,129 @@ questa procedura, inserirà automaticamente l'evento più significativo.
 +--------+---------------------------------------------------------------------------------------+
 
 
+Misurare l'isola di calore urbana
+=================================
+
+Strumenti e metodi di misura
+L’isola di calore può essere misurata a diversi livelli e con diversa strumentazione:
+
+* S-UHI: in superficie (temperature delle superfici: strade, parchi,
+  tetti) tramite misure in telerilevamento (da satellite)
+* C-UHI: nella canopea urbana, in genere con misure “in situ“ da
+  stazioni fisse tradizionali (termometri) Da: Terrascope, EUMETSAT
+  SenJnel 2 + 3
+* B-UHI: nell’Urban Boundary Layer (al di sopra della canopea) tramite
+  misure su apposite torri o con sondaggi atmosferici
+
+
+L'incertezza di misura comprende numerose fonti di incertezza, ciascuna
+delle quali è detta “componente dell'incertezza” (u 1 , u 2 , … u n
+). In particolare, incertezze dovute a:
+
+* calibrazione (di fabbrica, in genere certiﬁcata) e taratura
+  (periodica, a carico dell’utente)
+* ubicazione della stazione (“sitting“): dipende dal “misurando“ e dalle
+  diﬃcoltà logistiche dell’ubicazione
+* esposizione del sensore (“exposure“): dipende dalle diﬃcoltà
+  logistiche dell’esposizione
+* altre incertezze(invecchiamento dello shelter, deriva strumentale,
+  ecc.)
+
+NB: Le incertezze (se indipendenti) si compongono al quadrato: u^2 = ∑ ui^2
+
+Ubicazione delle stazioni in ambito urbano
+------------------------------------------
+
+* Le misure devono essere rappresentative di un’area urbana omogenea
+* E’ condizionata dalla necessità di risolvere spazialmente l’ambito
+  urbano (scala)
+* E’ in genere condizionata da esigenze logistiche (alimentazione,
+  accessibilità, amministrazione, ecc.)
+
+Criteri speciﬁci per stazioni urbane in funzione della scala spaziale
+orizzontale (WMO - Oke, 2004):
+
+* Mesoscala: le dimensioni tipiche della città, che influenza il tempo
+  e il clima in un’area tipicamente di una o più decine di
+  chilometri. Richiede sempre una rete idonea di stazioni per la sua
+  caratterizzazione.
+
+* Scala locale: comprende strutture urbane e topografiche con
+  esclusione di effetti alla microscala, ad esempio interi quartieri o
+  aree con specifiche attività commerciali o industriali, tipicamente
+  da uno a più chilometri e alcune stazioni.
+
+* Microscala: caratterizza ogni singola superficie o elemento urbano
+  come singoli edifici, strade, giardini o parchi. Varia tipicamente
+  da meno di un metro a centinaia di metri. Richiede almeno una
+  stazione per elemento o tipologia di elemento urbano,
+  standardizzando altezza di misura, tipo di superficie, distanza da
+  ostacoli o elementi estranei.  Ad esempio una LCZ è tipicamente a
+  microscala.
+
+* L’eﬀetto sul sensore dipende dalle caratteristiche di un’area
+  posizionata sopravento
+* In funzione dell’intensità e della direzione di provenienza dei venti
+  dominanti questo fattore determina la rappresentatività della stazione
+* Le percentuali in ﬁgura danno un’idea dei contributi che inﬂuenzano
+  la misura da parte del sensore in presenza di vento
+* In condizioni ideali, l’area circostante il sensore dovrebbe essere
+  suﬃcientemente omogenea per massimizzare la rappresentatività della
+  misura
+
+.. figure:: rappresentativita.png
+	    
+   Oke, 2004: –Initial Guidance to Obtain Representative
+   Meteorological Observations at Urban Sites
+
+
+La scala spaziale verticale:
+----------------------------
+
+* Altezza dell’UCL: altezza media degli edifici principali
+* Alltezza del RSL: altezza dello strato di rugosità (influenzato dagli edifici)
+
+* U: Profilo verticale del vento medio (spazialmente e verticalmente)
+* Zd : Lunghezza di spostamento del piano zero
+* Z0 : Lunghezza di rugosità
+* ZH : Altezza media degli elementi di rugosità (edifici): definisce
+  l’altezza dell’UCL
+* Zr : Altezza dello strato di rugosità: definisce l’altezza del RSL
+
+.. image:: scalaspazialeverticale.png
+
+
+Esposizione dei sensori per le misure in ambito urbano
+------------------------------------------------------
+
+* Le misure devono essere fatte su superﬁci che a microscala siano
+  rappresentative dell’ambiente urbano a scala locale
+* I sensori devono essere centrati su un’area aperta dove il rapporto
+  altezza/distanza degli ediﬁci sia rappresentativo dell’ambiente
+  circostante
+* In una strada, il rapporto altezza/distanza degli ediﬁci si applica
+  alla sezione della strada stessa. L’asse della strada dovrebbe
+  essere in direzione N-S. L’altezza dal suolo è preferibilmente
+  superiore ai 2 metri.
+* Particolare attenzione va dedicata all’eﬃcienza della schermatura
+  dalla radiazione di cui si raccomanda la ventilazione forzata
+* Posizionare i sensori ad almeno 5 ÷ 10 m da ediﬁci più alti di 20 ÷
+  30 m.
+* Attenzione ai camini e griglie di ventilazione!
+* La temperatura misurata sopra l’UCL (sensori su un palo), è
+  influenzata non solo dall’aria scambiata con l'UCL ma anche dai
+  tetti.
+* I tetti sono in genere molto più variabili termicamente di tutte le
+  altre superfici.
+* All’interno dell’UCL la temperatura cambia relativamente poco con
+  l’altezza, ma c’è in genere una discontinuità al livello dei tetti
+  sia verticalmente che orizzontalmente: è pertanto preferibile
+  posizionare i sensori ben al di sopra dei tetti circostanti.
+* L’estrapolazione di una misura sia in senso verticale che
+  orizzontale è molto problematica (i metodi statistici possono
+  funzionare, ma richiedono lunghe serie in genere non disponibili)
+
+	   
 Misure Qualità dell'aria
 ========================
 
