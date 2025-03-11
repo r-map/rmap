@@ -804,6 +804,78 @@ dei sensori stessi. L'altezza del sensore dal terreno deve essere
 compresa tra 180 cm e 200 cm.
 
 
+
+
+Strumenti per misurare temperatura e umidità
+--------------------------------------------
+
+
+Strumenti per misurare la temperatura
+.....................................
+
+Come funzionano i sensori digitali
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+I transistor CMOS hanno la deprecabile caratteristica di variare il guadagno di corrente in base alla temperatura in cui si trovano ad operare secondo una curva caratteristica (della specifica configurazione di sensori) che può essere misurata, a parità di corrente in ingresso per stabilire la temperatura dell’ambiente in cui il sensore opera.
+
+.. image:: cmos.png
+
+
+Strumenti per misurare l'umidità
+................................
+
+Come funzionano i sensori capacitivi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+L'elemento del sensore è costituito da un condensatore. Il dielettrico
+è un polimero che assorbe o rilascia acqua in modo proporzionale
+all'umidità relativa dell'ambiente, modificando così la capacità del
+condensatore. Questa variazione di capacità può essere misurata da un
+circuito elettronico. In questo modo è possibile determinare l'umidità
+relativa dell'aria.
+
+.. image:: polimero.png
+
+	   
+
+Sensirion SHT85 sensore temperatura e umidità
+.............................................
+
+Uscita digitale completamente calibrata, linearizzata e compensata in
+temperatura.
+
+L'SHT85 è dotato di una membrana in PTFE dedicata a proteggere
+l'apertura del sensore da liquidi, sabbia e polvere, secondo lo
+standard IP67, senza influire sul tempo di risposta del segnale RH.
+
+.. image:: sht85.jpg
+	   
+**Humidity Sensors with CMOSens®**
+
+Grazie all'esclusivo collegamento di questi elementi del sensore con
+l'unità di amplificazione del segnale, il convertitore
+analogico-digitale, la memoria dei dati di calibrazione e
+l'interfaccia digitale predisposta per il bus, sono tutti posizionati
+su una superficie di pochi millimetri quadrati.
+
+La conversione analogico-digitale, anch'essa eseguita "in loco", rende
+il segnale estremamente insensibile al rumore. Per una maggiore
+affidabilità, viene utilizzato un checksum generato dal chip
+stesso. Infine, i dati di calibrazione caricati sul chip del sensore
+garantiscono che i sensori di umidità Sensirion abbiano specifiche
+identiche e possano quindi essere sostituiti al 100%.
+
+Interfaccia digitale: i sensori di umidità e temperatura con
+tecnologia CMOSens® possono essere collegati direttamente a qualsiasi
+sistema a microprocessore tramite l'interfaccia digitale a 2 fili, che
+riduce al minimo i tempi di sviluppo del sistema, fa risparmiare sui
+costi e porta a un vantaggio significativo, soprattutto per le
+applicazioni ad alto volume.
+
+.. image:: sht85_spec.png
+
+
+
 Osservazioni manuali
 --------------------
 
@@ -990,6 +1062,7 @@ questa procedura, inserirà automaticamente l'evento più significativo.
 +--------+---------------------------------------------------------------------------------------+
 | 199    | Tromba d'aria (Tornado)                                                               |
 +--------+---------------------------------------------------------------------------------------+
+
 
 
 Misurare l'isola di calore urbana
@@ -1230,3 +1303,162 @@ assicurarsi che il punto prescelto permetta alla stazione di
 collegarsi tramite rete Wi-Fi ad internet. Potrete trovare alcuni
 criteri per permettere un utilizzo sicuro e protetto della connessione
 più avanti in questa guida.
+
+Strumenti per misurare il particolato
+-------------------------------------
+
+Come funzionano i sensori di particolato atmosferico a base ottica
+..................................................................
+
+I sensori utilizzano le proprietà della diffusione della luce per
+misurare il conteggio, le dimensioni e la concentrazione delle
+particelle. I componenti di base sono: sorgente luminosa diretta alle
+particelle, rivelatore per misurare la luce diffusa dalle particelle e
+circuiti elettronici che elaborano e analizzano l’uscita del
+rivelatore.
+
+.. image:: opc.jpg
+
+
+Sensore per particolato Sensirion SPS30
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Un laser con lunghezza d’onda adeguata, è intercettato da un flusso
+d’aria che porta in sospensione le particelle di particolato che
+intendiamo misurare.  Un diodo, in posizione defilata, misura la luce
+diffusa e calcola una stima delle particelle sospese nel flusso d’aria
+esaminato.
+
+.. image:: sps30_laser.png
+
+Il problema più grosso, a parte capire la natura ondulatoria della
+luce, consiste nel mantenere puliti emettitore e ricevitore che si
+troverebbero costantemente immersi in un ambiente ostile (e bisognosi
+di manutenzione e pulizia).  Un flusso lamellare (semplifichiamo) di
+aria pulita filtrata impedisce al particolato di depositarsi e ridurre
+la precisione del sensore nel tempo.
+
+.. image:: flusso_aria.png
+
+* Sensore completamente calibrato con interfaccia UART e I2C
+* Classificazione avanzata delle particelle per dimensione (binning
+  delle particelle):
+* Concentrazione di massa: PM1.0, PM2.5, PM4 e PM10;
+* Concentrazione numerica: PM0.5, PM1.0, PM2.5, PM4 e PM10.
+* Dimensioni di 40,6 x 40,6 x 12,2 mm
+* Limite inferiore di rilevamento è di soli 0,3um
+* Durata superiore a otto anni pur funzionando ininterrottamente per
+  24 ore al giorno senza necessità di pulizia e/o manutenzione
+
+.. image:: sps30.jpg
+
+* Il raggio laser è focalizzato su una piccola area
+* Diametro del punto luminoso ridotto => alta densità di potenza
+* La particella diffonde una grande quantità di luce => rapporto S/N
+  grande
+* Le particelle restituiscono segnali individuali
+* Le particelle troppo grandi possono essere escluse dalla lettura di
+  massa
+
+.. image:: sps30_dia.jpg
+
+
+.. figure:: sps30_funzionamento.jpg
+  
+   Principio di funzionamento
+
+Un flusso d'aria controllato viene creato all'interno del sensore per
+mezzo di una ventola. Un circuito di feedback interno tra il
+microprocessore e la ventola stabilizza la velocità della ventola e
+quindi il flusso d'aria attraverso il sensore.
+
+Il PM ambientale viaggia all'interno del sensore dall'ingresso
+all'uscita, trasportato dal flusso d'aria.
+
+In corrispondenza del fotodiodo, le particelle presenti nel flusso
+d'aria attraversano un raggio laser focalizzato che provoca la
+diffusione della luce.
+
+La luce diffusa viene rilevata dal fotodiodo e convertita in una
+concentrazione di massa/numero attraverso gli algoritmi proprietari di
+Sensirion, eseguiti dal microcontrollore interno a SPS30.
+
+
+Strumenti per misurare la CO2
+-----------------------------
+
+Come funzionano i sensori NDIR
+..............................
+
+Il sensore NDIR (Non Dispersive Infra-Red) sfrutta il fatto che le
+molecole di CO2 assorbono la radiazione infrarossa di determinate
+lunghezze d'onda. Maggiore è la concentrazione di CO2, maggiore è la
+quantità di radiazioni assorbite dalla CO2. La lunghezza d'onda di
+4,3μm presenta il massimo assorbimento per la CO2 e un assorbimento
+minimo per gli altri gas presenti nell'aria.
+
+.. image:: assorbimento.jpg
+
+La sorgente di radiazione infrarossa (lampadina) è posta su un lato
+del tubo. Sul lato opposto sono collocati due sensori con filtri
+ottici. Il primo sensore (CO2) ha un filtro passa-banda per la
+lunghezza d'onda di 4,3 µm; misura l'intensità della radiazione Id. Il
+secondo sensore (riferimento) ha un filtro passa-banda per la
+lunghezza d'onda solo minimamente assorbita dai gas presenti nell'aria
+(tipicamente 4µm); misura l'intensità della radiazione I0.
+
+.. image:: ndir.jpg
+
+L'intensità misurata della radiazione a queste lunghezze d'onda è
+quindi associata alla concentrazione di CO2 tramite la legge di
+Beer-Lambert, data dalla seguente equazione:
+
+Id/I0=e^KCL
+
+* Id è l'intensità della radiazione a 4,3μm, 
+* I0 è l'intensità della radiazione di riferimento 
+* K è il coefficiente di assorbimento della CO2
+* C è la concentrazione di CO2
+* L è la lunghezza del percorso tra la sorgente di radiazione e i
+  rilevatori di luce
+
+.. image:: co2radiation.jpg
+
+Il sensore di riferimento compensa l'effetto della variazione
+dell'intensità della radiazione. Quando l'intensità varia, sia Id che
+I0 cambiano in modo identico, quindi Id / I0 rimane invariato.
+
+.. image:: assorbimento_filtrato.jpg
+	
+Sesirion SCD30 NDIR CO2 Sensor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Il sensore di CO2 funziona sfruttando la tecnologia NDIR.  Un laser
+infrarosso emette una radiazione con una lunghezza d’onda di
+4.26-micron (che è nella banda di assorbimento della CO2) in un
+ambiente di test. Un ricevitore, dalla parte opposta della camera di
+acquisizione misura gli infrarossi non assorbiti durante il tragitto
+per effettuare la misura.  È il sistema più usato per misurare la CO2
+
+.. image:: effetto_serra_in_a_box.png
+
+* CO2 measurement range       0 – 10’000 ppm
+* Accuracy               ± 30  ppm  ± 3% (25 °C, 400 – 10’000 ppm)
+* Repeatability                          10 ppm
+* Temperature stability             2.5 ppm  / °C (0 – 50 °C)
+* Response time (t63):              25 s
+
+.. image:: scd30.jpg
+
+
+Sensirion SCD40 Sensore CO2 (Photo Acoustic Sensor)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Una tecnologia alternativa proposta da Sensirion, che permette sensori più compatti e, a detta loro, più precisi.
+Usa sempre una fonte a infrarossi con lunghezza d’onda di 4.26-micron (riga caratteristica della CO2) ma fa leva su un principio diverso. Le molecole di gas eccitate dalla fonte luminosa, vibrano e influenzano la pressione all’interno di una struttura rigida. Variazione di pressione che può essere valutata usando un microfono.
+Tecnica proprietaria senza ulteriori indicazioni 
+(ad ora)
+
+.. image:: photo_acoustic_sensor.png
+
+	 
