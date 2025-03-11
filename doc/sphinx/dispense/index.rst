@@ -18,6 +18,7 @@ Dispense
    biometeorologia/biometeorologia
    qualita_aria/qualita_aria
    riscaldamento_globale/riscaldamento_globale
+   rmap/rmap
    partecipa/partecipa
    
 * :ref:`genindex`
