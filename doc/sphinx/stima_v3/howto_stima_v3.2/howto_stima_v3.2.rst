@@ -1,3 +1,5 @@
+.. _stima_v3.2-reference:
+
 Howto per Stima versione 3.2
 ============================
 

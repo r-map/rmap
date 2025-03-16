@@ -1,3 +1,4 @@
+.. _stima_v4-reference:
 
 Stima V4
 ========

@@ -1,3 +1,5 @@
+.. _stima_v1-reference:
+
 Stima V1
 ========
 

@@ -1,3 +1,5 @@
+.. _stimawifi_v3-reference:
+
 Stima WiFi V3
 =============
 

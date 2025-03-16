@@ -1,6 +1,8 @@
 
 .. |GITHUBURL| replace:: https://raw.githubusercontent.com/r-map/rmap/master/server
 
+.. _server-reference:
+			 
 Server RMAP 
 =====================================
 

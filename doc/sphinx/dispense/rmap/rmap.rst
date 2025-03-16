@@ -19,7 +19,7 @@ Obiettivi R-map
 Soggetti coinvolti
 ------------------
 
-* ARPA Emilia Romagna SIMC
+* ARPAE Emilia Romagna SIMC
 * ARPA Regione Veneto
 * Cineca Consorzio Interuniversitario per il supercalcolo e
   l’innovazione tecnologica
@@ -27,28 +27,43 @@ Soggetti coinvolti
 * RaspiBO: gruppo informale di appassionati di elettronica ed
   informatica libera della zona di Bologna
 * Soggetti privati
+  
   * DigitEco SRL Via del Fonditore 16A, 40138 Bologna (BO), Italy
   * CAE S.p.A. - Via Colunga, 20 40068 San Lazzaro di Savena (BO) - Italy
   * ETG SRL Via di Porto 159 - 50018 Scandicci (FI),
+  * BE20 Innovation srl
+  * MEEO srl https://www.meeo.it/company/
+  
 * Associazione di volontariato Parco dei Cedri nel cuore
 * Scuole
 
-Cosa è Rmap
+Cosa è RMAP
 -----------
 
 **Un insieme di specifiche**
 
 * Protocollo di rilevamento dati:
 
-  - Accuratezza dei sensori
-  - Collocazione sensori
-  - Elaborazioni
+  - Specifiche metrologiche dei sensori
+  - Specifiche per la rappresentatività delle misure
+  - Post elaborazioni
 
 * Sistema per lo scambio dati:
 
   - Protocolli di trasmissione
   - Formati dati
   - Metadati
+
+
+**Implementazioni hardware e software**
+
+Sono specifiche realizzazioni che aderiscono allo standard RMAP
+tramite open hardware e open software
+
+Implementazioni disponibili:
+
+* stazioni Stima
+* Server RMAP
 
 
 Le specifiche RMAP per stazioni di monitoraggio ambientale
@@ -76,17 +91,17 @@ Le specifiche RMAP per stazioni di monitoraggio ambientale
 
 
 Schema flusso dati
-------------------
+..................
 
 .. image:: flow_chart.png
 	   :width: 100%
 
 
 Formati
--------
+.......
 
 JSON
-....
+^^^^
 
 http://www.json.org/json-it.html
 
@@ -101,7 +116,7 @@ certo istante di riferimento.
 
 
 Bufr
-....
+^^^^
 
 Il Binary Universal Form for the Representation of meteorological data
 (BUFR) è un formato di dati binari gestito dall'Organizzazione
@@ -124,7 +139,7 @@ bit, fattore di scala e bias) e il tipo (numerico, stringa di
 caratteri, tabella di codice, ecc.).
 
 Formato GeoJSON per punti sparsi
-................................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 http://geojson.org/ https://macwright.org/2015/03/23/geojson-second-bite.html
 the Internet Engineering Task Force (IETF) ha pubblicato in Agosto 2016 RFC 7946
@@ -140,7 +155,7 @@ E' uno dei formati vettoriali interpretati da
 
 
 Software di decodifica Bufr
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 * WREPORT: a featureful C++ library for BUFR and CREX encoding and
   decoding http://sourceforge.net/p/wreport/home/Home/
@@ -148,13 +163,13 @@ Software di decodifica Bufr
 
 
 Protocolli
-----------
+..........
 
 E' fondamentale: aderire a standard IOT e l'integrazione con le
 funzioni e le specifiche richieste dalle applicazioni per la domotica
 
 MQTT (Message Queue Telemetry Transport)
-........................................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 E' un protocollo publish/subscribe particolarmente leggero, adatto per
 la comunicazione M2M tra dispositivi con poca memoria o potenza di
@@ -173,7 +188,7 @@ stato delle comunicazioni; sono previsti messaggi "will and testament"
 
 
 AMQP (Advanced Message Queuing Protocol)
-........................................
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 E' protocollo per comunicazioni attraverso code di messaggi. Sono
 garantite l'interoperabilità, la sicurezza, l'affidabilità, la
@@ -182,7 +197,7 @@ e fornisce delle api web Json è il formato per il payload
 
 
 HTTP/HTTPS
-..........
+^^^^^^^^^^
 
 E' possibile utilizzare il protocollo http con una get per inviare i
 dati; la get http sarà immediatamente convertita dal server in una
@@ -191,7 +206,7 @@ utilizzato solo come "bridge" a mqtt quando dovesse essere necessario.
 
 
 Json-rpc
-........
+^^^^^^^^
 
 Json (JavaScript Object Notation) ed è un formato adatto ad
 immagazzinare varie tipologie di informazioni, e quindi a scambiare
@@ -213,7 +228,7 @@ Esempi:
 
 
 La richiesta
-^^^^^^^^^^^^
+,,,,,,,,,,,,
 
 Tutti i parametri trasferiti di ogni tipo sono singoli oggetti,
 serializzati usando JSON. Una richiesta è una chiamata a uno specifico
@@ -226,7 +241,8 @@ proprietà:
 
 
 La risposta
-^^^^^^^^^^^
+,,,,,,,,,,,
+
 Il server che riceve la richiesta deve rispondere con una risposta
 valida a tutte le richieste ricevute. Una risposta deve contenere le
 proprietà descritte qui sotto:
@@ -236,7 +252,7 @@ proprietà descritte qui sotto:
 * id - L'id della richiesta a cui si sta rispondendo. 
 
 Json-rpc un modo per fare tutto...
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 Questo un esempio di interrogazione e risposta di un sensore di
 temperatura
@@ -251,10 +267,10 @@ di gradi Kelvin, quindi 33.18 C.
 
 
 SOS
----
+^^^
 
 Introduzione
-............
+,,,,,,,,,,,,
 
 * Standard OGC dal 2007
 * http://www.opengeospatial.org/standards/sos
@@ -273,7 +289,7 @@ Più Servizi opzionali
 
 
 Parole chiave
-.............
+'''''''''''''
 
 * **Procedure** è ciò che produce l’osservazione
 
@@ -292,7 +308,7 @@ Parole chiave
   * ...
 
 Compatibilità con rmap
-......................
+,,,,,,,,,,,,,,,,,,,,,,
 
 * Una **procedure** può coincidere con un sensore
   e.g. -/1212345,4312345/rmap/254,0,0/103,2000,-,-/B12101
@@ -305,7 +321,7 @@ Compatibilità con rmap
   e.g. -/1212345,4312345/rmap
 
 Implementazione in rmap
-.......................
+,,,,,,,,,,,,,,,,,,,,,,,
 
 ::
 
@@ -313,16 +329,21 @@ Implementazione in rmap
    http://rmap.cc/sos/?service=SOS&version=1.0.0&request=DescribeSensor&procedure=urn:rmap:procedure:digiteco/1162336,4465346/rmap/254,0,0/103,2000,-,-/B12101
    http://rmap.cc/sos/?service=SOS&version=1.0.0&request=GetObservation&responseFormat=text/xml;subtype="om/1.0.0"&offering=urn:rmap:procedure:digiteco/1162336,4465346/rmap/254,0,0/103,2000,-,-/B12101&observedProperty=urn:rmap:procedure:digiteco/1162336,4465346/rmap/254,0,0/103,2000,-,-/B12101
 
-Implementazioni hardware e software
+Implementazioni Hardware e Software
 -----------------------------------
 
-* Sono specifiche realizzazioni che aderiscono allo standard Rmap
-* Un punto di valore sono le caratteristiche open hardware e open
-  software delle implementazioni
+Stazioni Stima
+..............
 
-Implementazioni disponibili:
+TODO
 
-* stazioni Stima
-* Server RMAP
+* StimaWiFi
+* Stima V3
+* Stima V4
 
-  
+Server RMAP
+...........
+
+TODO
+
+Server RMAP
