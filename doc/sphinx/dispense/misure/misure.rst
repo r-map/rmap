@@ -27,7 +27,7 @@ dell'ambiente.
 
 Il monitoraggio ambientale viene utilizzato quando le attività umane
 comportano un rischio di effetti dannosi sull'ambiente naturale o
-viceversa.  serve per stabilire lo stato attuale di un ambiente o
+viceversa.  Serve per stabilire lo stato attuale di un ambiente o
 tendenze dei parametri ambientali.
 
 I risultati del monitoraggio saranno rivisti, analizzati
@@ -256,7 +256,7 @@ delle strutture complesse.
 
 
 Campionamento delle variabili
------------------------------
+=============================
 
 Le variabili atmosferiche come la velocità del vento, la temperatura,
 la pressione e l'umidità sono funzioni di quattro dimensioni: due
@@ -383,9 +383,938 @@ frequenze più grandi sono di decine di hertz.
 
 .. image :: A_typical_spectrum_of_a_meteorological_quantity.png
 
+Serie temporali, spettri di potenza e filtri
+--------------------------------------------
+
+Questa sezione è un'introduzione per i non addetti ai lavori ai
+concetti di analisi delle serie temporali che sono alla base delle
+buone pratiche di campionamento. Nel contesto della presente Guida,
+sono particolarmente importanti per la misurazione del vento, ma gli
+stessi problemi si presentano per la temperatura, la pressione e altre
+grandezze. Sono diventati importanti per le misurazioni meteorologiche
+di routine quando sono state introdotte le misurazioni automatiche,
+perché in tal modo è stato possibile effettuare campionamenti
+frequenti e veloci. Se i sistemi non sono progettati correttamente,
+possono verificarsi gravi errori nelle stime della media, degli
+estremi e dello spettro.
+
+Sebbene le misure di spettro non siano di routine, hanno molte
+applicazioni. Lo spettro del vento è importante per l'ingegneria, la
+dispersione atmosferica, la diffusione e la dinamica. I concetti qui
+discussi sono utilizzati anche per l'analisi quantitativa dei dati
+satellitari (nella dimensione spaziale orizzontale) e in climatologia
+e micrometeorologia.
+
+In sintesi, l'argomentazione è la seguente:
+
+(a) La frequenza di campionamento ottimale può essere valutata
+    considerando la variabilità della grandezza da misurare. Le stime
+    della media e di altre statistiche delle osservazioni avranno
+    incertezze minori con frequenze di campionamento più elevate, cioè
+    con campioni più grandi;
+
+(b) Il teorema di Nyquist afferma che una grandezza continua e
+    fluttuante può essere determinata con precisione da una serie di
+    campioni equispaziati se sono sufficientemente vicini;
+
+(c) Se la frequenza di campionamento è troppo bassa, le fluttuazioni
+    alle frequenze più alte non campionate (al di sopra della
+    frequenza di Nyquist) influenzeranno la stima
+    del valore medio. Esse influenzeranno anche il calcolo delle
+    frequenze più basse e lo spettro misurato non sarà
+    corretto. Questo fenomeno è noto come aliasing. Può causare gravi
+    errori se non viene compreso e tenuto in considerazione nella
+    progettazione del sistema;
+
+(d) L'aliasing può essere evitato utilizzando una frequenza di
+    campionamento elevata o filtrando in modo da poter utilizzare una
+    frequenza di campionamento più bassa e conveniente;
+
+(e) I filtri possono essere digitali o analogici. Un sensore con un
+    tempo di risposta adeguatamente lungo funge da filtro.
+
+Una comprensione completa del campionamento implica la conoscenza
+degli spettri di potenza, del teorema di Nyquist, del filtraggio e
+della risposta degli strumenti. Si tratta di una materia altamente
+specializzata, che richiede la comprensione delle caratteristiche dei
+sensori utilizzati, del modo in cui l'uscita dei sensori viene
+condizionata, elaborata e registrata, delle proprietà fisiche degli
+elementi misurati e dello scopo per cui i dati analizzati devono
+essere utilizzati. A sua volta, ciò può richiedere competenze nella
+fisica degli strumenti, nella teoria dei sistemi elettronici o di
+altro tipo utilizzati nei processi di condizionamento e registrazione,
+nella matematica, nella statistica e nella meteorologia dei fenomeni,
+tutte cose che vanno ben oltre lo scopo di questo capitolo.
+
+Tuttavia, è possibile per un non esperto comprendere i principi di
+buona pratica nella misurazione delle medie e degli estremi e
+apprezzare i problemi associati alle misure degli spettri.
+
+Analisi delle serie temporali
+.............................
+
+È necessario considerare i segnali nel dominio del tempo o della
+frequenza. L'idea fondamentale fondamentale dell'analisi spettrale è
+il concetto di trasformata di Fourier. Una funzione, f(t), definita
+tra t = 0 e t = τ può essere trasformata nella somma di un insieme di
+funzioni sinusoidali:
+
+.. math::
+   f(t)=\sum_{j=0 }^{\infty}\alpha_{j}\sin(j\omega t + \phi_{j})
+
+l'ampiezza e la fase associate a ciascun contributo spettrale sono α j
+e ϕ j . Entrambi possono essere influenzati dal campionamento e
+dall'elaborazione.
+
+Finora si è ipotizzato che la funzione f(t) sia nota in modo continuo
+in tutto l'intervallo da t = 0 a t = τ. In realtà, nella maggior parte
+degli esempi questo non è il caso; la variabile meteorologica viene
+misurata in punti discreti di una serie temporale, che è una serie di
+N campioni equidistanti l'uno dall'altro Δt durante un periodo
+specifico τ = (N-1)Δt. Si presume che i campioni vengano prelevati
+istantaneamente, un'ipotesi che non è assolutamente vera, poiché tutti
+i dispositivi di misura richiedono un certo tempo per determinare il
+valore che stanno misurando. Nella maggior parte dei casi, questo
+tempo è breve rispetto alla distanza tra i campioni Δt.
+
+Anche se non lo è, il tempo di risposta del sistema di misura può
+essere tenuto in considerazione nell'analisi, anche se non verrà
+trattato in questa sede.
+
+Se si considerano i dati che si otterrebbero campionando una funzione
+sinusoidale a intervalli di tempo Δt, si può notare che la frequenza
+più alta che può essere rilevata è 1/(2Δt), e che in realtà qualsiasi
+sinusoide di frequenza più alta che possa essere presente nella serie
+temporale è rappresentata nei dati come se avesse una frequenza più
+bassa. La frequenza 1/(2Δt) è chiamata frequenza di Nyquist, qui
+indicata come ny . La frequenza di Nyquist è talvolta chiamata
+frequenza di ripiegamento. Questa terminologia deriva dalla
+considerazione dell'aliasing dei dati. Il concetto è illustrato
+schematicamente nella Figura successiva.
+
+Quando si effettua un'analisi spettrale di una serie temporale, a
+causa della natura discreta dei dati, il contributo alla stima alla
+frequenza n contiene anche contributi da frequenze più alte, cioè da 2
+jn y ± n (j = 1 a ∞). Un modo per visualizzare questo aspetto è quello
+di considerare il dominio delle frequenze come se fosse piegato, in
+modo concertato, a n = 0 e n = ny e così via a passi di ny .
+
+La stima spettrale a ciascuna frequenza dell'intervallo è la somma di
+tutti i contributi delle frequenze superiori che la sovrastano.
+
+Gli effetti pratici dell'aliasing sono illustrati al :ref:`capitolo
+frequenza di campionamento<frequenza_di_campionamento-reference>`. È
+un problema potenzialmente serio e deve essere preso in considerazione
+quando si progettano sistemi strumentali. Può essere evitato
+minimizzando, o riducendo a zero, l'intensità del segnale a frequenze
+superiori a ny . Ci sono un paio di modi per ottenere questo
+risultato. In primo luogo, il sistema può contenere un filtro
+passa-basso che attenua i contributi alle frequenze superiori a ny
+prima che il segnale venga digitalizzato. L'unico svantaggio di questo
+approccio è che la tempistica e l'entità delle variazioni rapide non
+saranno registrate bene, o addirittura per niente.
+
+Il secondo approccio consiste nell'avere un Δt abbastanza piccolo da
+rendere insignificanti i contributi al di sopra della frequenza di
+Nyquist. Questo è possibile perché gli spettri della maggior parte
+delle variabili meteorologiche cadono molto rapidamente a frequenze
+molto alte. Questo secondo approccio, tuttavia, non sarà sempre
+praticabile, come nell'esempio delle misure di temperatura su tre ore,
+dove se Δt è dell'ordine delle ore, le fluttuazioni su piccola scala
+non sono in grado di soddisfare le esigenze di un'analisi di
+temperatura dell'ordine delle ore, le fluttuazioni su piccola scala, dell'ordine
+dei minuti o dei secondi, possono avere ordinate spettrali
+relativamente grandi e alias forti. In questo caso, il primo metodo
+può essere appropriato.
+
+Misurazione degli spettri
+.........................
+
+La densità spettrale, almeno così come viene stimata da una serie
+temporale, è definita come:
+
+S n j = A 2 j + B 2 j
+)
+n y = α 2 j n y
+
+Si noti che la fase non è rilevante in questo caso.
+
+.. figure:: aliasing.png
+
+	    Illustrazione schematica dell'aliasing di uno spettro
+	    calcolato da una serie temporale stazionaria. Lo spettro
+	    può essere calcolato solo nell'intervallo di frequenza da
+	    zero alla frequenza di Nyquist ny . I valori reali delle
+	    energie alle frequenze più alte sono indicati dai settori
+	    contrassegnati con a, b e c. Questi sono "ripiegati" sul
+	    settore da n = 0 a ny, come indicato dalle linee spezzate
+	    (a), (b), (c). Lo spettro calcolato, indicato dalla linea
+	    spezzata in grassetto (S), include la somma di questi
+	    settori.
+
+Lo spettro di una grandezza fluttuante può essere misurato in diversi
+modi. In passato, in elettrotecnica, veniva spesso determinato facendo
+passare il segnale attraverso filtri passa-banda e misurando la
+potenza in uscita. Questa veniva poi messa in relazione con la potenza
+della frequenza centrale del filtro.
+
+Esistono diversi modi per affrontare l'analisi spettrale numerica di
+una serie temporale. Il più ovvio è la trasformata di Fourier diretta
+della serie temporale. In questo caso, poiché la serie ha una
+lunghezza finita, la trasformazione avrà solo un numero finito di
+componenti di frequenza.
+
+Se ci sono N termini nella serie temporale, ci saranno N/2 frequenze
+risultanti da questa analisi.
+
+Il calcolo diretto è molto laborioso e sono stati sviluppati altri
+metodi. Il primo sviluppo risale a Blackman e Tukey (1958), che hanno
+messo in relazione la funzione di autocorrelazione con le stime di
+varie funzioni spettrali. (La funzione di autocorrelazione r(t) è il
+coefficiente di correlazione calcolato tra i termini della serie
+temporale separati da un intervallo di tempo t). Questo metodo era
+appropriato per le strutture di calcolo a bassa potenza degli anni '50
+e '60, ma ora è stato generalmente sostituito dalla cosiddetta
+trasformata rapida di Fourier (FFT), che sfrutta le proprietà generali
+di un computer digitale per accelerare notevolmente i calcoli.
+
+La principale limitazione del metodo è che la serie temporale deve
+contenere 2^k termini, dove k è un numero intero. In generale, questo
+non è un problema serio, poiché nella maggior parte dei casi ci sono
+dati sufficienti per organizzare convenientemente la serie a tale
+lunghezza. In alternativa, alcuni programmi informatici FFT possono
+utilizzare un numero arbitrario di termini e aggiungere dati sintetici
+per arrivare a 2^k .
+
+Poiché la serie temporale ha una durata finita (N termini),
+rappresenta solo un campione del segnale di interesse. Pertanto, i
+coefficienti di Fourier sono solo una stima del valore vero, o della
+popolazione.
+
+Per migliorare l'affidabilità, è prassi comune fare una media di un
+numero di termini per ogni lato di una particolare frequenza e
+assegnare questa media al valore di tale frequenza. In questo modo
+l'intervallo di confidenza della stima si restringe. Come regola
+empirica, si suggerisce che 30 gradi di libertà siano un numero
+soddisfacente per scopi pratici. Pertanto, poiché ogni stima
+effettuata durante la trasformata di Fourier ha 2 gradi di libertà
+(associati ai coefficienti dei termini seno e coseno), di solito
+vengono mediati circa 15 termini. Si noti che 16 è un numero migliore
+se si utilizza un approccio FFT, poiché è 2 4 e ci sono esattamente
+2k/24 (= 2^(k-4) ) stime spettrali; ad esempio, se ci sono 1 024 termini
+nella serie temporale (quindi k = 10), ci saranno 512 stime degli As e
+dei Bs, e 64 (= 2^(10-4) ) stime smussate.
+
+L'uso di queste analisi è sempre più parte integrante dei sistemi
+meteorologici e non riguarda solo l'analisi dei dati. La forma esatta
+degli spettri che si incontrano in meteorologia può presentare
+un'ampia gamma di forme. Come si può immaginare, i contributi possono
+andare dalle frequenze più basse associate ai cambiamenti climatici,
+ai contributi annuali e stagionali, agli eventi sinottici con periodi
+di giorni, ai contributi diurni e semidiurni e agli eventi locali a
+mesoscala fino alla turbolenza e alle variazioni molecolari. Per la
+maggior parte delle applicazioni meteorologiche, compresa l'analisi
+sinottica, l'interesse è compreso tra i minuti e i secondi. Lo spettro
+a queste frequenze diminuisce in genere molto rapidamente con la
+frequenza. Per periodi inferiori a 1 minuto, lo spettro assume spesso
+valori proporzionali a n - 5/3. Pertanto, il contributo delle
+frequenze superiori a 1 Hz è spesso relativamente scarso.
+
+Una delle proprietà importanti dello spettro è che:
+
+∑ S ( n j ) = σ 2
+(2.4)
+j = 0
+
+dove σ^2 è la varianza della grandezza misurata. Spesso è conveniente,
+per l'analisi, esprimere lo spettro in forma continua, in modo che
+l'equazione 2.4 diventi:
+
+∞
+∫ S ( n ) dn = σ
+2
+(2.5)
+0
+
+
+Dalle equazioni si evince che i cambiamenti causati allo
+spettro, ad esempio dal sistema strumentale, altereranno il valore di
+σ^2 e quindi le proprietà statistiche dell'uscita rispetto
+all'ingresso. Questa può essere una considerazione importante nella
+progettazione dello strumento e nell'analisi dei dati.
+
+Si noti anche che il lato sinistro dell'equazione 2.5 è l'area sotto
+la curva nella Figura 2.2. Quest'area, e quindi la varianza, non viene
+modificata dall'aliasing se la serie temporale è stazionaria, cioè se
+il suo spettro non cambia da un momento all'altro.
+
+Risposta del sistema strumentale 
+................................
+
+I sensori, e i circuiti elettronici che possono essere utilizzati con
+essi e che costituiscono un sistema strumentale, hanno tempi di
+risposta e caratteristiche di filtraggio che influenzano le
+osservazioni.
+
+Nessun sistema strumentale meteorologico, o qualsiasi altro sistema
+strumentale, segue con precisione la grandezza che sta misurando. In
+generale, non esiste un modo semplice per descrivere la risposta di un
+sistema, anche se esistono alcune approssimazioni ragionevoli. Le più
+semplici possono essere classificate come risposte del primo e del
+secondo ordine. Ciò si riferisce all'ordine dell'equazione
+differenziale utilizzata per approssimare il modo in cui il sistema
+risponde. Per un esame dettagliato dei concetti che seguono, ci sono
+molti riferimenti nei libri di testo di fisica e nella letteratura (si
+veda MacCready e Jex, 1964).
+
+In un sistema del primo ordine, come un semplice sensore o il più
+semplice circuito di filtro passa-basso, la velocità di variazione del
+valore registrato dallo strumento è direttamente proporzionale alla
+differenza tra il valore registrato dallo strumento e il valore reale
+della variabile. Pertanto, se il valore vero al tempo t è s(t) e il
+valore misurato dal sensore è s0(t), il sistema è descritto
+dall'equazione differenziale del primo ordine:
+
+
+ds 0 ( t )
+dt
+=
+s ( t ) − s 0 ( t )
+(2.6)
+T I
+
+dove TI è una costante con la dimensione del tempo, caratteristica del
+sistema. La risposta di un sistema del primo ordine a una funzione
+passo-passo è proporzionale a exp(-t/TI), e TI è osservabile come il
+tempo necessario, dopo una variazione di passo, affinché il sistema
+raggiunga il 63% della lettura stabile finale. L'equazione 2.6 è
+valida per molti sensori, come i termometri.
+
+L'anemometro a coppa è uno strumento del primo ordine, con la
+proprietà speciale che TI non è costante.
+
+Varia con la velocità del vento. Infatti, il parametro s0 TI è
+chiamato costante di distanza, perché è quasi costante. Come si può
+notare in questo caso, l'equazione sopra non è più una semplice
+equazione del primo ordine, poiché ora è non lineare e di conseguenza
+presenta notevoli problemi nella sua soluzione.
+Un ulteriore problema è che TI dipende anche dal fatto che le tazze
+stiano accelerando o rallentando, cioè che il lato destro sia positivo
+o negativo. Ciò è dovuto al fatto che il coefficiente di resistenza
+aerodinamica di una coppa è minore se il flusso d'aria è diretto verso
+la parte anteriore piuttosto che verso quella posteriore.
+
+La banderuola approssima un sistema del secondo ordine perché
+l'accelerazione della banderuola verso la direzione vera del vento è
+proporzionale allo spostamento della banderuola dalla direzione vera.
+
+Questa è, ovviamente, la descrizione classica di un oscillatore (ad
+esempio, un pendolo). Le pale, sia per natura che per progettazione,
+sono smorzate. Ciò avviene a causa di una forza resistiva
+proporzionale e contraria alla sua velocità di variazione. Pertanto,
+l'equazione differenziale che descrive l'azione della paletta è:
+
+
+d 2 φ 0 ( t )
+dt
+2
+= k 1  φ 0 ( t ) − φ ( t )  − k 2
+d φ 0 ( t )
+dt
+
+dove ϕ è la direzione vera del vento; ϕ0 è la direzione della
+banderuola; e k1 e k2 sono costanti. La soluzione è un'oscillazione
+smorzata alla frequenza naturale della banderuola (determinata dalla
+costante k 1 ). Lo smorzamento è ovviamente molto importante; è
+controllato dalla costante k2 . Se è troppo piccola, la banderuola
+oscillerà semplicemente alla frequenza naturale; se è troppo grande,
+la banderuola non risponderà ai cambiamenti di direzione del vento.
+
+È istruttivo considerare come questi due sistemi rispondono a una
+variazione graduale del loro ingresso, poiché questo è un esempio del
+modo in cui gli strumenti rispondono nel mondo reale. Le due equazioni precedenti
+possono essere risolte analiticamente per questo ingresso. Le
+risposte sono mostrate nelle due Figure successive.
+
+Si noti che in nessuno dei due casi il sistema misura il valore reale
+dell'elemento. Inoltre, la scelta dei valori delle costanti k1 e k2
+può avere un grande effetto sulle uscite.
+
+Una proprietà importante di un sistema strumentale è la sua funzione
+di risposta in frequenza o funzione di trasferimento H(n). Questa
+funzione indica la quantità di spettro trasmessa dal sistema.
+
+Può essere definita come:
+
+S ( n ) out = H ( n ) S ( n ) in
+
+dove i pedici si riferiscono agli spettri di ingresso e di uscita. Si
+noti che, in virtù della relazione dell'equazione 2.5, la varianza
+dell'uscita dipende da H(n). H(n) definisce l'effetto del sensore come
+filtro, come discusso nella sezione successiva. I modi in cui può
+essere calcolato o misurato sono illustrati nel paragrafo
+:ref:`determinazione delle caratteristiche del
+sistema<determinazione_delle_caratteristiche_del_sistema-reference>`.
+
+I filtri
+........
+
+Questa sezione illustra le proprietà dei filtri, con esempi dei modi
+in cui possono influenzare i dati.
+
+Il filtraggio è l'elaborazione di una serie temporale (continua o
+discreta, cioè campionata) in modo tale che il valore assegnato in un
+determinato momento sia ponderato dai valori che si sono verificati in
+un altro momento.
+
+.. figure:: first_order.png
+
+	    La risposta di un sistema del primo ordine a una funzione
+	    a gradino. Al tempo TI il sistema ha raggiunto il 63%
+	    del suo valore finale.
+
+.. figure:: second_order.png
+
+	    La risposta di un sistema del secondo ordine a una
+	    funzione a gradino. pN è il periodo naturale, legato a
+	    k1 nell'equazione 2.7, che, per una banderuola, dipende
+	    dalla velocità del vento. Le curve mostrate si riferiscono
+	    a fattori di smorzamento con valori di 0,1 (smorzamento
+	    molto leggero), 0,7 (smorzamento critico, ottimale per la
+	    maggior parte degli scopi) e 2,0 (smorzamento forte). Il
+	    fattore di smorzamento è correlato a k2 nell'equazione
+	    2.7
+
+Nella maggior parte dei casi, questi orari saranno adiacenti all'ora
+indicata. Ad esempio, in una serie temporale discreta di N campioni
+numerati da 0 a N, con valore yi , il valore dell'osservazione
+filtrata ӯi può essere definito come:
+
+y i =
+m
+∑
+j = − m
+(2.9)
+w j y i + j
+
+
+Qui ci sono 2m + 1 termini nel filtro, numerati dalla variabile dummy
+j da -m a +m, e ӯi è centrato su j = 0. Alcuni dati vengono scartati
+all'inizio e alla fine del tempo di campionamento.  wj è comunemente
+chiamata funzione di ponderazione e tipicamente è:
+
+∑
+j = − m
+(2.10)
+w j = 1
+
+in modo che almeno il valore medio della serie filtrata abbia lo
+stesso valore di quella originale.
+
+L'esempio precedente utilizza il filtraggio digitale. Effetti simili
+possono essere ottenuti con l'elettronica (ad esempio, con un circuito
+di resistenze e condensatori) o con le caratteristiche del sensore (ad
+esempio, come nel caso dell'anemometro, discusso in precedenza). Che
+sia digitale o analogico, un filtro è caratterizzato da H(n). Se
+digitale, H(n) può essere calcolato; se analogico, può essere ottenuto
+con i metodi descritti al punto 2.3.
+
+Ad esempio, si confronti un sistema del primo ordine con un tempo di
+risposta di TI , e un filtro "box car" di lunghezza Ts su una serie
+temporale discreta prelevata da un sensore con una risposta molto più
+rapida. Le forme di questi due filtri sono mostrate nella Figura
+successiva. Nel primo, è come se lo strumento avesse una memoria che è più
+forte nell'istante presente, ma che diminuisce esponenzialmente quanto
+più i dati sono lontani nel tempo. Il filtro box car ha tutti i pesi
+di uguale entità per il periodo T s e zero oltre. Le funzioni di
+risposta in frequenza, H(n), per questi due filtri sono mostrate nella
+Figura 2.6.
+
+Nella figura, le frequenze sono state scalate per mostrare la
+somiglianza delle due funzioni di risposta. La figura mostra che uno
+strumento con un tempo di risposta, ad esempio, di 1 s ha
+approssimativamente lo stesso effetto su un ingresso di un filtro box
+car applicato per 4 s.
+
+.. figure:: weighting_factors.png
+
+	    I fattori di ponderazione per una funzione di ponderazione
+	    del primo ordine (esponenziale) e per una funzione di
+	    ponderazione del box auto. Per il box car Ta è Ts , il
+	    tempo di campionamento, e w = 1/N. Per la funzione del
+	    primo ordine Ta è TI , la costante di tempo del filtro,
+	    e w(t) = (1/TI) exp (-t/TI).
+
+
+
+.. figure:: frequency_response.png	
+
+	    Funzioni di risposta in frequenza per una funzione di
+	    ponderazione del primo ordine (esponenziale) e una
+	    funzione di ponderazione box car. La frequenza è
+	    normalizzata per il filtro del primo ordine da T I, la
+	    costante di tempo, e per il filtro box car da T s, il
+	    tempo di campionamento.
+	    
+Tuttavia, va notato che un filtro box car, che
+viene calcolato numericamente, non si comporta in modo semplice. Non
+rimuove tutte le frequenze più alte oltre la frequenza di Nyquist e
+può essere utilizzato validamente solo se lo spettro cade rapidamente
+al di sopra di n y . Si noti che il filtro box car mostrato nella
+Figura 2.6 è una soluzione analitica per w come funzione continua; se
+il numero di campioni nel filtro è piccolo, il taglio è meno netto e i
+picchi indesiderati di frequenza superiore sono più grandi.
+
+Si veda Acheson (1968) per consigli pratici sul box car e sul
+filtraggio esponenziale e per un confronto dei loro effetti.
+
+Nella Figura 2.7 è riportata la funzione di risposta di un sistema del
+secondo ordine, in questo caso per una banderuola, che mostra come lo
+smorzamento agisca come un filtro passa-banda.
+
+Si può notare che l'elaborazione dei segnali da parte dei sistemi può
+avere effetti profondi sui dati in uscita e deve essere eseguita con
+competenza.
+
+Tra gli effetti dei filtri vi è il modo in cui essi possono modificare
+le informazioni statistiche dei dati. Uno di questi è stato accennato
+prima e illustrato nelle equazioni 2.5 e 2.8. L'equazione 2.5 mostra
+come l'integrale dello spettro su tutte le frequenze dia la varianza
+della serie temporale, mentre l'equazione 2.8 mostra come il
+filtraggio, in virtù dell'effetto della funzione di trasferimento,
+modifichi lo spettro misurato. Si noti che la varianza non sempre
+diminuisce con il filtraggio. Ad esempio, in alcuni casi, per un
+sistema del secondo ordine, la funzione di trasferimento amplificherà
+alcune parti dello spettro ed eventualmente aumenterà la varianza,
+come mostrato nella Figura 2.7.
+
+Per fare un altro esempio, se la distribuzione è gaussiana, la
+varianza è un parametro utile. Se fosse diminuita dal filtraggio, un
+utente dei dati sottostimerebbe l'allontanamento dalla media degli
+eventi che si verificano con determinate probabilità o periodi di
+ritorno.
+
+Inoltre, la progettazione del filtro digitale può avere effetti
+indesiderati o inaspettati. Se si esamina la Figura 2.6, si può notare
+che la funzione di risposta del filtro box car presenta una serie di
+massimi a frequenze superiori a quella in cui diventa zero. Ciò
+conferisce ai dati filtrati una piccola periodicità a queste
+frequenze. In questo caso, l'effetto sarà minimo poiché i massimi sono
+piccoli. Tuttavia, per alcuni progetti di filtro possono essere introdotti dei massimi
+piuttosto significativi. Come regola generale, minore è il numero di
+pesi, maggiore è il problema. In alcuni casi, sono state rilevate
+periodicità nei dati che esistevano solo perché i dati erano stati
+filtrati.
+
+.. figure:: frequency_response_second_order.png
+
+	    Funzioni di risposta in frequenza per un sistema del
+            secondo ordine, come una banderuola. La frequenza è
+            normalizzata da n N, la frequenza naturale, che dipende
+            dalla velocità del vento.  Le curve mostrate si
+            riferiscono a fattori di smorzamento con valori di 0,1
+            (smorzamento molto leggero), 0,7 (smorzamento critico,
+            ottimale per la maggior parte degli scopi) e 2,0
+            (smorzamento forte).
+
+
+Un problema legato al concetto di filtro è la lunghezza del
+campione. Questo può essere illustrato osservando che, se la lunghezza
+della registrazione è di durata T, contributi alla variabilità dei
+dati a frequenze inferiori a 1/T non saranno possibili. Si può
+dimostrare che una registrazione finita ha una durata di 1/T. Si può
+dimostrare che una lunghezza di registrazione finita ha l'effetto di
+un filtro passa-alto. Come per i filtri passa-basso discussi in
+precedenza, anche un filtro passa-alto avrà un impatto sulle
+statistiche dei dati in uscita.
+
+.. _determinazione_delle_caratteristiche_del_sistema-reference:
+
+Determinazione delle caratteristiche del sistema
+------------------------------------------------
+
+Le caratteristiche di filtraggio di un sensore o di un circuito
+elettronico, o del sistema che li compone, devono essere note per
+determinare la frequenza di campionamento appropriata per le serie
+temporali che il sistema produce.  La procedura consiste nel misurare
+la funzione di trasferimento o di risposta H(n) di cui all'equazione
+2.8.  La funzione di trasferimento può essere ottenuta in almeno tre
+modi: tramite misurazione diretta, calcolo e stima.
+
+Misura diretta della risposta
+.............................
+
+La risposta può essere misurata direttamente con almeno due
+metodi. Nel primo metodo si applica al sensore o al filtro una
+variazione nota, ad esempio una funzione a gradino, e si misura il
+suo tempo di risposta; si può quindi calcolare H(n). Nel secondo
+metodo, l'uscita del sensore viene confrontata con un altro sensore
+molto più veloce. Il primo metodo è più comunemente utilizzato del
+secondo.
+
+Un semplice esempio di come determinare la risposta di un sensore a un
+ingresso noto è la misurazione della costante di distanza di un
+anemometro a tazza rotante o a elica. In questo esempio, l'ingresso
+noto è una funzione a gradini. L'anemometro viene posto in un flusso
+d'aria a velocità costante, gli viene impedito di ruotare, quindi
+viene rilasciato e la sua uscita viene registrata. Il tempo impiegato
+dall'uscita per passare da zero al 63% della velocità finale o di
+equilibrio nel flusso d'aria è il tempo "costante".
+
+Se è disponibile un altro sensore che risponde molto più rapidamente
+di quello di cui si vuole determinare la risposta, è possibile
+misurare e confrontare con buona approssimazione sia l'ingresso che
+l'uscita. Il dispositivo più semplice da utilizzare per effettuare il
+confronto è probabilmente un moderno analizzatore di spettro digitale
+a due canali. L'uscita del sensore a risposta rapida viene immessa in
+un canale, l'uscita del sensore da testare nell'altro canale e la
+funzione di trasferimento viene visualizzata automaticamente.
+
+La funzione di trasferimento è una descrizione diretta del sensore
+come filtro. Se il dispositivo di cui si vuole determinare la risposta
+è un circuito elettronico, generare un ingresso noto o addirittura
+veramente casuale è molto più facile che trovare un sensore molto più
+veloce. Anche in questo caso, un moderno analizzatore di spettro
+digitale a due canali è probabilmente il più conveniente, ma è
+possibile utilizzare altri strumenti di test elettronici.
+
+Calcolo della risposta
+......................
+
+È l'approccio descritto al punto 2.2.3. Se si conosce a sufficienza la
+fisica di un sensore/filtro, la risposta a una grande varietà di
+ingressi può essere determinata mediante una soluzione analitica o
+numerica. È possibile calcolare sia la risposta a ingressi specifici,
+come una funzione a gradini, sia la funzione di trasferimento. Se il
+sensore o il circuito è lineare (descritto da un'equazione
+differenziale lineare), la funzione di trasferimento è una descrizione
+completa, in quanto descrive le risposte in ampiezza e fase in
+funzione della frequenza, in altre parole, come un filtro. Considerare
+la risposta in funzione della frequenza non è sempre conveniente, ma
+la funzione di trasferimento ha una controparte in trasformata di
+Fourier, la funzione di risposta all'impulso, che rende molto più
+semplice l'interpretazione della risposta in funzione del tempo. Le
+figure 2.3 e 2.4 illustrano la risposta in funzione del tempo.
+
+Se possibile, le soluzioni analitiche sono preferibili perché mostrano
+chiaramente la dipendenza dai vari parametri.
+
+Stima della risposta
+....................
+
+Se le funzioni di trasferimento di un trasduttore e di ogni circuito
+successivo sono note, il loro prodotto è la funzione di trasferimento
+dell'intero sistema. Se, come di solito accade, le funzioni di
+trasferimento sono filtri passa-basso, la funzione di trasferimento
+aggregata è un filtro passa-basso la cui frequenza di taglio è
+inferiore a quella dei singoli filtri.
+
+Se una delle frequenze di taglio individuali è molto inferiore a
+quella degli altri, la frequenza di taglio dell'aggregato è solo
+leggermente inferiore.
+
+Poiché la frequenza di taglio di un filtro passa-basso è
+approssimativamente l'inverso della sua costante di tempo, ne consegue
+che, se una delle costanti di tempo individuali è molto più grande di
+qualsiasi altra, la costante di tempo dell'aggregato è solo
+leggermente più grande.
+
+
+Campionamento
+-------------
+
+Tecniche di campionamento
+.........................
+
+Lo schema successivo illustra schematicamente un tipico sensore e circuito di
+campionamento. Quando è esposto all'atmosfera, alcune proprietà del
+trasduttore cambiano in funzione di una variabile atmosferica come la
+temperatura, la pressione, la velocità o la direzione del vento o
+l'umidità e converte tale variabile in un segnale utile, solitamente
+elettrico. I circuiti di condizionamento del segnale svolgono
+comunemente funzioni quali la conversione dell'uscita del trasduttore
+in tensione, l'amplificazione, la linearizzazione, la compensazione e
+lo smussamento. Il filtro passa-basso finalizza l'uscita del sensore
+per l'ingresso sample-and-hold. Il sample-and-hold e il convertitore
+analogico-digitale producono i campioni da cui viene calcolata
+l'osservazione nel processore.
+
+Va notato che lo smussamento eseguito nello stadio di condizionamento
+del segnale per ragioni ingegneristiche, per eliminare i picchi e
+stabilizzare l'elettronica, viene eseguito da un filtro passa-basso;
+esso riduce il tempo di risposta del sensore e rimuove le alte
+frequenze che possono essere di interesse. Il suo effetto deve essere
+esplicitamente compreso dal progettista e dall'utente e la sua
+frequenza di taglio deve essere la più alta possibile.
+
+
+I cosiddetti “sensori intelligenti”, quelli dotati di microprocessore,
+possono incorporare tutte le funzioni illustrate. Il circuito di
+condizionamento del segnale può non essere presente in tutti i
+sensori, oppure può essere combinato con altri circuiti. In altri
+casi, come nel caso di un anemometro a tazza rotante o a elica, può
+essere facile parlare solo di un sensore perché è difficile
+distinguere un trasduttore. Nei pochi casi in cui l'uscita di un
+trasduttore o di un sensore è un segnale la cui frequenza varia con la
+variabile atmosferica misurata, il sample-and-hold e il convertitore
+analogico-digitale possono essere sostituiti da un contatore. Ma
+questi non sono dettagli importanti. L'elemento importante nella
+progettazione è garantire che la sequenza di campioni rappresenti
+adeguatamente le variazioni significative della variabile atmosferica
+da misurare.
+
+La prima condizione imposta ai dispositivi illustrati nella Figura 2.8
+è che il sensore deve rispondere abbastanza rapidamente da seguire le
+fluttuazioni atmosferiche che devono essere descritte
+nell'osservazione. Se l'osservazione deve essere una media di 1, 2 o
+10 minuti, questo non è un requisito molto impegnativo. Se invece
+l'osservazione deve riguardare una caratteristica della turbolenza,
+come un picco di vento, è necessario prestare attenzione nella scelta
+del sensore.
+
+::
+
+   An instrument system
+   
+   Atmosphere
+      |
+   SENSOR/TRANSDUCER
+      |
+   SIGNAL CONDITIONING CIRCUITS
+      |
+   LOW-PASS FILTER
+      |
+   SAMPLE-AND-HOLD
+      |                 CLOCK
+   ANALOGUE-TO-DIGITAL CONVERTER
+      |
+   PROCESSOR
+      |
+   Observation
+
+La seconda condizione imposta ai dispositivi illustrati nella Figura è
+che il sample-and-hold e il convertitore analogico-digitale devono
+fornire un numero di campioni sufficiente per effettuare una buona
+osservazione. L'accuratezza richiesta dalle osservazioni
+meteorologiche di solito mette alla prova il sensore, non la
+tecnologia di campionamento elettronico. Tuttavia, il sensore e il
+campionamento devono essere abbinati per evitare l'aliasing. Se la
+frequenza di campionamento è limitata per motivi tecnici, il sistema
+sensore-filtro deve essere progettato per eliminare le frequenze che
+non possono essere rappresentate.
+
+Se il sensore ha una funzione di risposta adeguata, il filtro
+passa-basso può essere omesso,incluso solo come assicurazione, o può
+essere incluso perché migliora la qualità del segnale in ingresso al
+sample-and-hold. Ad esempio, un filtro di questo tipo può essere
+incluso per eliminare il rumore all'estremità di un cavo lungo o per
+rendere più uniforme l'uscita del sensore. Ovviamente, questo circuito
+deve anche rispondere in modo sufficientemente rapido da seguire le
+fluttuazioni atmosferiche di interesse.
+
+.. _frequenza_di_campionamento-reference:
+
+Frequenza di campionamento
+..........................
+
+Per la maggior parte delle applicazioni meteorologiche e
+climatologiche, le osservazioni sono richieste a intervalli da 30
+minuti a 24 ore e ogni osservazione viene effettuata con un tempo di
+campionamento dell'ordine di 1-10 minuti. Il Volume I, Capitolo 1,
+Allegato 1.A fornisce una dichiarazione recente dei requisiti per
+questi scopi.
+
+Una pratica comune per le osservazioni di routine consiste
+nell'effettuare una lettura spot del sensore (ad esempio un
+termometro) e affidarsi alla sua costante di tempo per fornire un
+tempo di campionamento approssimativamente corretto.
+
+Ciò equivale a utilizzare un filtro esponenziale (Figura 2.6). I
+sistemi nelle stazioni meteorologiche automatiche utilizzano
+comunemente sensori più veloci e devono essere effettuate diverse
+letture spot ed elaborate per ottenere una media (filtro box car) o
+un'altra media adeguatamente ponderata.
+
+Uno schema pratico consigliato per le frequenze di campionamento è il
+seguente:
+
+(a) I campioni prelevati per calcolare le medie devono essere ottenuti
+    a intervalli di tempo equidistanti che:
+
+    (i) non superino la costante di tempo del sensore; oppure
+    (ii) non superino la costante di tempo di un filtro analogico
+         passa-basso che segue l'uscita linearizzata di un sensore a
+         risposta rapida; oppure linearizzato di un sensore a risposta
+         rapida; oppure
+
+    (iii) sono in numero sufficiente a garantire che l'incertezza
+          della media dei campioni sia ridotta a un livello
+          accettabile, per esempio, inferiore all'accuratezza
+          richiesta della media; (iii) sono in numero sufficiente a
+          garantire che l'incertezza della media sia ridotta a un
+          livello accettabile, per esempio, inferiore all'accuratezza
+          richiesta della media.
+
+(b) I campioni da utilizzare per stimare le fluttuazioni estreme, come
+    le raffiche di vento, devono essere prelevati con una frequenza
+    almeno quattro volte superiore a quella specificata ai punti (i) o
+    (ii).
+
+Per ottenere le medie, sono spesso raccomandate e praticate frequenze
+di campionamento un po' più rapide di (i) e (ii), come due volte per
+costante di tempo.
+
+I criteri (i) e (ii) derivano dalla considerazione della frequenza di
+Nyquist. Se la spaziatura di campionamento Δt ≤ T I , la frequenza di
+campionamento n ≥ 1/TI e nT I ≥ 1. Dalla curva esponenziale della
+Figura 2.6 si può notare che in questo modo si eliminano le frequenze
+più alte e si evita l'aliasing. Se Δt = T I , n y = 1/2T I e i dati
+saranno falsati solo dall'energia spettrale alle frequenze di nT I = 2
+e oltre, cioè dove le fluttuazioni hanno periodi inferiori a 0,5T I .
+
+I criteri (i) e (ii) sono utilizzati per il campionamento
+automatico. Il criterio statistico in (iii) è più applicabile alle
+frequenze di campionamento molto più basse delle osservazioni
+manuali. L'incertezza della media è inversamente proporzionale alla
+radice quadrata del numero di osservazioni e il suo valore può essere
+determinato dalle statistiche della grandezza.
+
+Il criterio (b) sottolinea la necessità di alte frequenze di
+campionamento, o più precisamente di piccole costanti di tempo, per
+misurare le raffiche. Le raffiche registrate sono smussate dalla
+risposta dello strumento e il massimo registrato sarà mediato su
+diverse volte la costante di tempo.
+
+L'effetto dell'aliasing sulle stime della media può essere visto molto
+semplicemente considerando ciò che accade quando la frequenza
+dell'onda misurata è uguale alla frequenza di campionamento, o un suo
+multiplo. La media derivata dipenderà dalla tempistica del
+campionamento. Un campione ottenuto una volta al giorno a un'ora fissa
+non fornirà una buona stima della temperatura media mensile.
+
+Per un'illustrazione un po' più complessa dell'aliasing, si consideri
+una serie temporale di osservazioni della temperatura effettuate ogni
+tre ore con un normale termometro. Se la temperatura varia dolcemente
+nel tempo, come accade di solito, la media giornaliera calcolata da
+otto campioni è accettabilmente stabile.
+
+Tuttavia, se si è verificato un evento a mesoscala (un temporale) che
+ha ridotto la temperatura di molti gradi per 30 minuti, la media
+calcolata è errata. L'affidabilità delle medie giornaliere dipende
+dalla consueta debolezza dello spettro nella mesoscala e nelle
+frequenze più alte.
+
+Tuttavia, il verificarsi di un evento a più alta frequenza (il
+temporale) altera i dati, influenzando il calcolo della media, della
+deviazione standard e di altre misure di dispersione e dello spettro.
+
+La questione della frequenza di campionamento può essere discussa
+anche in base alla Figura 2.8. Nel paragrafo 2.2.1 si è detto che, per
+la misura degli spettri, la frequenza di campionamento, che determina
+la frequenza di Nyquist, deve essere scelta in modo che lo spettro
+delle fluttuazioni al di sopra della frequenza di Nyquist sia troppo
+debole per influenzare lo spettro calcolato. Ciò si ottiene se la
+frequenza di campionamento impostata dall'orologio nella Figura 2.8 è
+almeno il doppio della frequenza più alta di ampiezza significativa
+nel segnale di ingresso al sample-and-hold.
+
+L'espressione “massima frequenza di ampiezza significativa” usata
+sopra è vaga. È difficile trovare una definizione rigorosa perché i
+segnali non sono mai veramente limitati nella larghezza di
+banda. Tuttavia, non è difficile garantire che l'ampiezza delle
+fluttuazioni del segnale diminuisca rapidamente con l'aumentare della
+frequenza e che l'ampiezza al quadrato della radice delle fluttuazioni
+al di sopra di una determinata frequenza sia piccola rispetto al
+rumore di quantizzazione del convertitore analogico-digitale, piccola
+rispetto a un livello di errore o di rumore accettabile nei campioni,
+oppure contribuisca in modo trascurabile all'errore o al rumore totale
+dell'osservazione.
+
+Nel paragrafo 2.3 sono state illustrate le caratteristiche dei sensori
+e dei circuiti che possono essere scelti o regolati per garantire che
+l'ampiezza delle fluttuazioni del segnale diminuisca rapidamente con
+l'aumentare della frequenza.
+
+La maggior parte dei trasduttori, in virtù della loro incapacità di
+rispondere alle fluttuazioni atmosferiche rapide (ad alta frequenza) e
+della loro capacità di riprodurre fedelmente i cambiamenti lenti (a
+bassa frequenza), sono anche filtri passa-basso. Per definizione, i
+filtri passa-basso limitano la larghezza di banda e, per il teorema di
+Nyquist, limitano anche la frequenza di campionamento necessaria per
+riprodurre accuratamente l'uscita del filtro. Ad esempio, se ci sono
+variazioni reali nell'atmosfera con periodi fino a 100 ms, la
+frequenza di campionamento di Nyquist sarebbe di 1 ogni 50 ms, il che
+è tecnicamente impegnativo. Tuttavia, se vengono osservate attraverso
+un sensore e un filtro che rispondono molto più lentamente, ad esempio
+con una costante di tempo di 10 s, la frequenza di campionamento di
+Nyquist sarebbe di 1 campione ogni 5 s, molto più semplice ed
+economica, e preferibile se non sono richieste misure delle alte
+frequenze.
+
+Frequenza di campionamento e controllo di qualità
+.................................................
+
+Molte tecniche di controllo della qualità dei dati utilizzate negli
+AWS dipendono dalla coerenza temporale, o persistenza, dei dati per la
+loro efficacia. A titolo di esempio molto semplice, è opportuno
+prendere in considerazione due ipotetici algoritmi di controllo della
+qualità per le misure di pressione nei SAR. I campioni vengono
+prelevati ogni 10 s e le medie di 1 minuto vengono calcolate ogni
+minuto. Si presume che la pressione atmosferica cambi solo raramente,
+se non mai, a una velocità superiore a 1 hPa al minuto.
+
+Il primo algoritmo rifiuta la media se differisce dalla precedente di
+più di 1 hPa. In questo modo non si farebbe un buon uso dei dati
+disponibili. Permette a un singolo campione con un errore di 6 hPa di
+passare inosservato e di introdurre un errore di 1 hPa in
+un'osservazione.
+
+Il secondo algoritmo rifiuta un campione se differisce dal precedente
+per più di 1 hPa. In questo caso, una media non contiene errori
+superiori a circa 0,16 (1/6) hPa. In realtà, se l'ipotesi è corretta e
+cioè che la pressione atmosferica cambia solo raramente a una velocità
+superiore a 1 hPa al minuto, i criteri di accettazione/rifiuto dei
+campioni adiacenti potrebbero essere ridotti a 0,16 hPa e l'errore
+nella media potrebbe essere ancora più ridotto.
+
+Il punto dell'esempio è che le procedure di controllo della qualità
+dei dati che dipendono dalla coerenza temporale (correlazione) per la
+loro efficacia si applicano meglio ai dati ad alta risoluzione
+temporale (frequenza di campionamento). All'estremità delle alte
+frequenze dello spettro nell'uscita del sensore/filtro, la
+correlazione tra campioni adiacenti aumenta con l'aumentare della
+frequenza di campionamento fino a raggiungere la frequenza di Nyquist,
+dopo la quale non si verifica un ulteriore aumento della correlazione.
+
+Fino a questo punto della discussione, non è stato detto nulla che
+scoraggi l'uso di un sensore/filtro con una costante di tempo, purché
+il periodo di mediazione richiesto per l'osservazione sia preso come
+un singolo campione da usare come osservazione. Sebbene le esigenze
+del sottosistema digitale siano minime, è necessaria un'altra
+considerazione per un efficace controllo della qualità dei dati. Le
+osservazioni possono essere raggruppate nelle tre categorie seguenti:
+
+(a) Accurate (osservazioni con errori inferiori o uguali a un valore
+    specificato);
+(b) Inaccurate (osservazioni con errori superiori a un valore
+    specificato);
+(c) mancanti.
+
+Il controllo della qualità dei dati ha due ragioni: ridurre al minimo
+il numero di osservazioni imprecise e ridurre al minimo il numero di
+osservazioni mancanti. Per raggiungere entrambi gli obiettivi è
+necessario garantire che ogni osservazione sia calcolata da un numero
+ragionevolmente elevato di campioni controllati per la qualità dei
+dati. In questo modo, è possibile isolare ed escludere i campioni con
+errori spuri di grandi dimensioni e il calcolo può comunque procedere
+senza essere contaminato da quel campione.
+
+Ulteriore approfondimento:
+https://web.stanford.edu/class/engr76/lectures/lecture9-10.pdf
+
 
 Errore standard
----------------
+===============
 
 Derivato da un'opera di:
 Andrea Minini - email: info@andreaminini.com - PEC andreaminini@pec.it

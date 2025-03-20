@@ -32,7 +32,7 @@ Inizio raccolta dati su server RMAP casalingo.
 18/10/2013
 ----------
 
-Inizia lo sviluppo del codice su Sourceforge
+Inizia lo sviluppo del codice su piattaforma Sourceforge
 https://sourceforge.net/projects/r-map/
 
 :ref:`Stima V0 <stima_v0-reference>`
@@ -64,15 +64,15 @@ Partecipazione a Maker Faire Roma
 01/01/2015
 ----------
 
-Inizia lo sviluppo del server RMAP
+Prende corpo lo sviluppo del server RMAP
 
 
 01/06/2015
 ----------
 
 
-Ecoscienza 6/2015
-Il progetto R-Map, rete di monitoraggio ambientale partecipativo
+Pubblicazione articolo su Ecoscienza 6/2015
+Il progetto RMAP, rete di monitoraggio ambientale partecipativo
 
 Articolo :download:`pdf <patruno_desavino_es2015_6.pdf>`
 
@@ -81,19 +81,19 @@ Articolo :download:`pdf <patruno_desavino_es2015_6.pdf>`
 
 Pubblicazione su Elettronica In in 3 puntate
 
-:ref:`Stima V2 <stima_v2-reference>`
+Rilasciata :ref:`Stima V2 <stima_v2-reference>`
 
 
 19/07/2015
 ----------
 
-* Migrato progetto a GitHub
-* :ref:`StimaWiFi V2 <stimawifi_v2-reference>`
-* :ref:`Stima V2 mobile <modulo_stima_bluetooth>`
+* Migrato progetto su piattaforma GitHub
+* Rilasciata :ref:`StimaWiFi V2 <stimawifi_v2-reference>`
+* Rilasciata :ref:`Stima V2 mobile <modulo_stima_bluetooth>`
 
 .. image:: stimaV2_mobile.png
 
-Installazione stazione complessa a Molinella
+Installazione stazione complessa a Molinella a cura di ARPAE-SIMC
 
 .. image:: installazione.jpg
 	   
@@ -104,8 +104,9 @@ Installazione stazione complessa a Molinella
 03/02/ 2016
 -----------
 
-Studio statistico dell’impatto della rete MeteoNetwork sulla stima di
-parametri meteo superficiali in Emilia-Romagna
+Pubbllicato come report tecnico di ARPAE e Cineca su dati Meteonetwork e ARPAE:
+"Studio statistico dell’impatto della rete MeteoNetwork sulla stima di
+parametri meteo superficiali in Emilia-Romagna"
 
 Report :download:`pdf <report.pdf>`	   
 
