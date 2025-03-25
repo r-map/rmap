@@ -6,6 +6,12 @@
 Benvenuti alla documentazione di RMAP e Stima
 =============================================
 
+`Vai al sito RMAP principale <http://rmap.cc>`_
+-----------------------------------------------
+
+Indice dei contenuti
+....................
+
 .. toctree::
    :maxdepth: 5
 

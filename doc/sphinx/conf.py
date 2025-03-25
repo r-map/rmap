@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'RMAP e Stima'
-copyright = '2021, CC BY-SA 4.0, Arpae https://www.arpae.it'
-author = 'Baldinetti Marco'
+copyright = '2021, CC BY-SA 4.0, Parco dei Cedri nel cuore'
+author = 'Patruno Paolo'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '3'
+release = '5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -85,6 +85,8 @@ gettext_compact = False     # optional.
 #
 #html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
+
+html_title = 'http://rmap.cc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -184,7 +186,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Stima', 'Stima Documentation',
-     author, 'Stima', 'One line description of project.',
+     author, 'Stima', 'Rete di Monitoraggio Ambientale Partecipativo.',
      'Miscellaneous'),
 ]
 

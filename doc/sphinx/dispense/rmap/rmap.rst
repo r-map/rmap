@@ -335,15 +335,12 @@ Implementazioni Hardware e Software
 Stazioni Stima
 ..............
 
-TODO
+* :ref:`StimaWiFi V3<stimawifi_v3-reference>`
+* :ref:`Stima V3<stima_v3-reference>`
+* :ref:`Stima V4<stima_v4-reference>`
 
-* StimaWiFi
-* Stima V3
-* Stima V4
 
 Server RMAP
 ...........
 
-TODO
-
-Server RMAP
+* :ref:`Server RMAP<server-reference>`

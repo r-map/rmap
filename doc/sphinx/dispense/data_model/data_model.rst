@@ -15,7 +15,7 @@ sistemi informativi e scambi di dati.
   stesse strutture di dati per memorizzare e accedere ai dati, le
   diverse applicazioni possono condividere i dati.
 
-* Tuttavia, i sistemi e le interfacce spesso costano più del dovuto
+* Purtroppo i sistemi e le interfacce spesso costano più del dovuto
   per la costruzione, il funzionamento e la manutenzione. Inoltre,
   possono limitare l'attività aziendale anziché supportarla. Una delle
   cause principali è la scarsa qualità dei modelli di dati
@@ -24,9 +24,8 @@ sistemi informativi e scambi di dati.
 Conceptual data model
 ---------------------
 
-Questi modelli, talvolta chiamati modelli di dominio, sono tipicamente
-utilizzati per esplorare i concetti di dominio con gli stakeholder del
-progetto.
+Questi modelli sono tipicamente utilizzati per esplorare i concetti
+di dominio con gli stakeholder del progetto.
 
 Il Conceptual Data Model (Modello Concettuale dei Dati) è una
 rappresentazione astratta e di alto livello dei dati di un sistema
@@ -82,7 +81,11 @@ Logical data model (LDM)
 I LDM vengono utilizzati per esplorare i concetti del dominio e le
 loro relazioni nel dominio del problema.
 
-Il Logical Data Model (LDM) è una rappresentazione strutturata dei dati di un'organizzazione o di un sistema, indipendente dall'implementazione fisica su un database specifico. È un modello concettuale dettagliato che descrive le entità, gli attributi e le relazioni tra di esse.
+Il Logical Data Model (LDM) è una rappresentazione strutturata dei
+dati di un'organizzazione o di un sistema, indipendente
+dall'implementazione fisica su un database specifico. È un modello
+concettuale dettagliato che descrive le entità, gli attributi e le
+relazioni tra di esse.
 
 Caratteristiche principali del Logical Data Model:
 
