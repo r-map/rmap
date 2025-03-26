@@ -1,15 +1,13 @@
-//#define SPI_DRIVER_SELECT 1
-//#define USE_SD_CRC 2
-//#define SDFAT_FILE_TYPE 1
-//#define USE_LONG_FILE_NAMES 1
+#define SPI_DRIVER_SELECT 1
+#define USE_SD_CRC 2
+#define SDFAT_FILE_TYPE 1
+#define USE_LONG_FILE_NAMES 1
 
 #include <SPI.h>
-//#include <SdFat.h>
+#include <SdFat.h>
 
-#include "FS.h"
-#include "SD.h"
-
-//SdFat SD;
+//#include "FS.h"
+//#include "SD.h"
 
 #define C3SCK 1    //viola
 #define C3MISO 0   // grigio
@@ -22,7 +20,10 @@
 //#define MOSI D7
 //#define SS D4
 
+#define SDCARD_CHIP_SELECT_PIN 7
+#define SPI_SPEED SD_SCK_MHZ(4)
 
+SdFat SD;
 File test_file;
 
 //SPIClass * vspi = NULL;
@@ -38,11 +39,13 @@ void setup() {
   //vspi = new SPIClass(HSPI);
   //vspi->begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
 
-  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  //SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
   //SPI.begin(SS);
   //pinMode(C3SS, OUTPUT);
   //digitalWrite(C3SS, LOW);
 
+  SPI.begin();
+  
   Serial.println("\nInitializing SD card...");
 }
 
@@ -52,14 +55,11 @@ void loop(void) {
   //if (SD.begin(C3SS,*vspi)){
 
   //SD.begin() SD.begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint=”/sd”, uint8_t max_files=5)
-    
-  if (SD.begin(C3SS,SPI)){
-    //if (SD.begin(C3SS,100000)){
+
+  if (SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){  
+  //if (SD.begin(C3SS,SPI)){
+  //if (SD.begin(C3SS,100000)){
     Serial.println("mount OK: ");
- 
-  }else{
-    Serial.println("ERROR mount");    
-  }
 
     Serial.print("The FAT type of the volume: ");
     Serial.println(SD.vol()->fatType());
@@ -74,22 +74,21 @@ void loop(void) {
     }else{
       Serial.println("error open");
     }
+  
+    if (SD.exists("test.txt")) {
+      Serial.println(F("file test.txt exists\r\n") );   
+      SD.remove("renamed.txt");
+      if (SD.rename("test.txt", "renamed.txt")) {
+	Serial.println(F("test.txt file renamed to renamed.txt file\r\n"));
+      }
+    } else {
+      Serial.println(F("file test.txt do not exists\r\n"));   
+    }	  
+    
   }else{
-    Serial.println("error init");
+    Serial.println("ERROR mount");    
   }
 
-
-  
-  if (SD.exists("test.txt")) {
-    Serial.println(F("file test.txt exists\r\n") );   
-    SD.remove("renamed.txt");
-    if (SD.rename("test.txt", "renamed.txt")) {
-      Serial.println(F("test.txt file renamed to renamed.txt file\r\n"));
-    }
-  } else {
-    Serial.println(F("file test.txt do not exists\r\n"));   
-  }	  
-  
   SD.end();
   
   delay(5000);
