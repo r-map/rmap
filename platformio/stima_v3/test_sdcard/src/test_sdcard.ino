@@ -1,30 +1,66 @@
-#define SPI_DRIVER_SELECT 1
-#define USE_SD_CRC 2
-#define SDFAT_FILE_TYPE 1
-#define USE_LONG_FILE_NAMES 1
+//#define SPI_DRIVER_SELECT 1
+//#define USE_SD_CRC 2
+//#define SDFAT_FILE_TYPE 1
+//#define USE_LONG_FILE_NAMES 1
 
 #include <SPI.h>
-#include <SdFat.h>
+//#include <SdFat.h>
 
-SdFat SD;
+#include "FS.h"
+#include "SD.h"
+
+//SdFat SD;
+
+#define C3SCK 1    //viola
+#define C3MISO 0   // grigio
+#define C3MOSI 4   //bianco
+#define C3SS 6     //blu
+
+
+//#define SCK D5
+//#define MISO D6
+//#define MOSI D7
+//#define SS D4
+
+
 File test_file;
 
-#define SDCARD_CHIP_SELECT_PIN 7
-#define SPI_SPEED SD_SCK_MHZ(4)
+//SPIClass * vspi = NULL;
+
+//#define SPI_SPEED SD_SCK_MHZ(4)
 
 void setup() {
   // Open serial communications
   Serial.begin(115200);
-  SPI.begin();
-  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
-  digitalWrite(SDCARD_CHIP_SELECT_PIN, HIGH);
-  delay(10000);
+
+  delay(5000);
+  
+  //vspi = new SPIClass(HSPI);
+  //vspi->begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+
+  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  //SPI.begin(SS);
+  //pinMode(C3SS, OUTPUT);
+  //digitalWrite(C3SS, LOW);
+
   Serial.println("\nInitializing SD card...");
 }
 
 void loop(void) {
 
-  if (SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+  //if (SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+  //if (SD.begin(C3SS,*vspi)){
+
+  //SD.begin() SD.begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=4000000, const char * mountpoint=”/sd”, uint8_t max_files=5)
+    
+  if (SD.begin(C3SS,SPI)){
+    //if (SD.begin(C3SS,100000)){
+    Serial.println("mount OK: ");
+ 
+  }else{
+    Serial.println("ERROR mount");    
+  }
+
     Serial.print("The FAT type of the volume: ");
     Serial.println(SD.vol()->fatType());
 
@@ -53,7 +89,7 @@ void loop(void) {
   } else {
     Serial.println(F("file test.txt do not exists\r\n"));   
   }	  
-
+  
   SD.end();
   
   delay(5000);
