@@ -23,6 +23,15 @@ Presentazione
 
 Stima: prototipo di stazione meteo rete monitoraggio ambientale partecipativo
 
+19/01/2013
+----------
+
+Partecipazione a:
+
+Urban Center Comune di Bologna, Sala Borsa, Piazza Nettuno 3
+Spaghetti Open Data organizza: hackathon 
+
+
 01/09/2013
 ----------
 
@@ -40,8 +49,14 @@ https://sourceforge.net/projects/r-map/
 :ref:`Stima V1 <stima_v1-reference>`      
 
 
-Un altro Linux Day non ben collocato nello spazio e nel tempo
+21/03/2014
+----------
 
+Arduino Day 2014  Urban center Sala Borsa di Bologna
+
+Presentazione del progetto RMAP: una rete di monitoraggio ambientale
+partecipativa, modulare ed a basso costo.
+http://www.raspibo.org/wiki/index.php/Arduino_Day_2014
 
 01/06/2014
 ----------
