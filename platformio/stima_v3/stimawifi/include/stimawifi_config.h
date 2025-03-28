@@ -28,7 +28,7 @@
 #define DATE_TIME_STRING_LENGTH                       (25)
 
 // minimum heap size for warning
-#define HEAP_MIN_WARNING 5000
+#define HEAP_MIN_WARNING 3000
 
 // minimum thread stack size for warning
 #define STACK_MIN_WARNING 100
