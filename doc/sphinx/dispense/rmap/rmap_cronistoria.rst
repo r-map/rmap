@@ -328,7 +328,21 @@ e server crowdsourcing gestito da Parco dei Cedri ODV
 ----------
 
 :ref:`StimaWifi V3 (mobile) <stimawifi_v3-reference>`
-   
+
+
+24/03/2025
+----------
+
+Seminario al Politecnico di Torino
+
+Reti di monitoraggio ambientale.
+Esperienze, criticità e prospettive su dati e partecipazione
+
+Relatore: Paolo Patruno
+
+Discussant: Sergio Minniti
+
+
 Stato dell'arte su GitHub
 -------------------------
 

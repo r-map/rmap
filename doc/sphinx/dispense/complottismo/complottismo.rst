@@ -111,10 +111,11 @@ I complotti fantasticati:
    senza fine.
 
 
-Non c'è nessuna emergenza climatica ?
--------------------------------------
+Non c'è nessuna emergenza climatica ? Lavoriamo insieme per verificare se queste tesi sono attendibili!
+-------------------------------------------------------------------------------------------------------
 
-**Queste le motivazioni portate a sostegno. Saranno vere?**
+Queste le motivazioni portate dai negazionisti del riscaldamento globale di origine antropica
+.............................................................................................
 
 https://clintel.org/
 
@@ -126,14 +127,14 @@ incertezze e le esagerazioni nelle loro previsioni sul riscaldamento
 globale, mentre i politici dovrebbero contare spassionatamente i costi
 reali e i benefici immaginati delle loro misure politiche.
 
-Il riscaldamento è causato da fattori naturali e antropici
+**Il riscaldamento è causato da fattori naturali e antropici**
 
 L'archivio geologico rivela che il clima della Terra è variato da
 quando esiste il pianeta, con fasi di freddo e di caldo naturali. La
 Piccola Era Glaciale si è conclusa solo nel 1850. Non è quindi una
 sorpresa che ora stiamo vivendo un periodo di riscaldamento.
 
-Il riscaldamento è molto più lento di quanto previsto
+**Il riscaldamento è molto più lento di quanto previsto**
 
 Il mondo si è riscaldato molto meno di quanto previsto dall'IPCC sulla
 base dei modelli di forzatura antropica. Il divario tra il mondo reale
@@ -147,7 +148,10 @@ plausibili come strumenti di politica globale. Essi gonfiano l'effetto
 dei gas serra come la CO2. Inoltre, ignorano il fatto che arricchire
 l'atmosfera di CO2 è benefico.
 
+.. highlight:: text
+	       
 ::
+   
    Malgrado sussistano ancora alcune incertezze sui modelli climatici,
    questi sono stati in grado di riprodurre episodi del passato ed
    hanno anche fornito previsioni che sono state poi confermate dalle
@@ -164,6 +168,7 @@ un bene anche per l'agricoltura, in quanto aumenta la resa delle
 colture in tutto il mondo.
 
 ::
+   
    Sebbene sotto certi aspetti la CO2 possa essere considerato un
    inquinante (come nel caso della acidificazione degli oceani), il
    maggior impatto ambientale della anidride carbonica è conseguente
@@ -173,7 +178,7 @@ colture in tutto il mondo.
    dannosi in agricoltura, per la salute e nell’ambiente in generale.
 
 
-Il riscaldamento globale non ha aumentato i disastri naturali
+**Il riscaldamento globale non ha aumentato i disastri naturali**
 
 Non ci sono prove statistiche che il riscaldamento globale stia
 intensificando uragani, inondazioni, siccità e disastri naturali
@@ -181,7 +186,7 @@ simili, o che li renda più frequenti. Tuttavia, è ampiamente
 dimostrato che le misure di mitigazione della CO2 sono tanto dannose
 quanto costose.
 
-La politica climatica deve rispettare le realtà scientifiche ed economiche
+**La politica climatica deve rispettare le realtà scientifiche ed economiche**
 
 Non esiste un'emergenza climatica. Pertanto, non c'è motivo di panico
 e di allarme. Ci opponiamo fermamente alla dannosa e irrealistica
@@ -193,7 +198,7 @@ e accessibile in ogni momento. In una società prospera uomini e donne
 sono ben istruiti, i tassi di natalità sono bassi e le persone si
 preoccupano dell'ambiente.
 
-Epilogo
+**Epilogo**
 
 La Dichiarazione Mondiale sul Clima (WCD) ha riunito una grande
 varietà di scienziati competenti provenienti da tutto il mondo*. La
@@ -428,37 +433,37 @@ il percorso dell’indagatore che abbraccia la teoria terrapiattista per
 mezzo dei passaggi seguenti:
 
 1. si viene sollecitati a pensare con la propria testa perché potremmo
-sba- gliarci circa ciò che si crede (qui si ha uno spostamento
-normativo: viene impostato un filtro epistemico che ammette prove
-modali e si entra nell’area d’indagine dell’indagatore cauto);
+   sba- gliarci circa ciò che si crede (qui si ha uno spostamento
+   normativo: viene impostato un filtro epistemico che ammette prove
+   modali e si entra nell’area d’indagine dell’indagatore cauto);
 2. viene invocato l’abbandono dei pregiudizi: il pensatore critico
-deve abbandonare quelle proposizioni della scienza che aveva in
-precedenza dogmaticamente giudicato ammissibili, ma che ora, secondo
-lo standard restrittivo per la formazione delle credenze basato sulla
-certezza, non lo sono più (all’interno dell’area dell’indagine
-dell’indagatore cauto, il filtro epistemico scarta tutte le prove che
-non hanno status di certezza);
+   deve abbandonare quelle proposizioni della scienza che aveva in
+   precedenza dogmaticamente giudicato ammissibili, ma che ora,
+   secondo lo standard restrittivo per la formazione delle credenze
+   basato sulla certezza, non lo sono più (all’interno dell’area
+   dell’indagine dell’indagatore cauto, il filtro epistemico scarta
+   tutte le prove che non hanno status di certezza);
 3. a questo punto l’indagatore abbandona la credenza che la Terra sia
-sferica e gli viene impartito il messaggio complottista: una mente
-critica scevra da pregiudizi realizza quanto fosse irragionevole
-credere alla teoria ufficiale propagandata per ingannare, senza
-tuttavia fornire motivi razionali per formarsi tale credenza (viene
-creato il filtro epistemico della teoria del complotto: l’indagatore
-si sposta nell’area della teoria del complotto);
+   sferica e gli viene impartito il messaggio complottista: una mente
+   critica scevra da pregiudizi realizza quanto fosse irragionevole
+   credere alla teoria ufficiale propagandata per ingannare, senza
+   tuttavia fornire motivi razionali per formarsi tale credenza (viene
+   creato il filtro epistemico della teoria del complotto:
+   l’indagatore si sposta nell’area della teoria del complotto);
 4. dato che la tesi della Terra sferica è accettata e divulgata da
-tutte le istituzioni epistemiche (centri di ricerca, università,
-scuole, agenzie spaziali), la teoria del complotto è rivolta a tutte
-le istituzioni (il filtro epistemico viene potenziato e l’indagatore
-viene collocato nella camera dell’eco);
+   tutte le istituzioni epistemiche (centri di ricerca, università,
+   scuole, agenzie spaziali), la teoria del complotto è rivolta a
+   tutte le istituzioni (il filtro epistemico viene potenziato e
+   l’indagatore viene collocato nella camera dell’eco);
 5. le uniche prove ammissibili (come la percezione dell’orizzonte)
-sono portate a sostegno della tesi terrapiattista (la norma per la
-formazione della credenza vigente nella camera dell’eco viene
-coadiuvata dalla percezione dell’orizzonte);
+   sono portate a sostegno della tesi terrapiattista (la norma per la
+   formazione della credenza vigente nella camera dell’eco viene
+   coadiuvata dalla percezione dell’orizzonte);
 6. vengono addotte controprove atte a rivedere la credenza della
-proposizione che la Terra ha una forma sferoide (ad esempio, la
-percezione dell’orizzonte che appare piatto offre una controprova, non
-compromessa da altre controprove scientifiche per via del filtro
-epistemico, che innesca la norma della revisione).
+   proposizione che la Terra ha una forma sferoide (ad esempio, la
+   percezione dell’orizzonte che appare piatto offre una controprova,
+   non compromessa da altre controprove scientifiche per via del
+   filtro epistemico, che innesca la norma della revisione).
 
 Tutti questi passaggi sono necessari affinché il terrapiattista porti
 il malcapitato indagatore a diventare un adepto.
