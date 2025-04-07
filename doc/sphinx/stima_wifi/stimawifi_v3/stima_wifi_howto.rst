@@ -53,8 +53,10 @@ percorsi significativi.
 [libera interpretazione del pensiero di] Mitchel Resnick
 
 .. image:: stimawifi_open1.png
+   :width: 50%
 
 .. image:: stimawifi_open2.png
+   :width: 50%
 	   
 
 Schema a blocchi
@@ -81,20 +83,36 @@ Componenti Hardware
 MCU - Espressif ESP32 C3
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-* risc V
-* WiFi 2.4Ghz con antenna integrata (direct, AP, client)
-* I2C, I2S, SPI, PWM, UART
+.. image:: c3_mini_v2.1.0_1_16x16.jpg
+   :width: 50%
 
+* based ESP32-C3 WIFI & Bluetooth LE RISC-V Single-Core CPU
+* Type-C USB
+* 4MB Flash
+* 1x WS2812B RGB LED
+* Digital I/O Pins 12
+* ADC, I2C, SPI, UART
+* Compatible with LOLIN D1 mini shields
+* Compatible with MicroPython, Arduino, CircuitPython and ESP-IDF
+* Operating Voltage 3.3V
+* Clock Speed 160MHz
+* Flash 4M Bytes
+* Size 34.3*25.4mm
+* Weight 2.6g
 
 La scheda di sviluppo, basata su esp32, è stata lanciata da Wemos,
 come alternativa alle schede Arduino. Nella versione mini misura
 (35x26mm).
+
+.. image:: c3_mini_v2.webp
 
 Come con arduino, il modulo è espandibile con apposite schede di
 espansione dette shield.
 
 Power Shield
 ^^^^^^^^^^^^
+
+.. image:: power_shield.png
 
 La scheda D1 mini può essere alimentata tramite connessione
 usb (micro).
@@ -106,12 +124,32 @@ alimentatore esterno ( da 7 a 24 V ).
 Oled Shield
 ^^^^^^^^^^^
 
+.. image:: oled_v2.1.0_1_16x16.jpg
+   :width: 50%
+
 Dimensione dello schermo: 64x48 pixel
 VCC: 3.3V
 Driver IC: SSD1306
 Indirizzo I2C: 0x3C or 0x3D
 Può essere utilizzato sia impilato sullo stack principale, sia
 collegato alla base di espansione (in entrambi i casi via I2C bus)
+
+Micro SD Card Shield
+^^^^^^^^^^^^^^^^^^^^
+
+.. image:: sd_v1.2.0_1_16x16.jpg
+   :width: 50%
+
+Micro SD(TF) card per D1 mini
+
+
+RTC and Microsd Data Logger Shield 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: rtc-sd-shield.png
+
+Data logger shield per la memorizzazione dei dati tramite scheda
+MicroSD e orologio in tempo reale integrato DS1307 con quarzo
 
 Base Board
 ^^^^^^^^^^
@@ -120,12 +158,16 @@ Esporta le connessioni al bus I2C.
 
 Può essere popolata con diversi tipi di connettori (passo 2.54mm)
 
+.. image:: base1.jpg
+
 Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
 gli altri componenti a 3.3v.
 
 La base board permette di selezionare il voltaggio adatto al sensore
 tramite un cavallotto.  Se il selettore non è popolato, la periferica
 collegata, non riceve alimentazione.
+
+.. image:: base2.jpg
 
 
 BUS I2C
@@ -151,6 +193,7 @@ Scatola
 -------
 
 .. image:: scatola.png
+   :width: 50%
 
 Serve a proteggere l’elettronica ed alloggiare parte dei sensori.
 
@@ -160,17 +203,19 @@ sensore per le polveri sottili e quello per la rilevazione della
 concentrazione di CO2
 
 .. image:: scatola_interno.png
-
+   :width: 50%
 
 Nella parte alta della foto si nota l’alloggiamento
 delle componenti elettroniche principali.
 
 .. image:: scatola_elettronica.png
+   :width: 50%
 
 La parte bassa è divisa in due sezioni e queste sezioni sono aperte
 verso l’esterno a differenza di quella superiore
 
 .. image:: scatola_inferiore.png
+   :width: 50%
 
 I cavi per i sensori passano attraverso piccole incisioni del
 polietilene per mantere il più possibile la camera superiore stagna
@@ -180,12 +225,14 @@ La ﬁnestra per il monitor è ricavata incollando un riquadro di
 policarbonato con della colla a caldo.
 
 .. image:: scatola_display.png
+   :width: 30%
 
 
 Schermo solare
 --------------
 
 .. image:: schermo_solare.png
+	   :width: 20%
 
 Alloggiamento esterno alla stazione per sensore
 umidità e temperatura
@@ -219,6 +266,7 @@ Sensirion SPS30 (Sensore per le polveri sottili)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. image:: sps30.png
+	   :width: 50%
 
 * Tecnologia: Scatter Beam OPC (Optical Particulate Counter)
 * VCC: 5V
@@ -232,12 +280,13 @@ selezionare la modalità I2C (se lasciato non collegato il
 sensore comunica con la modalità UART
 
 .. image:: sps30_pinout.png
+   :width: 50%
 
 
 Sensirion SCD30 (Sensore CO 2 )
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: scd30_pinout.png
+.. image:: scd30.png
 
 * Tecnologia: NonDispersive InfraRed (NDIR)
 * VCC: 3.3V ~ 5.5V
@@ -245,12 +294,14 @@ Sensirion SCD30 (Sensore CO 2 )
 * Data Sheet: https://sensirion.com/products/catalog/SCD30/
 
 .. image:: scd30_pinout.png
+   :width: 30%
 
 
 Sensirion SHT85 (Sensore Umidità & Temperatura)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: scd30.png
+.. image:: sht85.png
+   :width: 50%
 
 * Tecnologia: Scatter Beam OPC (Optical Particulate Counter)
 * VCC: 2.5V ~ 3.3V ~ 5V (Typical 3.3V)
@@ -258,6 +309,7 @@ Sensirion SHT85 (Sensore Umidità & Temperatura)
 * Data Sheet: https://sensirion.com/products/catalog/SHT85/
 
 .. image:: sht85_pinout.png
+   :width: 50%
 
 
 
