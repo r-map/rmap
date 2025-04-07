@@ -3,22 +3,6 @@
 Stima WiFi V3
 =============
 
-* Citizen Science // Progetto RMAP // La Stazione STiMA
-  
-  - Versione pdf :download:`pdf <stimawifi_intro.pdf>`
-  - Versione open documet :download:`odp <stimawifi_intro.odp>`
-
-* Stazione Stima // Hardware // Sensori
-  
-  - Versione pdf :download:`pdf <stimawifi_hardware.pdf>`
-  - Versione open documet :download:`odp <stimawifi_hardware.odp>`
-    
-* Configurazione // Firmware + Software // Python + Json // NodeRed
-  
-  - Versione pdf :download:`pdf <stimawifi_programming.pdf>`
-  - Versione open documet :download:`odp <stimawifi_programming.odp>`
-
-
 Introduzione
 ------------
 
@@ -26,6 +10,17 @@ Stima Wi-Fi è una stazione di monitoraggio ambientale, uno strumento
 che misura in modo continuativo, a intervalli regolari, alcuni
 parametri chimici e fisici che caratterizzano l’inquinamento e le
 proprietà dell’ambiente in cui viviamo.
+
+
+La stazione Stima WiFi è un apparato pensato per il monitoraggio
+ambientale non troppo complicato da assemblare e di costo
+relativamento contenuto.  Il software e, nei limiti del possibile,
+l’hardware utilizzato è stato selezionato per permettere la
+condivisione di schemi di assemblaggio, firmware e software di
+supporto sotto licenze libere.  Anche i dati raccolti vengono sono
+rilasciati con una licenza permissiva CC-BY 4.0
+
+
 
 Non è una stazione di rilevamento meteorologico che segue i rigorosi
 standard dell’organizzazione meteorologica mondiale. I criteri per la
@@ -40,17 +35,415 @@ un po’ di attenzione e manualità.
 
 .. image:: stimawifi.png
 
+**Pavimenti bassi, soffitti alti e stanze spaziose**
+
+Quando discuteva di tecnologie di supporto alla didattica Seymour
+Papert sottolineava spesso l’importanza di "pavimenti bassi" e dei
+"soffitti alti". Per essere efficace, affermava, una tecnologia deve
+essere facile da apprendere ed esplorare per i principianti (pavimenti
+bassi) ma, con il tempo, deve permettere di lavorare su progetti
+sempre più sofisticati (soffitti alti).
+
+Per un quadro più completo, bisogna aggiungere una dimensione in più
+l’ampiezza dell’ambiente [di apprendimento] (stanze spaziose). Non
+basta prevedere un percorso di apprendimento dal pavimento basso al
+soffitto alto; dobbiamo offrire la possibilità di esplorare differenti
+percorsi significativi.
+
+[libera interpretazione del pensiero di] Mitchel Resnick
+
+.. image:: stimawifi_open1.png
+
+.. image:: stimawifi_open2.png
+	   
+
+Schema a blocchi
+----------------
+
+.. image:: stimawifi_blocchi.png
+
+Caratteristiche del progetto:
+
+* Precisione delle misure;
+* Economicità dell’hardware
+* Facilità di assemblaggio
+* Possibilità di personalizzazione
+
+Il progetto RMAP, di cui la stazione Stima fa parte, è in continua
+evoluzione e così la stazione di monitoraggio ha vissuto diverse
+incarnazioni, variando la sua conﬁgurazione in base all’hardware via
+via disponibile.
+
+
+Componenti Hardware
+-------------------
+
+MCU - Espressif ESP32 C3
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* risc V
+* WiFi 2.4Ghz con antenna integrata (direct, AP, client)
+* I2C, I2S, SPI, PWM, UART
+
+
+La scheda di sviluppo, basata su esp32, è stata lanciata da Wemos,
+come alternativa alle schede Arduino. Nella versione mini misura
+(35x26mm).
+
+Come con arduino, il modulo è espandibile con apposite schede di
+espansione dette shield.
+
+Power Shield
+^^^^^^^^^^^^
+
+La scheda D1 mini può essere alimentata tramite connessione
+usb (micro).
+Per utilizzare la scheda lontano da un computer si può
+utilizzare uno shield di alimentazione
+Alla scheda di espansione possibile connettere un
+alimentatore esterno ( da 7 a 24 V ).
+
+Oled Shield
+^^^^^^^^^^^
+
+Dimensione dello schermo: 64x48 pixel
+VCC: 3.3V
+Driver IC: SSD1306
+Indirizzo I2C: 0x3C or 0x3D
+Può essere utilizzato sia impilato sullo stack principale, sia
+collegato alla base di espansione (in entrambi i casi via I2C bus)
+
+Base Board
+^^^^^^^^^^
+
+Esporta le connessioni al bus I2C.
+
+Può essere popolata con diversi tipi di connettori (passo 2.54mm)
+
+Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
+gli altri componenti a 3.3v.
+
+La base board permette di selezionare il voltaggio adatto al sensore
+tramite un cavallotto.  Se il selettore non è popolato, la periferica
+collegata, non riceve alimentazione.
+
+
+BUS I2C
+-------
+
+StimaWiFi controlla i sensori via bus I2C.
+http://www.i2c-bus.org/
+https://www.nxp.com/docs/en/application-note/AN10216.pdf
+
+* Protocollo seriale (sincrono)
+* due sole linee comunicazione
+  * SCL (Serial CLock) (sincronia)
+  * SDA (Serial DAta)
+* Single Master ~ slave // Multi-master
+* Lento (100/400 kbit/s) 
+* Supporta ﬁno a 127 device
+* Ogni device ha indirizzo univoco (sul bus)
+
+Semplice interazione basata su messaggi (Master invia richiesta ad
+indirizzo device slave, slave device risponde solo se interpellato)
+
+Scatola
+-------
+
+.. image:: scatola.png
+
+Serve a proteggere l’elettronica ed alloggiare parte dei sensori.
+
+Deve essere divisa in due sezioni principali, una ospita i componenti
+elettronici, l’altra (divisa a sua volta in due camere separate) il
+sensore per le polveri sottili e quello per la rilevazione della
+concentrazione di CO2
+
+.. image:: scatola_interno.png
+
+
+Nella parte alta della foto si nota l’alloggiamento
+delle componenti elettroniche principali.
+
+.. image:: scatola_elettronica.png
+
+La parte bassa è divisa in due sezioni e queste sezioni sono aperte
+verso l’esterno a differenza di quella superiore
+
+.. image:: scatola_inferiore.png
+
+I cavi per i sensori passano attraverso piccole incisioni del
+polietilene per mantere il più possibile la camera superiore stagna
+
+
+La ﬁnestra per il monitor è ricavata incollando un riquadro di
+policarbonato con della colla a caldo.
+
+.. image:: scatola_display.png
+
+
+Schermo solare
+--------------
+
+.. image:: schermo_solare.png
+
+Alloggiamento esterno alla stazione per sensore
+umidità e temperatura
+
+* Protegge il sensore da intemperie
+* Protegge il sensore da radiazione solare diretta
+* Evita surriscaldamento e migliora precisione
+* Può essere autocostruito https://e.pavlin.si/2019/02/04/low-cost-solar-radiation-shield/
+* Modelli molto economici già pronti	
+
+
+Connessione Device
+^^^^^^^^^^^^^^^^^^
+
+Connettere i device necessari è semplice
+
+- assicurarsi che la stazione non sia alimentata
+- selezionare appropriato voltaggio alimentazione
+- assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
+  
+NOTE
+
+- Alcuni device hanno più dei quattro pin necessari alla connessione
+  al bus I2C
+- VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
+
+Sensori
+-------
+  
+Sensirion SPS30 (Sensore per le polveri sottili)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: sps30.png
+
+* Tecnologia: Scatter Beam OPC (Optical Particulate Counter)
+* VCC: 5V
+* Indirizzo I2C: 0x69
+* Data Sheet: https://sensirion.com/products/catalog/SPS30/
+
+Note: Connettore a 5 poli.
+
+Il quinto ﬁlo del connettore deve essere collegato a GND per
+selezionare la modalità I2C (se lasciato non collegato il
+sensore comunica con la modalità UART
+
+.. image:: sps30_pinout.png
+
+
+Sensirion SCD30 (Sensore CO 2 )
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: scd30_pinout.png
+
+* Tecnologia: NonDispersive InfraRed (NDIR)
+* VCC: 3.3V ~ 5.5V
+* Indirizzo I2C: 0x61
+* Data Sheet: https://sensirion.com/products/catalog/SCD30/
+
+.. image:: scd30_pinout.png
+
+
+Sensirion SHT85 (Sensore Umidità & Temperatura)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: scd30.png
+
+* Tecnologia: Scatter Beam OPC (Optical Particulate Counter)
+* VCC: 2.5V ~ 3.3V ~ 5V (Typical 3.3V)
+* Indirizzo I2C: 0x44
+* Data Sheet: https://sensirion.com/products/catalog/SHT85/
+
+.. image:: sht85_pinout.png
+
+
+
+Software
+--------
+
+FreeRtos viene utilizzato attraverso un wrapper C++.  Ogni thread ha
+una struttura dati utilizzata per comunicare trutture dati e dati.
+Nessun dato possibilmente è definito globalmente.
+
+Il colore del led indica lo stato di funzionamento:
+
+* spento: sconosciuto
+* blu: in elaborazione
+* verde : tutto funziona
+* Rosso: almeno un errore è presente
+
+Il display è opzionale e visualizza comunicazioni, ogni 3 secondi lo
+stato aggiornato riassuntivo di funzionamento e un riassunto delle
+ultime misurazioni effettuate
+
+L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
+in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
+
+Dopo essere passati dal DB sqlite i file vengono trasferiti in un 
+archivio, integrato in modalità append.
+
+Per poter utilizzare la stazione in modalità "mobile" ossia con
+posizione continuamente aggiornata ci sono due possibilità:
+
+* connettere un modulo GPS con Ublox neo6m
+* utilizzare l'app android GPSD_forwarder
+
+La configurazione è gestita sul server e i thread sono attivati
+automaticamente. Quando la geolocalizzazione è possibile i dati
+vengono generati, in caso contrario no.
+
+E' attivo un web server accessibile quando ci si connette allo stesso Wifi
+a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
+
+* http://<station slug>             Full main page
+* http://<station slug>/data.json   Data in json format
+* http://<station slug>/geo         Coordinate of the station
+
+I dati sono visualizzabile da browser sempre se connessi allo stesso WiFi
+autenticandosi sul server RMAP e accedendo alla propria pagina personale,
+selezionando la stazione e poi alla voce "Mostra i dettagli stazione" e poi
+"Dati locali in tempo reale".
+
+Il reset delle configurazioni è effettuabile a stazione disalimentata
+collegando a massa il pin RESET_PIN  o premendo il pulsante A della
+board del display, alimentare la stazione e dopo 10 secondi scollegare il
+RESET_PIN o rilasciare il pulsante. Il reset della configurazione effettua:
+
+* rimozione delle configurazioni del wifi
+* rimozione delle configurazioni stazione (utente slug password)
+* completa formattazione dell'SD card con rimozione definitiva di 
+  tutti i dati presenti
+
+Il frusso dei dati nelle code è il seguente:
+
+i dati e metadati sono generati da threadMeasure e accodati nella coda
+mqttqueue per la pubblicazione, ricevuti da threadPublish per la 
+pubblicazione sul broker MQTT; se non c'è spazio
+vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
+threadMeasure è attivato periodicamente.
+
+threadPublish prova la pubblicazione MQTT.
+
+Dopo ogni tentativo di pubblicazione al broker MQTT
+i dati vengono accodati per l'archiviazione nella coda dbqueue
+etichettati relativamente al risultato della pubblicazione.
+
+Il thread threadDb gestisce due tipi di archiviazione dati.
+
+Il primo (DB) che contiene gli ultimi dati misurati (solitamente 24 ore)
+con sovrascrittura nel database e una etichetta a indicare lo stato di 
+pubblicazione; fino a quando i dati sono presenti in questo
+DB i dati possono essere recuperati per la pubblicazione fino al successo della
+pubblicazione.
+
+Quando i dati nel DB invecchiano oltre il limite vengono trasferiti nell'archivio
+dove potranno essere riletti solo tramite un PC.
+
+Ogni thread ha una struttura dati che descrive
+lo stato di funzionamento. Il thread loop di arduino effettua una
+sintesi degli stati di tutti i thread e li visualizza tramite i
+colori del LED e tramite il display opzionale.
+
+Per pubblicare e archiviare i dati è necessario avere un corretto timestamp.
+Data e ora possono essere impostati tramite:
+
+* NTP
+* GPS
+* UDP
+
+Se presente un RTC locale (DS1307) data e ora sono impostate sull'RTC
+automaticamente con uno dei metodi precedenti e poi se tutti i metodi
+precedenti non sono più disponibili riletti dall'RTC.
+
+Senza un corretto timestamp i dati non possono essere gestiti e
+vengono subito ignorati.
+
+Threads:
+
+thread loop arduino
+^^^^^^^^^^^^^^^^^^^
+
+Questo thread esegue tutte le operazioni iniziali di configurazione e
+attivazione degli altri thread. Prima si configura la connessione WiFi
+insieme ad alcuni parametri univoci della stazione. Tramite questi
+ultimi la configurazione stazione viene scaricata dal server. Il
+thread governa la visualizzazione sul display e la colorazione del
+LED. Inoltre è possibile visualizzare i dati misurati tramite un
+browser indirizzandolo sulla pagina personale sul server RMAP.
+La libreria TimeAlarm gestisce l'attivazione dei segnali ai
+thread per attivazioni perioche.
+
+threadMeasure
+^^^^^^^^^^^^^
+
+Questo thread si occupa di interrogare i sensori, associare i metadati
+e accodarli per la pubblicazione e archiviazione. I sensori vengono
+interrogati in parallelo tramite delle macchine a stati finiti.
+Inoltre viene prodotta una struttura di dati di riassunto delle misure
+effettuate. Insieme alla libreria di driver per sensori viene gestita
+la loro inizializzazione e il restart in caso di ripetuti errori.
+
+threadPublish
+^^^^^^^^^^^^^
+
+Pubblica i dati in MQTT secondo lo standard RMAP.  Se la
+configurazione è per una stazione mobile della struttura con la
+geolocalizzazione viene controllato il timestamp e se ancora attuale
+associate le coordinate ai dati.
+
+threadDb
+^^^^^^^^
+
+Archivia i dati su SD card. Il formato del DB è quello portabile di sqlite3 e
+possono essere letti tramite la stessa libreria da PC. Più scritture
+con gli stessi metadati aggiornano i dati, non creano record
+duplicati. L'archivio invece è composto da due file, uno di descrizione
+e il secondo con i dati.
+
+Il thread threadDb viene attivato periodicamente
+per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
+inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
+sufficiente spazio nella coda di pubblicazione per altri thread.
+
+Il thread threadDb esegue a priorità più alta degli altri per garantire
+l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
+
+I dati vengo continuamente traferiti dal DB all'archivio eliminando dal 
+database i dati più vecchi trasferendoli in un semplice archivio su file
+sempre sull'SD card. I dati in archivio possono essere letti e traferiti
+sul server RMAP tramite mqtt2bufr, un tool della suite RMAP.
+
+Se all'avvio i dati presenti nel DB risultano essere
+tutti vecchi i dati vengono traferiti all'archivio e l'intero DB viene eliminato
+e ricreato vuoto per limiti di memoria e performance.
+
+threadUdp
+^^^^^^^^^
+
+Legge i dati UDP inviati dalla app GPSD forwarder di uno smartphone
+riempiendo una struttura dati con la geolocalizzazione e un timestamp.
+
+threadGps
+^^^^^^^^^
+
+Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
+la geolocalizzazione e un timestamp.
+
+	   
 Messa in opera della stazione
 -----------------------------
 
-La messa in opera della stazione può essere affrontata in più fasi,
+La messa in opera della stazione può essere affrontata in più fasi:
 dopo aver assemblato la scheda elettronica ed averla posizionata nel
 proprio guscio bisognerà configurare la stazione, registrarla presso
-il sito che raccoglierà i dati per una prima elaborazione ed
-installare la stazione in una posizione individuata in precedenza.
+il sito che raccoglierà i dati e installare la stazione nel sito
+prescelto.
 
 In queste pagine tratteremo sommariamente queste operazioni
-preoccupandoci di dare delle direttive di massima su cosa fare e su
+preoccupandoci di dare delle indicazioni di massima su cosa fare, sui
 materiali e strumenti necessari alla corretta esecuzione delle
 procedure necessarie alla messa in opera.
 
@@ -59,7 +452,7 @@ Assemblaggio scheda elettronica
 --------------------------------
 
 La prima fase della messa in opera presuppone l’assemblaggio del
-modulo di sistema, la parte della stazione che si occupa di consultare
+data logger, la parte della stazione che si occupa di consultare
 periodicamente i sensori installati e di inviare i campionamenti al
 server centrale.
 
@@ -88,19 +481,17 @@ usb e tramite alimentatore 12v, bisogna togliere l’alimentazione e
 provare il metodo ad alimentare la stazione verificando anche la
 modalità di alimentazione che non si è ancora utilizzata.
 
-
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-cavo micro usb
-computer/Alimentatore per smartphone
-saldatore a stagno*
+* cavo micro usb
+* computer/Alimentatore per smartphone
+* saldatore a stagno*
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Nessuna
-
+* Nessuna
 
 Caricamento firmware
 --------------------
@@ -145,14 +536,14 @@ procedere.
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-cavo micro usb
-computer
+* cavo micro usb
+* computer
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Ambiente di sviluppo Python
-Platformio (Piattaforma per lo sviluppo embedded)
+* Ambiente di sviluppo Python
+* Platformio (Piattaforma per lo sviluppo embedded)
 
 
 Collegamento dei sensori
@@ -203,14 +594,14 @@ precisione.
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Multimetro
-Computer, tablet o smartphone con connettività Wi-Fi
+* Multimetro
+* Computer, tablet o smartphone con connettività Wi-Fi
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Un qualunque browser web
-Accesso alla rete Wi-Fi
+* Un qualunque browser web
+* Accesso alla rete Wi-Fi
 
 
 Censimento stazione
@@ -255,12 +646,12 @@ usato in fase di configurazione iniziale.
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Computer, tablet o smartphone
+* Computer, tablet o smartphone
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Un qualunque browser web
+* Un qualunque browser web
 
 
 Collaudo Stazione
@@ -308,14 +699,14 @@ Questo video mostra una modalità per procedere alla riconfigurazione.
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Computer, tablet o smartphone con connettività Wi-Fi
+* Computer, tablet o smartphone con connettività Wi-Fi
 
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Un qualunque browser web
-Accesso alla rete Wi-Fi
+* Un qualunque browser web
+* Accesso alla rete Wi-Fi
 
 Preparazione del guscio
 -----------------------
@@ -355,19 +746,18 @@ Infine andranno rimossi i passacavi posti sul lato inferiore per permettere il r
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forbici o taglierino
-Colla a caldo
-Nastro biadesivo
-Un foglio di Foam a celle chiuse (schiuma per imballaggi)
-Multimetro
-Cacciavite
-Plexiglas
-
+* Forbici o taglierino
+* Colla a caldo
+* Nastro biadesivo
+* Un foglio di Foam a celle chiuse (schiuma per imballaggi)
+* Multimetro
+* Cacciavite
+* Plexiglas
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-Nessuna
+* Nessuna
 
 Installazione in loco
 ---------------------
@@ -390,8 +780,15 @@ Installazione schermo solare e sensore temperatura
 
 .. image:: schermo.png
 
-Ancora da scrivere
-^^^^^^^^^^^^^^^^^^
+TODO
+^^^^
+
+
+Configurazione // Firmware + Software // Python + Json // NodeRed
+-----------------------------------------------------------------
+
+  - Versione pdf :download:`pdf <stimawifi_programming.pdf>`
+  - Versione open documet :download:`odp <stimawifi_programming.odp>`
 
 
 Appendice A
