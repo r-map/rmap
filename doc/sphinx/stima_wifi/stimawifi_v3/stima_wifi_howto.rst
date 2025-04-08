@@ -6,7 +6,7 @@ Stima WiFi V3
 Introduzione
 ------------
 
-Stima Wi-Fi è una stazione di monitoraggio ambientale, uno strumento
+Stima WiFi è una stazione di monitoraggio ambientale, uno strumento
 che misura in modo continuativo, a intervalli regolari, alcuni
 parametri chimici e fisici che caratterizzano l’inquinamento e le
 proprietà dell’ambiente in cui viviamo.
@@ -71,10 +71,10 @@ Caratteristiche del progetto:
 * Facilità di assemblaggio
 * Possibilità di personalizzazione
 
-Il progetto RMAP, di cui la stazione Stima fa parte, è in continua
-evoluzione e così la stazione di monitoraggio ha vissuto diverse
-incarnazioni, variando la sua conﬁgurazione in base all’hardware via
-via disponibile.
+Il progetto RMAP, di cui la stazione Stima WiFi fa parte, è in
+continua evoluzione e così la stazione di monitoraggio ha vissuto
+diverse incarnazioni, variando la sua conﬁgurazione in base
+all’hardware via via disponibile.
 
 
 Componenti Hardware
@@ -173,7 +173,7 @@ collegata, non riceve alimentazione.
 BUS I2C
 -------
 
-StimaWiFi controlla i sensori via bus I2C.
+Stima WiFi controlla i sensori via bus I2C.
 http://www.i2c-bus.org/
 https://www.nxp.com/docs/en/application-note/AN10216.pdf
 
@@ -333,6 +333,8 @@ ultime misurazioni effettuate
 
 L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
 in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
+
+.. image:: db_structure.png
 
 Dopo essere passati dal DB sqlite i file vengono trasferiti in un 
 archivio, integrato in modalità append.
@@ -555,8 +557,8 @@ personalizzarne le funzionalità o cogliere l’occasione di
 impratichirsi con questa operazione fondamentale nel ciclo di vita del
 software per microcontrollori,
 
-La stazione Stima è basata sul microcontrollore Esp8266 prodotto da
-ExpressIf. Si tratta di una soluzione economica e affidabile che da
+La stazione Stima WiFi è basata sul microcontrollore Esp32 prodotto
+da ExpressIf. Si tratta di una soluzione economica e affidabile che da
 qualche anno sta aumentando esponenzialmente la propria popolarità.
 Il produttore mette a disposizione strumenti gratuiti e liberi per lo
 sviluppo, e sono diffuse librerie ed ambienti di progettazione per i
@@ -613,7 +615,7 @@ funzionamento.
 
 Per farlo bisogna assemblare i cavi di collegamento secondo gli schemi
 forniti dal produttore dei sensori facendo in modo che corrispondono
-alla piedinatura dei connettori presenti sulla stazione Stima.
+alla piedinatura dei connettori presenti sulla stazione Stima WiFi.
 
 .. image:: board.jpg
 
@@ -843,11 +845,12 @@ Configurazione // Firmware + Software // Python + Json // NodeRed
   - Versione open documet :download:`odp <stimawifi_programming.odp>`
 
 
-Appendice A
------------
+Appendice A Checklist installazione
+-----------------------------------
 
-Checklist installazione Stima wifi
-Per mettere in opera una stazione stima bisogna tenere da conto tre fattori che permettono di farla operare al meglio: 
+Checklist installazione Stima WiFi Per mettere in opera una stazione
+Stima WiFi bisogna tenere da conto tre fattori che permettono di farla
+operare al meglio:
 
 * L’accesso all’alimentazione di rete
 * L’accesso ad un access point wifi
@@ -865,13 +868,39 @@ togliere alimentazione alla stazione, ad esempio nei weekend o in
 tarda serata, pena l’impossibilità di registrare e conferire i dati
 raccolti.
 
-Appendice B
------------
+Appendice B Accesso WiFi
+------------------------
 
-Pin
----
+Le stazioni Stima WiFi, utilizzano una rete WiFi a 2.4Ghz* per collegarsi
+ad internet e non possono utilizzare un proxy.  Prima di procedere con
+l’installazione è bene confrontarsi con il personale dell’ufficio
+tecnico per assicurarsi che la rete che si vuole utilizzare per la
+connessione sia adatta
+
+Annotare l’SSID della rete wifi a cui dovrà connettersi la stazione
+Stabilire se l’accesso alla rete wifi è protetto da password.
+
+Assicurarsi che la stazione possa accedere ad internet senza passare
+per un proxy Solitamente, si può derogare al filtro dei dati,
+indicando all’ufficio tecnico della scuola l’indirizzo MAC della
+stazione La connessione WiFi deve essere assicurata 7/24
+
+Una volta soddisfatti i prerequisiti, basta assicurarsi che la rete
+WiFi copra con un segnale stabile il punto prescelto per
+l’installazione.
+
+[*] Anche se più veloce, la rete a 5Ghz non garantisce, nel nostro
+caso, migliorie significative rispetto a quella a 2.4Ghz e, di contro,
+è molto più sensibile agli ostacoli che dovessero frapporsi tra
+l’access point e la stazione.
+
+Appendice C PIN
+---------------
+
+**Pin**
+
 +------+--------------+------+------------------------------+--------------+-------+------------------------------+-------------------+
-| Pin  | ESP-8285 Pin | name | Function                     | ESP32 C3 Pin | name  | Function                     | Stima use         |
+| Pin  | ESP-8286 Pin | name | Function                     | ESP32 C3 Pin | name  | Function                     | Stima use         |
 +======+==============+======+==============================+==============+=======+==============================+===================+
 | dx8  | TXD          | TX   | TXD                          | TXD  (21)    | TX    | TXD                          | TXD/encA          |
 +------+--------------+------+------------------------------+--------------+-------+------------------------------+-------------------+
@@ -907,32 +936,4 @@ Pin
 +------+--------------+------+------------------------------+--------------+-------+------------------------------+-------------------+
 
 .. note:: All of the IO pins run at 3.3V.
-
-
-
-Accesso WiFi 
-------------
-
-Le stazioni Stima, utilizzano una rete WiFi a 2.4Ghz* per collegarsi
-ad internet e non possono utilizzare un proxy.  Prima di procedere con
-l’installazione è bene confrontarsi con il personale dell’ufficio
-tecnico per assicurarsi che la rete che si vuole utilizzare per la
-connessione sia adatta
-
-Annotare l’SSID della rete wifi a cui dovrà connettersi la stazione
-Stabilire se l’accesso alla rete wifi è protetto da password.
-
-Assicurarsi che la stazione possa accedere ad internet senza passare
-per un proxy Solitamente, si può derogare al filtro dei dati,
-indicando all’ufficio tecnico della scuola l’indirizzo MAC della
-stazione La connessione WiFi deve essere assicurata 7/24
-
-Una volta soddisfatti i prerequisiti, basta assicurarsi che la rete
-WiFi copra con un segnale stabile il punto prescelto per
-l’installazione.
-
-[*] Anche se più veloce, la rete a 5Ghz non garantisce, nel nostro
-caso, migliorie significative rispetto a quella a 2.4Ghz e, di contro,
-è molto più sensibile agli ostacoli che dovessero frapporsi tra
-l’access point e la stazione.
 
