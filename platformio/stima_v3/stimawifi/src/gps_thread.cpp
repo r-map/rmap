@@ -3,7 +3,11 @@
 OZGPS gps_gps;
 MGPS gps_mgps;
 
+
+#if defined(ARDUINO_LOLIN_C3_MINI)
 HardwareSerial Serial2(0);  //if using UART1
+#endif
+
 /* Serial speed of the GPS */
 #define GPS_SERIAL_SPEED 9600  // default for UBLOX NEO-6M with two configuration pin not connected (NMEA messages too)
 

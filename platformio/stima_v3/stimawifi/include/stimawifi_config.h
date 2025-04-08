@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-03-26T00:00"    // date and time
-#define MAJOR_VERSION    "20250326"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-04-01T00:00"    // date and time
+#define MAJOR_VERSION    "20250401"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -36,8 +36,6 @@
 // port for http server
 #define STIMAHTTP_PORT 80
 
-#define FIRMWARE_TYPE "LOLIN_C3_MINI"
-
 // set to 1 if we use PMS sensor
 #define PMS_RESET 0
 
@@ -48,6 +46,7 @@
 // define reset and LED pins
 #if defined(ARDUINO_LOLIN_C3_MINI)
 //C3 mini
+#define FIRMWARE_TYPE "LOLIN_C3_MINI"
 // https://www.wemos.cc/en/latest/_static/files/sch_c3_mini_v2.1.0.pdf
 // pin to connect to ground for reset wifi configuration
 #define RESET_PIN D7
@@ -56,6 +55,7 @@
 
 #if defined(ARDUINO_LOLIN_S3_MINI)
 //S3 mini
+#define FIRMWARE_TYPE "LOLIN_S3_MINI"
 // https://www.wemos.cc/en/latest/_static/files/sch_s3_mini_v1.0.0.pdf
 #define RESET_PIN 11
 #define LED_PIN 47
@@ -95,11 +95,11 @@
 #define C3MOSI D7
 
 //https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
-#define C3SS D4
+//#define C3SS D4
 
 //WIFI D1 mini - Data logger shield for D1 mini with RTC and MicroSD
 //https://en.m.nu/esp8266-shields/wifi-d1-mini-data-logger-shield-for-d1-mini-with-rtc-and-microsd
-//#define C3SS D8
+#define C3SS D8
 
 // SPI clock
 #define SPICLOCK 10000000
