@@ -332,7 +332,7 @@ stato aggiornato riassuntivo di funzionamento e un riassunto delle
 ultime misurazioni effettuate
 
 L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
-in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
+in sqlite3; la struttura del DB è qui rappresentata
 
 .. image:: db_structure.png
 
