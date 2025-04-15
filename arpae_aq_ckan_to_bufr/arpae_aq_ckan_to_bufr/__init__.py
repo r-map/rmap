@@ -40,7 +40,8 @@ STATIONS_URL = "https://docs.google.com/spreadsheets/d/1-4wgZ8JeLeg0bODTSFUrshPY
 VARIABLES_URL = "https://docs.google.com/spreadsheets/d/1K6vRcShjje2CDnvnk39o3jkU4ihgpA7rfsdAV1S-yXU/export?format=csv"
 DATASTORE_URL = "https://dati.arpae.it/api/action/datastore_search?resource_id=4dc855a1-6298-4b71-a1ae-d80693d43dcb"
 
-def iter_datastore(low=0, step=100000, high=None):
+# max step = 32000
+def iter_datastore(low=0, step=30000, high=None):
     current = low
     urlparts = list(urlsplit(DATASTORE_URL))
     querydict = dict(parse_qsl(urlparts[3]))
@@ -58,11 +59,11 @@ def iter_datastore(low=0, step=100000, high=None):
             resp = json.load(codecs.getreader("utf-8")(urlopen(nexturl)))
             records = resp["result"]["records"]
             if len(records) == 0:
-                logging.debug("No records found, stopping")
+                logging.info("No records found, stopping")
                 break
             else:
-                logger.debug("Found {} records".format(len(records)))
-                current += step
+                logger.info("Found {} records".format(len(records)))
+                current += len(records)
                 for r in records:
                     yield r
 
@@ -121,17 +122,17 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
 
     with db.transaction() as tr:
         for row in iter_datastore(low=low,high=high):
-            last+=1
-            #last=row["_id"]
+            #last+=1
+            last=row["_id"]
             variable = variables.get(int(row["variable_id"]))
             station = stations.get(int(row["station_id"]))
             reftime = datetime.strptime(row["reftime"], "%m/%d/%Y %H:%M")
             value = row["value"]
             if variable is None:
-                logger.warning("Unknown variable {}, skipping".format(row["variable_id"]))
+                logger.debug("Unknown variable {}, skipping".format(row["variable_id"]))
                 continue
             elif station is None:
-                logger.warning("Unknown station {}, skipping".format(row["station_id"]))
+                logger.debug("Unknown station {}, skipping".format(row["station_id"]))
                 continue
             else:
                 rec = {**{
@@ -213,7 +214,7 @@ def main():
 
     try:
         last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
-        print (last)
+        logging.info("extracted. Last record: {}".format(last))
     except Exception as e:
         logging.exception(e)
 
