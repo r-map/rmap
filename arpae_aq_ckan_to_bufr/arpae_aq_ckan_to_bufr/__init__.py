@@ -36,10 +36,9 @@ VARIABLE_BCODES = {
 
 current=0
 
-STATIONS_URL = "https://docs.google.com/spreadsheets/d/1GlY3Pu9GDpLDk8Spl9yV1wjCRPvOI1m7BFxumfcuGcE/export?format=csv"
-VARIABLES_URL = "https://docs.google.com/spreadsheets/d/13QcqldwA3EQ_4E17Hqggd2ZcMgUA5UwACttAWEkaU28/export?format=csv"
-DATASTORE_URL = "https://dati.arpae.it/api/action/datastore_search?resource_id=a1c46cfe-46e5-44b4-9231-7d9260a38e68"
-
+STATIONS_URL = "https://docs.google.com/spreadsheets/d/1-4wgZ8JeLeg0bODTSFUrshPY-_y9mERUu0FJtSFr78s/export?format=csv"
+VARIABLES_URL = "https://docs.google.com/spreadsheets/d/1K6vRcShjje2CDnvnk39o3jkU4ihgpA7rfsdAV1S-yXU/export?format=csv"
+DATASTORE_URL = "https://dati.arpae.it/api/action/datastore_search?resource_id=4dc855a1-6298-4b71-a1ae-d80693d43dcb"
 
 def iter_datastore(low=0, step=100000, high=None):
     current = low
@@ -74,10 +73,16 @@ def load_stations():
     resp = urlopen(STATIONS_URL)
     reader = csv.DictReader(codecs.getreader("utf-8")(resp))
     for row in reader:
-        key = int(row["Cod_staz"])
+        a,b,c=row["Cod_staz"].split(".")
+        key = int(a+b+c)
+        altezza=row["Altezza"].replace(",", ".")
+        if altezza =="":
+            altezza = None
+        else:
+            altezza=float(altezza)
         rec = {"B01019":row["Stazione"],
-               "B07030":float(row["Altezza"].replace(",", ".")),
-               "lon":float(row["Lon"]), "lat":float(row["Lat"]),
+               "B07030":altezza,
+               "lon":float(row["LON_GEO"]), "lat":float(row["LAT_GEO"]),
                "rep_memo":"arpae-aq"}
         stations[key] = rec
 
@@ -118,9 +123,9 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
         for row in iter_datastore(low=low,high=high):
             last+=1
             #last=row["_id"]
-            variable = variables.get(row["variable_id"])
-            station = stations.get(row["station_id"])
-            reftime = datetime.strptime(row["reftime"], "%Y-%m-%dT%H:%M:%S")
+            variable = variables.get(int(row["variable_id"]))
+            station = stations.get(int(row["station_id"]))
+            reftime = datetime.strptime(row["reftime"], "%m/%d/%Y %H:%M")
             value = row["value"]
             if variable is None:
                 logger.warning("Unknown variable {}, skipping".format(row["variable_id"]))
@@ -140,13 +145,16 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
                     rec["hour"] = reftime.hour
                     rec["min"] = reftime.minute
                     rec["sec"] = reftime.second
-                    rec[variable["var"]] = value * 10**-9
+                    rec[variable["var"]] = float(value) * 10**-9
                     rec["level"] = variable["level"]
                     rec["trange"] = variable["trange"]
                     tr.insert_data(rec)
+                except OverflowError:
+                    logger.warning("Error encoding/write message: OverflowError {} {}".format(variable["var"],value))
+                    
                 except:
                     logger.error("Error encoding/write message")
-                
+
 
     exporter = dballe.Exporter("BUFR")
     with open(outfile, "wb") as outfile:
