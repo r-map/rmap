@@ -1,0 +1,7 @@
+
+#download from CKAN
+python3  ./arpae_aq_ckan_to_bufr/__init__.py $FILE --nlastdays 10 --verbose
+
+#convert file storici from CKAN
+python3  ./arpae_aq_ckan_to_bufr/__init__.py $FILE.bufr --nlastdays 100000 --verbose --csvfile $FILE
+

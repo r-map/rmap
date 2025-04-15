@@ -68,6 +68,25 @@ def iter_datastore(low=0, step=30000, high=None):
                     yield r
 
 
+
+def iter_csvfile(filename):
+
+    with open(filename,"rb") as file:
+    
+        reader = csv.DictReader(codecs.getreader("utf-8")(file))
+        for row in reader:
+            datastore={}
+            datastore["variable_id"] = row["ID_PARAM"]
+            datastore["station_id"] = row["COD_STAZ"]
+            try:
+                reftime = datetime.strptime(row["DATA_FINE"], "%d/%m/%Y %H:%M")
+            except:
+                reftime = datetime.strptime(row["DATA_FINE"], "%d/%m/%Y %H")                
+            datastore["reftime"] = reftime.strftime("%m/%d/%Y %H:%M")
+            datastore["value"] = row["VALORE"]
+            yield datastore
+            
+
 def load_stations():
     stations = {}
     logging.info("Loading stations from {}".format(STATIONS_URL))
@@ -110,10 +129,10 @@ def load_variables():
     return variables
 
 
-def export_data(outfile,low=0,high=None,datetimemin=None):
+def export_data(outfile,rows,datetimemin=None):
     db = dballe.DB.connect("mem:")
     db.reset()
-    last=low
+    last=0
     stations = load_stations()
     variables = load_variables()
     with db.transaction() as tr:
@@ -121,9 +140,10 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
             tr.insert_station_data(rec, can_add_stations=True)
 
     with db.transaction() as tr:
-        for row in iter_datastore(low=low,high=high):
-            #last+=1
-            last=row["_id"]
+
+        for row in rows:
+            last+=1
+            #last=row["_id"]
             variable = variables.get(int(row["variable_id"]))
             station = stations.get(int(row["station_id"]))
             reftime = datetime.strptime(row["reftime"], "%m/%d/%Y %H:%M")
@@ -186,6 +206,7 @@ def main():
     parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
 
     parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
+    parser.add_argument("--csvfile",help='read data from this csv file for historic data')
 
     args = parser.parse_args()
 
@@ -213,8 +234,14 @@ def main():
 
 
     try:
-        last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
-        logging.info("extracted. Last record: {}".format(last))
+
+        if (args.csvfile):
+            rows=iter_csvfile(args.csvfile)
+        else:
+            rows=iter_datastore(low=args.low,high=None)
+        
+        last = export_data(args.outfile,rows,datetimemin=datetimemin)
+        logging.info("Total row: {}".format(last))
     except Exception as e:
         logging.exception(e)
 
