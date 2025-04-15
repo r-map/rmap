@@ -34,8 +34,10 @@ import signal
 import traceback
 from rmap.django2rpc import django2rpc_res,django2rpc_cmd
 from rpc import publish
+from django.db import close_old_connections
 
-tloop=15
+TLOOP=15
+CLOSEOLDCONNECTIONSEC=300
 
 rpcd = daemon.Daemon(
         stdin="/dev/null",
@@ -83,13 +85,13 @@ def main(self):
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
 
     now=datetime.datetime.utcnow()
-    if (tloop >= 60):
-        newminute = now.minute - (now.minute % (tloop//60))
+    if (TLOOP >= 60):
+        newminute = now.minute - (now.minute % (TLOOP//60))
     else:
         newminute=now.minute
     newsecond=0
     formaltime=(now.replace(minute=newminute,second=newsecond,microsecond=0))
-    runtime=formaltime + datetime.timedelta(seconds=tloop)
+    runtime=formaltime + datetime.timedelta(seconds=TLOOP)
 
     if runtime > now:
         waitsec= (runtime - now).seconds
@@ -110,6 +112,7 @@ def main(self):
         r2o.run()
         
         # infinite loop
+        loop=0
         while True:
             logging.info("time: %s" % (runtime.isoformat(' ')))
                 
@@ -122,7 +125,7 @@ def main(self):
                                  auth=auth)
                     
             now=datetime.datetime.utcnow()
-            runtime=runtime+ datetime.timedelta(seconds=tloop)
+            runtime=runtime+ datetime.timedelta(seconds=TLOOP)
                     
             if runtime > now:
                 waitsec= (runtime - now).seconds
@@ -132,6 +135,13 @@ def main(self):
             else:
                 logging.warning("attention; I am late !!")
 
+            loop+=1
+            if ((TLOOP*loop) > CLOSEOLDCONNECTIONSEC):
+                loop=0
+                # avoid InterfaceError: connection already closed
+                logging.info("close old connections")
+                close_old_connections()
+                
             if killer.kill_now:
                 break
 

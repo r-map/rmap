@@ -21,6 +21,8 @@
 # Author: Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 OVERWRITE_DATE=False
+DELAYSEC=3
+CLOSEOLDCONNECTIONSEC=300
 
 import os,sys
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
@@ -40,6 +42,7 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
+from django.db import close_old_connections
 
 from rmap import daemon
 import rmap.settings
@@ -594,9 +597,17 @@ def main(self):
     mqttclient.connect(host=host)
     
     # infinite loop
+    loop=0
     while True:
         try:
-            time.sleep(3) # do nothing
+            loop+=1
+            time.sleep(DELAYSEC) # do nothing
+            if ((loop*DELAYSEC) > CLOSEOLDCONNECTIONSEC):
+                loop=0
+                # avoid InterfaceError: connection already closed
+                logging.info("close old connections")
+                close_old_connections()
+            
         except Exception as exception:
             logging.error('Exception occured: ' + str(exception))
             logging.error(traceback.format_exc())
