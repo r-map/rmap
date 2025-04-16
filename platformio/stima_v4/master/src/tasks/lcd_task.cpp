@@ -510,7 +510,7 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
         if ((value_display_A < MIN_VALID_RADIATION) || (value_display_A > MAX_VALID_RADIATION)) bMeasValid_A = false;
         break;
       case Module_Type::leaf:
-        value_display_A = param.system_status->data_slave[channel].data_value[0];
+        value_display_A = param.system_status->data_slave[channel].data_value[0] * 100.0;
         if ((value_display_A < MIN_VALID_LEAF) || (value_display_A > MAX_VALID_LEAF)) bMeasValid_A = false;
         break;
       case Module_Type::level:
