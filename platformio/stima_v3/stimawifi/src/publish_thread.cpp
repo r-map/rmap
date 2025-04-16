@@ -47,7 +47,7 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   strcat(unique_id, data->station->boardslug);
 
   mqttMessage_t mqtt_message;
-  strcpy(mqtt_message.payload,"ERROR 01");
+  strcpy(mqtt_message.payload,"{\"v\":\"ERROR 01\"}");
   strcpy(mqtt_message.topic,"1/");
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");
@@ -63,7 +63,7 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,"265,0,-,-");
   strcat(mqtt_message.topic,"/");
-  strcat(mqtt_message.topic,"B01000");
+  strcat(mqtt_message.topic,"B01213");
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
@@ -196,7 +196,6 @@ bool publishThread::mqttPublish( const mqttMessage_t& mqtt_message, const bool r
 bool publishThread::publish_maint() {
 
   mqttMessage_t mqtt_message;
-  strcpy(mqtt_message.payload,"ERROR 01");
   strcpy(mqtt_message.topic,"1/");
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");

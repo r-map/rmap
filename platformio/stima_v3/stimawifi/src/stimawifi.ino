@@ -299,6 +299,11 @@ void printLocalTime()
   Serial.println(&timeinfo, "%y %m %d  %H:%M:%S");
 }
 
+// intermediate function to avoid static member in class 
+time_t rtc_set_time(){
+  return frtosRTC.get();
+}
+
 // Callback function (get's called when time adjusts via NTP)
 void timeavailable(struct timeval *t)
 {
@@ -309,12 +314,13 @@ void timeavailable(struct timeval *t)
   printLocalTime();
 
   if (oledpresent){
+    LockGuard guard(i2cmutex);
     u8g2.setCursor(0, 3*CH);
     u8g2.print(F("                "));
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
-  }
-  if (RTC.set(now()) != 0){
+  }  
+  if (frtosRTC.set(now()) != 0){
     frtosLog.error("Setting RTC time from NTP!");
   }
 }
@@ -583,6 +589,7 @@ void firmware_upgrade() {
       frtosLog.error(F("[update] Update failed with message:"));
       frtosLog.error(F("%s"),httpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
+	LockGuard guard(i2cmutex);
 	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("FW Update"));
 	u8g2.setCursor(0, 3*CH); 
@@ -598,6 +605,7 @@ void firmware_upgrade() {
     case HTTP_UPDATE_NO_UPDATES:
       frtosLog.notice(F("[update] No Update."));
       if (oledpresent) {
+	LockGuard guard(i2cmutex);
 	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("NO Firmware"));
 	u8g2.setCursor(0, 3*CH); 
@@ -613,6 +621,7 @@ void firmware_upgrade() {
       frtosLog.notice(F("[update] Update ok.")); // may not called we reboot the ESP
       
       if (oledpresent) {
+	LockGuard guard(i2cmutex);
 	u8g2.setCursor(0, 2*CH); 
 	u8g2.print(F("FW Updated!"));
 	u8g2.sendBuffer();
@@ -1171,6 +1180,7 @@ void setup() {
   // a device did acknowledge to the address.
   Wire.beginTransmission(OLEDI2CADDRESS);
   if (Wire.endTransmission() == 0) {
+    LockGuard guard(i2cmutex);
     frtosLog.notice(F("OLED Found"));
     oledpresent=true;
     u8g2.setI2CAddress(OLEDI2CADDRESS*2);
@@ -1202,6 +1212,7 @@ void setup() {
   if (reset) {
     frtosLog.notice(F("clean FS"));
     if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Clean FS"));
@@ -1233,6 +1244,7 @@ void setup() {
     wifiManager.resetSettings();
     
     if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Mount FS"));
@@ -1253,6 +1265,9 @@ void setup() {
     wifiManager.resetSettings();
   }
 
+  // initialize RTC with mutex
+  frtosRTC.begin(RTC,i2cmutex);
+  
   // configure NTP
   //sntp_init();
   //sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -1299,6 +1314,7 @@ void setup() {
   wifiManager.setWebPortalClientCheck(false);
     
   if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("ssed:"));
@@ -1320,6 +1336,7 @@ void setup() {
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("WIFI KO"));
@@ -1340,6 +1357,7 @@ void setup() {
     delay(3000);
     
     if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("WIFI OK"));
@@ -1372,6 +1390,7 @@ void setup() {
 
     writeconfig();
     if (oledpresent) {
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("NEW configuration"));
@@ -1401,6 +1420,7 @@ void setup() {
     //wifiManager.resetSettings();
 
     if (oledpresent){
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setCursor(0, 1*CH); 
       u8g2.print(F("Station not"));
@@ -1439,6 +1459,7 @@ void setup() {
   frtosLog.notice(F("HTTP server started"));
 
   if (oledpresent){
+    LockGuard guard(i2cmutex);
     u8g2.setDrawColor(0);
     u8g2.drawBox( 0, 1*CH,64, CH);
     u8g2.setDrawColor(1);
@@ -1471,15 +1492,16 @@ void setup() {
      setSyncProvider(ntp_set_time);
   } else{
     esp_sntp_stop();
-    if (year(RTC.get()) > 2020){
+    if (year(frtosRTC.get()) > 2020){
       frtosLog.notice(F("Getted time from RTC"));
-      setSyncProvider(RTC.get);   // the function to get the time from the RTC
+      setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
     }
   }
 
   if (timeStatus() != timeSet) {
     frtosLog.warning(F("Time not setted"));  
     if (oledpresent){
+      LockGuard guard(i2cmutex);
       u8g2.clearBuffer();
       u8g2.setDrawColor(0);
       u8g2.drawBox( 0, 1*CH,64, CH);
@@ -1500,6 +1522,7 @@ void setup() {
     time_t time=now();
     frtosLog.notice(F("Time: %s"),ctime(&time));  
     if (oledpresent){
+      LockGuard guard(i2cmutex);
       u8g2.setCursor(0, 3*CH);
       u8g2.print(F("Time OK"));
       u8g2.sendBuffer();

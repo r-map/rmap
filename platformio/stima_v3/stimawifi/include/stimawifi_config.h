@@ -94,11 +94,16 @@
 #define C3MISO D6  
 #define C3MOSI D7
 
-//https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
-//#define C3SS D4
+// https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
+// configuration as default
+// #define C3SS D4
 
-//WIFI D1 mini - Data logger shield for D1 mini with RTC and MicroSD
-//https://en.m.nu/esp8266-shields/wifi-d1-mini-data-logger-shield-for-d1-mini-with-rtc-and-microsd
+// WIFI D1 mini - Data logger shield for D1 mini with RTC and MicroSD
+// https://en.m.nu/esp8266-shields/wifi-d1-mini-data-logger-shield-for-d1-mini-with-rtc-and-microsd
+// or
+// https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
+// configurated as
+// cut 2/D4 and connect 15/18
 #define C3SS D8
 
 // SPI clock

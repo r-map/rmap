@@ -41,6 +41,8 @@ MutexStandard loggingmutex;
 MutexStandard i2cmutex;
 MutexStandard geomutex;
 
+frtosRtc frtosRTC;
+
 #if (ENABLE_SDCARD_LOGGING)   
 
 /*!
@@ -107,6 +109,8 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 char status[15]="";     // status message for web and display
 
 bool loopinit=true;     // we need initialization of loop task
+
+time_t rtc_set_time();
 
 String Json();
 String Data();
