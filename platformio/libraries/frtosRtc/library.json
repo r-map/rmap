@@ -1,0 +1,19 @@
+{
+	"name": "frtosRtc",
+	"keywords": "logging, debug, log, log levels, AVR, ESP8266, STM32",
+    "description": "Library for DS1307 RTC. This library is intended to be uses with Arduino Time.h library functions",
+	"version": "1.0.0",
+	"authors": {
+		"name": "Paolo Patruno",
+		"url": "https://github.com/r-map/rmap",
+		"maintainer": true
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/r-map/rmap/platformio/libraries/frtosRtc"
+	},
+	"homepage": "https://github.com/r-map/rmap",
+	"frameworks": ["arduino"],
+	"platforms": "*",
+	"examples": "examples/*/*.ino"
+}
