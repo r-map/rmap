@@ -24,7 +24,7 @@ import rmap.settings
 import optparse
 from rmap import  __version__
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 p = optparse.OptionParser(usage="usage: %prog [options] filename",version="%prog "+__version__)
 p.add_option('--username',    default=rmap.settings.amqpuser,        help="amqp username (default = %default)")
@@ -71,5 +71,5 @@ channel.basic_publish(exchange=options.exchange,
                       body=body,
                       properties=properties)
 
-print(" [x] Sent ",body)
+print(" [OK] Sent")
 connection.close()
