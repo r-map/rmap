@@ -34,13 +34,13 @@ void setup (void)
 
   setTime(12,0,0,1,4,2025);
 
-  if (!Wire.setClock(100000)){
+  Wire.begin();
+
+  if (!Wire.setClock(25000)){
     Log.error("Setting i2c clock");
   }
-  Log.notice("i2c clock %d",Wire.getClock());
+  Log.notice("i2c clock %l",Wire.getClock());
   //Wire.setTimeOut(1000);
-
-  Wire.begin();
   
   delay(5000);
 

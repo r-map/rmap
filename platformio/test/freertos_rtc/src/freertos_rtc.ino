@@ -91,11 +91,11 @@ void setup (void)
 
   delay(5000);
   Wire.begin();
-  if(!Wire.setClock(100000)){
+  if(!Wire.setClock(25000)){
     frtosLog.error("Setting i2c clock");
   }
-  Wire.setTimeOut(300);
-  frtosLog.notice("i2c clock %d",Wire.getClock());
+  //Wire.setTimeOut(300);
+  frtosLog.notice("i2c clock %l",Wire.getClock());
   
   frtosRTC.begin(RTC,i2cmutex);
   
