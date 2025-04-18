@@ -47,6 +47,11 @@ uint8_t frtosRtc::write(tmElements_t &tm){
   return _ds1307rtc.write(tm);
 }
 
+unsigned char frtosRtc::isRunning(){
+  LockGuard guard(_semaphore);
+  return _ds1307rtc.isRunning();
+}
+
 
 //frtosRtc frtosRTC = frtosRtc();
 

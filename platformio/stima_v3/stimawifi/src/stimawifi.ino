@@ -320,7 +320,7 @@ void timeavailable(struct timeval *t)
     u8g2.print(F("Time OK"));
     u8g2.sendBuffer();
   }  
-  if (frtosRTC.set(now()) != 0){
+  if (!frtosRTC.set(now())){
     frtosLog.error("Setting RTC time from NTP!");
   }
 }
@@ -1492,7 +1492,7 @@ void setup() {
      setSyncProvider(ntp_set_time);
   } else{
     esp_sntp_stop();
-    if (year(frtosRTC.get()) > 2020){
+    if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
       frtosLog.notice(F("Getted time from RTC"));
       setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
     }

@@ -70,6 +70,7 @@ public:
   uint8_t set(time_t t);
   uint8_t read(tmElements_t &tm);
   uint8_t write(tmElements_t &tm);
+  unsigned char isRunning();
 };
 
 //extern frtosRtc frtosRTC;
