@@ -64,11 +64,6 @@ protected:
       char dt[DATE_TIME_STRING_LENGTH];
       time_t time=0;
 
-      time=RTC.get();
-      snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u",
-	       year(time), month(time), day(time), hour(time), minute(time), second(time));
-      frtosLog.notice("message from thread %d Get RTC time %s",Id,dt);
-      
       time=frtosRTC.get();
       snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u",
 	       year(time), month(time), day(time), hour(time), minute(time), second(time));
@@ -93,22 +88,23 @@ void setup (void)
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 
   setTime(12,0,0,1,4,2025);
+
   delay(5000);
   Wire.begin();
-
-  if (RTC.set(now()) != 0){
-    frtosLog.error("Setting RTC time from NTP!");
+  if(!Wire.setClock(100000)){
+    frtosLog.error("Setting i2c clock");
   }
-
+  Wire.setTimeOut(300);
+  frtosLog.notice("i2c clock %d",Wire.getClock());
+  
   frtosRTC.begin(RTC,i2cmutex);
   
   //Start logging
-
   frtosLog.notice(F("Testing FreeRTOS C++ wrappers with logger"));
   frtosLog.notice(F("VERSION 1"));
 
-  if (frtosRTC.set(now()) != 0){
-    frtosLog.error("Setting frtosRTC time from NTP!");
+  if (!frtosRTC.set(now())){
+    frtosLog.error("Setting frtosRTC time from system time");
   }
   
   static sampleThread p1(1, 2);
@@ -128,7 +124,7 @@ void loop()
   time=now();
   snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u",
 	   year(time), month(time), day(time), hour(time), minute(time), second(time));
-  frtosLog.notice("Get RTC time %s",dt);
+  frtosLog.notice("Get system time %s",dt);
   
   //frtosLog.notice(F("Testing FreeRTOS C++ wrappers with logger"));   
   // Empty. Things are done in Tasks.
