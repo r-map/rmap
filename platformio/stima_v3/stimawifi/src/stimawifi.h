@@ -85,10 +85,10 @@ This is the case for stimawifiStatus
 stimawifiStatus_t stimawifiStatus;
 station_t station;
 
-udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef};
+udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef,&frtosRTC};
 udpThread threadUdp(&udp_data);
 
-gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef};
+gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC};
 gpsThread threadGps(&gps_data);
 
 Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));       // ~ 1 minutes queue

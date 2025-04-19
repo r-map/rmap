@@ -4,6 +4,7 @@
 #include "stimawifi_config.h"
 #include "typedef.h"
 #include <frtosLog.h>
+#include <frtosRtc.h>
 #include "thread.hpp"
 //#include "critical.hpp"
 #include "ticks.hpp"
@@ -41,5 +42,4 @@
 #include <SdFat.h>
 //#include <ArduinoLog.h>
 #include <StreamUtils.h>
-#include <frtosRtc.h>
 #include <esp_task_wdt.h>

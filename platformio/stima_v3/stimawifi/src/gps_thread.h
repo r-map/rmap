@@ -17,6 +17,7 @@ struct gps_data_t {
   frtosLogging* logger;
   gpsStatus_t* status;
   georef_t* georef;
+  frtosRtc* frtosRTC;
 };
 
 using namespace cpp_freertos;

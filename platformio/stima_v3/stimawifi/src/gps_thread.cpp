@@ -50,7 +50,7 @@ void gpsThread::doSerialNmea(){
 
     setTime(gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec
 	    ,gps_mgps.rmc.time.day,gps_mgps.rmc.time.mon,gps_mgps.rmc.time.year);
-    if (RTC.set(now()) != 0){
+    if (!data->frtosRTC->set(now())){
       frtosLog.error("gps Setting RTC time from GPS!");
     }
     

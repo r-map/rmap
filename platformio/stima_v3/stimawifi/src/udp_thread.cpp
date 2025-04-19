@@ -46,8 +46,8 @@ void udpThread::doUdp(){
 
       setTime(udp_mgps.rmc.time.hours, udp_mgps.rmc.time.min, udp_mgps.rmc.time.sec
 	      ,udp_mgps.rmc.time.day,udp_mgps.rmc.time.mon,udp_mgps.rmc.time.year);
-      if (RTC.set(now()) != 0){
-	frtosLog.error("Setting RTC time from UDP!");
+      if (!data->frtosRTC->set(now())){
+	frtosLog.error("udp Setting RTC time from UDP!");
       }
       
       /*

@@ -21,6 +21,7 @@ struct udp_data_t {
   frtosLogging* logger;
   udpStatus_t* status;
   georef_t* georef;
+  frtosRtc* frtosRTC;
 };
 
 using namespace cpp_freertos;
