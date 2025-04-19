@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-04-01T00:00"    // date and time
-#define MAJOR_VERSION    "20250401"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-04-21T00:00"    // date and time
+#define MAJOR_VERSION    "20250421"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
