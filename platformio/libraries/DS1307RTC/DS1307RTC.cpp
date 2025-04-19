@@ -60,8 +60,6 @@ bool DS1307RTC::read(tmElements_t &tm)
   }
   exists = true;
 
-  delay(10);
-  
   // request the 7 data fields   (secs, min, hr, dow, date, mth, yr)
   Wire.requestFrom(DS1307_CTRL_ID, tmNbrFields);
   if (Wire.available() < tmNbrFields) return false;
@@ -104,8 +102,6 @@ unsigned char DS1307RTC::isRunning()
   Wire.write((uint8_t)0x00); 
   Wire.endTransmission();
 
-  delay(10);
-  
   // Just fetch the seconds register and check the top bit
   Wire.requestFrom(DS1307_CTRL_ID, 1);
   return !(Wire.read() & 0x80);
@@ -126,8 +122,6 @@ char DS1307RTC::getCalibration()
   Wire.beginTransmission(DS1307_CTRL_ID);
   Wire.write((uint8_t)0x07); 
   Wire.endTransmission();
-
-  delay(10);
   
   Wire.requestFrom(DS1307_CTRL_ID, 1);
   unsigned char calReg = Wire.read();
