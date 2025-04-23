@@ -11,6 +11,7 @@ struct db_data_t {
   BinaryQueue* recoveryqueue;
   dbStatus_t* status;
   station_t* station;
+  File* logFile;
 };
 
 
@@ -55,5 +56,14 @@ class dbThread : public Thread {
   File archiveFile;
 
 };
+
+// we need this global for SDcard restart
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+extern File logFile;
+#endif
 
 #endif

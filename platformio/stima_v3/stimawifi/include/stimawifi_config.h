@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-04-21T00:00"    // date and time
-#define MAJOR_VERSION    "20250421"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-04-23T00:00"    // date and time
+#define MAJOR_VERSION    "20250423"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -43,13 +43,15 @@
 #define SCL_PIN SCL
 #define SDA_PIN SDA
 
+// define pin for reset
+#define RESET_PIN D7
+
 // define reset and LED pins
 #if defined(ARDUINO_LOLIN_C3_MINI)
 //C3 mini
 #define FIRMWARE_TYPE "LOLIN_C3_MINI"
 // https://www.wemos.cc/en/latest/_static/files/sch_c3_mini_v2.1.0.pdf
 // pin to connect to ground for reset wifi configuration
-#define RESET_PIN D7
 #define LED_PIN D3
 #endif
 
@@ -57,15 +59,7 @@
 //S3 mini
 #define FIRMWARE_TYPE "LOLIN_S3_MINI"
 // https://www.wemos.cc/en/latest/_static/files/sch_s3_mini_v1.0.0.pdf
-#define RESET_PIN 11
 #define LED_PIN 47
-#endif
-
-#if defined(ARDUINO_D1_MINI32)
-// D1 mini ESP32
-// https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf?v=1604068668
-#define RESET_PIN 23
-#define LED_PIN 34       // not connected to neopixel
 #endif
 
 // size for sensor_t

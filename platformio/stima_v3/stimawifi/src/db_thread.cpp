@@ -438,6 +438,12 @@ bool dbThread::db_restart(){
   data->logger->error(F("db close DB and SDcard"));       
   sqlite3_close_v2(db);
   sqlite3_shutdown();
+
+  // if loggin on SDcard is enabled close logging file
+  #if (ENABLE_SDCARD_LOGGING)      
+  data->logFile->close();
+  #endif
+
   SD.end();
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
@@ -452,7 +458,14 @@ bool dbThread::db_restart(){
     s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
   }
 
-  data->logger->notice(F("db SD begin OK"));       
+  // if loggin on SDcard is enabled reopen logging file
+  #if (ENABLE_SDCARD_LOGGING)      
+  logFile = SD.open(SDCARD_LOGGING_FILE_NAME, FILE_APPEND);
+  data->logFile = &logFile;
+  data->logger->notice(F("db logging file reopended"));       
+  #endif
+
+  data->logger->notice(F("db SD begin"));
 
   // sqlite use static allocated memory
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){

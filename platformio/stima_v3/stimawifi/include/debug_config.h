@@ -34,6 +34,10 @@ define the macro to fully disable logging, and reduce project size
 \def ENABLE_SDCARD_LOGGING
 \brief Enable logging on SDcard
 define to 1 the macro to enable logging on a file on SDcard.
+
+To use this we cannot disable device locking by 
+the macro CONFIG_DISABLE_HAL_LOCKS in platformio.ini
+becouse the SPI is not mutex protected by application
 */
 #define ENABLE_SDCARD_LOGGING              (0)
 
