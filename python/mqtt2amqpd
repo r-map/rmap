@@ -182,13 +182,18 @@ class MyMQTTClass(mqtt.Client):
 
         version = userdata.get("version","v0")
         userasident = userdata.get("userasident",True)
-            
+        skipnetworks = userdata.get("skipnetworks",[])
+        
         logging.info('Message: topic '+str(message.topic) +" payload "+str(message.payload))
         
         try:
             m = self.parse_message(message.topic, message.payload,version=version,userasident=userasident)
             if m is None:
-                    return
+                return
+
+            if (m["rep_memo"] in skipnetworks):
+                return
+                
             msg = dballe.Message("generic")
             if m["ident"] is not None:
                 msg.set_named("ident", dballe.var("B01011", m["ident"]))
@@ -311,6 +316,14 @@ def main(self):
 
     topic = topicdict[self.options.datalevel][self.options.stationtype][self.options.rmapversion]
     logging.info('Topic: %s'% topic)
+
+    # in v1 with station type is fixed I subscribe to all networks but reject mobile as special use
+    if (self.options.rmapversion == "v1" and self.options.stationtype == "fixed"):                
+        skipnetworks=["mobile"]
+    else:
+        skipnetworks=[]                
+    for skipnetwork in skipnetworks:
+        logging.info('Skip network: %s'% skipnetwork)
     
     mqtthost=rmap.settings.mqtthost
     mqttuser=rmap.settings.mqttuser
@@ -336,7 +349,8 @@ def main(self):
             "send_queue": send_queue,
             "qos":1,
             "version":self.options.rmapversion,
-            "userasident":self.options.userasident
+            "userasident":self.options.userasident,
+            "skipnetworks":skipnetworks
         },
         client_id=socket.gethostname()+"/"+mqttuser+"/"+self.options.datalevel+"/"+self.options.stationtype+"/"+self.options.rmapversion,
         clean_session=False
