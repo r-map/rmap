@@ -11,6 +11,7 @@ from rmap.utils import nint
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 from rmap.registration.signals import user_activated
+import re
 import random
 from datetime import datetime, timedelta, timezone
 
@@ -1018,6 +1019,7 @@ class StationMetadata(models.Model):
         if (self.network != "mobile" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
             raise ValidationError(_('Station network have inconsistent definition of coordinate (lat/lon).'))
 
+        
         if (self.ident == "" and self.lat is None):
             raise ValidationError(_('Station without ident need coordinate (lat/lon).'))
 
@@ -1030,11 +1032,16 @@ class StationMetadata(models.Model):
         if (not self.ident == "" and not self.ident == self.user.username):
             raise ValidationError(_('ident can be equal to username only.'))
 
+        # ident as codable in bufr WMO standard
+        if (not self.ident == ""):
+            if (re.match('^[a-z0-9_]{1,9}$',self.ident) is None):
+                raise ValidationError('ident should be max 9 lowercase alphanumeric characters.')
+                
         # ident unique for network mobile
         if (not self.ident == ""):
             if StationMetadata.objects.filter(ident=self.ident).exclude(pk=self.pk).exists():
                 raise ValidationError('Station Metadata with this ident already exists.')
-                
+
     @property
     def geom(self):
         #return PointField({'type': 'Point', 'coordinates': [self.lon, self.lat]})
