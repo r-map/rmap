@@ -272,21 +272,21 @@ function setpopup(feature)
       if ( feature.properties.network == "mobile" ) {
 	  {% if hour %}
 	
-	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/"
 	      +feature.properties.trange+"/"
 	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
 	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}_mobile{% endif %}'>";
 
 	  {% else %}
 
-	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)
 	      +"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])
 	      +"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}_mobile{% endif %}'>";
 
 	  {% endif %};
 
 	  popupText += "<img src=/graphite/render/?target="
-	      +"{{dsn}}_mobile."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
+	      +"{{dsn}}_mobile."+null2_(feature.properties.ident)+".*."+null2_(feature.properties.network)
 	      +"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
 	      +null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
 	      +null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
@@ -315,23 +315,47 @@ function setpopup(feature)
 
       }
     {% else %}
-      {% if hour %}
 
-        popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
-	+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
-	+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
+      if ( feature.properties.network == "mobile" ) {
+
+        {% if hour %}
+
+          popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
     
-      {% else %}
-	popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
-	+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
-	+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
-      {% endif %}
+	{% else %}
+	  popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
+	{% endif %}
+	  
+	popupText += "<img src=/graphite/render/?target="
+	      +"{{dsn}}."+null2_(feature.properties.ident)+".*."+null2_(feature.properties.network)
+	      +"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
+	      +null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
+	      +null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
+	  
+      }else{
+
+        {% if hour %}
+
+          popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
     
-      popupText += "<img src=/graphite/render/?target="
-	+"{{dsn}}."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
-	+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
-	+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
-	+null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
+	{% else %}
+	  popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
+	{% endif %}
+	  
+	popupText += "<img src=/graphite/render/?target="
+	      +"{{dsn}}."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
+	      +"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
+	      +null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
+	      +null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
+      }
 
     {% endif %};
 

@@ -1023,7 +1023,17 @@ class StationMetadata(models.Model):
 
         if (not self.ident == "" and not self.lat is None):
             raise ValidationError(_('Station with ident cannot have coordinate (lat/lon).'))
+
+        # check for ident in mobile station work in progress
         
+        # only one ident for user
+        if (not self.ident == "" and not self.ident == self.user.username):
+            raise ValidationError(_('ident can be equal to username only.'))
+
+        # ident unique for network mobile
+        if (not self.ident == ""):
+            if StationMetadata.objects.filter(ident=self.ident).exclude(pk=self.pk).exists():
+                raise ValidationError('Station Metadata with this ident already exists.')
                 
     @property
     def geom(self):
@@ -1069,7 +1079,7 @@ class StationMetadata(models.Model):
         verbose_name = 'station'
         verbose_name_plural = 'stations'
         unique_together = (('slug', 'user'),('ident', 'lat','lon','network'))
-
+        
     def __str__(self):
         return '%s/%s' % (self.user,self.slug)
 
