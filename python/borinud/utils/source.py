@@ -764,7 +764,7 @@ class ArkimetBufrDB(DB):
         for k in ["lon", "lat"]:
             if k in rec:
                 q["area"]["fixed"][k] = int(rec[k])
-                q["area"]["mobile"][{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
+                q["area"]["mobile"][{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k]/100000)
 
         if "report" in rec:
             q["product"] = "BUFR:t={}".format(rec["report"])

@@ -265,47 +265,79 @@ function setpopup(feature)
         + "<br>Level: " + borinud.config.level.describe(feature.properties.level[0],feature.properties.level[1],feature.properties.level[2],feature.properties.level[3])
 	+ "<br>Date: " + feature.properties.date
 	+ "<br>Var: " + b.description + " " + feature.properties.val + " (" + b.unit + ")"
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>Constant station data</a>"
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)
+	+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>{% trans "Constant station data" %}</a>";
 
-{% if dsn == 'sample' or dsn == 'report' %}
+    {% if dsn == 'sample' or dsn == 'report' %}
+      if ( feature.properties.network == "mobile" ) {
+	  {% if hour %}
+	
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"
+	      +feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}_mobile{% endif %}'>";
 
-{% if hour %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>"
+	  {% else %}
 
-{% else %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>"
-{% endif %};
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)
+	      +"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])
+	      +"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}_mobile{% endif %}'>";
 
-  popupText += "<img src=/graphite/render/?target="
-+"{{dsn}}_fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
-+"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>";
+	  {% endif %};
 
-    if ( feature.properties.ident !== null ) 
-    {
-    popupText +=
+	  popupText += "<img src=/graphite/render/?target="
+	      +"{{dsn}}_mobile."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
+	      +"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
+	      +null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
+	      +null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
+      } else {
+
+	  {% if hour %}
+	
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"
+	      +feature.properties.trange+"/"
+	      +null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	      +null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>";
+
+	  {% else %}
+
+	    popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)
+	      +"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])
+	      +"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>";
+
+	  {% endif %}
+
+	  popupText += "<img src=/graphite/render/?target="
+	    +"{{dsn}}_fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
+	    +"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
+	    +null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
+	    +null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
+
+      }
+    {% else %}
       {% if hour %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?dsn={{dsn}}_mobile'>";
+
+        popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
+    
       {% else %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?dsn={{dsn}}_mobile'>";
+	popupText += "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"
+	+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"
+	+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>";
       {% endif %}
-     popupText +="{% trans "Graph for mobile station" %}</a>";
-    }
+    
+      popupText += "<img src=/graphite/render/?target="
+	+"{{dsn}}."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)
+	+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."
+	+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."
+	+null2_(feature.properties.var) +"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true alt='graphic for {{var}}' class='img-thumbnail'>";
 
-{% else %}
-{% if hour %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
+    {% endif %};
 
-{% else %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
-{% endif %};
-    popupText += "{% trans "Graph data for station" %}";
-    popupText +="</a>";	  
-{% endif %}
-
-    popupText +="</div>";
+    popupText +="</a></div>";
 
     return popupText
-
 }
 
 
