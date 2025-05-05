@@ -447,6 +447,11 @@ Pubblica i dati in MQTT secondo lo standard RMAP.  Se la
 configurazione è per una stazione mobile della struttura con la
 geolocalizzazione viene controllato il timestamp e se ancora attuale
 associate le coordinate ai dati.
+Periodicamente viene pubblicato anche lo stato della diagnostica fatta
+dalla stazione; il server provvederà a visualizzarne lo stato e a inviare
+delle email di segnalazione al proprietario della stazione e a un apposito
+gruppo di utenti di amministrazione.
+
 
 threadDb
 ^^^^^^^^
