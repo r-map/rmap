@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-04-23T00:00"    // date and time
-#define MAJOR_VERSION    "20250423"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-05-01T00:00"    // date and time
+#define MAJOR_VERSION    "20250501"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -138,6 +138,12 @@
 \brief IPStack timeout.
 */
 #define IP_STACK_TIMEOUT_MS            (MQTT_TIMEOUT_MS)
+
+/*!
+\def STATUS_SEND_S
+\brief send MQTT board status every STATUS_SEND_S.
+*/
+#define STATUS_SEND_S (3600)
 
 /*!
 \def MQTT_PACKET_SIZE
