@@ -40,7 +40,8 @@ public:
   bool mqttConnect(const bool cleanSession=true);
   bool mqttPublish( const mqttMessage_t& mqtt_message, const bool retained);
   bool publish_maint();
-  bool publish_status();
+  bool publish_status_summary();
+  void reset_status_summary();
   bool publish_constantdata();
   void archive();
   bool doPublish(mqttMessage_t& mqtt_message);

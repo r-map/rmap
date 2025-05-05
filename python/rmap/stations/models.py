@@ -700,6 +700,7 @@ class Board(models.Model):
         ('masterv4', 'Stima V4 master eth transport'),
         ('gsmv4', 'Stima V4 master LTS transport'),
         ('slavev4', 'Stima V4 slave CAN transport'),        
+        ('stimawifiv3', 'Stima V3 Stima WiFI'),        
     )
 
     STIMAV4_MODULE_TYPE_CHOICES = (
@@ -716,7 +717,8 @@ class Board(models.Model):
         (27,"Module acquire gas (NO2, CO2)"),
         (28,"Module acquire power regulator mppt"),
         (29,"Module acquire soil humidity"),
-        (30,"Module acquire level river")
+        (30,"Module acquire level river"),
+        (101,"Module StimaV3 WiFi"),
     )
 
     name = models.CharField(max_length=255,help_text=_("board name"))
@@ -808,6 +810,8 @@ statusb_explain_matrix[25]=["OFF LINE","Firmware ready","Maintenance",   "Windso
 statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC Over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "regulator of charge hardware error","Battery power pre-critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[30]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
+statusb_explain_matrix[101]=["Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error",  "Data Base error",    "no georeference from GPS/UDP", "Reboot for power on", "Reboot for some problem",  "None","None","None","None","None","None","None"]
 
 # status v
 statusv_explain_matrix={}
@@ -821,6 +825,7 @@ statusv_explain_matrix[26]= ["ERR_CAN %",  "Number reboot",  "Number reboot watc
 statusv_explain_matrix[28]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[29]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[30]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
+statusv_explain_matrix[101]= ["None",  "None",  "None",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):

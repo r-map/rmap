@@ -223,9 +223,23 @@ bool publishThread::publish_maint() {
 }
 
 
+
+void publishThread::reset_status_summary() {
+  data->status->summary.err_power_on=false;
+  data->status->summary.err_reboot=false;  
+  data->status->summary.err_georef=false;	   
+  data->status->summary.err_db=false;
+  data->status->summary.err_mqtt_publish=false;
+  data->status->summary.err_mqtt_connect=false;
+  data->status->summary.err_geodef=false;
+  data->status->summary.err_sensor=false;
+  data->status->summary.err_novalue=false;
+}
+
+
 // publish maint messages (support messages)
 // connection message with station version
-bool publishThread::publish_status() {
+bool publishThread::publish_status_summary() {
   
   mqttMessage_t mqtt_message;
   strcpy(mqtt_message.topic,"1/");
@@ -260,26 +274,21 @@ bool publishThread::publish_status() {
   //  }
   
   // "c" array is omitted by now
-  
-  if (    data->status->measure.novalue == unknown || data->status->measure.sensor  == unknown || data->status->measure.geodef  == unknown
-	  ||  data->status->publish.connect == unknown || data->status->publish.publish == unknown
-	  || data->status->db.database == unknown
-	  || ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == unknown && data->status->udp.receive == unknown))) {
-    data->logger->verbose(F("publish Status is unknown, do not publish status"));
-    return false;
-  }
-
+    
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d\"}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d\"}"
 	   //, jsontime
 	   , data->station->boardslug
-	   , ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == error || data->status->udp.receive == error))
-	   , data->status->db.database == error
-	   , data->status->publish.publish == error
-	   , data->status->publish.connect == error
-	   , data->status->measure.geodef  == error
-	   , data->status->measure.sensor  == error
-	   , data->status->measure.novalue == error
+
+	   , data->status->summary.err_power_on	   
+	   , data->status->summary.err_reboot	   
+	   , data->status->summary.err_georef	   
+	   , data->status->summary.err_db	   
+	   , data->status->summary.err_mqtt_publish 
+	   , data->status->summary.err_mqtt_connect 
+	   , data->status->summary.err_geodef	   
+	   , data->status->summary.err_sensor	   
+	   , data->status->summary.err_novalue
 	   );
   // return true if published
   return mqttPublish(mqtt_message, false);
@@ -451,9 +460,10 @@ void publishThread::Run() {
     }
 
     if (((millis()/1000)-last_status_sended) > STATUS_SEND_S) {
-      if (publish_status()) {
+      if (publish_status_summary()) {
 	data->logger->notice(F("publish Published maint status"));
 	last_status_sended = millis()/1000;
+	reset_status_summary();
       } else {
 	data->logger->error(F("publish Publishing maint status"));
       }

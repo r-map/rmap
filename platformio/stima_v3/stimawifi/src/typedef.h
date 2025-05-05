@@ -193,6 +193,23 @@ struct dbStatus_t
 };
 
 /*!
+\def struct summaryStatus_t
+\brief Sommario degli errori di tutta la stazione.
+*/
+struct summaryStatus_t
+{
+  bool err_reboot;
+  bool err_power_on;
+  bool err_georef;
+  bool err_db;
+  bool err_mqtt_publish;
+  bool err_mqtt_connect;
+  bool err_geodef;
+  bool err_sensor;
+  bool err_novalue;
+};
+
+/*!
 \def struct stimawifiStatus_t
 \brief Stati relativi all'intera stazione.
 */
@@ -203,6 +220,7 @@ struct stimawifiStatus_t
   udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
   gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
+  summaryStatus_t summary;     //!< Sommario dello stato stazione che evidenzia eventuali errori nel periodo  
 };
 
 

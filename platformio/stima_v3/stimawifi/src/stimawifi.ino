@@ -205,7 +205,7 @@ void print_reset_reason(int reason) {
   }
 }
 
-void verbose_print_reset_reason(int reason) {
+void   verbose_print_reset_reason(int reason) {
   switch (reason) {
     case 1:  Serial.println("Vbat power on reset"); break;
     case 3:  Serial.println("Software reset digital core"); break;
@@ -223,10 +223,26 @@ void verbose_print_reset_reason(int reason) {
     case 15: Serial.println("Reset when the vdd voltage is not stable"); break;
     case 16: Serial.println("RTC Watch dog reset digital core and rtc module"); break;
     default: Serial.println("NO_MEAN");
-  }
+  }  
 }
 
+void set_status_summary(int reason) {
 
+  stimawifiStatus.summary.err_power_on=false;
+  stimawifiStatus.summary.err_reboot=false;
+  stimawifiStatus.summary.err_georef=false;
+  stimawifiStatus.summary.err_db=false;
+  stimawifiStatus.summary.err_mqtt_publish=false;
+  stimawifiStatus.summary.err_mqtt_connect=false;
+  stimawifiStatus.summary.err_geodef=false;
+  stimawifiStatus.summary.err_sensor=false;
+  stimawifiStatus.summary.err_novalue=false;
+
+  switch (reason) {
+    case 1:  stimawifiStatus.summary.err_power_on=true; break;
+    default: stimawifiStatus.summary.err_reboot=true;
+  }
+}
 
 // show some measure (fixed selection) on display in a fixed position
 // display a sintetic status too
@@ -938,7 +954,18 @@ void displayStatus()
     frtosLog.notice(F("status gps    : receive %d" ),stimawifiStatus.gps.receive);
     frtosLog.notice(F("status udp    : receive %d" ),stimawifiStatus.udp.receive);
   }
-    
+
+  // collect error in summary  
+  //  data.status.summary.err_power_on= false;	
+  //  data.status.summary.err_reboot=	false;
+  stimawifiStatus.summary.err_georef &= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error));
+  stimawifiStatus.summary.err_db &=  	           stimawifiStatus.db.database == error;
+  stimawifiStatus.summary.err_mqtt_publish &=      stimawifiStatus.publish.publish == error;
+  stimawifiStatus.summary.err_mqtt_connect &=      stimawifiStatus.publish.connect == error;
+  stimawifiStatus.summary.err_geodef &=	           stimawifiStatus.measure.geodef  == error;
+  stimawifiStatus.summary.err_sensor &=	           stimawifiStatus.measure.sensor  == error;
+  stimawifiStatus.summary.err_novalue &=           stimawifiStatus.measure.novalue == error;
+
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
   uint32_t color = pixels.Color(0,0,0);
@@ -1050,20 +1077,9 @@ void setup() {
   Serial.begin(115200);
   //Serial.setDebugOutput(true);
 
-  /*
-   *  Print last reset reason of ESP32
-   *  =================================
-   *
-   *  Use either of the methods print_reset_reason
-   *  or verbose_print_reset_reason to display the
-   *  cause for the last reset of this device.
-   *
-   *  Public Domain License.
-   *
-   *  Author:
-   *  Evandro Luis Copercini - 2017
-   */
-
+  // set summary status from one CPU only
+  set_status_summary(rtc_get_reset_reason(0));
+    
   Serial.println("CPU0 reset reason:");
   print_reset_reason(rtc_get_reset_reason(0));
   verbose_print_reset_reason(rtc_get_reset_reason(0));
