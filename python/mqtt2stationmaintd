@@ -173,12 +173,17 @@ class MyMQTTClass(mqtt.Client):
             msg["boardstatus"]={}
             msg["boardstatus"]["boardslug"] = p["bs"]                
             msg["boardstatus"]["statusb"] = int(p["b"],2)                
-            msg["boardstatus"]["statusv"] = p.get("c")
         except:
             msg.pop("boardstatus")
             logging.info("this is not a maint message for board status")
             logging.debug(traceback.format_exc())
-                    
+        try:
+            msg["boardstatus"]["statusv"] = p.get("c")
+        except:
+            logging.info("statusv missed in maint message for board status")
+            logging.debug(traceback.format_exc())
+            
+            
         if all([
                 msg["level"] != (None, None, None, None),
                 msg["trange"] != (None, None, None)]):
@@ -323,11 +328,12 @@ class MyMQTTClass(mqtt.Client):
                                 exec("myboard.boardmaintstatus."+statusb+"  = bool((m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1)")
 
 
-                            for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
-                                            ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
-                                if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
-                                exec("myboard.boardmaintstatus."+statusv+" =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
-
+                            if (m["boardstatus"]["statusv"] is not None):
+                                
+                                for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
+                                                    ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
+                                    if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
+                                    exec("myboard.boardmaintstatus."+statusv+" =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
 
                             test=bool((m["boardstatus"]["statusb"] >> 0) & 1)
                             logging.info("test {}".format(test))
@@ -358,11 +364,12 @@ class MyMQTTClass(mqtt.Client):
                                             ,   (12,"statusb13"), (13,"statusb14"), (14,"statusb15"), (15,"statusb16")):
                                 exec("myboard.boardmaintstatus."+statusb+"  = bool((m[\"boardstatus\"][\"statusb\"] >> "+str(bit)+") & 1)")
 
-                            for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
-                                            ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
+                            if (m["boardstatus"]["statusv"] is not None):
+                                for ele,statusv in ((0, "statusv1" ),  (1,"statusv2" ), (2, "statusv3" ), (3, "statusv4")
+                                                    ,   (4, "statusv5" ),  (5,"statusv6" ), (6, "statusv7" ), (7, "statusv8")):
 
-                                if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
-                                exec("myboard.boardmaintstatus."+statusv+"  =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
+                                    if (ele == len(m["boardstatus"]["statusv"])): m["boardstatus"]["statusv"].append(None)
+                                    exec("myboard.boardmaintstatus."+statusv+"  =  m[\"boardstatus\"][\"statusv\"]["+str(ele)+"]")
 
                             bms.save()
                             
@@ -502,6 +509,13 @@ class MyMQTTClass(mqtt.Client):
         # work with groups
         users = Group.objects.get(name="status alert recipients").user_set.all()
         recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
+
+
+        # work with user
+        if (mystation.user.is_active):
+            recipient_list.append(mystation.user.email)
+            recipient_list=list(set(recipient_list))    # remove duplicates
+            
         message_html = render_to_string('changed_status_email.html', context)
         logging.info("send email: {}".format(recipient_list))
 
