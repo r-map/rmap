@@ -1801,7 +1801,7 @@
     "network": "fixed",
     "mqttrootpath": "sample",
     "mqttmaintpath": "maint",
-    "type": "stimav2",
+    "type": "stimav3",
     "category": "template"
   }
 },
@@ -1811,8 +1811,8 @@
     "name": "default",
     "active": true,
     "slug": "default",
-    "category": "template",
-    "type": 0,
+    "category": "stimawifiv3",
+    "type": 101,
     "sn": null,
     "stationmetadata": [
       "airquality-sps-sht-scd",
