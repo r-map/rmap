@@ -145,18 +145,18 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   if (strcmp(data->station->ident,"") == 0){
     if (publish_maint()) {
       data->logger->notice(F("publish Published maint"));
-      data->status->publish=ok;      
+      data->status->publish.publish=ok;      
     }else{
       data->logger->error(F("publish Error in publish maint"));
-      data->status->publish=error;
+      data->status->publish.publish=error;
       return false;
     }
     if (publish_constantdata()) {
       data->logger->notice(F("publish Published constant data"));
-      data->status->publish=ok;
+      data->status->publish.publish=ok;
     }else{
       data->logger->error(F("publish Error in publish constant data"));
-      data->status->publish=error;
+      data->status->publish.publish=error;
       return false;
     }
   }
@@ -220,6 +220,69 @@ bool publishThread::publish_maint() {
   strcat(mqtt_message.payload,"}   ");
   
   return mqttPublish(mqtt_message, false); 
+}
+
+
+// publish maint messages (support messages)
+// connection message with station version
+bool publishThread::publish_status() {
+  
+  mqttMessage_t mqtt_message;
+  strcpy(mqtt_message.topic,"1/");
+  strcat(mqtt_message.topic,data->station->mqttmaintpath);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->user);
+  strcat(mqtt_message.topic,"//");
+  strcat(mqtt_message.topic,data->station->longitude);
+  strcat(mqtt_message.topic,",");
+  strcat(mqtt_message.topic,data->station->latitude);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->network);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"254,0,0");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"265,0,-,-");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"B01213");
+  
+  // payload full example
+  //Topic: 1/maint/simcv4//1198190,4404111/agrmet/254,0,0/265,0,-,-/B01213 Payload: {"t":"2025-05-04T14:45:00", "bs":"masterv4", "b":"0b0000000000000001", "c":[0,0,0,0]}
+
+  // timestamp will be added by rmap server
+  //
+  //  if (timeStatus() == timeSet){
+  //    char jsontime[30];
+  //    time_t messagetime=now();
+  //    snprintf(jsontime,28,"\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"",
+  //         year(messagetime), month(messagetime), day(messagetime),
+  //	     hour(messagetime), minute(messagetime), second(messagetime));
+  //    strcat(mqtt_message.payload,jsontime);
+  //  }
+  
+  // "c" array is omitted by now
+  
+  if (    data->status->measure.novalue == unknown || data->status->measure.sensor  == unknown || data->status->measure.geodef  == unknown
+	  ||  data->status->publish.connect == unknown || data->status->publish.publish == unknown
+	  || data->status->db.database == unknown
+	  || ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == unknown && data->status->udp.receive == unknown))) {
+    data->logger->verbose(F("publish Status is unknown, do not publish status"));
+    return false;
+  }
+
+  // take in account error status only
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d\"}"
+	   //, jsontime
+	   , data->station->boardslug
+	   , ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == error || data->status->udp.receive == error))
+	   , data->status->db.database == error
+	   , data->status->publish.publish == error
+	   , data->status->publish.connect == error
+	   , data->status->measure.geodef  == error
+	   , data->status->measure.sensor  == error
+	   , data->status->measure.novalue == error
+	   );
+  // return true if published
+  return mqttPublish(mqtt_message, false);
 }
 
 // publish constant data messages like station name and height
@@ -288,9 +351,9 @@ bool publishThread::doPublish(mqttMessage_t& mqtt_message) {
   }
   
   if ( rc ){
-    data->status->publish=ok;
+    data->status->publish.publish=ok;
   } else {
-    data->status->publish=error;
+    data->status->publish.publish=error;
   }
   
   return rc;
@@ -303,8 +366,8 @@ publishThread::publishThread(publish_data_t* publish_data)
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
-  data->status->connect=unknown;
-  data->status->publish=unknown;
+  data->status->publish.connect=unknown;
+  data->status->publish.publish=unknown;
   errorcount=0;
   //Start();
 };
@@ -327,8 +390,8 @@ static void publishThread::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventI
 void publishThread::Cleanup()
 {
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
-  data->status->connect=unknown;
-  data->status->publish=unknown;
+  data->status->publish.connect=unknown;
+  data->status->publish.publish=unknown;
   delete this;
 }
   
@@ -348,6 +411,8 @@ void publishThread::Run() {
     data->logger->error(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
   }
   */
+
+  last_status_sended = millis()/1000;
   
   for(;;){
     
@@ -365,16 +430,16 @@ void publishThread::Run() {
 
     mqttclient.yield(0);
     
-    if (data->status->publish != ok){
+    if (data->status->publish.publish != ok){
       mqttDisconnect();
       if (mqttConnect(true)) {   // manage mqtt reconnect as RMAP standard
 	data->logger->notice(F("publish MQTT connected"));
 	errorcount = 0;
-	data->status->connect=ok;
+	data->status->publish.connect=ok;
       } else {
-	data->status->connect=error;
+	data->status->publish.connect=error;
 	data->logger->error(F("publish MQTT connect failed"));
-	data->status->publish=error;
+	data->status->publish.publish=error;
 	errorcount++;
 	if (errorcount > 15) {
 	  data->logger->error(F("publish too much error: drop WiFi"));
@@ -384,8 +449,17 @@ void publishThread::Run() {
 	delay(3000);
       }
     }
-    
-    if (data->status->connect==ok){
+
+    if (((millis()/1000)-last_status_sended) > STATUS_SEND_S) {
+      if (publish_status()) {
+	data->logger->notice(F("publish Published maint status"));
+	last_status_sended = millis()/1000;
+      } else {
+	data->logger->error(F("publish Publishing maint status"));
+      }
+    }
+
+    if (data->status->publish.connect==ok){
       mqttMessage_t mqttMessage;
       // wait for message and peek it from the queue
       while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){

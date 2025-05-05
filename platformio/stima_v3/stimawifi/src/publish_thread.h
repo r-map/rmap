@@ -13,7 +13,7 @@ struct publish_data_t {
   Queue* mqttqueue;
   Queue* dbqueue;
   BinaryQueue* recoveryqueue;
-  publishStatus_t* status;
+  stimawifiStatus_t* status;
   station_t* station;
   WiFiClient* networkClient;
 };
@@ -40,6 +40,7 @@ public:
   bool mqttConnect(const bool cleanSession=true);
   bool mqttPublish( const mqttMessage_t& mqtt_message, const bool retained);
   bool publish_maint();
+  bool publish_status();
   bool publish_constantdata();
   void archive();
   bool doPublish(mqttMessage_t& mqtt_message);
@@ -47,6 +48,7 @@ public:
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 > mqttclient;
   uint8_t errorcount;
+  time_t last_status_sended;
 };
 
 #endif
