@@ -122,7 +122,7 @@ jobs:
       - name: Build Stima v3 stimawifi
         run: |
           cd platformio/stima_v3/stimawifi
-          platformio run -j 1 -v
+          platformio run -e lolin_s3_mini_v3
       - name: Build Stima v3 devel
         run: |
           cd platformio/stima_v3_devel/stima
