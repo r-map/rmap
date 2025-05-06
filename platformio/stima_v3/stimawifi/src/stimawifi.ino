@@ -958,13 +958,13 @@ void displayStatus()
   // collect error in summary  
   //  data.status.summary.err_power_on= false;	
   //  data.status.summary.err_reboot=	false;
-  stimawifiStatus.summary.err_georef &= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error));
-  stimawifiStatus.summary.err_db &=  	           stimawifiStatus.db.database == error;
-  stimawifiStatus.summary.err_mqtt_publish &=      stimawifiStatus.publish.publish == error;
-  stimawifiStatus.summary.err_mqtt_connect &=      stimawifiStatus.publish.connect == error;
-  stimawifiStatus.summary.err_geodef &=	           stimawifiStatus.measure.geodef  == error;
-  stimawifiStatus.summary.err_sensor &=	           stimawifiStatus.measure.sensor  == error;
-  stimawifiStatus.summary.err_novalue &=           stimawifiStatus.measure.novalue == error;
+  stimawifiStatus.summary.err_georef |= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error));
+  stimawifiStatus.summary.err_db |=  	           stimawifiStatus.db.database == error;
+  stimawifiStatus.summary.err_mqtt_publish |=      stimawifiStatus.publish.publish == error;
+  stimawifiStatus.summary.err_mqtt_connect |=      stimawifiStatus.publish.connect == error;
+  stimawifiStatus.summary.err_geodef |=	           stimawifiStatus.measure.geodef  == error;
+  stimawifiStatus.summary.err_sensor |=	           stimawifiStatus.measure.sensor  == error;
+  stimawifiStatus.summary.err_novalue |=           stimawifiStatus.measure.novalue == error;
 
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
