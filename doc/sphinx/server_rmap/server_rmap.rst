@@ -1008,8 +1008,8 @@ eventuale applicazione dei fattori di scala.
 table BoardMaintStatus
 ######################
 
-Definisce lo stato di una Board così come comunicati dalla stazione (Stima V4).
-Prevede valori booleani e numerici.
+Definisce lo stato di una Board così come comunicati dalla stazione
+(Stima V4).  Prevede valori booleani e numerici.
 
 table BoardFirmwareMetadata
 ###########################
@@ -1032,7 +1032,8 @@ Questa tabella viene aggiornata tramite la messaggistica a standard
 RMAP nel root topic "maint" dei dati pubblicati MQTT. Mantiene la
 versione del firmware di stazione (versione globale, solitamente della
 board master), l'utimo aggiornamento della connessione e lo stato
-della connessione.
+della connessione. Apposita flag abilita o disabilita invio delle mail
+di cambiamento di stato dell'autodiagnostica.
 
 table StationImage
 ##################
@@ -1823,7 +1824,14 @@ nella apposizta sezione della app.
   nel backend.
 
 * mqtt2stationmaintd : preleva i messaggi diagnostici pubblicati dalle
-  stazioni in MQTT e li inserisce in archivio Django
+  stazioni in MQTT e li inserisce in archivio Django; se lo stato
+  della diagnostica subisce un cambiamento provvede all'invio di mail
+  di allerta/segnalazione agli utenti solo per le stazioni per cui
+  tale funzione è stata abilitata tramite apposito parametro di
+  configurazione disattivato di default e modificabile dal pannello di
+  modifica configurazione stazione; gli utenti destinatari saranno
+  quelli del gruppo "**status alert recipients**" e i propritari di
+  stazione appartenenti al gruppo "**status email recipients**"
 * composereportd : effettua le elaborazioni necessarie per calcolare i
   report a partire dai sample; ad esempio esegue le medie ogni 15',
   calcola valori minimi e massimi, dopo aver calcolato le osservazioni
@@ -1909,9 +1917,17 @@ Gruppi:
 
 * "**dashboard**" : gli utenti di questo gruppo possono modificare e
   salvare le dashboard di graphite
-* "**status alert recipients**" : gli utenti di questo gruppo ricevono
-  le mail di segnalazione dell'autodiagnostica
 
+* "**status alert recipients**" : gli utenti di questo gruppo ricevono
+  le mail di segnalazione dell'autodiagnostica (solo delle stazioni
+  per cui è stata abilitata tale funzione dal pannello modifica,
+  partendo dalla pagina personale)
+
+* "**status email recipients**" : gli utenti di questo gruppo ricevono
+  le mail di segnalazione dell'autodiagnostica per le stazioni di cui
+  sono proprietari (solo delle stazioni per cui è stata abilitata tale
+  funzione dal pannello modifica, partendo dalla pagina personale)
+  
 * "**firmware**" : gestione aggiornamento firmware direttamente
   dall'interfaccia di amministrazione di Django
   

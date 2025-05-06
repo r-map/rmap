@@ -17,7 +17,7 @@ from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
 from rmap.rmapmqtt import rmapmqtt
-from rmap.stations.models import StationMetadata,Board,StationConstantData
+from rmap.stations.models import StationMetadata,Board,StationConstantData,StationMaintStatus
 
 from django.contrib.gis.geos import Point
 import rmap.settings
@@ -865,6 +865,7 @@ def stationModify(request,slug):
     from django.forms import inlineformset_factory
     from django.forms import modelform_factory
     StationMetadataForm=modelform_factory(StationMetadata, fields = ["name","active","slug","ident","lat","lon","network"])
+    StationMaintStatusForm=modelform_factory(StationMaintStatus, fields = ["monit_status_with_email"])
     StationConstantDataFormSet = inlineformset_factory(StationMetadata,StationConstantData, fields=["active", "btable","value"],extra=1)
     BoardFormSet = inlineformset_factory(StationMetadata,Board, fields=["name", "slug"],extra=1)
 
@@ -873,6 +874,10 @@ def stationModify(request,slug):
         if request.method == 'POST': # If the form has been submitted...
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             stationmetadataform = StationMetadataForm(request.POST,instance=mystation)
+            if (hasattr(mystation, "stationmaintstatus")):
+                stationmaintstatusform=StationMaintStatusForm(request.POST,instance=mystation.stationmaintstatus)
+            else:
+                stationmaintstatusform=StationMaintStatusForm(request.POST)
             constantformset = StationConstantDataFormSet(request.POST, request.FILES,instance=mystation)
             boardformset = BoardFormSet(request.POST, request.FILES,instance=mystation)
 
@@ -885,8 +890,11 @@ def stationModify(request,slug):
 
                     
             if 'board_submit' in request.POST:
-                if stationmetadataform.is_valid():
-                    stationmetadataform.save()
+                if stationmetadataform.is_valid() and stationmaintstatusform.is_valid():
+                    mystation=stationmetadataform.save()
+                    stationmaintstatus=stationmaintstatusform.save(commit=False)
+                    stationmaintstatus.station=mystation
+                    stationmaintstatus.save()
                 else:
                     valid=False
                     
@@ -898,9 +906,11 @@ def stationModify(request,slug):
             if (valid):
                 mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
                 stationmetadataform = StationMetadataForm(instance=mystation)
+                stationmaintstatusform=StationMaintStatusForm(instance=mystation.stationmaintstatus)
                 constantformset = StationConstantDataFormSet(instance=mystation)
                 boardformset = BoardFormSet(instance=mystation)
                 return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                            'stationmaintstatusform':stationmaintstatusform,
                                                                             "constantformset":constantformset,
                                                                             "station":mystation,
                                                                             "boardformset":boardformset,
@@ -909,6 +919,7 @@ def stationModify(request,slug):
             if 'station_submit' in request.POST:
                 mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
                 stationmetadataform = StationMetadataForm(instance=mystation)
+                stationmaintstatusform=StationMaintStatusForm(instance=mystation.stationmaintstatus)
                 constantformset = StationConstantDataFormSet(instance=mystation)
                
             if 'board_submit' in request.POST:
@@ -916,6 +927,7 @@ def stationModify(request,slug):
                 boardformset = BoardFormSet(instance=mystation)
                 
             return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                        'stationmaintstatusform':stationmaintstatusform,
                                                                         "constantformset":constantformset,
                                                                         "station":mystation,
                                                                         "boardformset":boardformset,
@@ -924,11 +936,16 @@ def stationModify(request,slug):
         else:
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             stationmetadataform = StationMetadataForm(instance=mystation)
+            if (hasattr(mystation, "stationmaintstatus")):
+                stationmaintstatusform=StationMaintStatusForm(instance=mystation.stationmaintstatus)
+            else:
+                stationmaintstatusform=StationMaintStatusForm(instance=StationMaintStatus())
             #queryset=Board.objects.filter(stationmetadata=mystation)
             #boardformset = BoardFormSet(queryset=queryset)
             constantformset = StationConstantDataFormSet(instance=mystation)
             boardformset = BoardFormSet(instance=mystation)
             return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
+                                                                        'stationmaintstatusform':stationmaintstatusform,
                                                                         "constantformset":constantformset,
                                                                         "station":mystation,
                                                                         "boardformset":boardformset,
@@ -940,15 +957,17 @@ def stationModify(request,slug):
         #stationmetadataform = StationMetadataForm() # An unbound form
         mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
         stationmetadataform = StationMetadataForm(instance=mystation)
+        stationmaintstatusform=StationMaintStatusForm(instance=mystation.stationmaintstatus)
         #queryset=Board.objects.filter(stationmetadata=mystation)
         #boardformset = BoardFormSet(queryset=queryset)
         constantformset = StationConstantDataFormSet(instance=mystation)
         boardformset = BoardFormSet(instance=mystation)
         return render(request, 'insertdata/stationmodifyform.html',{'stationmetadataform':stationmetadataform,
-                                                                        "constantformset":constantformset,
-                                                                        "station":mystation,
-                                                                        "boardformset":boardformset,
-                                                                        "error":True})
+                                                                    'stationmaintstatusform':stationmaintstatusform,
+                                                                    "constantformset":constantformset,
+                                                                    "station":mystation,
+                                                                    "boardformset":boardformset,
+                                                                    "error":True})
 
 @login_required
 def boardModify(request,slug,bslug):

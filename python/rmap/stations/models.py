@@ -768,6 +768,7 @@ class StationMaintStatus(models.Model):
     lastupdate = models.DateTimeField(null=True,blank=True,help_text=_("Last status update date"))
     firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware major version"))
     firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=_("firmware minor version"))
+    monit_status_with_email  = models.BooleanField(default=None,null=True,help_text=_("Enable email for status changes"))
 
 
     @property
@@ -811,7 +812,7 @@ statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Maintenance",   "ADC er
 statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "regulator of charge hardware error","Battery power pre-critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[30]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[101]=["Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error",  "Data Base error",    "no georeference from GPS/UDP", "Reboot for power on", "Reboot for some problem",  "None","None","None","None","None","None","None"]
+statusb_explain_matrix[101]=["Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error",  "Data Base error",    "no georeference from GPS/UDP", "Reboot for some problem", "Reboot for power on",  "None","None","None","None","None","None","None"]
 
 # status v
 statusv_explain_matrix={}

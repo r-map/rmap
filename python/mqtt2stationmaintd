@@ -501,30 +501,38 @@ class MyMQTTClass(mqtt.Client):
                  "changed_statusb":changed_statusb,
                  "changed_statusv":changed_statusv}
 
-        # work with permissions
-        #perm = Permission.objects.get(codename='maint_mail_alert')  
-        #users = User.objects.filter(Q(groups__permissions=perm) | Q(user_permissions=perm) ).distinct()
-        #recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
 
-        # work with groups
-        users = Group.objects.get(name="status alert recipients").user_set.all()
-        recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
+        # station is setted for email monitoring
+        if (hasattr(mystation, "stationmaintstatus")):
+            if (mystation.stationmaintstatus.monit_status_with_email):
+        
+                # work with permissions
+                #perm = Permission.objects.get(codename='maint_mail_alert')  
+                #users = User.objects.filter(Q(groups__permissions=perm) | Q(user_permissions=perm) ).distinct()
+                #recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
+
+                # work with groups
+                # collect users in "status alert recipients" group
+                users = Group.objects.get(name="status alert recipients").user_set.all()
+                recipient_list = list(i for i in users.values_list('email', flat=True) if bool(i))
 
 
-        # work with user
-        if (mystation.user.is_active):
-            recipient_list.append(mystation.user.email)
-            recipient_list=list(set(recipient_list))    # remove duplicates
+                # work with user
+                # add user owner of the station if the user in 'status email recipients' group 
+                if (mystation.user.is_active):
+                    if mystation.user.groups.filter(name='status email recipients').exists():
+                        recipient_list.append(mystation.user.email)
+                        recipient_list=list(set(recipient_list))    # remove duplicates
             
-        message_html = render_to_string('changed_status_email.html', context)
-        logging.info("send email: {}".format(recipient_list))
+                message_html = render_to_string('changed_status_email.html', context)
+                logging.info("send email: {}".format(recipient_list))
 
-        send_mail("Status for station: "+mystation.name+" board: "+myboard.name+" is changed", 
-                  "Status for station: "+mystation.name+" board: "+myboard.name+" is changed; details in this mail in HTML part only ...",
-                  from_email=None,
-                  recipient_list=recipient_list,
-                  html_message=message_html,
-                  fail_silently = False)
+                send_mail("Status for station: "+mystation.name+" board: "+myboard.name+" is changed", 
+                          "Status for station: "+mystation.name+" board: "+myboard.name+" is changed; details in this mail in HTML part only ...",
+                          from_email=None,
+                          recipient_list=recipient_list,
+                          html_message=message_html,
+                          fail_silently = False)
 
         
 mqtt2stationmaint = daemon.Daemon(
