@@ -59,5 +59,11 @@ jobs:
         run: |
           cd platformio/stima_v4/slave-wind
           platformio run
-
-
+      - name: Build Stima V4 slave-leaf
+        run: |
+          cd platformio/stima_v4/slave-leaf
+          platformio run
+      - name: Build Stima V4 slave-level
+        run: |
+          cd platformio/stima_v4/slave-level
+          platformio run
