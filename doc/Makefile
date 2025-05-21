@@ -9,4 +9,6 @@ docs:
 	@doxygen doxygen_v4_slave-th.conf
 	@doxygen doxygen_v4_slave-vwc.conf
 	@doxygen doxygen_v4_slave-wind.conf
+	@doxygen doxygen_v4_slave-leaf.conf
+	@doxygen doxygen_v4_slave-level.conf
 	@echo Documentation Generation Complete.
