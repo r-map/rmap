@@ -1,19 +1,35 @@
 
-Istruzion per avviare gpsd su PC
+# Istruzion per avviare gpsd su PC
 
 systemctl stop gpsd.socket
 gpsd -N udp://*:8888 --debug 10
 gpsmon
 
-Istruzioni per fare il build dell'app Android
+# Istruzioni per fare il build dell'app Android
 
-git clone https://github.com/tiagoshibata/Android-GPSd-Forwarder.git
+#git clone https://github.com/tiagoshibata/Android-GPSd-Forwarder.git
+#export ANDROID_HOME=/home/pat1/Android/Sdk/
+
+git clone https://github.com/r-map/Android-GPSd-Forwarder.git
+
 cd Android-GPSd-Forwarder
 ./gradlew build
 ls app/build/outputs/apk/release/app-release-unsigned.apk
 
-Impostazioni dell'app android
+# Impostazioni dell'app android
 
 gps forwarder ->
-192.168.253.255
+192.168.1.255
 8888
+
+
+# oppure da testare 
+git clone https://github.com/project-kaat/gpsdRelay.git
+
+cd gpsdRelay
+./gradlew build
+ls app/build/outputs/apk/release/app-release-unsigned.apk
+
++ UDP server
+ipv4 192.168.1.255
+port 8888

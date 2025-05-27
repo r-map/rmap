@@ -8,8 +8,6 @@ MGPS gps_mgps;
 HardwareSerial Serial2(0);  //if using UART1
 #endif
 
-/* Serial speed of the GPS */
-#define GPS_SERIAL_SPEED 9600  // default for UBLOX NEO-6M with two configuration pin not connected (NMEA messages too)
 
 void gpsThread::GPS_SerialInit() {
   data->logger->notice(F("gps start GPS serial init"));  
@@ -24,12 +22,15 @@ void gpsThread::doSerialNmea(){
 
   # define MESSAGELEN (100)
   char message[MESSAGELEN];
-  uint8_t len=Serial2.readBytesUntil(10, message, MESSAGELEN);
-
-  if (len > 0) data->logger->verbose("gps message: %s", message);
+  uint8_t len=Serial2.readBytesUntil(10, message, MESSAGELEN-1);
+  message[len]=0;
+  
+  if (len > 0) data->logger->notice("gps message: %s", message);
 
   for (uint8_t i = 0; i < len; i++) {
     uint8_t gpsflag;
+    //Serial.print(message[i],DEC);
+    //Serial.println(" ");
     gpsflag = gps_gps.encode(message[i]);
     if(gps_gps.valid){
       break;

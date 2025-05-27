@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-05-06T00:00"    // date and time
-#define MAJOR_VERSION    "20250506"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-05-28T00:00"    // date and time
+#define MAJOR_VERSION    "20250528"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -15,6 +15,14 @@
 
 // udp port to use for communicate with androd gps_forwarder app
 #define UDP_PORT 8888
+
+// Serial speed of the GPS
+
+// default for UBLOX NEO-6M with two configuration pin not connected (NMEA messages too)
+//#define GPS_SERIAL_SPEED 9600
+
+// default for LC76G(AB) Baudrate 115200bps
+#define GPS_SERIAL_SPEED 115200
 
 // display I2C address
 #define OLEDI2CADDRESS 0X3C

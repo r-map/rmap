@@ -741,7 +741,7 @@ int  rmap_config(const String payload){
 	    frtosLog.notice(F("lat: %s"),station.latitude);
 
 	    strncpy (station.ident , element["fields"]["ident"].as< const char*>(),10);
-	    station.network[10]='\0';
+	    station.ident[10]='\0';
 	    frtosLog.notice(F("ident: %s"),station.ident);
 	    
 	    strncpy (station.network , element["fields"]["network"].as< const char*>(),30);
@@ -1567,7 +1567,7 @@ void setup() {
   
   // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
-  
+	 
   // if mobile station start geolocation thread
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
