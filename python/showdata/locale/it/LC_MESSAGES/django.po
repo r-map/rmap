@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-05 11:08+0000\n"
-"PO-Revision-Date: 2023-11-08 14:26+0100\n"
+"POT-Creation-Date: 2025-05-28 13:00+0000\n"
+"PO-Revision-Date: 2025-05-28 15:02+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -55,13 +55,13 @@ msgstr "per il giorno "
 
 #: showdata/templates/showdata/rainbospatialseries.html:167
 #: showdata/templates/showdata/spatialseries.html:108
-#: showdata/templates/showdata/timeseries.html:49
+#: showdata/templates/showdata/timeseries.html:53
 msgid "Prev"
 msgstr "Prima"
 
 #: showdata/templates/showdata/rainbospatialseries.html:172
 #: showdata/templates/showdata/spatialseries.html:113
-#: showdata/templates/showdata/timeseries.html:54
+#: showdata/templates/showdata/timeseries.html:58
 msgid "Next"
 msgstr "Dopo"
 
@@ -86,39 +86,35 @@ msgid "Please Wait..."
 msgstr "Attendere per favore..."
 
 #: showdata/templates/showdata/spatialseries.html:100
-#: showdata/templates/showdata/timeseries.html:41
+#: showdata/templates/showdata/timeseries.html:44
 msgid "More"
 msgstr "Di più"
 
 #: showdata/templates/showdata/spatialseries.html:121
-#: showdata/templates/showdata/timeseries.html:62
+#: showdata/templates/showdata/timeseries.html:66
 msgid "Less"
 msgstr "Meno"
 
-#: showdata/templates/showdata/spatialseries.html:291
-msgid "Graph for mobile station"
-msgstr "Grafico per stazione mobile"
+#: showdata/templates/showdata/spatialseries.html:269
+msgid "Constant station data"
+msgstr "Dati di anagrafica della stazione"
 
-#: showdata/templates/showdata/spatialseries.html:301
-msgid "Graph data for station"
-msgstr "Grafico per la stazione"
-
-#: showdata/templates/showdata/spatialseries.html:586
+#: showdata/templates/showdata/spatialseries.html:642
 msgid "Show all values on a map"
 msgstr "Mostra tutti i valori sulla mappa"
 
-#: showdata/templates/showdata/spatialseries.html:601
+#: showdata/templates/showdata/spatialseries.html:657
 msgid "Show all values on a graph"
 msgstr "Mostra tutti i valori in grafico"
 
-#: showdata/templates/showdata/spatialseries.html:614
+#: showdata/templates/showdata/spatialseries.html:670
 msgid "Show stations on a map"
 msgstr "Mostra le stazioni sulla mappa"
 
-#: showdata/templates/showdata/spatialseries.html:628
+#: showdata/templates/showdata/spatialseries.html:684
 #: showdata/templates/showdata/stationdata.html:406
 #: showdata/templates/showdata/stations.html:261
-#: showdata/templates/showdata/timeseries.html:116
+#: showdata/templates/showdata/timeseries.html:120
 msgid "Download data"
 msgstr "Scarica i dati"
 
@@ -127,6 +123,16 @@ msgstr "Scarica i dati"
 msgid "Show all stations on a map"
 msgstr "Mostra tutte le stazioni sulla mappa"
 
-#: showdata/templates/showdata/timeseries.html:94
+#: showdata/templates/showdata/timeseries.html:42
+msgid "Switch to report and get More"
+msgstr "Di più e cambia a report"
+
+#: showdata/templates/showdata/timeseries.html:98
 msgid "Show values on a map"
 msgstr "Mostra valori sulla mappa"
+
+#~ msgid "Graph for mobile station"
+#~ msgstr "Grafico per stazione mobile"
+
+#~ msgid "Graph data for station"
+#~ msgstr "Grafico per la stazione"

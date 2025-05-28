@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-05 11:08+0000\n"
+"POT-Creation-Date: 2025-05-28 13:00+0000\n"
 "PO-Revision-Date: 2025-03-05 12:47+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1009,9 +1009,11 @@ msgstr "Comando"
 msgid "Response"
 msgstr "Risposta"
 
-#: build/lib/rpc/models.py:15 build/lib/ticket/models.py:91 ticket/models.py:91
-msgid "Active ticket"
-msgstr "Ticket attivo"
+#: build/lib/rpc/models.py:15
+#, fuzzy
+#| msgid "Active"
+msgid "Active RPC"
+msgstr "Attiva"
 
 #: build/lib/rpc/models.py:16 build/lib/rpc/templates/rpc/rpc_details.html:19
 #: build/lib/ticket/templates/ticket/ticket_details.html:10
@@ -1264,6 +1266,10 @@ msgstr "Bassa"
 #: build/lib/ticket/models.py:85 ticket/models.py:85
 msgid "Very Low"
 msgstr "Molto Bassa"
+
+#: build/lib/ticket/models.py:91 ticket/models.py:91
+msgid "Active ticket"
+msgstr "Ticket attivo"
 
 #: build/lib/ticket/models.py:93 ticket/models.py:93
 msgid "Data apertura"

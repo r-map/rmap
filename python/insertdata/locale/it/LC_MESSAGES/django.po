@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-05 11:08+0000\n"
+"POT-Creation-Date: 2025-05-28 13:00+0000\n"
 "PO-Revision-Date: 2025-03-05 12:50+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -84,7 +84,7 @@ msgstr "Modifica trasporto AMQP"
 #: insertdata/templates/insertdata/newstationform.html:71
 #: insertdata/templates/insertdata/rainbodataform.html:183
 #: insertdata/templates/insertdata/stationmodifyform.html:61
-#: insertdata/templates/insertdata/stationmodifyform.html:124
+#: insertdata/templates/insertdata/stationmodifyform.html:125
 msgid "Submit"
 msgstr "Invia"
 
@@ -267,11 +267,11 @@ msgstr "Modifica board stazione"
 msgid "Modify boards"
 msgstr "Modifica Boards"
 
-#: insertdata/templates/insertdata/stationmodifyform.html:107
+#: insertdata/templates/insertdata/stationmodifyform.html:108
 msgid "Modify station constant data"
 msgstr "Modifica i dati costanti di stazione"
 
-#: insertdata/templates/insertdata/stationmodifyform.html:113
+#: insertdata/templates/insertdata/stationmodifyform.html:114
 msgid "Modify constant data"
 msgstr "Modifica i dati costanti"
 

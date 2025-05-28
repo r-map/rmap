@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-05 12:37+0000\n"
+"POT-Creation-Date: 2025-05-28 13:00+0000\n"
 "PO-Revision-Date: 2025-03-05 13:42+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
@@ -43,11 +43,11 @@ msgstr ""
 msgid "Station name"
 msgstr "Nome stazione"
 
-#: rmap/form.py:34 rmap/stations/models.py:954
+#: rmap/form.py:34 rmap/stations/models.py:961
 msgid "Latitude"
 msgstr "Latitudine"
 
-#: rmap/form.py:35 rmap/stations/models.py:955
+#: rmap/form.py:35 rmap/stations/models.py:962
 msgid "Longitude"
 msgstr "Longitudine"
 
@@ -866,13 +866,13 @@ msgstr "Stato connessione: OK connesso"
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 
-#: rmap/stations/models.py:131 rmap/stations/models.py:261
-#: rmap/stations/models.py:375 rmap/stations/models.py:426
-#: rmap/stations/models.py:463 rmap/stations/models.py:519
-#: rmap/stations/models.py:598 rmap/stations/models.py:630
-#: rmap/stations/models.py:661 rmap/stations/models.py:722
-#: rmap/stations/models.py:898 rmap/stations/models.py:946
-#: rmap/stations/models.py:1135 rmap/templates/changed_status_email.html:9
+#: rmap/stations/models.py:132 rmap/stations/models.py:262
+#: rmap/stations/models.py:376 rmap/stations/models.py:427
+#: rmap/stations/models.py:464 rmap/stations/models.py:520
+#: rmap/stations/models.py:599 rmap/stations/models.py:631
+#: rmap/stations/models.py:662 rmap/stations/models.py:725
+#: rmap/stations/models.py:905 rmap/stations/models.py:953
+#: rmap/stations/models.py:1158 rmap/templates/changed_status_email.html:9
 #: rmap/templates/changed_status_email.html:20
 #: rmap/templates/profile_details.html:46
 #: rmap/templates/stations/stationlocaldata.html:123
@@ -881,40 +881,40 @@ msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 msgid "Active"
 msgstr "Attivo"
 
-#: rmap/stations/models.py:131 rmap/stations/models.py:261
+#: rmap/stations/models.py:132 rmap/stations/models.py:262
 msgid "Activate this sensor to take measurements"
 msgstr "Attiva questo sensore per rilevare le misure"
 
-#: rmap/stations/models.py:132 rmap/stations/models.py:262
-#: rmap/stations/models.py:299
+#: rmap/stations/models.py:133 rmap/stations/models.py:263
+#: rmap/stations/models.py:300
 msgid "Descriptive text"
 msgstr "Testo descrittivo"
 
-#: rmap/stations/models.py:134
+#: rmap/stations/models.py:135
 msgid "Driver to use"
 msgstr "Driver da usare"
 
-#: rmap/stations/models.py:136 rmap/stations/models.py:264
+#: rmap/stations/models.py:137 rmap/stations/models.py:265
 msgid "Type of sensor"
 msgstr "Tipo del sensore"
 
-#: rmap/stations/models.py:138
+#: rmap/stations/models.py:139
 msgid "I2C bus number (for raspberry only)"
 msgstr "numero del bus I2C (solo per raspberry)"
 
-#: rmap/stations/models.py:139
+#: rmap/stations/models.py:140
 msgid "I2C address (decimal)"
 msgstr "indirizzo I2C (decimale)"
 
-#: rmap/stations/models.py:140
+#: rmap/stations/models.py:141
 msgid "RF24Network node ddress"
 msgstr ""
 
-#: rmap/stations/models.py:142 rmap/stations/models.py:143
+#: rmap/stations/models.py:143 rmap/stations/models.py:144
 msgid "Sensor metadata from rmap RFC"
 msgstr "Metadati del sensore dal RFC rmap"
 
-#: rmap/stations/models.py:155 rmap/stations/models.py:1013
+#: rmap/stations/models.py:156 rmap/stations/models.py:1020
 msgid ""
 "Station and sensor have different data level; change mqttrootpath or active "
 "sensors."
@@ -922,367 +922,375 @@ msgstr ""
 "Statione e sensore hanno data level differente; cambia mqttrootpath o i "
 "sensori attivi."
 
-#: rmap/stations/models.py:266
+#: rmap/stations/models.py:267
 msgid "Data Level as defined by WMO (Sensor metadata from rmap RFC)"
 msgstr "Data Level come dfinito dal WMO (Sensor metadata come da RMAP RFC)"
 
-#: rmap/stations/models.py:268
+#: rmap/stations/models.py:269
 msgid "Bcode variable definition"
 msgstr "Bcode definizione variabile"
 
-#: rmap/stations/models.py:298
+#: rmap/stations/models.py:299
 msgid "Bcode as defined in dballe btable"
 msgstr "Bcode come definito nella tabella dballe"
 
-#: rmap/stations/models.py:300
+#: rmap/stations/models.py:301
 msgid "Units of measure"
 msgstr "Unità di misura"
 
-#: rmap/stations/models.py:301
+#: rmap/stations/models.py:302
 msgid "Offset coeficent to convert units"
 msgstr "Coefficiente offset di conversione delle unità di misura"
 
-#: rmap/stations/models.py:302
+#: rmap/stations/models.py:303
 msgid "Scale coeficent to convert units"
 msgstr "Fattore di scala di conversione delle unità di misura"
 
-#: rmap/stations/models.py:303
+#: rmap/stations/models.py:304
 msgid "units of measure"
 msgstr "unità di misura"
 
-#: rmap/stations/models.py:375 rmap/stations/models.py:426
-#: rmap/stations/models.py:463 rmap/stations/models.py:519
-#: rmap/stations/models.py:598 rmap/stations/models.py:630
-#: rmap/stations/models.py:661
+#: rmap/stations/models.py:376 rmap/stations/models.py:427
+#: rmap/stations/models.py:464 rmap/stations/models.py:520
+#: rmap/stations/models.py:599 rmap/stations/models.py:631
+#: rmap/stations/models.py:662
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
-#: rmap/stations/models.py:376
+#: rmap/stations/models.py:377
 msgid "Node ID for RF24 Network"
 msgstr ""
 
-#: rmap/stations/models.py:377
+#: rmap/stations/models.py:378
 msgid "Channel number for RF24"
 msgstr "Numero canale per RF24"
 
-#: rmap/stations/models.py:380
+#: rmap/stations/models.py:381
 msgid "AES key"
 msgstr ""
 
-#: rmap/stations/models.py:381
+#: rmap/stations/models.py:382
 msgid "AES cbc iv"
 msgstr ""
 
-#: rmap/stations/models.py:428 rmap/stations/models.py:464
+#: rmap/stations/models.py:429 rmap/stations/models.py:465
 msgid "interval in seconds for publish"
 msgstr "intervallo in secondi per la pubblicazione"
 
-#: rmap/stations/models.py:429
+#: rmap/stations/models.py:430
 msgid "MQTT server"
 msgstr ""
 
-#: rmap/stations/models.py:430
+#: rmap/stations/models.py:431
 msgid "MQTT user"
 msgstr ""
 
-#: rmap/stations/models.py:431
+#: rmap/stations/models.py:432
 msgid "MQTT password"
 msgstr ""
 
-#: rmap/stations/models.py:432
+#: rmap/stations/models.py:433
 msgid "MQTT PSK Key"
 msgstr ""
 
-#: rmap/stations/models.py:465
+#: rmap/stations/models.py:466
 msgid "Cyphal node_id"
 msgstr ""
 
-#: rmap/stations/models.py:466
+#: rmap/stations/models.py:467
 msgid "Cyphal subject"
 msgstr ""
 
-#: rmap/stations/models.py:467
+#: rmap/stations/models.py:468
 msgid "Cyphal subject-ID (decimal)"
 msgstr ""
 
-#: rmap/stations/models.py:520
+#: rmap/stations/models.py:521
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: rmap/stations/models.py:522
+#: rmap/stations/models.py:523
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: rmap/stations/models.py:524
+#: rmap/stations/models.py:525
 msgid "APN for gsm access"
 msgstr "APN per accesso gsm"
 
-#: rmap/stations/models.py:525
+#: rmap/stations/models.py:526
 msgid "number for LTE PPP access"
 msgstr "numero per l'accesso PPP in LTE"
 
-#: rmap/stations/models.py:599
+#: rmap/stations/models.py:600
 msgid "Baud rate"
 msgstr ""
 
-#: rmap/stations/models.py:600
+#: rmap/stations/models.py:601
 msgid "Serial device"
 msgstr "Dispositivo porta seriale"
 
-#: rmap/stations/models.py:631
+#: rmap/stations/models.py:632
 msgid "bluetooth name"
 msgstr "nome bluetooth"
 
-#: rmap/stations/models.py:663
+#: rmap/stations/models.py:664
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: rmap/stations/models.py:664
+#: rmap/stations/models.py:665
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: rmap/stations/models.py:665
+#: rmap/stations/models.py:666
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP"
 
-#: rmap/stations/models.py:666
+#: rmap/stations/models.py:667
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: rmap/stations/models.py:667
+#: rmap/stations/models.py:668
 msgid "AMQP password"
 msgstr "Password AMQP"
 
-#: rmap/stations/models.py:721
+#: rmap/stations/models.py:724
 msgid "board name"
 msgstr "nome scheda"
 
-#: rmap/stations/models.py:722
+#: rmap/stations/models.py:725
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
-#: rmap/stations/models.py:723 rmap/stations/models.py:947
+#: rmap/stations/models.py:726 rmap/stations/models.py:954
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: rmap/stations/models.py:724
+#: rmap/stations/models.py:727
 msgid "General standard category"
 msgstr "Categoria standard generale"
 
-#: rmap/stations/models.py:725
+#: rmap/stations/models.py:728
 msgid "Stima V4 standard type"
 msgstr ""
 
-#: rmap/stations/models.py:726
+#: rmap/stations/models.py:729
 msgid "Serial number"
 msgstr "Numero seriale"
 
-#: rmap/stations/models.py:764
+#: rmap/stations/models.py:767
 msgid "Last status"
 msgstr "Ultimo stato"
 
-#: rmap/stations/models.py:765 rmap/stations/models.py:830
+#: rmap/stations/models.py:768 rmap/stations/models.py:837
 msgid "Last status update date"
 msgstr "Data ultimo aggiornamento stato"
 
-#: rmap/stations/models.py:766
+#: rmap/stations/models.py:769
 msgid "firmware major version"
 msgstr "versione principale firmware"
 
-#: rmap/stations/models.py:767
+#: rmap/stations/models.py:770
 msgid "firmware minor version"
 msgstr "versione secondaria firmware"
 
-#: rmap/stations/models.py:832
-msgid "Last status bit 1"
-msgstr ""
-
-#: rmap/stations/models.py:833
-msgid "Last status bit 2"
-msgstr ""
-
-#: rmap/stations/models.py:834
-msgid "Last status bit 3"
-msgstr ""
-
-#: rmap/stations/models.py:835
-msgid "Last status bit 4"
-msgstr ""
-
-#: rmap/stations/models.py:836
-msgid "Last status bit 5"
-msgstr ""
-
-#: rmap/stations/models.py:837
-msgid "Last status bit 6"
-msgstr ""
-
-#: rmap/stations/models.py:838
-msgid "Last status bit 7"
+#: rmap/stations/models.py:771
+msgid "Enable email for status changes"
 msgstr ""
 
 #: rmap/stations/models.py:839
-msgid "Last status bit 8"
+msgid "Last status bit 1"
 msgstr ""
 
 #: rmap/stations/models.py:840
-msgid "Last status bit 9"
+msgid "Last status bit 2"
 msgstr ""
 
 #: rmap/stations/models.py:841
-msgid "Last status bit 10"
+msgid "Last status bit 3"
 msgstr ""
 
 #: rmap/stations/models.py:842
-msgid "Last status bit 11"
+msgid "Last status bit 4"
 msgstr ""
 
 #: rmap/stations/models.py:843
-msgid "Last status bit 12"
+msgid "Last status bit 5"
 msgstr ""
 
 #: rmap/stations/models.py:844
-msgid "Last status bit 13"
+msgid "Last status bit 6"
 msgstr ""
 
 #: rmap/stations/models.py:845
-msgid "Last status bit 14"
+msgid "Last status bit 7"
 msgstr ""
 
 #: rmap/stations/models.py:846
-msgid "Last status bit 15"
+msgid "Last status bit 8"
 msgstr ""
 
 #: rmap/stations/models.py:847
-msgid "Last status bit 16"
+msgid "Last status bit 9"
+msgstr ""
+
+#: rmap/stations/models.py:848
+msgid "Last status bit 10"
 msgstr ""
 
 #: rmap/stations/models.py:849
-msgid "Last status value 1 (%)"
+msgid "Last status bit 11"
 msgstr ""
 
 #: rmap/stations/models.py:850
-msgid "Last status value 2 (%)"
+msgid "Last status bit 12"
 msgstr ""
 
 #: rmap/stations/models.py:851
-msgid "Last status value 3 (%)"
+msgid "Last status bit 13"
 msgstr ""
 
 #: rmap/stations/models.py:852
-msgid "Last status value 4 (%)"
+msgid "Last status bit 14"
 msgstr ""
 
 #: rmap/stations/models.py:853
-msgid "Last status value 5 (%)"
+msgid "Last status bit 15"
 msgstr ""
 
 #: rmap/stations/models.py:854
-msgid "Last status value 6 (%)"
-msgstr ""
-
-#: rmap/stations/models.py:855
-msgid "Last status value 7 (%)"
+msgid "Last status bit 16"
 msgstr ""
 
 #: rmap/stations/models.py:856
+msgid "Last status value 1 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:857
+msgid "Last status value 2 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:858
+msgid "Last status value 3 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:859
+msgid "Last status value 4 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:860
+msgid "Last status value 5 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:861
+msgid "Last status value 6 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:862
+msgid "Last status value 7 (%)"
+msgstr ""
+
+#: rmap/stations/models.py:863
 msgid "Last status value 8 (%)"
 msgstr ""
 
-#: rmap/stations/models.py:870
+#: rmap/stations/models.py:877
 msgid "MAC address"
 msgstr "MAC address"
 
-#: rmap/stations/models.py:871
+#: rmap/stations/models.py:878
 msgid "Software version"
 msgstr "Versione del software"
 
-#: rmap/stations/models.py:872
+#: rmap/stations/models.py:879
 msgid "Software last update date"
 msgstr "Data ultimo aggiornamento software"
 
-#: rmap/stations/models.py:898
+#: rmap/stations/models.py:905
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: rmap/stations/models.py:899
+#: rmap/stations/models.py:906
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: rmap/stations/models.py:900
+#: rmap/stations/models.py:907
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: rmap/stations/models.py:945
+#: rmap/stations/models.py:952
 msgid "station name"
 msgstr "nome stazione"
 
-#: rmap/stations/models.py:946
+#: rmap/stations/models.py:953
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: rmap/stations/models.py:952
+#: rmap/stations/models.py:959
 msgid "identifier for mobile station (should be equal to your username)"
 msgstr ""
 "identificativo per le stazioni modili (dovrebbe essere uguale al tuo nome "
 "utente)"
 
-#: rmap/stations/models.py:954
+#: rmap/stations/models.py:961
 msgid "Precise Latitude of the fixed station"
 msgstr "Latitudine precisa della stazione"
 
-#: rmap/stations/models.py:955
+#: rmap/stations/models.py:962
 msgid "Precise Longitude of the fixed station"
 msgstr "Longitudine precisa della stazione"
 
-#: rmap/stations/models.py:957
+#: rmap/stations/models.py:964
 msgid "station network ( mobile for station with mobile coordinate)"
 msgstr "rete della stazione (mobile per stazioni con coordinate mobili)"
 
-#: rmap/stations/models.py:959
+#: rmap/stations/models.py:966
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: rmap/stations/models.py:960
+#: rmap/stations/models.py:967
 msgid "maint mqtt path for publish"
 msgstr "percorso di pubblicazione mqtt per amministrazione"
 
-#: rmap/stations/models.py:961
+#: rmap/stations/models.py:968
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:962
+#: rmap/stations/models.py:969
 msgid "Type of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:1016
+#: rmap/stations/models.py:1023
 msgid "Station have only one coordinate defined (lat/lon)."
 msgstr "La stazione ha solo una delle due coordinate definite (lat/lon)."
 
-#: rmap/stations/models.py:1019
+#: rmap/stations/models.py:1026
 msgid "Station network have inconsistent definition of coordinate (lat/lon)."
 msgstr ""
 "La rete stazione ha una definizione inconsistente con le coodirnate (lat/"
 "lon)."
 
-#: rmap/stations/models.py:1022
+#: rmap/stations/models.py:1030
 msgid "Station without ident need coordinate (lat/lon)."
 msgstr "Stazione senza ident necessita di coordinate (lat/lon)."
 
-#: rmap/stations/models.py:1025
+#: rmap/stations/models.py:1033
 msgid "Station with ident cannot have coordinate (lat/lon)."
 msgstr "Stazione con ident non può avere coordinate (lat/lon)."
 
-#: rmap/stations/models.py:1093
+#: rmap/stations/models.py:1039
+msgid "ident can be equal to username only."
+msgstr ""
+
+#: rmap/stations/models.py:1116
 msgid "I accept CC BY 4.0 license"
 msgstr "Accetto la licenza  CC BY 4.0"
 
-#: rmap/stations/models.py:1093
+#: rmap/stations/models.py:1116
 msgid "You need to accept CC BY 4.0 license to provide your data"
 msgstr ""
 "Per fornire i tuoi dati devi necessariamente accettare la licenza CC BY 4.0"
 
-#: rmap/stations/models.py:1135
+#: rmap/stations/models.py:1158
 msgid "Activate this station image"
 msgstr "Attiva questa immagine della stazione"
 

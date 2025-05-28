@@ -7,6 +7,8 @@ from django.http import StreamingHttpResponse
 import json
 from datetime import datetime,timedelta
 import itertools
+import calendar
+from django.http import HttpResponse
 
 from ..settings import BORINUD
 from .utils import params2record
@@ -298,11 +300,21 @@ def timeseries(request, **kwargs):
                  int(request.GET.get("monthmin",kwargs.get('month',"1"))),
                  int(request.GET.get("daymin",kwargs.get('day',"1"))))
 
+    eyear=int(request.GET.get("yearmax",kwargs.get('year',"2100")))
+    emonth=int(request.GET.get("monthmin",kwargs.get('month',"12")))
+    eday=int(request.GET.get("daymin",kwargs.get('day',calendar.monthrange(eyear, emonth)[1] )))
+    e = datetime(eyear,emonth,eday)
+    
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
     else:
         seg="last"
 
+    # check to limit query to do not exeed data volume to return
+    if (request.GET.get('dsn', 'report') == "sample_fixed"):
+        if (e-b > timedelta(hours=25)):
+            return HttpResponse("Request Entity Too Large",status=413)    
+        
     #https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
     #from collections import defaultdict
     #d = defaultdict(list)
