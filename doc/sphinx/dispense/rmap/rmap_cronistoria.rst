@@ -343,6 +343,21 @@ Relatore: Paolo Patruno
 Discussant: Sergio Minniti
 
 
+8/4/2025
+--------
+
+Seminario al Dipartimento di Matematica Università di Bologna
+
+Stimawifi ( stazione di monitoraggio ambientale )
+piattaforma  arduino ESP32 versione C3 risc V con platformio
+* freeRTOS con i suoi task e cose varie nella versione C++
+* sqlite
+* MQTT
+* e tanto altro
+
+Relatori: Paolo Patruno e Giacomo Magisano su Stimawifi
+
+
 Stato dell'arte su GitHub
 -------------------------
 

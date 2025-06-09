@@ -427,6 +427,419 @@ apprendimento e facilitare la partecipazione autonoma e responsabile
 ad attività formative nell’incontro con realtà innovative del mondo
 professionale.
 
+Come integrare l'ESD (Educazione allo Sviluppo Sostenibile) nell'istruzione STEM?
+---------------------------------------------------------------------------------
+
+Estratto e tradotto da:
+
+http://ejournal.uin-suska.ac.id/index.php/JNSI
+Zuana Habibaturrohmah1, Ida Kaniawati1, Rini Solihat, Wahyu Fadzilla Nirbayati
+
+Journal of Natural Science and Integration is licensed under a Creative Commons Attribution 4.0 International License.
+
+L'istruzione svolge un ruolo cruciale nel raggiungimento degli
+Obiettivi di sviluppo sostenibile (SDG). Ogni SDG si basa
+sull'istruzione per dotare gli individui delle conoscenze, delle
+competenze, delle abilità e dei valori necessari per lo sviluppo
+personale e il contributo sociale. Da qui nasce il concetto di
+educazione allo sviluppo sostenibile (ESD). All'interno di questo
+quadro , l'educazione STEM (scienza, tecnologia, ingegneria e
+matematica) è fondamentale per preparare le giovani generazioni ad
+affrontare le sfide della società. L'integrazione dei principi ESD
+nell'educazione STEM è quindi un approccio efficace per promuovere un
+futuro sostenibile.
+
+Indubbiamente, l'integrazione dell'ESD nei programmi scolastici è di
+estrema importanza. L'educazione alle materie STEM emerge come uno
+strumento vitale per preparare le giovani generazioni ad affrontare le
+molteplici sfide della società. Pertanto, combinare i concetti di ESD
+nell'educazione STEM diventa un modo efficace per promuovere un futuro
+sostenibile. In questo studio spieghiamo in dettaglio come integrare
+l'ESD nell'educazione STEM. Per raggiungere gli obiettivi
+dell'educazione alla sostenibilità, è obbligatorio implementare una
+pedagogia appropriata nel processo di
+insegnamento-apprendimento.
+
+Le strategie per integrare l'ESD nell'educazione STEM sono:
+
+Incorporare i concetti degli SDGs nelle lezioni STEM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Per integrare l'educazione allo sviluppo sostenibile (ESD)
+nell'educazione STEM, gli insegnanti possono incorporare i concetti di
+sostenibilità e gli Obiettivi di Sviluppo Sostenibile (SDGs) nelle
+lezioni STEM.
+
+Gli SDGs dell'UNESCO consistono in diciassette obiettivi, che sono:
+1) nessuna povertà,
+2) zero fame,
+3) buona salute e benessere,
+4) istruzione di qualità,
+5) uguaglianza di genere,
+6) acqua pulita e servizi igienici,
+7) energia pulita e accessibile,
+8) lavoro dignitoso e crescita economica,
+9) industria, innovazione e infrastrutture,
+10) riduzione delle disuguaglianze,
+11) città e comunità sostenibili,
+12) consumo e produzione responsabili,
+13) azione per il clima,
+14) vita sotto l'acqua,
+15) vita sulla terra,
+16) pace, giustizia e istituzioni forti,
+17) partnership per gli obiettivi.
+
+Tra questi diciassette obiettivi, gli insegnanti devono scegliere gli
+argomenti compatibili con gli obiettivi dello sviluppo sostenibile
+(Campbell & Speldewinde, 2022).
+
+La ricerca condotta da AlAli et al. (2023) ha indicato che l'impiego
+dell'approccio STEM nell'insegnamento è promettente per affrontare
+tutti gli obiettivi di sviluppo sostenibile nell'educazione. I
+risultati dello studio suggeriscono che questo metodo è in grado di
+affrontare tutti e diciassette gli obiettivi, sottolineando i benefici
+e i vantaggi dell'insegnamento basato sulle STEM, così come delineato
+nella letteratura educativa.
+
+Questi benefici comprendono la promozione del pensiero creativo e
+sistemico, il miglioramento della comprensione e la sua rilevanza
+economica nell'affrontare le sfide presenti e future, contribuendo
+così al miglioramento e allo sviluppo ambientale, in linea con gli
+obiettivi di apprendimento sostenibile.
+
+Integrando i campi STEM con la tecnologia e la matematica, tutte le
+discipline scientifiche possono affrontare e discutere lo sviluppo
+sostenibile all'interno dei loro ambiti, migliorando così la
+comprensione degli studenti del loro ruolo nel raggiungimento degli
+SDGs (Martín-Sánchez et al., 2022). Pertanto, gli insegnanti devono
+promuovere la cooperazione interdisciplinare tra le materie STEM e i
+principi della sostenibilità. Per esempio, possono incorporare le
+scienze ambientali nelle lezioni di biologia, le energie rinnovabili
+in fisica, o il design sostenibile nei progetti di ingegneria (Wahono
+& Chang, 2019), esplorando i sistemi agro-ecologici e integrando
+l'educazione alla biologia con altre discipline scientifiche come la
+chimica e la fisica possono contribuire al raggiungimento degli SDGs
+1, 2, 14 e 15. Allo stesso modo, l'educazione chimica può contribuire
+al raggiungimento degli SDGs 3, 6, 12, 14 e 15 migliorando la
+comprensione da parte degli studenti delle proprietà fisiche chimiche
+e delle loro implicazioni per l'ambiente e la salute umana.  Inoltre,
+l'utilizzo della guida all'educazione allo sviluppo sostenibile
+pubblicata dall'UNESCO può aiutare gli educatori a integrare nel loro
+curriculum gli obiettivi di apprendimento specifici di e le competenze
+essenziali per la sostenibilità.
+
+È anche fondamentale che gli insegnanti adottino prospettive
+sostenibili e coinvolgano gli studenti in progetti sostenibili per
+promuovere la consapevolezza e instillare un senso di coscienza della
+sostenibilità (Del Cerro Velázquez & Rivas, 2020). L'inserimento dei
+concetti degli Obiettivi di Sviluppo Sostenibile (SDGs)
+nell'educazione STEM può facilitare lo sviluppo di un curriculum STEM
+interdisciplinare incentrato sullo sviluppo sostenibile
+(Gavari-Starkie et al., 2022). Questo approccio può approfondire la
+comprensione del significato della sostenibilità da parte degli
+studenti e ispirarli a impegnarsi in azioni per costruire un futuro
+più sostenibile (Rico et al., 2021; Ulmeanu et al., 2021), e aiutare
+gli studenti a riconoscere la rilevanza della scienza nella loro vita
+quotidiana e a vedersi come catalizzatori del cambiamento nel
+raggiungimento degli SDGs (Burbules et al, 2020).
+
+Promuovere attività e progetti pratici
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+È essenziale promuovere attività e progetti pratici che si concentrino
+su soluzioni sostenibili nell'implementazione dell'apprendimento
+STEM-ESD. Incorporare gli SDGs nell'educazione STEM non solo permette
+agli studenti di esplorare soluzioni sostenibili utilizzando le loro
+competenze STEM (AlAli et al., 2023) ma li mette anche in grado di
+partecipare a compiti autentici, condurre ricerche e ideare soluzioni
+a problemi del mondo reale (Nguyen et al., 2020; Suh & Han,
+2019). Queste strategie aiutano gli studenti a coltivare la loro
+creatività e a promuovere una mentalità innovativa, che è cruciale per
+affrontare le sfide attuali e future dello sviluppo (Nguyen et
+al., 2020) Incoraggiare le attività pratiche, in particolare quelle
+incentrate sulla progettazione di prodotti o oggetti da parte degli
+studenti, è un approccio prezioso per promuovere le loro capacità di
+comprensione scientifica e di risoluzione dei problemi (Fortus et al.,
+2004). Questo metodo è riconosciuto come una promettente tecnica
+didattica per arricchire l'impegno e la comprensione delle scienze da
+parte degli studenti.(Apedoe et al.,2008)
+
+Inoltre, promuove un insegnamento interattivo e incentrato sul
+discente che facilita esperienze di apprendimento esplorative,
+orientate all'azione, riflessive e trasformative (Campbell &
+Speldewinde, 2022).  Sulla base di ricerche precedenti, gli insegnanti
+spesso progettano progetti in linea con gli Obiettivi di Sviluppo
+Sostenibile (SDGs), affrontando questioni sia locali che globali, come
+il consumo e la produzione sostenibili , la qualità e la disponibilità
+dell'acqua, la sostenibilità energetica, l'agricoltura e la produzione
+alimentare sostenibili (Nguyen et al., 2020). Ad esempio, alcuni
+progetti mirano a insegnare agli studenti di come creare semplici
+oggetti o prodotti sostenibili di uso quotidiano utilizzando materiali
+riciclati e come gestire efficacemente i rifiuti. Altri esempi
+includono progetti incentrati sulla sicurezza alimentare, sul
+trattamento e la conservazione dell'acqua e sulle energie
+rinnovabili. Questi progetti incorporano anche lezioni sulla
+protezione ed educazione alla salute, sulla previsione delle
+inondazioni, sulla mitigazione della siccità e sulla protezione
+agroambientale . Nel complesso, la maggior parte dei progetti è
+strutturata intorno a problemi del mondo reale e a fenomeni , che
+fungono da base per gli obiettivi educativi, mentre solo pochi
+progetti sono incentrati esclusivamente sulla sperimentazione e
+sull'indagine scientifica (Nguyen et al., 2020).  Coinvolgere gli
+studenti in progetti e attività pratiche favorisce un senso di
+partecipazione a loro apprendimento.  Quando gli insegnanti offrono ai
+bambini l'opportunità di impegnarsi attivamente, permettendo loro di
+controllare gli input e i risultati del loro apprendimento, gli
+studenti possono approfondire la comprensione dei concetti chiave
+della sostenibilità attingendo alle loro competenze STEM e al processo
+scientifico. Questo coinvolgimento attivo consente agli studenti di
+intraprendere azioni ragionate all'interno del loro ambiente di
+apprendimento (Pahnke et al., 2019). Valorizzando il contributo di
+ogni studente e cercando il suo apporto, gli insegnanti coltivano un
+ambiente di rispetto reciproco. Gli studenti riconoscono l'importanza
+dei loro contributi al gruppo e il modo in cui il loro coinvolgimento
+può avere un impatto sui risultati (Campbell & Speldewinde, 2022).
+Per sostenere le attività consistenti nell'apprendimento STEM-ESD
+basato sulle mani e sui progetti, può essere applicato con
+l'apprendimento basato sui problemi (Gamage et al., 2022; Nguyen,
+2023; Ulmeanu et al.,2021) e l'apprendimento basato sui progetti
+(Abdurrahman et al., 2023; AlAli et al., 2023; Fakhrudin et al., 2021;
+Gamage et al., 2022; Nguyen et al., 2020; Suh & Han, 2019; Wahono &
+Chang, 2019) che vengono utilizzati per indagare scientificamente
+fenomeni o problemi naturali e introdurre nuovi concetti agli studenti
+durante il processo di insegnamento-apprendimento. Questi metodi si
+rivolgono specificamente alla curiosità e all'inclinazione
+all'esplorazione degli studenti, incoraggiandoli a indagare, a porre
+domande e a cercare risposte a problemi attuali con comprensione.
+
+Sulla base delle teorie dell'apprendimento costruttivista,
+l'apprendimento basato su problemi e l'apprendimento basato su
+progetti sono stati ampiamente utilizzati nelle STEM-ESD, offrendo
+opportunità di esplorazione pratica, sperimentazione, domande e
+risposte ragionate. In aggiunta alla risoluzione di problemi, gli
+studenti acquisiscono una comprensione più profonda dei fenomeni
+naturali ("menti accese") attraverso indagini approfondite, ad esempio
+impegnandosi in progetti e attività pratiche simili a come lavorano
+gli scienziati (Gamage et al., 2022), in modo da poter affrontare le
+sfide della sostenibilità del mondo reale, spingendoli ad applicare le
+loro conoscenze STEM per ideare soluzioni sostenibili in contesti
+pratici (Fakhrudin et al., 2021).
+
+Affrontare problemi del mondo reale per applicare le STEM nell'affrontare le sfide della sostenibilità
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Una delle caratteristiche dell'istruzione STEM è che la maggior parte
+dei corsi è incentrata su problemi del mondo reale, allineandosi bene
+con l'obiettivo dell'ESD di mettere le generazioni attuali e future in
+grado di affrontare i loro bisogni utilizzando un approccio
+equilibrato alle sfide economiche, sociali e ambientali (Suh & Han,
+2019). L'istruzione STEM può essere strutturata in modo da enfatizzare
+problemi reali legati allo sviluppo sostenibile (Nguyen et al.,
+2020). Queste esplorazioni del mondo reale comportano indagini
+autentiche con obiettivi complessi, offrendo opportunità per la
+risoluzione di problemi e incorporando le convinzioni e i valori degli
+studenti (Redman, 2013). Secondo Brundiers et al. (2010),
+l'apprendimento dal mondo reale aiuta gli studenti ad approfondire la
+comprensione dei problemi di sostenibilità (conoscenza) e a migliorare
+la loro capacità di applicare i metodi di risoluzione dei problemi
+(competenza strategica). Inoltre, fornisce esperienza pratica nel
+collegare la conoscenza con l'azione per la sostenibilità (competenza
+pratica). Gli studenti imparano a creare strategie di sostenibilità e
+programmi nel contesto di processi, politiche o tradizioni
+esistenti. Inoltre, le opportunità di apprendimento reali consentono
+agli studenti di riconoscere e partecipare a varie forme di
+collaborazione con diversi livelli di intensità (competenza
+collaborativa).  Assegnando compiti incentrati su sfide reali di
+sostenibilità, gli insegnanti possono coinvolgere gli studenti e
+guidare le istituzioni verso comportamenti e politiche più
+sostenibili. Questo approccio consente agli studenti di applicare le
+conoscenze teoriche nella pratica e di sviluppare competenze
+interpersonali essenziali per coinvolgere gli stakeholder, entrambi
+cruciali per la sostenibilità (Redman, 2013).
+
+Quattro metodi per fornire agli studenti esperienze di apprendimento
+nel mondo reale sono:
+(1) integrare nelle aule scolastiche scenari reali ,
+(2) portare gli studenti in gita per osservare ambienti reali,
+(3) utilizzare simulazioni per replicare condizioni reali e
+(4) coinvolgere gli studenti in un impegno diretto con attività reali (Brundiers et al., 2010).
+
+Questi approcci possono aiutare gli studenti a cogliere l'importanza
+dello sviluppo sostenibile, applicando al contempo i concetti STEM
+(AlAli et al., 2023). Per esempio, gli insegnanti possono incorporare
+nelle lezioni di STEM questioni di sostenibilità globale, come il
+cambiamento climatico, la perdita di biodiversità e la gestione delle
+risorse. Gli studenti possono quindi progettare e costruire edifici
+ecologici, creare sistemi di filtraggio dell'acqua o sviluppare
+soluzioni di energia rinnovabile come parte delle loro attività di
+apprendimento (Wahono & Chang, 2019). Questo permette agli studenti di
+vedere le applicazioni pratiche dei concetti STEM nell'affrontare le
+sfide ambientali, sociali ed economiche a livello globale (Rustaman,
+2021; Suh & Han, 2019; Wahono & Chang, 2019).  Ricerche precedenti
+dimostrano che gli approcci didattici basati su contesti reali aiutano
+gli studenti a riconoscere la rilevanza della scienza nella loro vita
+quotidiana, aumentando il loro interesse e il piacere di affrontare
+situazioni di vita reale (Bennett & Holman, 2003; George & Lubben,
+2002; Pedretti & Hodson, 1995).
+
+L'insegnamento e l'apprendimento basati sul contesto del mondo reale
+suggeriscono che situazioni quotidiane familiari agli studenti possono
+essere studiate e che l'apprendimento STEM-ESD relativo a questi
+problemi può essere esplorato per spiegare queste situazioni (Lubben
+et al., 1996). Inoltre, questo approccio può incoraggiare gli studenti
+a lavorare in gruppo su progetti che affrontano le sfide reali della
+sostenibilità , promuovendo la collaborazione, il pensiero critico e
+le abilità di problem solving, che sono essenziali per le competenze
+di sostenibilità (AlAli et al., 2023).  Una ricerca di
+Remington-Doucette (2013) ha dimostrato l'impatto dell'incorporazione
+di problemi del mondo reale nell'istruzione, valutando un corso
+incentrato sulla sostenibilità attraverso casi di studio . Questi casi
+di studio hanno richiesto agli studenti di affrontare problemi
+complessi del mondo reale, portando a un aumento significativo delle
+loro competenze in materia di sostenibilità. I risultati hanno
+indicato che l'educazione allo sviluppo sostenibile (ESD) è efficace
+quando gli istruttori integrano contesti del mondo reale rilevanti per
+la vita quotidiana degli studenti. Inoltre, le ricerche di George e
+Lubben (2002), Gutwill-Wise (2001), e King e Henderson (2018) hanno
+dimostrato che l'interesse degli studenti per le scienze cresce quando
+l'insegnamento si basa su situazioni reali.
+
+Quando gli studenti possono collegare il contesto di vita reale con i
+concetti che stanno apprendendo, diventano più impegnati e
+interessati, vedendo la rilevanza della loro istruzione nella vita di
+tutti i giorni. Questo tipo di apprendimento e di ragionamento può
+anche influenzare positivamente il comportamento degli studenti nei
+confronti dell'ambiente.
+
+Promuovere partenariati con le comunità locali, le organizzazioni e gli operatori del settore
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alla luce di quanto detto, è fondamentale incorporare le esperienze
+del mondo reale nel processo di apprendimento STEM-ESD. A tal fine,
+gli studenti dovrebbero impegnarsi in attività che favoriscano i
+legami con la loro comunità (Castro et al., 2020). La collaborazione
+con comunità locali, organizzazioni o esperti di sostenibilità può
+offrire agli studenti esperienze reali e opportunità di tutoraggio
+(Wahono & Chang, 2019). Le esperienze nelle comunità e nelle
+organizzazioni che si occupano di sostenibilità permettono agli
+studenti di esporsi alle esperienze del mondo reale e di avere un
+focus comune sui problemi contestuali (Gamage et al., 2022). Questo
+approccio è efficace per l'educazione alla sostenibilità, in quanto
+aiuta gli studenti a sviluppare le competenze chiave della
+sostenibilità (Brundiers et al., 2010).
+
+Diversi studi sottolineano l'importanza di condividere le conoscenze
+con gli stakeholder esterni (Lai et al., 2015) per fornire soluzioni
+innovative per profondi cambiamenti nei sistemi ambientali, sociali o
+economici (Van Tulder et al., 2016). Allineando background, valori,
+idee e risorse diverse, le partnership possono affrontare
+efficacemente questioni sociali complesse, come gli Obiettivi globali
+delle Nazioni Unite ( ) (Van Tulder & Keen, 2018). Un risultato chiave
+della collaborazione e del partenariato è la capacità di trasferire le
+conoscenze e facilitare l'apprendimento tra le diverse parti
+interessate (Décamps et al., 2021).  La creazione di partenariati con
+più parti interessate è stata ampiamente riconosciuta come un fattore
+critico per promuovere la conoscenza e l'innovazione (Moon et al.,
+2019).
+
+L'integrazione dei partenariati nelle classi STEM-ESD può assumere
+varie forme, come conferenze con ospiti , workshop, gite sul campo o
+stage legati alle pratiche sostenibili. L'organizzazione di gite sul
+campo presso strutture sostenibili o l'invito di relatori ospiti
+provenienti da industrie sostenibili offre spunti pratici
+sull'applicazione dei principi STEM nello sviluppo sostenibile (AlAli
+et al., 2023).  Queste esperienze consentono agli studenti di
+impegnarsi in azioni reali, attive e approfondite per promuovere lo
+sviluppo sostenibile . Inoltre, è stato dimostrato che il
+coinvolgimento degli studenti nel servizio alla comunità aumenta la
+ritenzione dell'apprendimento e la motivazione verso le attività
+scolastiche (Martín-Sánchez et al., 2022).  La promozione di
+partenariati con esperti e con la comunità nel campo della
+sostenibilità collega le conoscenze e le competenze degli studenti con
+il servizio agli altri, allineando gli aspetti teorici, il talento e
+la creatività all'impegno sociale. Questo approccio permette agli
+studenti di acquisire conoscenze e mettere in pratica le loro abilità
+contribuendo al miglioramento della loro realtà (Martín-Sánchez et
+al., 2022). Attraverso le attività di , gli studenti vedono in prima
+persona come vengono implementate le pratiche sostenibili in vari
+settori.  Ad esempio, gli studenti possono visitare impianti di
+energia solare, fattorie eoliche, impianti di trattamento delle acque,
+fattorie biologiche o edifici verdi. La presenza sul posto consente
+agli studenti di confrontarsi con l'ambiente e con la tecnologia di ,
+migliorando il loro apprendimento attraverso l'osservazione e
+l'interazione.
+Possono assistere al funzionamento di di sistemi di energia
+rinnovabile, processi di gestione dei rifiuti e pratiche agricole
+sostenibili .
+Invitare esperti di sostenibilità nelle classi o organizzare gite sul
+campo può rendere l'apprendimento più dinamico e contestuale. Queste
+esperienze aiutano gli studenti a collegare la teoria in classe con le
+applicazioni pratiche, favorendo una comprensione più profonda dello
+sviluppo sostenibile.  Inoltre, forniscono una piattaforma per
+l'apprendimento interdisciplinare, dato che la sostenibilità spesso
+richiede conoscenze in diversi campi STEM. È stato dimostrato che il
+collegamento degli studenti alla loro comunità li coinvolge e li
+motiva in modo più efficace nel processo di apprendimento (Holmens et
+al., 2022). Questo approccio offre agli studenti l'opportunità di
+partecipare a progetti di sostenibilità e di applicare le competenze
+STEM in scenari di vita reale (Abdurrahman et al., 2023; Khadri,
+2022), fornendo una comprensione olistica della sostenibilità (AlAli
+et al., 2023).
+
+Fornire formazione e risorse agli educatori per migliorare la loro comprensione dell'insegnamento delle STEM-ESD
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Redman (2013) ha sottolineato l'integrazione cruciale della pedagogia
+educativa, del cambiamento comportamentale e delle competenze di
+sostenibilità per promuovere la sostenibilità e attuare un cambiamento
+duraturo. Questo sottolinea il ruolo centrale dei metodi pedagogici
+nell'educazione incentrata sulla sostenibilità (Gamage et al.,
+2022). Pertanto, gli insegnanti sono i principali artefici
+dell'educazione STEM-ESD e necessitano di un'adeguata formazione e di
+risorse per incorporare senza problemi l'ESD nell'insegnamento delle
+materie STEM. Ciò potrebbe comportare uno sviluppo professionale
+mirato che copra i principi della sostenibilità, le tecniche di
+insegnamento e le applicazioni pratiche attraverso casi di vita reale
+(Nguyen et al., 2020).  Offrire iniziative di sviluppo professionale
+agli educatori per approfondire la comprensione dell'ESD e la sua
+fusione con l'educazione STEM è fondamentale (Fakhrudin et al.,
+2021). Attraverso la formazione degli insegnanti, possono affinare le
+loro competenze nell'ideazione e nell'esecuzione di metodi didattici,
+nella scelta di materiali adeguati, e nella valutazione delle
+metodologie didattiche per fonderle senza soluzione di continuità
+(Stouthart et al., 2023).
+
+L'obiettivo principale del programma è quello di far progredire
+l'insegnamento delle materie STEM abbinato ai principi ESD . Questa
+iniziativa può anche stimolare la collaborazione interdisciplinare, lo
+scambio di idee e metodologie didattiche innovative tra gli educatori
+del settore STEM-ESD. Il programma è progettato per fornire agli
+amministratori scolastici, ai responsabili delle politiche educative e
+agli operatori del settore uno sviluppo professionale sui concetti
+STEM, sulle strategie di integrazione, sugli approcci didattici e sul
+ruolo di sviluppo dell'educazione STEM. Inoltre, incoraggia gli
+educatori a collaborare con i colleghi di nello sviluppo di progetti e
+argomenti didattici STEM-ESD, promuovendo la sperimentazione di
+metodologie di insegnamento STEM-ESD nelle loro scuole (Nguyen et al.,
+2020). Attraverso l'offerta di formazione e risorse, gli educatori
+possono fondere abilmente l'ESD nell'educazione STEM, alimentando una
+comprensione completa delle sfide della sostenibilità e mettendo gli
+studenti in condizione di guidare un cambiamento positivo nelle loro
+comunità e a livello globale.
+
+Conclusioni
+^^^^^^^^^^^
+In sostanza, la promozione di un mondo più sostenibile attraverso
+l'istruzione STEM-ESD richiede l'acquisizione da parte degli studenti
+delle conoscenze, delle competenze, dei valori e degli atteggiamenti
+necessari. Questi elementi li mettono in grado di partecipare
+attivamente promuovendo lo sviluppo sostenibile, e ciò può essere
+ottenuto solo attraverso lo sforzo collaborativo di tutti i
+partecipanti, in particolare degli insegnanti, che devono impegnarsi
+per migliorare l'attuazione dell'insegnamento STEM-ESD al suo massimo
+potenziale.
+
+
 Che cos'è il tinkering?
 -----------------------
 
