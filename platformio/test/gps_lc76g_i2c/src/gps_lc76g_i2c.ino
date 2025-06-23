@@ -8,14 +8,14 @@
 
 uint32_t dataLength = 0;
 
-esp_err_t i2c_write(uint8_t device_addr, const uint8_t *data, size_t data_len) {
+int i2c_write(uint8_t device_addr, const uint8_t *data, size_t data_len) {
 
   Wire.beginTransmission(device_addr);
   Wire.write(data, data_len);
   return Wire.endTransmission();
 }
 
-esp_err_t i2c_read(uint8_t device_addr, uint8_t *data, size_t data_len) {
+int i2c_read(uint8_t device_addr, uint8_t *data, size_t data_len) {
   int RxIdx = 0;
   size_t returned = Wire.requestFrom(device_addr, data_len);
   if (returned == data_len){
@@ -29,7 +29,7 @@ esp_err_t i2c_read(uint8_t device_addr, uint8_t *data, size_t data_len) {
 }
 
 void reset(){
-  vTaskDelay(pdMS_TO_TICKS(15));
+  delay(15);
  
   uint8_t none;
   //i2c_write(DEVICE_ADDRESS, &none, sizeof(none));
@@ -43,17 +43,17 @@ void stepOne() {
   uint8_t data[] = { 0x08, 0x00, 0x51, 0xAA, 0x04, 0x00, 0x00, 0x00 };
 
   // A
-  if (i2c_write(DEVICE_ADDRESS, data, sizeof(data)) != ESP_OK) {
+  if (i2c_write(DEVICE_ADDRESS, data, sizeof(data)) != 0) {
     Serial.println("Failed to write data step one A");
     reset();
     return;
   }
-  vTaskDelay(pdMS_TO_TICKS(15));
+  delay(15);
 
   // B
   uint8_t readData[4] = { 0 };
 
-  if (i2c_read(DEVICE_ADDRESS_R, readData, sizeof(readData)) != ESP_OK) {
+  if (i2c_read(DEVICE_ADDRESS_R, readData, sizeof(readData)) != 0) {
     Serial.println("Failed to read data step one B");
     reset();
     return;
@@ -93,7 +93,7 @@ void stepTwo() {
   memcpy(dataToSend + sizeof(data), readData, sizeof(readData));
   delay(15);
 
-  if (i2c_write(DEVICE_ADDRESS, dataToSend, sizeof(dataToSend)) != ESP_OK) {
+  if (i2c_write(DEVICE_ADDRESS, dataToSend, sizeof(dataToSend)) != 0) {
     Serial.println("Failed to write step two A");
     reset();
     return;
@@ -102,7 +102,7 @@ void stepTwo() {
   delay(15);
 
   // B
-  if (i2c_read(DEVICE_ADDRESS_R, dataBuffer, dataBufferLen) != ESP_OK) {
+  if (i2c_read(DEVICE_ADDRESS_R, dataBuffer, dataBufferLen) != 0) {
     Serial.println("Failed to read data step two B");
     reset();
     return;
@@ -126,7 +126,8 @@ void setup() {
   Serial.println("Started");
   Wire.begin();
   Wire.setClock(I2C_MASTER_FREQ_HZ);
-  Wire.setTimeOut(50);
+  //Wire.setTimeOut(50);
+  Wire.setTimeout(50);
   delay(1000);  
 }
 
