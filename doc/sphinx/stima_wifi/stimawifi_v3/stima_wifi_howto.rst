@@ -80,6 +80,24 @@ all’hardware via via disponibile.
 Componenti Hardware
 -------------------
 
+Elenco componenti elettroniche e sensori
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: stimawifi_bom_mini.jpg
+   :width: 50%
+
+:download:`alta risoluzione <stimawifi_bom.jpg>`.	 
+	   
+	   
+Assemblaggio componenti elettroniche e sensori
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: stimawifi_out_of_box_mini.jpg
+   :width: 50%
+
+:download:`alta risoluzione <stimawifi_out_of_box.jpg>`.
+
+
 MCU - Espressif ESP32 C3
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -329,7 +347,8 @@ Il colore del led indica lo stato di funzionamento:
 
 Il display è opzionale e visualizza comunicazioni, ogni 3 secondi lo
 stato aggiornato riassuntivo di funzionamento e un riassunto delle
-ultime misurazioni effettuate
+ultime misurazioni effettuate. Sono supportati due differenti display
+con dimensioni differenti riconosciuti automaticamente.
 
 L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
 in sqlite3; la struttura del DB è qui rappresentata
@@ -943,4 +962,36 @@ Appendice C PIN
 +-------------------+------+--------------+------+------------------------------+--------------+-------+------------------------------+--------------+-------+------------------------------+
 
 .. note:: All of the IO pins run at 3.3V.
+
+
+Appendice D Indirizzi I2C
+-------------------------
+
+**Indirizzi I2C**
+
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	DEC  |	HEX | Device  |	50   |	100  |	200  |	250  |	400  |	500  |  800  |  [KHz]  |
++============+======+=========+======+=======+=======+=======+=======+=======+=======+=========+
+|	49   |	0x31| bottone |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	60   |	0x3C| display |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
+|	     |	    | 64X48   |	     |	     |	     |	     |	     |	     |	     |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	60   |	0x3D| display |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
+|	     |	    | 128X64  |	     |	     |	     |	     |	     |	     |	     |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	68   |	0x44|	SHT   |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	80   |	0x50|	GPS   |	V    |	V    |	V    |	.    |	.    |	.    |	.    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	80   |	0x54|	GPS   |	V    |	V    |	V    |	.    |	.    |	.    |	.    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	97   |	0x61|	SCD   |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	104  |	0x68|	RTC   |	V    |	V    |	V    |	V    |	V    |	.    |	.    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+|	105  |	0x69|	SPS   |	V    |	V    |	V    |	V    |	V    |	V    |	V    |         |
++------------+------+---------+------+-------+-------+-------+-------+-------+-------+---------+
+
+.. note:: 8 devices found
 
