@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2024  Paolo Patruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2025  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -23,150 +23,9 @@ TODO
 */
 
 /*
-FreeRtos viene utilizzato attraverso un wrapper C++.  Ogni thread ha
-una struttura dati utilizzata per comunicare trutture dati e dati.
-Nessun dato possibilmente è definito globalmente.
-Il colore del led indica lo stato di funzionamento:
-spento: sconosciuto
-blu: in elaborazione
-verde : tutto funziona
-Rosso: almeno un errore è presente
-
-Il display è opzionale e visualizza comunicazioni, ogni 3 secondi lo
-stato aggiornato riassuntivo di funzionamento e un riassunto delle
-ultime misurazioni effettuate
-
-L'SD card è opzionale; se presente è utilizzata per memorizzare i dati
-in sqlite3; la struttura del DB e visibile nel file DB_structure.pdf
-Dopo essere passati dal DB sqlite i file vengono trasferiti in un 
-archivio, integrato in modalità append.
-Per poter utilizzare la stazione in modalità "mobile" ossia con
-posizione continuamente aggiornata ci sono due possibilità:
-* connettere un modulo GPS con Ublox neo6m
-* utilizzare l'app android GPSD_forwarder
-La configurazione è gestita sul server e i thread sono attivati
-automaticamente. Quando la geolocalizzazione è possibile i dati
-vengono generati, in caso contrario no.
-E' attivo un web server accessibile quando ci si connette allo stesso Wifi
-a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
-
-http://<station slug>             Full main page
-http://<station slug>/data.json   Data in json format
-http://<station slug>/geo         Coordinate of the station
-
-I dati sono visualizzabile da browser sempre se connessi allo stesso WiFi
-autenticandosi sul server RMAP e accedendo alla propria pagina personale,
-selezionando la stazione e poi alla voce "Mostra i dettagli stazione" e poi
-"Dati locali in tempo reale".
-Il reset delle configurazioni è effettuabile a stazione disalimentata
-collegando a massa il pin RESET_PIN  o premendo il pulsante A della
-board del display, alimentare la stazione e dopo 10 secondi scollegare il
-RESET_PIN o rilasciare il pulsante. Il reset della configurazione effettua:
-* rimozione delle configurazioni del wifi
-* rimozione delle configurazioni stazione (utente slug password)
-* completa formattazione dell'SD card con rimozione definitiva di 
-  tutti i dati presenti
-
-Il frusso dei dati nelle code è il seguente:
-
-i dati e metadati sono generati da threadMeasure e accodati nella coda
-mqttqueue per la pubblicazione, ricevuti da threadPublish per la 
-pubblicazione sul broker MQTT; se non c'è spazio
-vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
-threadMeasure è attivato periodicamente.
-threadPublish prova la pubblicazione MQTT.
-Dopo ogni tentativo di pubblicazione al broker MQTT
-i dati vengono accodati per l'archiviazione nella coda dbqueue
-etichettati relativamente al risultato della pubblicazione.
-Il thread threadDb gestisce due tipi di archiviazione dati.
-Il primo (DB) che contiene gli ultimi dati misurati (solitamente 24 ore)
-con sovrascrittura nel database e una etichetta a indicare lo stato di 
-pubblicazione; fino a quando i dati sono presenti in questo
-DB i dati possono essere recuperati per la pubblicazione fino al successo della
-pubblicazione.
-Quando i dati nel DB invecchiano oltre il limite vengono trasferiti nell'archivio
-dove potranno essere riletti solo tramite un PC.
-Ogni thread ha una struttura dati che descrive
-lo stato di funzionamento. Il thread loop di arduino effettua una
-sintesi degli stati di tutti i thread e li visualizza tramite i
-colori del LED e tramite il display opzionale.
-
-Per pubblicare e archiviare i dati è necessario avere un corretto timestamp.
-Data e ora possono essere impostati tramite:
-* NTP
-* GPS
-* UDP
-
-Se presente un RTC locale (DS1307) data e ora sono impostate sull'RTC
-automaticamente con uno dei metodi precedenti e poi se tutti i metodi
-precedenti non sono più disponibili riletti dall'RTC.
-
-Senza un corretto timestamp i dati non possono essere gestiti e
-vengono subito ignorati.
-
-Threads:
-
-  thread loop arduino
-
-Questo thread esegue tutte le operazioni iniziali di configurazione e
-attivazione degli altri thread. Prima si configura la connessione WiFi
-insieme ad alcuni parametri univoci della stazione. Tramite questi
-ultimi la configurazione stazione viene scaricata dal server. Il
-thread governa la visualizzazione sul display e la colorazione del
-LED. Inoltre è possibile visualizzare i dati misurati tramite un
-browser indirizzandolo sulla pagina personale sul server RMAP.
-La libreria TimeAlarm gestisce l'attivazione dei segnali ai
-thread per attivazioni perioche.
-
-  threadMeasure
-
-Questo thread si occupa di interrogare i sensori, associare i metadati
-e accodarli per la pubblicazione e archiviazione. I sensori vengono
-interrogati in parallelo tramite delle macchine a stati finiti.
-Inoltre viene prodotta una struttura di dati di riassunto delle misure
-effettuate. Insieme alla libreria di driver per sensori viene gestita
-la loro inizializzazione e il restart in caso di ripetuti errori.
-
-  threadPublish
-
-Pubblica i dati in MQTT secondo lo standard RMAP.  Se la
-configurazione è per una stazione mobile della struttura con la
-geolocalizzazione viene controllato il timestamp e se ancora attuale
-associate le coordinate ai dati.
-
-  threadDb
-
-Archivia i dati su SD card. Il formato del DB è quello portabile di sqlite3 e
-possono essere letti tramite la stessa libreria da PC. Più scritture
-con gli stessi metadati aggiornano i dati, non creano record
-duplicati. L'archivio invece è composto da due file, uno di descrizione
-e il secondo con i dati.
-Il thread threadDb viene attivato periodicamente
-per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
-inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
-sufficiente spazio nella coda di pubblicazione per altri thread.
-Il thread threadDb esegue a priorità più alta degli altri per garantire
-l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
-I dati vengo continuamente traferiti dal DB all'archivio eliminando dal 
-database i dati più vecchi trasferendoli in un semplice archivio su file
-sempre sull'SD card. I dati in archivio possono essere letti e traferiti
-sul server RMAP tramite mqtt2bufr, un tool della suite RMAP.
-Se all'avvio i dati presenti nel DB risultano essere
-tutti vecchi i dati vengono traferiti all'archivio e l'intero DB viene eliminato
-e ricreato vuoto per limiti di memoria e performance.
-
-  threadUdp
-
-Legge i dati UDP inviati dalla app GPSD forwarder di uno smartphone
-riempiendo una struttura dati con la geolocalizzazione e un timestamp.
-
-  threadGps
-
-Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
-la geolocalizzazione e un timestamp.
-
+documentation at
+https://doc.rmap.cc/stima_wifi/stimawifi_v3/stima_wifi_howto.html#software
 */
-
 
 #include "stimawifi.h"
 
@@ -255,53 +114,53 @@ void display_summary_data(char* status) {
   uint8_t displaypos=1;
 
   LockGuard guard(i2cmutex);
-  u8g2.clearBuffer();
+  u8g2->clearBuffer();
 
-  //u8g2.setCursor(0, 1*CH); 
-  //u8g2.setDrawColor(0);
-  //u8g2.drawBox( 0, 0*CH,64, CH);
-  //u8g2.setDrawColor(1);
+  //u8g2->setCursor(0, 1*CH); 
+  //u8g2->setDrawColor(0);
+  //u8g2->drawBox( 0, 0*CH,64, CH);
+  //u8g2->setDrawColor(1);
   
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(status);
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(status);
 
   frtosLog.notice(F("display Temperature: %D"),summarydata.temperature);
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(F("T   : "));
-  u8g2.print(summarydata.temperature,1);
-  u8g2.print(F(" C"));
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(F("T   : "));
+  u8g2->print(summarydata.temperature,1);
+  u8g2->print(F(" C"));
 
   frtosLog.notice(F("display Humidity: %d"),summarydata.humidity);
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(F("U   : "));
-  u8g2.print(summarydata.humidity,0);
-  u8g2.print(F(" %"));
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(F("U   : "));
+  u8g2->print(summarydata.humidity,0);
+  u8g2->print(F(" %"));
 
   frtosLog.notice(F("display PM2: %d"),summarydata.pm2);
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(F("PM2 : "));
-  u8g2.print(summarydata.pm2,0);
-  u8g2.print(F(" ug/m3"));
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(F("PM2 : "));
+  u8g2->print(summarydata.pm2,0);
+  u8g2->print(F(" ug/m3"));
 
   frtosLog.notice(F("display PM10: %d"),summarydata.pm10);
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(F("PM10: "));
-  u8g2.print(summarydata.pm10,0);
-  u8g2.print(F(" ug/m3"));
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(F("PM10: "));
+  u8g2->print(summarydata.pm10,0);
+  u8g2->print(F(" ug/m3"));
 
   frtosLog.notice(F("display CO2: %d"),summarydata.co2);
-  u8g2.setCursor(0, (displaypos++)*CH); 
-  u8g2.print(F("CO2 : "));
-  u8g2.print(summarydata.co2,0);
-  u8g2.print(F(" ppm"));
+  u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print(F("CO2 : "));
+  u8g2->print(summarydata.co2,0);
+  u8g2->print(F(" ppm"));
 
   /*
-  u8g2.clearBuffer();
-  u8g2.setCursor(0, 20); 
-  u8g2.print(F("WIFI KO"));
-  u8g2.sendBuffer();
+  u8g2->clearBuffer();
+  u8g2->setCursor(0, 20); 
+  u8g2->print(F("WIFI KO"));
+  u8g2->sendBuffer();
   */
-  u8g2.sendBuffer(); 
+  u8g2->sendBuffer(); 
 }
 
 // Print date and time to loggin system
@@ -331,10 +190,10 @@ void timeavailable(struct timeval *t)
 
   if (oledpresent){
     LockGuard guard(i2cmutex);
-    u8g2.setCursor(0, 3*CH);
-    u8g2.print(F("                "));
-    u8g2.print(F("Time OK"));
-    u8g2.sendBuffer();
+    u8g2->setCursor(0, 3*CH);
+    u8g2->print(F("           "));
+    u8g2->print(F("Time OK"));
+    u8g2->sendBuffer();
   }  
   if (!frtosRTC.set(now())){
     frtosLog.error("Setting RTC time from NTP!");
@@ -606,11 +465,11 @@ void firmware_upgrade() {
       frtosLog.error(F("%s"),httpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
 	LockGuard guard(i2cmutex);
-	u8g2.setCursor(0, 2*CH); 
-	u8g2.print(F("FW Update"));
-	u8g2.setCursor(0, 3*CH); 
-	u8g2.print(F("Failed"));
-	u8g2.sendBuffer();
+	u8g2->setCursor(0, 2*CH); 
+	u8g2->print(F("FW Update"));
+	u8g2->setCursor(0, 3*CH); 
+	u8g2->print(F("Failed"));
+	u8g2->sendBuffer();
       }
 
       pixels.setPixelColor(0, pixels.Color(255, 0, 0));
@@ -622,11 +481,11 @@ void firmware_upgrade() {
       frtosLog.notice(F("[update] No Update."));
       if (oledpresent) {
 	LockGuard guard(i2cmutex);
-	u8g2.setCursor(0, 2*CH); 
-	u8g2.print(F("NO Firmware"));
-	u8g2.setCursor(0, 3*CH); 
-	u8g2.print(F("Update"));
-	u8g2.sendBuffer();
+	u8g2->setCursor(0, 2*CH); 
+	u8g2->print(F("NO Firmware"));
+	u8g2->setCursor(0, 3*CH); 
+	u8g2->print(F("Update"));
+	u8g2->sendBuffer();
       }
       pixels.setPixelColor(0, pixels.Color(0, 0, 255));
       pixels.show();
@@ -638,9 +497,9 @@ void firmware_upgrade() {
       
       if (oledpresent) {
 	LockGuard guard(i2cmutex);
-	u8g2.setCursor(0, 2*CH); 
-	u8g2.print(F("FW Updated!"));
-	u8g2.sendBuffer();
+	u8g2->setCursor(0, 2*CH); 
+	u8g2->print(F("FW Updated!"));
+	u8g2->sendBuffer();
       }
 
       pixels.setPixelColor(0, pixels.Color(0, 255, 255));
@@ -1190,31 +1049,49 @@ void setup() {
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
 
   httpClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
-  
+
+  // two different display with different dimension are managed with two different I2C address
   // check return value of
   // the Write.endTransmisstion to see if
-  // a device did acknowledge to the address.
-  Wire.beginTransmission(OLEDI2CADDRESS);
-  if (Wire.endTransmission() == 0) {
+  // a device did acknowledge to the address.  
+  {
     LockGuard guard(i2cmutex);
-    frtosLog.notice(F("OLED Found"));
-    oledpresent=true;
-    u8g2.setI2CAddress(OLEDI2CADDRESS*2);
-    u8g2.begin();
-    u8g2.setFont(u8g2_font_5x7_tf);
-    u8g2.setFontMode(0); // enable transparent mode, which is faster
-    u8g2.clearBuffer();
-    u8g2.setCursor(0, 1*CH); 
-    u8g2.print(F("Starting up!"));
-    u8g2.setCursor(0, 2*CH); 
-    u8g2.print(F("Version:"));
-    u8g2.setCursor(0, 3*CH); 
-    u8g2.print(F(SOFTWARE_VERSION));
-    u8g2.sendBuffer();
-  }else{
-        frtosLog.notice(F("OLED NOT Found"));
-  }
 
+    Wire.beginTransmission(OLEDI2CADDRESS_128X64);
+    if (Wire.endTransmission() == 0) {
+      u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0);
+      u8g2->setI2CAddress(OLEDI2CADDRESS_128X64*2);
+      u8g2->begin();
+      u8g2->setFont(u8g2_font_6x10_tf);
+      CH=10;
+      oledpresent=true;
+    }
+
+    Wire.beginTransmission(OLEDI2CADDRESS_64X48);
+    if (Wire.endTransmission() == 0) {
+      u8g2 = new U8G2_SSD1306_64X48_ER_F_HW_I2C(U8G2_R0);
+      u8g2->setI2CAddress(OLEDI2CADDRESS_64X48*2);
+      u8g2->begin();
+      u8g2->setFont(u8g2_font_5x7_tf);      
+      CH=7;
+      oledpresent=true;
+    }
+    
+    if (oledpresent) {
+      frtosLog.notice(F("OLED Found"));
+      u8g2->setFontMode(0); // enable transparent mode, which is faster
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("Starting up!"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("Version:"));
+      u8g2->setCursor(0, 3*CH); 
+      u8g2->print(F(SOFTWARE_VERSION));
+      u8g2->sendBuffer();
+    }else{
+      frtosLog.notice(F("OLED NOT Found"));
+    }
+  }
   pixels.setPixelColor(0, pixels.Color(255, 0, 255));
   pixels.show();
   delay(3000);
@@ -1229,20 +1106,20 @@ void setup() {
     frtosLog.notice(F("clean FS"));
     if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("Clean FS"));
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("Reset wifi"));
-      u8g2.setCursor(0, 3*CH); 
-      u8g2.print(F("Reset conf"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("Clean FS"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("Reset wifi"));
+      u8g2->setCursor(0, 3*CH); 
+      u8g2->print(F("Reset conf"));
+      u8g2->sendBuffer();
       delay(3000);
     }
     // reset configuration on  on EEPROM
     LittleFS.begin(false,"/littlefs",LFMAXFILE);    
     LittleFS.format();
-    frtosLog.notice(F("Reset wifi configuration"));
+    frtosLog.notice(F("user request Reset wifi configuration"));
     wifiManager.resetSettings();
   }
   
@@ -1256,28 +1133,28 @@ void setup() {
     frtosLog.warning(F("Reformat LittleFS"));
     LittleFS.begin();    
     LittleFS.format();
-    frtosLog.warning(F("Reset wifi configuration"));
+    frtosLog.warning(F("littlefs error Reset wifi configuration"));
     wifiManager.resetSettings();
     
     if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("Mount FS"));
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("Failed"));
-      u8g2.setCursor(0, 3*CH); 
-      u8g2.print(F("RESET"));
-      u8g2.setCursor(0, 4*CH); 
-      u8g2.print(F("CONFIGURATION"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("Mount FS"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("Failed"));
+      u8g2->setCursor(0, 3*CH); 
+      u8g2->print(F("RESET"));
+      u8g2->setCursor(0, 4*CH); 
+      u8g2->print(F("CONFIGURATION"));
+      u8g2->sendBuffer();
       delay(3000);
     }
   }
 
   if (readconfig_rmap() == String()) {
     frtosLog.notice(F("station configuration not found!"));
-    frtosLog.notice(F("Reset wifi configuration"));
+    frtosLog.notice(F("no station conf; Reset wifi configuration"));
     wifiManager.resetSettings();
   }
 
@@ -1331,16 +1208,16 @@ void setup() {
     
   if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("ssed:"));
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F(WIFI_SSED));
-      u8g2.setCursor(0, 3*CH); 
-      u8g2.print(F("password:"));
-      u8g2.setCursor(0, 4*CH); 
-      u8g2.print(F(WIFI_PASSWORD));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("ssed:"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F(WIFI_SSED));
+      u8g2->setCursor(0, 3*CH); 
+      u8g2->print(F("password:"));
+      u8g2->setCursor(0, 4*CH); 
+      u8g2->print(F(WIFI_PASSWORD));
+      u8g2->sendBuffer();
   }
 
   //fetches ssid and pass and tries to connect
@@ -1353,10 +1230,10 @@ void setup() {
     frtosLog.error(F("failed to connect and hit timeout"));
     if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("WIFI KO"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("WIFI KO"));
+      u8g2->sendBuffer();
     }
     delay(3000);
     //WiFi.disconnect(true);
@@ -1374,16 +1251,16 @@ void setup() {
     
     if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("WIFI OK"));
-      u8g2.sendBuffer();
-      u8g2.setCursor(0, 4*CH); 
-      u8g2.print(F("IP:"));
-      u8g2.setFont(u8g2_font_u8glib_4_tf);
-      u8g2.print(WiFi.localIP().toString().c_str());
-      u8g2.setFont(u8g2_font_5x7_tf);
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("WIFI OK"));
+      u8g2->sendBuffer();
+      u8g2->setCursor(0, 4*CH); 
+      u8g2->print(F("IP:"));
+      //u8g2->setFont(u8g2_font_u8glib_4_tf);
+      u8g2->print(WiFi.localIP().toString().c_str());
+      //u8g2->setFont(u8g2_font_5x7_tf);
+      u8g2->sendBuffer();
     }    
   }
   
@@ -1407,12 +1284,12 @@ void setup() {
     writeconfig();
     if (oledpresent) {
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("NEW configuration"));
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("saved"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("NEW configuration"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("saved"));
+      u8g2->sendBuffer();
     }
   }
 
@@ -1437,14 +1314,14 @@ void setup() {
 
     if (oledpresent){
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 1*CH); 
-      u8g2.print(F("Station not"));
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("configurated!"));
-      u8g2.setCursor(0, 3*CH);
-      u8g2.print(F("RESTART"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("Station not"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("configurated!"));
+      u8g2->setCursor(0, 3*CH);
+      u8g2->print(F("RESTART"));
+      u8g2->sendBuffer();
     }
     
     frtosLog.error(F("reboot!"));
@@ -1476,15 +1353,15 @@ void setup() {
 
   if (oledpresent){
     LockGuard guard(i2cmutex);
-    u8g2.setDrawColor(0);
-    u8g2.drawBox( 0, 1*CH,64, CH);
-    u8g2.setDrawColor(1);
-    u8g2.setCursor(0, 2*CH);
-    u8g2.print(F("Setting time"));
-    u8g2.setDrawColor(0);
-    u8g2.drawBox( 0, 2*CH,64, CH);
-    u8g2.setDrawColor(1);
-    u8g2.sendBuffer();
+    u8g2->setDrawColor(0);
+    u8g2->drawBox( 0, 1*CH,64, CH);
+    u8g2->setDrawColor(1);
+    u8g2->setCursor(0, 2*CH);
+    u8g2->print(F("Setting time"));
+    u8g2->setDrawColor(0);
+    u8g2->drawBox( 0, 2*CH,64, CH);
+    u8g2->setDrawColor(1);
+    u8g2->sendBuffer();
   }
 
   // wait for  date and time setup from NTP
@@ -1518,18 +1395,18 @@ void setup() {
     frtosLog.warning(F("Time not setted"));  
     if (oledpresent){
       LockGuard guard(i2cmutex);
-      u8g2.clearBuffer();
-      u8g2.setDrawColor(0);
-      u8g2.drawBox( 0, 1*CH,64, CH);
-      u8g2.setDrawColor(1);
-      u8g2.setCursor(0, 2*CH); 
-      u8g2.print(F("NTP Time Error"));
-      //u8g2.setDrawColor(0);
-      //u8g2.drawBox( 0, 2*CH,64, CH);
-      //u8g2.setDrawColor(1);
-      //u8g2.setCursor(0, 3*CH);
-      //u8g2.print(F("RESTART"));
-      u8g2.sendBuffer();
+      u8g2->clearBuffer();
+      u8g2->setDrawColor(0);
+      u8g2->drawBox( 0, 1*CH,64, CH);
+      u8g2->setDrawColor(1);
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("NTP Time Error"));
+      //u8g2->setDrawColor(0);
+      //u8g2->drawBox( 0, 2*CH,64, CH);
+      //u8g2->setDrawColor(1);
+      //u8g2->setCursor(0, 3*CH);
+      //u8g2->print(F("RESTART"));
+      u8g2->sendBuffer();
 
       // delay(5000);
       // reboot(); //timeout - reset board
@@ -1539,9 +1416,9 @@ void setup() {
     frtosLog.notice(F("Time: %s"),ctime(&time));  
     if (oledpresent){
       LockGuard guard(i2cmutex);
-      u8g2.setCursor(0, 3*CH);
-      u8g2.print(F("Time OK"));
-      u8g2.sendBuffer();
+      u8g2->setCursor(0, 3*CH);
+      u8g2->print(F("Time OK"));
+      u8g2->sendBuffer();
     }
   }
 

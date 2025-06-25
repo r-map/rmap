@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-05-28T00:00"    // date and time
-#define MAJOR_VERSION    "20250528"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-06-25T00:00"    // date and time
+#define MAJOR_VERSION    "20250625"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -25,7 +25,8 @@
 #define GPS_SERIAL_SPEED 115200
 
 // display I2C address
-#define OLEDI2CADDRESS 0X3C
+#define OLEDI2CADDRESS_64X48 0X3C
+#define OLEDI2CADDRESS_128X64 0X3D
 
 // logging level at compile time
 // Available levels are:
@@ -52,7 +53,7 @@
 #define SDA_PIN SDA
 
 // define pin for reset
-#define RESET_PIN D7
+#define RESET_PIN D9
 
 // define reset and LED pins
 #if defined(ARDUINO_LOLIN_C3_MINI)
@@ -74,9 +75,6 @@
 #define SENSORDRIVER_DRIVER_LEN 5
 #define SENSORDRIVER_TYPE_LEN 5
 #define SENSORDRIVER_META_LEN 30
-
-// character height px for display
-#define CH 8
 
 // define parameter for queues len and communication
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)

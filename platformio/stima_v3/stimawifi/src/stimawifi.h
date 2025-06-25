@@ -61,9 +61,13 @@ WriteLoggingStream loggingStream(logFile,Serial);
 //flag for saving data
 bool shouldSaveConfig = false;
 bool pmspresent =  false;
-
-U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
+
+// oled display driver pointer
+U8G2* u8g2;
+
+// character height px for display
+uint8_t CH;
 
 // i2c button for wemos OLED version 2.1.0
 I2C_BUTTON button; //I2C address 0x31
