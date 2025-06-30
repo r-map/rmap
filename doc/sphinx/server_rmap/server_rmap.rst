@@ -2213,12 +2213,14 @@ Collect static files from django apps:
    rmdir /root/global_static
 
 ::
+   
    dnf install python3-mod_wsgi
    dnf install mod_security mod_security_crs
    dnf install mod_ssl
 
    
 ::
+   
    useradd -r rmap
    mkdir /home/rmap
    chown rmap:rmap /home/rmap
@@ -2227,9 +2229,11 @@ Collect static files from django apps:
    mkdir  /usr/share/rmap/media
    chown rmap:rmap  /usr/share/rmap/media
 
+::
+   
    cp -r ~/certs /etc/httpd
    chown -R apache /etc/httpd/certs
-   
+
 `/etc/httpd/conf.modules.d/00-mpm.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.modules.d/00-mpm.conf>`_
 
 `/etc/httpd/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.conf>`_
