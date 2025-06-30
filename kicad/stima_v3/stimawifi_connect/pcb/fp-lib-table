@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Stima.Library")(type "KiCad")(uri "${KIPRJMOD}/lib_fp/Stima.Library.pretty")(options "")(descr ""))
+)

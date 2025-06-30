@@ -1,0 +1,25 @@
+Drill report for stimawifi.kicad_pcb
+Created on 2025-04-22T13:13:46+0200
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L1 :  B.Cu                      back
+
+
+Drill file 'stimawifi-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0,900mm  0,0354"  (16 holes)
+    T2  1,000mm  0,0394"  (2 holes)
+    T3  1,200mm  0,0472"  (25 holes)
+
+    Total plated holes count 43
+
+
+Drill file 'stimawifi-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  3,200mm  0,1260"  (4 holes)
+
+    Total unplated holes count 4
