@@ -14,9 +14,11 @@ void clearSD ()
   */
   
   byte sd = 0;
+  uint8_t retry=0;
   digitalWrite(C3SS, LOW);
-  while (sd != 0XFF)
+  while (sd != 0XFF && retry < 100)
   {
+    retry++;
     SPI.beginTransaction(SPISettings(SPICLOCK, MSBFIRST, SPI_MODE0));
     sd = SPI.transfer(0XFF);
     SPI.endTransaction();

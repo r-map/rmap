@@ -928,11 +928,8 @@ void setup() {
   digitalWrite(PMS_RESET,HIGH);
   */
   
-  Wire.begin();
-  //Wire.begin(SDA_PIN,SCL_PIN);
-  Wire.setClock(I2C_BUS_CLOCK);
-
   //Serial.setTxTimeoutMs(0);  // https://github.com/espressif/arduino-esp32/issues/6983
+  delay(5000);
   Serial.begin(115200);
   //Serial.setDebugOutput(true);
 
@@ -969,9 +966,8 @@ void setup() {
     SdCardFactory cardFactory;
     ExFatFormatter exFatFormatter;
     FatFormatter fatFormatter;
-    #define SD_CONFIG SdSpiConfig(C3SS, DEDICATED_SPI)
     uint8_t  sectorBuffer[512];
-    SdCard* m_card = cardFactory.newCard(SD_CONFIG);
+    SdCard* m_card = cardFactory.newCard(SdSpiConfig(C3SS, DEDICATED_SPI));
     if (!m_card) {
       Serial.println(F("Invalid SD_CONFIG"));
     } else if (m_card->errorCode()) {
@@ -999,14 +995,16 @@ void setup() {
 	}
       }
     }
+
+    m_card->end();
+    
   }
     
 
   // if loggin on SDcard is enabled initialize SDcard
   // initialize logging
-#if (ENABLE_SDCARD_LOGGING)      
+#if (ENABLE_SDCARD_LOGGING)
 
-  delay(10000);
   Serial.println("\nInitializing SD card..." );
 
   SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
@@ -1040,9 +1038,16 @@ void setup() {
 
   // set runtime log level to the same of compile time
   frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
-  //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-#endif
+
+  /*
+  // enable to get logging from library (no mutex protected)
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+  Log.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
+  Log.setSuffix(logSuffix); // Uncomment to get newline as suffix
+  */
   
+#endif
+
   frtosLog.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(logSuffix); // Uncomment to get newline as suffix
   frtosLog.notice(F("Started"));
@@ -1057,24 +1062,34 @@ void setup() {
   {
     LockGuard guard(i2cmutex);
 
-    Wire.beginTransmission(OLEDI2CADDRESS_128X64);
-    if (Wire.endTransmission() == 0) {
-      u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0);
-      u8g2->setI2CAddress(OLEDI2CADDRESS_128X64*2);
-      u8g2->begin();
-      u8g2->setFont(u8g2_font_6x10_tf);
-      CH=10;
-      oledpresent=true;
-    }
+    Wire.begin();
+    //Wire.begin(SDA_PIN,SCL_PIN);
+    if (!Wire.setClock(I2C_BUS_CLOCK)) frtosLog.error(F("setting I2C clock"));
+    Wire.setTimeOut(I2C_BUS_TIMEOUT);
+    delay(50);
 
-    Wire.beginTransmission(OLEDI2CADDRESS_64X48);
-    if (Wire.endTransmission() == 0) {
-      u8g2 = new U8G2_SSD1306_64X48_ER_F_HW_I2C(U8G2_R0);
-      u8g2->setI2CAddress(OLEDI2CADDRESS_64X48*2);
-      u8g2->begin();
-      u8g2->setFont(u8g2_font_5x7_tf);      
-      CH=7;
-      oledpresent=true;
+    for (uint8_t retry=0; retry < 3 ; retry++) {
+      Wire.beginTransmission(OLEDI2CADDRESS_128X64);
+      if (Wire.endTransmission() == 0) {
+	u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0);
+	u8g2->setI2CAddress(OLEDI2CADDRESS_128X64*2);
+	u8g2->begin();
+	u8g2->setFont(u8g2_font_6x10_tf);
+	CH=10;
+	oledpresent=true;
+	break;
+      }
+      
+      Wire.beginTransmission(OLEDI2CADDRESS_64X48);
+      if (Wire.endTransmission() == 0) {
+	u8g2 = new U8G2_SSD1306_64X48_ER_F_HW_I2C(U8G2_R0);
+	u8g2->setI2CAddress(OLEDI2CADDRESS_64X48*2);
+	u8g2->begin();
+	u8g2->setFont(u8g2_font_5x7_tf);      
+	CH=7;
+	oledpresent=true;
+	break;
+      }
     }
     
     if (oledpresent) {
@@ -1327,6 +1342,32 @@ void setup() {
     frtosLog.error(F("reboot!"));
     delay(5000);
     reboot();
+  }
+
+  if (reset) {
+    if (oledpresent){
+      LockGuard guard(i2cmutex);
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("Station initialized"));
+      u8g2->setCursor(0, 2*CH); 
+      u8g2->print(F("and configurated!"));
+      u8g2->setCursor(0, 4*CH);
+      u8g2->print(F("remove clear bridge"));
+      u8g2->setCursor(0, 5*CH);
+      u8g2->print(F("and POWER OFF"));
+      u8g2->sendBuffer();
+    }
+    while(true){
+      frtosLog.notice(F("remove clear bridge"));
+      frtosLog.notice(F("and POWER OFF!"));
+      delay(1000);
+      pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+      pixels.show();
+      delay(1000);
+      pixels.setPixelColor(0, pixels.Color(255, 255, 255));
+      pixels.show();
+    }
   }
   
   // Set up mDNS responder:
