@@ -228,14 +228,18 @@ void publishThread::reset_status_summary() {
   data->status->summary.err_power_on=false;
   data->status->summary.err_reboot=false;  
   data->status->summary.err_georef=false;	   
+  // do not reset; task is dead, cannot recover or set it
+  //data->status->summary.err_sdcard=false;
   data->status->summary.err_db=false;
+  data->status->summary.err_archive=false;
   data->status->summary.err_mqtt_publish=false;
   data->status->summary.err_mqtt_connect=false;
   data->status->summary.err_geodef=false;
   data->status->summary.err_sensor=false;
   data->status->summary.err_novalue=false;
+  data->status->summary.err_rtc=false;
+  data->status->summary.err_memory=false;
 }
-
 
 // publish maint messages (support messages)
 // connection message with station version
@@ -276,19 +280,23 @@ bool publishThread::publish_status_summary() {
   // "c" array is omitted by now
     
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d\"}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d%d%d%d\"}"
 	   //, jsontime
 	   , data->station->boardslug
 
 	   , data->status->summary.err_power_on	   
 	   , data->status->summary.err_reboot	   
 	   , data->status->summary.err_georef	   
+	   , data->status->summary.err_sdcard	   
 	   , data->status->summary.err_db	   
+	   , data->status->summary.err_archive
 	   , data->status->summary.err_mqtt_publish 
 	   , data->status->summary.err_mqtt_connect 
 	   , data->status->summary.err_geodef	   
 	   , data->status->summary.err_sensor	   
 	   , data->status->summary.err_novalue
+	   , data->status->summary.err_rtc
+	   , data->status->summary.err_memory
 	   );
   // return true if published
   return mqttPublish(mqtt_message, false);
@@ -482,9 +490,15 @@ void publishThread::Run() {
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->status->publish.no_heap_memory=error;
+    }
     //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
-    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING )data->logger->error(F("publish stack"));  // check for memory collision
+    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
+      data->logger->error(F("publish stack"));  // check for memory collision
+      data->status->publish.memory_collision=error;
+    }
   }
 };
 

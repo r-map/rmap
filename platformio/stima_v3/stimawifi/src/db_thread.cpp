@@ -78,6 +78,7 @@ bool dbThread::db_obsolete(bool& obsolete) {
     data->logger->error(F("db SQL error: %s"), zErrMsg);
     sqlite3_free(zErrMsg);
     obsolete=false;
+    data->status->database=error;
   } else {
     data->logger->notice(F("SQL time taken: %l"),millis()-start);
     data->logger->notice(F("db SQL operation done successfully"));
@@ -107,12 +108,14 @@ void dbThread::db_setup(){
   // to use however they want.
   if(db_exec("PRAGMA user_version = 1;") != SQLITE_OK) {
     data->logger->error(F("db pragma user_version"));       
+    data->status->database=error;
   }
   
   //When temp_store is FILE (1) temporary tables and indices are
   //stored in a file.
   if(db_exec("PRAGMA temp_store = FILE;") != SQLITE_OK) {
     data->logger->error(F("db pragma temp_store"));
+    data->status->database=error;
   }
 
   // When synchronous is FULL (2), the SQLite database engine will use
@@ -123,6 +126,7 @@ void dbThread::db_setup(){
   // slower.
   if(db_exec("PRAGMA synchronous = FULL;") != SQLITE_OK) {
     data->logger->error(F("db pragma synchronous"));       
+    data->status->database=error;
   }
 
   // When secure_delete is on, SQLite overwrites deleted content with
@@ -131,12 +135,14 @@ void dbThread::db_setup(){
   // secure_delete
   if(db_exec("PRAGMA secure_delete = FALSE;") != SQLITE_OK) {
     data->logger->error(F("db pragma secure_delete"));       
+    data->status->database=error;
   }
 
   // When the locking-mode is set to EXCLUSIVE, the database
   // connection never releases file-locks.
   if(db_exec("PRAGMA locking_mode = EXCLUSIVE;") != SQLITE_OK) {
     data->logger->error(F("db pragma locking_mode"));       
+    data->status->database=error;
   }
   
   // The journal_size_limit pragma may be used to limit the size of
@@ -144,6 +150,7 @@ void dbThread::db_setup(){
   // transactions or checkpoints.
   if(db_exec("PRAGMA journal_size_limit = 1000000 ;") != SQLITE_OK) {
     data->logger->error(F("db pragma journal_size_limit"));       
+    data->status->database=error;
   }
 
   // The TRUNCATE journaling mode commits transactions by truncating
@@ -152,6 +159,7 @@ void dbThread::db_setup(){
   // file since the containing directory does not need to be changed.
   if(db_exec("PRAGMA journal_mode = DELETE;") != SQLITE_OK) {
     data->logger->error(F("db pragma journal_mode"));       
+    data->status->database=error;
   }
 }
 
@@ -185,6 +193,7 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
     data->logger->error(F("db purge prepare: %s"),sqlite3_errmsg(db));
+    data->status->database=error;
   } else {
 
     if (!flush) {
@@ -231,13 +240,16 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
 	      archiveFile.flush();
 	      data->logger->notice(F("db flush messages to archive file"));       
 	      recbuffer=0;
+	      data->status->archive=ok;
 	    }
 	    recbuffer++;
 	  } else {
 	    data->logger->error(F("db save message in archive %T:%s:%s"),message.sent,message.topic,message.payload);
+	    data->status->archive=error;
 	  }
 	} else {
 	  data->logger->error(F("db skip message for archive %s:%s"),message.topic,message.payload);       
+	  data->status->archive=error;
 	}
 	
       } else if(rc == SQLITE_DONE) {
@@ -245,6 +257,7 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
 	break;
       } else {
 	data->logger->error(F("db purge getting values from DB: %s"),sqlite3_errmsg(db));       
+	data->status->database=error;
 	break;
       }
     }
@@ -282,6 +295,7 @@ bool dbThread::data_set_recovery(void){
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
     data->logger->error(F("db set recovery prepare"));
+    data->status->database=error;
   } else {
 
     sqlite3_bind_text(
@@ -309,6 +323,7 @@ bool dbThread::data_set_recovery(void){
       rc  = SQLITE_OK;
     } else {
       data->logger->error(F("db set recovery updating values in DB: %s"),sqlite3_errmsg(db));       
+      data->status->database=error;
     }
   }
   sqlite3_finalize(stmt);
@@ -354,6 +369,7 @@ bool dbThread::data_recovery(void){
                                         // multiple statements inside the string; can be null)
   if(rc != SQLITE_OK) {
     data->logger->error(F("db recovery prepare select data from DB: %s"),sqlite3_errmsg(db));   
+    data->status->database=error;
   } else {
 
 
@@ -386,6 +402,7 @@ bool dbThread::data_recovery(void){
 	break;
       } else {
 	data->logger->error(F("db recovery getting values from DB: %s"),sqlite3_errmsg(db));       
+	data->status->database=error;
 	break;
       }
     }
@@ -529,11 +546,13 @@ bool dbThread::doDb(const mqttMessage_t& message) {
       strncpy(dt, doc["t"],20);
     }else{
       data->logger->error(F("db datetime missed in payload"));
-      return true;
+      data->status->database=error;
+      return false;
     }
   } else {
     data->logger->error(F("db failed to deserialize payload json %s"),jserror.c_str());
-    return true;
+    data->status->database=error;
+    return false;
   }
   
   sqlite3_bind_int(
@@ -613,9 +632,10 @@ void dbThread::Run() {
     //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
     if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, true)){
       data->logger->notice(F("db SD mount OK"));
+      data->status->sdcard=ok;
     }else{
       data->logger->error(F("db SD mount"));
-      //data->status->database=error;
+      data->status->sdcard=error;
       return;     // without SD card terminate the thread
     }
   }
@@ -624,6 +644,7 @@ void dbThread::Run() {
   File infoFile = SD.open(SDCARD_INFO_FILE_NAME, FILE_WRITE);
   if (!infoFile){
     data->logger->error(F("db failed to open info file for writing"));
+    data->status->archive=error;
   }
 
   infoFile.print(data->station->user);
@@ -643,8 +664,10 @@ void dbThread::Run() {
   archiveFile = SD.open(SDCARD_ARCHIVE_FILE_NAME, FILE_APPEND);
   if (!archiveFile){
     data->logger->error(F("db failed to open archive file for appending"));
+    data->status->archive=error;
+  }else{
+    data->status->archive=ok;
   }
-  
   /*
   data->logger->notice(F("largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
   void* sqlite_memory= malloc(SQLITE_MEMORY);
@@ -728,12 +751,14 @@ void dbThread::Run() {
   rc = db_exec("SELECT COUNT(*) FROM messages");
   if (rc != SQLITE_OK) {
     data->logger->error(F("db select count"));   
+    data->status->database=error;
   }
 
   data->logger->notice(F("db Total number of record in DB to send"));       
   rc = db_exec("SELECT COUNT(*) FROM messages WHERE sent = 0");
   if (rc != SQLITE_OK) {
     data->logger->error(F("db select count to sent"));
+    data->status->database=error;
   }
 
   /*
@@ -775,7 +800,7 @@ void dbThread::Run() {
   
   for(;;){
       
-    while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){  // peek one message
+    while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
       if (!sqlite_status) ESP.restart();                          // SD do not restart; REBOOT
@@ -791,7 +816,7 @@ void dbThread::Run() {
     // check queue for rpc recovey
     if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) data_set_recovery();
 
-    while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){  // peek one message
+    while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
       if (!sqlite_status) ESP.restart();                          // SD do not restart; REBOOT
@@ -807,9 +832,14 @@ void dbThread::Run() {
 
     // checks for heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING)data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->status->no_heap_memory=error;
+    }
     //data->logger->notice("stack db: %d",uxTaskGetStackHighWaterMark(NULL));
-    if ( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ) data->logger->error(F("db stack"));
-    
+    if ( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
+      data->logger->error(F("db stack"));
+      data->status->memory_collision=error;
+    }
   }
 };  

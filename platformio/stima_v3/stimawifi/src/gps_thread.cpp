@@ -118,9 +118,16 @@ void gpsThread::Run() {
     }
     Delay(500);
     //Delay(Ticks::SecondsToTicks(1));
+    //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+    //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    //  data->status->no_heap_memory=error;
+    //}
     
     //data->logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
-    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data->logger->error("gps stack");
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
+      data->logger->error("gps stack");
+      data->status->memory_collision=error;
+    }
   }
 };  
 

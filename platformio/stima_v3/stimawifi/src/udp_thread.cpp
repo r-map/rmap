@@ -116,8 +116,15 @@ void udpThread::Run() {
     Delay(10);
     //Delay(Ticks::SecondsToTicks(1));
 
+    //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+    //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    //  data->status->no_heap_memory=error;
+    //}
     //data.logger->notice("stack udp: %d",uxTaskGetStackHighWaterMark(NULL));
-    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING) data->logger->error("udp stack");
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
+      data->logger->error("udp stack");
+      data->status->memory_collision=error;
+    }
   }
 };  
 

@@ -153,6 +153,8 @@ struct measureStatus_t
   status_e novalue;    //!< stato delle misurazioni
   status_e sensor;     //!< stato dei sensori
   status_e geodef;     //!< stato dei dati di georefenzazione per la pubblicazione
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
 };
 
 /*!
@@ -163,6 +165,8 @@ struct publishStatus_t
 {
   status_e connect;    //!< stato della connessione MQTT
   status_e publish;    //!< stato della pubblicazione dati MQTT
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
 };
 
 /*!
@@ -172,6 +176,8 @@ struct publishStatus_t
 struct udpStatus_t
 {
   status_e receive;    //!< stato della ricezione dei dati per georeferenziazione  
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
 };
 
 /*!
@@ -181,6 +187,8 @@ struct udpStatus_t
 struct gpsStatus_t
 {
   status_e receive;    //!< stato della ricezione dei dati per georeferenziazione  
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
 };
 
 /*!
@@ -189,7 +197,11 @@ struct gpsStatus_t
 */
 struct dbStatus_t
 {
+  status_e sdcard;      //!< stato di funzionamento del'SD card
   status_e database;    //!< stato di funzionamento del DataBase
+  status_e archive;     //!< stato di funzionamento dell'archivio su SDcard
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
 };
 
 /*!
@@ -201,12 +213,16 @@ struct summaryStatus_t
   bool err_reboot;
   bool err_power_on;
   bool err_georef;
+  bool err_sdcard;
   bool err_db;
+  bool err_archive;
   bool err_mqtt_publish;
   bool err_mqtt_connect;
   bool err_geodef;
   bool err_sensor;
   bool err_novalue;
+  bool err_rtc;
+  bool err_memory;
 };
 
 /*!
@@ -220,6 +236,7 @@ struct stimawifiStatus_t
   udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
   gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
+  status_e rtc;                //!< Stato dell'RTC
   summaryStatus_t summary;     //!< Sommario dello stato stazione che evidenzia eventuali errori nel periodo  
 };
 

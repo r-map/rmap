@@ -197,6 +197,9 @@ void timeavailable(struct timeval *t)
   }  
   if (!frtosRTC.set(now())){
     frtosLog.error("Setting RTC time from NTP!");
+    stimawifiStatus.rtc=error;
+  }else{
+    stimawifiStatus.rtc=ok;
   }
 }
 
@@ -808,7 +811,9 @@ void displayStatus()
   
   frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
   frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
-  frtosLog.notice(F("status db     : database %d"),stimawifiStatus.db.database);
+  frtosLog.notice(F("status db     : sdcard %d, database %d, archive %d"),stimawifiStatus.db.sdcard,stimawifiStatus.db.database,stimawifiStatus.db.archive);
+  frtosLog.notice(F("status stimawifi: rtc    : %d"),stimawifiStatus.rtc);
+  //here print memory status?
   if (strcmp(station.ident,"") != 0){
     frtosLog.notice(F("status gps    : receive %d" ),stimawifiStatus.gps.receive);
     frtosLog.notice(F("status udp    : receive %d" ),stimawifiStatus.udp.receive);
@@ -818,12 +823,21 @@ void displayStatus()
   //  data.status.summary.err_power_on= false;	
   //  data.status.summary.err_reboot=	false;
   stimawifiStatus.summary.err_georef |= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error));
+
+  stimawifiStatus.summary.err_sdcard |=  	   stimawifiStatus.db.sdcard == error;  
   stimawifiStatus.summary.err_db |=  	           stimawifiStatus.db.database == error;
+  stimawifiStatus.summary.err_archive |=  	   stimawifiStatus.db.archive == error;  
   stimawifiStatus.summary.err_mqtt_publish |=      stimawifiStatus.publish.publish == error;
   stimawifiStatus.summary.err_mqtt_connect |=      stimawifiStatus.publish.connect == error;
   stimawifiStatus.summary.err_geodef |=	           stimawifiStatus.measure.geodef  == error;
   stimawifiStatus.summary.err_sensor |=	           stimawifiStatus.measure.sensor  == error;
   stimawifiStatus.summary.err_novalue |=           stimawifiStatus.measure.novalue == error;
+  stimawifiStatus.summary.err_rtc |=  	           stimawifiStatus.rtc == error;  
+  stimawifiStatus.summary.err_memory |=  	   stimawifiStatus.db.memory_collision == error || stimawifiStatus.db.no_heap_memory == error ||
+                                                   stimawifiStatus.publish.memory_collision == error || stimawifiStatus.publish.no_heap_memory == error ||
+                                                   stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
+                                                   stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
+                                                   stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ;
 
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
@@ -831,8 +845,8 @@ void displayStatus()
 
   // if one not unknown then BLUE
   if (    stimawifiStatus.measure.novalue != unknown || stimawifiStatus.measure.sensor  != unknown || stimawifiStatus.measure.geodef  != unknown
-	  ||  stimawifiStatus.publish.connect != unknown || stimawifiStatus.publish.publish != unknown
-	  || stimawifiStatus.db.database != unknown
+	  || stimawifiStatus.publish.connect != unknown || stimawifiStatus.publish.publish != unknown
+	  || stimawifiStatus.db.sdcard != unknown || stimawifiStatus.db.database != unknown || stimawifiStatus.db.archive != unknown
 	  || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive != unknown || stimawifiStatus.udp.receive != unknown))) {
     strcpy(status,"Stat: working");
     color = pixels.Color(0,0,255);
@@ -841,6 +855,14 @@ void displayStatus()
   // if all OK then GREEN
   if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok && stimawifiStatus.measure.geodef  == ok
 	  &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok
+	  &&  stimawifiStatus.db.sdcard == ok && stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
+	  &&  stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
+	  &&  stimawifiStatus.rtc == ok
+	  //&&  stimawifiStatus.db.memory_collision == ok && stimawifiStatus.db.no_heap_memory == ok
+          //&&  stimawifiStatus.publish.memory_collision == ok && stimawifiStatus.publish.no_heap_memory == ok
+          //&&  stimawifiStatus.measure.memory_collision == ok && stimawifiStatus.measure.no_heap_memory == ok
+          //&&  stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
+	  //&&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok
 	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok && stimawifiStatus.udp.receive == ok))) {
     strcpy(status,"Stat: ok");
     color = pixels.Color(0,255,0);
@@ -852,7 +874,15 @@ void displayStatus()
 	 || stimawifiStatus.measure.geodef  == error
 	 || stimawifiStatus.publish.connect == error
 	 || stimawifiStatus.publish.publish == error
+	 || stimawifiStatus.db.sdcard == error
 	 || stimawifiStatus.db.database == error
+	 || stimawifiStatus.db.archive == error
+	 || stimawifiStatus.rtc == error
+	 || stimawifiStatus.db.memory_collision == error || stimawifiStatus.db.no_heap_memory == error
+         || stimawifiStatus.publish.memory_collision == error || stimawifiStatus.publish.no_heap_memory == error
+         || stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error
+         || stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error
+	 || stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error
 	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error))){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
@@ -1429,6 +1459,8 @@ void setup() {
     if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
       frtosLog.notice(F("Getted time from RTC"));
       setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
+    }else{
+      stimawifiStatus.rtc=error;
     }
   }
 

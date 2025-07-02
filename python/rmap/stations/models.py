@@ -812,7 +812,7 @@ statusb_explain_matrix[26]=["OFF LINE","Firmware ready","Maintenance",   "ADC er
 statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "regulator of charge hardware error","Battery power pre-critical","None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[30]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
-statusb_explain_matrix[101]=["Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error",  "Data Base error",    "no georeference from GPS/UDP", "Reboot for some problem", "Reboot for power on",  "None","None","None","None","None","None","None"]
+statusb_explain_matrix[101]=["Memory error", "RTC error", "Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error", "SDcard archive error", "SDcard Data Base error", "SD card error", "no georeference from GPS/UDP", "Reboot for some problem", "Reboot for power on",  "None","None","None"]
 
 # status v
 statusv_explain_matrix={}
