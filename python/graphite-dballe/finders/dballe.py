@@ -24,11 +24,15 @@ def sortandgroup(rj,key):
 def path2uri(path):
     #uri="/*/*/*/*/*/*"
     #print ("path=",path)
-    uri = path.replace(".","/").replace("_",",")
+
+    uri = path.replace(".","/")
     uri+="/*" * (6-uri.count("/"))
     #remove the root path
     uri = "{}/{}/{}/{}/{}/{}".format(*uri.split("/")[1:])
-
+    pre,post=uri.split("/",1)
+    post = post.replace("_",",")
+    uri=pre+"/"+post
+    
     return uri
 
 class  wssummaries(object):
