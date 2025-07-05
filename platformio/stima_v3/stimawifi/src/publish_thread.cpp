@@ -379,7 +379,7 @@ bool publishThread::doPublish(mqttMessage_t& mqtt_message) {
 publishThread::publishThread(publish_data_t* publish_data)
   : Thread{"publish", 3500, tskIDLE_PRIORITY},
     data{publish_data},
-    ipstack{*data->networkClient},
+    ipstack{networkClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);

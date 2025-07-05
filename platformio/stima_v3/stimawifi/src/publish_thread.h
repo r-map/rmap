@@ -15,7 +15,6 @@ struct publish_data_t {
   BinaryQueue* recoveryqueue;
   stimawifiStatus_t* status;
   station_t* station;
-  WiFiClient* networkClient;
 };
 
 bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);
@@ -50,6 +49,7 @@ public:
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 > mqttclient;
   uint8_t errorcount;
   time_t last_status_sended;
+  WiFiClient networkClient;
 };
 
 #endif

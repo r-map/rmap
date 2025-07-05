@@ -34,8 +34,6 @@ const uint16_t update_port = 80;
 WiFiManager wifiManager;
 WebServer webserver(STIMAHTTP_PORT);
 
-WiFiClient httpClient;
-WiFiClient networkClient;
 //EspHtmlTemplateProcessor templateProcessor(&server);
 MutexStandard loggingmutex;
 MutexStandard i2cmutex;
@@ -110,7 +108,7 @@ dbThread threadDb(&db_data);
 measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus,&station,&networkClient};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
