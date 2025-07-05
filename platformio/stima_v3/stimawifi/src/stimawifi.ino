@@ -415,7 +415,9 @@ String  rmap_get_remote_config(){
   
   String payload;
   
-  HTTPClient http;
+  HTTPClient httpClient;
+  WiFiClient client;
+  client.setTimeout(16000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   // Make a HTTP request:
 
   String url="http://";
@@ -429,23 +431,23 @@ String  rmap_get_remote_config(){
   url+="/json/";     // get one station, default boards
 
   frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
-  http.begin(httpClient,url.c_str());
+  httpClient.begin(client,url.c_str());
 
-  int httpCode = http.GET();
+  int httpCode = httpClient.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
-    payload = http.getString();
+    payload = httpClient.getString();
     frtosLog.notice(payload.c_str());
   }else{
     frtosLog.error(F("Error http: %s"),String(httpCode).c_str());
-    frtosLog.error(F("Error http: %s"),http.errorToString(httpCode).c_str());
+    frtosLog.error(F("Error http: %s"),httpClient.errorToString(httpCode).c_str());
     payload=String();
   }
-  http.end();
+  httpClient.end();
   return payload;
 }
 
-// check and execute firmware upgrade from server
-void firmware_upgrade() {
+// check and execute firmware update from server
+void firmware_update() {
 
   DynamicJsonDocument doc(200); 
   doc["ver"] = SOFTWARE_VERSION;
@@ -453,13 +455,22 @@ void firmware_upgrade() {
   doc["slug"] = station.stationslug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
+
+  frtosLog.notice(F("user for firmware update: %s"),station.user);
+  frtosLog.notice(F("station slug for firmware update: %s"),station.stationslug);
+  frtosLog.notice(F("server for firmware update: %s"),station.server);
+  frtosLog.notice(F("port for firmware update: %d"),update_port);
   frtosLog.notice(F("url for firmware update: %s"),update_url);
   frtosLog.notice(F("version for firmware update: %s"),buffer);
 
   pixels.setPixelColor(0, pixels.Color(0, 0, 255));
   pixels.show();
   delay(3000);
-    t_httpUpdate_return ret = httpUpdate.update(httpClient,String(station.server), update_port, String(update_url), String(buffer));
+
+  HTTPUpdate httpUpdate(16000); //double default timeout
+  WiFiClient client;
+
+  t_httpUpdate_return ret = httpUpdate.update(client,String(station.server), update_port, String(update_url), String(buffer));
   
   switch(ret)
     {
@@ -571,7 +582,7 @@ int  rmap_config(const String payload){
   bool status_sensors = false;
   int status = 0;
   measure_data.sensors_count=0;
-  
+
   if (! (payload == String())) {
     DynamicJsonDocument doc(4000);
     status = 3;
@@ -585,12 +596,6 @@ int  rmap_config(const String payload){
 	if  (element["model"] == "stations.stationmetadata"){
 	  if (element["fields"]["active"]){
 	    frtosLog.notice(F("station metadata found!"));
-	    strncpy (station.mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
-	    station.mqttrootpath[9]='\0';
-	    frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
-	    strncpy (station.mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
-	    station.mqttmaintpath[9]='\0';
-	    frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 
 	    //strncpy (station.longitude, element["fields"]["lon"].as<const char*>(),10);
 	    //station.longitude[10]='\0';
@@ -602,21 +607,21 @@ int  rmap_config(const String payload){
 	    itoa(int(element["fields"]["lat"].as<float>()*100000),station.latitude,10);
 	    frtosLog.notice(F("lat: %s"),station.latitude);
 
-	    strncpy (station.ident , element["fields"]["ident"].as< const char*>(),10);
-	    station.ident[10]='\0';
+	    strncpy (station.ident , element["fields"]["ident"].as< const char*>(),9);
+	    station.ident[9]='\0';
 	    frtosLog.notice(F("ident: %s"),station.ident);
-	    
+
 	    strncpy (station.network , element["fields"]["network"].as< const char*>(),30);
 	    station.network[30]='\0';
 	    frtosLog.notice(F("network: %s"),station.network);
 
-	    strncpy (station.mqttrootpath , element["fields"]["mqttrootpath"].as< const char*>(),9);
+	    strncpy (station.mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
 	    station.mqttrootpath[9]='\0';
-	    frtosLog.notice(F("station.mqttrootpath: %s"),station.mqttrootpath);
+	    frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
 
-	    strncpy (station.mqttmaintpath , element["fields"]["mqttmaintpath"].as< const char*>(),9);
+	    strncpy (station.mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
 	    station.mqttmaintpath[9]='\0';
-	    frtosLog.notice(F("station.mqttmaintpath: %s"),station.mqttmaintpath);
+	    frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 
 	    status_station = true;
 	  }
@@ -1083,8 +1088,6 @@ void setup() {
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
 
-  httpClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
-
   // two different display with different dimension are managed with two different I2C address
   // check return value of
   // the Write.endTransmisstion to see if
@@ -1222,7 +1225,7 @@ void setup() {
   WiFiManagerParameter custom_rmap_server("server", "rmap server", station.server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", station.user, 10);
   WiFiManagerParameter custom_rmap_password("password", "station password", station.password, 31, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_stationslug("slug", "rmap station slug", station.stationslug, 31);
+  WiFiManagerParameter custom_rmap_stationslug("slug", "station slug", station.stationslug, 31);
 
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
@@ -1348,8 +1351,8 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
-  // check for a firmware upgrade from server
-  firmware_upgrade();
+  // check for a firmware update from server
+  firmware_update();
 
   // if here we do not have configuration reboot
   if (!rmap_config(remote_config) == 0) {
@@ -1496,7 +1499,6 @@ void setup() {
   }
 
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
-
   
   Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
@@ -1511,13 +1513,13 @@ void setup() {
   frtosLog.notice(F("reboot every: %l"),reboottime);
   Alarm.timerRepeat(reboottime,reboot);                        // timer for reboot
 
-  // upgrade firmware
-  //Alarm.alarmRepeat(4,0,0,firmware_upgrade);                 // 4:00:00 every day  
-  Alarm.timerRepeat(3600*24,firmware_upgrade);                 // check for firmware upgrade every day  
+  // update firmware
+  //Alarm.alarmRepeat(4,0,0,firmware_update);                  // 4:00:00 every day  
+  Alarm.timerRepeat(3600*24,firmware_update);                  // check for firmware update every day  
   
   // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
-	 
+
   // if mobile station start geolocation thread
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
@@ -1550,7 +1552,7 @@ void loop() {
   //MDNS.update();
   Alarm.delay(0);       // check for alarms
   delay(100);
-
+  
   //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");   // check memory collision
 }
