@@ -692,18 +692,6 @@ void dbThread::Run() {
     return;
   }
 
-  /*   if use LittleFS
-
-  if (LittleFS.exists("/stima.db")) {
-    LittleFS.remove("/stima.db");
-  }
-    
-  if (sqlite3_open("/littlefs/stima.db", &db)){
-    data->logger->error(F("DB open"));
-    return;
-  }
-  */
-
   // open DB
   if ((sqlite3_open("/sd/stima.db", &db)!=SQLITE_OK)){
     data->logger->error(F("db DB open"));
