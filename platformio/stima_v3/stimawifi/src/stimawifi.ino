@@ -408,6 +408,21 @@ void handle_Archive() {
 }
 
 // web server response callback function
+void handle_Info() {
+  // open archive on sd card
+  File infoFile = SD.open(SDCARD_INFO_FILE_NAME, FILE_READ);
+  if (!infoFile){
+    frtosLog.error(F("db failed to open info file for reading"));
+    webserver.send(500, "text/plain", "Internal server error");
+    return;
+  }
+  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
+  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
+  webserver.streamFile(infoFile, "application/octet-stream");
+  infoFile.close();
+}
+
+// web server response callback function
 void handle_NotFound(){
   webserver.send(404, "text/plain", "Not found");
 }
@@ -1436,6 +1451,7 @@ void setup() {
   webserver.on("/data.json", handle_Json);
   webserver.on("/geo", handle_Geo);
   webserver.on("/archive.dat", handle_Archive);
+  webserver.on("/info.dat", handle_Info);
   webserver.onNotFound(handle_NotFound);
   
   webserver.begin();
