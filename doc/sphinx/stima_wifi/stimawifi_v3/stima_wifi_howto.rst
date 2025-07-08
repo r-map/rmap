@@ -374,6 +374,8 @@ a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
 * http://<station slug>             Full main page
 * http://<station slug>/data.json   Data in json format
 * http://<station slug>/geo         Coordinate of the station
+* http://<station slug>/archive.dat Dati dell'archivio da leggere con apposito tools
+* http://<station slug>/info.dat    Info file dell'archivio da leggere con apposito tools
 
 I dati sono visualizzabile da browser sempre se connessi allo stesso WiFi
 autenticandosi sul server RMAP e accedendo alla propria pagina personale,
@@ -995,3 +997,21 @@ Appendice D Indirizzi I2C
 
 .. note:: 8 devices found
 
+Appendice E I2C resistenze di pull up
+-------------------------------------
+
+**I2C resistenze di pull up**
+
++-----------------------+---------+---------+
+|    Shield             | SDA     | SCL     |
++=======================+=========+=========+
+| Oled Shield           | 4.7K    | 4.7K    |
++-----------------------+---------+---------+
+| RTC and Microsd       |         |         |
+| data Logger Shield    | 10K     | 10K     |
++-----------------------+---------+---------+
+| MCU - Espressif       |         |         |
+| ESP32 C3              | 10K     |  ---    |
++-----------------------+---------+---------+
+| Totale                | 2.4K    | 3.2K    |
++-----------------------+---------+---------+
