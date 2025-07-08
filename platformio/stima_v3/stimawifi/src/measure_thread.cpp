@@ -260,7 +260,7 @@ void measureThread::doMeasure() {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", 4000, tskIDLE_PRIORITY},
+  : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY},
     data{measure_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);

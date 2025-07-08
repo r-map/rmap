@@ -77,7 +77,7 @@ void gpsThread::doSerialNmea(){
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t* gps_data)
-  : Thread{"GPS", 2500, tskIDLE_PRIORITY}
+  : Thread{"GPS", TASK_GPS_STACK_SIZE, TASK_GPS_PRIORITY}
     ,data{gps_data}
 {
   //data->logger->notice("gps Create Thread %s %d", GetName().c_str(), data->id);

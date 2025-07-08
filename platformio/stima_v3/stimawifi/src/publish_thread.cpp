@@ -377,7 +377,7 @@ bool publishThread::doPublish(mqttMessage_t& mqtt_message) {
 }
 
 publishThread::publishThread(publish_data_t* publish_data)
-  : Thread{"publish", 3500, tskIDLE_PRIORITY},
+  : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY},
     data{publish_data},
     ipstack{networkClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS}

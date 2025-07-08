@@ -1576,7 +1576,7 @@ void setup() {
 void loop() {
   if (loopinit){
     // set the priority of this thread
-    vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
+    vTaskPrioritySet(NULL, TASK_LOOP_PRIORITY);
     //disableLoopWDT();
     loopinit=false;
   }

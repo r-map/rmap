@@ -79,7 +79,7 @@ void udpThread::doUdp(){
 using namespace cpp_freertos;
 
 udpThread::udpThread(udp_data_t* udp_data)
-  : Thread{"UDP", 2000, 2}  // 1152 free
+  : Thread{"UDP", TASK_UDP_STACK_SIZE, TASK_UDP_PRIORITY}  // 1152 free
     ,data{udp_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
