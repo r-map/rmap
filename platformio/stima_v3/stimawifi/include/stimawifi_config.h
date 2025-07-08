@@ -178,16 +178,16 @@
 // https://github.com/espressif/esp-idf/blob/master/components/esp_system/include/esp_task.h
 // https://github.com/espressif/esp-idf/blob/master/components/freertos/config/include/freertos/FreeRTOSConfig.h
 
-#define TASK_UDP_PRIORITY           3
+#define TASK_UDP_PRIORITY           4
 #define TASK_UDP_STACK_SIZE         2000
 
-#define TASK_DB_PRIORITY            2
+#define TASK_DB_PRIORITY            3
 #define TASK_DB_STACK_SIZE          5500
 
-#define TASK_MEASURE_PRIORITY       1
+#define TASK_MEASURE_PRIORITY       2
 #define TASK_MEASURE_STACK_SIZE     4000
 
-#define TASK_GPS_PRIORITY           1
+#define TASK_GPS_PRIORITY           2
 #define TASK_GPS_STACK_SIZE         2500
 
 #define TASK_PUBLISH_PRIORITY       1
