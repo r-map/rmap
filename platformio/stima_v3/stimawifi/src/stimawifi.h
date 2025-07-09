@@ -131,10 +131,10 @@ void handle_Json();
 void handle_NotFound();
 //callback notifying us of the need to save config
 void saveConfigCallback ();
-String  rmap_get_remote_config();
+String  get_remote_rmap_config();
 void firmware_upgrade();
-String readconfig_rmap();
-void writeconfig_rmap(const String payload);
+String read_local_rmap_config();
+bool write_local_rmap_config(const String payload);
 int  rmap_config(const String payload);
 void readconfig();
 void writeconfig();

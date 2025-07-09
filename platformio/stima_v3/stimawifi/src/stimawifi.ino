@@ -441,7 +441,7 @@ time_t ntp_set_time(){               // resync from sntp
 }
 
 // get station configuration from server
-String  rmap_get_remote_config(){
+String  get_remote_rmap_config(){
   
   String payload;
   
@@ -560,7 +560,7 @@ void firmware_update() {
 }
 
 // read configuration from EEPROM
-String readconfig_rmap() {
+String read_local_rmap_config() {
 
     if (LittleFS.exists("/rmap.json")) {
       //file exists, reading and loading
@@ -587,7 +587,7 @@ String readconfig_rmap() {
 }
 
 // write configuration to EEPROM
-void writeconfig_rmap(const String payload) {;
+bool writeconfig_rmap(const String payload) {;
 
   //save the custom parameters to FS
   frtosLog.notice(F("saving rmap config"));
@@ -595,12 +595,14 @@ void writeconfig_rmap(const String payload) {;
   File configFile = LittleFS.open("/rmap.json", "w");
   if (!configFile) {
     frtosLog.error(F("failed to open rmap config file for writing"));
+    return false;
   }
 
   configFile.print(payload);
   configFile.close();
   frtosLog.notice(F("saved rmap config parameter"));
   //end save
+  return true;
 }
 
 // convert json configuratio to station structure
@@ -1230,7 +1232,7 @@ void setup() {
     }
   }
 
-  if (readconfig_rmap() == String()) {
+  if (read_local_rmap_config() == String()) {
     frtosLog.notice(F("station configuration not found!"));
     frtosLog.notice(F("no station conf; Reset wifi configuration"));
     wifiManager.resetSettings();
@@ -1372,20 +1374,39 @@ void setup() {
   }
 
   // perform remote configuration
-  String remote_config= rmap_get_remote_config();
+  String remote_config = get_remote_rmap_config();
+  String local_config  = read_local_rmap_config();
 
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
-    remote_config=readconfig_rmap();
   }else{
-    writeconfig_rmap(remote_config);
+    if (remote_config != local_config){     
+      if (writeconfig_rmap(remote_config)){
+	local_config  = read_local_rmap_config();
+      }else{
+	if (oledpresent){
+	  LockGuard guard(i2cmutex);
+	  u8g2->clearBuffer();
+	  u8g2->setCursor(0, 1*CH); 
+	  u8g2->print(F("Station with"));
+	  u8g2->setCursor(0, 2*CH); 
+	  u8g2->print(F("EEPROM problem!"));
+	  u8g2->setCursor(0, 3*CH);
+	  u8g2->print(F("RESTART"));
+	  u8g2->sendBuffer();
+	}
+	frtosLog.error(F("reboot!"));
+	delay(5000);
+	reboot();
+      }
+    }
   }
-
+ 
   // check for a firmware update from server
   firmware_update();
 
   // if here we do not have configuration reboot
-  if (!rmap_config(remote_config) == 0) {
+  if (!rmap_config(local_config) == 0) {
     frtosLog.error(F("station not configurated"));
     //frtosLog.notice(F("Reset wifi configuration"));
     //wifiManager.resetSettings();
