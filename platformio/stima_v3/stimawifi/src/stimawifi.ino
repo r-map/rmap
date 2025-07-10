@@ -562,19 +562,20 @@ void firmware_update() {
 // read configuration from EEPROM
 String read_local_rmap_config() {
 
-    if (LittleFS.exists("/rmap.json")) {
-      //file exists, reading and loading
+  if (LittleFS.exists("/rmap.json")) {
+    //file exists, reading and loading
     frtosLog.notice(F("reading rmap config file"));
     File configFile = LittleFS.open("/rmap.json", "r");
     if (configFile) {
       frtosLog.notice(F("opened rmap config file"));
-
+      
       //size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       //std::unique_ptr<char[]> buf(new char[size]);
       //configfile.readBytes(buf.get(), size);
-
-      return configFile.readString();
+      String content = configFile.readString();
+      configFile.close();
+      return content;
       
     } else {
       frtosLog.error(F("reading rmap file"));	
@@ -587,7 +588,7 @@ String read_local_rmap_config() {
 }
 
 // write configuration to EEPROM
-bool writeconfig_rmap(const String payload) {;
+bool write_local_rmap_config(const String payload) {;
 
   //save the custom parameters to FS
   frtosLog.notice(F("saving rmap config"));
@@ -1232,7 +1233,9 @@ void setup() {
     }
   }
 
-  if (read_local_rmap_config() == String()) {
+  String local_config  = read_local_rmap_config();
+
+  if (local_config == String()) {
     frtosLog.notice(F("station configuration not found!"));
     frtosLog.notice(F("no station conf; Reset wifi configuration"));
     wifiManager.resetSettings();
@@ -1375,14 +1378,13 @@ void setup() {
 
   // perform remote configuration
   String remote_config = get_remote_rmap_config();
-  String local_config  = read_local_rmap_config();
 
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
   }else{
     if (remote_config != local_config){     
-      if (writeconfig_rmap(remote_config)){
-	local_config  = read_local_rmap_config();
+      if (write_local_rmap_config(remote_config)){
+	local_config  = remote_config;
       }else{
 	if (oledpresent){
 	  LockGuard guard(i2cmutex);
@@ -1395,6 +1397,7 @@ void setup() {
 	  u8g2->print(F("RESTART"));
 	  u8g2->sendBuffer();
 	}
+	frtosLog.error(F("writing rmap configuration"));
 	frtosLog.error(F("reboot!"));
 	delay(5000);
 	reboot();
