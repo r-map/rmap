@@ -107,8 +107,6 @@ void set_status_summary(int reason) {
 // display a sintetic status too
 void display_summary_data(char* status) {
   
-  DynamicJsonDocument doc(500);
-
   frtosLog.notice(F("display_values"));
 
   uint8_t displaypos=1;
@@ -766,73 +764,51 @@ void readconfig() {
     File configFile = LittleFS.open("/config.json", "r");
     if (configFile) {
       frtosLog.notice(F("opened config file"));
-      size_t size = configFile.size();
-      // Allocate a buffer to store contents of the file.
-      std::unique_ptr<char[]> buf(new char[size]);
-
-        configFile.readBytes(buf.get(), size);
-        DynamicJsonDocument doc(500);
-        DeserializationError error = deserializeJson(doc,buf.get());
-	if (!error) {
-	  //json.printTo(Serial);
-
-	  //if (doc.containsKey("rmap_longitude"))strcpy(station.longitude, doc["rmap_longitude"]);
-	  //if (doc.containsKey("rmap_latitude")) strcpy(station.latitude, doc["rmap_latitude"]);
-          if (doc.containsKey("rmap_server")) strcpy(station.server, doc["rmap_server"]);
-          //if (doc.containsKey("ntp_server")) strcpy(station.ntp_server, doc["ntp_server"]);
-          //if (doc.containsKey("rmap_mqtt_server")) strcpy(station.mqtt_server, doc["rmap_mqtt_server"]);
-          if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
-          if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
-          if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
-	  //if (doc.containsKey("rmap_mqttrootpath")) strcpy(station.mqttrootpath, doc["rmap_mqttrootpath"]);
-	  //if (doc.containsKey("rmap_mqttmaintpath")) strcpy(station.mqttmaintpath, doc["rmap_mqttmaintpath"]);
-	  
-	  frtosLog.notice(F("loaded config parameter:"));
-	  //frtosLog.notice(F("longitude: %s"),station.longitude);
-	  //frtosLog.notice(F("latitude: %s"),station.latitude);
-	  frtosLog.notice(F("server: %s"),station.server);
-	  //frtosLog.notice(F("ntp server: %s"),station.ntp_server);
-	  //frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
-	  frtosLog.notice(F("user: %s"),station.user);
-	  //frtosLog.notice(F("password: %s"),station.password);
-	  frtosLog.notice(F("stationslug: %s"),station.stationslug);
-	  //frtosLog.notice(F("mqttrootpath: %s"),station.mqttrootpath);
-	  //frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
-	  
-        } else {
-          frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
-        }
+      DynamicJsonDocument doc(500);
+      DeserializationError error = deserializeJson(doc,configFile);
+      if (!error) {
+	//json.printTo(Serial);
+	
+	if (doc.containsKey("rmap_server")) strcpy(station.server, doc["rmap_server"]);
+	if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
+	if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
+	if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
+	
+	frtosLog.notice(F("loaded config parameter:"));
+	frtosLog.notice(F("server: %s"),station.server);
+	frtosLog.notice(F("user: %s"),station.user);
+	frtosLog.notice(F("stationslug: %s"),station.stationslug);
+	
       } else {
-	frtosLog.error(F("error reading config file"));	
+	frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
       }
+      configFile.close();
     } else {
-      frtosLog.warning(F("config file do not exist"));
+      frtosLog.error(F("error reading config file"));	
     }
+  } else {
+    frtosLog.warning(F("config file do not exist"));
+  }
   //end read
 }
 
 // write configuration to EEPROM from station structure
 void writeconfig() {;
-
+  
   //save the custom parameters to FS
   frtosLog.notice(F("saving config"));
   //DynamicJsonDocument jsonBuffer;
   DynamicJsonDocument json(500);
     
-  //json["rmap_longitude"] = station.longitude;
-  //json["rmap_latitude"] = station.latitude;
   json["rmap_server"] = station.server;
-  //json["ntp_server"] = station.ntp_server;
-  //json["rmap_mqtt_server"] = station.mqtt_server;
   json["rmap_user"] = station.user;
   json["rmap_password"] = station.password;
   json["rmap_stationslug"] = station.stationslug;
-  //json["rmap_mqttrootpath"] = station.mqttrootpath;
-  //json["rmap_mqttmaintpath"] = station.mqttmaintpath;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
     frtosLog.error(F("failed to open config file for writing"));
+    return;
   }
 
   //json.printTo(Serial);
@@ -1007,10 +983,12 @@ void setup() {
   Serial.println("CPU0 reset reason:");
   print_reset_reason(rtc_get_reset_reason(0));
   verbose_print_reset_reason(rtc_get_reset_reason(0));
-  
+
+#if defined(ARDUINO_LOLIN_S3_MINI)
   Serial.println("CPU1 reset reason:");
   print_reset_reason(rtc_get_reset_reason(1));
   verbose_print_reset_reason(rtc_get_reset_reason(1));
+#endif
   
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   bool reset=digitalRead(RESET_PIN) == LOW;
