@@ -444,27 +444,27 @@ String  get_remote_rmap_config(){
   String payload;
   
   HTTPClient httpClient;
-  WiFiClient client;
-  client.setTimeout(16000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
   // Make a HTTP request:
+  char url[7+40+10+9+1+31+1+31+6+1];
+  
+  strcpy(url,"http://");
+  strcat(url,station.server);
+  strcat(url,"/stations/");
+  strcat(url,station.user);
+  strcat(url,"/");
+  strcat(url,station.stationslug);
+  strcat(url,"/");
+  strcat(url,station.boardslug);
+  strcat(url,"/json/");     // get one station, default boards
 
-  String url="http://";
-  url += station.server;
-  url+="/stations/";
-  url+=station.user;
-  url+="/";
-  url+=station.stationslug;
-  url+="/";
-  url+=station.boardslug;
-  url+="/json/";     // get one station, default boards
-
-  frtosLog.notice(F("readRmapRemoteConfig url: %s"),url.c_str());  
-  httpClient.begin(client,url.c_str());
+  frtosLog.notice(F("readRmapRemoteConfig url: %s"),url);
+  httpClient.begin(url);
+  httpClient.setConnectTimeout(16000);
+  httpClient.setTimeout(16000);
 
   int httpCode = httpClient.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
     payload = httpClient.getString();
-    frtosLog.notice(payload.c_str());
   }else{
     frtosLog.error(F("Error http: %s"),String(httpCode).c_str());
     frtosLog.error(F("Error http: %s"),httpClient.errorToString(httpCode).c_str());
@@ -1325,16 +1325,6 @@ void setup() {
     }    
   }
   
-  /*
-  WiFi.begin("ssid", "password");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  */
-
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(station.server, custom_rmap_server.getValue());
@@ -1354,14 +1344,18 @@ void setup() {
     }
   }
 
+  // check for a firmware update from server
+  firmware_update();
+  
   // perform remote configuration
   String remote_config = get_remote_rmap_config();
-
+  
   if ( remote_config == String() ) {
     frtosLog.error(F("remote configuration failed"));
   }else{
-    if (remote_config != local_config){     
+    if (remote_config != local_config){
       if (write_local_rmap_config(remote_config)){
+	frtosLog.notice(F("written rmap configuration"));
 	local_config  = remote_config;
       }else{
 	if (oledpresent){
@@ -1382,10 +1376,10 @@ void setup() {
       }
     }
   }
- 
-  // check for a firmware update from server
-  firmware_update();
 
+  frtosLog.notice("RMAP configuration:");
+  frtosLog.notice(local_config.c_str());
+  
   // if here we do not have configuration reboot
   if (!rmap_config(local_config) == 0) {
     frtosLog.error(F("station not configurated"));
@@ -1408,7 +1402,7 @@ void setup() {
     delay(5000);
     reboot();
   }
-
+  
   if (reset) {
     if (oledpresent){
       LockGuard guard(i2cmutex);
@@ -1434,7 +1428,7 @@ void setup() {
       pixels.show();
     }
   }
-  
+
   // Set up mDNS responder:
   // - first argument is the domain name, in this example
   //   the fully-qualified domain name is "stimawifi.local"
@@ -1565,7 +1559,7 @@ void setup() {
   threadPublish.Start();
   threadMeasure.Begin();
   threadMeasure.Start();
-
+  
   //esp_task_wdt_init(60, true);
   //enableLoopWDT();
   //disableLoopWDT();
