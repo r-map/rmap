@@ -1,0 +1,324 @@
+#!/usr/bin/python3
+# GPL. (C) 2023 Paolo Patruno.
+
+# This program is free software; you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+
+TIMESTEP = 60              # execute dbadb import everi TIMESTEP seconds
+PACKET_MAX_SIZE = 1000000  # max size in bytes for one dballe import
+MESSAGES_MAX_NUMBER = 500  # max number of bufr for transaction (with posgresql 100/1000 is the better value by benchmark)
+
+import os,io,signal
+import logging,logging.handlers
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
+from rmap import daemon
+import pika
+import traceback
+import rmap.settings
+import threading,queue,time
+import dballe
+from rmap.rmap_core import amqpConsumerProducer
+from rmap.rmap_core import Message
+import fasteners
+from datetime import datetime
+
+#add option if needed
+class  mydaemon(daemon.Daemon):
+
+    def optionparser(self):
+        op = super(mydaemon, self).optionparser()
+        op.add_option("-q", "--inqueue",dest="inqueue", help="queue with messages to to send to consumer (default %default)", default="user.out.bufr.report_fixed&validated")
+        op.add_option("-u", "--ftpuser",dest="ftpuser", help="user for ftp authentication")
+        op.add_option("-p", "--ftppassword",dest="ftpèassword", help="password for ftp authentication")
+        op.add_option("-h", "--ftphost",dest="ftphost", help="host for ftp access (default %default)", default="localhost")
+        return op
+
+
+amqp2dballed = mydaemon(
+        stdin="/dev/null",
+        stdout=rmap.settings.logfileamqp2ftp,
+        stderr=rmap.settings.errfileamqp2ftp,
+        pidfile=rmap.settings.lockfileamqp2ftp,
+        user=rmap.settings.useramqp2dballed,
+        group=rmap.settings.groupamqp2dballed
+)
+
+    
+# catch signal to terminate the process
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
+
+    def keyboard_interrupt(self):
+        self.kill_now = True
+
+    def terminate(self):
+        self.kill_now = True
+
+
+class Threaded_bufr2ftp(threading.Thread):
+
+    def __init__(self,dsn,receive_queue,send_queue,ftphost,ftpuser,ftppassword):
+        threading.Thread.__init__(self)
+        self._logging=logging.getLogger()
+        self._dsn=dsn
+        self._receive_queue=receive_queue
+        self._send_queue=send_queue
+        self._terminate_event = threading.Event()
+        self.ftphost = ftphost
+        self.ftpuser = ftpuser
+        self.ftppassword = ftppassword
+
+    def terminate(self):
+        self._logging.info('Threaded_bufr2ftp Terminated')
+        self._terminate_event.set()
+
+    def have_to_terminate(self):
+        return self._terminate_event.is_set()
+   
+    def run(self):
+
+        self._logging.info('Threaded_bufr2ftp Started')
+        timestart=time.time()
+        saved_message=None
+        while True:
+
+            if(self.have_to_terminate()):
+                self._logging.info('Threaded_bufr2ftp exit')
+                return
+
+            # buffer messages for TIMESTEP sec
+            now=time.time()
+            timetosleep=TIMESTEP-(now-timestart)
+            if timetosleep >0:
+                self._logging.debug("sleep for: %s" % timetosleep)
+                time.sleep(timetosleep)
+            timestart=now
+            
+            messages=[]
+            size=0
+            go=True
+            while (not saved_message is None or not self._send_queue.empty()) and go:
+                if saved_message is None:
+                    message=self._send_queue.get()
+                else:
+                    message=saved_message
+                    saved_message=None
+                    
+                #if len(message.body) > PACKET_MAX_SIZE:
+                #    self._logging.error("Message too big, skip it; tag %d, size %d" % (message.delivery_tag,len(message.body)))
+                #    self._receive_queue.put_nowait(Message(False,message.delivery_tag))
+                #else:
+                size += len(message.body)
+                if size <= PACKET_MAX_SIZE or len(messages)==0:
+                    messages.append(message)
+                else:
+                    self._logging.warning("max size for packet, last message of size %s bytes will be send the next time" % len(message.body))
+                    # save message for late
+                    #self._send_queue.put(message)
+                    saved_message=message
+                    go=False
+                    
+            if len(messages) > 0:
+                self._logging.info("elaborate %s messages" % len(messages))
+                totalbody=b""
+                totaltag=[]
+                for message in messages:
+                    totalbody += message.body
+                    totaltag.append(message.delivery_tag)
+                try:
+
+                    totalbodyfile = io.BytesIO(totalbody) 
+
+                    # Connect to the database
+                    db = dballe.DB.connect(self._dsn)
+                    importer = dballe.Importer("BUFR")
+                    count=0
+                    messages=[]
+                    with importer.from_file(totalbodyfile) as f:
+                        try:
+                            for dballemessage in f:
+                                count+=1
+                                messages.append(dballemessage)
+                                if count >= MESSAGES_MAX_NUMBER:
+                                    # Start a transaction for one segment of MESSAGES_MAX_NUMBER messages
+                                    self._logging.info("start transaction")
+                                    with db.transaction() as tr:
+                                        for message in messages:
+                                            try:
+                                                self._logging.debug("start dballe import")
+                                                tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
+                                            except KeyError:
+                                                self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+                                    count=0
+                                    messages=[]
+                        except ValueError as exception:
+                            self._logging.error("Error in bufr decoding")
+                            self._logging.error('Exception occured: ' + str(exception))
+                            self._logging.error(traceback.format_exc())
+
+
+
+                    if count >0:                      # send last not completed segment
+                        # Start a transaction
+                        with db.transaction() as tr:
+                            for message in messages:
+                                try:
+                                    tr.import_messages(message,overwrite=True, update_station=True,import_attributes=True)
+                                except KeyError:
+                                    self._logging.error("Message was rejected importing in DB: not all metadata defined! ")
+
+                    #Qui devo esportare il DB
+                    base_filename = '/tmp/amqp2ftp'
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S.%f')
+                    filename = f"{base_filename}_{timestamp}.json"
+                    
+
+                    #self.ftphost
+                    #self.ftpuser
+                    #self.ftppassword
+                    
+                    exporter = dballe.Exporter("JSON")
+                    with open(filename, "wb") as outfile:
+                        with db.transaction() as tr:
+                            for row in tr.query_messages():
+                            #for cur in tr.query_data(rec):
+                            #    print(cur)
+                                outfile.write(exporter.to_binary(row.message))
+                    
+                    status=True
+                            
+                except Exception as exception:
+                    self._logging.error("There were some errors import message in dballe")
+                    self._logging.debug("skip message: ")
+                    self._logging.debug(totalbody)
+                    self._logging.debug("related to tag:")
+                    for tag in totaltag:
+                        self._logging.debug("tag: %d",tag)
+                    self._logging.debug("---------------------")
+                    self._logging.error('Exception occured: ' + str(exception))
+                    self._logging.error(traceback.format_exc())
+                    status=False
+                        
+                self._logging.info("Packet done: importing in dballe terminated")
+                self._send_queue.task_done()
+                self._logging.debug("enqueue confirm tag:")
+                for tag in totaltag:
+                    self._logging.debug("tag: %s %d",status,tag)
+                    self._receive_queue.put_nowait(Message(status,tag))
+
+
+def main(self):
+
+    #arm the signal handler
+    killer = GracefulKiller()
+    
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up amqp2dballed')
+    
+    dsn="mem:"
+        
+    logging.info('Queue: %s' % inqueue)
+    logging.info('FTP host: %s'% ftphost )
+    logging.info("Start version: "+rmap.__version__)
+
+    print(' [*] Waiting for messages. To exit press CTRL+C')
+
+
+    user=rmap.settings.amqpuser
+    password=rmap.settings.amqppassword
+    host=rmap.settings.amqphost
+
+    inqueue = self.options.inqueue
+    ftphost = self.options.ftphost
+    ftpuser = self.options.ftpuser
+    ftppassword = self.options.ftppassword
+    
+    send_queue = queue.Queue()
+    receive_queue = queue.Queue()
+
+    bufr2ftp=Threaded_bufr2ftp(dsn,receive_queue,send_queue,ftphost,ftpuser,ftppassword)
+    amqp=amqpConsumerProducer(host=host,queue=inqueue,user=user,password=password,
+                              receive_queue=receive_queue,send_queue=send_queue)
+
+    bufr2ftp.start()
+    amqp.start()
+
+    # infinite loop
+    while True:
+        try:
+            time.sleep(3) # do nothing
+        except Exception as exception:
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            killer.terminate()
+            
+        # terminate on keyboard interrupt
+        except KeyboardInterrupt:
+            sys.stdout.write("keyboard interrupt\n")
+            logging.info("keyboard interrupt\n")
+            killer.keyboard_interrupt()
+
+        if (not amqp.is_alive() or not bufr2ftp.is_alive()):
+            logging.info("amqp aborted\n")
+            killer.terminate()            
+            
+        # check if we have to terminate together with other exceptions
+        if killer.kill_now:
+            logging.info("killed by signal\n")
+
+            amqp.terminate()
+            bufr2ftp.terminate()
+            amqp.join()
+            bufr2ftp.join()
+            logging.debug("Terminated")
+
+            return False
+
+if __name__ == '__main__':
+
+    import sys, os
+
+    amqp2dballed.cwd=os.getcwd()
+
+    if amqp2dballed.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+        sys.stdout.write("Daemon stdout output\n")
+        sys.stderr.write("Daemon stderr output\n")
+
+        status=main(amqp2dballed)  # (this code was run as script)
+
+        for proc in amqp2dballed.procs:
+            proc.wait()
+
+        sys.exit(status)

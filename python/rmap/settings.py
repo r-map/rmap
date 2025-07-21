@@ -151,6 +151,13 @@ configspec['amqp2dballed']['dsnsample_mobile']   = "string(default='mysql:///sam
 configspec['amqp2dballed']['dsnreport_fixed']    = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
 configspec['amqp2dballed']['dsnreport_mobile']   = "string(default='mysql:///report_mobile?user=rmap&password=rmap')"
 
+configspec['amqp2ftp']={}
+configspec['amqp2ftp']['logfile']  = "string(default='amqp2ftp.log')"
+configspec['amqp2ftp']['errfile']  = "string(default='amqp2ftp.err')"
+configspec['amqp2ftp']['lockfile'] = "string(default='amqp2ftp.lock')"
+configspec['amqp2ftp']['user']     = "string(default=None)"
+configspec['amqp2ftp']['group']    = "string(default=None)"
+
 configspec['amqp2amqp_identvalidationd']={}
 configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='amqp2amqp_identvalidationd.log')"
 configspec['amqp2amqp_identvalidationd']['errfile']  = "string(default='amqp2amqp_identvalidationd.err')"
@@ -340,6 +347,13 @@ lockfilesample_fixed             = "/rmap/arkimet/sample_fixed.lock"
 lockfilesample_mobile            = "/rmap/arkimet/sample_mobile.lock"
 lockfilereport_fixed             = "/rmap/arkimet/report_fixed.lock"
 lockfilereport_mobile            = "/rmap/arkimet/report_mobile.lock"
+
+# section amqp2ftp
+logfileamqp2ftp                  = config['amqp2ftp']['logfile']
+errfileamqp2ftp                  = config['amqp2ftp']['errfile']
+lockfileamqp2ftp                 = config['amqp2ftp']['lockfile']
+useramqp2ftp                     = config['amqp2ftp']['user']
+groupamqp2ftp                    = config['amqp2ftp']['group']
 
 # section amqp2amqp_identvalidationd
 logfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidationd']['logfile']
