@@ -203,7 +203,8 @@ class Threaded_bufr2ftp(threading.Thread):
                     base_filename = 'amqp2ftp'
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S.%f')
                     filename = f"{base_filename}_{timestamp}.json"
-                    
+                    tmpfilename="tmpfile"
+
                     self._logging.info(f"ftp send file: {filename}")
                     
                     session = ftplib.FTP_TLS(self.ftphost)
@@ -214,7 +215,8 @@ class Threaded_bufr2ftp(threading.Thread):
                     #print(session.pwd())
 
                     bodyfile.seek(0)
-                    session.storbinary(f"STOR {filename}", bodyfile)
+                    session.storbinary(f"STOR {tmpfilename}", bodyfile)
+                    session.rename(tmpfilename,filename)
                     session.quit()
                     self._logging.info("end ftp transfer")
                     
