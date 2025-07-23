@@ -152,6 +152,7 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeou
     if (status != E_BUSY) {
       jrpc_state = JRPC_END;
       serializeJson(doc,*stream);
+      stream->print("\n");
     }
     break;
     
