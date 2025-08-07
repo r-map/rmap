@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-07-17T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20250717"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-08-07T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20250807"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -172,6 +172,11 @@
 */
 #define CONSTANTDATA_VALUE_LENGTH                    (33)
 
+/*!
+\def OUTPUTPINS
+\brief Define the pins numbers for use with outputpins RPC
+*/
+#define OUTPUTPINS 1,2,3,4
 
 // task definitions
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/freertos.html#background-tasks
