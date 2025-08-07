@@ -30,6 +30,7 @@
 #include <HTTPUpdate.h>
 #include <Adafruit_NeoPixel.h>
 #include <sqlite3.h>
+#include <arduinoJsonRPC.h>
 
 #include "udp_thread.h"
 #include "gps_thread.h"

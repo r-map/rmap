@@ -654,6 +654,11 @@ int  rmap_config(const String payload){
 	    station.mqttmaintpath[9]='\0';
 	    frtosLog.notice(F("mqttmaintpath: %s"),station.mqttmaintpath);
 
+	    // not in django model !
+	    //strncpy (station.mqttrpcpath, element["fields"]["mqttrpcpath"].as< const char*>(),9);
+	    //station.mqttrpcpath[9]='\0';
+	    //frtosLog.notice(F("mqttrpcpath: %s"),station.mqttrpcpath);
+	    
 	    status_station = true;
 	  }
 	}

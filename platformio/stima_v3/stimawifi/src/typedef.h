@@ -82,6 +82,7 @@ struct station_t
   char boardslug[31];                  //!< nome sintetico della board
   char mqttrootpath[10];               //!< radice del topic MQTT per i dati
   char mqttmaintpath[10];              //!< radice del topic MQTT per i dati amministrativi
+  char mqttrpcpath[10];                //!< radice del topic MQTT per le RPC
   constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter (metadati)
   uint8_t constantdata_count;                              //!< configured constantdata number
   
@@ -100,6 +101,7 @@ struct station_t
   strcpy(boardslug, "default");
   strcpy(mqttrootpath, "sample");
   strcpy(mqttmaintpath,"maint");
+  strcpy(mqttrpcpath,"rpc");
   constantdata_count=0;
   }
 };

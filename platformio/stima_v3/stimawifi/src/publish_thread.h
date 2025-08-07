@@ -6,6 +6,15 @@
 #ifndef PUBLISH_THREAD_H_
 #define PUBLISH_THREAD_H_
 
+void mqttRxCallback(MQTT::MessageData &md);
+
+int rebootRpc(JsonObject params, JsonObject result);
+int recoveryDataRpc(JsonObject params, JsonObject result);
+int pinOutRpc(JsonObject params, JsonObject result);
+int pinOutRpc(JsonObject params, JsonObject result);
+
+
+
 // thread exchange data struct
 struct publish_data_t {
   int id;
@@ -17,9 +26,6 @@ struct publish_data_t {
   station_t* station;
 };
 
-bool publish_maint(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);
-bool publish_constantdata(MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 >& mqttclient, publish_data_t& data);
-
 using namespace cpp_freertos;
 
 class publishThread : public Thread {
@@ -28,10 +34,14 @@ public:
   publishThread(publish_data_t* publish_data);
   ~publishThread();
   virtual void Cleanup();
+
+  static JsonRPC global_jsonrpc;
+  static publish_data_t* global_data;
+  static MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 >* global_mqttclient;
   
  protected:  
   virtual void Run();
-  bool mqttSubscribeRpc(char* comtopic);
+  bool mqttSubscribeRpc();
   //static void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
 
  private:
@@ -46,10 +56,11 @@ public:
   bool doPublish(mqttMessage_t& mqtt_message);
   publish_data_t* data;
   IPStack ipstack;
-  MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1 > mqttclient;
+  MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 > mqttclient;
   uint8_t errorcount;
   time_t last_status_sended;
   WiFiClient networkClient;
+  bool bootConnect;
 };
 
 #endif

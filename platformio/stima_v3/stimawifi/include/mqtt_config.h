@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def MQTT_SUBSCRIBE_TOPIC_LENGTH
-\brief Length in bytes for mqtt subscibe topic.
+\brief Length in bytes for mqtt subscribe topic.
 */
 #define MQTT_SUBSCRIBE_TOPIC_LENGTH    (50)
 
@@ -58,6 +58,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Length in bytes for mqtt message.
 */
 #define MQTT_MESSAGE_LENGTH            (50)
+
+/*!
+\def MQTT_RPC_RESPONSE_LENGTH
+\brief Length in bytes for mqtt rpc response message.
+*/
+#define MQTT_RPC_RESPONSE_LENGTH            (60)
 
 /*!
 \def MQTT_SERVER_LENGTH

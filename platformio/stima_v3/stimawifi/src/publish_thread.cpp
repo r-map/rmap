@@ -1,10 +1,161 @@
 #include "common.h"
 
+//***********************************************************************************************
+//                         global definition to use in RPC callback
+// initialize an instance of the JsonRPC library for registering 
+// exactly 1 local method
+//radio mode is false; do not use compact protocoll
+JsonRPC publishThread::global_jsonrpc = JsonRPC(false);
+// pointers setted by class istance
+publish_data_t* publishThread::global_data=NULL;
+MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 >* publishThread::global_mqttclient=NULL;
+//***********************************************************************************************
+
+publishThread::publishThread(publish_data_t* publish_data)
+  : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY},
+    data{publish_data},
+    ipstack{networkClient},
+    mqttclient{ipstack, IP_STACK_TIMEOUT_MS},
+    bootConnect{true}
+{
+  //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
+  data->status->publish.connect=unknown;
+  data->status->publish.publish=unknown;
+  errorcount=0;
+
+  global_data=data;
+  global_mqttclient=&mqttclient;
+  //Start();
+};
+
+publishThread::~publishThread()
+{
+}
+
+
+/*
+static void publishThread::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  data->logger->error(F("Disconnected from WiFi access point"));
+  data->logger->notice(F("WiFi lost connection. Reason: %s"),info.wifi_sta_disconnected.reason);
+  data->logger->notice(F("Trying to Reconnect"));
+  mqttDisconnect(ipstack,mqttclient, data);
+  WiFi.disconnect();
+  WiFi.reconnect();
+}
+*/
+void publishThread::Cleanup()
+{
+  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  data->status->publish.connect=unknown;
+  data->status->publish.publish=unknown;
+  delete this;
+}
+  
+void publishThread::Run() {
+  data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
+
+  //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+  last_status_sended = millis()/1000;
+
+  // register RPC
+  global_jsonrpc.registerMethod("pinout", &pinOutRpc);
+  global_jsonrpc.registerMethod("recovery", &recoveryDataRpc);
+  global_jsonrpc.registerMethod("reboot", &rebootRpc);
+  
+  for(;;){
+    
+    // if there are no enough space left on the mqtt queue send it to the DB archive
+    while (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
+      archive();
+    }
+
+    // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
+    // mqttclient.yield(5000);
+    // data->logger->notice(F("publish MQTT connect status %T %T %T"),mqttclient.yield(0)!=0, !mqttclient.isConnected(), WiFi.status() != WL_CONNECTED);
+    // if ( (mqttclient.yield(1000)!=0) || (!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
+
+    //if ((!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
+
+    mqttclient.yield(0);
+    
+    if (data->status->publish.publish != ok){
+      mqttDisconnect();
+      if (mqttConnect(false)) {   // manage mqtt reconnect as RMAP standard
+	data->logger->notice(F("publish MQTT connected"));
+	errorcount = 0;
+	data->status->publish.connect=ok;
+      } else {
+	data->status->publish.connect=error;
+	data->logger->error(F("publish MQTT connect failed"));
+	data->status->publish.publish=error;
+	errorcount++;
+	if (errorcount > 15) {
+	  data->logger->error(F("publish too much error: drop WiFi"));
+	  WiFi.disconnect();
+	  errorcount = 0;
+	}
+	delay(3000);
+      }
+    }
+
+    if (((millis()/1000)-last_status_sended) > STATUS_SEND_S) {
+      if (publish_status_summary()) {
+	data->logger->notice(F("publish Published maint status"));
+	last_status_sended = millis()/1000;
+	reset_status_summary();
+      } else {
+	data->logger->error(F("publish Publishing maint status"));
+      }
+    }
+
+    if (data->status->publish.connect==ok){
+      mqttMessage_t mqttMessage;
+      // wait for message and peek it from the queue
+      while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
+	mqttclient.yield(0);
+	// publish message
+	if (!doPublish(mqttMessage)) break;
+      }
+    }
+    
+    data->logger->notice(F("publish mqtt queue space left %d"),data->mqttqueue->NumSpacesLeft());
+
+    // check heap and stack
+    //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->status->publish.no_heap_memory=error;
+    }
+    //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
+    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
+      data->logger->error(F("publish stack"));  // check for memory collision
+      data->status->publish.memory_collision=error;
+    }
+  }
+};
+
 // disconnect from MQTT broker
 bool publishThread::mqttDisconnect() {
 
   mqttclient.disconnect();
-  //mqttclient.setMessageHandler(comtopic, NULL); // remove handler setted
+
+  char comtopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
+
+  strcpy(comtopic,"1/");
+  strcat(comtopic,data->station->mqttrpcpath);
+  strcat(comtopic,"/");
+  strcat(comtopic,data->station->user);
+  strcat(comtopic,"//");
+  strcat(comtopic,data->station->longitude);
+  strcat(comtopic,",");
+  strcat(comtopic,data->station->latitude);
+  strcat(comtopic,"/");
+  strcat(comtopic,data->station->network);
+  strcat(comtopic,"/com");
+
+  mqttclient.setMessageHandler(comtopic, NULL); // remove handler setted
+
   ipstack.disconnect();
   data->logger->notice(F("publish MQTT Disconnectted"));
   return true;
@@ -12,6 +163,9 @@ bool publishThread::mqttDisconnect() {
 
 
 // connect to MQTT broker setting will message
+//  cleanSession=true;   //clean messages queued by MQTT broker
+//  cleanSession=false;  // if I lost connectio when reconnect I get all messages queued by broker
+
 bool publishThread::mqttConnect(const bool cleanSession) {
 
   if (WiFi.status() != WL_CONNECTED) {    
@@ -88,7 +242,30 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   data->logger->notice(F("publish MQTT keepAliveInterval: %d"), options.keepAliveInterval);
   data->logger->notice(F("publish MQTT user: %s"), options.username.cstring);
   data->logger->notice(F("publish MQTT password: %s"), options.password.cstring);
+
+
+  // the first connect after boot we skip all ald RPC queued by broker
+  if (!bootConnect){
+    char comtopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
+
+    strcpy(comtopic,"1/");
+    strcat(comtopic,data->station->mqttrpcpath);
+    strcat(comtopic,"/");
+    strcat(comtopic,data->station->user);
+    strcat(comtopic,"//");
+    strcat(comtopic,data->station->longitude);
+    strcat(comtopic,",");
+    strcat(comtopic,data->station->latitude);
+    strcat(comtopic,"/");
+    strcat(comtopic,data->station->network);
+    strcat(comtopic,"/com");
     
+    mqttclient.setDefaultMessageHandler(mqttRxCallback);
+    mqttclient.setMessageHandler(comtopic, mqttRxCallback);   // messages queued for persistent client are sended at connect time and we have to "remember" the subscription
+  } else {
+    bootConnect=false;
+  }
+  
   MQTT::connackData connack;
   uint8_t rc = mqttclient.connect(options,connack);
   if (rc == 0){
@@ -160,6 +337,16 @@ bool publishThread::mqttConnect(const bool cleanSession) {
       return false;
     }
   }
+
+  if (mqttSubscribeRpc()) {
+    data->logger->notice(F("publish Subscribed to rpc path"));
+    data->status->publish.publish=ok;
+  }else{
+    data->logger->error(F("publish Subscribe to rpc path"));
+    data->status->publish.publish=error;
+    return false;
+  }
+
   return true;
 }
 
@@ -376,163 +563,215 @@ bool publishThread::doPublish(mqttMessage_t& mqtt_message) {
   return rc;
 }
 
-publishThread::publishThread(publish_data_t* publish_data)
-  : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY},
-    data{publish_data},
-    ipstack{networkClient},
-    mqttclient{ipstack, IP_STACK_TIMEOUT_MS}
-{
-  //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
-  data->status->publish.connect=unknown;
-  data->status->publish.publish=unknown;
-  errorcount=0;
-  //Start();
-};
-
-publishThread::~publishThread()
-{
-}
-
-
-/*
-static void publishThread::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  data->logger->error(F("Disconnected from WiFi access point"));
-  data->logger->notice(F("WiFi lost connection. Reason: %s"),info.wifi_sta_disconnected.reason);
-  data->logger->notice(F("Trying to Reconnect"));
-  mqttDisconnect(ipstack,mqttclient, data);
-  WiFi.disconnect();
-  WiFi.reconnect();
-}
-*/
-void publishThread::Cleanup()
-{
-  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
-  data->status->publish.connect=unknown;
-  data->status->publish.publish=unknown;
-  delete this;
-}
-  
-void publishThread::Run() {
-  data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
-
-  //WiFi.onEvent(publishThread::WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-
-  /*
-  rpcRecovery_t rpcrecovery;  
-  strcpy(rpcrecovery.dtstart,"2024-05-09T00:00:00") ;
-  strcpy(rpcrecovery.dtend, "2024-05-09T01:00:00") ;
-  
-  if(data->recoveryqueue->Enqueue(&rpcrecovery)){
-    data->logger->notice(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
-  }else{
-    data->logger->error(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
-  }
-  */
-
-  last_status_sended = millis()/1000;
-  
-  for(;;){
-    
-    // if there are no enough space left on the mqtt queue send it to the DB archive
-    while (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
-      archive();
-    }
-
-    // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
-    // mqttclient.yield(5000);
-    // data->logger->notice(F("publish MQTT connect status %T %T %T"),mqttclient.yield(0)!=0, !mqttclient.isConnected(), WiFi.status() != WL_CONNECTED);
-    // if ( (mqttclient.yield(1000)!=0) || (!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
-
-    //if ((!mqttclient.isConnected()) || (WiFi.status() != WL_CONNECTED)){
-
-    mqttclient.yield(0);
-    
-    if (data->status->publish.publish != ok){
-      mqttDisconnect();
-      if (mqttConnect(true)) {   // manage mqtt reconnect as RMAP standard
-	data->logger->notice(F("publish MQTT connected"));
-	errorcount = 0;
-	data->status->publish.connect=ok;
-      } else {
-	data->status->publish.connect=error;
-	data->logger->error(F("publish MQTT connect failed"));
-	data->status->publish.publish=error;
-	errorcount++;
-	if (errorcount > 15) {
-	  data->logger->error(F("publish too much error: drop WiFi"));
-	  WiFi.disconnect();
-	  errorcount = 0;
-	}
-	delay(3000);
-      }
-    }
-
-    if (((millis()/1000)-last_status_sended) > STATUS_SEND_S) {
-      if (publish_status_summary()) {
-	data->logger->notice(F("publish Published maint status"));
-	last_status_sended = millis()/1000;
-	reset_status_summary();
-      } else {
-	data->logger->error(F("publish Publishing maint status"));
-      }
-    }
-
-    if (data->status->publish.connect==ok){
-      mqttMessage_t mqttMessage;
-      // wait for message and peek it from the queue
-      while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-	// publish message
-	if (!doPublish(mqttMessage)) break;
-      }
-    }
-    
-    data->logger->notice(F("publish mqtt queue space left %d"),data->mqttqueue->NumSpacesLeft());
-
-    // check heap and stack
-    //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-      data->status->publish.no_heap_memory=error;
-    }
-    //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
-    if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
-      data->logger->error(F("publish stack"));  // check for memory collision
-      data->status->publish.memory_collision=error;
-    }
-  }
-};
-
-
 //https://stackoverflow.com/questions/400257/how-can-i-pass-a-class-member-function-as-a-callback
+//void mqttRxCallback(MQTT::MessageData &md, publish_data_t& data) {
+//auto callback = std::bind(&mqttRxCallback,std::placeholders::_1,data); 
+//bool returnstatus = mqttclient.subscribe(comtopic, MQTT::QOS1, callback) == 0;    // subscribe and set new handler
 
-/*
-void mqttRxCallback(MQTT::MessageData &md, publish_data_t& data) {
-  MQTT::Message &rx_message = md.message;
+bool publishThread::mqttSubscribeRpc() {
 
-  data->logger->notice(F("MQTT RX: %s"), (char*)rx_message.payload);
-  data->logger->notice(F("--> len %d"), rx_message.payloadlen);
-  data->logger->notice(F("--> qos %d"), rx_message.qos);
-  data->logger->notice(F("--> retained %d"), rx_message.retained);
-  data->logger->notice(F("--> dup %d"), rx_message.dup);
-  data->logger->notice(F("--> id %d"), rx_message.id);
+  char comtopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
 
-  bool is_event_rpc=true;
-  while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
-    //streamRpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcpayload, MQTT_RPC_RESPONSE_LENGTH );
-  }
-}
-
-bool publishThread::mqttSubscribeRpc(char* comtopic) {
+  strcpy(comtopic,"1/");
+  strcat(comtopic,data->station->mqttrpcpath);
+  strcat(comtopic,"/");
+  strcat(comtopic,data->station->user);
+  strcat(comtopic,"//");
+  strcat(comtopic,data->station->longitude);
+  strcat(comtopic,",");
+  strcat(comtopic,data->station->latitude);
+  strcat(comtopic,"/");
+  strcat(comtopic,data->station->network);
+  strcat(comtopic,"/com");
 
   // remove previous handler               
   // MessageHandler in MQTTClient is not cleared betwen sessions  
-  mqttclient.setMessageHandler(comtopic, NULL);
+  //mqttclient.setMessageHandler(comtopic, NULL);
 
-  auto callback = std::bind(&mqttRxCallback,std::placeholders::_1,data); 
-  bool returnstatus = mqttclient.subscribe(comtopic, MQTT::QOS1, callback) == 0;    // subscribe and set new handler
+  // TODO subscribe seems do not set handle
+  mqttclient.setDefaultMessageHandler(mqttRxCallback);
+  mqttclient.setMessageHandler(comtopic, mqttRxCallback);   // messages queued for persistent client are sended at connect time and we have t
+  bool returnstatus = mqttclient.subscribe(comtopic, MQTT::QOS1, mqttRxCallback) == 0;    // subscribe and set new handler
 
-  data->logger->notice(F("MQTT Subscription %s [ %s ]"), comtopic, returnstatus ? "OK" : "FAIL");
+  if (returnstatus){
+    data->logger->notice(F("publish MQTT subscribe %s"), comtopic);
+  }else{
+    data->logger->error(F("publish MQTT subscription %s"), comtopic);
+  }    
 
   return returnstatus;
 }
+
+/*
+  RPC reboot
+
+  Richiede il riavvio della stazione
+  parametri NON utilizzati:
+  bool fupdate: true=update firmware available on SDcard
+esempio:
+{"jsonrpc": "2.0", "method": "reboot","params": {"fupdate":true}, "id": 0}
 */
+
+int rebootRpc(JsonObject params, JsonObject result) {
+  // reboot ESP
+  publishThread::global_data->logger->notice(F("publish reboot rpc"));
+  delay(5000);
+  ESP.restart();
+  delay(5000);
+  result[F("state")] = F("done");  
+  return 0;  
+}
+
+/*
+    RPC recovery
+
+    Richiede il re-invio dei dati non trasmessi al server da una data iniziale a una data finale
+    int[6] dts: start date and time; anno, mese, giorno, ora, minuti, secondi [esempio: 2014,2,10,18,45,18]
+    int[6] dte (OPZIONALE): end date and time; anno, mese, giorno, ora, minuti, secondi [esempio: 2015,3,25,12,0,0]
+    se omesso dte corrisponde all'istante attuale
+esempi:
+{"jsonrpc": "2.0", "method": "recovery", "params": {"dts":[2014,2,10,18,45,18],"dte":[2015,3,25,12,0,0] }, "id": 0}
+{"jsonrpc": "2.0", "method": "recovery", "params": {"dts":[2014,2,10,18,45,18] }, "id": 1}
+*/
+
+int recoveryDataRpc(JsonObject params, JsonObject result) {
+
+  JsonArray dts=params["dts"];
+  rpcRecovery_t rpcrecovery;
+  sprintf(rpcrecovery.dtstart, "%04d-%02d-%02dT%02d:%02d:%02d",
+	  dts[0].as<int>(),dts[1].as<int>(),dts[2].as<int>(),
+	  dts[3].as<int>(),dts[4].as<int>(),dts[5].as<int>()
+	  );
+  
+  if (params.containsKey("dte")){
+    JsonArray dte=params["dte"];  
+    sprintf(rpcrecovery.dtend, "%04u-%02u-%02uT%02u:%02u:%02u",
+	    dte[0].as<int>(),dte[1].as<int>(),dte[2].as<int>(),
+	    dte[3].as<int>(),dte[4].as<int>(),dte[5].as<int>()
+	    );
+  }else{
+      time_t dte=now();
+      sprintf(rpcrecovery.dtend,"%04u-%02u-%02uT%02u:%02u:%02u",
+	      year(dte), month(dte), day(dte),
+	      hour(dte), minute(dte), second(dte));
+  }
+ 
+  //strcpy(rpcrecovery.dtstart,"2024-05-09T00:00:00") ;
+  //strcpy(rpcrecovery.dtend, "2024-05-09T01:00:00") ;
+  
+  if(publishThread::global_data->recoveryqueue->Enqueue(&rpcrecovery)){
+    publishThread::global_data->logger->notice(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
+    result[F("state")] = F("done");  
+    return 0;  
+  }else{
+    publishThread::global_data->logger->error(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
+    result[F("state")] = F("error");
+    return 1;
+  }
+}
+
+/*
+  RPC pinout
+
+  Attuatore che accende/spegne uno o più pin.
+  parametri:
+  array di oggetti con la seguente struttura:
+        integer n: pin number
+        bool s: true=on; false=off
+esempio:
+{"jsonrpc": "2.0", "method": "pinout", "params": [{"n":4,"s":true},{"n":5,"s":false}], "id": 0}
+*/
+
+int pinOutRpc(JsonObject params, JsonObject result) {
+
+  JsonVariant params_variant =params;
+  JsonArray array = params_variant;
+  const uint8_t pins [] = {OUTPUTPINS};
+  
+  for(JsonVariant pinout : array) {
+    if (pinout.containsKey("n")) {
+      bool found=false;
+      if (pinout.containsKey("n")) {
+	uint8_t pin = pinout["n"];
+	for(int i = 0; i < sizeof(pins) / sizeof(pins[0]); i++){
+	  if(pins[i] == pin){
+	    found=true;
+	    break;
+	  }
+	}
+	if (found){
+	  bool status = pinout["value"];
+	  digitalWrite(pin, status);
+	}else{
+	  result[F("state")] = F("error");
+	  return 1;
+	}
+      } else {
+	result[F("state")] = F("error");
+	return 1;
+      }
+    } else {
+      result[F("state")] = F("error");
+      return 1;
+    }
+  }
+
+  result[F("state")] = F("done");  
+  return 0;  
+}
+
+// callback di ricezione di una RPC
+void mqttRxCallback(MQTT::MessageData &md) {
+  MQTT::Message &rx_message = md.message;
+
+  publishThread::global_data->logger->notice(F("publish rpc MQTT RX: %s"), (char*)rx_message.payload);
+  publishThread::global_data->logger->notice(F("publish rpc --> len %d"), rx_message.payloadlen);
+  publishThread::global_data->logger->notice(F("publish rpc --> qos %d"), rx_message.qos);
+  publishThread::global_data->logger->notice(F("publish rpc --> retained %d"), rx_message.retained);
+  publishThread::global_data->logger->notice(F("publish rpc --> dup %d"), rx_message.dup);
+  publishThread::global_data->logger->notice(F("publish rpc --> id %d"), rx_message.id);
+ 
+  bool is_event_rpc=true;
+  char rpcresponse[MQTT_RPC_RESPONSE_LENGTH];
+
+  while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
+    publishThread::global_jsonrpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcresponse, MQTT_RPC_RESPONSE_LENGTH );
+  }
+
+  publishThread::global_mqttclient->yield(0);
+  MQTT::Message tx_message;
+  tx_message.qos = MQTT::QOS1;
+  tx_message.retained = false;
+  tx_message.dup = false;
+  tx_message.payload = (void*) rpcresponse;
+  tx_message.payloadlen = strlen(rpcresponse);
+
+  char restopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
+
+  strcpy(restopic,"1/");
+  strcat(restopic,publishThread::global_data->station->mqttrpcpath);
+  strcat(restopic,"/");
+  strcat(restopic,publishThread::global_data->station->user);
+  strcat(restopic,"//");
+  strcat(restopic,publishThread::global_data->station->longitude);
+  strcat(restopic,",");
+  strcat(restopic,publishThread::global_data->station->latitude);
+  strcat(restopic,"/");
+  strcat(restopic,publishThread::global_data->station->network);
+  strcat(restopic,"/res");
+
+  publishThread::global_data->logger->notice(F("publish Publish: %s ; %s"),  restopic, rpcresponse);
+
+  MQTT::returnCode rc = (MQTT::returnCode) publishThread::global_mqttclient->publish(restopic, tx_message);
+  switch (rc){
+  case MQTT::BUFFER_OVERFLOW:
+    publishThread::global_data->logger->error(F("publish rpc response BUFFER_OVERFLOW"));
+    break;
+  case MQTT::FAILURE:
+    publishThread::global_data->logger->error(F("publish rpc response FAILURE"));
+    break;
+  case MQTT::SUCCESS:
+    publishThread::global_data->logger->notice(F("publish rpc response SUCCESS"));
+    break;
+  }
+}
