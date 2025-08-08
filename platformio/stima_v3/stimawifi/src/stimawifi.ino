@@ -1494,6 +1494,7 @@ void setup() {
     esp_sntp_stop();
     if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
       frtosLog.notice(F("Getted time from RTC"));
+      stimawifiStatus.rtc=ok;
       setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
     }else{
       stimawifiStatus.rtc=error;
