@@ -176,7 +176,7 @@
 \def OUTPUTPINS
 \brief Define the pins numbers for use with outputpins RPC
 */
-#define OUTPUTPINS 1,2,3,4
+#define OUTPUTPINS TX,RX,D0,D4
 
 // task definitions
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/freertos.html#background-tasks

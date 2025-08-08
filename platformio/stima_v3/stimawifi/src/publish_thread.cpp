@@ -701,6 +701,7 @@ int pinOutRpc(JsonObject params, JsonObject result) {
 	}
 	if (found){
 	  bool status = pinout["value"];
+	  pinMode(pin, OUTPUT);
 	  digitalWrite(pin, status);
 	}else{
 	  result[F("state")] = F("error");
