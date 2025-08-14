@@ -337,14 +337,20 @@ bool dbThread::archive_recovery(){
       strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend);
       archive_recovery_stop = mktime(&dtend);       // 0 is for missed parameter
     }
-    
-    archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+    if (archiveRecoveryFile.available() >= sizeof(mqttMessage_t)/sizeof(uint8_t)){
+      archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+      break;
+    }
+
+    archive_recovery_rc=false;
+    archive_recovery_state=ARCHIVE_RECOVERY_END;
     break;
+      
     
   case ARCHIVE_RECOVERY_READ_MESSAGE:           // read one message from archive file
 
     do {
-      if (archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t))) {
+      if (archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t)) != sizeof(mqttMessage_t)/sizeof(uint8_t)) {
 	data->logger->notice(F("db read message from archive %T:%s:%s"),archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
       } else {
 	data->logger->error(F("db read message from archive"));
