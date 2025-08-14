@@ -636,12 +636,20 @@ esempi:
 
 int recoveryDataRpc(JsonObject params, JsonObject result) {
 
-  JsonArray dts=params["dts"];
   rpcRecovery_t rpcrecovery;
-  sprintf(rpcrecovery.dtstart, "%04d-%02d-%02dT%02d:%02d:%02d",
-	  dts[0].as<int>(),dts[1].as<int>(),dts[2].as<int>(),
-	  dts[3].as<int>(),dts[4].as<int>(),dts[5].as<int>()
-	  );
+  
+  if (params.containsKey("dts")){
+    JsonArray dts=params["dts"];
+    sprintf(rpcrecovery.dtstart, "%04d-%02d-%02dT%02d:%02d:%02d",
+	    dts[0].as<int>(),dts[1].as<int>(),dts[2].as<int>(),
+	    dts[3].as<int>(),dts[4].as<int>(),dts[5].as<int>()
+	    );
+  }else{
+    time_t dts=0;
+    sprintf(rpcrecovery.dtend,"%04u-%02u-%02uT%02u:%02u:%02u",
+	    year(dts), month(dts), day(dts),
+	    hour(dts), minute(dts), second(dts));
+  }
   
   if (params.containsKey("dte")){
     JsonArray dte=params["dte"];  

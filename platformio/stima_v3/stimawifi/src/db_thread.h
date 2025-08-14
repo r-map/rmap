@@ -14,6 +14,14 @@ struct db_data_t {
   File* logFile;
 };
 
+typedef enum {
+  ARCHIVE_RECOVERY_NONE,
+  ARCHIVE_RECOVERY_INIT,
+  ARCHIVE_RECOVERY_READ_MESSAGE,
+  ARCHIVE_RECOVERY_FILTER,
+  ARCHIVE_RECOVERY_PUBLISH,
+  ARCHIVE_RECOVERY_END,
+} archive_recovery_state_t;
 
 using namespace cpp_freertos;
 
@@ -41,8 +49,12 @@ class dbThread : public Thread {
   void db_setup();
   bool data_purge(const bool flush, int messages);
   bool data_recovery();
+  bool recovery();
+  bool archive_recovery();
   bool data_set_recovery();
   bool db_restart();
+  void setEventArchiveRecovery();
+
   db_data_t* data;
   sqlite3 *db;
   //SdFat SD;
@@ -54,7 +66,13 @@ class dbThread : public Thread {
     \brief File for archive on SD-Card.
   */
   File archiveFile;
-
+  File archiveRecoveryFile;
+  bool archiveRecoveryResend;
+  bool archive_recovery_rc;
+  mqttMessage_t archive_recovery_message;
+  time_t archive_recovery_start;
+  time_t archive_recovery_stop;  
+  archive_recovery_state_t archive_recovery_state;
 };
 
 // we need this global for SDcard restart

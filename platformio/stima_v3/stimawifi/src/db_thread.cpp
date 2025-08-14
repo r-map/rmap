@@ -274,10 +274,165 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
   return rc  == SQLITE_OK;
 }
 
+bool dbThread::recovery(){
+
+  struct tm dtstart = {0};
+  if (strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart) == NULL){
+    return false;
+  }
+  time_t start = mktime(&dtstart);       // 0 is for missed parameter
+  if (start < now()-SDRECOVERYTIME) {    // check if start datettime intercetpt archive
+    setEventArchiveRecovery();           // send an init event to the archive finite state machine
+  }
+
+  // send not sended messages only; is default for DB so it is a noop
+  if (start == 0) return true;
+  
+  // for the DB check if end datetine intercetpt DB
+  struct tm dtend = {0};
+  if (strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend) == NULL) return false;  
+  if (mktime(&dtend) > now()-SDRECOVERYTIME) {
+    return data_set_recovery();
+  }
+  return true;
+}
+
+// set the event for the finite state machine
+// this event start the machine
+void dbThread::setEventArchiveRecovery(){
+  if (archive_recovery_state == ARCHIVE_RECOVERY_NONE) archive_recovery_state = ARCHIVE_RECOVERY_INIT;
+}
+
+bool dbThread::archive_recovery(){
+
+  time_t datetime;
+
+  switch (archive_recovery_state) {
+
+  case ARCHIVE_RECOVERY_NONE:                   // noop
+    break;
+      
+  case ARCHIVE_RECOVERY_INIT:                   // initialize the machine
+
+    archive_recovery_rc=true;
+
+    // open archive on sd card for read
+    archiveRecoveryFile = SD.open(SDCARD_ARCHIVE_FILE_NAME, FILE_READ);
+    if (!archiveRecoveryFile){
+      data->logger->error(F("db failed to open archive file for read"));
+      archive_recovery_rc=false;
+      archive_recovery_state=ARCHIVE_RECOVERY_END;
+      break;
+    }
+
+    // decode start and end datettime in UNIX time
+    {
+      struct tm dtstart = {0};
+      strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart);
+      archive_recovery_start = mktime(&dtstart);       // 0 is for missed parameter
+    }
+    
+    {
+      struct tm dtend = {0};
+      strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend);
+      archive_recovery_stop = mktime(&dtend);       // 0 is for missed parameter
+    }
+    
+    archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+    break;
+    
+  case ARCHIVE_RECOVERY_READ_MESSAGE:           // read one message from archive file
+
+    do {
+      if (archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t))) {
+	data->logger->notice(F("db read message from archive %T:%s:%s"),archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
+      } else {
+	data->logger->error(F("db read message from archive"));
+	data->status->archive=error;
+	archive_recovery_rc=false;
+	archive_recovery_state=ARCHIVE_RECOVERY_END;
+	break;
+      }
+      
+    } while (archive_recovery_message.sent and archive_recovery_start == 0);
+
+    archive_recovery_state=ARCHIVE_RECOVERY_FILTER;
+    break;
+    
+
+  case ARCHIVE_RECOVERY_FILTER:
+    
+    {
+      StaticJsonDocument<32+MQTT_MESSAGE_LENGTH> doc;
+      DeserializationError jserror = deserializeJson(doc,(const char*) archive_recovery_message.payload,MQTT_MESSAGE_LENGTH);
+
+      if (jserror) {
+	data->logger->error(F("db failed to deserialize archive payload json %s"),jserror.c_str());
+	data->status->archive=error;
+	archive_recovery_rc=false;
+	archive_recovery_state=ARCHIVE_RECOVERY_END;
+	break;
+      }
+      
+      if (!doc.containsKey("t")){
+	data->logger->error(F("db datetime missed in archive payload"));
+	data->status->archive=error;
+	archive_recovery_rc=false;
+	archive_recovery_state=ARCHIVE_RECOVERY_END;
+	break;
+      }
+      
+      if (archive_recovery_message.sent and archive_recovery_start == 0){
+	data->logger->notice(F("db skip message from archive %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);       
+	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+	break;
+      }
+      
+      {
+	struct tm dt = {0};
+	strptime(doc["t"], "%Y-%m-%dT%H:%M:%S", &dt);
+	datetime = mktime(&dt);
+      }
+      if (datetime >= archive_recovery_start && datetime <= archive_recovery_stop) {
+	archive_recovery_state=ARCHIVE_RECOVERY_PUBLISH;
+	break;
+      }
+      archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+    }
+    
+    break;
+    
+  case ARCHIVE_RECOVERY_PUBLISH:
+	
+    if (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
+      data->logger->warning(F("db archive recovery no space in mqtt queue"));   
+      archive_recovery_rc=false;
+      break;
+    }
+    
+    data->logger->notice(F("db archive recovery queuing message for publish %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);
+    if(!data->mqttqueue->Enqueue(&archive_recovery_message,pdMS_TO_TICKS(0))){
+      data->logger->warning(F("db archive recovery message for publish not queued"));
+      archive_recovery_rc=false;
+      break;
+    }
+
+    archive_recovery_rc=true;
+    archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+    break;
+    
+  case ARCHIVE_RECOVERY_END:
+        
+    archiveRecoveryFile.close();
+    archive_recovery_state=ARCHIVE_RECOVERY_NONE;
+    break;
+  }
+  return archive_recovery_rc;
+}
 
 // set data in specific datetime range as unsent for recovery
 // of messages for retrasmission
-bool dbThread::data_set_recovery(void){
+bool dbThread::data_set_recovery(){
   int rc;
 
   data->logger->notice(F("db set recovery started: %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
@@ -343,7 +498,7 @@ bool dbThread::data_recovery(void){
   //  data->logger->warning(F("db recovery skip: publish task KO"));   
   //  return false;
   //}
-  
+
   if (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
     data->logger->warning(F("db recovery no space in mqtt queue"));   
     return true;
@@ -607,6 +762,7 @@ dbThread::dbThread(db_data_t* db_data)
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->database=unknown;
   sqlite_status=false;
+  archive_recovery_state = ARCHIVE_RECOVERY_NONE;
   //Start();
 };
 
@@ -802,8 +958,9 @@ void dbThread::Run() {
     }
 
     // check queue for rpc recovey
-    if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) data_set_recovery();
-
+    if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) recovery();
+    while (archive_recovery());
+    
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
