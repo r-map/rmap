@@ -68,7 +68,7 @@ class dbThread : public Thread {
   File archiveFile;
   File archiveRecoveryFile;
   bool archiveRecoveryResend;
-  bool archive_recovery_rc;
+  bool archive_recovery_run;
   mqttMessage_t archive_recovery_message;
   time_t archive_recovery_start;
   time_t archive_recovery_stop;  

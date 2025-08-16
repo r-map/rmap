@@ -314,13 +314,12 @@ bool dbThread::archive_recovery(){
       
   case ARCHIVE_RECOVERY_INIT:                   // initialize the machine
 
-    archive_recovery_rc=true;
+    archive_recovery_run=true;
 
     // open archive on sd card for read
     archiveRecoveryFile = SD.open(SDCARD_ARCHIVE_FILE_NAME, FILE_READ);
     if (!archiveRecoveryFile){
       data->logger->error(F("db failed to open archive file for read"));
-      archive_recovery_rc=false;
       archive_recovery_state=ARCHIVE_RECOVERY_END;
       break;
     }
@@ -342,29 +341,38 @@ bool dbThread::archive_recovery(){
       break;
     }
 
-    archive_recovery_rc=false;
     archive_recovery_state=ARCHIVE_RECOVERY_END;
     break;
-      
     
   case ARCHIVE_RECOVERY_READ_MESSAGE:           // read one message from archive file
 
-    do {
-      if (archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t)) != sizeof(mqttMessage_t)/sizeof(uint8_t)) {
-	data->logger->notice(F("db read message from archive %T:%s:%s"),archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
-      } else {
-	data->logger->error(F("db read message from archive"));
-	data->status->archive=error;
-	archive_recovery_rc=false;
-	archive_recovery_state=ARCHIVE_RECOVERY_END;
-	break;
-      }
-      
-    } while (archive_recovery_message.sent and archive_recovery_start == 0);
+    {
+      bool endoffile=false;
+      do {
+	uint8_t byteread=archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t));
+	
+	if (byteread == sizeof(mqttMessage_t)/sizeof(uint8_t)) {
+	  data->logger->notice(F("db read message from archive %T:%s:%s"),
+			       archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
+	} else {
+	  if (byteread>0) {
+	    data->status->archive=error;
+	    data->logger->error(F("db read message from archive"));
+	}else{
+	    data->logger->notice(F("db archive end of file"));
+	  }
+	  endoffile=true;	
+	}  
+      } while (archive_recovery_message.sent and archive_recovery_start == 0 and !endoffile);   // skip sended messages if requested by RPC
 
-    archive_recovery_state=ARCHIVE_RECOVERY_FILTER;
-    break;
+      if (endoffile){
+	archive_recovery_state=ARCHIVE_RECOVERY_END;
+      }else{	
+	archive_recovery_state=ARCHIVE_RECOVERY_FILTER;
+      }
+    }
     
+    break;
 
   case ARCHIVE_RECOVERY_FILTER:
     
@@ -375,7 +383,6 @@ bool dbThread::archive_recovery(){
       if (jserror) {
 	data->logger->error(F("db failed to deserialize archive payload json %s"),jserror.c_str());
 	data->status->archive=error;
-	archive_recovery_rc=false;
 	archive_recovery_state=ARCHIVE_RECOVERY_END;
 	break;
       }
@@ -383,27 +390,35 @@ bool dbThread::archive_recovery(){
       if (!doc.containsKey("t")){
 	data->logger->error(F("db datetime missed in archive payload"));
 	data->status->archive=error;
-	archive_recovery_rc=false;
 	archive_recovery_state=ARCHIVE_RECOVERY_END;
 	break;
       }
-      
-      if (archive_recovery_message.sent and archive_recovery_start == 0){
-	data->logger->notice(F("db skip message from archive %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);       
-	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
-	break;
-      }
-      
+            
       {
 	struct tm dt = {0};
 	strptime(doc["t"], "%Y-%m-%dT%H:%M:%S", &dt);
 	datetime = mktime(&dt);
       }
-      if (datetime >= archive_recovery_start && datetime <= archive_recovery_stop) {
-	archive_recovery_state=ARCHIVE_RECOVERY_PUBLISH;
+
+      if (datetime > archive_recovery_stop) {
+	archive_recovery_state=ARCHIVE_RECOVERY_END;
 	break;
       }
-      archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+      
+      if (datetime < archive_recovery_start) {
+	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+	break;
+      }
+      
+      if (archive_recovery_message.sent and archive_recovery_start == 0){
+	data->logger->notice(F("db skip message from archive %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);   
+	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
+	break;
+      }
+
+      archive_recovery_state=ARCHIVE_RECOVERY_PUBLISH;
+      break;
+ 
     }
     
     break;
@@ -412,28 +427,29 @@ bool dbThread::archive_recovery(){
 	
     if (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
       data->logger->warning(F("db archive recovery no space in mqtt queue"));   
-      archive_recovery_rc=false;
+      archive_recovery_run=false;
       break;
     }
     
     data->logger->notice(F("db archive recovery queuing message for publish %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);
     if(!data->mqttqueue->Enqueue(&archive_recovery_message,pdMS_TO_TICKS(0))){
       data->logger->warning(F("db archive recovery message for publish not queued"));
-      archive_recovery_rc=false;
+      archive_recovery_run=false;
       break;
     }
 
-    archive_recovery_rc=true;
+    archive_recovery_run=true;
     archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
     break;
     
   case ARCHIVE_RECOVERY_END:
         
+    archive_recovery_run=false;
     archiveRecoveryFile.close();
     archive_recovery_state=ARCHIVE_RECOVERY_NONE;
     break;
   }
-  return archive_recovery_rc;
+  return archive_recovery_run;
 }
 
 // set data in specific datetime range as unsent for recovery

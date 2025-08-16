@@ -11,9 +11,6 @@ void mqttRxCallback(MQTT::MessageData &md);
 int rebootRpc(JsonObject params, JsonObject result);
 int recoveryDataRpc(JsonObject params, JsonObject result);
 int pinOutRpc(JsonObject params, JsonObject result);
-int pinOutRpc(JsonObject params, JsonObject result);
-
-
 
 // thread exchange data struct
 struct publish_data_t {

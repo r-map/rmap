@@ -15,7 +15,9 @@
 #define JRPC_MAXRPCNAMELEN          (15)
 #endif
 
+#ifndef JRPC_DOCUMENT_SIZE
 #define JRPC_DOCUMENT_SIZE          (300)
+#endif
 #define JRPC_DEFAULT_TIMEOUT_MS     (5)
 
 typedef enum {
