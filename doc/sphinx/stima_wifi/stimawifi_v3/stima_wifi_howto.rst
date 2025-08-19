@@ -467,12 +467,12 @@ threadPublish
 Pubblica i dati in MQTT secondo lo standard RMAP.  Se la
 configurazione è per una stazione mobile della struttura con la
 geolocalizzazione viene controllato il timestamp e se ancora attuale
-associate le coordinate ai dati.
-Periodicamente viene pubblicato anche lo stato della diagnostica fatta
-dalla stazione; il server provvederà a visualizzarne lo stato e a inviare
-delle email di segnalazione al proprietario della stazione e a un apposito
-gruppo di utenti di amministrazione.
-
+associate le coordinate ai dati.  Periodicamente viene pubblicato
+anche lo stato della diagnostica fatta dalla stazione; il server
+provvederà a visualizzarne lo stato e a inviare delle email di
+segnalazione al proprietario della stazione e a un apposito gruppo di
+utenti di amministrazione.  Il thread una volta provata la
+pubblicazione dei record sul broker MQTT provvederà se necessario
 
 threadDb
 ^^^^^^^^
@@ -511,6 +511,61 @@ threadGps
 
 Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
 la geolocalizzazione e un timestamp.
+
+
+Remote Procedure Call
+^^^^^^^^^^^^^^^^^^^^^
+
+La stazione funge da Remote Procedure Call (RPC) server: è quindi in
+grado di eseguire operazioni su ordine di un client che in questo caso
+può essere il server RMAP istruito tramite interfaccia WEB o il tool
+rmap-configure installato su proprio PC ad esempio con le opzioni:
+
+* --rpc_mqtt_reboot  execute reboot RPC over MQTT
+* --rpc_mqtt_pinout execute pinout RPC over MQTT
+* --rpc_mqtt_pinout_P1 set status of Pin 1
+* --rpc_mqtt_pinout_P2 set status of Pin 2
+* --rpc_mqtt_recovery execute recovery data RPC over MQTT
+* --datetimestart recovery data starting from this date and time in iso format (2011-11-04T12:05:23)
+* --datetimeend recovery data ending to this date and time in iso format (2011-11-05T18:06:23)
+
+Fare riferimento alla apposita documentazione per le possibili RPC e i
+relativi parametri.
+  
+La stazione si iscrive con connessione persistente (clean session
+false) a un topic MQTT da cui riceve i messaggi del client e pubblica
+il risultato della RPC su un altro specifico topic. Al riavvio della
+stazione gli eventuali messaggi accodati dal server per la stazione
+vengono eliminati in quanto la coda di messaggi potrebbe essere
+obsoleta.  Vengono invece gestiti i messaggi accodati dal server per
+la stazione se questa è rimasta per un periodo disconnessa (ma
+accesa).  I messaggi RPC vengono gestiti dal threadPublish. In alcuni
+casi le operazioni richieste dalla RPC sono eseguibili dallo stesso
+thread ma ad esempio l'RPC "recovery" deve essere eseguite da un
+thread differente (threadDb). In questo ultimo caso le informazioni
+per eseguire l'RPC vengono inviate tramite una apposita coda
+"recoveryqueue"; è una coda binaria, ossia in grado mi gestire un solo
+messaggio che sarà sempre l'ultimo. L'RPC recovery sarà quindi
+eseguita dal threadDb; Il recupero dei dati selezionati per limite di
+data e su richiesta tra quelli non ancora inviati viene gestito in
+modo differente a seconda che risiedano sul DB di lavoro o nel file di
+archivio.  Sul DB di lavoro i dati richiesti vengono reimpostati con
+la flag "sent" a false, mentre dall'archivio vengono semplicemente
+letti e filtrati i record senza poi comunque modificare lo stato della
+flag "sent" presente in archivio.
+Essendo la rilettura dell'archivio una operazione in alcuni casi
+particolarmente lunga e non volendo creare un apposito thread è stata
+creata una piccola macchina a stati finiti che continua ad accodare
+quando possibile i record per la pubblicazione senza bloccare
+l'esecuzione del thread per l'esecuzione delle operazioni ordinarie.
+Il threadPublish analizzerà il messaggio di cui è stato chiesto l'invio:
+
+* se non era già stato pubblicato viene reinviato al threadDb
+* se era già stato pubblicato non viene reinviato al threadDb
+
+I dati per la ritrasmissione (vedi RPC recovery) quindi presenti in
+archivio vengono sempre inviati al thread per la pubblicazione con la
+flag di "inviato" attiva per evitare duplicati in archivio
 
 	   
 Messa in opera della stazione
