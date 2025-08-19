@@ -49,8 +49,8 @@ public:
   bool publish_status_summary();
   void reset_status_summary();
   bool publish_constantdata();
-  void archive();
-  bool doPublish(mqttMessage_t& mqtt_message);
+  void store();
+  bool doPublish();
   publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 > mqttclient;

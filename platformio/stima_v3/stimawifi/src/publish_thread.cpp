@@ -65,9 +65,9 @@ void publishThread::Run() {
   
   for(;;){
     
-    // if there are no enough space left on the mqtt queue send it to the DB archive
+    // if there are no enough space left on the mqtt queue send it to the DB
     while (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
-      archive();
+      store();
     }
 
     // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
@@ -115,7 +115,7 @@ void publishThread::Run() {
       while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
 	mqttclient.yield(0);
 	// publish message
-	if (!doPublish(mqttMessage)) break;
+	if (!doPublish()) break;
       }
     }
     
@@ -519,39 +519,49 @@ bool publishThread::publish_constantdata() {
   return true;
 }
 
-// get one message from publish queue and send it to the queue for SD card archive
-void publishThread::archive() {
+// get one message from publish queue and send it to the queue for DB
+// but if it is a resend message (sent == true) skip it; It's not a good thing but it's the lesser evil
+void publishThread::store() {
+
   mqttMessage_t mqtt_message;
-  if (data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue the message and archive
-    mqtt_message.sent=0;
-    if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      data->logger->notice(F("publish enqueue for db"));
+
+  if (data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue
+    if (mqtt_message.sent){
+      data->logger->error(F("publish skip and do no publish or store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
     }else{
-      data->logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+	data->logger->notice(F("publish skip and enqueue message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
+      }else{
+	data->logger->error(F("publish lost message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
+      }
     }
   }else{
-    data->logger->error(F("publish dequeue mqtt message"));
+    data->logger->error(F("publish getting message from mqtt queue"));
   }
 }
 
 // if required connect to the broker, publish maint message, publish constant data messages
 // try to send message to the broker
-// send the same message to the queue for archive with flag to describe if publish is completed with success
-bool publishThread::doPublish(mqttMessage_t& mqtt_message) {
+// send the same message to the queue for DB with flag to describe if publish is completed with success
+bool publishThread::doPublish() {
 
   bool rc=false;
-  mqtt_message.sent=0;
   
-  mqttMessage_t tmp_mqtt_message;  
-  data->mqttqueue->Dequeue(&tmp_mqtt_message, pdMS_TO_TICKS( 0 ));
+  mqttMessage_t mqtt_message;  
+  data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));
 
+  bool resend = mqtt_message.sent;
+  
   if(mqttPublish(mqtt_message,false)){
-    mqtt_message.sent=1;  // all done: archive
+    mqtt_message.sent=1;  // all done: flag as sent
     rc=true;
   }
 
-  if(!data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-    data->logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+  // if it was already sendend skip it and do do not store
+  if (!resend) {
+    if(!data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
+      data->logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+    }
   }
   
   if ( rc ){
@@ -747,7 +757,6 @@ void mqttRxCallback(MQTT::MessageData &md) {
     publishThread::global_jsonrpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcresponse, MQTT_RPC_RESPONSE_LENGTH );
   }
 
-  publishThread::global_mqttclient->yield(0);
   MQTT::Message tx_message;
   tx_message.qos = MQTT::QOS1;
   tx_message.retained = false;
@@ -769,18 +778,30 @@ void mqttRxCallback(MQTT::MessageData &md) {
   strcat(restopic,publishThread::global_data->station->network);
   strcat(restopic,"/res");
 
-  publishThread::global_data->logger->notice(F("publish Publish: %s ; %s"),  restopic, rpcresponse);
+  // TODO: the publish of response do not SUCCESS when calback is called at connect time with not clean session
+  // no reason found but paho mqtt bug
+  // on the server this ends with a infinite running RPC
+ 
+  uint8_t retry=0;
+  MQTT::returnCode rc=MQTT::FAILURE;
+  
+  do {  
+    publishThread::global_data->logger->notice(F("publish Publish: %s ; %s"),  restopic, rpcresponse);
+    if (retry > 0) publishThread::global_mqttclient->yield(1000);
 
-  MQTT::returnCode rc = (MQTT::returnCode) publishThread::global_mqttclient->publish(restopic, tx_message);
-  switch (rc){
-  case MQTT::BUFFER_OVERFLOW:
-    publishThread::global_data->logger->error(F("publish rpc response BUFFER_OVERFLOW"));
-    break;
-  case MQTT::FAILURE:
-    publishThread::global_data->logger->error(F("publish rpc response FAILURE"));
-    break;
-  case MQTT::SUCCESS:
-    publishThread::global_data->logger->notice(F("publish rpc response SUCCESS"));
-    break;
-  }
+    rc = (MQTT::returnCode) publishThread::global_mqttclient->publish(restopic, tx_message);
+    switch (rc){
+    case MQTT::BUFFER_OVERFLOW:
+      publishThread::global_data->logger->warning(F("publish rpc response BUFFER_OVERFLOW"));
+      break;
+    case MQTT::FAILURE:
+      publishThread::global_data->logger->warning(F("publish rpc response FAILURE"));
+      break;
+    case MQTT::SUCCESS:
+      publishThread::global_data->logger->notice(F("publish rpc response SUCCESS"));
+      break;
+    }    
+  } while (rc != MQTT::SUCCESS and retry++ < 3);
+
+  if (rc != MQTT::SUCCESS) publishThread::global_data->logger->error(F("publish rpc response"));
 }

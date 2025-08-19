@@ -410,11 +410,13 @@ bool dbThread::archive_recovery(){
 	break;
       }
       
+      /*
       if (archive_recovery_message.sent and archive_recovery_start == 0){
 	data->logger->notice(F("db skip message from archive %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);   
 	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
 	break;
       }
+      */
 
       archive_recovery_state=ARCHIVE_RECOVERY_PUBLISH;
       break;
@@ -432,6 +434,7 @@ bool dbThread::archive_recovery(){
     }
     
     data->logger->notice(F("db archive recovery queuing message for publish %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);
+    archive_recovery_message.sent=true;    // prevent publish task requeue for archive
     if(!data->mqttqueue->Enqueue(&archive_recovery_message,pdMS_TO_TICKS(0))){
       data->logger->warning(F("db archive recovery message for publish not queued"));
       archive_recovery_run=false;
