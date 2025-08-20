@@ -28,7 +28,7 @@
   }
   
   function loadData() {
-      $.getJSON('http://{{ object.slug }}/data.json', function(json){
+      $.getJSON('http://{{ object.slug }}.local/data.json', function(json){
           //do nothing here
       })
           .done(function(json){
@@ -78,7 +78,7 @@
       console.log('accuracy: ' + pos.coords.accuracy + ' meters.');
       
       // now we have coordinates, it is time to use them to
-      var request_url = 'http://{{ object.slug }}/geo'
+      var request_url = 'http://{{ object.slug }}.local/geo'
 	  + '?'
 	  + 'lat=' + encodeURIComponent(pos.coords.latitude)
 	  + '&lon=' + encodeURIComponent(pos.coords.longitude);
@@ -194,6 +194,10 @@
     </div>
     
   </div>
+
+  <h3><a href="http://{{ object.slug }}.local/archive.dat">{% trans 'Download archive data file' %}</a></h3>
+  <h3><a href="http://{{ object.slug }}.local/info.dat">{% trans 'Download archive info file' %}</a></h3>
+  
 </section>
 
 {% endblock %}
