@@ -1826,7 +1826,7 @@
   "model": "stations.sensor",
   "fields": {
     "active": true,
-    "name": "Dust",
+    "name": "Particulate",
     "driver": "I2C",
     "type": [
       "SPS"

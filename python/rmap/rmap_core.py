@@ -537,7 +537,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "stima_s"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_m"):
@@ -549,7 +549,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "stima_sm"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
@@ -575,7 +575,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
 
@@ -586,7 +586,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
@@ -598,7 +598,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="SERI",
                   type="HPM",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_thdm"):
@@ -608,7 +608,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="SERI",
                   type="HPM",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
@@ -771,31 +771,31 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "airquality_sds"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="SERI",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "airquality_pms"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="SERI",
                   type="PMS",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "airquality_hpm"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="SERI",
                   type="hpm",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "airquality_sps"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "airquality_sps_sht"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
@@ -803,7 +803,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "airquality_sps_sht_scd"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
@@ -813,7 +813,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "airquality_sps_sht"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="I2C",
                   type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
@@ -993,7 +993,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "stima_indirect_s"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="JRPC",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_indirect_m"):
@@ -1005,7 +1005,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "stima_indirect_sm"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="JRPC",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="JRPC",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
@@ -1059,7 +1059,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="JRPC",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="JRPC",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_indirect_thsm"):
@@ -1069,7 +1069,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="JRPC",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Particulate",driver="JRPC",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="JRPC",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
