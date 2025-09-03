@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2025-08-19T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20250819"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2025-09-03T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20250903"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -110,6 +110,17 @@
 #define SPICLOCK 10000000
 
 // SD card max number of file opened
+
+// permanent opened files:
+// 1 sqlite
+// 1 loggin on sdcard (if defined by macro)
+// 1 RPC recovery (archive) not permanent but for a long time 
+
+// temporary opened files:
+// 1 WEB response archive file
+// 1 WEB response info file
+// 2 SQLITE temporary files (??) https://www.sqlite.org/tempfiles.html
+
 #define SDMAXFILE 6
 
 // SD card file name for archive

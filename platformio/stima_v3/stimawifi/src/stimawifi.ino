@@ -475,7 +475,7 @@ String  get_remote_rmap_config(){
 }
 
 // check and execute firmware update from server
-void firmware_update() {
+void firmwareUpdate() {
 
   DynamicJsonDocument doc(200); 
   doc["ver"] = SOFTWARE_VERSION;
@@ -555,6 +555,13 @@ void firmware_update() {
   pixels.setPixelColor(0, pixels.Color(0, 255, 0));
   pixels.show();
   delay(3000);
+}
+
+// check and execute firmware update from server if not recoverable operations are running
+void protectedFirmwareUpdate() {
+  // skip if archive data recovery RPC is running on finite state machine
+  if (threadDb.getArchiveRecoveryState() != ARCHIVE_RECOVERY_NONE) return;
+  firmwareUpdate();
 }
 
 // read configuration from EEPROM
@@ -935,6 +942,13 @@ void reboot() {
   //reset and try again, or maybe put it to deep sleep
   ESP.restart();
   delay(5000);
+}
+
+// reboot ESP if not recoverable operations are running
+void protectedReboot() {
+  // do not reboot if archive data recovery RPC is running on finite state machine
+  if (threadDb.getArchiveRecoveryState() != ARCHIVE_RECOVERY_NONE) return;
+  reboot();
 }
 
 // prefix for logging system
@@ -1350,7 +1364,7 @@ void setup() {
   }
 
   // check for a firmware update from server
-  firmware_update();
+  firmwareUpdate();
   
   // perform remote configuration
   String remote_config = get_remote_rmap_config();
@@ -1545,11 +1559,11 @@ void setup() {
     reboottime=3600*24*7;                                      // we reset everythings one time a week
   }
   frtosLog.notice(F("reboot every: %l"),reboottime);
-  Alarm.timerRepeat(reboottime,reboot);                        // timer for reboot
+  Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
 
   // update firmware
-  //Alarm.alarmRepeat(4,0,0,firmware_update);                  // 4:00:00 every day  
-  Alarm.timerRepeat(3600*24,firmware_update);                  // check for firmware update every day  
+  //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
+  Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
   
   // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);

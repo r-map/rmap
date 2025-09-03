@@ -303,6 +303,10 @@ void dbThread::setEventArchiveRecovery(){
   if (archive_recovery_state == ARCHIVE_RECOVERY_NONE) archive_recovery_state = ARCHIVE_RECOVERY_INIT;
 }
 
+archive_recovery_state_t dbThread::getArchiveRecoveryState(){
+  return archive_recovery_state;
+}
+
 bool dbThread::archive_recovery(){
 
   time_t datetime;

@@ -37,6 +37,7 @@ class dbThread : public Thread {
   dbThread(db_data_t* db_data);
   ~dbThread();
   virtual void Cleanup();
+  archive_recovery_state_t getArchiveRecoveryState();
   
  protected:
   virtual void Run();
