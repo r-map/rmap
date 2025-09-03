@@ -252,9 +252,11 @@ Questo lo schema elettrico:
 
 .. image:: chematic-Prints.png
 
-Come discusso in questo articolo esiste di fatto un errore che porta
+Come discusso in questi articoli esiste di fatto un errore che porta
 la batteria a scaricarsi in brevissimo tempo
-https://forum.arduino.cc/t/trying-to-understand-a-part-of-a-circuit-for-ds1307-rtc/610934/10
+
+* https://forum.arduino.cc/t/trying-to-understand-a-part-of-a-circuit-for-ds1307-rtc/610934/10
+* https://sharedinventions.com/?p=663
 
 Bisogna quindi rimuovere con il saldatore il diodo e la resistenza R5.
 
@@ -263,6 +265,10 @@ Bisogna quindi rimuovere con il saldatore il diodo e la resistenza R5.
 che sono posizionate qui sul modulo:
 
 .. image:: FPONC2XKMT6CU7Y.webp
+
+Alla fine il modulo dovrà presentarsi così
+
+.. image:: IMG_20180819_110150a.jpg
 	   
 OLED 0.96 Shield
 ^^^^^^^^^^^^^^^^
