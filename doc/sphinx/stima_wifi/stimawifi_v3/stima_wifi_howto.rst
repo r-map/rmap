@@ -11,27 +11,19 @@ che misura in modo continuativo, a intervalli regolari, alcuni
 parametri chimici e fisici che caratterizzano l’inquinamento e le
 proprietà dell’ambiente in cui viviamo.
 
-
 La stazione Stima WiFi è un apparato pensato per il monitoraggio
 ambientale non troppo complicato da assemblare e di costo
 relativamento contenuto.  Il software e, nei limiti del possibile,
 l’hardware utilizzato è stato selezionato per permettere la
 condivisione di schemi di assemblaggio, firmware e software di
-supporto sotto licenze libere.  Anche i dati raccolti vengono sono
+supporto sotto licenze libere.  Anche i dati raccolti sono
 rilasciati con una licenza permissiva CC-BY 4.0
 
-
-
-Non è una stazione di rilevamento meteorologico che segue i rigorosi
-standard dell’organizzazione meteorologica mondiale. I criteri per la
-sua installazione sono diversi e meno stringenti da quelli da seguire
-per la messa in opera e l’uso di queste ultime ma bisogna comunque
-prestare una certa attenzione nel suo assemblaggio. Non si tratta
-solamente di un problema di nomenclatura, perché i parametri
-analizzati, lo scopo ed i criteri di messa in opera sono molto
-differenti.  Il kit di autocostruzione è progettato per poter essere
-assemblato senza richiedere particolari capacità o competenze, giusto
-un po’ di attenzione e manualità.
+La stazione è stata progettata per essere generalmente installata in
+ambiente urbano. I criteri per la sua installazione sono diversi e
+meno stringenti da quelli da seguire per la messa in opera e l’uso di
+stazioni meteorologiche di riferimento a standard dell'Organizzazione
+Mondiale della Meteorologia ma bisogna comunque seguire alcuni criteri
 
 .. image:: stimawifi.png
 
@@ -76,6 +68,25 @@ continua evoluzione e così la stazione di monitoraggio ha vissuto
 diverse incarnazioni, variando la sua conﬁgurazione in base
 all’hardware via via disponibile.
 
+BUS I2C
+-------
+
+Stima WiFi controlla i sensori via bus I2C.
+http://www.i2c-bus.org/
+https://www.nxp.com/docs/en/application-note/AN10216.pdf
+
+* Protocollo seriale (sincrono)
+* due sole linee comunicazione
+  * SCL (Serial CLock) (sincronia)
+  * SDA (Serial DAta)
+* Single Master ~ slave // Multi-master
+* Lento (100/400 kbit/s) 
+* Supporta ﬁno a 127 device
+* Ogni device ha indirizzo univoco (sul bus)
+
+Semplice interazione basata su messaggi (Master invia richiesta ad
+indirizzo device slave, slave device risponde solo se interpellato)
+
 
 Componenti Hardware
 -------------------
@@ -86,18 +97,112 @@ Elenco componenti elettroniche e sensori
 .. image:: stimawifi_bom_mini.jpg
    :width: 50%
 
-:download:`alta risoluzione <stimawifi_bom.jpg>`.	 
-	   
-	   
-Assemblaggio componenti elettroniche e sensori
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:download:`immagine ad alta risoluzione <stimawifi_bom.jpg>`.
 
-.. image:: stimawifi_out_of_box_mini.jpg
-   :width: 50%
+Datalogger
+..........
+	  
+* C3 Mini V2.1.0 - LOLIN WIFI Bluetooth LE BLE Scheda IOT ESP32-C3FH4 ESP32-C3 4MB FLASH
+  https://it.aliexpress.com/item/1005006753245627.html
+  5,49€
+* DC Power Shield V1.1.0 per LOLIN (WEMOS) D1 mini
+  https://it.aliexpress.com/item/32790327733.html
+  2,63€
+* OLED 0.96 Shield V1.0.0 per LOLIN (WEMOS) D1 mini D32 0.96 "pollici 128X64 IIC I2C
+  https://it.aliexpress.com/item/1005001804136025.html
+  3,89€ 
+* Shield connettore TFT I2C V1.1.0 per LOLIN (WEMOS) D1 mini 1x TFT, 2x I2C e 1x connettore IO utente
+  https://it.aliexpress.com/item/32846977179.html
+  1,69€
+* Cavo I2C 100mm 10cm per cavo a doppia testa LOLIN (WEMOS) SH1.0 4P
+  https://it.aliexpress.com/item/32867490848.html
+  1,45€
+* Data Logger Shield DS1307 slot microSD Wemos per estensione D1 Mini
+  https://www.ebay.it/itm/255283310856
+  EUR 5,75
+* SanDisk 128 GB Ultra microSDXC UHS-I scheda, con adattatore SD, fino a 140 MB/s, prestazioni dell'app A1, Classe 10, U1. Twin Pack
+  https://www.amazon.it/dp/B0B7NVV55M
+  16,82€ / unità
+* 7X Duracell 1220 (7 Blister Da 1 Batteria) 7 Pile (CR1220)
+  https://www.amazon.it/dp/B0C86NRTXV
+  2,82€ /unità
+* numero 15 PCB doppia faccia con spedizione e tasse
+  https://jlcpcb.com
+  9,54€
+* Funmo 50 morsetti a vite PCB 2,54 mm 0,1" Pitch PCB Mount Screw Terminal Block, 2 pin/3 pin/4 pin, per cavi da 26-18AWG
+  https://www.amazon.it/dp/B0CQ243JHC
+  12,99€
+* Alimentatore switching 12V / 1,5A – 18W
+  https://futuranet.it/prodotto/alimentatore-switching-12v-15a-18w/
+  8,55€
+* Cavo prolunga DC maschio / DC femmina – 3 metri
+  https://futuranet.it/prodotto/cavo-prolunga-dc-maschio-dc-femmina-3-metri/
+  4,50€
+* Scatola di derivazione Gewiss, Plastica Grigio, 150 x 110 x 70mm
+  https://it.rs-online.com/web/p/scatole-di-derivazione/3038288
+  13,97€
+  
+Sensori e cavi
+..............
 
-:download:`alta risoluzione <stimawifi_out_of_box.jpg>`.
+Particolato
 
+* SENSIRION SPS30
+  https://www.tme.eu/it/details/sps30/sensori-di-gas/sensirion/1-101638-10/
+  48,8€
+* Connettore ZHR-5 from JST Micro JST 5 pin 1,25 mm connettore 28AWG 20 cm
+  https://www.ebay.it/itm/205681297852
+  4,55€
 
+CO2
+
+* Sensirion SCD30
+  https://www.tme.eu/it/details/scd30/sensori-dumidita/sensirion/1-101625-10/
+  55€
+* 10 set SH1.0  connettore femmina + maschio 4P spina con cavo 20 cm
+  https://it.aliexpress.com/item/1005001649158434.html
+  3,41€
+
+Temperatura e Umidità
+
+* Sensirion SHT85
+  https://www.tme.eu/it/details/sht85/sensori-dumidita/sensirion/3-000-074/
+  31€
+* Morsettiera collegabile Harting Femmina a 4 vie, 1 fila, passo 1.27mm, Montaggio su cavo
+  https://it.rs-online.com/web/p/morsettiere-innestabili/8164994
+  4,65 €
+* cavo dati numero di fili 4,  sezione nominale del conduttore 0.14, lunghezza 1m
+  https://www.igus.it/product/CF240?artnr=CF240.01.04
+  https://it.rs-online.com/web/p/cavi-di-comando/2100551
+  2,34-3.0 EUR / m
+
+Schermo radiazioni per temperatura e umidità
+
+* TFA Dostmann Copertura Protettiva Custodia Protettiva, Protegge dalle precipitazioni e dai Raggi solari, buona circolazione, Bianco
+  https://www.amazon.it/dp/B017ILZF6C
+  14,49€
+
+in alternativa la versione delux
+  
+* TFA Dostmann Custodia protettiva per sensore esterno, 98.1111.02,
+  custodia protettiva, copertura del trasmettitore di stazioni
+  meteorologiche/termometro, protegge dalle precipitazioni
+  https://www.amazon.it/dp/B0CK2RJ2BS
+  35,99€
+
+GPS per stazione mobile
+.......................
+
+* Waveshare LC76G Multi-GNSS Module Compatible with Raspberry PI, Supports GPS, BDS, GLONASS, Galileo, QZSS
+  https://www.amazon.it/dp/B0C498QPS3
+  24,99€
+
+oppure:
+  
+* Reland Sun Modulo GPS micro USB NEO-6M NEO-7M NEO-8M (8M-A)
+  https://www.amazon.it/dp/B09YCBYLBR
+  11,63€
+  
 MCU - Espressif ESP32 C3
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -120,17 +225,76 @@ MCU - Espressif ESP32 C3
 
 La scheda di sviluppo, basata su esp32, è stata lanciata da Wemos,
 come alternativa alle schede Arduino. Nella versione mini misura
-(35x26mm).
+35x26mm.
 
 .. image:: c3_mini_v2.webp
+   :width: 50%
 
 Come con arduino, il modulo è espandibile con apposite schede di
 espansione dette shield.
+
+  - Schema elettrico :download:`pdf <sch_c3_mini_v2.1.0.pdf>`
+
+
+RTC and Microsd Data Logger Shield 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Data logger shield per la memorizzazione dei dati tramite scheda
+MicroSD e orologio in tempo reale integrato DS1307 con quarzo e
+batteria in tampone.
+
+.. image:: rtc-sd-shield.png
+   :width: 50%
+
+Devono essere fatte delle modifiche al modulo così come viene fornito
+.....................................................................
+Questo lo schema elettrico:
+
+.. image:: chematic-Prints.png
+
+Come discusso in questo articolo esiste di fatto un errore che porta
+la batteria a scaricarsi in brevissimo tempo
+https://forum.arduino.cc/t/trying-to-understand-a-part-of-a-circuit-for-ds1307-rtc/610934/10
+
+Bisogna quindi rimuovere con il saldatore il diodo e la resistenza R5.
+
+.. image:: Screen-Shot-2018-08-26-at-07.31.03a.png
+
+che sono posizionate qui sul modulo:
+
+.. image:: FPONC2XKMT6CU7Y.webp
+	   
+OLED 0.96 Shield
+^^^^^^^^^^^^^^^^
+
+E' un display oled con risoluzione 128x64 pixels (0.96”).
+
+.. image:: oled_0.96_v1.0.0_1_16x16.jpg
+   :width: 50%
+
+.. image:: oled_0.96_v1.0.0_2_16x16.jpg
+   :width: 50%
+
+- Schema elettrico :download:`pdf <sch_oled_0.96_v1.0.0.pdf>`
+
+TFT I2C Connector Shield	   
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Per collegare il display e eventuali altri dispositivi è risultato
+utile utilizzare questa board di connessione.
+
+.. image:: tft_i2c_con_v1.1.0_1_16x16.jpg
+   :width: 50%
+	   
+.. image:: tft_i2c_con_v1.1.0_2_16x16.jpg
+   :width: 50%
+    
 
 Power Shield
 ^^^^^^^^^^^^
 
 .. image:: power_shield.png
+   :width: 50%
 
 La scheda D1 mini può essere alimentata tramite connessione
 usb (micro).
@@ -139,8 +303,38 @@ utilizzare uno shield di alimentazione
 Alla scheda di espansione possibile connettere un
 alimentatore esterno ( da 7 a 24 V ).
 
+  - Schema elettrico :download:`pdf <sch_dc_v1.1.0.pdf>`
+
+Base Board
+^^^^^^^^^^
+
+Esporta le connessioni al bus I2C.
+
+Può essere popolata con diversi tipi di connettori (passo 2.54mm)
+
+.. image:: base1.jpg
+   :width: 50%
+
+Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
+gli altri componenti a 3.3v.
+
+La base board permette di selezionare il voltaggio adatto al sensore
+tramite un cavallotto.  Se il selettore non è popolato, la periferica
+collegata, non riceve alimentazione.
+
+.. image:: base2.jpg
+   :width: 50%
+
+
+Hardware alternativo compatibile (sconsigliato o obsoleto)
+----------------------------------------------------------
+
 Oled Shield
 ^^^^^^^^^^^
+
+Questo è un display con un numero di pixel inferiore a queello
+standard non più in commercio.  E' supportato per compatibilità con
+vecchi hardware.
 
 .. image:: oled_v2.1.0_1_16x16.jpg
    :width: 50%
@@ -155,57 +349,26 @@ collegato alla base di espansione (in entrambi i casi via I2C bus)
 Micro SD Card Shield
 ^^^^^^^^^^^^^^^^^^^^
 
+Questo modulo può sostituire RTC and Microsd Data Logger Shield ma non
+fornisce le funzionalità relative all'RTC in quanto non è presente.
+Necessita anche di uno specifico firmware in quanto richiede una
+specifica configurazione tempo di compilazione.
+
 .. image:: sd_v1.2.0_1_16x16.jpg
    :width: 50%
 
 Micro SD(TF) card per D1 mini
 
 
-RTC and Microsd Data Logger Shield 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Assemblaggio componenti elettroniche e sensori
+----------------------------------------------
 
-.. image:: rtc-sd-shield.png
+.. image:: stimawifi_out_of_box_mini.jpg
+   :width: 50%
 
-Data logger shield per la memorizzazione dei dati tramite scheda
-MicroSD e orologio in tempo reale integrato DS1307 con quarzo
-
-Base Board
-^^^^^^^^^^
-
-Esporta le connessioni al bus I2C.
-
-Può essere popolata con diversi tipi di connettori (passo 2.54mm)
-
-.. image:: base1.jpg
-
-Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
-gli altri componenti a 3.3v.
-
-La base board permette di selezionare il voltaggio adatto al sensore
-tramite un cavallotto.  Se il selettore non è popolato, la periferica
-collegata, non riceve alimentazione.
-
-.. image:: base2.jpg
+:download:`immagine ad alta risoluzione <stimawifi_out_of_box.jpg>`.
 
 
-BUS I2C
--------
-
-Stima WiFi controlla i sensori via bus I2C.
-http://www.i2c-bus.org/
-https://www.nxp.com/docs/en/application-note/AN10216.pdf
-
-* Protocollo seriale (sincrono)
-* due sole linee comunicazione
-  * SCL (Serial CLock) (sincronia)
-  * SDA (Serial DAta)
-* Single Master ~ slave // Multi-master
-* Lento (100/400 kbit/s) 
-* Supporta ﬁno a 127 device
-* Ogni device ha indirizzo univoco (sul bus)
-
-Semplice interazione basata su messaggi (Master invia richiesta ad
-indirizzo device slave, slave device risponde solo se interpellato)
 
 Scatola
 -------
@@ -671,13 +834,13 @@ procedere.
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* cavo micro usb
+* cavo usb C
 * computer
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-* Ambiente di sviluppo Python
+* Ambiente di sviluppo Python versione >= 3.11
 * Platformio (Piattaforma per lo sviluppo embedded)
 
 
