@@ -54,7 +54,9 @@ public:
   publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 > mqttclient;
-  uint8_t errorcount;
+  uint8_t connect_errorcount;
+  bool status_published;
+  bool status_connected;
   time_t last_status_sended;
   WiFiClient networkClient;
   bool bootConnect;

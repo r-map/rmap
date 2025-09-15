@@ -21,7 +21,9 @@ publishThread::publishThread(publish_data_t* publish_data)
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->publish.connect=unknown;
   data->status->publish.publish=unknown;
-  errorcount=0;
+  connect_errorcount=0;
+  status_published=false;
+  status_connected=false;
 
   global_data=data;
   global_mqttclient=&mqttclient;
@@ -48,6 +50,8 @@ void publishThread::Cleanup()
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->publish.connect=unknown;
   data->status->publish.publish=unknown;
+  status_connected=false;
+  status_published=false;
   delete this;
 }
   
@@ -68,6 +72,7 @@ void publishThread::Run() {
     // if there are no enough space left on the mqtt queue send it to the DB
     while (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
       store();
+      data->status->publish.publish=error;
     }
 
     // https://github.com/eclipse/paho.mqtt.embedded-c/issues/110
@@ -79,21 +84,22 @@ void publishThread::Run() {
 
     mqttclient.yield(0);
     
-    if (data->status->publish.publish != ok){
+    if ( !status_published ){
       mqttDisconnect();
       if (mqttConnect(false)) {   // manage mqtt reconnect as RMAP standard
 	data->logger->notice(F("publish MQTT connected"));
-	errorcount = 0;
+	connect_errorcount = 0;
 	data->status->publish.connect=ok;
+	status_connected=true;
       } else {
-	data->status->publish.connect=error;
 	data->logger->error(F("publish MQTT connect failed"));
-	data->status->publish.publish=error;
-	errorcount++;
-	if (errorcount > 15) {
+	status_connected=false;
+	connect_errorcount++;
+	if (connect_errorcount > 15) {
 	  data->logger->error(F("publish too much error: drop WiFi"));
+	  data->status->publish.connect=error;
 	  WiFi.disconnect();
-	  errorcount = 0;
+	  connect_errorcount = 0;
 	}
 	delay(3000);
       }
@@ -109,7 +115,7 @@ void publishThread::Run() {
       }
     }
 
-    if (data->status->publish.connect==ok){
+    if (status_connected){
       mqttMessage_t mqttMessage;
       // wait for message and peek it from the queue
       while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
@@ -323,17 +329,19 @@ bool publishThread::mqttConnect(const bool cleanSession) {
     if (publish_maint()) {
       data->logger->notice(F("publish Published maint"));
       data->status->publish.publish=ok;      
+      status_published=true;
     }else{
       data->logger->error(F("publish Error in publish maint"));
-      data->status->publish.publish=error;
+      status_published=false;
       return false;
     }
     if (publish_constantdata()) {
       data->logger->notice(F("publish Published constant data"));
       data->status->publish.publish=ok;
+      status_published=true;
     }else{
       data->logger->error(F("publish Error in publish constant data"));
-      data->status->publish.publish=error;
+      status_published=false;
       return false;
     }
   }
@@ -341,9 +349,10 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   if (mqttSubscribeRpc()) {
     data->logger->notice(F("publish Subscribed to rpc path"));
     data->status->publish.publish=ok;
+    status_published=true;
   }else{
     data->logger->error(F("publish Subscribe to rpc path"));
-    data->status->publish.publish=error;
+    status_published=false;
     return false;
   }
 
@@ -566,8 +575,10 @@ bool publishThread::doPublish() {
   
   if ( rc ){
     data->status->publish.publish=ok;
+    status_published=true;
   } else {
     data->status->publish.publish=error;
+    status_published=false;
   }
   
   return rc;
