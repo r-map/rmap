@@ -29,6 +29,55 @@ https://doc.rmap.cc/stima_wifi/stimawifi_v3/stima_wifi_howto.html#software
 
 #include "stimawifi.h"
 
+
+void print_reset_reason() {
+
+  esp_reset_reason_t reason=esp_reset_reason();
+  switch ( reason)
+    {
+
+    case ESP_RST_UNKNOWN: Serial.println(F("Reset reason can not be determined.")); break;
+    case ESP_RST_POWERON: Serial.println(F("Reset due to power-on event.")); break;
+    case ESP_RST_EXT: Serial.println(F("Reset by external pin (not applicable for ESP32)")); break;
+    case ESP_RST_SW: Serial.println(F("Software reset via esp_restart.")); break;
+    case ESP_RST_PANIC: Serial.println(F("Software reset due to exception/panic.")); break;
+    case ESP_RST_INT_WDT: Serial.println(F("Reset (software or hardware) due to interrupt watchdog.")); break;
+    case ESP_RST_TASK_WDT: Serial.println(F("Reset due to task watchdog.")); break;
+    case ESP_RST_WDT: Serial.println(F("Reset due to other watchdogs.")); break;
+    case ESP_RST_DEEPSLEEP: Serial.println(F("Reset after exiting deep sleep mode.")); break;
+    case ESP_RST_BROWNOUT: Serial.println(F("Brownout reset (software or hardware)")); break;
+    case ESP_RST_SDIO: Serial.println(F("Reset over SDIO.")); break;
+    case ESP_RST_USB: Serial.println(F("Reset by USB peripheral.")); break;
+    case ESP_RST_JTAG: Serial.println(F("Reset by JTAG.")); break;
+    case ESP_RST_EFUSE: Serial.println(F("Reset due to efuse error.")); break;
+    case ESP_RST_PWR_GLITCH: Serial.println(F("Reset due to power glitch detected.")); break;
+    case ESP_RST_CPU_LOCKUP: Serial.println(F("Reset due to CPU lock up (double exception)")); break;
+
+    default : Serial.println(F("NO_MEAN"));
+    }
+}
+
+void set_status_summary(void) {
+
+  stimawifiStatus.summary.err_power_on=false;
+  stimawifiStatus.summary.err_reboot=false;
+  stimawifiStatus.summary.err_georef=false;
+  stimawifiStatus.summary.err_db=false;
+  stimawifiStatus.summary.err_mqtt_publish=false;
+  stimawifiStatus.summary.err_mqtt_connect=false;
+  stimawifiStatus.summary.err_geodef=false;
+  stimawifiStatus.summary.err_sensor=false;
+  stimawifiStatus.summary.err_novalue=false;
+
+  esp_reset_reason_t reason=esp_reset_reason();  
+  switch (reason) {
+    case ESP_RST_POWERON:  stimawifiStatus.summary.err_power_on=true; break;
+    case ESP_RST_SW:  break;       // skip software restart due to this firmware 
+    default: stimawifiStatus.summary.err_reboot=true;
+  }
+}
+
+
 /*
 *  Print last reset reason of ESP32
 *  =================================
@@ -42,46 +91,60 @@ https://doc.rmap.cc/stima_wifi/stimawifi_v3/stima_wifi_howto.html#software
 *  Author:
 *  Evandro Luis Copercini - 2017
 */
-
+/*
 void print_reset_reason(int reason) {
   switch (reason) {
-    case 1:  Serial.println("POWERON_RESET"); break;          /**<1,  Vbat power on reset*/
-    case 3:  Serial.println("SW_RESET"); break;               /**<3,  Software reset digital core*/
-    case 4:  Serial.println("OWDT_RESET"); break;             /**<4,  Legacy watch dog reset digital core*/
-    case 5:  Serial.println("DEEPSLEEP_RESET"); break;        /**<5,  Deep Sleep reset digital core*/
-    case 6:  Serial.println("SDIO_RESET"); break;             /**<6,  Reset by SLC module, reset digital core*/
-    case 7:  Serial.println("TG0WDT_SYS_RESET"); break;       /**<7,  Timer Group0 Watch dog reset digital core*/
-    case 8:  Serial.println("TG1WDT_SYS_RESET"); break;       /**<8,  Timer Group1 Watch dog reset digital core*/
-    case 9:  Serial.println("RTCWDT_SYS_RESET"); break;       /**<9,  RTC Watch dog Reset digital core*/
-    case 10: Serial.println("INTRUSION_RESET"); break;        /**<10, Instrusion tested to reset CPU*/
-    case 11: Serial.println("TGWDT_CPU_RESET"); break;        /**<11, Time Group reset CPU*/
-    case 12: Serial.println("SW_CPU_RESET"); break;           /**<12, Software reset CPU*/
-    case 13: Serial.println("RTCWDT_CPU_RESET"); break;       /**<13, RTC Watch dog Reset CPU*/
-    case 14: Serial.println("EXT_CPU_RESET"); break;          /**<14, for APP CPU, reset by PRO CPU*/
-    case 15: Serial.println("RTCWDT_BROWN_OUT_RESET"); break; /**<15, Reset when the vdd voltage is not stable*/
-    case 16: Serial.println("RTCWDT_RTC_RESET"); break;       /**<16, RTC Watch dog reset digital core and rtc module*/
-    default: Serial.println("NO_MEAN");
+  case 1:  Serial.println(F("POWERON_RESET")); break;          //<1,  Vbat power on reset
+  case 3:  Serial.println(F("SW_RESET")); break;               //<3,  Software reset digital core
+  case 4:  Serial.println(F("OWDT_RESET")); break;             //<4,  Legacy watch dog reset digital core
+  case 5:  Serial.println(F("DEEPSLEEP_RESET")); break;        //<5,  Deep Sleep reset digital core
+  case 6:  Serial.println(F("SDIO_RESET")); break;             //<6,  Reset by SLC module, reset digital core
+  case 7:  Serial.println(F("TG0WDT_SYS_RESET")); break;       //<7,  Timer Group0 Watch dog reset digital core
+  case 8:  Serial.println(F("TG1WDT_SYS_RESET")); break;       //<8,  Timer Group1 Watch dog reset digital core
+  case 9:  Serial.println(F("RTCWDT_SYS_RESET")); break;       //<9,  RTC Watch dog Reset digital core
+  case 10: Serial.println(F("INTRUSION_RESET")); break;        //<10, Instrusion tested to reset CPU
+  case 11: Serial.println(F("TGWDT_CPU_RESET")); break;        //<11, Time Group reset CPU
+  case 12: Serial.println(F("SW_CPU_RESET")); break;           //<12, Software reset CPU
+  case 13: Serial.println(F("RTCWDT_CPU_RESET")); break;       //<13, RTC Watch dog Reset CPU
+  case 14: Serial.println(F("EXT_CPU_RESET")); break;          //<14, for APP CPU, reset by PRO CPU
+  case 15: Serial.println(F("RTCWDT_BROWN_OUT_RESET")); break; //<15, Reset when the vdd voltage is not stable
+  case 16: Serial.println(F("RTCWDT_RTC_RESET")); break;       //<16, RTC Watch dog reset digital core and rtc module
+  case 17: Serial.println(F("TG1WDT_CPU_RESET")); break;       //<17, Time Group1 reset CPU
+  case 18: Serial.println(F("SUPER_WDT_RESET")); break;        //<18, super watchdog reset digital core and rtc module
+  case 19: Serial.println(F("GLITCH_RTC_RESET")); break;       //<19, glitch reset digital core and rtc module
+  case 20: Serial.println(F("EFUSE_RESET")); break;            //<20, efuse reset digital core
+  case 21: Serial.println(F("USB_UART_CHIP_RESET")); break;    //<21, usb uart reset digital core
+  case 22: Serial.println(F("USB_JTAG_CHIP_RESET")); break;    //<22, usb jtag reset digital core
+  case 23: Serial.println(F("POWER_GLITCH_RESET")); break;     //<23, power glitch reset digital core and rtc module
+  default: Serial.println("NO_MEAN");
   }
 }
 
 void   verbose_print_reset_reason(int reason) {
   switch (reason) {
-    case 1:  Serial.println("Vbat power on reset"); break;
-    case 3:  Serial.println("Software reset digital core"); break;
-    case 4:  Serial.println("Legacy watch dog reset digital core"); break;
-    case 5:  Serial.println("Deep Sleep reset digital core"); break;
-    case 6:  Serial.println("Reset by SLC module, reset digital core"); break;
-    case 7:  Serial.println("Timer Group0 Watch dog reset digital core"); break;
-    case 8:  Serial.println("Timer Group1 Watch dog reset digital core"); break;
-    case 9:  Serial.println("RTC Watch dog Reset digital core"); break;
-    case 10: Serial.println("Instrusion tested to reset CPU"); break;
-    case 11: Serial.println("Time Group reset CPU"); break;
-    case 12: Serial.println("Software reset CPU"); break;
-    case 13: Serial.println("RTC Watch dog Reset CPU"); break;
-    case 14: Serial.println("for APP CPU, reset by PRO CPU"); break;
-    case 15: Serial.println("Reset when the vdd voltage is not stable"); break;
-    case 16: Serial.println("RTC Watch dog reset digital core and rtc module"); break;
-    default: Serial.println("NO_MEAN");
+  case 1:  Serial.println("Vbat power on reset"); break;
+  case 3:  Serial.println("Software reset digital core"); break;
+  case 4:  Serial.println("Legacy watch dog reset digital core"); break;
+  case 5:  Serial.println("Deep Sleep reset digital core"); break;
+  case 6:  Serial.println("Reset by SLC module, reset digital core"); break;
+  case 7:  Serial.println("Timer Group0 Watch dog reset digital core"); break;
+  case 8:  Serial.println("Timer Group1 Watch dog reset digital core"); break;
+  case 9:  Serial.println("RTC Watch dog Reset digital core"); break;
+  case 10: Serial.println("Instrusion tested to reset CPU"); break;
+  case 11: Serial.println("Time Group reset CPU"); break;
+  case 12: Serial.println("Software reset CPU"); break;
+  case 13: Serial.println("RTC Watch dog Reset CPU"); break;
+  case 14: Serial.println("for APP CPU, reset by PRO CPU"); break;
+  case 15: Serial.println("Reset when the vdd voltage is not stable"); break;
+  case 16: Serial.println("RTC Watch dog reset digital core and rtc module"); break;
+  case 17: Serial.println(F("Time Group1 reset CPU")); break;
+  case 18: Serial.println(F("super watchdog reset digital core and rtc module")); break;
+  case 19: Serial.println(F("glitch reset digital core and rtc module")); break;
+  case 20: Serial.println(F("efuse reset digital core")); break;
+  case 21: Serial.println(F("usb uart reset digital core")); break;
+  case 22: Serial.println(F("usb jtag reset digital core")); break;
+  case 23: Serial.println(F("power glitch reset digital core and rtc module")); break;
+  default: Serial.println("NO_MEAN");
   }  
 }
 
@@ -98,10 +161,12 @@ void set_status_summary(int reason) {
   stimawifiStatus.summary.err_novalue=false;
 
   switch (reason) {
-    case 1:  stimawifiStatus.summary.err_power_on=true; break;
+    case  1:  stimawifiStatus.summary.err_power_on=true; break;
+    case 12:  break;       // skip software reset due to this firmware 
     default: stimawifiStatus.summary.err_reboot=true;
   }
 }
+*/
 
 // show some measure (fixed selection) on display in a fixed position
 // display a sintetic status too
@@ -503,7 +568,7 @@ void firmwareUpdate() {
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
-      frtosLog.error(F("[update] Update failed with message:"));
+      frtosLog.error(F("Update failed with message:"));
       frtosLog.error(F("%s"),httpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
 	LockGuard guard(i2cmutex);
@@ -981,7 +1046,7 @@ void setup() {
   
   pixels.begin();            //INITIALIZE NeoPixel strip object (REQUIRED)
   pixels.clear();            // Turn OFF all pixels ASAP
-  pixels.setBrightness(125); // Set BRIGHTNESS (max = 255)
+  pixels.setBrightness(25);  // Set BRIGHTNESS (max = 255)
   
   /*
   pinMode(PMS_RESET, OUTPUT);
@@ -997,18 +1062,24 @@ void setup() {
   //Serial.setDebugOutput(true);
 
   // set summary status from one CPU only
-  set_status_summary(rtc_get_reset_reason(0));
-    
+  //set_status_summary(rtc_get_reset_reason(0));
+  set_status_summary();
+
+  // print esp reset reason
+  print_reset_reason();
+
+  /*
   Serial.println("CPU0 reset reason:");
   print_reset_reason(rtc_get_reset_reason(0));
   verbose_print_reset_reason(rtc_get_reset_reason(0));
 
-#if defined(ARDUINO_LOLIN_S3_MINI)
+  #if defined(ARDUINO_LOLIN_S3_MINI)
   Serial.println("CPU1 reset reason:");
   print_reset_reason(rtc_get_reset_reason(1));
   verbose_print_reset_reason(rtc_get_reset_reason(1));
-#endif
-  
+  #endif
+  */
+
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   bool reset=digitalRead(RESET_PIN) == LOW;
   if (button.get() == 0)
@@ -1232,6 +1303,8 @@ void setup() {
 
   String local_config  = read_local_rmap_config();
 
+  frtosLog.notice("stack setup1: %d",uxTaskGetStackHighWaterMark(NULL));
+  
   if (local_config == String()) {
     frtosLog.notice(F("station configuration not found!"));
     frtosLog.notice(F("no station conf; Reset wifi configuration"));
@@ -1343,6 +1416,8 @@ void setup() {
       u8g2->sendBuffer();
     }    
   }
+
+  frtosLog.notice("stack setup2: %d",uxTaskGetStackHighWaterMark(NULL));
   
   if (shouldSaveConfig){
     //read updated parameters
@@ -1365,6 +1440,8 @@ void setup() {
 
   // check for a firmware update from server
   firmwareUpdate();
+
+  frtosLog.notice("stack setup3: %d",uxTaskGetStackHighWaterMark(NULL));
   
   // perform remote configuration
   String remote_config = get_remote_rmap_config();
@@ -1388,6 +1465,9 @@ void setup() {
 	  u8g2->print(F("RESTART"));
 	  u8g2->sendBuffer();
 	}
+
+	frtosLog.notice("stack setup4: %d",uxTaskGetStackHighWaterMark(NULL));
+	
 	frtosLog.error(F("writing rmap configuration"));
 	frtosLog.error(F("reboot!"));
 	delay(5000);

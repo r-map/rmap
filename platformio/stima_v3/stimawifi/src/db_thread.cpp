@@ -976,7 +976,7 @@ void dbThread::Run() {
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
-      if (!sqlite_status) ESP.restart();                          // SD do not restart; REBOOT
+      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT");
     }
 
     
@@ -993,7 +993,7 @@ void dbThread::Run() {
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
-      if (!sqlite_status) ESP.restart();                          // SD do not restart; REBOOT
+      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT");
     }
 
     // check semaphore for data recovey

@@ -3414,7 +3414,7 @@ void WiFiManager::debugSoftAPConfig(){
     #endif
     #if !defined(WM_NOCOUNTRY) 
     #ifdef WM_DEBUG_LEVEL
-      DEBUG_WM(F("country:         "),(String)country.cc);
+      DEBUG_WM(F("country:         "),String(country.cc[0])+String(country.cc[1])+String(country.cc[2]));
       #endif
     DEBUG_WM(F("beacon_interval: "),(String)config.beacon_interval + "(ms)");
     DEBUG_WM(FPSTR(D_HR));
