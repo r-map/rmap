@@ -165,8 +165,8 @@ struct measureStatus_t
 */
 struct publishStatus_t
 {
-  status_e connect;    //!< stato della connessione MQTT
-  status_e publish;    //!< stato della pubblicazione dati MQTT
+  status_e connect;    //!< stato della connessione MQTT (errore dopo ripetuti tentativi)
+  status_e publish;    //!< stato della pubblicazione dati MQTT (errore con la coda di oubblicazione piena)
   status_e memory_collision;     //!< check collisione stack e heap
   status_e no_heap_memory;       //!< no memory for allocation in heap
 };
@@ -212,19 +212,19 @@ struct dbStatus_t
 */
 struct summaryStatus_t
 {
-  bool err_reboot;
-  bool err_power_on;
-  bool err_georef;
-  bool err_sdcard;
-  bool err_db;
-  bool err_archive;
-  bool err_mqtt_publish;
-  bool err_mqtt_connect;
-  bool err_geodef;
-  bool err_sensor;
-  bool err_novalue;
-  bool err_rtc;
-  bool err_memory;
+  bool err_reboot;        //!< si è verificato un reboot non programmato (non dovuto a RPC, riavvio periodico, aggiornamento firmware)
+  bool err_power_on;      //!< alla stazione è stata tolta l'alimentazione e poi rialimentata
+  bool err_georef;        //!< se la stazione è mobile errore dal GPS o nella comunicazione UDP
+  bool err_sdcard;        //!< errore sulla SDcard
+  bool err_db;            //!< errore del DB sqlite (dati recenti)
+  bool err_archive;       //!< errore sull'archivio (dati storici)
+  bool err_mqtt_publish;  //!< la coda di pubblicazione dei dati MQTT si è riempita e i dati inviati direttamente al DB
+  bool err_mqtt_connect;  //!< dopo numerosi tentativi non si è riusciti a connettersi al broker MQTT
+  bool err_geodef;        //!< se la stazione è mobile non è stato possibile georeferenziare i dati
+  bool err_sensor;        //!< errore lettura dati dai sensori
+  bool err_novalue;       //!< errore almeno un sensore ha riportato almeno un dato mancante
+  bool err_rtc;           //!< errore nell'ottenere data e ora dall'RTC
+  bool err_memory;        //!< errore nella gestione della memoria
 };
 
 /*!

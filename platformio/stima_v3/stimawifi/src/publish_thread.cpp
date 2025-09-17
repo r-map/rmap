@@ -577,7 +577,6 @@ bool publishThread::doPublish() {
     data->status->publish.publish=ok;
     status_published=true;
   } else {
-    data->status->publish.publish=error;
     status_published=false;
   }
   
