@@ -1004,6 +1004,7 @@ void measureAndPublish() {
 
 // reboot ESP
 void reboot() {
+  //threadPublish.mqttDisconnect();
   //reset and try again, or maybe put it to deep sleep
   ESP.restart();
   delay(5000);

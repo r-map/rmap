@@ -144,8 +144,37 @@ void publishThread::Run() {
 // disconnect from MQTT broker
 bool publishThread::mqttDisconnect() {
 
-  mqttclient.disconnect();
+  /*
+    we do not manage disconnect admin message
+    disconnect in whole station is used for reconnect or for reboot
+    so no long time is required for reconnect if all go right
+    if not, no alert will be sent by alert system on server
+    so I think is better do not disconnect with admin message
+    
+  mqttMessage_t mqtt_message;
+  strcpy(mqtt_message.topic,"1/");
+  strcat(mqtt_message.topic,data->station->mqttmaintpath);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->user);
+  strcat(mqtt_message.topic,"//");
+  strcat(mqtt_message.topic,data->station->longitude);
+  strcat(mqtt_message.topic,",");
+  strcat(mqtt_message.topic,data->station->latitude);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->network);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"254,0,0");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"265,0,-,-");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"B01213");
+  
+  strcpy(mqtt_message.payload,"{\"v\":\"disconn\"}");
+  return mqttPublish(mqtt_message, false); 
+  */
 
+  mqttclient.disconnect();
+  
   char comtopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
 
   strcpy(comtopic,"1/");
@@ -161,7 +190,7 @@ bool publishThread::mqttDisconnect() {
   strcat(comtopic,"/com");
 
   mqttclient.setMessageHandler(comtopic, NULL); // remove handler setted
-
+  
   ipstack.disconnect();
   data->logger->notice(F("publish MQTT Disconnectted"));
   return true;
@@ -635,6 +664,7 @@ esempio:
 int rebootRpc(JsonObject params, JsonObject result) {
   // reboot ESP
   publishThread::global_data->logger->notice(F("publish reboot rpc"));
+  //publishThread::mqttDisconnect(); // cannot be called here
   delay(5000);
   ESP.restart();
   delay(5000);

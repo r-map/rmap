@@ -31,7 +31,7 @@ public:
   publishThread(publish_data_t* publish_data);
   ~publishThread();
   virtual void Cleanup();
-
+  
   static JsonRPC global_jsonrpc;
   static publish_data_t* global_data;
   static MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 >* global_mqttclient;
