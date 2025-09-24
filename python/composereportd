@@ -25,6 +25,7 @@ django.setup()
 from rmap import daemon
 import pika
 import rmap.settings
+from rmap import schedule
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
@@ -44,47 +45,25 @@ composereportd = daemon.Daemon(
         group=rmap.settings.groupcomposereportd
 )
 
-def main(self):
+def job(period):
+    now=datetime.datetime.now()
+    print(f"I am {period} at {now}")
+    now=datetime.datetime.now(datetime.UTC)
+    newminute = now.minute - (now.minute % (period//60))
+    endtime=(now.replace(minute=newminute,second=0,microsecond=0))
 
-    import subprocess,os,time
-    import tempfile,datetime
-    import logging,logging.handlers
+    if (period >= 60*60):
+        newhour = now.hour - (now.hour % (period//(60*60)))
+        endtime=(endtime.replace(hour=newhour,minute=0,second=0,microsecond=0))
 
+    starttime=endtime-datetime.timedelta(seconds=period)
+    print(f"start time {starttime}; end time {endtime}")
+    #time.sleep(900)
+    print(f"I am {period} at {now} terminated")
 
-    # configure the logger
-    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
-    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
-    handler.setFormatter(formatter)
-    
-    # Add the log message handler to the root logger
-    logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+def compute(starttime,endtime):
 
-    logging.info('Starting up composereportdd')
-    
-    #    my_env = os.environ
-    #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
-
-    now=datetime.datetime.utcnow()
-    newminute = now.minute - (now.minute % (tloop//60))
-    newsecond=0
-    nexttime=(now.replace(minute=newminute,second=newsecond,microsecond=0))
-
-    runtime=nexttime+ datetime.timedelta(seconds=tloop//3)
-
-    if runtime > now:
-        waitsec= (runtime - now).seconds
-        logging.info( "startup wait for: %s" % waitsec)
-        time.sleep(waitsec)
-    else:
-        logging.info( "startup without waiting")
-
-    
-    while True:
-
-        starttime=nexttime - datetime.timedelta(seconds=tloop*3)
-        logging.info("start/end time: %s %s" % (starttime.isoformat(' '),nexttime.isoformat(' ')))
-
+        logging.info("start/end time: %s %s" % (starttime.isoformat(' '),endtime.isoformat(' ')))
 
         for mymeta in rmap.settings.sample_measurements:
             
@@ -105,7 +84,7 @@ def main(self):
                 #print "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
                 #    " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
                 #    " --start-date"+" '"+starttime.isoformat(' ')+"'" +\
-                #    " --end-date"+" '"+nexttime.isoformat(' ')+"'"+\
+                #    " --end-date"+" '"+endtime.isoformat(' ')+"'"+\
                 #    " --comp-start"+" '"+starttime.isoformat(' ')+"'" +\
                 #    " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
                 #    " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
@@ -114,7 +93,7 @@ def main(self):
                 #logging.info( "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
                 #              " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
                 #              " --start-date"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
-                #              " --end-date"+" '"+nexttime.replace(microsecond=0).isoformat(' ')+"'"+\
+                #              " --end-date"+" '"+endtime.replace(microsecond=0).isoformat(' ')+"'"+\
                 #              " --comp-start"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
                 #              " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
                 #              " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
@@ -124,7 +103,7 @@ def main(self):
                 #self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
                 #                              "--variable-list",variable_list,"--level",level,"--timerange",timerange,
                 #                              "--start-date",starttime.isoformat(' ') ,
-                #                              "--end-date",nexttime.isoformat(' '),
+                #                              "--end-date",endtime.isoformat(' '),
                 #                              "--comp-start",starttime.isoformat(' ') ,
                 #                              "--comp-step","0000000000 00:15:00.000","--comp-frac-valid",".002",
                 #                              "--comp-stat-proc","254:0",
@@ -152,7 +131,7 @@ def main(self):
                     command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'1,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
-                                              "--end-date",nexttime.isoformat(' '),
+                                              "--end-date",endtime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '1.', "--comp-stat-proc", '1:1',
                                               rmap.settings.dsnsample_fixed,
@@ -179,7 +158,7 @@ def main(self):
                 command=["v7d_transform","--input-format","dba","--output-format","dba",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'254,0,0',
                                               "--start-date",starttime.isoformat(' ') ,
-                                              "--end-date",nexttime.isoformat(' '),
+                                              "--end-date",endtime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.0002', "--comp-stat-proc", '254:0',
                                               rmap.settings.dsnsample_fixed,
@@ -199,7 +178,7 @@ def main(self):
                 command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
-                                              "--end-date",nexttime.isoformat(' '),
+                                              "--end-date",endtime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:0',
                                               rmap.settings.dsnsample_fixed,
@@ -222,7 +201,7 @@ def main(self):
                 command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
-                                              "--end-date",nexttime.isoformat(' '),
+                                              "--end-date",endtime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:2',
                                               rmap.settings.dsnsample_fixed,
@@ -244,7 +223,7 @@ def main(self):
                 command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
-                                              "--end-date",nexttime.isoformat(' '),
+                                              "--end-date",endtime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:3',
                                               rmap.settings.dsnsample_fixed,
@@ -268,7 +247,7 @@ def main(self):
                 command1=["v7d_transform","--input-format","dba","--output-format","BUFR",
                           "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                           "--start-date",starttime.isoformat(' ') ,
-                          "--end-date",nexttime.isoformat(' '),
+                          "--end-date",endtime.isoformat(' '),
                           "--comp-start",starttime.isoformat(' ') ,
                           "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:254',
                           rmap.settings.dsnsample_fixed,
@@ -305,7 +284,7 @@ def main(self):
 
                 command1=["dbadb","export","--dsn",rmap.settings.dsnsample_mobile,"varlist",variable_list,
                           "yearmin",str(starttime.year),"monthmin",str(starttime.month),"daymin",str(starttime.day),"hourmin",str(starttime.hour),"minumin",str(starttime.minute),"secmin",str(starttime.second),
-                          "yearmax",str(nexttime.year),"monthmax",str(nexttime.month),"daymax",str(nexttime.day),"hourmax",str(nexttime.hour),"minumax",str(nexttime.minute),"secmax",str(nexttime.second)]
+                          "yearmax",str(endtime.year),"monthmax",str(endtime.month),"daymax",str(endtime.day),"hourmax",str(endtime.hour),"minumax",str(endtime.minute),"secmax",str(endtime.second)]
                 command2=["dbadb","import","--dsn",rmap.settings.dsnreport_mobile]
 
                 logging.info(str(command1).replace("', '","' '").replace("[","").replace("]",""))
@@ -384,17 +363,54 @@ def main(self):
                 raise
 
 
-        now=datetime.datetime.utcnow()
-        nexttime=nexttime+datetime.timedelta(seconds=tloop)
-        runtime=nexttime+ datetime.timedelta(seconds=tloop/3)
+def main(self):
 
-        if runtime > now:
-            waitsec= (runtime - now).seconds
-            logging.info( "wait for: %s" % waitsec)
-            time.sleep(waitsec)
+    import subprocess,os,time
+    import tempfile,datetime
+    import logging,logging.handlers
 
-        else:
-            logging.warning("attention; I am late !!")
+
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up composereportdd')
+    
+    #    my_env = os.environ
+    #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
+
+
+    schedule.every().hour.at("01:00").do(job, period=60*15)
+    schedule.every().hour.at("16:00").do(job, period=60*15)
+    schedule.every().hour.at("31:00").do(job, period=60*15)
+    schedule.every().hour.at("46:00").do(job, period=60*15)
+
+    schedule.every().day.at("00:05","UTC").do(job, period=60*60*6)
+    schedule.every().day.at("06:05","UTC").do(job, period=60*60*6)
+    schedule.every().day.at("12:05","UTC").do(job, period=60*60*6)
+    schedule.every().day.at("08:05","UTC").do(job, period=60*60*6)
+
+    schedule.every().day.at("01:05","UTC").do(job, period=60*60*24)
+    
+    schedule.every().day.at("02:05","UTC").do(job, period=60*60*24*10)
+
+    while True:
+        n = schedule.idle_seconds()
+        if n is None:
+            # no more jobs
+            break
+        elif n > 0:
+            # sleep exactly the right amount of time
+            time.sleep(n)
+        elif n < 0:
+            print("I AM LATE!")
+        
+        schedule.run_pending()
 
 
 if __name__ == '__main__':

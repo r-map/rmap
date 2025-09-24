@@ -449,7 +449,7 @@ setup(name='rmap',
                 'firmware_updater_stima','firmware_updater_stima.migrations',
                 'ticket','ticket.migrations',
                 'rpc','rpc.migrations',
-                'oscpy',
+                'oscpy','rmap.schedule',
       ],
 
       package_data={
