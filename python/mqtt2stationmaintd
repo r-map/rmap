@@ -300,7 +300,8 @@ class MyMQTTClass(mqtt.Client):
                                                    firmwaremajor=m["stationstatus"]["majorversion"], firmwareminor=m["stationstatus"]["minorversion"])
                             sms.save()
 
-
+                    myboard=None
+                    mypreviousboard=None
                     if ('boardstatus' in m):
 
                         try:
@@ -341,11 +342,6 @@ class MyMQTTClass(mqtt.Client):
 
                             mypreviousboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]                            
                                                         ,stationmetadata=mystation)
-                            try:
-                              self.changeStatusSendMail(mystation,mypreviouslaststatus,myboard,mypreviousboard)
-                            except:
-                              logging.error("error sending email for status change")	
-			      
                             myboard.boardmaintstatus.save()
                             
                         else:
@@ -381,6 +377,13 @@ class MyMQTTClass(mqtt.Client):
                                    ,m["lat"]/100000.
                                    ,m["user"]
                                    ,m["ident"]))
+
+                try:
+                    self.changeStatusSendMail(mystation,mypreviouslaststatus,myboard,mypreviousboard)
+                except:
+                    logging.error("error sending email for status change")	
+                    logging.error(traceback.format_exc())
+			      
             else:
                 logging.info("Ignore maint message {} {}".format(message.topic, message.payload.decode("utf-8")))
 
@@ -390,114 +393,117 @@ class MyMQTTClass(mqtt.Client):
             
     def changeStatusSendMail(self,mystation,mypreviouslaststatus,myboard,mypreviousboard):
 
-        # status v
-        changed_statusb=[False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-        changed_statusv=[False,False,False,False,False,False,False,False]
         changed_laststatus=False
-        
+        changed_statusb=None
+        changed_statusv=None
         diff=False
-        logging.info("board status {} {}".format(mypreviousboard.boardmaintstatus.statusb1,myboard.boardmaintstatus.statusb1))
 
-        if (mypreviousboard.boardmaintstatus.statusb1  != myboard.boardmaintstatus.statusb1):
-            diff=True
-            changed_statusb[0]=True
-            
-        if (mypreviousboard.boardmaintstatus.statusb2  != myboard.boardmaintstatus.statusb2):
-            diff=True
-            changed_statusb[1]=True
+        if (not myboard is None and not mypreviousboard is None):
+            changed_statusb=[False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
+            changed_statusv=[False,False,False,False,False,False,False,False]
+            logging.info("board status {} {}".format(mypreviousboard.boardmaintstatus.statusb1,myboard.boardmaintstatus.statusb1))
+
+            if (mypreviousboard.boardmaintstatus.statusb1  != myboard.boardmaintstatus.statusb1):
+                diff=True
+                changed_statusb[0]=True
                 
-        if (mypreviousboard.boardmaintstatus.statusb3  != myboard.boardmaintstatus.statusb3):
-            diff=True
-            changed_statusb[2]=True
+            if (mypreviousboard.boardmaintstatus.statusb2  != myboard.boardmaintstatus.statusb2):
+                diff=True
+                changed_statusb[1]=True
+                
+            if (mypreviousboard.boardmaintstatus.statusb3  != myboard.boardmaintstatus.statusb3):
+                diff=True
+                changed_statusb[2]=True
                     
-        if (mypreviousboard.boardmaintstatus.statusb4  != myboard.boardmaintstatus.statusb4):
-            diff=True
-            changed_statusb[3]=True
+            if (mypreviousboard.boardmaintstatus.statusb4  != myboard.boardmaintstatus.statusb4):
+                diff=True
+                changed_statusb[3]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb5  != myboard.boardmaintstatus.statusb5):
-            diff=True
-            changed_statusb[4]=True
+            if (mypreviousboard.boardmaintstatus.statusb5  != myboard.boardmaintstatus.statusb5):
+                diff=True
+                changed_statusb[4]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb6  != myboard.boardmaintstatus.statusb6):
-            diff=True
-            changed_statusb[5]=True
+            if (mypreviousboard.boardmaintstatus.statusb6  != myboard.boardmaintstatus.statusb6):
+                diff=True
+                changed_statusb[5]=True
 
-        if (mypreviousboard.boardmaintstatus.statusb7  != myboard.boardmaintstatus.statusb7):
-            diff=True
-            changed_statusb[6]=True
+            if (mypreviousboard.boardmaintstatus.statusb7  != myboard.boardmaintstatus.statusb7):
+                diff=True
+                changed_statusb[6]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb8  != myboard.boardmaintstatus.statusb8):
-            diff=True
-            changed_statusb[7]=True
+            if (mypreviousboard.boardmaintstatus.statusb8  != myboard.boardmaintstatus.statusb8):
+                diff=True
+                changed_statusb[7]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb9  != myboard.boardmaintstatus.statusb9):
-            diff=True
-            changed_statusb[8]=True
+            if (mypreviousboard.boardmaintstatus.statusb9  != myboard.boardmaintstatus.statusb9):
+                diff=True
+                changed_statusb[8]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb10 != myboard.boardmaintstatus.statusb10):
-            diff=True
-            changed_statusb[9]=True
+            if (mypreviousboard.boardmaintstatus.statusb10 != myboard.boardmaintstatus.statusb10):
+                diff=True
+                changed_statusb[9]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb11 != myboard.boardmaintstatus.statusb11):
-            diff=True
-            changed_statusb[10]=True
+            if (mypreviousboard.boardmaintstatus.statusb11 != myboard.boardmaintstatus.statusb11):
+                diff=True
+                changed_statusb[10]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb12 != myboard.boardmaintstatus.statusb12):
-            diff=True
-            changed_statusb[11]=True
+            if (mypreviousboard.boardmaintstatus.statusb12 != myboard.boardmaintstatus.statusb12):
+                diff=True
+                changed_statusb[11]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb13 != myboard.boardmaintstatus.statusb13):
-            diff=True
-            changed_statusb[12]=True
+            if (mypreviousboard.boardmaintstatus.statusb13 != myboard.boardmaintstatus.statusb13):
+                diff=True
+                changed_statusb[12]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb14 != myboard.boardmaintstatus.statusb14):
-            diff=True
-            changed_statusb[13]=True
+            if (mypreviousboard.boardmaintstatus.statusb14 != myboard.boardmaintstatus.statusb14):
+                diff=True
+                changed_statusb[13]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb15 != myboard.boardmaintstatus.statusb15):
-            diff=True
-            changed_statusb[14]=True
+            if (mypreviousboard.boardmaintstatus.statusb15 != myboard.boardmaintstatus.statusb15):
+                diff=True
+                changed_statusb[14]=True
         
-        if (mypreviousboard.boardmaintstatus.statusb16 != myboard.boardmaintstatus.statusb16):
-            diff=True
-            changed_statusb[15]=True
+            if (mypreviousboard.boardmaintstatus.statusb16 != myboard.boardmaintstatus.statusb16):
+                diff=True
+                changed_statusb[15]=True
         
 
-        if (mypreviousboard.boardmaintstatus.statusv1 != myboard.boardmaintstatus.statusv1):
-            diff=True
-            changed_statusv[0]=True
+            if (mypreviousboard.boardmaintstatus.statusv1 != myboard.boardmaintstatus.statusv1):
+                diff=True
+                changed_statusv[0]=True
             
-        if (mypreviousboard.boardmaintstatus.statusv2 != myboard.boardmaintstatus.statusv2):
-            diff=True
-            changed_statusv[1]=True
+            if (mypreviousboard.boardmaintstatus.statusv2 != myboard.boardmaintstatus.statusv2):
+                diff=True
+                changed_statusv[1]=True
         
-        if (mypreviousboard.boardmaintstatus.statusv3 != myboard.boardmaintstatus.statusv3):
-            diff=True
-            changed_statusv[2]=True
+            if (mypreviousboard.boardmaintstatus.statusv3 != myboard.boardmaintstatus.statusv3):
+                diff=True
+                changed_statusv[2]=True
             
-        if (mypreviousboard.boardmaintstatus.statusv4 != myboard.boardmaintstatus.statusv4):
-            diff=True
-            changed_statusv[3]=True
+            if (mypreviousboard.boardmaintstatus.statusv4 != myboard.boardmaintstatus.statusv4):
+                diff=True
+                changed_statusv[3]=True
         
-        if (mypreviousboard.boardmaintstatus.statusv5 != myboard.boardmaintstatus.statusv5):
-            diff=True
-            changed_statusv[4]=True
+            if (mypreviousboard.boardmaintstatus.statusv5 != myboard.boardmaintstatus.statusv5):
+                diff=True
+                changed_statusv[4]=True
         
-        if (mypreviousboard.boardmaintstatus.statusv6 != myboard.boardmaintstatus.statusv6):
-            diff=True
-            changed_statusv[5]=True
+            if (mypreviousboard.boardmaintstatus.statusv6 != myboard.boardmaintstatus.statusv6):
+                diff=True
+                changed_statusv[5]=True
         
-        if (mypreviousboard.boardmaintstatus.statusv7 != myboard.boardmaintstatus.statusv7):
-            diff=True
-            changed_statusv[6]=True
+            if (mypreviousboard.boardmaintstatus.statusv7 != myboard.boardmaintstatus.statusv7):
+                diff=True
+                changed_statusv[6]=True
         
-        if (mypreviousboard.boardmaintstatus.statusv8 != myboard.boardmaintstatus.statusv8):
-            diff=True
-            changed_statusv[7]=True
+            if (mypreviousboard.boardmaintstatus.statusv8 != myboard.boardmaintstatus.statusv8):
+                diff=True
+                changed_statusv[7]=True
 
         if (mypreviouslaststatus != mystation.stationmaintstatus.laststatus):
-            diff=True
-            changed_laststatus=True            
+            if (mypreviouslaststatus != "disconn" and mystation.stationmaintstatus.laststatus != "disconn"):
+                diff=True
+                changed_laststatus=True            
             
         if (not diff):
             logging.info("no difference no mail")
@@ -534,8 +540,11 @@ class MyMQTTClass(mqtt.Client):
                 message_html = render_to_string('changed_status_email.html', context)
                 logging.info("send email: {}".format(recipient_list))
 
-                send_mail("Status for station: "+mystation.name+" board: "+myboard.name+" is changed", 
-                          "Status for station: "+mystation.name+" board: "+myboard.name+" is changed; details in this mail in HTML part only ...",
+                mailobject="Status for station: "+mystation.name
+                if (not myboard is None):
+                    mailobject+=" board: "+myboard.name+" is changed"
+                send_mail(mailobject, 
+                          mailobject+"; details in this mail in HTML part only ...",
                           from_email=None,
                           recipient_list=recipient_list,
                           html_message=message_html,
