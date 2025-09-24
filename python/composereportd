@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# GPL. (C) 2017 Paolo Patruno.
+# GPL. (C) 2025 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
-
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 import django
@@ -26,6 +25,10 @@ from rmap import daemon
 import pika
 import rmap.settings
 from rmap import schedule
+import datetime
+import subprocess,os,time
+import tempfile,datetime
+import logging,logging.handlers
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
@@ -33,35 +36,15 @@ host="localhost"
 exchange=rmap.settings.exchangecomposereportd
 routing_key="composereportd"
 
-
-tloop=60*15
-
 composereportd = daemon.Daemon(
         stdin="/dev/null",
         stdout=rmap.settings.logfilecomposereportd,
         stderr=rmap.settings.errfilecomposereportd,
         pidfile=rmap.settings.lockfilecomposereportd,
         user=rmap.settings.usercomposereportd,
-        group=rmap.settings.groupcomposereportd
-)
+        group=rmap.settings.groupcomposereportd)
 
-def job(period):
-    now=datetime.datetime.now()
-    print(f"I am {period} at {now}")
-    now=datetime.datetime.now(datetime.UTC)
-    newminute = now.minute - (now.minute % (period//60))
-    endtime=(now.replace(minute=newminute,second=0,microsecond=0))
-
-    if (period >= 60*60):
-        newhour = now.hour - (now.hour % (period//(60*60)))
-        endtime=(endtime.replace(hour=newhour,minute=0,second=0,microsecond=0))
-
-    starttime=endtime-datetime.timedelta(seconds=period)
-    print(f"start time {starttime}; end time {endtime}")
-    #time.sleep(900)
-    print(f"I am {period} at {now} terminated")
-
-def compute(starttime,endtime):
+def compute(starttime,endtime,compose):
 
         logging.info("start/end time: %s %s" % (starttime.isoformat(' '),endtime.isoformat(' ')))
 
@@ -100,7 +83,7 @@ def compute(starttime,endtime):
                 #              filename)
                 
                 #compute 15min mean  from instantaneous values
-                #self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                #compose.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
                 #                              "--variable-list",variable_list,"--level",level,"--timerange",timerange,
                 #                              "--start-date",starttime.isoformat(' ') ,
                 #                              "--end-date",endtime.isoformat(' '),
@@ -112,9 +95,9 @@ def compute(starttime,endtime):
                 #                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
                 #)]
 
-                #body,outerr=self.procs[0].communicate()
+                #body,outerr=compose.procs[0].communicate()
 
-                #status=self.procs[0].wait()
+                #status=compose.procs[0].wait()
                 #if status != 0:
                 #    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -137,10 +120,10 @@ def compute(starttime,endtime):
                                               rmap.settings.dsnsample_fixed,
                                               filename]
                     logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
-                    self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
-                    body,outerr=self.procs[0].communicate()
+                    compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                    body,outerr=compose.procs[0].communicate()
 
-                    status=self.procs[0].wait()
+                    status=compose.procs[0].wait()
                     if status != 0:
                         logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
                     else:
@@ -164,11 +147,11 @@ def compute(starttime,endtime):
                                               rmap.settings.dsnsample_fixed,
                                               rmap.settings.dsnsample_fixed]
                 logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
-                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
 
-                body,outerr=self.procs[0].communicate()
+                body,outerr=compose.procs[0].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -184,10 +167,10 @@ def compute(starttime,endtime):
                                               rmap.settings.dsnsample_fixed,
                                               filename]
                 logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
-                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
-                body,outerr=self.procs[0].communicate()
+                compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                body,outerr=compose.procs[0].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -207,10 +190,10 @@ def compute(starttime,endtime):
                                               rmap.settings.dsnsample_fixed,
                                               filename]
                 logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
-                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
-                body,outerr=self.procs[0].communicate()
+                compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                body,outerr=compose.procs[0].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -229,10 +212,10 @@ def compute(starttime,endtime):
                                               rmap.settings.dsnsample_fixed,
                                               filename]
                 logging.info( str(command).replace("', '","' '").replace("[","").replace("]",""))
-                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
-                body,outerr=self.procs[0].communicate()
+                compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                body,outerr=compose.procs[0].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -264,14 +247,14 @@ def compute(starttime,endtime):
                 p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-                self.procs=[p1,p2]
-                body,outerr=self.procs[1].communicate()
+                compose.procs=[p1,p2]
+                body,outerr=compose.procs[1].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform 1 : %s %s " % (status,outerr))
                 else:
-                    status=self.procs[1].wait()
+                    status=compose.procs[1].wait()
                     if status != 0:
                         logging.error("There were some errors executing v7d_transform 2: %s %s " % (status,outerr))
                     else:
@@ -292,14 +275,14 @@ def compute(starttime,endtime):
                 p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-                self.procs=[p1,p2]
-                body,outerr=self.procs[1].communicate()
+                compose.procs=[p1,p2]
+                body,outerr=compose.procs[1].communicate()
 
-                status=self.procs[0].wait()
+                status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing dbadb 1 : %s %s " % (status,outerr))
                 else:
-                    status=self.procs[1].wait()
+                    status=compose.procs[1].wait()
                     if status != 0:
                         logging.error("There were some errors executing dbadb 2: %s %s " % (status,outerr))
                         
@@ -362,42 +345,61 @@ def compute(starttime,endtime):
                 logging.error("There were some errors executing dba_transform")
                 raise
 
+def job(delta,offset,compose):
+    now=datetime.datetime.now()
+    logging.info(f"Start work delta={delta} offset={offset}")
+    #now=datetime.datetime.now(datetime.UTC)
+    now=datetime.datetime.utcnow()
+    newminute = now.minute - (now.minute % (delta//60))
+    endtime=(now.replace(minute=newminute,second=0,microsecond=0))
 
-def main(self):
+    if (delta >= 60*60):
+        newhour = now.hour - (now.hour % (delta//(60*60)))
+        endtime=(endtime.replace(hour=newhour,minute=0,second=0,microsecond=0))
 
-    import subprocess,os,time
-    import tempfile,datetime
-    import logging,logging.handlers
+    endtime-=datetime.timedelta(seconds=offset)    
+    starttime=endtime-datetime.timedelta(seconds=delta)
+    logging.info(f"start time {starttime}; end time {endtime}")
+    compute(starttime,endtime,compose)
+    logging.info(f"Work terminated")
 
+def main(compose):
 
     # configure the logger
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
-    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler = logging.handlers.RotatingFileHandler(compose.options.stdout, maxBytes=5000000, backupCount=10)
     handler.setFormatter(formatter)
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.INFO)
-
-    logging.info('Starting up composereportdd')
+        
+    logging.info('Starting up composereportd')
     
     #    my_env = os.environ
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
 
+    # ultimi 15 minuti ogni 15 minuti
+    schedule.every().hour.at("16:00").do(job, delta=60*15, offset=0, compose=compose)
+    schedule.every().hour.at("31:00").do(job, delta=60*15, offset=0, compose=compose)
+    schedule.every().hour.at("46:00").do(job, delta=60*15, offset=0, compose=compose)
+    # ultimi 60 minuti ogni ora
+    schedule.every().hour.at("01:00").do(job, delta=60*60, offset=0, compose=compose)
 
-    schedule.every().hour.at("01:00").do(job, period=60*15)
-    schedule.every().hour.at("16:00").do(job, period=60*15)
-    schedule.every().hour.at("31:00").do(job, period=60*15)
-    schedule.every().hour.at("46:00").do(job, period=60*15)
+    # da 6 a una ora fa ogni 6 ore
+    schedule.every().day.at("00:05","UTC").do(job, delta=60*60*5, offset=60*60, compose=compose)
+    schedule.every().day.at("06:05","UTC").do(job, delta=60*60*5, offset=60*60, compose=compose)
+    schedule.every().day.at("12:05","UTC").do(job, delta=60*60*5, offset=60*60, compose=compose)
+    schedule.every().day.at("08:05","UTC").do(job, delta=60*60*5, offset=60*60, compose=compose)
 
-    schedule.every().day.at("00:05","UTC").do(job, period=60*60*6)
-    schedule.every().day.at("06:05","UTC").do(job, period=60*60*6)
-    schedule.every().day.at("12:05","UTC").do(job, period=60*60*6)
-    schedule.every().day.at("08:05","UTC").do(job, period=60*60*6)
-
-    schedule.every().day.at("01:05","UTC").do(job, period=60*60*24)
-    
-    schedule.every().day.at("02:05","UTC").do(job, period=60*60*24*10)
+    # 48 ore a partire dall'ultimo giorno in archivio
+    schedule.every().day.at("01:05","UTC").do(job, delta=60*60*24*2, offset=60*60*24*6, compose=compose)
+    # 24 ore a partire dal penultimo giorno in archivio e così via
+    schedule.every().day.at("02:05","UTC").do(job, delta=60*60*24, offset=60*60*24*5, compose=compose)
+    schedule.every().day.at("03:05","UTC").do(job, delta=60*60*24, offset=60*60*24*4, compose=compose)
+    schedule.every().day.at("04:05","UTC").do(job, delta=60*60*24, offset=60*60*24*3, compose=compose)
+    schedule.every().day.at("05:05","UTC").do(job, delta=60*60*24, offset=60*60*24*2, compose=compose)
+    schedule.every().day.at("07:05","UTC").do(job, delta=60*60*24, offset=60*60*24,   compose=compose)
 
     while True:
         n = schedule.idle_seconds()
@@ -408,7 +410,7 @@ def main(self):
             # sleep exactly the right amount of time
             time.sleep(n)
         elif n < 0:
-            print("I AM LATE!")
+            logging.error("I AM LATE! somethings will be lost")
         
         schedule.run_pending()
 
@@ -417,7 +419,7 @@ if __name__ == '__main__':
 
     import sys, os
     composereportd.cwd=os.getcwd()
-
+    
     if composereportd.service():
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
