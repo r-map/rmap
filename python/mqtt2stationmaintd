@@ -256,7 +256,8 @@ class MyMQTTClass(mqtt.Client):
                                                             ,user__username=m["user"]
                                                             ,ident=m["ident"] )
 
-
+                    mypreviouslaststatus=mystation.stationmaintstatus.laststatus
+                    
                     if ('stationstatus' in m):
                         if hasattr(mystation, 'stationmaintstatus'):
 
@@ -341,7 +342,7 @@ class MyMQTTClass(mqtt.Client):
                             mypreviousboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]                            
                                                         ,stationmetadata=mystation)
                             try:
-                              self.changeStatusSendMail(mystation,myboard,mypreviousboard)
+                              self.changeStatusSendMail(mystation,mypreviouslaststatus,myboard,mypreviousboard)
                             except:
                               logging.error("error sending email for status change")	
 			      
@@ -387,11 +388,12 @@ class MyMQTTClass(mqtt.Client):
             logging.error(traceback.format_exc())
 
             
-    def changeStatusSendMail(self,mystation,myboard,mypreviousboard):
+    def changeStatusSendMail(self,mystation,mypreviouslaststatus,myboard,mypreviousboard):
 
         # status v
         changed_statusb=[False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         changed_statusv=[False,False,False,False,False,False,False,False]
+        changed_laststatus=False
         
         diff=False
         logging.info("board status {} {}".format(mypreviousboard.boardmaintstatus.statusb1,myboard.boardmaintstatus.statusb1))
@@ -493,13 +495,18 @@ class MyMQTTClass(mqtt.Client):
             diff=True
             changed_statusv[7]=True
 
+        if (mypreviouslaststatus != mystation.stationmaintstatus.laststatus):
+            diff=True
+            changed_laststatus=True            
+            
         if (not diff):
             logging.info("no difference no mail")
             return	   		       
         
         context={"station":mystation,"board":myboard,"url":"http://"+Site.objects.get(id=rmap.settings.SITE_ID).domain,
                  "changed_statusb":changed_statusb,
-                 "changed_statusv":changed_statusv}
+                 "changed_statusv":changed_statusv,
+                 "changed_laststatus":changed_laststatus}
 
 
         # station is setted for email monitoring

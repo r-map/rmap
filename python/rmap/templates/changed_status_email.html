@@ -33,6 +33,25 @@
 <h4>{% trans 'Station status' %}: {{ station.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ station.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
 <h4>{% trans 'Station firmware version' %}: {{ station.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ station.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
 
+
+    <table border="1">
+    <tr>
+      <th>{% trans 'Red if changed' %}</th>
+      <th{% if changedlaststatus  %} style="background-color:Tomato;"{% endif %}>{% trans 'B1' %}</th>
+     </tr>
+  
+    <tr>
+      <th>{% trans 'Red if alert' %}</th>      
+      <td{% if station.stationmaintstatus.laststatus != "conn"  %} style="background-color:Tomato;"{% endif %}> {{ station.stationmaintstatus.laststatus |default:_('Missing')}}</td>
+    </tr>
+    
+    <tr>
+      <th>{% trans 'Description' %}</th>
+      <td>{% if changedlaststatus  %}Last status Error{% endif %}</td> 
+    </tr>
+    </table>
+
+
     <table border="1">
     <tr>
       <th>{% trans 'Board name' %}</th>
