@@ -29,6 +29,7 @@ import datetime
 import subprocess,os,time
 import tempfile,datetime
 import logging,logging.handlers
+import fasteners
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
@@ -47,7 +48,7 @@ composereportd = daemon.Daemon(
 def compute(starttime,endtime,compose):
 
         logging.info("start/end time: %s %s" % (starttime.isoformat(' '),endtime.isoformat(' ')))
-
+        
         for mymeta in rmap.settings.sample_measurements:
             
             variable_list= mymeta["var"]
@@ -149,9 +150,11 @@ def compute(starttime,endtime,compose):
                 logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
                 compose.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
 
-                body,outerr=compose.procs[0].communicate()
-
-                status=compose.procs[0].wait()
+                rw_lock = fasteners.InterProcessReaderWriterLock(rmap.settings.lockfilesample_fixed)
+                with rw_lock.write_lock():
+                        body,outerr=compose.procs[0].communicate()
+                        status=compose.procs[0].wait()
+                        
                 if status != 0:
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
@@ -276,9 +279,11 @@ def compute(starttime,endtime,compose):
                 p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
                 compose.procs=[p1,p2]
-                body,outerr=compose.procs[1].communicate()
-
-                status=compose.procs[0].wait()
+                
+                rw_lock = fasteners.InterProcessReaderWriterLock(rmap.settings.lockfilereport_mobile)
+                with rw_lock.write_lock():
+                        body,outerr=compose.procs[1].communicate()
+                        status=compose.procs[0].wait()
                 if status != 0:
                     logging.error("There were some errors executing dbadb 1 : %s %s " % (status,outerr))
                 else:
