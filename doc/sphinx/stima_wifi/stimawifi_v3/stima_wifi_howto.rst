@@ -374,6 +374,14 @@ Assemblaggio componenti elettroniche e sensori
 
 :download:`immagine ad alta risoluzione <stimawifi_out_of_box.jpg>`.
 
+Questo lo schema di collegamento elettrico delle varie componenti.
+La pila dei moduli Wemos è rappresentata in modo semplificato.
+
+.. image:: ../../../../fritzing/stimawifi/v3/global_bb.png
+   :width: 50%
+
+.. image:: ../../../../fritzing/stimawifi/v3/global_schem.png
+   :width: 50%
 
 
 Scatola
