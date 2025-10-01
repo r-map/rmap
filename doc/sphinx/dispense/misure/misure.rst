@@ -2274,7 +2274,7 @@ la precisione del sensore nel tempo.
 .. image:: sps30_dia.jpg
 
 
-.. figure:: sps30_funzionamento.jpg
+.. figure:: sps30_funzionamento.webp
   
    Principio di funzionamento
 
