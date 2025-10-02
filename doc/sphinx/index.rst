@@ -23,6 +23,7 @@ Indice dei contenuti
    server_rmap/server_rmap
    videotutorial/videotutorial
    dispense/index
+   progetti/index
    
 * :ref:`genindex`
 * :ref:`search`
