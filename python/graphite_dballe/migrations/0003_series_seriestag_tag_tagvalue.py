@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('graphite-dballe', '0002_auto_20180822_1400'),
+        ('graphite_dballe', '0002_auto_20180822_1400'),
     ]
 
     operations = [
@@ -39,9 +39,9 @@ class Migration(migrations.Migration):
             name='SeriesTag',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('series', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.Series')),
-                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.Tag')),
-                ('value', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.TagValue')),
+                ('series', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.Series')),
+                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.Tag')),
+                ('value', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.TagValue')),
             ],
             options={
                 'unique_together': {('series', 'tag')},

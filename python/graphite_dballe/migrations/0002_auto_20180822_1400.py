@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('graphite-dballe', '0001_initial'),
+        ('graphite_dballe', '0001_initial'),
     ]
 
     operations = [

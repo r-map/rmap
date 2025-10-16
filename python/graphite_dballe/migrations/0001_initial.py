@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='SeriesTag',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('series', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.Series')),
+                ('series', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.Series')),
             ],
         ),
         migrations.CreateModel(
@@ -46,12 +46,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='seriestag',
             name='tag',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.Tag'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.Tag'),
         ),
         migrations.AddField(
             model_name='seriestag',
             name='value',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite-dballe.TagValue'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='graphite_dballe.TagValue'),
         ),
         migrations.AlterUniqueTogether(
             name='seriestag',
