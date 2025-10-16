@@ -105,14 +105,14 @@ if not android  :
         print(e)
         print(traceback.format_exc())
     try:
-        #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
-        urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls')))
+        #urlpatterns.append(url(r'^graphite/', include('graphite_dballe.urls',namespace="graphite")))
+        urlpatterns.append(url(r'^graphite/', include('graphite_dballe.urls')))
     except Exception as e:
         print("Warning: graphite disabled")
         print(e)
         print(traceback.format_exc())
     try:
-        #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
+        #urlpatterns.append(url(r'^graphite/', include('graphite_dballe.urls',namespace="graphite")))
         urlpatterns.append(url(r'^sos/', include('borinud_sos.urls')))
     except Exception as e:
         print("Warning: sos disabled")

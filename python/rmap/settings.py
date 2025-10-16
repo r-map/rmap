@@ -498,13 +498,13 @@ LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 INPUT_VALIDATION_SOURCE_ID_HEADERS = {}
 #STORAGE_FINDERS = (
-#    'graphite-dballe.finders.standard.StandardFinder',
+#    'graphite_dballe.finders.standard.StandardFinder',
 #)
 STORAGE_FINDERS = (
-    'graphite-dballe.finders.dballe.DballeFinderSampleFixed',
-    'graphite-dballe.finders.dballe.DballeFinderSampleMobile',
-    'graphite-dballe.finders.dballe.DballeFinderReportFixed',
-    'graphite-dballe.finders.dballe.DballeFinderReportMobile',
+    'graphite_dballe.finders.dballe.DballeFinderSampleFixed',
+    'graphite_dballe.finders.dballe.DballeFinderSampleMobile',
+    'graphite_dballe.finders.dballe.DballeFinderReportFixed',
+    'graphite_dballe.finders.dballe.DballeFinderReportMobile',
 )
 
 MAX_TAG_LENGTH = 50
@@ -538,7 +538,7 @@ LOG_FILE_EXCEPTION='graphite_exception.log'
 LOG_FILE_CACHE='graphite_cache.log'
 LOG_FILE_RENDERING='graphite_rendering.log'
 LOG_DIR='.'
-TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
+TAGDB='graphite_dballe.tags.localdatabase.LocalDatabaseTagDB'
 FUNCTION_PLUGINS = []
 REMOTE_STORE_FORWARD_HEADERS = []
 DEFAULT_XFILES_FACTOR = 0
