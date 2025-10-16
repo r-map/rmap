@@ -36,7 +36,7 @@ geoimage
 global_static
 	static files used by django apps (not only one)
 
-graphite-dballe
+graphite_dballe
 	graphite django app adapted to RMAP
 
 http2mqtt

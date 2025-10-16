@@ -20,6 +20,7 @@
  <script type="text/javascript" src="{% static "showdata/borinud.B.js" %}" ></script>
 
  <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
+ <link rel="stylesheet" href="{% static 'showdata/dropdownmenu.css' %}">
 
 <!--
  <script type="text/javascript" src="{% static "showdata/leaflet.label.js" %}" ></script>
@@ -675,14 +676,41 @@ function map_init(map, options)
     <div class="col-xs-4 col-xs-offset-4">
       <p style="text-align:left">
 
-	<a href='
-	   {% if hour %}
-	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% else %}
-	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% endif %}
-	   '>{% trans "Download data" %}
-	</a>
+	<div class="dropdown">
+	  <button class="dropbtn">{% trans "Download data" %}</button>
+	  <div class="dropdown-content">
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% else %}
+	       {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "dbajson" %}
+	    </a>
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% else %}
+	       {% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "geojson" %}
+	    </a>
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:spatialserieshourly' 'csv' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% else %}
+	       {% url 'api:v1:spatialseriesdaily' 'csv' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "csv" %}
+	    </a>
+
+	    
+	  </div>
+	</div>
+	    
       </p>
     </div>
   </div>

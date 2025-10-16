@@ -26,6 +26,81 @@ def json_serial(obj):
         raise TypeError("Type not serializable")
 
 
+class dbacsv:
+    # TODO migrate to
+    #https://gist.github.com/niuware/ba19bbc0169039e89326e1599dba3a87
+
+    def __init__(self,q,summary=False,stations=False,stationdata=False,dsn="report",seg="last",query=None):
+        self.q=q
+        self.summary=summary
+        self.stations=stations
+        self.stationdata=stationdata
+        self.dsn=dsn
+        self.last= seg == "last"
+        self.attr = query == "attr"
+        #print ("+++++++++++++++++++++CSV+++++++++++++++++++++++++++++++")
+        #print ("summary=",self.summary)
+        #print ("stations=",self.stations)
+        #print ("stationdata=",self.stationdata)
+        #print ("last=",self.last)
+        #print ("attr=",self.attr)
+        #print ("query=",q)
+        #print ("+++++++++++++++++++++CSV+++++++++++++++++++++++++++++++")
+
+
+    def __iter__(self):
+        if self.summary:
+            self.handle = get_db(dsn=self.dsn,last=self.last).query_summary(self.q)
+        elif self.stations:
+            self.handle = get_db(dsn=self.dsn,last=self.last).query_stations(self.q)
+        elif self.stationdata:
+            self.handle = get_db(dsn=self.dsn,last=self.last).query_station_data(self.q)
+        else:
+            self.handle = get_db(dsn=self.dsn,last=self.last,attr=self.attr).query_data(self.q)
+
+        return next(self)
+        #yield from self.handle
+        
+    def __next__(self):
+
+        mydict=[]
+
+        for self.s in self.handle:
+
+            if self.stations:
+                mydict = {
+                    "ident": self.s.get("ident",None),
+                    "lon": self.s["lon"],
+                    "lat": self.s["lat"],
+                    "network": self.s["report"],
+                }
+                yield f"{mydict['ident']},{mydict['lon']},{mydict['lat']},{mydict['network']}\n"
+
+            elif self.stationdata:
+                mydict = {
+                    "ident": self.s.get("ident",None),
+                    "lon": self.s["lon"],
+                    "lat": self.s["lat"],
+                    "network": self.s["report"],
+                    "var": self.s["var"],
+                    "val": self.s[self.s["var"]]
+                }
+                yield f"{mydict['ident']},{mydict['lon']},{mydict['lat']},{mydict['network']},{mydict['var']},{mydict['val']}\n"
+
+            else:
+                mydict = {
+                    "ident": self.s["ident"],
+                    "lon": self.s["lon"],
+                    "lat": self.s["lat"],
+                    "network": self.s["report"],
+                    "trange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
+                    "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
+                    "date": (self.s["datemin"],self.s["datemax"]) if self.summary else  self.s["date"],
+                    "var": self.s["var"],
+                    "val": self.s[self.s["var"]]
+                }
+
+                yield f"{mydict['ident']},{mydict['lon']},{mydict['lat']},{mydict['network']},{mydict['trange']},{mydict['level']},{mydict['date']},{mydict['var']},{mydict['val']}\n"
 
 class dbajson:
 
@@ -258,6 +333,9 @@ def summaries(request, **kwargs):
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,summary=True,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)))
 
+    if format == "csv" :
+        return StreamingHttpResponse(dbacsv(q,summary=True,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)),content_type="text/csv")
+    
 def timeseries(request, **kwargs):
     q = params2record(kwargs)
 
@@ -326,6 +404,9 @@ def timeseries(request, **kwargs):
 
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")))
+
+    if format == "csv" :
+        return StreamingHttpResponse(dbacsv(q,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")),content_type="text/csv")
 
 
 def spatialseries(request, **kwargs):
@@ -396,6 +477,9 @@ def spatialseries(request, **kwargs):
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")))
 
+    if format == "csv" :
+        return StreamingHttpResponse(dbacsv(q,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")),content_type="text/csv")
+    
 
 def stationdata(request, **kwargs):
     q = params2record(kwargs)
@@ -408,6 +492,9 @@ def stationdata(request, **kwargs):
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,stationdata=True,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')))
 
+    if format == "csv" :
+        return StreamingHttpResponse(dbacsv(q,stationdata=True,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')),content_type="text/csv")
+    
 
 def stations(request, **kwargs):
     q = params2record(kwargs)
@@ -419,3 +506,7 @@ def stations(request, **kwargs):
 
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,stations=True,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')))
+
+    if format == "csv" :
+        return StreamingHttpResponse(dbacsv(q,stations=True,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')),content_type="text/csv")
+    

@@ -24,8 +24,8 @@ recursive-include borinud/templates *
 recursive-include geoimage/static *
 recursive-include geoimage/templates *
 
-recursive-include graphite-dballe/static *
-recursive-include graphite-dballe/templates *
+recursive-include graphite_dballe/static *
+recursive-include graphite_dballe/templates *
 
 recursive-include http2mqtt/static *
 recursive-include http2mqtt/templates *

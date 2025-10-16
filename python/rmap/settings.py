@@ -5,7 +5,7 @@ import os
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
 from . import __version__
-import imp
+import importlib
 
 android=('ANDROID_ARGUMENT' in os.environ)
 
@@ -1398,16 +1398,16 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'http2mqtt', "apps": ('http2mqtt' ,)},
 #        {"import": 'cookielaw', "apps": ('cookielaw' ,) ,"context_processors": ('django.core.context_processors.request', )},
         {"import": 'cookielaw', "apps": ('cookielaw' ,) ,"context_processors": ('django.template.context_processors.request', )},
-        {"import": 'graphite-dballe',                "apps": ('graphite-dballe',)},
-        {"import": 'graphite-dballe.metrics',        "apps": ('graphite-dballe.metrics',)},
-        {"import": 'graphite-dballe.render',         "apps": ('graphite-dballe.render',)},
-        {"import": 'graphite-dballe.browser',        "apps": ('graphite-dballe.browser',)},
-        {"import": 'graphite-dballe.composer',       "apps": ('graphite-dballe.composer',)},
-        {"import": 'graphite-dballe.account',        "apps": ('graphite-dballe.account',)},
-        {"import": 'graphite-dballe.dashboard',      "apps": ('graphite-dballe.dashboard',)},
-        {"import": 'graphite-dballe.whitelist',      "apps": ('graphite-dballe.whitelist',)},
-        {"import": 'graphite-dballe.events',         "apps": ('graphite-dballe.events',)},
-        {"import": 'graphite-dballe.url_shortener',  "apps": ('graphite-dballe.url_shortener',)},
+        {"import": 'graphite_dballe',                "apps": ('graphite_dballe',)},
+        {"import": 'graphite_dballe.metrics',        "apps": ('graphite_dballe.metrics',)},
+        {"import": 'graphite_dballe.render',         "apps": ('graphite_dballe.render',)},
+        {"import": 'graphite_dballe.browser',        "apps": ('graphite_dballe.browser',)},
+        {"import": 'graphite_dballe.composer',       "apps": ('graphite_dballe.composer',)},
+        {"import": 'graphite_dballe.account',        "apps": ('graphite_dballe.account',)},
+        {"import": 'graphite_dballe.dashboard',      "apps": ('graphite_dballe.dashboard',)},
+        {"import": 'graphite_dballe.whitelist',      "apps": ('graphite_dballe.whitelist',)},
+        {"import": 'graphite_dballe.events',         "apps": ('graphite_dballe.events',)},
+        {"import": 'graphite_dballe.url_shortener',  "apps": ('graphite_dballe.url_shortener',)},
         {"import": 'tagging',                        "apps": ('tagging',)},
         {"import": 'django_extensions',              "apps": ('django_extensions',)},
         {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
@@ -1424,14 +1424,7 @@ if LOAD_OPTIONAL_APPS:
     # Set up each optional app if available.
     for app in OPTIONAL_APPS:
         if app.get("condition", True):
-            try:
-                moduletree= app["import"].split(".")
-                module_info=imp.find_module(moduletree[0])
-                if len(moduletree) >1:
-                    module = imp.load_module(moduletree[0], *module_info)
-                    imp.find_module(moduletree[1], module.__path__) # __path__ is already a list
-
-            except ImportError:
+            if (importlib.util.find_spec(app["import"]) is None):
                 print("import error: ", app["import"])
                 print("disable     : ", app.get("apps", ()))
             else:

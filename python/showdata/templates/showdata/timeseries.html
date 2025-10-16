@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
-
 {% block extra_assets %}
 
+<link rel="stylesheet" href="{% static 'showdata/dropdownmenu.css' %}">
 <script src= {% static "showdata/jquery.preload.min.js" %}></script>
 <script>
   jQuery(function( $ ){
@@ -107,18 +107,57 @@
   <div class="row">
     <div class="col-xs-4 col-xs-offset-8">
       <p style="text-align:left">
-	<a href='
-	   {% if hour %}
-	   {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% elif day %}
-	   {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% elif month %}
-	   {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% elif year %}
-	   {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   {% endif %}
-	   '>{% trans "Download data" %}
-	</a>
+
+
+	<div class="dropdown">
+	  <button class="dropbtn">{% trans "Download data" %}</button>
+	  <div class="dropdown-content">
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif day %}
+	       {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif month %}
+	       {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif year %}
+	       {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "dbajson" %}
+	    </a>
+
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:timeserieshourly' 'geojson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif day %}
+	       {% url 'api:v1:timeseriesdaily' 'geojson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif month %}
+	       {% url 'api:v1:timeseriesmonthly' 'geojson' ident coords network trange level var year month %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif year %}
+	       {% url 'api:v1:timeseriesyearly' 'geojson' ident coords network trange level var year %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "geojson" %}
+	    </a>
+
+
+	    <a href='
+	       {% if hour %}
+	       {% url 'api:v1:timeserieshourly' 'csv' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif day %}
+	       {% url 'api:v1:timeseriesdaily' 'csv' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif month %}
+	       {% url 'api:v1:timeseriesmonthly' 'csv' ident coords network trange level var year month %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% elif year %}
+	       {% url 'api:v1:timeseriesyearly' 'csv' ident coords network trange level var year %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	       {% endif %}
+	       '>{% trans "csv" %}
+	    </a>
+	    
+	    
+	  </div>
+	</div>
+ 
       </p>
     </div>
   </div>

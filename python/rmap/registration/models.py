@@ -21,7 +21,7 @@ from django.utils.crypto import get_random_string
 #from django.utils.encoding import python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.timezone import now as datetime_now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .users import UserModel
 from .users import UserModelString

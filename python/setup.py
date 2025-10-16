@@ -339,14 +339,14 @@ for dirpath, dirnames, filenames in os.walk('geoimage/locale'):
     if filenames:
         for file in filenames:
             geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
-for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+for dirpath, dirnames, filenames in os.walk('graphite_dballe/static'):
     if filenames:
         for file in filenames:
-            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
-for dirpath, dirnames, filenames in os.walk('graphite-dballe/functions/custom'):
+            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite_dballe'))
+for dirpath, dirnames, filenames in os.walk('graphite_dballe/functions/custom'):
     if filenames:
         for file in filenames:
-            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
+            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite_dballe'))
 for dirpath, dirnames, filenames in os.walk('http2mqtt/static'):
     if filenames:
         for file in filenames:
@@ -429,22 +429,22 @@ setup(name='rmap',
                 'rainbo',
                 'contacts',
                 'borinud_sos',
-                'graphite-dballe','graphite-dballe.migrations',
-                'graphite-dballe.account','graphite-dballe.account.migrations',
-                'graphite-dballe.browser',
-                'graphite-dballe.composer',
-                'graphite-dballe.dashboard','graphite-dballe.dashboard.migrations',
-                'graphite-dballe.events','graphite-dballe.events.migrations',
-                'graphite-dballe.finders',
-                'graphite-dballe.metrics',
-                'graphite-dballe.render',
-                'graphite-dballe.readers',
-                'graphite-dballe.url_shortener','graphite-dballe.url_shortener.migrations',
-                'graphite-dballe.version',
-                'graphite-dballe.whitelist',
-                'graphite-dballe.worker_pool',
-                'graphite-dballe.tags',
-                'graphite-dballe.functions',
+                'graphite_dballe','graphite_dballe.migrations',
+                'graphite_dballe.account','graphite_dballe.account.migrations',
+                'graphite_dballe.browser',
+                'graphite_dballe.composer',
+                'graphite_dballe.dashboard','graphite_dballe.dashboard.migrations',
+                'graphite_dballe.events','graphite_dballe.events.migrations',
+                'graphite_dballe.finders',
+                'graphite_dballe.metrics',
+                'graphite_dballe.render',
+                'graphite_dballe.readers',
+                'graphite_dballe.url_shortener','graphite_dballe.url_shortener.migrations',
+                'graphite_dballe.version',
+                'graphite_dballe.whitelist',
+                'graphite_dballe.worker_pool',
+                'graphite_dballe.tags',
+                'graphite_dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
                 'firmware_updater_stima','firmware_updater_stima.migrations',
                 'ticket','ticket.migrations',
@@ -460,7 +460,7 @@ setup(name='rmap',
           'amatyr':['templates/amatyr/*']+amatyr_package_data,
           'borinud':['templates/borinud/*']+borinud_package_data,
           'geoimage':['templates/geoimage/*']+geoimage_package_data,
-          'graphite-dballe':['templates/*']+graphite_dballe_package_data,
+          'graphite_dballe':['templates/*']+graphite_dballe_package_data,
           'http2mqtt':['templates/*']+http2mqtt_package_data,
           'insertdata':['templates/insertdata/*']+insertdata_package_data,
           'rmap.registration':['templates/registration/*']+registration_package_data,
