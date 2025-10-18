@@ -19,7 +19,7 @@
   const url = 'wss://{{ mqtt_host }}:8884/mqtt'
 
   var username="{{ mqtt_username }}";
-  var password="{{ mqtt_password }}";
+  var password="{{ mqtt_password|escapejs }}";
 
   var root_topic= "{{ mqtt_root_topic }}"+"#";
   var maint_topic= "{{ mqtt_maint_topic }}"+"#";
