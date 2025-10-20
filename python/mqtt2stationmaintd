@@ -342,6 +342,8 @@ class MyMQTTClass(mqtt.Client):
 
                             mypreviousboard = Board.objects.get(slug=m["boardstatus"]["boardslug"]                            
                                                         ,stationmetadata=mystation)
+                            repr(mypreviousboard.boardmaintstatus)  # this is required to evaluate the one to one related object !
+			    
                             myboard.boardmaintstatus.save()
                             
                         else:
@@ -508,7 +510,7 @@ class MyMQTTClass(mqtt.Client):
         if (not diff):
             logging.info("no difference no mail")
             return	   		       
-        
+
         context={"station":mystation,"board":myboard,"url":"http://"+Site.objects.get(id=rmap.settings.SITE_ID).domain,
                  "changed_statusb":changed_statusb,
                  "changed_statusv":changed_statusv,
