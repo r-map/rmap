@@ -85,15 +85,13 @@ void publishThread::Run() {
     mqttclient.yield(0);
     
     if ( !status_published ){
-      mqttDisconnect();
+      if (status_connected) mqttDisconnect();
       if (mqttConnect(false)) {   // manage mqtt reconnect as RMAP standard
 	data->logger->notice(F("publish MQTT connected"));
 	connect_errorcount = 0;
 	data->status->publish.connect=ok;
-	status_connected=true;
       } else {
 	data->logger->error(F("publish MQTT connect failed"));
-	status_connected=false;
 	connect_errorcount++;
 	if (connect_errorcount > 15) {
 	  data->logger->error(F("publish too much error: drop WiFi"));
@@ -174,7 +172,8 @@ bool publishThread::mqttDisconnect() {
   */
 
   mqttclient.disconnect();
-  
+  status_connected=false;
+
   char comtopic[MQTT_SUBSCRIBE_TOPIC_LENGTH];
 
   strcpy(comtopic,"1/");
@@ -358,19 +357,15 @@ bool publishThread::mqttConnect(const bool cleanSession) {
     if (publish_maint()) {
       data->logger->notice(F("publish Published maint"));
       data->status->publish.publish=ok;      
-      status_published=true;
     }else{
       data->logger->error(F("publish Error in publish maint"));
-      status_published=false;
       return false;
     }
     if (publish_constantdata()) {
       data->logger->notice(F("publish Published constant data"));
       data->status->publish.publish=ok;
-      status_published=true;
     }else{
       data->logger->error(F("publish Error in publish constant data"));
-      status_published=false;
       return false;
     }
   }
@@ -378,13 +373,12 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   if (mqttSubscribeRpc()) {
     data->logger->notice(F("publish Subscribed to rpc path"));
     data->status->publish.publish=ok;
-    status_published=true;
   }else{
     data->logger->error(F("publish Subscribe to rpc path"));
-    status_published=false;
     return false;
   }
 
+  status_connected=true;
   return true;
 }
 
@@ -399,19 +393,24 @@ bool publishThread::mqttPublish( const mqttMessage_t& mqtt_message, const bool r
     tx_message.payload = (void*) mqtt_message.payload;
     tx_message.payloadlen = strlen(mqtt_message.payload);
 
-    data->logger->notice(F("publish Publish: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
-    
-    MQTT::returnCode rc = (MQTT::returnCode) mqttclient.publish(mqtt_message.topic, tx_message);
-    switch (rc){
-    case MQTT::BUFFER_OVERFLOW:
-      data->logger->error(F("publish BUFFER_OVERFLOW"));
-      break;
-    case MQTT::FAILURE:
-      data->logger->error(F("publish FAILURE"));
-      break;
-    case MQTT::SUCCESS:
-      data->logger->notice(F("publish SUCCESS"));
-      break;
+    uint8_t retry=0;
+    MQTT::returnCode rc = MQTT::FAILURE; 
+    while (rc == MQTT::FAILURE and retry++ <= 3) {
+      data->logger->notice(F("publish Publish: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      rc = (MQTT::returnCode) mqttclient.publish(mqtt_message.topic, tx_message);
+      switch (rc){
+      case MQTT::BUFFER_OVERFLOW:
+	data->logger->error(F("publish BUFFER_OVERFLOW"));
+	break;
+      case MQTT::FAILURE:
+	data->logger->error(F("publish FAILURE"));
+	status_published=false;
+	break;
+      case MQTT::SUCCESS:
+	data->logger->notice(F("publish SUCCESS"));
+	status_published=true;
+	break;
+      }
     }
     return (rc == MQTT::SUCCESS);
 }
@@ -578,7 +577,6 @@ void publishThread::store() {
   }
 }
 
-// if required connect to the broker, publish maint message, publish constant data messages
 // try to send message to the broker
 // send the same message to the queue for DB with flag to describe if publish is completed with success
 bool publishThread::doPublish() {
@@ -602,13 +600,7 @@ bool publishThread::doPublish() {
     }
   }
   
-  if ( rc ){
-    data->status->publish.publish=ok;
-    status_published=true;
-  } else {
-    status_published=false;
-  }
-  
+  if ( rc ) data->status->publish.publish=ok;
   return rc;
 }
 

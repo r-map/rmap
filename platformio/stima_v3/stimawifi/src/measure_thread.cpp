@@ -266,6 +266,9 @@ measureThread::measureThread(measure_data_t* measure_data)
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->novalue=unknown;
   data->status->sensor=unknown;
+  data->status->geodef=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
     
   //Start();
   
@@ -303,6 +306,9 @@ void measureThread::Cleanup()
   // todo disconnect and others
   data->status->novalue=unknown;
   data->status->sensor=unknown;
+  data->status->geodef=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   delete this;
 }
 

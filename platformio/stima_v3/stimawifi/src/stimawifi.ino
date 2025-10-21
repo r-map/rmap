@@ -1359,7 +1359,11 @@ void setup() {
   wifiManager.setAPClientCheck(false);
   //if true, reset timeout when webclient connects (true), suggest disabling if captiveportal is open    
   wifiManager.setWebPortalClientCheck(false);
-    
+// sets number of retries for autoconnect, force retry after wait failure exit
+  wifiManager.setConnectRetries(3);
+ //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
+  wifiManager.setConnectTimeout(30);
+ 
   if (oledpresent) {
       LockGuard guard(i2cmutex);
       u8g2->clearBuffer();
