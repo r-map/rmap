@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-10-23 21:11+0000\n"
-"PO-Revision-Date: 2025-03-05 13:42+0100\n"
+"PO-Revision-Date: 2025-10-23 23:43+0200\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.7\n"
 
 #: rmap/form.py:22
 msgid "station to configure"
@@ -253,15 +253,15 @@ msgstr ""
 "la posizione segnata dal \"mirino\" come nostra \"Location\" e un "
 "\"segnaposto\" sulla mappa ne visualizzerà la posizione permanentemente "
 "salvata.\n"
-"Cliccando sul segnaposto vengono visualizzati tutti i dati della \"location"
-"\"; dalla prima pagina dal menu \"Impostazioni\" alla voce \"Location\" è "
-"possibile modificare o integrare tutti i dati compresa l'altezza e il nome "
-"mnemonico della vostra postazione.\n"
+"Cliccando sul segnaposto vengono visualizzati tutti i dati della "
+"\"location\"; dalla prima pagina dal menu \"Impostazioni\" alla voce "
+"\"Location\" è possibile modificare o integrare tutti i dati compresa "
+"l'altezza e il nome mnemonico della vostra postazione.\n"
 "Se nelle impostazioni è stata selezionata una stazione di tipo mobile allora "
 "con il bottone \"Inizia Viaggio\" è possibile determinare che il successivo "
-"gruppo di misure che verranno fatte saranno lungo un percorso, un \"viaggio"
-"\" dove la \"location\" viene costantemente aggiornata dal GPS; il bottone "
-"\"Inizia Viaggio\" serve a questo scopo.\n"
+"gruppo di misure che verranno fatte saranno lungo un percorso, un "
+"\"viaggio\" dove la \"location\" viene costantemente aggiornata dal GPS; il "
+"bottone \"Inizia Viaggio\" serve a questo scopo.\n"
 "\n"
 "                           Continua -->"
 
@@ -1096,7 +1096,7 @@ msgstr "versione secondaria firmware"
 
 #: rmap/stations/models.py:771
 msgid "Enable email for status changes"
-msgstr ""
+msgstr "Abilita email per il cambio di stato"
 
 #: rmap/stations/models.py:839
 msgid "Last status bit 1"
@@ -1280,7 +1280,7 @@ msgstr "Stazione con ident non può avere coordinate (lat/lon)."
 
 #: rmap/stations/models.py:1039
 msgid "ident can be equal to username only."
-msgstr ""
+msgstr "L'ident se impostato deve essere identico alla username."
 
 #: rmap/stations/models.py:1116
 msgid "I accept CC BY 4.0 license"
@@ -1576,10 +1576,8 @@ msgstr "Versione del Firmware stazione"
 
 #: rmap/templates/changed_status_email.html:39
 #: rmap/templates/changed_status_email.html:74
-#, fuzzy
-#| msgid "Red if changed"
 msgid "Cyan if changed"
-msgstr "Rosso se cambiato"
+msgstr "Ciano se cambiato"
 
 #: rmap/templates/changed_status_email.html:44
 #: rmap/templates/changed_status_email.html:101
@@ -1587,10 +1585,8 @@ msgid "Red if alert"
 msgstr "Rosso se allarme"
 
 #: rmap/templates/changed_status_email.html:50
-#, fuzzy
-#| msgid "Diagnostic by station status"
 msgid "Last station status Error"
-msgstr "Diagnostica dallo stato della stazione"
+msgstr "Ultimo stato di errore della stazione"
 
 #: rmap/templates/changed_status_email.html:58
 #: rmap/templates/stations/stationmetadata_detail.html:66
@@ -1864,10 +1860,8 @@ msgid "Last local station data"
 msgstr "Ultimi dati da stazione locale"
 
 #: rmap/templates/stations/stationlocaldata.html:198
-#, fuzzy
-#| msgid "Download data"
 msgid "Download archive data file"
-msgstr "Scarica i dati"
+msgstr "Scarica il file con i dati di archivio"
 
 #: rmap/templates/stations/stationlocaldata.html:199
 msgid "Download archive info file"
@@ -2162,16 +2156,16 @@ msgstr "Profilo"
 #~ "Welcome to Rmap4RainBO crowdsourcing application developed by <a "
 #~ "target='_blank' href='http://www.meeo.it/wp/?lang=en'>MEEO S.r.l</a>, in "
 #~ "the <a target='_blank' href='https://www.rainbolife.eu/'>RainBO LIFE "
-#~ "project</a>, in collaboration with <a target='_blank' href='https://www."
-#~ "arpae.it/'>ARPAE</a> starting from the <a target='_blank' href='http://"
-#~ "rmap.cc/'>Rmap</a> application"
+#~ "project</a>, in collaboration with <a target='_blank' href='https://"
+#~ "www.arpae.it/'>ARPAE</a> starting from the <a target='_blank' "
+#~ "href='http://rmap.cc/'>Rmap</a> application"
 #~ msgstr ""
 #~ "Benvenuto nell'applicazione di crowdsourcing Rmap4RainBO sviluppata da <a "
 #~ "target='_blank' href='http://www.meeo.it/wp/?lang=en'>MEEO S.r.l</a>,  "
-#~ "nell'ambito del progetto <a target='_blank' href='https://www.rainbolife."
-#~ "eu/'>RainBO LIFE</a>, in collaborazione con <a target='_blank' "
-#~ "href='https://www.arpae.it/'>ARPAE</a> partendo dall’applicazione <a "
-#~ "target='_blank' href='http://rmap.cc/'>Rmap</a>"
+#~ "nell'ambito del progetto <a target='_blank' href='https://"
+#~ "www.rainbolife.eu/'>RainBO LIFE</a>, in collaborazione con <a "
+#~ "target='_blank' href='https://www.arpae.it/'>ARPAE</a> partendo "
+#~ "dall’applicazione <a target='_blank' href='http://rmap.cc/'>Rmap</a>"
 
 #~ msgid ""
 #~ "The purpose is to involve citizens in uploading the observed "
@@ -2202,8 +2196,8 @@ msgstr "Profilo"
 #~ "competent institutions. The goal is to start building a database of "
 #~ "historical data on the recorded impacts in order to correlate them to "
 #~ "regional meteorological alerts. The weather phenomena codification is "
-#~ "based on the <a target='_blank' href='https://www.wmo.int/pages/index_en."
-#~ "html'>WMO – World Meteorological Organization</a> standards."
+#~ "based on the <a target='_blank' href='https://www.wmo.int/pages/"
+#~ "index_en.html'>WMO – World Meteorological Organization</a> standards."
 #~ msgstr ""
 #~ "L'applicazione rappresenta anche una piattaforma sperimentale rivolta a "
 #~ "cittadini e istituzioni, per raccogliere riscontri sul territorio "
