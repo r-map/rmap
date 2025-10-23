@@ -36,8 +36,8 @@
 
 <table border="1">
   <tr>
-    <th>{% trans 'Red if changed' %}</th>
-    <th{% if changed_laststatus  %} style="background-color:Tomato;"{% endif %}>{% trans 'Last status' %}</th>
+    <th>{% trans 'Cyan if changed' %}</th>
+    <th{% if changed_laststatus  %} style="background-color:Cyan;"{% endif %}>{% trans 'Last status' %}</th>
   </tr>
   
   <tr>
@@ -71,29 +71,29 @@
     <table border="1">
     <tr>
 
-      <th>{% trans 'Red if changed' %}</th>
-      <th{% if changed_statusb.0  %} style="background-color:Tomato;"{% endif %}>{% trans 'B1' %}</th>
-      <th{% if changed_statusb.1  %} style="background-color:Tomato;"{% endif %}>{% trans 'B2' %}</th>
-      <th{% if changed_statusb.2  %} style="background-color:Tomato;"{% endif %}>{% trans 'B3' %}</th>
-      <th{% if changed_statusb.3  %} style="background-color:Tomato;"{% endif %}>{% trans 'B4' %}</th>
-      <th{% if changed_statusb.4  %} style="background-color:Tomato;"{% endif %}>{% trans 'B5' %}</th>
-      <th{% if changed_statusb.5  %} style="background-color:Tomato;"{% endif %}>{% trans 'B6' %}</th>
-      <th{% if changed_statusb.6  %} style="background-color:Tomato;"{% endif %}>{% trans 'B7' %}</th>
-      <th{% if changed_statusb.7  %} style="background-color:Tomato;"{% endif %}>{% trans 'B8' %}</th>
-      <th{% if changed_statusb.8  %} style="background-color:Tomato;"{% endif %}>{% trans 'B9' %}</th>
-      <th{% if changed_statusb.9  %} style="background-color:Tomato;"{% endif %}>{% trans 'B10' %}</th>
-      <th{% if changed_statusb.10 %} style="background-color:Tomato;"{% endif %}>{% trans 'B11' %}</th>
-      <th{% if changed_statusb.11 %} style="background-color:Tomato;"{% endif %}>{% trans 'B12' %}</th>
-      <th{% if changed_statusb.12 %} style="background-color:Tomato;"{% endif %}>{% trans 'B13' %}</th>
-      <th{% if changed_statusb.13 %} style="background-color:Tomato;"{% endif %}>{% trans 'B14' %}</th>
-      <th{% if changed_statusb.14 %} style="background-color:Tomato;"{% endif %}>{% trans 'B15' %}</th>
-      <th{% if changed_statusb.15 %} style="background-color:Tomato;"{% endif %}>{% trans 'B16' %}</th>
+      <th>{% trans 'Cyan if changed' %}</th>
+      <th{% if changed_statusb.0  %} style="background-color:Cyan;"{% endif %}>{% trans 'B1' %}</th>
+      <th{% if changed_statusb.1  %} style="background-color:Cyan;"{% endif %}>{% trans 'B2' %}</th>
+      <th{% if changed_statusb.2  %} style="background-color:Cyan;"{% endif %}>{% trans 'B3' %}</th>
+      <th{% if changed_statusb.3  %} style="background-color:Cyan;"{% endif %}>{% trans 'B4' %}</th>
+      <th{% if changed_statusb.4  %} style="background-color:Cyan;"{% endif %}>{% trans 'B5' %}</th>
+      <th{% if changed_statusb.5  %} style="background-color:Cyan;"{% endif %}>{% trans 'B6' %}</th>
+      <th{% if changed_statusb.6  %} style="background-color:Cyan;"{% endif %}>{% trans 'B7' %}</th>
+      <th{% if changed_statusb.7  %} style="background-color:Cyan;"{% endif %}>{% trans 'B8' %}</th>
+      <th{% if changed_statusb.8  %} style="background-color:Cyan;"{% endif %}>{% trans 'B9' %}</th>
+      <th{% if changed_statusb.9  %} style="background-color:Cyan;"{% endif %}>{% trans 'B10' %}</th>
+      <th{% if changed_statusb.10 %} style="background-color:Cyan;"{% endif %}>{% trans 'B11' %}</th>
+      <th{% if changed_statusb.11 %} style="background-color:Cyan;"{% endif %}>{% trans 'B12' %}</th>
+      <th{% if changed_statusb.12 %} style="background-color:Cyan;"{% endif %}>{% trans 'B13' %}</th>
+      <th{% if changed_statusb.13 %} style="background-color:Cyan;"{% endif %}>{% trans 'B14' %}</th>
+      <th{% if changed_statusb.14 %} style="background-color:Cyan;"{% endif %}>{% trans 'B15' %}</th>
+      <th{% if changed_statusb.15 %} style="background-color:Cyan;"{% endif %}>{% trans 'B16' %}</th>
 
-      <th{% if changed_statusv.0 > 0  %} style="background-color:Tomato;"{% endif %}>{% trans 'V1' %}</th>
-      <th{% if changed_statusv.1 > 0  %} style="background-color:Tomato;"{% endif %}>{% trans 'V2' %}</th>
-      <th{% if changed_statusv.2 > 0  %} style="background-color:Tomato;"{% endif %}>{% trans 'V3' %}</th>
-      <th{% if changed_statusv.3 > 0  %} style="background-color:Tomato;"{% endif %}>{% trans 'V4' %}</th>
-      <th{% if changed_statusv.4 > 0  %} style="background-color:Tomato;"{% endif %}>{% trans 'V5' %}</th>
+      <th{% if changed_statusv.0 > 0  %} style="background-color:Cyan;"{% endif %}>{% trans 'V1' %}</th>
+      <th{% if changed_statusv.1 > 0  %} style="background-color:Cyan;"{% endif %}>{% trans 'V2' %}</th>
+      <th{% if changed_statusv.2 > 0  %} style="background-color:Cyan;"{% endif %}>{% trans 'V3' %}</th>
+      <th{% if changed_statusv.3 > 0  %} style="background-color:Cyan;"{% endif %}>{% trans 'V4' %}</th>
+      <th{% if changed_statusv.4 > 0  %} style="background-color:Cyan;"{% endif %}>{% trans 'V5' %}</th>
 
     </tr>
   
@@ -128,29 +128,29 @@
     <tr>
       <th>{% trans 'Description' %}</th>
 
-      <td>{% if changed_statusb.0  %} {{board.boardmaintstatus.statusb_explain.0}}{% endif %}</td> 
-      <td>{% if changed_statusb.1  %} {{board.boardmaintstatus.statusb_explain.1}}{% endif %}</td> 
-      <td>{% if changed_statusb.2  %} {{board.boardmaintstatus.statusb_explain.2}}{% endif %}</td> 
-      <td>{% if changed_statusb.3  %} {{board.boardmaintstatus.statusb_explain.3}}{% endif %}</td> 
-      <td>{% if changed_statusb.4  %} {{board.boardmaintstatus.statusb_explain.4}}{% endif %}</td> 
-      <td>{% if changed_statusb.5  %} {{board.boardmaintstatus.statusb_explain.5}}{% endif %}</td> 
-      <td>{% if changed_statusb.6  %} {{board.boardmaintstatus.statusb_explain.6}}{% endif %}</td> 
-      <td>{% if changed_statusb.7  %} {{board.boardmaintstatus.statusb_explain.7}}{% endif %}</td> 
-      <td>{% if changed_statusb.8  %} {{board.boardmaintstatus.statusb_explain.8}}{% endif %}</td> 
-      <td>{% if changed_statusb.9  %} {{board.boardmaintstatus.statusb_explain.9}}{% endif %}</td>	  
-      <td>{% if changed_statusb.10 %} {{board.boardmaintstatus.statusb_explain.10}}{% endif %}</td>
-      <td>{% if changed_statusb.11 %} {{board.boardmaintstatus.statusb_explain.11}}{% endif %}</td>
-      <td>{% if changed_statusb.12 %} {{board.boardmaintstatus.statusb_explain.12}}{% endif %}</td>
-      <td>{% if changed_statusb.13 %} {{board.boardmaintstatus.statusb_explain.13}}{% endif %}</td>
-      <td>{% if changed_statusb.14 %} {{board.boardmaintstatus.statusb_explain.14}}{% endif %}</td>
-      <td>{% if changed_statusb.15 %} {{board.boardmaintstatus.statusb_explain.15}}{% endif %}</td>
+      <td>{% if changed_statusb.0 or board.boardmaintstatus.statusb1 %} {{board.boardmaintstatus.statusb_explain.0}}{% endif %}</td> 
+      <td>{% if changed_statusb.1 or board.boardmaintstatus.statusb2 %} {{board.boardmaintstatus.statusb_explain.1}}{% endif %}</td> 
+      <td>{% if changed_statusb.2 or board.boardmaintstatus.statusb3 %} {{board.boardmaintstatus.statusb_explain.2}}{% endif %}</td> 
+      <td>{% if changed_statusb.3 or board.boardmaintstatus.statusb4 %} {{board.boardmaintstatus.statusb_explain.3}}{% endif %}</td> 
+      <td>{% if changed_statusb.4 or board.boardmaintstatus.statusb5 %} {{board.boardmaintstatus.statusb_explain.4}}{% endif %}</td> 
+      <td>{% if changed_statusb.5 or board.boardmaintstatus.statusb6 %} {{board.boardmaintstatus.statusb_explain.5}}{% endif %}</td> 
+      <td>{% if changed_statusb.6 or board.boardmaintstatus.statusb7 %} {{board.boardmaintstatus.statusb_explain.6}}{% endif %}</td> 
+      <td>{% if changed_statusb.7 or board.boardmaintstatus.statusb8 %} {{board.boardmaintstatus.statusb_explain.7}}{% endif %}</td> 
+      <td>{% if changed_statusb.8 or board.boardmaintstatus.statusb9 %} {{board.boardmaintstatus.statusb_explain.8}}{% endif %}</td> 
+      <td>{% if changed_statusb.9 or board.boardmaintstatus.statusb10 %} {{board.boardmaintstatus.statusb_explain.9}}{% endif %}</td>	  
+      <td>{% if changed_statusb.10 or board.boardmaintstatus.statusb11 %} {{board.boardmaintstatus.statusb_explain.10}}{% endif %}</td>
+      <td>{% if changed_statusb.11 or board.boardmaintstatus.statusb12 %} {{board.boardmaintstatus.statusb_explain.11}}{% endif %}</td>
+      <td>{% if changed_statusb.12 or board.boardmaintstatus.statusb13 %} {{board.boardmaintstatus.statusb_explain.12}}{% endif %}</td>
+      <td>{% if changed_statusb.13 or board.boardmaintstatus.statusb14 %} {{board.boardmaintstatus.statusb_explain.13}}{% endif %}</td>
+      <td>{% if changed_statusb.14 or board.boardmaintstatus.statusb15 %} {{board.boardmaintstatus.statusb_explain.14}}{% endif %}</td>
+      <td>{% if changed_statusb.15 or board.boardmaintstatus.statusb16 %} {{board.boardmaintstatus.statusb_explain.15}}{% endif %}</td>
 
 	  
-      <td>{% if changed_statusv.0 > 0  %} {{board.boardmaintstatus.statusv_explain.0}}{% endif %}</td>
-      <td>{% if changed_statusv.1 > 0  %} {{board.boardmaintstatus.statusv_explain.1}}{% endif %}</td>
-      <td>{% if changed_statusv.2 > 0  %} {{board.boardmaintstatus.statusv_explain.2}}{% endif %}</td>
-      <td>{% if changed_statusv.3 > 0  %} {{board.boardmaintstatus.statusv_explain.3}}{% endif %}</td>
-      <td>{% if changed_statusv.4 > 0  %} {{board.boardmaintstatus.statusv_explain.4}}{% endif %}</td>
+      <td>{% if changed_statusv.0 > 0 or board.boardmaintstatus.statusv1 > 0 %} {{board.boardmaintstatus.statusv_explain.0}}{% endif %}</td>
+      <td>{% if changed_statusv.1 > 0 or board.boardmaintstatus.statusv2 > 0  %} {{board.boardmaintstatus.statusv_explain.1}}{% endif %}</td>
+      <td>{% if changed_statusv.2 > 0 or board.boardmaintstatus.statusv3 > 0  %} {{board.boardmaintstatus.statusv_explain.2}}{% endif %}</td>
+      <td>{% if changed_statusv.3 > 0 or board.boardmaintstatus.statusv4 > 0  %} {{board.boardmaintstatus.statusv_explain.3}}{% endif %}</td>
+      <td>{% if changed_statusv.4 > 0 or board.boardmaintstatus.statusv5 > 0  %} {{board.boardmaintstatus.statusv_explain.4}}{% endif %}</td>
       
     </tr>
     </table>
