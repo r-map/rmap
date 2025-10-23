@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 13:00+0000\n"
+"POT-Creation-Date: 2025-10-23 21:11+0000\n"
 "PO-Revision-Date: 2025-05-28 15:02+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -54,69 +54,84 @@ msgid "for day "
 msgstr "per il giorno "
 
 #: showdata/templates/showdata/rainbospatialseries.html:167
-#: showdata/templates/showdata/spatialseries.html:108
+#: showdata/templates/showdata/spatialseries.html:109
 #: showdata/templates/showdata/timeseries.html:53
 msgid "Prev"
 msgstr "Prima"
 
 #: showdata/templates/showdata/rainbospatialseries.html:172
-#: showdata/templates/showdata/spatialseries.html:113
+#: showdata/templates/showdata/spatialseries.html:114
 #: showdata/templates/showdata/timeseries.html:58
 msgid "Next"
 msgstr "Dopo"
 
 #: showdata/templates/showdata/rainbospatialseries.html:179
-#: showdata/templates/showdata/spatialseries.html:129
+#: showdata/templates/showdata/spatialseries.html:130
 #: showdata/templates/showdata/stationdata.html:92
 msgid "Loading data"
 msgstr "Caricamento dati"
 
 #: showdata/templates/showdata/rainbospatialseries.html:180
-#: showdata/templates/showdata/spatialseries.html:130
+#: showdata/templates/showdata/spatialseries.html:131
 #: showdata/templates/showdata/stationdata.html:93
 #: showdata/templates/showdata/stations.html:73
 msgid "Please wait ..."
 msgstr "Attendere per favore..."
 
 #: showdata/templates/showdata/rainbospatialseries.html:233
-#: showdata/templates/showdata/spatialseries.html:250
+#: showdata/templates/showdata/spatialseries.html:251
 #: showdata/templates/showdata/stationdata.html:161
 #: showdata/templates/showdata/stations.html:127
 msgid "Please Wait..."
 msgstr "Attendere per favore..."
 
-#: showdata/templates/showdata/spatialseries.html:100
+#: showdata/templates/showdata/spatialseries.html:101
 #: showdata/templates/showdata/timeseries.html:44
 msgid "More"
 msgstr "Di più"
 
-#: showdata/templates/showdata/spatialseries.html:121
+#: showdata/templates/showdata/spatialseries.html:122
 #: showdata/templates/showdata/timeseries.html:66
 msgid "Less"
 msgstr "Meno"
 
-#: showdata/templates/showdata/spatialseries.html:269
+#: showdata/templates/showdata/spatialseries.html:270
 msgid "Constant station data"
 msgstr "Dati di anagrafica della stazione"
 
-#: showdata/templates/showdata/spatialseries.html:642
+#: showdata/templates/showdata/spatialseries.html:643
 msgid "Show all values on a map"
 msgstr "Mostra tutti i valori sulla mappa"
 
-#: showdata/templates/showdata/spatialseries.html:657
+#: showdata/templates/showdata/spatialseries.html:658
 msgid "Show all values on a graph"
 msgstr "Mostra tutti i valori in grafico"
 
-#: showdata/templates/showdata/spatialseries.html:670
+#: showdata/templates/showdata/spatialseries.html:671
 msgid "Show stations on a map"
 msgstr "Mostra le stazioni sulla mappa"
 
-#: showdata/templates/showdata/spatialseries.html:684
+#: showdata/templates/showdata/spatialseries.html:680
 #: showdata/templates/showdata/stationdata.html:406
 #: showdata/templates/showdata/stations.html:261
-#: showdata/templates/showdata/timeseries.html:120
+#: showdata/templates/showdata/timeseries.html:113
 msgid "Download data"
 msgstr "Scarica i dati"
+
+#: showdata/templates/showdata/spatialseries.html:689
+#: showdata/templates/showdata/timeseries.html:126
+msgid "dbajson"
+msgstr ""
+
+#: showdata/templates/showdata/spatialseries.html:698
+#: showdata/templates/showdata/timeseries.html:140
+msgid "geojson"
+msgstr ""
+
+#: showdata/templates/showdata/spatialseries.html:707
+#: showdata/templates/showdata/timeseries.html:154
+msgid "csv"
+msgstr ""
 
 #: showdata/templates/showdata/stationdata.html:396
 #: showdata/templates/showdata/stations.html:254

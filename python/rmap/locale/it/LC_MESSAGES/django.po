@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-28 13:00+0000\n"
+"POT-Creation-Date: 2025-10-23 21:11+0000\n"
 "PO-Revision-Date: 2025-03-05 13:42+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
@@ -95,7 +95,8 @@ msgstr "Nome abbreviato"
 
 #: rmap/network/templates/network/networkmetadata_detail.html:15
 #: rmap/network/templates/network/networkmetadata_list.html:15
-#: rmap/templates/changed_status_email.html:109
+#: rmap/templates/changed_status_email.html:49
+#: rmap/templates/changed_status_email.html:129
 msgid "Description"
 msgstr "Descrizione"
 
@@ -1077,7 +1078,7 @@ msgstr ""
 msgid "Serial number"
 msgstr "Numero seriale"
 
-#: rmap/stations/models.py:767
+#: rmap/stations/models.py:767 rmap/templates/changed_status_email.html:40
 msgid "Last status"
 msgstr "Ultimo stato"
 
@@ -1547,7 +1548,8 @@ msgstr "Stato stazione"
 #: rmap/templates/changed_status_email.html:33
 #: rmap/templates/changed_status_email.html:34
 #: rmap/templates/changed_status_email.html:45
-#: rmap/templates/changed_status_email.html:46
+#: rmap/templates/changed_status_email.html:65
+#: rmap/templates/changed_status_email.html:66
 #: rmap/templates/stations/stationmetadata_detail.html:53
 #: rmap/templates/stations/stationmetadata_detail.html:54
 #: rmap/templates/stations/stationmetadata_detail.html:67
@@ -1559,7 +1561,7 @@ msgid "Missing"
 msgstr "Mancante"
 
 #: rmap/templates/changed_status_email.html:33
-#: rmap/templates/changed_status_email.html:41
+#: rmap/templates/changed_status_email.html:61
 #: rmap/templates/stations/stationmetadata_detail.html:53
 #: rmap/templates/stations/stationmetadata_list.html:31
 #: rmap/templates/stations/stationstatus_detail.html:100
@@ -1572,13 +1574,31 @@ msgstr "Ultimo aggiornamento dello stato"
 msgid "Station firmware version"
 msgstr "Versione del Firmware stazione"
 
-#: rmap/templates/changed_status_email.html:38
+#: rmap/templates/changed_status_email.html:39
+#: rmap/templates/changed_status_email.html:74
+#, fuzzy
+#| msgid "Red if changed"
+msgid "Cyan if changed"
+msgstr "Rosso se cambiato"
+
+#: rmap/templates/changed_status_email.html:44
+#: rmap/templates/changed_status_email.html:101
+msgid "Red if alert"
+msgstr "Rosso se allarme"
+
+#: rmap/templates/changed_status_email.html:50
+#, fuzzy
+#| msgid "Diagnostic by station status"
+msgid "Last station status Error"
+msgstr "Diagnostica dallo stato della stazione"
+
+#: rmap/templates/changed_status_email.html:58
 #: rmap/templates/stations/stationmetadata_detail.html:66
 #: rmap/templates/stations/stationstatus_detail.html:108
 msgid "Board name"
 msgstr "Nome scheda"
 
-#: rmap/templates/changed_status_email.html:39
+#: rmap/templates/changed_status_email.html:59
 #: rmap/templates/stations/stationmetadata_detail.html:54
 #: rmap/templates/stations/stationmetadata_detail.html:67
 #: rmap/templates/stations/stationstatus_detail.html:101
@@ -1586,124 +1606,116 @@ msgstr "Nome scheda"
 msgid "Firmware version"
 msgstr "Versione del Firmware"
 
-#: rmap/templates/changed_status_email.html:40
+#: rmap/templates/changed_status_email.html:60
 #: rmap/templates/stations/stationmetadata_detail.html:67
 #: rmap/templates/stations/stationstatus_detail.html:110
 msgid "Last firmware update"
 msgstr "Ultimo aggiornamento firmware"
 
-#: rmap/templates/changed_status_email.html:54
-msgid "Red if changed"
-msgstr "Rosso se cambiato"
-
-#: rmap/templates/changed_status_email.html:55
+#: rmap/templates/changed_status_email.html:75
 #: rmap/templates/stations/stationstatus_detail.html:112
 msgid "B1"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:56
+#: rmap/templates/changed_status_email.html:76
 #: rmap/templates/stations/stationstatus_detail.html:113
 msgid "B2"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:57
+#: rmap/templates/changed_status_email.html:77
 #: rmap/templates/stations/stationstatus_detail.html:114
 msgid "B3"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:58
+#: rmap/templates/changed_status_email.html:78
 #: rmap/templates/stations/stationstatus_detail.html:115
 msgid "B4"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:59
+#: rmap/templates/changed_status_email.html:79
 #: rmap/templates/stations/stationstatus_detail.html:116
 msgid "B5"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:60
+#: rmap/templates/changed_status_email.html:80
 #: rmap/templates/stations/stationstatus_detail.html:117
 msgid "B6"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:61
+#: rmap/templates/changed_status_email.html:81
 #: rmap/templates/stations/stationstatus_detail.html:118
 msgid "B7"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:62
+#: rmap/templates/changed_status_email.html:82
 #: rmap/templates/stations/stationstatus_detail.html:119
 msgid "B8"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:63
+#: rmap/templates/changed_status_email.html:83
 #: rmap/templates/stations/stationstatus_detail.html:120
 msgid "B9"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:64
+#: rmap/templates/changed_status_email.html:84
 #: rmap/templates/stations/stationstatus_detail.html:121
 msgid "B10"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:65
+#: rmap/templates/changed_status_email.html:85
 #: rmap/templates/stations/stationstatus_detail.html:122
 msgid "B11"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:66
+#: rmap/templates/changed_status_email.html:86
 #: rmap/templates/stations/stationstatus_detail.html:123
 msgid "B12"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:67
+#: rmap/templates/changed_status_email.html:87
 #: rmap/templates/stations/stationstatus_detail.html:124
 msgid "B13"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:68
+#: rmap/templates/changed_status_email.html:88
 #: rmap/templates/stations/stationstatus_detail.html:125
 msgid "B14"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:69
+#: rmap/templates/changed_status_email.html:89
 #: rmap/templates/stations/stationstatus_detail.html:126
 msgid "B15"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:70
+#: rmap/templates/changed_status_email.html:90
 #: rmap/templates/stations/stationstatus_detail.html:127
 msgid "B16"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:72
+#: rmap/templates/changed_status_email.html:92
 #: rmap/templates/stations/stationstatus_detail.html:129
 msgid "V1"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:73
+#: rmap/templates/changed_status_email.html:93
 #: rmap/templates/stations/stationstatus_detail.html:130
 msgid "V2"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:74
+#: rmap/templates/changed_status_email.html:94
 #: rmap/templates/stations/stationstatus_detail.html:131
 msgid "V3"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:75
+#: rmap/templates/changed_status_email.html:95
 #: rmap/templates/stations/stationstatus_detail.html:132
 msgid "V4"
 msgstr ""
 
-#: rmap/templates/changed_status_email.html:76
+#: rmap/templates/changed_status_email.html:96
 #: rmap/templates/stations/stationstatus_detail.html:133
 msgid "V5"
 msgstr ""
-
-#: rmap/templates/changed_status_email.html:81
-msgid "Red if alert"
-msgstr "Rosso se allarme"
 
 #: rmap/templates/mystation.html:13
 msgid "Configuration wizard"
@@ -1850,6 +1862,16 @@ msgstr "Stato comunicazione col server"
 #: rmap/templates/stations/stationlocaldata.html:148
 msgid "Last local station data"
 msgstr "Ultimi dati da stazione locale"
+
+#: rmap/templates/stations/stationlocaldata.html:198
+#, fuzzy
+#| msgid "Download data"
+msgid "Download archive data file"
+msgstr "Scarica i dati"
+
+#: rmap/templates/stations/stationlocaldata.html:199
+msgid "Download archive info file"
+msgstr ""
 
 #: rmap/templates/stations/stationmetadata_detail.html:23
 msgid "Return to user station list"
@@ -2656,9 +2678,6 @@ msgstr "Profilo"
 
 #~ msgid "Show all coordinates on a map"
 #~ msgstr "Mostra tutte le coordinate su una mappa"
-
-#~ msgid "Download data"
-#~ msgstr "Scarica i dati"
 
 #~ msgid "Show values on a map"
 #~ msgstr "Mostra valori sulla mappa"
