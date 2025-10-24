@@ -43,6 +43,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
 from django.db import close_old_connections
+from django.utils.translation import ugettext as _
 
 from rmap import daemon
 import rmap.settings
@@ -506,7 +507,10 @@ class MyMQTTClass(mqtt.Client):
             if (mypreviouslaststatus != "disconn" and mystation.stationmaintstatus.laststatus != "disconn"):
                 diff=True
                 changed_laststatus=True            
-            
+                if (mystation.stationmaintstatus.laststatus == "ERROR 01"):
+                    mystation.stationmaintstatus.laststatus = "Unexpected MQTT disconnection"
+                
+                
         if (not diff):
             logging.info("no difference no mail")
             return	   		       

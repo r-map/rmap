@@ -42,12 +42,12 @@
   
   <tr>
     <th>{% trans 'Red if alert' %}</th>      
-    <td{% if station.stationmaintstatus.laststatus != "conn"  %} style="background-color:Tomato;"{% endif %}> {{ station.stationmaintstatus.laststatus |default:_('Missing')}}</td>
+    <td{% if station.stationmaintstatus.laststatus != "conn"  %} style="background-color:Tomato;"{% endif %}>{{ station.stationmaintstatus.laststatus |default:_('Missing') }}</td>
   </tr>
     
   <tr>
     <th>{% trans 'Description' %}</th>
-    <td>{% if changed_laststatus  %}{% trans 'Last station status Error' %}{% endif %}</td> 
+    <td>{% if station.stationmaintstatus.laststatus != "conn"  %}{% trans 'Last station status Error' %} {% else %} {% trans 'Last station status OK' %} {% endif %}</td> 
   </tr>
 </table>
 
