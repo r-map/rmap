@@ -19,3 +19,4 @@ http://rmap.cc
 [![Build status stima_v4](https://github.com/r-map/rmap/workflows/stima_v4/badge.svg)](https://github.com/r-map/rmap/actions?query=workflow%3Astima_v4)
 [![Build status Python](https://github.com/r-map/rmap/workflows/Python/badge.svg)](https://github.com/r-map/rmap/actions?query=workflow%3APython)
 
+[![GitHub latest commit](https://badgen.net/github/last-commit/r-map/rmap)](https://github.com/r-map/rmap/commit/)
