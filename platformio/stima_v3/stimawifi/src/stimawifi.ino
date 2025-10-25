@@ -898,6 +898,8 @@ void writeconfig() {;
 void displayStatus()
 {
 
+  frtosLog.notice(F("WiFi signal strength (RSSI): %d dBm"),WiFi.RSSI());
+  
   bool light=true;
   
   frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
@@ -1359,10 +1361,10 @@ void setup() {
   wifiManager.setAPClientCheck(false);
   //if true, reset timeout when webclient connects (true), suggest disabling if captiveportal is open    
   wifiManager.setWebPortalClientCheck(false);
-// sets number of retries for autoconnect, force retry after wait failure exit
+  // sets number of retries for autoconnect, force retry after wait failure exit
   wifiManager.setConnectRetries(3);
- //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
-  wifiManager.setConnectTimeout(30);
+  //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
+  wifiManager.setConnectTimeout(10);
  
   if (oledpresent) {
       LockGuard guard(i2cmutex);
@@ -1423,7 +1425,7 @@ void setup() {
   }
 
   frtosLog.notice("stack setup2: %d",uxTaskGetStackHighWaterMark(NULL));
-  
+
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(station.server, custom_rmap_server.getValue());
