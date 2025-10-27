@@ -938,9 +938,9 @@ void displayStatus()
                                                    stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
                                                    stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
                                                    stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ;
-  if (stimawifiStatus.summary.err_rssi && rssi > -45) {
+  if (stimawifiStatus.summary.err_rssi && rssi > RSSILIMIT + 5) {
     stimawifiStatus.summary.err_rssi =             false;
-  } else if (!stimawifiStatus.summary.err_rssi && rssi < -55) {
+  } else if (!stimawifiStatus.summary.err_rssi && rssi < RSSILIMIT -5) {
     stimawifiStatus.summary.err_rssi =             true;
   }
 

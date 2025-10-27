@@ -10,6 +10,9 @@
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
 
+// WiFi RSSI limit for status alarm
+#define RSSILIMIT -70
+
 // defaul sample time to get measure from sensors
 #define DEFAULT_SAMPLETIME 30
 
