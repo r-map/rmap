@@ -125,23 +125,27 @@
 	<th> {% trans 'Lat' %}            </th>
 	<th> {% trans 'Lon' %}            </th>
 	<th> {% trans 'Category' %}       </th>
+	<th> {% trans 'Type' %}           </th>
 	<th> {% trans 'View on the map' %}</th>
       </tr>
-      <td> 
-	{% if object.active %}
-	<i class="fa fa-check "></i>
-	{% else %}
-	<i class="fa fa-times "></i>
-	{% endif %}
-      </td>
-      <td> {{ object.user }}   </td>
-      <td> {{ object.lat }}     </td>
-      <td> {{ object.lon }}     </td>
-      <td> {{ object.category }}</td>
-      <td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
+      
+      <tr>
+	<td> 
+	  {% if object.active %}
+	  <i class="fa fa-check "></i>
+	  {% else %}
+	  <i class="fa fa-times "></i>
+	  {% endif %}
+	</td>
+	<td> {{ object.user }}    </td>
+	<td> {{ object.lat }}     </td>
+	<td> {{ object.lon }}     </td>
+	<td> {{ object.get_category_display }}</td>
+	<td> {{ object.get_type_display }}    </td>
+	<td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
+      </tr>
     </table>
   </div>
-
 
   <div class="container-fluid">
     <div class="inner cover">

@@ -26,10 +26,11 @@
 <table class="table">
 <tr>
 <th> {% trans 'Active' %}         </th>
-<th> {% trans 'User' %}          </th>
+<th> {% trans 'User' %}           </th>
 <th> {% trans 'Lat' %}            </th>
 <th> {% trans 'Lon' %}            </th>
 <th> {% trans 'Category' %}       </th>
+<th> {% trans 'Type' %}           </th>
 <th> {% trans 'View on the map' %}</th>
 </tr>
 
@@ -41,10 +42,11 @@
       <i class="fa fa-times "></i>
     {% endif %}
   </td>
-<td> {{ object.user }}   </td>
+<td> {{ object.user }}    </td>
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
-<td> {{ object.category }}</td>
+<td> {{ object.get_category_display }}</td>
+<td> {{ object.get_type_display }}    </td>
 <td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
 </tr>
 </table>
@@ -53,8 +55,14 @@
 <h4>{% trans 'Station status' %}: {{ object.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ object.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
 <h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
 
-<p><h3> <a href="http://{{site.domain}}{% url 'mystation-localdata' object.user object.slug %}">{% trans 'Realtime local data' %} {{ object.slug }}</a></h3></p>
-
+{% if object.type == "stimav2" or object.type == "stimav3" %}
+  <p>
+    <h3>
+      <a href="http://{{site.domain}}{% url 'mystation-localdata' object.user object.slug %}" target="_blank" rel="noopener noreferrer">{% trans 'Realtime local data' %} {{ object.slug }}</a>
+    </h3>
+  </p>
+{% endif %}
+  
 <div class="container-fluid">
   <div id="preloadimages">      
 
@@ -62,8 +70,22 @@
   {% if board.active  %}
 
     <div class="row">
-    
-    <h3>{% trans 'Board name' %}: {{ board.name }}</h3>
+
+<div class="table-responsive">
+  <table class="table">
+    <tr>
+      <th> {% trans 'Board name' %}     </th>
+      <th> {% trans 'Board category' %} </th>
+      <th> {% trans 'Board type' %}     </th>
+    </tr>
+    <tr>
+      <td> {{ board.name }}                 </td>
+      <td> {{ board.get_category_display }} </td>
+      <td> {{ board.get_type_display }}     </td>
+    </tr>
+  </table>
+</div>
+
     <h4>{% trans 'Firmware version' %}: {{ board.boardfirmwaremetadata.swversion|default:_('Missing')}} // {% trans 'Last firmware update' %}: {{ board.boardfirmwaremetadata.swlastupdate|default:_('Missing')}}</h4>
     {% for sensor in board.sensor_set.all %}
       {% if sensor.active  %}
