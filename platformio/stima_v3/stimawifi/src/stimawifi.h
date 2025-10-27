@@ -114,6 +114,7 @@ publishThread threadPublish(&publish_data);
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 char status[15]="";     // status message for web and display
+int  rssi=0;            // WiFi RSSI for web and display
 
 bool loopinit=true;     // we need initialization of loop task
 

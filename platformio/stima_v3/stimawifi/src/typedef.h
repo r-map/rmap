@@ -225,6 +225,7 @@ struct summaryStatus_t
   bool err_novalue;       //!< errore almeno un sensore ha riportato almeno un dato mancante
   bool err_rtc;           //!< errore nell'ottenere data e ora dall'RTC
   bool err_memory;        //!< errore nella gestione della memoria
+  bool err_rssi;          //!< errore segnale WiFi (RSSI < 50)
 };
 
 /*!

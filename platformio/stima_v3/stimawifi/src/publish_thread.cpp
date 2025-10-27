@@ -463,6 +463,7 @@ void publishThread::reset_status_summary() {
   data->status->summary.err_novalue=false;
   data->status->summary.err_rtc=false;
   data->status->summary.err_memory=false;
+  data->status->summary.err_rssi=false;
 }
 
 // publish maint messages (support messages)
@@ -504,7 +505,7 @@ bool publishThread::publish_status_summary() {
   // "c" array is omitted by now
     
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d%d%d%d\"}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d%d%d%d%d\"}"
 	   //, jsontime
 	   , data->station->boardslug
 
@@ -521,6 +522,7 @@ bool publishThread::publish_status_summary() {
 	   , data->status->summary.err_novalue
 	   , data->status->summary.err_rtc
 	   , data->status->summary.err_memory
+	   , data->status->summary.err_rssi
 	   );
   // return true if published
   return mqttPublish(mqtt_message, false);

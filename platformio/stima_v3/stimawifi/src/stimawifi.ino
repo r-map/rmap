@@ -68,6 +68,7 @@ void set_status_summary(void) {
   stimawifiStatus.summary.err_geodef=false;
   stimawifiStatus.summary.err_sensor=false;
   stimawifiStatus.summary.err_novalue=false;
+  stimawifiStatus.summary.err_rssi=false;
 
   esp_reset_reason_t reason=esp_reset_reason();  
   switch (reason) {
@@ -170,7 +171,7 @@ void set_status_summary(int reason) {
 
 // show some measure (fixed selection) on display in a fixed position
 // display a sintetic status too
-void display_summary_data(char* status) {
+void display_summary_data() {
   
   frtosLog.notice(F("display_values"));
 
@@ -185,6 +186,9 @@ void display_summary_data(char* status) {
   //u8g2->setDrawColor(1);
   
   u8g2->setCursor(0, (displaypos++)*CH); 
+  u8g2->print("RSSI:");
+  u8g2->print(rssi);
+  u8g2->print(" ");
   u8g2->print(status);
 
   frtosLog.notice(F("display Temperature: %D"),summarydata.temperature);
@@ -296,6 +300,9 @@ String Json(){
   str +="\","
     "\"STAT\":\"";
   str +=status;
+  str +="\","
+    "\"RSSI\":\"";
+  str +=rssi;
   str +="\"}";
 
   return str;
@@ -897,8 +904,8 @@ void writeconfig() {;
 // print status and summary it for display and manage LED
 void displayStatus()
 {
-
-  frtosLog.notice(F("WiFi signal strength (RSSI): %d dBm"),WiFi.RSSI());
+  rssi=WiFi.RSSI();
+  frtosLog.notice(F("WiFi signal strength (RSSI): %d dBm"),rssi);
   
   bool light=true;
   
@@ -931,6 +938,11 @@ void displayStatus()
                                                    stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
                                                    stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
                                                    stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ;
+  if (stimawifiStatus.summary.err_rssi && rssi > -45) {
+    stimawifiStatus.summary.err_rssi =             false;
+  } else if (!stimawifiStatus.summary.err_rssi && rssi < -55) {
+    stimawifiStatus.summary.err_rssi =             true;
+  }
 
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
@@ -983,7 +995,7 @@ void displayStatus()
   }
 
   if (oledpresent) { // message on display
-    display_summary_data(status);
+    display_summary_data();
   }
 
   if (light){   // set neopixel
