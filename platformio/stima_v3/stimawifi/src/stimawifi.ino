@@ -906,6 +906,14 @@ void displayStatus()
 {
   rssi=WiFi.RSSI();
   frtosLog.notice(F("WiFi signal strength (RSSI): %d dBm"),rssi);
+
+  if (rssi < 0 ) {
+    if (stimawifiStatus.rssi != ok && rssi > RSSILIMIT + 5) {
+      stimawifiStatus.rssi = ok;
+    } else if (stimawifiStatus.rssi != error && rssi < RSSILIMIT -5) {
+      stimawifiStatus.rssi = error;
+    }
+  }
   
   bool light=true;
   
@@ -913,6 +921,7 @@ void displayStatus()
   frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
   frtosLog.notice(F("status db     : sdcard %d, database %d, archive %d"),stimawifiStatus.db.sdcard,stimawifiStatus.db.database,stimawifiStatus.db.archive);
   frtosLog.notice(F("status stimawifi: rtc    : %d"),stimawifiStatus.rtc);
+  frtosLog.notice(F("status stimawifi: rssi   : %d"),stimawifiStatus.rssi);
   //here print memory status?
   if (strcmp(station.ident,"") != 0){
     frtosLog.notice(F("status gps    : receive %d" ),stimawifiStatus.gps.receive);
@@ -938,12 +947,8 @@ void displayStatus()
                                                    stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
                                                    stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
                                                    stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ;
-  if (stimawifiStatus.summary.err_rssi && rssi > RSSILIMIT + 5) {
-    stimawifiStatus.summary.err_rssi =             false;
-  } else if (!stimawifiStatus.summary.err_rssi && rssi < RSSILIMIT -5) {
-    stimawifiStatus.summary.err_rssi =             true;
-  }
-
+  stimawifiStatus.summary.err_rssi |=              stimawifiStatus.rssi == error;
+    
   // start with unknown BLACK
   strcpy(status,"Stat: unknown");
   uint32_t color = pixels.Color(0,0,0);
@@ -951,6 +956,7 @@ void displayStatus()
   // if one not unknown then BLUE
   if (    stimawifiStatus.measure.novalue != unknown || stimawifiStatus.measure.sensor  != unknown || stimawifiStatus.measure.geodef  != unknown
 	  || stimawifiStatus.publish.connect != unknown || stimawifiStatus.publish.publish != unknown
+	  || stimawifiStatus.rtc != unknown || stimawifiStatus.rssi != unknown
 	  || stimawifiStatus.db.sdcard != unknown || stimawifiStatus.db.database != unknown || stimawifiStatus.db.archive != unknown
 	  || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive != unknown || stimawifiStatus.udp.receive != unknown))) {
     strcpy(status,"Stat: working");
@@ -968,6 +974,7 @@ void displayStatus()
           //&&  stimawifiStatus.measure.memory_collision == ok && stimawifiStatus.measure.no_heap_memory == ok
           //&&  stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
 	  //&&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok
+	  &&  stimawifiStatus.rssi == ok
 	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok && stimawifiStatus.udp.receive == ok))) {
     strcpy(status,"Stat: ok");
     color = pixels.Color(0,255,0);
@@ -988,6 +995,7 @@ void displayStatus()
          || stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error
          || stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error
 	 || stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error
+	 || stimawifiStatus.rssi == error	    
 	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error))){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
@@ -1079,6 +1087,9 @@ void setup() {
   // set summary status from one CPU only
   //set_status_summary(rtc_get_reset_reason(0));
   set_status_summary();
+
+  stimawifiStatus.rtc=unknown;
+  stimawifiStatus.rssi=unknown;
 
   // print esp reset reason
   print_reset_reason();

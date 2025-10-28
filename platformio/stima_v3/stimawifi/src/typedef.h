@@ -240,6 +240,7 @@ struct stimawifiStatus_t
   gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
   status_e rtc;                //!< Stato dell'RTC
+  status_e rssi;               //!< Stato rssi dell segnale radio WiFi
   summaryStatus_t summary;     //!< Sommario dello stato stazione che evidenzia eventuali errori nel periodo  
 };
 
