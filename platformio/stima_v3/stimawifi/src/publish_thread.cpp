@@ -513,6 +513,7 @@ bool publishThread::publish_status_summary() {
 	   //, jsontime
 	   , data->station->boardslug
 
+	   , data->status->summary.err_rssi
 	   , data->status->summary.err_power_on	   
 	   , data->status->summary.err_reboot	   
 	   , data->status->summary.err_georef	   
@@ -526,7 +527,6 @@ bool publishThread::publish_status_summary() {
 	   , data->status->summary.err_novalue
 	   , data->status->summary.err_rtc
 	   , data->status->summary.err_memory
-	   , data->status->summary.err_rssi
 	   );
   // return true if published
   return mqttPublish(mqtt_message, false);
