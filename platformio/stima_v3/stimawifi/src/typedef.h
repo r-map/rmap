@@ -241,6 +241,8 @@ struct stimawifiStatus_t
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
   status_e rtc;                //!< Stato dell'RTC
   status_e rssi;               //!< Stato rssi dell segnale radio WiFi
+  status_e memory_collision;   //!< check collisione stack e heap loop task
+  status_e no_heap_memory;     //!< no memory for allocation in heap loop task
   summaryStatus_t summary;     //!< Sommario dello stato stazione che evidenzia eventuali errori nel periodo  
 };
 

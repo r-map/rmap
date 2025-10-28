@@ -21,6 +21,8 @@ publishThread::publishThread(publish_data_t* publish_data)
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->publish.connect=unknown;
   data->status->publish.publish=unknown;
+  data->status->publish.memory_collision=ok;
+  data->status->publish.no_heap_memory=ok;
   connect_errorcount=0;
   status_published=false;
   status_connected=false;
@@ -50,6 +52,8 @@ void publishThread::Cleanup()
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->publish.connect=unknown;
   data->status->publish.publish=unknown;
+  data->status->publish.memory_collision=unknown;
+  data->status->publish.no_heap_memory=unknown;
   status_connected=false;
   status_published=false;
   delete this;

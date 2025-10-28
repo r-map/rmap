@@ -82,6 +82,8 @@ gpsThread::gpsThread(gps_data_t* gps_data)
 {
   //data->logger->notice("gps Create Thread %s %d", GetName().c_str(), data->id);
   data->status->receive=unknown;
+  data->status->memory_collision=ok;
+  data->status->no_heap_memory=ok;
   //Start();
 };
 
@@ -93,6 +95,8 @@ void gpsThread::Cleanup()
 {
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->receive=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   delete this;
 }
 

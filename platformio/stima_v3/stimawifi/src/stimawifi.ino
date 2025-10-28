@@ -68,6 +68,8 @@ void set_status_summary(void) {
   stimawifiStatus.summary.err_geodef=false;
   stimawifiStatus.summary.err_sensor=false;
   stimawifiStatus.summary.err_novalue=false;
+  stimawifiStatus.summary.err_rtc = false;
+  stimawifiStatus.summary.err_memory = false;
   stimawifiStatus.summary.err_rssi=false;
 
   esp_reset_reason_t reason=esp_reset_reason();  
@@ -917,17 +919,24 @@ void displayStatus()
   
   bool light=true;
   
-  frtosLog.notice(F("status measure: novalue %d, sensor  %d, geodef %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
-  frtosLog.notice(F("status publish: connect %d, publish %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
-  frtosLog.notice(F("status db     : sdcard %d, database %d, archive %d"),stimawifiStatus.db.sdcard,stimawifiStatus.db.database,stimawifiStatus.db.archive);
-  frtosLog.notice(F("status stimawifi: rtc    : %d"),stimawifiStatus.rtc);
-  frtosLog.notice(F("status stimawifi: rssi   : %d"),stimawifiStatus.rssi);
-  //here print memory status?
+  frtosLog.notice(F("status measure: novalue   %d, sensor   %d, geodef  %d"),stimawifiStatus.measure.novalue,stimawifiStatus.measure.sensor,stimawifiStatus.measure.geodef);
+  frtosLog.notice(F("status publish: connect   %d, publish  %d"),stimawifiStatus.publish.connect,stimawifiStatus.publish.publish);
+  frtosLog.notice(F("status db     : sdcard    %d, database %d, archive %d"),stimawifiStatus.db.sdcard,stimawifiStatus.db.database,stimawifiStatus.db.archive);
+  frtosLog.notice(F("status stimawifi: rtc     %d, rssi     %d"),stimawifiStatus.rtc,stimawifiStatus.rssi);
   if (strcmp(station.ident,"") != 0){
     frtosLog.notice(F("status gps    : receive %d" ),stimawifiStatus.gps.receive);
     frtosLog.notice(F("status udp    : receive %d" ),stimawifiStatus.udp.receive);
   }
 
+  frtosLog.notice(F("status measure  : noheap  %d, stack    %d"),stimawifiStatus.measure.no_heap_memory,stimawifiStatus.measure.memory_collision);
+  frtosLog.notice(F("status publish  : noheap  %d, stack    %d"),stimawifiStatus.publish.no_heap_memory,stimawifiStatus.publish.memory_collision);
+  frtosLog.notice(F("status db       : noheap  %d, stack    %d"),stimawifiStatus.db.no_heap_memory,stimawifiStatus.db.memory_collision);
+  frtosLog.notice(F("status stimawifi: noheap  %d, stack    %d"),stimawifiStatus.no_heap_memory,stimawifiStatus.memory_collision);
+  if (strcmp(station.ident,"") != 0){
+    frtosLog.notice(F("status db       : noheap  %d, stack    %d"),stimawifiStatus.gps.no_heap_memory,stimawifiStatus.gps.memory_collision);
+    frtosLog.notice(F("status db       : noheap  %d, stack    %d"),stimawifiStatus.udp.no_heap_memory,stimawifiStatus.udp.memory_collision);
+  }
+  
   // collect error in summary  
   //  data.status.summary.err_power_on= false;	
   //  data.status.summary.err_reboot=	false;
@@ -946,7 +955,8 @@ void displayStatus()
                                                    stimawifiStatus.publish.memory_collision == error || stimawifiStatus.publish.no_heap_memory == error ||
                                                    stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
                                                    stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
-                                                   stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ;
+                                                   stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ||
+                                                   stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error ;
   stimawifiStatus.summary.err_rssi |=              stimawifiStatus.rssi == error;
     
   // start with unknown BLACK
@@ -969,11 +979,13 @@ void displayStatus()
 	  &&  stimawifiStatus.db.sdcard == ok && stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
 	  &&  stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
 	  &&  stimawifiStatus.rtc == ok
-	  //&&  stimawifiStatus.db.memory_collision == ok && stimawifiStatus.db.no_heap_memory == ok
-          //&&  stimawifiStatus.publish.memory_collision == ok && stimawifiStatus.publish.no_heap_memory == ok
-          //&&  stimawifiStatus.measure.memory_collision == ok && stimawifiStatus.measure.no_heap_memory == ok
-          //&&  stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
-	  //&&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok
+	  &&  stimawifiStatus.db.memory_collision == ok && stimawifiStatus.db.no_heap_memory == ok
+          &&  stimawifiStatus.publish.memory_collision == ok && stimawifiStatus.publish.no_heap_memory == ok
+          &&  stimawifiStatus.measure.memory_collision == ok && stimawifiStatus.measure.no_heap_memory == ok
+	  &&  stimawifiStatus.memory_collision == ok && stimawifiStatus.no_heap_memory == ok
+          && ((strcmp(station.ident,"") == 0)
+	      || (stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
+		  &&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok))
 	  &&  stimawifiStatus.rssi == ok
 	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok && stimawifiStatus.udp.receive == ok))) {
     strcpy(status,"Stat: ok");
@@ -995,6 +1007,7 @@ void displayStatus()
          || stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error
          || stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error
 	 || stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error
+	 || stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error
 	 || stimawifiStatus.rssi == error	    
 	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error))){
     strcpy(status,"Stat: error");
@@ -1090,6 +1103,8 @@ void setup() {
 
   stimawifiStatus.rtc=unknown;
   stimawifiStatus.rssi=unknown;
+  stimawifiStatus.no_heap_memory=ok;
+  stimawifiStatus.memory_collision=ok;
 
   // print esp reset reason
   print_reset_reason();
@@ -1710,7 +1725,18 @@ void loop() {
   //MDNS.update();
   Alarm.delay(0);       // check for alarms
   delay(100);
-  
-  //frtosLog.notice("stack loop: %d",uxTaskGetStackHighWaterMark(NULL));
-  if(uxTaskGetStackHighWaterMark(NULL)< 100) frtosLog.error("stack loop");   // check memory collision
+
+
+  // check heap and stack
+  //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+  if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+    frtosLog.error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    stimawifiStatus.no_heap_memory=error;
+  }
+  //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
+  if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
+    frtosLog.error(F("loop stack"));  // check for memory collision
+    stimawifiStatus.memory_collision=error;
+  }
+
 }

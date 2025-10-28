@@ -84,6 +84,8 @@ udpThread::udpThread(udp_data_t* udp_data)
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->receive=unknown;
+  data->status->memory_collision=ok;
+  data->status->no_heap_memory=ok;
   //Start();
 };
 
@@ -97,6 +99,8 @@ void udpThread::Cleanup()
   data->logger->notice(F("udp Stop listening on UDP port %d"),UDP_PORT);
   data->logger->notice("udp Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->receive=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   delete this;
 }
 

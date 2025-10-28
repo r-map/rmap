@@ -267,8 +267,8 @@ measureThread::measureThread(measure_data_t* measure_data)
   data->status->novalue=unknown;
   data->status->sensor=unknown;
   data->status->geodef=unknown;
-  data->status->memory_collision=unknown;
-  data->status->no_heap_memory=unknown;
+  data->status->memory_collision=ok;
+  data->status->no_heap_memory=ok;
     
   //Start();
   

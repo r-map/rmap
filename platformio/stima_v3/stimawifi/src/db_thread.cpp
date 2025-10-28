@@ -790,6 +790,8 @@ dbThread::dbThread(db_data_t* db_data)
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
   data->status->database=unknown;
+  data->status->memory_collision=ok;
+  data->status->no_heap_memory=ok;
   sqlite_status=false;
   archive_recovery_state = ARCHIVE_RECOVERY_NONE;
   //Start();
@@ -803,6 +805,8 @@ void dbThread::Cleanup()
 {
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
   data->status->database=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   sqlite3_close(db);
   archiveFile.close();
   delete this;
