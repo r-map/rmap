@@ -55,7 +55,8 @@ class dbThread : public Thread {
   bool data_set_recovery();
   bool db_restart();
   void setEventArchiveRecovery();
-
+  int db_count_delayed_messages(uint32_t& number);
+  
   db_data_t* data;
   sqlite3 *db;
   //SdFat SD;

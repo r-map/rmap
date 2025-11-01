@@ -66,6 +66,25 @@ static int db_obsolete_callback(void* result, int argc, char **argv, char **azCo
   return 0;
 }
 
+// callback for data returned by sqlite
+static int db_count_delayed_messages_callback(void* number, int argc, char **argv, char **azColName) {
+  *((uint32_t *)number)= atoi(argv[0]);
+  return 0;
+}
+
+// execute SQL sentence getting count result for messages not sent
+int dbThread::db_count_delayed_messages(uint32_t& number) {
+  char *zErrMsg = 0;
+  int rc = sqlite3_exec(db, "SELECT COUNT(*) FROM messages WHERE sent = 0", db_count_delayed_messages_callback, &number, &zErrMsg);
+  if (rc != SQLITE_OK) {
+    data->logger->notice(F("db SQL error: %s"), zErrMsg);
+    sqlite3_free(zErrMsg);
+  } else {
+    data->logger->notice(F("db SQL operation done successfully"));
+  }
+  return rc;
+}
+
 // execute one obsolete SQL sentence
 bool dbThread::db_obsolete(bool& obsolete) {
   char *zErrMsg = 0;
@@ -913,6 +932,19 @@ void dbThread::Run() {
   // setup for the DB
   db_setup();
 
+  /*                No memory for vacuum !
+  //The VACUUM statement is used to reclaim storage by removing
+  //obsolete data and reducing the size of the database file. It
+  //does this by writing the full contents of all tables into a new
+  //database file. This process frees all unused space and ensures
+  //that all tables and indexes are stored contiguously.
+  //if(db_exec("VACUUM INTO '/sd/newstima.db';") != SQLITE_OK) {
+  if(db_exec("VACUUM;") != SQLITE_OK) {
+    data->logger->error(F("db vacuum"));       
+    data->status->database=error;
+  }
+  */
+
   /*
   //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages",data);
   int rc = db_exec(db, "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDERED BY datetime",data);
@@ -958,7 +990,7 @@ void dbThread::Run() {
     if (!db_obsolete(obsolete)) data->logger->error(F("db cheking obsolete DB"));
   }
   */
-  
+
   // migrate all old data from DB to archive
   data->logger->notice(F("db cheking obsolete DB"));
   bool obsolete;
@@ -968,6 +1000,28 @@ void dbThread::Run() {
     if (!data_purge(true)) data->logger->error(F("db purge DB"));
   }
   
+  // if DB file is big and do not contain unsent messages
+  // migrate all old data from DB to archive and regenerate DB
+  // this is done because we cannot execute VACUUM sql
+  File dbFile = SD.open("/stima.db", FILE_READ);
+  uint32_t fsize=dbFile.size();
+  dbFile.close();
+  data->logger->notice(F("db db file size %l bytes"),fsize);
+  if ( fsize > 300000000){
+    uint32_t number;
+    int rc = db_count_delayed_messages(number);
+    if (rc != SQLITE_OK) {
+      data->logger->error(F("db count messages in db to sent"));
+      data->status->database=error;
+    } else {
+      data->logger->notice(F("db messages in db to sent %l"),number);
+      if (number == 0){
+	data->logger->notice(F("db flush data from big DB to archive"));
+	if (!data_purge(true)) data->logger->error(F("db purge DB"));
+      }      
+    }
+  }
+
   data->status->database=ok;
   sqlite_status=true;
   
