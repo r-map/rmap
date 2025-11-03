@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _SIM800_H
 
 #include "Arduino.h"
-#include <Time.h>
+#include <TimeLib.h>
 #include "IPAddress.h"
 #include <ArduinoLog.h>
 #include <debug_config.h>

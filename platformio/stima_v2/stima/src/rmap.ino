@@ -62,7 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // END Tricky solution for arduino ide 1.6
 /////////////////////////////////////////////////////////////////////////
 
-#include <Time.h>
+#include <TimeLib.h>
 #include <aJSON.h>
 #include <Wire.h>
 

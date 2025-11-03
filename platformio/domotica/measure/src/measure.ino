@@ -55,7 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLEDI2CADDRESS 0X3C
 
 // Precipitations
-#define PRECPIN   D3  //IO, 10k Pull-up
+#define PRECPIN   D0  //IO, 10k Pull-up
 
 // H bridge
 #define MR_PWM   D3
@@ -70,9 +70,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SDA D2
 
 // rotary encoder pins
-#define encBtn  D5
-#define encA    D6
-#define encB    D7
+#define encA    D5
+#define encB    D6
+#define encBtn  D7
 
 #define HTTP_PORT 80
 #define WS_PORT 81
@@ -132,7 +132,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Calibration.h"
 #include "FloatBuffer.h"
 #include "LongIntBuffer.h"
-#include <Time.h>
+#include <TimeLib.h>
 #include <TimeAlarms.h>
 
 #ifdef USESERIAL

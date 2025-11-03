@@ -4,7 +4,7 @@
  * 
  */
 #include <Wire.h>
-#include <Time.h>
+#include <TimeLib.h>
 #include <GPSRTC.h>       //http://arduiniana.org/libraries/TinyGPS/
 
 uint32_t  prevDisplay;

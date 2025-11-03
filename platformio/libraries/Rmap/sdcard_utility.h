@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sdcard_config.h>
 #include <SdFat.h>
-#include <Time.h>
+#include <TimeLib.h>
 
 /*!
 \fn bool sdcard_init(SdFat *SD, uint8_t chip_select)

@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <mutex.hpp>
-#include <Time.h>
+#include <TimeLib.h>
 
 using namespace cpp_freertos;
 

@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GSMPASSWORD ""
 
 #include "sim800b.h"
-#include <Time.h>
+#include <TimeLib.h>
 
 
 //GSM Shield for Arduino

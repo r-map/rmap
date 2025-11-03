@@ -9,7 +9,7 @@
 #ifndef GPSRTC_h
 #define GPSRTC_h
 
-#include <Time.h>
+#include <TimeLib.h>
 #include "registers.h"
 
 // library interface description

@@ -58,7 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
 #ifndef DEEPSLEEP
-#include <Time.h>
+#include <TimeLib.h>
 #include <TimeAlarms.h>
 #endif
 #include <Wire.h>
