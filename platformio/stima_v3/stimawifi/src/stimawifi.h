@@ -1,4 +1,5 @@
 #include "common.h"
+#include "esp_phy_init.h"
 
 /*
 *  Print last reset reason of ESP32

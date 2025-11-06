@@ -1174,10 +1174,15 @@ void setup() {
     }
 
     m_card->end();
-    
+
+    //Full calibration takes 100 ms longer than the partial
+    //calibration method. If boot duration is not of critical
+    //importance to the application, the full calibration method is
+    //recommended.
+    //Flush saved calibration data
+    esp_phy_erase_cal_data_in_nvs();
   }
     
-
   // if loggin on SDcard is enabled initialize SDcard
   // initialize logging
 #if (ENABLE_SDCARD_LOGGING)
