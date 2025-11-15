@@ -1,6 +1,7 @@
 Lavorare con i dati
 ===================
 
+Mangiare meno gelati fa diminuire il numero di divorzi? No: ecco la differenza tra correlazione e causalità: https://www.geopop.it/mangiare-meno-gelati-fa-diminuire-il-numero-di-divorzi-no-ecco-la-differenza-tra-correlazione-e-causalita/
 
 Teoria degli errori
 ...................

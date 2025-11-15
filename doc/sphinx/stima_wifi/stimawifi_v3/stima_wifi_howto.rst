@@ -1147,6 +1147,18 @@ Una volta soddisfatti i prerequisiti, basta assicurarsi che la rete
 WiFi copra con un segnale stabile il punto prescelto per
 l’installazione.
 
+Il RSSI (Indicatore della potenza del segnale ricevuto), indica
+l'intensità del segnale. A seconda dei risultati delle nostre
+misurazioni, conosceremo la qualità della nostra connessione:
+
+* Ottimo segnale (tra -30 dBm e -50 dBm), perfetto per gaming o per
+  riprodurre video 4K.
+* Buon segnale (tra -50 dBm e -70 dBm): sufficiente per la navigazione
+  e lo streaming video.
+* Segnale normale (tra -70 dBm e -80 dBm), che potrebbero causare
+  interruzioni o rallentamenti della velocità.
+* Senale debole (più di -80 dBm): abbiamo un problema.
+
 [*] Anche se più veloce, la rete a 5Ghz non garantisce, nel nostro
 caso, migliorie significative rispetto a quella a 2.4Ghz e, di contro,
 è molto più sensibile agli ostacoli che dovessero frapporsi tra

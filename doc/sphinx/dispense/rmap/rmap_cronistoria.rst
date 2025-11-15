@@ -357,6 +357,20 @@ piattaforma  arduino ESP32 versione C3 risc V con platformio
 
 Relatori: Paolo Patruno e Giacomo Magisano su Stimawifi
 
+22/10/2025
+----------
+
+Partecipazione alla Fiera delle Idee a Bologna in Via Casarini 19,
+evento di apertura del Festival delle Cultura Tecnica 2025 presso il
+Dumbo. Hanno presentato il progetto due istituti scolastici superiori:
+Majorana e Belluzzi Fioravanti.
+
+.. image:: fieradelleidee/photo_2025-11-15_15-08-11.jpg
+.. image:: fieradelleidee/photo_2025-11-15_15-08-18.jpg
+.. image:: fieradelleidee/photo_2025-11-15_15-08-22.jpg
+.. image:: fieradelleidee/photo_2025-11-15_15-08-26.jpg
+.. image:: fieradelleidee/photo_2025-11-15_15-08-30.jpg  
+
 
 Stato dell'arte su GitHub
 -------------------------
