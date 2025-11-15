@@ -34,6 +34,57 @@ Il ciclo del carbonio
 L'effetto serra
 ---------------
 
+
+L'effetto serra è un processo naturale che regola il bilancio termico
+planetario. La radiazione emessa dal Sole passa attraverso l’atmosfera
+e arriva alla superficie terrestre, dalla quale viene in parte
+assorbita. La superficie terrestre a sua volta emette radiazione verso
+l’esterno, ma a una frequenza diversa (prevalentemente nello spettro
+dell’infrarosso) che la rende in parte intercettabile dai gas serra,
+che la assorbono e riemettono verso la superficie terrestre,
+riscaldandola. In assenza di gas serra, la temperatura media globale,
+che si attesta su +15 °C, sarebbe di circa -18 °C.
+
+I gas responsabili dell’effetto serra sono: l’anidride carbonica
+(CO2), il vapore acqueo (H2O), il protossido di azoto (N2O), il metano
+(CH4) e l’ozono (O3); a questi, si aggiungono altri gas di origine
+unicamente antropica, quali i clorofluorocarburi (CFC), gli
+idrofluorocarburi (HFC), gli idroclorofluorocarburi (HCFC) e i
+perfluorocarburi (PFC).
+
+L’influenza di ogni gas serra dipende da tre fattori:
+
+* concentrazione: si misura generalmente in ppm (parti per milioni) e
+  indica quante molecole di gas sono presenti in atmosfera per ogni
+  milione di molecole di aria. È da distinguere rispetto
+  all’emissione, che indica un flusso e viene espressa in unità di
+  massa per unità di tempo;
+* effetto radiativo: indica la capacità di ogni gas serra di assorbire
+  energia solare; per mettere a confronto l’effetto forzante di tutti
+  i gas serra viene utilizzata la misura CO2 equivalente, che indica
+  la massa di CO2 necessaria per ottenere lo stesso potenziale di
+  riscaldamento climatico (Global Warming Potential);
+* durata: si riferisce alla permanenza dei gas serra in atmosfera.
+
+.. figure:: emissioni_antropiche.png
+
+   Emissioni totali di origine antropica suddivise per gas serra (Rielaborazione su dati IPCC 2014)
+
+.. figure:: emissioni_per_settore.png
+
+   Emissioni globali di gas serra suddivise per settore economico (Rielaborazione su dati IPCC 2014)
+
+Le attività antropiche sono responsabili sia dell’aumento della
+concentrazione dei gas serra di origine naturale sia dell’immissione
+di gas normalmente non presenti in atmosfera, alimentando un processo
+che porta a un incremento dell’effetto serra, fenomeno che sta alla
+base del riscaldamento globale e quindi del cambiamento climatico
+(IPCC, 2014).
+
+.. figure:: emissioni_concentrazione.png
+
+   Emissioni e concentrazione atmosferica di CO2 dal 1750 al 2020 (Fonte: NOAA)
+
 .. raw:: html
 
 	 <iframe width="560" height="315"
