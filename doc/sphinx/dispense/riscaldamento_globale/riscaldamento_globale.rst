@@ -67,10 +67,12 @@ L’influenza di ogni gas serra dipende da tre fattori:
 * durata: si riferisce alla permanenza dei gas serra in atmosfera.
 
 .. figure:: emissioni_antropiche.png
+   :width: 100%
 
    Emissioni totali di origine antropica suddivise per gas serra (Rielaborazione su dati IPCC 2014)
 
 .. figure:: emissioni_per_settore.png
+   :width: 100%
 
    Emissioni globali di gas serra suddivise per settore economico (Rielaborazione su dati IPCC 2014)
 
@@ -82,9 +84,31 @@ base del riscaldamento globale e quindi del cambiamento climatico
 (IPCC, 2014).
 
 .. figure:: emissioni_concentrazione.png
-
+   :width: 100%
+	   
    Emissioni e concentrazione atmosferica di CO2 dal 1750 al 2020 (Fonte: NOAA)
 
+
+.. raw:: html
+
+	 <iframe src="https://ourworldindata.org/grapher/global-co2-concentration?time=earliest..2025-08-15&tab=line"
+	 loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write">
+	 </iframe>
+
+
+	 
+.. figure:: earth_energy_budget_storyboard_slide_7_labels_and_numbers.png
+   :width: 100%
+
+   Il bilancio energetico della terra descrive i vari tipi e le
+   quantità di energia che entrano e escono dal sistema terra. Esso
+   include sia la componente radiativa (luce e calore) che altre
+   componenti quali conduzione, evaporazione e evaporazione che
+   possono trasportare calore dalla superfice terrestre. La quantità
+   di energia in arrivo dal sole uguaglia la quantità di energia
+   uscente (luce solare riflessa e emissione infrarossa).
+   Crediti: NASA
+   
 .. raw:: html
 
 	 <iframe width="560" height="315"

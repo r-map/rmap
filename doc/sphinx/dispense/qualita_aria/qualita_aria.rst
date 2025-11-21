@@ -132,6 +132,14 @@ di qualità dell’aria ambiente (NAAQS) per il particolato atmosferico.
 https://www.gpo.gov/fdsys/pkg/FR-2013-01-15/pdf/2012-30946.pdf
 
 
+Relazione tra numero di particelle e massa
+..........................................
+
+Distribuzione tipica della dimensione delle particelle atmosferiche in aree urbane.
+(nero: concentrazione in massa, rosso: concentrazione in numero) (D'Anna, 2008).
+
+.. image:: Typical-size-distribution-of-atmospheric-particles-in-urban-areas-black-mass_W640.jpg
+
 
 Biossido di carbonio
 --------------------
