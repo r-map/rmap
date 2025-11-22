@@ -25,7 +25,9 @@ Ma le definizioni sono molteplici
 * https://www.tcss.center/english
 * https://scistarter.org
 
-Pannello riassuntivo :download:`pdf <Citizen_scienze_4_PP.pdf>`
+.. image:: Citizen_scienze_4_PP.png
+  
+Scarica in formato pdf :download:`pdf <Citizen_scienze_4_PP.pdf>`
 
 La rivoluzione scientifica del seicento
 ---------------------------------------
