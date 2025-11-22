@@ -120,6 +120,55 @@ Gruppo 1. Gli studi hanno dimostrato che non vi è alcun livello sicuro
 di esposizione al PM e con l’aumento di concentrazione di PM nell’aria
 il tasso di cancro aumenta in modo proporzionale». [res.mdpi.com]
 
+
+Ecco quindi riassunti i **limiti di legge italiani** (in accoglimento
+della Direttiva Europea) su PM10 e PM2.5:
+
++-------+------------------+----------------+
+|       | Valore massimo   | Valore massimo |
+|       | per la media     | per la media   |
+|       | annuale	   | giornaliera    |
++=======+==================+================+
+| PM10  |	40 µg/mc   |	50 µg/mc*   |
++-------+------------------+----------------+
+| PM2.5 |	25 µg/mc   |	—           |
++-------+------------------+----------------+
+
+(*) da non superare più di 35 volte all’anno
+
+Ben diverse, però, sono le soglie di riferimento per quanto riguarda
+gli effetti che le polveri sottili possono avere sulla salute.
+
+Mentre si parla di 25 µg/mc come limite annuale di PM2.5 per Italia ed
+Europa, l’OMS, Organizzazione Mondiale della Sanità, pone un valore
+limite di riferimento ben diverso relativamente ai possibili effetti
+sulla salute: solo 10 µg/mc.  Questo dato non deve stupire perché
+recenti studi del Ministero della Sanità hanno rilevato che ogni
+aumento di 10 µg/mc di PM2.5 corrisponde ad un incremento della
+mortalità per tumore ai polmoni del 14%.  Per quanto riguarda le PM10,
+il limite annuale previsto da Italia ed Europa è di 40 µg/mc, mentre
+l’OMS consiglia di non superare i 20 µg/mc, oltre il quale scatta il
+livello d’allerta.
+
+La discrepanza tra questi dati è rilevante: le concentrazioni di
+polveri sottili e particolato fine da non oltrepassare per legge in
+Italia sono molto superiori, addirittura doppie, a quelle raccomandate
+dalla principale autorità mondiale in tema di salute.
+
+**Raccomandazioni OMS**
+
++-------+------------------+----------------+
+|       | Valore massimo   | Valore massimo |
+|       | per la media     | per la media   |
+|       | annuale	   | giornaliera    |
++=======+==================+================+
+| PM10  |	20 µg/mc   |	50 µg/mc*   |
++-------+------------------+----------------+
+| PM2.5 |	10 µg/mc   |    25 µg/mc    |
++-------+------------------+----------------+
+
+(*) massimo 3 giorni all’anno)
+
 **Indice di qualità dell’aria (IQA)**
 
 Negli Stati Uniti, l’agenzia per la protezione dell’ambiente (EPA)
