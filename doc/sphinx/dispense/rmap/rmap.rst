@@ -90,8 +90,14 @@ Le specifiche RMAP per stazioni di monitoraggio ambientale
   comunicazione tra stazione e server di raccolta dati
 
 
-Schema flusso dati
-..................
+Schema tipo di RMAP per la citizen scienze nelle scuole
+.......................................................
+
+.. image:: ciclo-RMAP.png
+	   :width: 100%
+
+Schema flusso dati complessivo
+..............................
 
 .. image:: flow_chart.png
 	   :width: 100%
