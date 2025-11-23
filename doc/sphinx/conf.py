@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 # -- Project information -----------------------------------------------------
 
 project = 'RMAP e Stima'
-copyright = '2021, CC BY-SA 4.0, Parco dei Cedri nel cuore'
+copyright = '2025, CC BY-SA 4.0, Parco dei Cedri nel cuore'
 author = 'Patruno Paolo'
 
 # The short X.Y version
@@ -41,6 +41,8 @@ release = '5'
 extensions = [
     "breathe",
     "sphinxcontrib.video",
+    "sphinx_wagtail_theme",
+    "sphinx_copybutton",
 ]
 
 breathe_projects = { "stimacode": "../doxygen/xml/" }
@@ -85,6 +87,8 @@ gettext_compact = False     # optional.
 #
 #html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
+#html_theme = 'bootstrap'
+#html_theme = 'sphinx_wagtail_theme'
 
 html_title = 'http://rmap.cc'
 
@@ -112,6 +116,28 @@ html_title = 'http://rmap.cc'
 #    'includehidden': True,
 #    'titles_only': False
 #}
+
+# These are options specifically for the Wagtail Theme.
+#html_theme_options = dict(
+#    project_name = "RMAP documentation",
+#    logo="../../../../logo_stima.png",
+#    #logo = "img/wagtail-logo-circle.svg",
+#    logo_alt = "RMAP",
+#    logo_height = 59,
+#    logo_url = "/",
+#    logo_width = 45,
+#    github_url = "https://github.com/r-map/rmap/tree/master/doc/sphinx/",
+#    #header_links = "Top 1|https://rmap.cc, Top 2|http://example.com/two",
+#    header_links = "RMAP|https://rmap.cc",
+#    #footer_links = ",".join([
+#    #    "About Us|http://example.com/",
+#    #    "Contact|http://example.com/contact",
+#    #    "Legal|http://example.com/dev/null",
+#    #]),
+#    footer_links = "",
+#)
+#html_show_copyright  = True
+#html_show_sphinx = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
