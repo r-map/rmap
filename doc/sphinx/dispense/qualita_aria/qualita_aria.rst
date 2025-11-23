@@ -104,7 +104,8 @@ uguale a o minore di x μm. PM2,5, per esempio, definisce particelle
 con diametri inferiori o uguali a 2,5 μm.
 
 
-.. image:: pm.jpg
+.. figure:: pm.jpg
+   :width: 100%
 
 Rischi per la salute
 ....................
@@ -113,6 +114,12 @@ Le particelle più dannose per la salute sono quelle con un diametro
 pari o inferiore a 10 μm, poiché tali piccole particelle possono
 penetrare nella barriera polmonare umana ed entrare nel sistema
 sanguigno.
+
+.. figure:: Particolato-ultrafine.png
+   :width: 100%
+
+   Penetrazione delle particelle di differenti dimensioni nel corpo
+   umano.
 
 «L’Organizzazione Mondiale della Sanità (OMS) ha designato il
 particolato atmosferico aerotrasportato come cancerogeno del
@@ -177,8 +184,10 @@ particolato atmosferico PM2,5 e PM10 attraverso lo standard nazionale
 di qualità dell’aria ambiente (NAAQS) per il particolato atmosferico.
 
 .. image:: iqa.jpg
-	   
-https://www.gpo.gov/fdsys/pkg/FR-2013-01-15/pdf/2012-30946.pdf
+
+
+`Regole e regolamenti dell'agenzia statunitense per la protezione dell'ambiente <https://www.gpo.gov/fdsys/pkg/FR-2013-01-15/pdf/2012-30946.pdf>`_ .
+
 
 
 Relazione tra numero di particelle e massa
@@ -187,7 +196,8 @@ Relazione tra numero di particelle e massa
 Distribuzione tipica della dimensione delle particelle atmosferiche in aree urbane.
 (nero: concentrazione in massa, rosso: concentrazione in numero) (D'Anna, 2008).
 
-.. image:: Typical-size-distribution-of-atmospheric-particles-in-urban-areas-black-mass_W640.jpg
+.. figure:: Typical-size-distribution-of-atmospheric-particles-in-urban-areas-black-mass_W640.jpg
+   :width: 100%
 
 
 Biossido di carbonio
@@ -230,11 +240,14 @@ Per mantenere la concentrazione di CO2 al massimo allo 0,15% (1.500
 ppm) devono essere immessi mediamente 25 m³/h di aria nuova per
 persona (se si sta per esempio praticando uno sport anche di più).
 
+
+
+ 	   
+`Rapporti ITISAN 16/15 Presenza di CO2 e H2S in abienti indoor: attuali conoscenze e letteratura scientifica <https://www.iss.it/documents/20126/45616/16_15_web.pdf>`_ Oppure scaricalo da qui:
 :download:`pdf <16_15_web.pdf>`
 
-https://www.iss.it/documents/20126/45616/16_15_web.pdf
-
 .. figure:: biossidodicarbonio.png
+   :width: 100%
 
    Un’elevata concentrazione di CO2 provoca il calo della
    concentrazione e sonnolenza.
@@ -243,12 +256,18 @@ https://www.iss.it/documents/20126/45616/16_15_web.pdf
 Co-creare un futuro più salutare
 --------------------------------
 
-.. image:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_1-3.jpg
-.. image:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_2-3.jpg
-.. image:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_3-1.jpg
-.. image:: FerrAria-Aria-e-Salute-1.jpg
-.. image:: infografica_impianti_emissioni.jpg
-.. image:: 002.png
+.. figure:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_1-3.jpg
+   :width: 100%
+.. figure:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_2-3.jpg
+   :width: 100%
+.. figure:: Pannelli_FerrAria_Air-Break_AirQualityPanels-jan-2022-def_Page_3-1.jpg
+   :width: 100%
+.. figure:: FerrAria-Aria-e-Salute-1.jpg
+   :width: 100%
+.. figure:: infografica_impianti_emissioni.jpg
+   :width: 100%
+.. figure:: 002.png
+   :width: 100%
 
 L’aria che respiriamo contiene sostanze che possono impattare o meno
 la nostra salute a seconda della loro concentrazione. Spesso, si pensa
