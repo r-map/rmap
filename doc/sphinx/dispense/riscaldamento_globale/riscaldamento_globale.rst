@@ -17,6 +17,56 @@ Riscaldamento globale
 Video dei Cartoni Morti
 
 
+Giustizia Climatica
+-------------------
+
+Report Oxfam "Climate Plunder": I Super-Ricchi e la Crisi Climatica
+...................................................................
+
+`Report Oxfam "Climate Plunder" <www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
+
+Il rapporto denuncia l'enorme e crescente impatto delle emissioni di
+carbonio dei super-ricchi sul clima globale e le forti disuguaglianze
+che ne derivano.
+
+Aumento delle Emissioni dei Super-Ricchi:
+
+* Dal 1990, la quota di emissioni attribuibile ai super-ricchi è
+  aumentata del 32%.
+* Nello stesso periodo, la quota di emissioni della metà più povera
+  della popolazione mondiale si è ridotta del 3%.
+* Questo evidenzia come i maggiori responsabili della crisi climatica
+  siano gli individui più ricchi.
+
+Il Consumo Eccessivo:
+
+* Si afferma che, se tutti vivessero secondo lo stile di vita
+  dell'0,1% più ricco del mondo, l'intero "bilancio di carbonio"
+  globale (la quantità massima di CO2​ che si può emettere per restare
+  entro 1.5∘C) si esaurirebbe in meno di tre settimane.
+
+* Questo sottolinea l'entità del consumo e dello spreco delle élite,
+  spesso legato all'uso di jet privati, mega-yacht e altre attività ad
+  alta intensità di carbonio.
+
+Impatto e Responsabilità:
+
+* Il rapporto evidenzia come i Paesi e le persone più povere siano le
+  vittime principali degli impatti del cambiamento climatico (come
+  alluvioni, siccità, aumento del livello del mare), pur avendo
+  contribuito meno alla loro causa.
+
+* C'è un appello affinché i Paesi ricchi e le persone più abbienti
+  assumano la loro responsabilità storica e contribuiscano con
+  finanziamenti consistenti per aiutare i Paesi vulnerabili ad
+  affrontare e adattarsi alla crisi climatica.
+
+In sintesi, "Climate Plunder" è un'accusa forte contro la
+disuguaglianza climatica, dove una minuscola élite è la maggiore
+responsabile delle emissioni che minacciano il futuro del pianeta,
+mentre le comunità più povere ne subiscono le conseguenze più gravi.
+
+
 Il ciclo del carbonio
 ---------------------
 

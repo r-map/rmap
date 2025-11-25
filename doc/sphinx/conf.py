@@ -86,8 +86,8 @@ gettext_compact = False     # optional.
 # a list of builtin themes.
 #
 #html_theme = 'alabaster'
-html_theme = 'sphinx_rtd_theme'
 #html_theme = 'bootstrap'
+html_theme = 'sphinx_rtd_theme'
 #html_theme = 'sphinx_wagtail_theme'
 
 html_title = 'http://rmap.cc'
@@ -123,9 +123,9 @@ html_title = 'http://rmap.cc'
 #    logo="../../../../logo_stima.png",
 #    #logo = "img/wagtail-logo-circle.svg",
 #    logo_alt = "RMAP",
-#    logo_height = 59,
+#    logo_height = 150,
 #    logo_url = "/",
-#    logo_width = 45,
+#    logo_width = 150,
 #    github_url = "https://github.com/r-map/rmap/tree/master/doc/sphinx/",
 #    #header_links = "Top 1|https://rmap.cc, Top 2|http://example.com/two",
 #    header_links = "RMAP|https://rmap.cc",
