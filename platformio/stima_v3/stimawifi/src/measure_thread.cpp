@@ -250,6 +250,21 @@ void measureThread::doMeasure() {
   }
 
   data->i2cmutex->Lock();                           // use the same mutex for i2c for access summary data
+  
+  // check queue for rpc calibrate
+  rpcCalibrate_t rpccalibrate;
+  if(data->calibratequeue->Dequeue(&rpccalibrate, pdMS_TO_TICKS( 0 ))){
+    for (uint8_t i = 0; i < data->sensors_count; i++) {
+      if ( strcmp(rpccalibrate.type,sensorm[i].getSensorDriver()->getType())==0) {
+	uint8_t rc = sensorm[i].sensor->setForcedRecalibrationFactor(rpccalibrate.value);
+	data->logger->notice(F("measure setForcedRecalibrationFactor: %s-%s:%d rc %d"), 
+			     sensorm[i].getSensorDriver()->getDriver(),
+			     sensorm[i].getSensorDriver()->getType(),
+			     rpccalibrate.value, rc);
+      }
+    }
+  }
+  
   update_summary_data();
   data->i2cmutex->Unlock();
 

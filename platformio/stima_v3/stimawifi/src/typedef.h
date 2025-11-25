@@ -257,4 +257,15 @@ struct rpcRecovery_t
   char dtend[20];     //"YYYY-MM-GGTHH:MM:SS";
 };
 
+
+/*!
+\def struct rpcCalibrate_t
+\brief params for calibrate rpc
+*/
+struct rpcCalibrate_t
+{
+  char type[4];
+  uint16_t value;
+};
+
 #endif

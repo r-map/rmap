@@ -13,6 +13,7 @@ struct measure_data_t {    // thread communication data
   summarydata_t* summarydata;
   MutexStandard* i2cmutex;
   georef_t* georef;
+  BinaryQueue* calibratequeue;
   sensor_t  sensors[SENSORS_MAX];
   uint8_t sensors_count;
 };

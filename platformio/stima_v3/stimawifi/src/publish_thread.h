@@ -11,6 +11,7 @@ void mqttRxCallback(MQTT::MessageData &md);
 int rebootRpc(JsonObject params, JsonObject result);
 int recoveryDataRpc(JsonObject params, JsonObject result);
 int pinOutRpc(JsonObject params, JsonObject result);
+int calibrateRpc(JsonObject params, JsonObject result);
 
 // thread exchange data struct
 struct publish_data_t {
@@ -19,6 +20,7 @@ struct publish_data_t {
   Queue* mqttqueue;
   Queue* dbqueue;
   BinaryQueue* recoveryqueue;
+  BinaryQueue* calibratequeue;
   stimawifiStatus_t* status;
   station_t* station;
 };

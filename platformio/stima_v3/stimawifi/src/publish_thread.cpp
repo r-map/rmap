@@ -70,7 +70,8 @@ void publishThread::Run() {
   global_jsonrpc.registerMethod("pinout", &pinOutRpc);
   global_jsonrpc.registerMethod("recovery", &recoveryDataRpc);
   global_jsonrpc.registerMethod("reboot", &rebootRpc);
-  
+  global_jsonrpc.registerMethod("calibrate", &calibrateRpc);
+
   for(;;){
     
     // if there are no enough space left on the mqtt queue send it to the DB
@@ -668,6 +669,35 @@ int rebootRpc(JsonObject params, JsonObject result) {
   delay(5000);
   result[F("state")] = F("done");  
   return 0;  
+}
+
+
+/*
+    RPC calibrate
+
+    Richiede la calibrazioen del sensore facendo corrispondere le misure attuali al valore fornito
+esempi:
+{"jsonrpc": "2.0", "method": "calibrate", "params": {"type":"sdc30","value":430, "id": 0}
+*/
+
+int calibrateRpc(JsonObject params, JsonObject result) {
+  rpcCalibrate_t rpccalibrate;
+
+  if (params.containsKey("type") && params.containsKey("value")){
+    const char* type  = params["type"];
+    strncpy(rpccalibrate.type,type,4);
+    rpccalibrate.value = params["value"];
+        
+    if(publishThread::global_data->calibratequeue->Enqueue(&rpccalibrate)){
+      publishThread::global_data->logger->notice(F("enqueue rpc calibrate : %s ; %d"), rpccalibrate.type, rpccalibrate.value);
+      result[F("state")] = F("done");
+      return 0;  
+    }
+  }
+  
+   publishThread::global_data->logger->error(F("enqueue rpc calibrate"));
+   result[F("state")] = F("error");
+   return 1;
 }
 
 /*

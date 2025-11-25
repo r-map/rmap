@@ -2,7 +2,6 @@
 #include <SensorDriver.h>
 #include <ArduinoLog.h>
 
-#define I2C_BUS_CLOCK                           (50000L)
 #define SENSOR_RETRY_COUNT_MAX                  (3)
 #define SENSOR_RETRY_DELAY_MS                   (50)
 #define SENSOR_ERROR_COUNT_MAX                  (10)
@@ -30,6 +29,7 @@ public:
 
   int32_t values[VALUES_TO_READ_FROM_SENSOR_COUNT];
   char json_values[JSON_BUFFER_LENGTH];
+  SensorDriver* sensor;
   
 private:
   
@@ -55,8 +55,6 @@ private:
   bool is_test;
   bool is_reading;
   bool is_data_ready;
-
-  SensorDriver* sensor;
 };
 
 #endif

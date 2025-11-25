@@ -136,6 +136,14 @@ public:
    */
    virtual void get(int32_t *values, uint8_t length, bool is_test=false);
 
+   /*!
+   \fn bool setForcedRecalibrationFactor(uint16_t value)
+   \brief Set the forced recalibration factor.
+   \param[in] value true value of the actual measure
+   \return return code (0 OK).
+   */
+   virtual bool setForcedRecalibrationFactor(uint16_t value);
+  
    #if (USE_JSON)
    /*!
    \fn void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH)
@@ -894,6 +902,10 @@ public:
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length, bool is_test=false);
 
+   //Set the forced recalibration factor.
+   //The reference CO2 concentration has to be within the range 400 ppm ≤ cref(CO2) ≤ 2000 ppm.
+   bool setForcedRecalibrationFactor(uint16_t concentration);
+  
    #if (USE_JSON)
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif

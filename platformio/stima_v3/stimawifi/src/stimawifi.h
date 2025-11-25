@@ -97,6 +97,7 @@ gpsThread threadGps(&gps_data);
 Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));       // ~ 1 minutes queue
 Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));   // ~ 1.5 minutes queue
 BinaryQueue recoveryQueue(sizeof(rpcRecovery_t));
+BinaryQueue calibrateQueue(sizeof(rpcCalibrate_t));
 BinarySemaphore recoverySemaphore(false);
 #if (ENABLE_SDCARD_LOGGING)
 db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&recoveryQueue,&stimawifiStatus.db,&station,&logFile};
@@ -106,10 +107,10 @@ db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&recoveryQ
 
 dbThread threadDb(&db_data);
 
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef,&calibrateQueue};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus,&station};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&calibrateQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);

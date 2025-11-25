@@ -142,6 +142,10 @@ void SensorDriver::setup(){
 void SensorDriver::prepare(bool is_test){
 }
 
+bool SensorDriver::setForcedRecalibrationFactor(uint16_t value) {
+  return false;
+}
+
 void SensorDriver::get(int32_t *values, uint8_t length, bool is_test){
 }
 
@@ -4923,7 +4927,7 @@ void SensorDriverScd::setup() {
       //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
       return;
     }
-    if (!_scd30.setAutoSelfCalibration(true)) { //Enable auto-self-calibration
+    if (!_scd30.setAutoSelfCalibration(false)) { //Enable auto-self-calibration
       _error_count++;
       LOGE(F("SCD setAutoSelfCalibration error"));
       //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
@@ -4934,6 +4938,10 @@ void SensorDriverScd::setup() {
     _error_count = 0;
     LOGT(F("SCD setup... [ %s ]"), YES_STRING);
   } 
+}
+
+bool SensorDriverScd::setForcedRecalibrationFactor(uint16_t value) {
+  return _scd30.setForcedRecalibrationFactor(value);
 }
 
 void SensorDriverScd::prepare(bool is_test) {
