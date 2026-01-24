@@ -45,10 +45,11 @@ struct summarydata_t{
 \def struct constantdata_t
 \brief Descrittori e valori per i dati costanti di stazione (metadati).
 */
-typedef struct {
+struct  constantdata_t
+{
    char btable[CONSTANTDATA_BTABLE_LENGTH];                 //!< table B code for constant station data
    char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data
-} constantdata_t;
+};
 
 /*!
 \def struct georef_t
