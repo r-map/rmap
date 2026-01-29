@@ -117,6 +117,9 @@ Datalogger
 * Cavo I2C 100mm 10cm per cavo a doppia testa LOLIN (WEMOS) SH1.0 4P
   https://it.aliexpress.com/item/32867490848.html
   1,45€
+* Connettori a pettine per moduli da impilare
+  https://ie.farnell.com/samtec/esw-108-14-t-s/connector-rcpt-8pos-1row-2-54mm/dp/3699507
+  2,3€ / unità
 * Data Logger Shield DS1307 slot microSD Wemos per estensione D1 Mini
   https://www.ebay.it/itm/255283310856
   EUR 5,75
@@ -175,6 +178,10 @@ Temperatura e Umidità
   https://www.igus.it/product/CF240?artnr=CF240.01.04
   https://it.rs-online.com/web/p/cavi-di-comando/2100551
   2,34-3.0 EUR / m
+  oppure
+  Prolunga a 4 Pin Ebike,Cavo Spina Femmina e Maschio Connettore Impermeabile a 4 Pin per Luce Bicicletta Elettrica 1,5m
+  https://www.amazon.it/dp/B0F4QWS1XJ
+  11E una coppia
 
 Schermo radiazioni per temperatura e umidità
 
