@@ -372,6 +372,57 @@ Majorana e Belluzzi Fioravanti.
 .. image:: fieradelleidee/photo_2025-11-15_15-08-30.jpg  
 
 
+
+
+26/11/2025
+----------
+
+Cittadini per il Clima - Laboratorio di Raccolta Dati per Conoscere la
+Città a cura di Parco dei Cedri nel Cuore.
+
+Filla Auditorium Bologna
+
+L’incontro è dedicato alla Citizen Science, mettendo in evidenza il
+valore della scienza aperta e della partecipazione dei cittadini nella
+transizione ecologica. Verrà presentata la Rete di Monitoraggio
+Ambientale Partecipativo (RMAP), che utilizza tecnologie open source
+per misurare CO₂, polveri sottili, temperatura e umidità, parametri
+fondamentali per comprendere clima, qualità dell’aria e microclima.
+
+Durante l’attività si effettueranno varie misurazioni ambientali,
+anche in condizioni simulate all’interno di una campana di vetro,
+analizzando il funzionamento dei sensori e confrontando i dati locali
+con quelli provenienti da altre stazioni cittadine. L’iniziativa
+rappresenta un esempio pratico di citizen science in linea con gli
+obiettivi dell’Agenda 2030 e della COP30, e si concluderà con una
+discussione aperta a tutti i partecipanti.
+
+
+.. image:: filla.jpg
+.. image:: filla-2.jpg
+
+12/12/2025
+----------
+
+Laboratorio metropolitano
+
+Monitoraggio ambientale e isole di calore
+
+Dalle 15.00 alle 18.00
+
+I.I.S. Belluzzi-Fioravanti Aula magna
+Via Cassini 3, Bologna
+
+L’iniziativa è rivolta a studentesse, studenti e cittadinanza. E’
+un laboratorio interattivo per studiare le isole di calore e per
+misurarle nel contesto urbano.
+
+Organizzato da: I.I.S. Belluzzi-Fioravanti, Associazione Parco dei
+Cedri nel Cuore
+
+https://www.festivalculturatecnica.it/wp-content/uploads/2025/11/Programma_FCT_2025_V11.pdf
+
+	   
 Stato dell'arte su GitHub
 -------------------------
 
