@@ -23,7 +23,8 @@ Giustizia Climatica
 Report Oxfam "Climate Plunder": I Super-Ricchi e la Crisi Climatica
 ...................................................................
 
-`Report Oxfam "Climate Plunder" <www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
+Report Oxfam Climate Plunder :download:`pdf <Climate-Plunder-EN-Final-Paper.pdf>`
+`download Report Oxfam Climate Plunder <www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
 
 Il rapporto denuncia l'enorme e crescente impatto delle emissioni di
 carbonio dei super-ricchi sul clima globale e le forti disuguaglianze
