@@ -253,8 +253,10 @@ class OZGPS{
     uint8_t is_checksum;
 
     //parse variable
-    static char nimea_terms[30][20];
-    static char term[20];//term
+    //static char nimea_terms[30][20];
+    //static char term[20];//term
+    char nimea_terms[30][20];
+    char term[20];//term
     uint8_t term_count = 0;
     uint8_t term_offset = 0;
     uint8_t nimea_terms_count = 0;

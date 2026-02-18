@@ -16,8 +16,8 @@
  */
 #include "ozgps.h"
 
-char OZGPS::nimea_terms[30][20];
-char OZGPS::term[20];//term
+//char OZGPS::nimea_terms[30][20];
+//char OZGPS::term[20];//term
 
 // The optional checksum is an XOR of all bytes between "$" and "*".
 int8_t OZGPS::init(struct MGPS *mpgs){
