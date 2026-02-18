@@ -3,9 +3,26 @@
 
 systemctl stop gpsd.socket
 gpsd -N udp://*:8888 --debug 10
-gpsmon
+cgps -s
 
-# Istruzioni per fare il build dell'app Android
+Le app android sono due:
+
+* gpsdRelay
+* GPSd forwarder
+
+# Istruzioni per fare il build dell'app Android gpsdRelay
+git clone https://github.com/project-kaat/gpsdRelay.git
+
+cd gpsdRelay
+./gradlew build
+ls app/build/outputs/apk/release/app-release-unsigned.apk
+
++ UDP server
+ipv4 192.168.1.255
+port 8888
+
+
+# Istruzioni per fare il build dell'app Android GPSd forwarder
 
 #git clone https://github.com/tiagoshibata/Android-GPSd-Forwarder.git
 #export ANDROID_HOME=/home/pat1/Android/Sdk/
@@ -22,14 +39,3 @@ gps forwarder ->
 192.168.1.255
 8888
 
-
-# oppure da testare 
-git clone https://github.com/project-kaat/gpsdRelay.git
-
-cd gpsdRelay
-./gradlew build
-ls app/build/outputs/apk/release/app-release-unsigned.apk
-
-+ UDP server
-ipv4 192.168.1.255
-port 8888
