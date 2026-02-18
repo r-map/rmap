@@ -42,7 +42,9 @@ class gpsThread : public Thread {
   void GPS_SerialInit();
   void doSerialNmea();
   gps_data_t* data;
-
+  OZGPS gps;
+  MGPS mgps;
+  time_t timestamp;
 };
 
 #endif

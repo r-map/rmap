@@ -940,7 +940,7 @@ void displayStatus()
   // collect error in summary  
   //  data.status.summary.err_power_on= false;	
   //  data.status.summary.err_reboot=	false;
-  stimawifiStatus.summary.err_georef |= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error));
+  stimawifiStatus.summary.err_georef |= 	   ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error && stimawifiStatus.udp.receive == error));
 
   stimawifiStatus.summary.err_sdcard |=  	   stimawifiStatus.db.sdcard == error;  
   stimawifiStatus.summary.err_db |=  	           stimawifiStatus.db.database == error;
@@ -987,7 +987,7 @@ void displayStatus()
 	      || (stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
 		  &&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok))
 	  &&  stimawifiStatus.rssi == ok
-	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok && stimawifiStatus.udp.receive == ok))) {
+	  &&  ((strcmp(station.ident,"") == 0) || (stimawifiStatus.gps.receive == ok || stimawifiStatus.udp.receive == ok))) {
     strcpy(status,"Stat: ok");
     color = pixels.Color(0,255,0);
     light=true;
@@ -1009,7 +1009,7 @@ void displayStatus()
 	 || stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error
 	 || stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error
 	 || stimawifiStatus.rssi == error	    
-	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error || stimawifiStatus.udp.receive == error))){
+	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error && stimawifiStatus.udp.receive == error))){
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
     light = true;
@@ -1205,7 +1205,7 @@ void setup() {
       //logFile.seekEnd(0);
       frtosLog.begin(LOG_LEVEL, &loggingStream,loggingmutex);
       //Log.begin(LOG_LEVEL_VERBOSE, &loggingStream);
-  } else {
+    } else {
       frtosLog.begin(LOG_LEVEL, &Serial,loggingmutex);
       //Log.begin(LOG_LEVEL_VERBOSE, &Serial);
       frtosLog.error(F("logging begin with sdcard\n"));

@@ -245,10 +245,14 @@ bool publishThread::mqttConnect(const bool cleanSession) {
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->user);
-  strcat(mqtt_message.topic,"//");
-  strcat(mqtt_message.topic,data->station->longitude);
-  strcat(mqtt_message.topic,",");
-  strcat(mqtt_message.topic,data->station->latitude);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->ident);
+  strcat(mqtt_message.topic,"/");
+  if (strcmp(data->station->ident,"") == 0){
+    strcat(mqtt_message.topic,data->station->longitude);
+    strcat(mqtt_message.topic,",");
+    strcat(mqtt_message.topic,data->station->latitude);
+  }
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->network);
   strcat(mqtt_message.topic,"/");
@@ -260,7 +264,7 @@ bool publishThread::mqttConnect(const bool cleanSession) {
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
-  if (strcmp(data->station->ident,"") == 0){
+  if (strcmp(data->station->ident,"") == 0){          // disable will message for mobile stations
     options.will.topicName.cstring = mqtt_message.topic;
     options.will.message.cstring=mqtt_message.payload;
     options.will.retained = true;
@@ -358,7 +362,7 @@ bool publishThread::mqttConnect(const bool cleanSession) {
 
   if (!returnstatus) return returnstatus;
   
-  if (strcmp(data->station->ident,"") == 0){
+  //if (strcmp(data->station->ident,"") == 0){
     if (publish_maint()) {
       data->logger->notice(F("publish Published maint"));
       data->status->publish.publish=ok;      
@@ -373,15 +377,18 @@ bool publishThread::mqttConnect(const bool cleanSession) {
       data->logger->error(F("publish Error in publish constant data"));
       return false;
     }
-  }
 
-  if (mqttSubscribeRpc()) {
-    data->logger->notice(F("publish Subscribed to rpc path"));
-    data->status->publish.publish=ok;
-  }else{
-    data->logger->error(F("publish Subscribe to rpc path"));
-    return false;
-  }
+    if (mqttSubscribeRpc()) {
+      data->logger->notice(F("publish Subscribed to rpc path"));
+      data->status->publish.publish=ok;
+    }else{
+      data->logger->error(F("publish Subscribe to rpc path"));
+      return false;
+    }
+  //}else{
+    //data->logger->warning(F("publish maint publish and rpc subscribe to be done for mobile stations"));
+    //status_published=true;
+  //}
 
   status_connected=true;
   return true;
@@ -429,10 +436,14 @@ bool publishThread::publish_maint() {
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->user);
-  strcat(mqtt_message.topic,"//");
-  strcat(mqtt_message.topic,data->station->longitude);
-  strcat(mqtt_message.topic,",");
-  strcat(mqtt_message.topic,data->station->latitude);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->ident);
+  strcat(mqtt_message.topic,"/");
+  if (strcmp(data->station->ident,"") == 0){
+    strcat(mqtt_message.topic,data->station->longitude);
+    strcat(mqtt_message.topic,",");
+    strcat(mqtt_message.topic,data->station->latitude);
+  }
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->network);
   strcat(mqtt_message.topic,"/");
@@ -548,10 +559,14 @@ bool publishThread::publish_constantdata() {
       strcat(mqtt_message.topic,data->station->mqttrootpath);
       strcat(mqtt_message.topic,"/");
       strcat(mqtt_message.topic,data->station->user);
-      strcat(mqtt_message.topic,"//");  
-      strcat(mqtt_message.topic,data->station->longitude);
-      strcat(mqtt_message.topic,",");
-      strcat(mqtt_message.topic,data->station->latitude);
+      strcat(mqtt_message.topic,"/");
+      strcat(mqtt_message.topic,data->station->ident);
+      strcat(mqtt_message.topic,"/");
+      if (strcmp(data->station->ident,"") == 0){
+	strcat(mqtt_message.topic,data->station->longitude);
+	strcat(mqtt_message.topic,",");
+	strcat(mqtt_message.topic,data->station->latitude);
+      }
       strcat(mqtt_message.topic,"/");
       strcat(mqtt_message.topic,data->station->network);
       strcat(mqtt_message.topic,"/-,-,-/-,-,-,-/");
@@ -624,10 +639,14 @@ bool publishThread::mqttSubscribeRpc() {
   strcat(comtopic,data->station->mqttrpcpath);
   strcat(comtopic,"/");
   strcat(comtopic,data->station->user);
-  strcat(comtopic,"//");
-  strcat(comtopic,data->station->longitude);
-  strcat(comtopic,",");
-  strcat(comtopic,data->station->latitude);
+  strcat(comtopic,"/");
+  strcat(comtopic,data->station->ident);
+  strcat(comtopic,"/");
+  if (strcmp(data->station->ident,"") == 0){
+    strcat(comtopic,data->station->longitude);
+    strcat(comtopic,",");
+    strcat(comtopic,data->station->latitude);
+  }
   strcat(comtopic,"/");
   strcat(comtopic,data->station->network);
   strcat(comtopic,"/com");

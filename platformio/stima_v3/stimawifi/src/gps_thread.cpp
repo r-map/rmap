@@ -1,9 +1,5 @@
 #include "common.h"
 
-OZGPS gps_gps;
-MGPS gps_mgps;
-
-
 #if defined(ARDUINO_LOLIN_C3_MINI)
 HardwareSerial Serial2(0);  //if using UART1
 #endif
@@ -18,39 +14,39 @@ void gpsThread::GPS_SerialInit() {
 
 void gpsThread::doSerialNmea(){
 
-  memset(&gps_mgps,0,sizeof(gps_mgps));
+  memset(&mgps,0,sizeof(mgps));
 
   # define MESSAGELEN (100)
   char message[MESSAGELEN];
   uint8_t len=Serial2.readBytesUntil(10, message, MESSAGELEN-1);
   message[len]=0;
   
-  if (len > 0) data->logger->notice("gps message: %s", message);
+  //if (len > 0) data->logger->notice("gps message: %s", message);
 
   for (uint8_t i = 0; i < len; i++) {
     uint8_t gpsflag;
     //Serial.print(message[i],DEC);
     //Serial.println(" ");
-    gpsflag = gps_gps.encode(message[i]);
-    if(gps_gps.valid){
+    gpsflag = gps.encode(message[i]);
+    if(gps.valid){
       break;
       //}else{
       //data->logger->notice("gps gps_error: %d", gpsflag);
     }
   }
   
-  if (gps_gps.valid){
-    data->logger->notice(F("gps RMC latitude : %5"), gps_mgps.rmc.dms.latitude);
-    data->logger->notice(F("gps RMC longitude: %5"), gps_mgps.rmc.dms.longitude);
-    //data->logger->notice(F("gps GGA latitude : %5"), gps_mgps.gga.dms.latitude);
-    //data->logger->notice(F("gps GGA longitude: %5"), gps_mgps.gga.dms.longitude);
-    //data->logger->notice(F("gps GLL latitude : %5"), gps_mgps.gll.dms.latitude);
-    //data->logger->notice(F("gps GLL longitude: %5"), gps_mgps.gll.dms.longitude);
-    data->logger->notice(F("gps RMC datetime: %d %d %d %d %d %d"), gps_mgps.rmc.time.year, gps_mgps.rmc.time.mon, gps_mgps.rmc.time.day,
-			gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec);  
+  if (gps.valid){
+    data->logger->notice(F("gps RMC latitude : %5"), mgps.rmc.dms.latitude);
+    data->logger->notice(F("gps RMC longitude: %5"), mgps.rmc.dms.longitude);
+    //data->logger->notice(F("gps GGA latitude : %5"), mgps.gga.dms.latitude);
+    //data->logger->notice(F("gps GGA longitude: %5"), mgps.gga.dms.longitude);
+    //data->logger->notice(F("gps GLL latitude : %5"), mgps.gll.dms.latitude);
+    //data->logger->notice(F("gps GLL longitude: %5"), mgps.gll.dms.longitude);
+    data->logger->notice(F("gps RMC datetime: %d %d %d %d %d %d"), mgps.rmc.time.year, mgps.rmc.time.mon, mgps.rmc.time.day,
+			mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec);  
 
-    setTime(gps_mgps.rmc.time.hours, gps_mgps.rmc.time.min, gps_mgps.rmc.time.sec
-	    ,gps_mgps.rmc.time.day,gps_mgps.rmc.time.mon,gps_mgps.rmc.time.year);
+    setTime(mgps.rmc.time.hours, mgps.rmc.time.min, mgps.rmc.time.sec
+	    ,mgps.rmc.time.day,mgps.rmc.time.mon,mgps.rmc.time.year);
     if (!data->frtosRTC->set(now())){
       frtosLog.error("gps Setting RTC time from GPS!");
     }
@@ -66,10 +62,11 @@ void gpsThread::doSerialNmea(){
     */
     
     data->georef->mutex->Lock();    
-    itoa(int(std::round(gps_mgps.rmc.dms.latitude*100000)),data->georef->lat,10);
-    itoa(int(std::round(gps_mgps.rmc.dms.longitude*100000)),data->georef->lon,10);
+    itoa(int(std::round(mgps.rmc.dms.latitude*100000)),data->georef->lat,10);
+    itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data->georef->lon,10);
     data->georef->timestamp=now();           // TODO create datetime from RMC datetime
     data->georef->mutex->Unlock();
+    timestamp=now();
     data->status->receive=ok;
   }
 }
@@ -84,6 +81,7 @@ gpsThread::gpsThread(gps_data_t* gps_data)
   data->status->receive=unknown;
   data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
+  timestamp=0;
   //Start();
 };
 
@@ -103,9 +101,9 @@ void gpsThread::Cleanup()
 void gpsThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
 
-  gps_gps.init(&gps_mgps);
+  gps.init(&mgps);
   //gps.set_filter(0xE); // "RMC","GGA","GLL"
-  gps_gps.set_filter(0x2); // "RMC"
+  gps.set_filter(0x2); // "RMC"
 
   //Init GPS serial port
   GPS_SerialInit();
@@ -115,7 +113,7 @@ void gpsThread::Run() {
     while (Serial2.available()){
       doSerialNmea();
     }
-    if ((now()-data->georef->timestamp) > 30){
+    if ((now()-timestamp) > 30){
       data->status->receive=error;
     }else{
       data->status->receive=ok;

@@ -45,7 +45,10 @@ class udpThread : public Thread {
  private:
   void doUdp();
   udp_data_t* data;
-
+  WiFiUDP UDP;
+  OZGPS gps;
+  MGPS mgps;
+  time_t timestamp;  
 };
 
 #endif
