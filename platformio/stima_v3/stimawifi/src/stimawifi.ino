@@ -1361,14 +1361,22 @@ void setup() {
   frtosRTC.begin(RTC,i2cmutex);
   
   // configure NTP
-  //sntp_init();
-  //sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  //sntp_setservername(0, station.ntp_server);
   // set notification call-back function
   sntp_set_time_sync_notification_cb( timeavailable );
+  /**
+   * NTP server address could be acquired via DHCP,
+   *
+   * NOTE: This call should be made BEFORE esp32 acquires IP address via DHCP,
+   * otherwise SNTP option 42 would be rejected by default.
+   * NOTE: configTime() function call if made AFTER DHCP-client run
+   * will OVERRIDE acquired NTP server address
+   */
   sntp_servermode_dhcp(1);
   configTime(0, 0, station.ntp_server);
+  sntp_setservername(0, station.ntp_server);
   sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
+  //sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  //sntp_init();
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -1466,7 +1474,7 @@ void setup() {
       u8g2->sendBuffer();
     }    
   }
-
+  
   frtosLog.notice("stack setup2: %d",uxTaskGetStackHighWaterMark(NULL));
 
   if (shouldSaveConfig){
@@ -1615,11 +1623,37 @@ void setup() {
     u8g2->sendBuffer();
   }
 
+    /*
+   Please note, that dhcp_set_ntp_servers() does not only set NTP
+   servers provided by DHCP, but also resets all other NTP server
+   configured before. If you want to keep both manually configured and
+   DHCP obtained NTP servers, please use the API in this order:
+
+    Enable SNTP-over-DHCP before getting the IP using sntp_servermode_dhcp()
+    Set the static NTP servers after receiving the DHCP lease using sntp_setserver()
+  */
+
+  // set second ntp server as fallback to dhcp provided
+  sntp_setservername(1,station.ntp_server);
+  sntp_init();
+
+  for (uint8_t i = 0; i < SNTP_MAX_SERVERS; ++i){
+    if (esp_sntp_getservername(i)){
+      frtosLog.notice("sntp server %d: %s", i, esp_sntp_getservername(i));
+    } else {
+      // we have either IPv4 or IPv6 address, let's print it
+      char buff[30];
+      ip_addr_t const *ip = esp_sntp_getserver(i);
+      if (ipaddr_ntoa_r(ip, buff, 30) != NULL)
+	frtosLog.notice("sntp server %d: %s", i, buff);
+    }
+  }
+
   // wait for  date and time setup from NTP
   if (WiFi.status() == WL_CONNECTED) {
     //if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(60000)) == ESP_OK) {  // alternative starting from idf 5.1 with esp_netif_sntp.h
     int retry = 0;
-    const int retry_count = 60;
+    const int retry_count = 90;
     time_t datetime = 0;
     struct tm timeinfo = { 0 };
     while(timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
