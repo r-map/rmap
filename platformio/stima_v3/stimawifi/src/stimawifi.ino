@@ -1376,7 +1376,6 @@ void setup() {
   sntp_setservername(0, station.ntp_server);
   sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
   //sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  //sntp_init();
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -1405,7 +1404,7 @@ void setup() {
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds
-  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConfigPortalTimeout(240);
 
   // USE THIS OPTIONS WITH WIFIMANAGER VERSION 2
   //if false, timeout captive portal even if a STA client connected to softAP (false), suggest disabling if captiveportal is open
@@ -1635,6 +1634,7 @@ void setup() {
 
   // set second ntp server as fallback to dhcp provided
   sntp_setservername(1,station.ntp_server);
+  esp_sntp_stop();
   sntp_init();
 
   for (uint8_t i = 0; i < SNTP_MAX_SERVERS; ++i){
@@ -1732,7 +1732,7 @@ void setup() {
   // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
-  // if mobile station start geolocation thread
+  // if mobile station start geolocation thread or if we need to acquire time
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
     threadGps.Start();
