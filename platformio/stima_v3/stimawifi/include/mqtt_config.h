@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def MQTT_TIMEOUT_MS
-\brief Timeout in milliseconds for mqtt stack.
+\brief Timeout in milliseconds for mqtt.
 */
 #define MQTT_TIMEOUT_MS                (6000)
 

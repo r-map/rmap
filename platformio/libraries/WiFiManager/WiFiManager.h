@@ -327,6 +327,9 @@ class WiFiManager
     //called when config portal is timeout
     void          setConfigPortalTimeoutCallback( std::function<void()> func );
 
+    // set WiFi tx power 
+    void          setTxPower(wifi_power_t power);
+  
     //sets timeout before AP,webserver loop ends and exits even if there has been no setup.
     //useful for devices that failed to connect at some point and got stuck in a webserver loop
     //in seconds setConfigPortalTimeout is a new name for setTimeout, ! not used if setConfigPortalBlocking
@@ -514,6 +517,9 @@ class WiFiManager
     std::vector<const char *> _menuIdsParams  = {"wifi","param","info","exit"};
     std::vector<const char *> _menuIdsUpdate  = {"wifi","param","info","update","exit"};
     std::vector<const char *> _menuIdsDefault = {"wifi","info","exit","sep","update"};
+
+    // WiFi tx power
+    wifi_power_t _power;
 
     // ip configs @todo struct ?
     IPAddress     _ap_static_ip;

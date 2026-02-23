@@ -1244,7 +1244,7 @@ void setup() {
 
     Wire.begin();
     //Wire.begin(SDA_PIN,SCL_PIN);
-    if (!Wire.setClock(I2C_BUS_CLOCK)) frtosLog.error(F("setting I2C clock"));
+    if (!Wire.setClock(I2C_BUS_CLOCK)) frtosLog.error(F("setting I2C bus clock"));
     Wire.setTimeOut(I2C_BUS_TIMEOUT);
     delay(50);
 
@@ -1415,7 +1415,20 @@ void setup() {
   wifiManager.setConnectRetries(3);
   //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
   wifiManager.setConnectTimeout(10);
- 
+
+  //https://github.com/arendst/Tasmota/discussions/15443
+  // 1.3.6 RF Circuit https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf
+  /* This is a selection only of power possibilties
+  WIFI_POWER_21dBm = 84,      // 21dBm
+  WIFI_POWER_20dBm = 80,      // 20dBm
+  WIFI_POWER_19dBm = 76,      // 19dBm
+  WIFI_POWER_17dBm = 68,      // 17dBm
+  WIFI_POWER_15dBm = 60,      // 15dBm
+  WIFI_POWER_13dBm = 52,      // 13dBm
+  WIFI_POWER_11dBm = 44,      // 11dBm
+  WIFI_POWER_8_5dBm = 34,     // 8.5dBm  */
+  wifiManager.setTxPower(WIFI_POWER_15dBm);
+  
   if (oledpresent) {
       LockGuard guard(i2cmutex);
       u8g2->clearBuffer();
@@ -1429,7 +1442,7 @@ void setup() {
       u8g2->print(F(WIFI_PASSWORD));
       u8g2->sendBuffer();
   }
-
+  
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
@@ -1444,7 +1457,7 @@ void setup() {
       u8g2->setCursor(0, 1*CH); 
       u8g2->print(F("WIFI KO"));
       u8g2->sendBuffer();
-    }
+  }
     delay(3000);
     //WiFi.disconnect(true);
     //esp_wifi_stop();
@@ -1453,27 +1466,28 @@ void setup() {
     //if you get here you have connected to the WiFi
     //WiFi.setAutoReconnect(true);
     wifiManager.setDisableConfigPortal(true);
-    frtosLog.notice(F("connected... good!"));
-    frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
-    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-    pixels.show();
-    delay(3000);
-    
-    if (oledpresent) {
-      LockGuard guard(i2cmutex);
-      u8g2->clearBuffer();
-      u8g2->setCursor(0, 1*CH); 
-      u8g2->print(F("WIFI OK"));
-      u8g2->sendBuffer();
-      u8g2->setCursor(0, 4*CH); 
-      u8g2->print(F("IP:"));
-      //u8g2->setFont(u8g2_font_u8glib_4_tf);
-      u8g2->print(WiFi.localIP().toString().c_str());
-      //u8g2->setFont(u8g2_font_5x7_tf);
-      u8g2->sendBuffer();
-    }    
-  }
+  frtosLog.notice(F("connected... good!"));
+  frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
+  frtosLog.notice(F("WiFi tx power: %d"),WiFi.getTxPower());
+  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+  pixels.show();
+  delay(3000);
   
+  if (oledpresent) {
+    LockGuard guard(i2cmutex);
+    u8g2->clearBuffer();
+    u8g2->setCursor(0, 1*CH); 
+    u8g2->print(F("WIFI OK"));
+    u8g2->sendBuffer();
+    u8g2->setCursor(0, 4*CH); 
+    u8g2->print(F("IP:"));
+    //u8g2->setFont(u8g2_font_u8glib_4_tf);
+    u8g2->print(WiFi.localIP().toString().c_str());
+    //u8g2->setFont(u8g2_font_5x7_tf);
+    u8g2->sendBuffer();
+    }    
+  }    
+
   frtosLog.notice("stack setup2: %d",uxTaskGetStackHighWaterMark(NULL));
 
   if (shouldSaveConfig){

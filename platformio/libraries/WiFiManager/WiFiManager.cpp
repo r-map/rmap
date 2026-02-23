@@ -219,6 +219,7 @@ void WiFiManager::WiFiManagerInit(){
   setMenu(_menuIdsDefault);
   if(_debug && _debugLevel >= WM_DEBUG_DEV) debugPlatformInfo();
   _max_params = WIFI_MANAGER_MAX_PARAMS;
+  _power=WIFI_POWER_20dBm;
 }
 
 // destructor
@@ -483,6 +484,9 @@ bool WiFiManager::startAP(){
     #ifdef WM_DEBUG_LEVEL
     DEBUG_WM(F("Custom AP IP/GW/Subnet:"));
     #endif
+    if (!WiFi.setTxPower(_power)){
+      DEBUG_WM(WM_DEBUG_ERROR,F("error setting WiFi tx power"));
+    }    
     if(!WiFi.softAPConfig(_ap_static_ip, _ap_static_gw, _ap_static_sn)){
       #ifdef WM_DEBUG_LEVEL
       DEBUG_WM(WM_DEBUG_ERROR,F("[ERROR] softAPConfig failed!"));
@@ -503,6 +507,10 @@ bool WiFiManager::startAP(){
     #endif
   }
 
+  if (!WiFi.setTxPower(_power)){
+    DEBUG_WM(WM_DEBUG_ERROR,F("error setting WiFi tx power"));
+  }
+  
   // start soft AP with password or anonymous
   // default channel is 1 here and in esplib, @todo just change to default remove conditionals
   if (_apPassword != "") {
@@ -1110,6 +1118,9 @@ bool WiFiManager::wifiConnectNew(String ssid, String pass,bool connect){
   #endif
   WiFi_enableSTA(true,storeSTAmode); // storeSTAmode will also toggle STA on in default opmode (persistent) if true (default)
   WiFi.persistent(true);
+  if (!WiFi.setTxPower(_power)){
+    DEBUG_WM(WM_DEBUG_ERROR,F("error setting WiFi tx power"));
+  }
   ret = WiFi.begin(ssid.c_str(), pass.c_str(), 0, NULL, connect);
   WiFi.persistent(false);
   #ifdef WM_DEBUG_LEVEL
@@ -1139,6 +1150,9 @@ bool WiFiManager::wifiConnectDefault(){
   if(!ret) DEBUG_WM(WM_DEBUG_ERROR,F("[ERROR] wifi enableSta failed"));
   #endif
 
+  if (!WiFi.setTxPower(_power)){
+    DEBUG_WM(WM_DEBUG_ERROR,F("error setting WiFi tx power"));
+  }
   ret = WiFi.begin();
 
   #ifdef WM_DEBUG_LEVEL
@@ -2742,6 +2756,15 @@ void WiFiManager::setDebugOutput(boolean debug, wm_debuglevel_t level) {
   setDebugOutput(debug);
 }
 
+
+/**
+ * [setTxPower description]
+ * @access public
+ * @param {[type]} wifi_power_t power [description]
+ */
+void WiFiManager::setTxPower(wifi_power_t power){
+  _power = power;
+}
 
 /**
  * [setAPStaticIPConfig description]
