@@ -282,9 +282,8 @@ https://github.com/ARPA-SIMC/cosudo
 01/09/2021
 ----------
 
-Progetto Fotosintesi Urbana
+Progetto Fotosintesi Urbana :download:`pdf <collpaimp_fotosintesiurbana.pdf>`
 
-* https://ponmetro.comune.bologna.it/wp-content/uploads/2019/11/collpaimp_fotosintesiurbana.pdf
 
 * https://fisica-e-scuola.difa.unibo.it/attivita-per-il-pubblico/esposizione/fotosintesi-urbana
 
@@ -420,7 +419,26 @@ misurarle nel contesto urbano.
 Organizzato da: I.I.S. Belluzzi-Fioravanti, Associazione Parco dei
 Cedri nel Cuore
 
-https://www.festivalculturatecnica.it/wp-content/uploads/2025/11/Programma_FCT_2025_V11.pdf
+Programma :download:`pdf <Programma_FCT_2025_V11.pdf>`
+
+
+25/02/2026
+----------
+
+Casa dei Risvegli Luca De Nigris 
+Partecipazione
+al modello di
+benessere tra
+Cura, Cultura
+e Natura
+
+ore 9.30 - 12.15
+
+Teatro Dehon Via Libia, 59 - Bologna
+
+.. image:: casadeirisvegli.jpg
+
+Programma :download:`pdf <programma_casadeirisvegli.pdf>`
 
 	   
 Stato dell'arte su GitHub
