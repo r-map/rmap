@@ -794,6 +794,8 @@ class StationMaintStatus(models.Model):
         except:
             pass
         
+        if (self.lastupdate is None):
+            return False
         if ((datetime.now(timezone.utc)-td) > self.lastupdate):
             return True
 
