@@ -1533,18 +1533,31 @@ def configstation_to_struct_v3(station_slug=None,board_slug=None,username=None):
 
             myconfiguration.mqtt_port=1883
             myconfiguration.mqtt_server=bytes(board.transportmqtt.mqttserver,encoding='ascii')
-            myconfiguration.mqtt_root_topic=bytes("1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
-                                                  +"/"+ mystation.ident +"/"\
-                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                                                  +"/"+mystation.network+"/",encoding='ascii')
-            myconfiguration.mqtt_maint_topic=bytes("1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
-                +"/"+ mystation.ident +"/"\
-                +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                +"/"+mystation.network+"/",encoding='ascii')
-            myconfiguration.mqtt_rpc_topic=bytes("1/rpc/"+board.transportmqtt.mqttuser\
-                +"/"+ mystation.ident +"/"\
-                +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                +"/"+mystation.network+"/",encoding='ascii')
+
+            if (mystation.ident == ""):
+                myconfiguration.mqtt_root_topic=bytes("1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                                                      +"/"+ mystation.ident +"/"\
+                                                      +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                      +"/"+mystation.network+"/",encoding='ascii')
+                myconfiguration.mqtt_maint_topic=bytes("1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                                                    +"/"+ mystation.ident +"/"\
+                                                       +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                    +"/"+mystation.network+"/",encoding='ascii')
+                myconfiguration.mqtt_rpc_topic=bytes("1/rpc/"+board.transportmqtt.mqttuser\
+                                                     +"/"+ mystation.ident +"/"\
+                                                     +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                     +"/"+mystation.network+"/",encoding='ascii')
+            else:
+                myconfiguration.mqtt_root_topic=bytes("1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                                                      +"/"+ mystation.ident +"/"\
+                                                      +"/"+mystation.network+"/",encoding='ascii')
+                myconfiguration.mqtt_maint_topic=bytes("1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                                                    +"/"+ mystation.ident +"/"\
+                                                    +"/"+mystation.network+"/",encoding='ascii')
+                myconfiguration.mqtt_rpc_topic=bytes("1/rpc/"+board.transportmqtt.mqttuser\
+                                                     +"/"+ mystation.ident +"/"\
+                                                     +"/"+mystation.network+"/",encoding='ascii')
+            
             myconfiguration.mqtt_username=bytes(board.transportmqtt.mqttuser,encoding='ascii')
             myconfiguration.mqtt_password=bytes(board.transportmqtt.mqttpassword,encoding='ascii')
 

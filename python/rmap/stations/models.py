@@ -971,11 +971,17 @@ class StationMetadata(models.Model):
 
     
     def lon_lat(self):
+        if self.ident != "":
+            return "-_-"
+        
         if self.lon is None:
             return "None_None"
         return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
     def lonlat(self):
+        if self.ident != "":
+            return "-,-"
+
         if self.lon is None:
             return "NoneNone"
         return "%d,%d" % (nint(self.lon*100000),nint(self.lat*100000))

@@ -257,7 +257,6 @@ class MyMQTTClass(mqtt.Client):
                                                             ,user__username=m["user"]
                                                             ,ident=m["ident"] )
 
-                    mypreviouslaststatus=mystation.stationmaintstatus.laststatus
                     
                     if ('stationstatus' in m):
                         if hasattr(mystation, 'stationmaintstatus'):
@@ -274,6 +273,7 @@ class MyMQTTClass(mqtt.Client):
                                           ,m["datetime"])                                
                                          )
 
+                            mypreviouslaststatus=mystation.stationmaintstatus.laststatus
                             mystation.stationmaintstatus.laststatus    = m["stationstatus"]["value"]
                             mystation.stationmaintstatus.lastupdate    = m["datetime"]
                             mystation.stationmaintstatus.firmwaremajor = m["stationstatus"]["majorversion"]
@@ -297,7 +297,10 @@ class MyMQTTClass(mqtt.Client):
                                           ,m["stationstatus"]["minorversion"])
                                          )
 
-                            sms=StationMaintStatus(station=mystation,laststatus=m["stationstatus"]["value"], lastupdate=m["datetime"],
+                            laststatus=m["stationstatus"]["value"]
+                            mypreviouslaststatus=laststatus
+
+                            sms=StationMaintStatus(station=mystation,laststatus=laststatus, lastupdate=m["datetime"],
                                                    firmwaremajor=m["stationstatus"]["majorversion"], firmwareminor=m["stationstatus"]["minorversion"])
                             sms.save()
 
