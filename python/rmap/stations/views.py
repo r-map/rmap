@@ -122,13 +122,13 @@ def station_mqtt_monitor(request,user,slug):
 
                         mqtt_host=board.transportmqtt.mqttserver
                         if mystation.ident == "":
-                            lonlat=mystation.lonlat
-                            lonlatplus=mystation.lonlat
+                            lonlat=mystation.lonlat()
+                            lonlatplus=mystation.lonlat()
                         else:
                             lonlat=""
                             lonlatplus="+"
                             
-                            mqtt_root_topic="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                        mqtt_root_topic="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
                             +"/"+ mystation.ident +"/"\
                             +lonlatplus\
                             +"/"+mystation.network+"/"
