@@ -165,9 +165,13 @@ class django2rpc_res(object):
       prefix= topics[1]
       user = topics[2]
       ident = topics[3]
-      lon,lat=topics[4].split(",")
-      lon=float(lon)/100000.
-      lat=float(lat)/100000.
+      if ident=="":
+        lon,lat=topics[4].split(",")
+        lon=float(lon)/100000.
+        lat=float(lat)/100000.
+      else:
+        lon=None
+        lat=None
       network=topics[5]
         
       logging.info("user={} ident={} lon={} lat={} network={} prefix={}".format(user,ident,lon,lat,network,prefix))
@@ -176,7 +180,7 @@ class django2rpc_res(object):
       if payload["jsonrpc"] == "2.0":
 
         try:
-          logging.info("try to save in django ")
+          logging.info("try to save response in django RPC id:{}".format(payload["id"]))
           myrpc = Rpc.objects.get(active=False,id=payload["id"]
                                   ,stationmetadata__lon=lon,stationmetadata__lat=lat
                                   ,stationmetadata__user__username=user

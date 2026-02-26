@@ -14,7 +14,10 @@ def _do_publish(client):
     logging =client._userdata["logger"]
     logging.info("RPC: %s %s %s", myrpc,myrpc.method,myrpc.params)
 
-    lonlat="%d,%d" % (nint(myrpc.stationmetadata.lon*100000.),nint(myrpc.stationmetadata.lat*100000.))
+    if myrpc.stationmetadata.ident == "":
+        lonlat="%d,%d" % (nint(myrpc.stationmetadata.lon*100000.),nint(myrpc.stationmetadata.lat*100000.))
+    else:
+        lonlat=""
     topic="1/rpc/"+myrpc.stationmetadata.user.username+"/"+myrpc.stationmetadata.ident+"/"+lonlat+"/"+myrpc.stationmetadata.network+"/com"
     payload={"jsonrpc": "2.0", "method": myrpc.method}
     if (myrpc.params is not None): payload["params"]=myrpc.params

@@ -121,18 +121,25 @@ def station_mqtt_monitor(request,user,slug):
                     if ( board.transportmqtt.active):
 
                         mqtt_host=board.transportmqtt.mqttserver
-                        mqtt_root_topic="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                        if mystation.ident == "":
+                            lonlat=mystation.lonlat
+                            lonlatplus=mystation.lonlat
+                        else:
+                            lonlat=""
+                            lonlatplus="+"
+                            
+                            mqtt_root_topic="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
                             +"/"+ mystation.ident +"/"\
-                            +mystation.lonlat()\
+                            +lonlatplus\
                             +"/"+mystation.network+"/"
                         
                         mqtt_maint_topic="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
                             +"/"+ mystation.ident +"/"\
-                            +mystation.lonlat()\
+                            +lonlat\
                             +"/"+mystation.network+"/"
                         mqtt_rpc_topic="1/rpc/"+board.transportmqtt.mqttuser\
                             +"/"+ mystation.ident +"/"\
-                            +mystation.lonlat()\
+                            +lonlat\
                             +"/"+mystation.network+"/"
                         mqtt_username=board.transportmqtt.mqttuser+"/"+mystation.slug+"/"+board.slug
                         mqtt_password=board.transportmqtt.mqttpassword
