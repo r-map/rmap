@@ -857,10 +857,14 @@ void mqttRxCallback(MQTT::MessageData &md) {
   strcat(restopic,publishThread::global_data->station->mqttrpcpath);
   strcat(restopic,"/");
   strcat(restopic,publishThread::global_data->station->user);
-  strcat(restopic,"//");
-  strcat(restopic,publishThread::global_data->station->longitude);
-  strcat(restopic,",");
-  strcat(restopic,publishThread::global_data->station->latitude);
+  strcat(restopic,"/");
+  strcat(restopic,publishThread::global_data->station->ident);
+  strcat(restopic,"/");
+  if (strcmp(publishThread::global_data->station->ident,"") == 0){
+    strcat(restopic,publishThread::global_data->station->longitude);
+    strcat(restopic,",");
+    strcat(restopic,publishThread::global_data->station->latitude);
+  }
   strcat(restopic,"/");
   strcat(restopic,publishThread::global_data->station->network);
   strcat(restopic,"/res");
