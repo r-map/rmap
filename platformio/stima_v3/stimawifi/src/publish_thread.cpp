@@ -13,8 +13,8 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 >* publishThread::global_mq
 
 publishThread::publishThread(publish_data_t* publish_data)
   : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY
-	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
            # if portNUM_PROCESSORS > 1
+	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
            #endif
     },
     data{publish_data},
