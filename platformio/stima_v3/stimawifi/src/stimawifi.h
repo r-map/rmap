@@ -114,9 +114,9 @@ publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&cal
 publishThread threadPublish(&publish_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_RGB + NEO_KHZ800);
-#else
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
+#else
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_RGB + NEO_KHZ800);
 #endif
 
 char status[15]="";     // status message for web and display
