@@ -420,7 +420,7 @@ static int ESP32Open(
 	strcpy(mode, "r");
 
   if( flags&SQLITE_OPEN_MAIN_JOURNAL ){
-    aBuf = (char *)sqlite3_malloc(SQLITE_ESP32VFS_BUFFERSZ);
+    aBuf = (char *)malloc(SQLITE_ESP32VFS_BUFFERSZ);
     if( !aBuf ){
       return SQLITE_NOMEM;
     }
