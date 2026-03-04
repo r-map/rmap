@@ -13,9 +13,9 @@
     
     <section id="main_content">
 
-      <p><h3>{{user}} {% trans 'Here your station details' %}</h3></p>
+      <p><h3>{% trans 'Here your station details' %}</h3></p>
 
-<h2 id="striped-rows">{% trans 'Station name' %}: {{ mystation.name }}</h2>
+<h2 id="striped-rows">{% trans 'User' %}: {{user}} {% trans 'Station name' %}: {{ mystation.name }}</h2>
 
 <p><h3> <a href="{% url 'mystationmetadata-del' mystation.user mystation.slug %}">{% trans 'Delete' %} {{ mystation.name }}</a></h3></p>
 <p><h3> <a href="{% url 'insertdata-stationmodify' mystation.slug %}">{% trans 'Modify' %} {{ mystation.name }}</a></h3></p>
@@ -67,9 +67,8 @@
 </tr>
 </table>
 
-<p>
-<a href="{% url 'mystationmetadata-detail' mystation.user.username  mystation.slug %}">{% trans 'Show station details' %}</a>
-</p>
+<p><h3><a href="{% url 'mystationmetadata-detail' mystation.user.username  mystation.slug %}">{% trans 'Show station details' %}</a></h3></p>
+<p><h3><a href="{% url 'mystationstatus-detail' mystation.user.username  mystation.slug %}">{% trans 'Show station status' %}</a></h3></p>
 
 <div class="table-responsive">
   <table class="table">

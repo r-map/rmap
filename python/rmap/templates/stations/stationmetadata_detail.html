@@ -55,10 +55,16 @@
 <h4>{% trans 'Station status' %}: {{ object.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ object.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
 <h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
 
+  <p>
+    <h3>
+      <a href="{% url 'mystationstatus-detail' object.user object.slug %}">{% trans 'Station status' %} {{ object.user }} {{ object.slug }}</a>      
+    </h3>
+  </p>
+
 {% if object.type == "stimav2" or object.type == "stimav3" %}
   <p>
     <h3>
-      <a href="http://{{site.domain}}{% url 'mystation-localdata' object.user object.slug %}" target="_blank" rel="noopener noreferrer">{% trans 'Realtime local data' %} {{ object.slug }}</a>
+      <a href="http://{{site.domain}}{% url 'mystation-localdata' object.user object.slug %}" target="_blank" rel="noopener noreferrer">{% trans 'Realtime local data' %} {{ object.user }} {{ object.slug }}</a>
     </h3>
   </p>
 {% endif %}

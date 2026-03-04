@@ -67,7 +67,8 @@
 
 <section id="main_content">
   
-<h2>{% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
+<h2>{% trans 'User' %}: {{ object.user }}     {% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
+<a href="{% url 'mystationstatus-list' object.user %}">{%trans "Return to user station list" %}</a>
 
 <div class="table-responsive">
 <table class="table">
@@ -77,6 +78,7 @@
 <th> {% trans 'Lat' %}            </th>
 <th> {% trans 'Lon' %}            </th>
 <th> {% trans 'Category' %}       </th>
+<th> {% trans 'Type' %}           </th>
 <th> {% trans 'View on the map' %}</th>
 </tr>
 
@@ -91,7 +93,8 @@
 <td> {{ object.user }}   </td>
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
-<td> {{ object.category }}</td>
+<td> {{ object.get_category_display }}</td>
+<td> {{ object.get_type_display }}    </td>
 <td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
 </tr>
 </table>
@@ -99,6 +102,12 @@
 
 <h4>{% trans 'Station status' %}: {{ object.stationmaintstatus.laststatus |default:_('Missing')}} //  {% trans 'Last status update' %}: {{ object.stationmaintstatus.lastupdate|default:_('Missing')}}</h4>
 <h4>{% trans 'Firmware version' %}: {{ object.stationmaintstatus.firmwaremajor |default_if_none:_('Missing')}}.{{ object.stationmaintstatus.firmwareminor|default_if_none:_('Missing')}}</h4>
+
+  <p>
+    <h3>
+      <a href="{% url 'mystationmetadata-detail' object.user object.slug %}">{% trans 'Station details' %} {{ object.user }} {{ object.slug }}</a>      
+    </h3>
+  </p>
 
 <div class="container-fluid">
   <div class="table-responsive">

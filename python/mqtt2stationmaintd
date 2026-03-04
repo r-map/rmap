@@ -257,6 +257,7 @@ class MyMQTTClass(mqtt.Client):
                                                             ,user__username=m["user"]
                                                             ,ident=m["ident"] )
 
+                    mypreviouslaststatus=None
                     
                     if ('stationstatus' in m):
                         if hasattr(mystation, 'stationmaintstatus'):
@@ -505,13 +506,13 @@ class MyMQTTClass(mqtt.Client):
             if (mypreviousboard.boardmaintstatus.statusv8 != myboard.boardmaintstatus.statusv8):
                 diff=True
                 changed_statusv[7]=True
-
-        if (mypreviouslaststatus != mystation.stationmaintstatus.laststatus):
-            if (mypreviouslaststatus != "disconn" and mystation.stationmaintstatus.laststatus != "disconn"):
-                diff=True
-                changed_laststatus=True            
-                if (mystation.stationmaintstatus.laststatus == "ERROR 01"):
-                    mystation.stationmaintstatus.laststatus = "Unexpected MQTT disconnection"
+        if mypreviouslaststatus is not None:
+            if (mypreviouslaststatus != mystation.stationmaintstatus.laststatus):
+                if (mypreviouslaststatus != "disconn" and mystation.stationmaintstatus.laststatus != "disconn"):
+                    diff=True
+                    changed_laststatus=True            
+                    if (mystation.stationmaintstatus.laststatus == "ERROR 01"):
+                        mystation.stationmaintstatus.laststatus = "Unexpected MQTT disconnection"
                 
                 
         if (not diff):
