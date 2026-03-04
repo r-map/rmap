@@ -88,9 +88,9 @@
 
 // SD card SPI PIN assignment
 // Micro SD Card Shield
-#define C3SCK D5   
-#define C3MISO D6  
-#define C3MOSI D7
+#define SCK  D5   
+#define MISO D6  
+#define MOSI D7
 
 // https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
 // configuration as default
@@ -102,7 +102,7 @@
 // https://www.wemos.cc/en/latest/d1_mini_shield/micro_sd.html
 // configurated as
 // cut 2/D4 and connect 15/18
-#define C3SS D8
+#define SS D8
 
 // SPI clock
 #define SPICLOCK 10000000

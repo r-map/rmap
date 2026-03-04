@@ -15,7 +15,7 @@ void clearSD ()
   
   byte sd = 0;
   uint8_t retry=0;
-  digitalWrite(C3SS, LOW);
+  digitalWrite(SS, LOW);
   while (sd != 0XFF && retry < 100)
   {
     retry++;
@@ -25,7 +25,7 @@ void clearSD ()
     //Serial.print("sd=");
     //Serial.println(sd);
   }
-  digitalWrite(C3SS, HIGH);
+  digitalWrite(SS, HIGH);
 }
 
 // callback for data returned by sqlite
@@ -668,16 +668,16 @@ bool dbThread::db_restart(){
 
   SD.end();
 
-  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.begin(SCK, MISO, MOSI, SS); //SCK, MISO, MOSI, SS
   SPI.setDataMode(SPI_MODE0);
-  bool s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
+  bool s = SD.begin(SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
   if (!s){
     data->logger->error(F("db SD begin"));       
     SD.end();
     delay(1000);
     clearSD();
     delay(1000);
-    s = SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
+    s = SD.begin(SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false);
   }
 
   // if loggin on SDcard is enabled reopen logging file
@@ -839,10 +839,10 @@ void dbThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
 
   if (SD.cardType() == CARD_NONE) {
-    SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+    SPI.begin(SCK, MISO, MOSI, SS); //SCK, MISO, MOSI, SS
     //SPI.setDataMode(SPI_MODE3);
     //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
-    if (SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, true)){
+    if (SD.begin(SS,SPI,SPICLOCK, "/sd",SDMAXFILE, true)){
       data->logger->notice(F("db SD mount OK"));
       data->status->sdcard=ok;
     }else{

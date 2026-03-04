@@ -1137,14 +1137,14 @@ void setup() {
   if (reset) {
 
     Serial.println(F("Try to reformat SD card."));
-    SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+    SPI.begin(SCK, MISO, MOSI, SS); //SCK, MISO, MOSI, SS
 
     // SdCardFactory constructs and initializes the appropriate card.
     SdCardFactory cardFactory;
     ExFatFormatter exFatFormatter;
     FatFormatter fatFormatter;
     uint8_t  sectorBuffer[512];
-    SdCard* m_card = cardFactory.newCard(SdSpiConfig(C3SS, DEDICATED_SPI));
+    SdCard* m_card = cardFactory.newCard(SdSpiConfig(SS, DEDICATED_SPI));
     if (!m_card) {
       Serial.println(F("Invalid SD_CONFIG"));
     } else if (m_card->errorCode()) {
@@ -1189,10 +1189,10 @@ void setup() {
 
   Serial.println("\nInitializing SD card..." );
 
-  SPI.begin(C3SCK, C3MISO, C3MOSI, C3SS); //SCK, MISO, MOSI, SS
+  SPI.begin(SCK, MISO, MOSI, SS); //SCK, MISO, MOSI, SS
   //SPI.setDataMode(SPI_MODE3);
   //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
-  if (!SD.begin(C3SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false)){
+  if (!SD.begin(SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false)){
     Serial.println   (F("initialization failed. Things to check:"));
     Serial.println   (F("* is a card inserted?"));
     Serial.println   (F("* is your wiring correct?"));
