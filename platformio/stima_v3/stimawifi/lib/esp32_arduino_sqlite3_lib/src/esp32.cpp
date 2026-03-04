@@ -144,7 +144,7 @@ static int ESP32Close(sqlite3_file *pFile){
   //Serial.println("fn: Close");
   ESP32File *p = (ESP32File*)pFile;
   rc = ESP32FlushBuffer(p);
-  sqlite3_free(p->aBuffer);
+  free(p->aBuffer);
   fclose(p->fp);
   //Serial.println("fn:Close:Success");
   return rc;
@@ -481,7 +481,7 @@ static int ESP32Open(
 
   if( p->fp == NULL){
     if (aBuf)
-      sqlite3_free(aBuf);
+      free(aBuf);
     //Serial.println("Can't open");
     return SQLITE_CANTOPEN;
   }
