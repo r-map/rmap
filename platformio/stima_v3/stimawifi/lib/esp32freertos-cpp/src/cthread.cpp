@@ -58,12 +58,19 @@ MutexStandard Thread::StartGuardLock;
 
 Thread::Thread( const std::string pcName,
                 uint16_t usStackDepth,
-                UBaseType_t uxPriority)
+                UBaseType_t uxPriority
+                #if portNUM_PROCESSORS > 1
+		,BaseType_t uxxCoreID
+                #endif
+                )
     :   handle((TaskHandle_t)-1),
 	Name(pcName),
         StackDepth(usStackDepth), 
         Priority(uxPriority),
         ThreadStarted(false)
+        #if portNUM_PROCESSORS > 1
+        ,xCoreID(uxxCoreID)
+	#endif
 {
 #if (INCLUDE_vTaskDelayUntil == 1)
     delayUntilInitialized = false;
@@ -72,12 +79,19 @@ Thread::Thread( const std::string pcName,
 
 
 Thread::Thread( uint16_t usStackDepth,
-                UBaseType_t uxPriority)
+                UBaseType_t uxPriority
+                # if portNUM_PROCESSORS > 1
+		,BaseType_t uxxCoreID
+		#endif
+		)
   :   handle((TaskHandle_t)-1),
       Name("Default"), 
         StackDepth(usStackDepth), 
         Priority(uxPriority),
         ThreadStarted(false)
+        #if portNUM_PROCESSORS > 1
+        ,xCoreID(uxxCoreID)
+        #endif
 {
 #if (INCLUDE_vTaskDelayUntil == 1)
     delayUntilInitialized = false;
@@ -91,11 +105,18 @@ Thread::Thread( uint16_t usStackDepth,
 
 Thread::Thread( const char *pcName,
                 uint16_t usStackDepth,
-                UBaseType_t uxPriority)
+                UBaseType_t uxPriority
+                #if portNUM_PROCESSORS > 1
+	        ,BaseType_t uxxCoreID
+                #endif
+	      )
     :   StackDepth(usStackDepth),
         Priority(uxPriority),
         ThreadStarted(false),
 	handle((TaskHandle_t)-1)
+        #if portNUM_PROCESSORS > 1
+        ,xCoreID(uxxCoreID)
+        #endif
 {
     for (int i = 0; i < configMAX_TASK_NAME_LEN - 1; i++) {
         Name[i] = *pcName;
@@ -112,11 +133,18 @@ Thread::Thread( const char *pcName,
 
 
 Thread::Thread( uint16_t usStackDepth,
-                UBaseType_t uxPriority)
+                UBaseType_t uxPriority
+                #if portNUM_PROCESSORS > 1
+                ,BaseType_t uxxCoreID
+                #endif
+	      )
     :   StackDepth(usStackDepth),
         Priority(uxPriority),
         ThreadStarted(false),
 	handle((TaskHandle_t)-1)	
+        #if portNUM_PROCESSORS > 1
+        ,xCoreID(uxxCoreID)
+        #endif
 {
     memset(Name, 0, sizeof(Name));
 #if (INCLUDE_vTaskDelayUntil == 1)
@@ -158,20 +186,40 @@ bool Thread::Start()
 
 #ifndef CPP_FREERTOS_NO_CPP_STRINGS
 
-    BaseType_t rc = xTaskCreate(TaskFunctionAdapter,
+    BaseType_t rc =
+    # if portNUM_PROCESSORS == 1
+      xTaskCreate
+    #else  
+      xTaskCreatePinnedToCore
+    #endif
+      (TaskFunctionAdapter,
                                 Name.c_str(),
                                 StackDepth,
                                 this,
                                 Priority,
-                                &handle);
+                                &handle
+                                # if portNUM_PROCESSORS > 1
+                                ,xCoreID
+                                #endif
+				);
 #else 
 
-    BaseType_t rc = xTaskCreate(TaskFunctionAdapter,
+    BaseType_t rc =
+    # if portNUM_PROCESSORS == 1
+      xTaskCreate
+    #else  
+      xTaskCreatePinnedToCore
+    #endif
+      (TaskFunctionAdapter,
                                 Name,
                                 StackDepth,
                                 this,
                                 Priority,
-                                &handle);
+                                &handle
+                                # if portNUM_PROCESSORS > 1
+                                ,xCoreID
+                                #endif
+				);
 #endif
 
     return rc != pdPASS ? false : true;

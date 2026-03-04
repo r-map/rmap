@@ -105,11 +105,19 @@ class Thread {
 #ifndef CPP_FREERTOS_NO_CPP_STRINGS
         Thread( const std::string Name,
                 uint16_t StackDepth,
-                UBaseType_t Priority);
+                UBaseType_t Priority
+                # if portNUM_PROCESSORS > 1
+		,BaseType_t uxxCoreID=tskNO_AFFINITY
+		#endif
+		);
 #else
         Thread( const char *Name,
                 uint16_t StackDepth,
-                UBaseType_t Priority);
+                UBaseType_t Priority
+                # if portNUM_PROCESSORS > 1
+		,BaseType_t uxxCoreID=tskNO_AFFINITY
+		#endif
+		);
 #endif
 
         /**
@@ -119,7 +127,11 @@ class Thread {
          *  @param Priority FreeRTOS priority of this Thread.
          */
         Thread( uint16_t StackDepth,
-                UBaseType_t Priority);
+                UBaseType_t Priority
+                # if portNUM_PROCESSORS > 1
+		,BaseType_t uxxCoreID=1
+		#endif
+		);
 
         /**
          *  Starts a thread.
@@ -439,6 +451,18 @@ class Thread {
          */
         UBaseType_t Priority;
 
+        # if portNUM_PROCESSORS > 1
+        /**
+         *  If the value is tskNO_AFFINITY, the created task is not
+         *  pinned to any CPU, and the scheduler can run it on any
+         *  core available. Values 0 or 1 indicate the index number of
+         *  the CPU which the task should be pinned to. Specifying
+         *  values larger than (portNUM_PROCESSORS - 1) will cause the
+         *  function to fail.
+         */
+        BaseType_t xCoreID;
+        #endif
+  
         /**
          *  Flag whether or not the Thread was started.
          */
