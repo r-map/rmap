@@ -12,7 +12,11 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 >* publishThread::global_mq
 //***********************************************************************************************
 
 publishThread::publishThread(publish_data_t* publish_data)
-  : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY},
+  : Thread{"publish", TASK_PUBLISH_STACK_SIZE, TASK_PUBLISH_PRIORITY
+	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+           # if portNUM_PROCESSORS > 1
+           #endif
+    },
     data{publish_data},
     ipstack{networkClient},
     mqttclient{ipstack, IP_STACK_TIMEOUT_MS},
@@ -89,7 +93,7 @@ void publishThread::Run() {
 
     mqttclient.yield(0);
     
-    if ( !status_published ){
+    if ( !status_published or !status_connected ){
       if (status_connected) mqttDisconnect();
       if (mqttConnect(false)) {   // manage mqtt reconnect as RMAP standard
 	data->logger->notice(F("publish MQTT connected"));
@@ -122,7 +126,6 @@ void publishThread::Run() {
       mqttMessage_t mqttMessage;
       // wait for message and peek it from the queue
       while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-	mqttclient.yield(0);
 	// publish message
 	if (!doPublish()) break;
       }
@@ -133,7 +136,7 @@ void publishThread::Run() {
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
       data->status->publish.no_heap_memory=error;
     }
     //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
@@ -586,7 +589,7 @@ void publishThread::store() {
 
   if (data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue
     if (mqtt_message.sent){
-      data->logger->error(F("publish skip and do no publish or store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
+      data->logger->error(F("publish skip and do not store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
     }else{
       if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
 	data->logger->notice(F("publish skip and enqueue message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);

@@ -804,7 +804,11 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 using namespace cpp_freertos;
 
 dbThread::dbThread(db_data_t* db_data)
-  : Thread{"DB", TASK_DB_STACK_SIZE, TASK_DB_PRIORITY}
+  : Thread{"DB", TASK_DB_STACK_SIZE, TASK_DB_PRIORITY
+            # if portNUM_PROCESSORS > 1
+            ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+            #endif
+          }
     ,data{db_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -1067,7 +1071,7 @@ void dbThread::Run() {
     // checks for heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
       data->status->no_heap_memory=error;
     }
     //data->logger->notice("stack db: %d",uxTaskGetStackHighWaterMark(NULL));

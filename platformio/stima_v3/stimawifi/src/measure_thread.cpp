@@ -275,7 +275,11 @@ void measureThread::doMeasure() {
 
 
 measureThread::measureThread(measure_data_t* measure_data)
-  : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY},
+  : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY
+            # if portNUM_PROCESSORS > 1
+            ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+            #endif
+          },
     data{measure_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
@@ -337,7 +341,7 @@ void measureThread::Run() {
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-      data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
       data->status->no_heap_memory=error;
     }
     //data->logger->notice("measure stack: %d",uxTaskGetStackHighWaterMark(NULL));
