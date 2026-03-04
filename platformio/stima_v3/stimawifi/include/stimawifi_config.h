@@ -31,11 +31,6 @@
 #define OLEDI2CADDRESS_64X48 0X3C
 #define OLEDI2CADDRESS_128X64 0X3D
 
-// logging level at compile time
-// Available levels are:
-// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
-
 // Length of datetime string %04u-%02u-%02uT%02u:%02u:%02u
 #define DATE_TIME_STRING_LENGTH                       (25)
 

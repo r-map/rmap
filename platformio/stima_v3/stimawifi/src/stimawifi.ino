@@ -1783,13 +1783,14 @@ void loop() {
   // check heap and stack
   //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
   if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-    frtosLog.error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    stimawifiStatus.no_heap_memory=error;
+    frtosLog.error(F("free HEAP : %l"), esp_get_minimum_free_heap_size());
+    frtosLog.error(F("free PSRAM: %l"), ESP.getFreePsram());
+     stimawifiStatus.no_heap_memory=error;
   }
   //data->logger->notice("stack publish: %d",uxTaskGetStackHighWaterMark(NULL));
   if( uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING ){
     frtosLog.error(F("loop stack"));  // check for memory collision
     stimawifiStatus.memory_collision=error;
   }
-
+ 
 }
