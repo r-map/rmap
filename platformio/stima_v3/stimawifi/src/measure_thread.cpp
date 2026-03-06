@@ -276,9 +276,9 @@ void measureThread::doMeasure() {
 
 measureThread::measureThread(measure_data_t* measure_data)
   : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY
-            # if portNUM_PROCESSORS > 1
-            ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
-            #endif
+           # if portNUM_PROCESSORS > 1
+	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+           #endif
           },
     data{measure_data}
 {

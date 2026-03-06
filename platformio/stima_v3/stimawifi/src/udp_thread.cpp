@@ -76,7 +76,11 @@ void udpThread::doUdp(){
 using namespace cpp_freertos;
 
 udpThread::udpThread(udp_data_t* udp_data)
-  : Thread{"UDP", TASK_UDP_STACK_SIZE, TASK_UDP_PRIORITY}  // 1152 free
+  : Thread{"UDP", TASK_UDP_STACK_SIZE, TASK_UDP_PRIORITY
+           # if portNUM_PROCESSORS > 1
+	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+           #endif
+          }
     ,data{udp_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);

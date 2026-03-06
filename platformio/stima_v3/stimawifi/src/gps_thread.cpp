@@ -74,7 +74,11 @@ void gpsThread::doSerialNmea(){
 using namespace cpp_freertos;
 
 gpsThread::gpsThread(gps_data_t* gps_data)
-  : Thread{"GPS", TASK_GPS_STACK_SIZE, TASK_GPS_PRIORITY}
+  : Thread{"GPS", TASK_GPS_STACK_SIZE, TASK_GPS_PRIORITY
+           # if portNUM_PROCESSORS > 1
+	   ,1  // if multicore 1 indicate the index number of the CPU which the task should be pinned to
+           #endif
+          }
     ,data{gps_data}
 {
   //data->logger->notice("gps Create Thread %s %d", GetName().c_str(), data->id);

@@ -60,7 +60,12 @@ class dbThread : public Thread {
   db_data_t* data;
   sqlite3 *db;
   //SdFat SD;
-  uint8_t sqlite_memory[SQLITE_MEMORY];   // allocated memory used by sqlite
+  
+  void* sqlite_memory;   // allocated memory used by sqlite
+  # if portNUM_PROCESSORS == 1
+  uint8_t sqlite_static_memory[SQLITE_MEMORY];
+  #endif
+  
   bool sqlite_status;
   rpcRecovery_t rpcrecovery;
   /*!

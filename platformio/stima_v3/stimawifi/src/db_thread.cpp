@@ -482,7 +482,9 @@ bool dbThread::archive_recovery(){
 // of messages for retrasmission
 bool dbThread::data_set_recovery(){
   int rc;
-
+  uint8_t basePriority = GetPriority();
+  SetPriority(1);          // slow down task; this take a long time and we do not want to freeze everything 
+  
   data->logger->notice(F("db set recovery started: %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
 
   char sql[] = "UPDATE messages SET sent = false WHERE datetime BETWEEN  strftime('%s',?) and strftime('%s',?)";
@@ -525,12 +527,13 @@ bool dbThread::data_set_recovery(){
     if(rc == SQLITE_DONE) {
       rc  = SQLITE_OK;
     } else {
-      data->logger->error(F("db set recovery updating values in DB: %s"),sqlite3_errmsg(db));       
+      data->logger->error(F("db set recovery setting sent flag in DB: %s"),sqlite3_errmsg(db));       
       data->status->database=error;
     }
   }
   sqlite3_finalize(stmt);
-  data->logger->notice(F("db End set values in DB"));        
+  data->logger->notice(F("db set recovery ended: setted sent flag in DB"));        
+  SetPriority(basePriority);
   return rc  == SQLITE_OK;
 }
 
@@ -689,7 +692,7 @@ bool dbThread::db_restart(){
 
   data->logger->notice(F("db SD begin"));
 
-  // sqlite use static allocated memory
+  // sqlite use pre allocated memory
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data->logger->error(F("db sqlite3_config: %s"),sqlite3_errmsg(db));
     data->status->database=error;
@@ -816,12 +819,15 @@ dbThread::dbThread(db_data_t* db_data)
   data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
   sqlite_status=false;
-  archive_recovery_state = ARCHIVE_RECOVERY_NONE;
+  archive_recovery_state = ARCHIVE_RECOVERY_NONE;  
   //Start();
 };
 
 dbThread::~dbThread()
 {
+  # if portNUM_PROCESSORS > 1  
+  free(sqlite_memory);
+  #endif  
 }
   
 void dbThread::Cleanup()
@@ -838,6 +844,17 @@ void dbThread::Cleanup()
 void dbThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
 
+  # if portNUM_PROCESSORS > 1  
+  //data->logger->notice(F("db largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+  sqlite_memory= ps_malloc(SQLITE_MEMORY);
+  if (sqlite_memory == 0){
+    data->logger->error(F("sqlite3 memory malloc"));
+    data->status->database=error;
+  }
+  #else
+  sqlite_memory = sqlite_static_memory;
+  #endif
+  
   if (SD.cardType() == CARD_NONE) {
     SPI.begin(SCK, MISO, MOSI, SS); //SCK, MISO, MOSI, SS
     //SPI.setDataMode(SPI_MODE3);
@@ -880,17 +897,8 @@ void dbThread::Run() {
   }else{
     data->status->archive=ok;
   }
-  /*
-  data->logger->notice(F("largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
-  void* sqlite_memory= malloc(SQLITE_MEMORY);
-  if (sqlite_memory == 0){
-    data->logger->error(F("sqlite3 memory malloc"));
-    data->status->database=error;
-    return;    
-  }
-  */
 
-  // sqlite use static allocated memory
+  // sqlite use sqlite_memory pre allocated memory
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data->logger->error(F("db sqlite3_config: %s"),sqlite3_errmsg(db));
     data->status->database=error;
@@ -936,19 +944,23 @@ void dbThread::Run() {
   // setup for the DB
   db_setup();
 
-  /*                No memory for vacuum !
+  //                No memory for vacuum in esp32-c3
   //The VACUUM statement is used to reclaim storage by removing
   //obsolete data and reducing the size of the database file. It
   //does this by writing the full contents of all tables into a new
   //database file. This process frees all unused space and ensures
   //that all tables and indexes are stored contiguously.
+
+  /* too slow!
+  # if portNUM_PROCESSORS > 1  
   //if(db_exec("VACUUM INTO '/sd/newstima.db';") != SQLITE_OK) {
   if(db_exec("VACUUM;") != SQLITE_OK) {
     data->logger->error(F("db vacuum"));       
     data->status->database=error;
   }
+  # endif
   */
-
+  
   /*
   //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages",data);
   int rc = db_exec(db, "SELECT sent,topic,payload  FROM messages WHERE sent = 0 ORDERED BY datetime",data);

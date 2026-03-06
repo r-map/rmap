@@ -140,7 +140,11 @@
   KB (for a total of 320 KB of DRAM) can only be allocated at runtime
   as heap.
 */
+# if portNUM_PROCESSORS > 1
+#define SQLITE_MEMORY 1000000
+#else
 #define SQLITE_MEMORY 110000
+#endif
 
 /*!
 \def IP_STACK_TIMEOUT_MS
