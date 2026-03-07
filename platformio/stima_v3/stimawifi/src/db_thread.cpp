@@ -375,7 +375,7 @@ bool dbThread::archive_recovery(){
 	uint8_t byteread=archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t));
 	
 	if (byteread == sizeof(mqttMessage_t)/sizeof(uint8_t)) {
-	  data->logger->notice(F("db read message from archive %T:%s:%s"),
+	  data->logger->trace(F("db read message from archive %T:%s:%s"),
 			       archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
 	} else {
 	  if (byteread>0) {
@@ -1063,8 +1063,12 @@ void dbThread::Run() {
 
     // check queue for rpc recovey
     if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) recovery();
+
+    uint8_t basePriority = GetPriority();
+    SetPriority(1);          // slow down task; this take a long time and we do not want to freeze everything 
     while (archive_recovery());
-    
+    SetPriority(basePriority);
+ 
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
       if (!doDb(message)) return;                                 // return and terminate task if fatal error
       if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite

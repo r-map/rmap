@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-02-23T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260223"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-03-07T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260307"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -76,7 +76,11 @@
 
 // define parameter for queues len and communication
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
+# if portNUM_PROCESSORS > 1
+#define DATA_BURST (100)
+#else
 #define DATA_BURST (15)
+#endif
 #define DATA_BURST_RECOVERY (DATA_BURST)
 
 #define DB_QUEUE_LEN (DATA_BURST)
@@ -141,7 +145,7 @@
   as heap.
 */
 # if portNUM_PROCESSORS > 1
-#define SQLITE_MEMORY 1000000
+#define SQLITE_MEMORY 2000000
 #else
 #define SQLITE_MEMORY 110000
 #endif
