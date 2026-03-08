@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-03-07T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260307"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-03-08T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260308"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -77,7 +77,7 @@
 // define parameter for queues len and communication
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
 # if portNUM_PROCESSORS > 1
-#define DATA_BURST (100)
+#define DATA_BURST (150)
 #else
 #define DATA_BURST (15)
 #endif
@@ -125,6 +125,9 @@
 
 #define SDMAXFILE 6
 
+// max file size to try to apply vacuum or other cleanup strategy
+#define DB_FILESIZE_FOR_VACCUM 300000000
+
 // SD card file name for archive
 #define SDCARD_INFO_FILE_NAME    ("/info.dat")
 #define SDCARD_ARCHIVE_FILE_NAME ("/archive.dat")
@@ -133,7 +136,12 @@
 #define LFMAXFILE 4
 
 // time in seconds saved on sqlite on SD card for tmp archive and recovery
-#define SDRECOVERYTIME (3600*24*1)
+# if portNUM_PROCESSORS > 1
+#define SDRECOVERYDAY 7
+#else
+#define SDRECOVERYDAY 1
+#endif
+#define SDRECOVERYTIME (3600*24*SDRECOVERYDAY)
 
 // sqlite setup
 /*

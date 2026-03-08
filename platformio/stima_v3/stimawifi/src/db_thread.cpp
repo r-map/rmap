@@ -483,7 +483,7 @@ bool dbThread::archive_recovery(){
 bool dbThread::data_set_recovery(){
   int rc;
   uint8_t basePriority = GetPriority();
-  SetPriority(1);          // slow down task; this take a long time and we do not want to freeze everything 
+  SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
   
   data->logger->notice(F("db set recovery started: %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
 
@@ -874,19 +874,19 @@ void dbThread::Run() {
   if (!infoFile){
     data->logger->error(F("db failed to open info file for writing"));
     data->status->archive=error;
+  }else{
+    infoFile.print(data->station->user);
+    infoFile.print("/");
+    infoFile.print(data->station->stationslug);
+    infoFile.print("/");
+    infoFile.println(data->station->boardslug);
+    infoFile.println(MAJOR_VERSION);
+    infoFile.println(MINOR_VERSION);
+    infoFile.println("");
+    infoFile.println(MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH);
+    infoFile.println(MQTT_MESSAGE_LENGTH);
+    infoFile.println(1);
   }
-
-  infoFile.print(data->station->user);
-  infoFile.print("/");
-  infoFile.print(data->station->stationslug);
-  infoFile.print("/");
-  infoFile.println(data->station->boardslug);
-  infoFile.println(MAJOR_VERSION);
-  infoFile.println(MINOR_VERSION);
-  infoFile.println("");
-  infoFile.println(MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH);
-  infoFile.println(MQTT_MESSAGE_LENGTH);
-  infoFile.println(1);
   infoFile.close();
   
   // open archive on sd card
@@ -943,23 +943,6 @@ void dbThread::Run() {
 
   // setup for the DB
   db_setup();
-
-  //                No memory for vacuum in esp32-c3
-  //The VACUUM statement is used to reclaim storage by removing
-  //obsolete data and reducing the size of the database file. It
-  //does this by writing the full contents of all tables into a new
-  //database file. This process frees all unused space and ensures
-  //that all tables and indexes are stored contiguously.
-
-  /* too slow!
-  # if portNUM_PROCESSORS > 1  
-  //if(db_exec("VACUUM INTO '/sd/newstima.db';") != SQLITE_OK) {
-  if(db_exec("VACUUM;") != SQLITE_OK) {
-    data->logger->error(F("db vacuum"));       
-    data->status->database=error;
-  }
-  # endif
-  */
   
   /*
   //int rc = db_exec(db, "SELECT datetime(datetime,'unixepoch'),topic,payload  FROM messages",data);
@@ -1018,12 +1001,12 @@ void dbThread::Run() {
   
   // if DB file is big and do not contain unsent messages
   // migrate all old data from DB to archive and regenerate DB
-  // this is done because we cannot execute VACUUM sql
+  // this is done because we cannot or is too slow execute VACUUM sql
   File dbFile = SD.open("/stima.db", FILE_READ);
   uint32_t fsize=dbFile.size();
   dbFile.close();
   data->logger->notice(F("db db file size %l bytes"),fsize);
-  if ( fsize > 300000000){
+  if ( fsize > DB_FILESIZE_FOR_VACCUM){
     uint32_t number;
     int rc = db_count_delayed_messages(number);
     if (rc != SQLITE_OK) {
@@ -1038,6 +1021,31 @@ void dbThread::Run() {
     }
   }
 
+  dbFile = SD.open("/stima.db", FILE_READ);
+  fsize=dbFile.size();
+  dbFile.close();
+  data->logger->notice(F("db db file size %l bytes"),fsize);
+  if ( fsize > DB_FILESIZE_FOR_VACCUM){
+    //                No memory for vacuum in esp32-c3
+    //The VACUUM statement is used to reclaim storage by removing
+    //obsolete data and reducing the size of the database file. It
+    //does this by writing the full contents of all tables into a new
+    //database file. This process frees all unused space and ensures
+    //that all tables and indexes are stored contiguously.
+
+    // very slow!
+    # if portNUM_PROCESSORS > 1  
+    uint8_t basePriority = GetPriority();
+    SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
+    //if(db_exec("VACUUM INTO '/sd/newstima.db';") != SQLITE_OK) {
+    if(db_exec("VACUUM;") != SQLITE_OK) {
+      data->logger->error(F("db vacuum"));       
+      data->status->database=error;
+    }
+    SetPriority(basePriority);
+    # endif
+  }
+  
   data->status->database=ok;
   sqlite_status=true;
   
@@ -1065,7 +1073,7 @@ void dbThread::Run() {
     if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) recovery();
 
     uint8_t basePriority = GetPriority();
-    SetPriority(1);          // slow down task; this take a long time and we do not want to freeze everything 
+    SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
     while (archive_recovery());
     SetPriority(basePriority);
  
