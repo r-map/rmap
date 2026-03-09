@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-03-08T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260308"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-03-09T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260309"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -12,6 +12,24 @@
 
 // WiFi RSSI limit for status alarm
 #define RSSILIMIT -70
+
+
+//https://github.com/arendst/Tasmota/discussions/15443
+// 1.3.6 RF Circuit https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf
+/* This is a selection only of power possibilties
+   WIFI_POWER_21dBm = 84,      // 21dBm
+   WIFI_POWER_20dBm = 80,      // 20dBm
+   WIFI_POWER_19dBm = 76,      // 19dBm
+   WIFI_POWER_17dBm = 68,      // 17dBm
+   WIFI_POWER_15dBm = 60,      // 15dBm
+   WIFI_POWER_13dBm = 52,      // 13dBm
+   WIFI_POWER_11dBm = 44,      // 11dBm
+   WIFI_POWER_8_5dBm = 34,     // 8.5dBm  */
+# if portNUM_PROCESSORS > 1
+#define WIFI_TX_POWER WIFI_POWER_21dBm
+#else
+#define WIFI_TX_POWER WIFI_POWER_15dBm
+#endif
 
 // defaul sample time to get measure from sensors
 #define DEFAULT_SAMPLETIME 30

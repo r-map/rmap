@@ -1193,13 +1193,14 @@ void setup() {
   //SPI.setDataMode(SPI_MODE3);
   //bool begin(uint8_t ssPin=SS, SPIClass &spi=SPI, uint32_t frequency=SPICLOCK, const char * mountpoint="/sd", uint8_t max_files=5, bool format_if_empty=false)
   if (!SD.begin(SS,SPI,SPICLOCK, "/sd",SDMAXFILE, false)){
+    stimawifiStatus.db.sdcard=error;
     Serial.println   (F("initialization failed. Things to check:"));
     Serial.println   (F("* is a card inserted?"));
     Serial.println   (F("* is your wiring correct?"));
     Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
     Serial.println   (F("Wiring is correct and a card is present."));
-
+    stimawifiStatus.db.sdcard=ok;
     logFile = SD.open(SDCARD_LOGGING_FILE_NAME, FILE_APPEND);
     if (logFile) {
       //logFile.seekEnd(0);
@@ -1415,19 +1416,8 @@ void setup() {
   wifiManager.setConnectRetries(3);
   //sets timeout for which to attempt connecting on saves, useful if there are bugs in esp waitforconnectloop
   wifiManager.setConnectTimeout(10);
-
-  //https://github.com/arendst/Tasmota/discussions/15443
-  // 1.3.6 RF Circuit https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf
-  /* This is a selection only of power possibilties
-  WIFI_POWER_21dBm = 84,      // 21dBm
-  WIFI_POWER_20dBm = 80,      // 20dBm
-  WIFI_POWER_19dBm = 76,      // 19dBm
-  WIFI_POWER_17dBm = 68,      // 17dBm
-  WIFI_POWER_15dBm = 60,      // 15dBm
-  WIFI_POWER_13dBm = 52,      // 13dBm
-  WIFI_POWER_11dBm = 44,      // 11dBm
-  WIFI_POWER_8_5dBm = 34,     // 8.5dBm  */
-  wifiManager.setTxPower(WIFI_POWER_15dBm);
+  // set WiFi TX power
+  wifiManager.setTxPower(WIFI_TX_POWER);
   
   if (oledpresent) {
       LockGuard guard(i2cmutex);

@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Max value here is 25 for stima atmega1284
 */
 #if portNUM_PROCESSORS > 1
-#define SENSORS_MAX      (10)
+#define SENSORS_MAX      (25)
 #else
 #define SENSORS_MAX      (3)
 #endif
@@ -46,6 +46,13 @@ Max value here is 10
 #else
 #define SENSORS_UNIQUE_MAX      (3)
 #endif
+
+/*!
+\def VALUES_TO_READ_FROM_SENSOR_COUNT
+Maximum number of values to be read by the sensors.
+*/
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (9)
+#define JSONS_TO_READ_FROM_SENSOR_COUNT       (9)
 
 /*!
 \def USE_JSON
@@ -339,12 +346,5 @@ Supported sensors:
 \brief Enable if you want use Radio RF24 sensor.
 */
 #define USE_SENSOR_RF24             (false)
-
-/*!
-\def VALUES_TO_READ_FROM_SENSOR_COUNT
-Maximum number of values to be read by the sensors.
-*/
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (9)
-#define JSONS_TO_READ_FROM_SENSOR_COUNT       (9)
 
 #endif
