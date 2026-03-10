@@ -912,6 +912,7 @@ dbThread::dbThread(db_data_t* db_data)
   data->status->no_heap_memory=ok;
   sqlite_status=false;
   archive_recovery_state = ARCHIVE_RECOVERY_NONE;  
+  db_recovery_state = DB_RECOVERY_NONE;  
   //Start();
 };
 
@@ -1177,12 +1178,16 @@ void dbThread::Run() {
       if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT");
     }
 
-    // check semaphore for data recovey
-    if(data->recoverysemaphore->Take(0)){
-      if (timeStatus() == timeSet) {
-	if (!data_purge()) data->logger->error(F("db purge DB"));
+
+    if (getArchiveRecoveryState() == ARCHIVE_RECOVERY_NONE and
+	getDbRecoveryState() == DB_RECOVERY_NONE) {
+      // check semaphore for data recovey
+      if(data->recoverysemaphore->Take(0)){
+	if (timeStatus() == timeSet) {
+	  if (!data_purge()) data->logger->error(F("db purge DB"));
+	}
+	if(!data_recovery()) data->logger->error(F("db recovery DB"));
       }
-      if(!data_recovery()) data->logger->error(F("db recovery DB"));
     }
 
     // checks for heap and stack

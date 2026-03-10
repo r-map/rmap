@@ -162,7 +162,7 @@
 #define SDRECOVERYTIME (3600*24*SDRECOVERYDAY)
 
 // step in seconds for recovery RPC from DB
-#define DB_RECOVERY_TIMESTEP 3600
+#define DB_RECOVERY_TIMESTEP 600
 
 // sqlite setup
 /*
