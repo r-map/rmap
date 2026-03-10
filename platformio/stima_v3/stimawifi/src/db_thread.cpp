@@ -488,6 +488,9 @@ db_recovery_state_t dbThread::getDbRecoveryState(){
   return db_recovery_state;
 }
 
+// finite state machine for recovery RPC from DB
+// split the query to DB in subquery by DB_RECOVERY_TIMESTEP
+// the machine is runned query by query, step by step
 bool dbThread::db_recovery(){
 
   time_t datetime;
@@ -552,10 +555,12 @@ bool dbThread::db_recovery(){
 	     year(recovery_time_step_end), month(recovery_time_step_end), day(recovery_time_step_end),
 	     hour(recovery_time_step_end), minute(recovery_time_step_end), second(recovery_time_step_end));
 
-    data_set_recovery(rpcrecoverystep);
-    
+    if (data_set_recovery(rpcrecoverystep)){
+      db_recovery_state=DB_RECOVERY_STEP;       // done
+    }else{
+      db_recovery_state=DB_RECOVERY_SET_MESSAGE;    // go to retry
+    }
     db_recovery_run=false;
-    db_recovery_state=DB_RECOVERY_STEP;
     break;
     
   case DB_RECOVERY_END:
