@@ -635,6 +635,7 @@ void firmwareUpdate() {
 void protectedFirmwareUpdate() {
   // skip if archive data recovery RPC is running on finite state machine
   if (threadDb.getArchiveRecoveryState() != ARCHIVE_RECOVERY_NONE) return;
+  if (threadDb.getDbRecoveryState() != DB_RECOVERY_NONE) return;
   firmwareUpdate();
 }
 

@@ -183,9 +183,7 @@ void dbThread::db_setup(){
 }
 
 
-// set data in specific datetime range as unset for recovery
-// of messages for retrasmission
-
+// migrate old data from DB (sqlite) to archive (file with fixed size record)
 bool dbThread::data_purge(const bool flush=false, int nmessages=100){
   int rc;
 
@@ -293,6 +291,8 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
   return rc  == SQLITE_OK;
 }
 
+
+// start finite state machine if required by RPC
 bool dbThread::recovery(){
 
   struct tm dtstart = {0};
@@ -311,7 +311,7 @@ bool dbThread::recovery(){
   struct tm dtend = {0};
   if (strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend) == NULL) return false;  
   if (mktime(&dtend) > now()-SDRECOVERYTIME) {
-    return data_set_recovery();
+    setEventDbRecovery();
   }
   return true;
 }
@@ -478,14 +478,102 @@ bool dbThread::archive_recovery(){
   return archive_recovery_run;
 }
 
+// set the event for the finite state machine
+// this event start the machine
+void dbThread::setEventDbRecovery(){
+  if (db_recovery_state == DB_RECOVERY_NONE) db_recovery_state = DB_RECOVERY_INIT;
+}
+
+db_recovery_state_t dbThread::getDbRecoveryState(){
+  return db_recovery_state;
+}
+
+bool dbThread::db_recovery(){
+
+  time_t datetime;
+
+  switch (db_recovery_state) {
+
+  case DB_RECOVERY_NONE:                   // noop
+    break;
+      
+  case DB_RECOVERY_INIT:                   // initialize the machine
+
+    db_recovery_run=true;
+
+    {
+      struct tm dtstart = {0};
+      struct tm dtend = {0};
+      
+      if (strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart) == NULL){
+	db_recovery_state=DB_RECOVERY_END;
+	break;
+      }
+      if (strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend) == NULL){
+	db_recovery_state=DB_RECOVERY_END;
+	break;
+      }
+      
+      recovery_time_start = mktime(&dtstart);       // 0 is for missed parameter
+      recovery_time_end = mktime(&dtend);           // 0 is for missed parameter
+    }
+    recovery_time_step_start=recovery_time_start;
+    recovery_time_step_end=recovery_time_start+DB_RECOVERY_TIMESTEP;
+    
+    db_recovery_state=DB_RECOVERY_SET_MESSAGE;
+    break;
+    
+  case DB_RECOVERY_STEP:
+
+    recovery_time_step_start=recovery_time_step_start+DB_RECOVERY_TIMESTEP;
+    recovery_time_step_end=recovery_time_step_end+DB_RECOVERY_TIMESTEP;
+
+    db_recovery_run=true;
+    db_recovery_state=DB_RECOVERY_SET_MESSAGE;
+    break;
+    
+    
+  case DB_RECOVERY_SET_MESSAGE:
+
+    if (recovery_time_step_start > recovery_time_end) {
+      db_recovery_state=DB_RECOVERY_END;
+      break;
+    }
+
+    if (recovery_time_step_end > recovery_time_end) {
+      recovery_time_step_end = recovery_time_end;
+    }
+    
+    rpcRecovery_t rpcrecoverystep;     // step for recovery RPC on db
+    snprintf(rpcrecoverystep.dtstart,sizeof(rpcrecoverystep.dtend),"%04u-%02u-%02uT%02u:%02u:%02u",
+	     year(recovery_time_step_start), month(recovery_time_step_start), day(recovery_time_step_start),
+	     hour(recovery_time_step_start), minute(recovery_time_step_start), second(recovery_time_step_start));
+    snprintf(rpcrecoverystep.dtend,sizeof(rpcrecoverystep.dtend),"%04u-%02u-%02uT%02u:%02u:%02u",
+	     year(recovery_time_step_end), month(recovery_time_step_end), day(recovery_time_step_end),
+	     hour(recovery_time_step_end), minute(recovery_time_step_end), second(recovery_time_step_end));
+
+    data_set_recovery(rpcrecoverystep);
+    
+    db_recovery_run=false;
+    db_recovery_state=DB_RECOVERY_STEP;
+    break;
+    
+  case DB_RECOVERY_END:
+        
+    db_recovery_run=false;
+    db_recovery_state=DB_RECOVERY_NONE;
+    break;
+
+  }
+  return db_recovery_run;
+}
+
+
 // set data in specific datetime range as unsent for recovery
-// of messages for retrasmission
-bool dbThread::data_set_recovery(){
+// of messages (set flag for retrasmission)
+bool dbThread::data_set_recovery(rpcRecovery_t rpcrecoverystep){
   int rc;
-  uint8_t basePriority = GetPriority();
-  SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
-  
-  data->logger->notice(F("db set recovery started: %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);       
+  data->logger->notice(F("db set recovery started: %s ; %s"), rpcrecoverystep.dtstart, rpcrecoverystep.dtend);       
 
   char sql[] = "UPDATE messages SET sent = false WHERE datetime BETWEEN  strftime('%s',?) and strftime('%s',?)";
   //char sql[] = "UPDATE messages SET sent = false WHERE datetime strftime('%s',?))";
@@ -506,7 +594,7 @@ bool dbThread::data_set_recovery(){
     sqlite3_bind_text(
 		      stmt,                  // previously compiled prepared statement object
 		      1,                     // parameter index, 1-based
-		      rpcrecovery.dtstart,   // the data
+		      rpcrecoverystep.dtstart,   // the data
 		      -1,                    // length of data
 		      SQLITE_STATIC);        // this parameter is a little tricky - it's a pointer to the callback
                                              // function that frees the data after the call to this function.
@@ -516,7 +604,7 @@ bool dbThread::data_set_recovery(){
     sqlite3_bind_text(
 		      stmt,                  // previously compiled prepared statement object
 		      2,                     // parameter index, 1-based
-		      rpcrecovery.dtend,     // the data
+		      rpcrecoverystep.dtend,     // the data
 		      -1,                    // length of data
 		      SQLITE_STATIC);        // this parameter is a little tricky - it's a pointer to the callback
                                              // function that frees the data after the call to this function.
@@ -533,7 +621,6 @@ bool dbThread::data_set_recovery(){
   }
   sqlite3_finalize(stmt);
   data->logger->notice(F("db set recovery ended: setted sent flag in DB"));        
-  SetPriority(basePriority);
   return rc  == SQLITE_OK;
 }
 
@@ -1036,7 +1123,7 @@ void dbThread::Run() {
     // very slow!
     # if portNUM_PROCESSORS > 1  
     uint8_t basePriority = GetPriority();
-    SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
+    SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
     //if(db_exec("VACUUM INTO '/sd/newstima.db';") != SQLITE_OK) {
     if(db_exec("VACUUM;") != SQLITE_OK) {
       data->logger->error(F("db vacuum"));       
@@ -1070,10 +1157,11 @@ void dbThread::Run() {
     }
 
     // check queue for rpc recovey
-    if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 ))) recovery();
+    if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 )))recovery();
 
     uint8_t basePriority = GetPriority();
-    SetPriority(TASK_LOOP_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
+    SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
+    while (db_recovery());
     while (archive_recovery());
     SetPriority(basePriority);
  

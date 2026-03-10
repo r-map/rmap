@@ -15,6 +15,14 @@ struct db_data_t {
 };
 
 typedef enum {
+  DB_RECOVERY_NONE,
+  DB_RECOVERY_INIT,
+  DB_RECOVERY_STEP,
+  DB_RECOVERY_SET_MESSAGE,
+  DB_RECOVERY_END,
+} db_recovery_state_t;
+
+typedef enum {
   ARCHIVE_RECOVERY_NONE,
   ARCHIVE_RECOVERY_INIT,
   ARCHIVE_RECOVERY_READ_MESSAGE,
@@ -38,6 +46,7 @@ class dbThread : public Thread {
   ~dbThread();
   virtual void Cleanup();
   archive_recovery_state_t getArchiveRecoveryState();
+  db_recovery_state_t getDbRecoveryState();
   
  protected:
   virtual void Run();
@@ -52,9 +61,11 @@ class dbThread : public Thread {
   bool data_recovery();
   bool recovery();
   bool archive_recovery();
-  bool data_set_recovery();
+  bool data_set_recovery(rpcRecovery_t rpcrecovery);
   bool db_restart();
   void setEventArchiveRecovery();
+  void setEventDbRecovery();
+  bool db_recovery();
   int db_count_delayed_messages(uint32_t& number);
   
   db_data_t* data;
@@ -67,7 +78,12 @@ class dbThread : public Thread {
   #endif
   
   bool sqlite_status;
-  rpcRecovery_t rpcrecovery;
+  rpcRecovery_t rpcrecovery;         // payload recovery RPC on db
+  time_t recovery_time_start;
+  time_t recovery_time_end;
+  time_t recovery_time_step_start;
+  time_t recovery_time_step_end;
+
   /*!
     \var archiveFile
     \brief File for archive on SD-Card.
@@ -76,10 +92,12 @@ class dbThread : public Thread {
   File archiveRecoveryFile;
   bool archiveRecoveryResend;
   bool archive_recovery_run;
+  bool db_recovery_run;
   mqttMessage_t archive_recovery_message;
   time_t archive_recovery_start;
   time_t archive_recovery_stop;  
   archive_recovery_state_t archive_recovery_state;
+  db_recovery_state_t db_recovery_state;
 };
 
 // we need this global for SDcard restart

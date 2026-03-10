@@ -161,6 +161,9 @@
 #endif
 #define SDRECOVERYTIME (3600*24*SDRECOVERYDAY)
 
+// step in seconds for recovery RPC from DB
+#define DB_RECOVERY_TIMESTEP 3600
+
 // sqlite setup
 /*
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
@@ -220,22 +223,24 @@
 // https://github.com/espressif/esp-idf/blob/master/components/esp_system/include/esp_task.h
 // https://github.com/espressif/esp-idf/blob/master/components/freertos/config/include/freertos/FreeRTOSConfig.h
 
-#define TASK_UDP_PRIORITY           4
+#define TASK_BASE_PRIORITY          1
+
+#define TASK_UDP_PRIORITY           TASK_BASE_PRIORITY+3
 #define TASK_UDP_STACK_SIZE         2000
 
-#define TASK_DB_PRIORITY            3
+#define TASK_DB_PRIORITY            TASK_BASE_PRIORITY+2
 #define TASK_DB_STACK_SIZE          5500
 
-#define TASK_MEASURE_PRIORITY       2
+#define TASK_MEASURE_PRIORITY       TASK_BASE_PRIORITY+1
 #define TASK_MEASURE_STACK_SIZE     4000
 
-#define TASK_GPS_PRIORITY           2
+#define TASK_GPS_PRIORITY           TASK_BASE_PRIORITY+1
 #define TASK_GPS_STACK_SIZE         2500
 
-#define TASK_PUBLISH_PRIORITY       1
+#define TASK_PUBLISH_PRIORITY       TASK_BASE_PRIORITY
 #define TASK_PUBLISH_STACK_SIZE     3500
 
-#define TASK_LOOP_PRIORITY          1
+#define TASK_LOOP_PRIORITY          TASK_BASE_PRIORITY
 //#define ARDUINO_LOOP_STACK_SIZE   5000  // defined in platformio.ini
 
 #endif
