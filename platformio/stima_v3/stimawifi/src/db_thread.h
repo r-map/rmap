@@ -79,10 +79,14 @@ class dbThread : public Thread {
   
   bool sqlite_status;
   rpcRecovery_t rpcrecovery;         // payload recovery RPC on db
-  time_t recovery_time_start;
-  time_t recovery_time_end;
-  time_t recovery_time_step_start;
-  time_t recovery_time_step_end;
+  time_t db_recovery_start;
+  time_t db_recovery_end;
+  time_t db_recovery_step_start;
+  time_t db_recovery_step_end;
+  db_recovery_state_t db_recovery_state;
+  time_t archive_recovery_start;
+  time_t archive_recovery_end;  
+  archive_recovery_state_t archive_recovery_state;
 
   /*!
     \var archiveFile
@@ -94,10 +98,6 @@ class dbThread : public Thread {
   bool archive_recovery_run;
   bool db_recovery_run;
   mqttMessage_t archive_recovery_message;
-  time_t archive_recovery_start;
-  time_t archive_recovery_stop;  
-  archive_recovery_state_t archive_recovery_state;
-  db_recovery_state_t db_recovery_state;
 };
 
 // we need this global for SDcard restart

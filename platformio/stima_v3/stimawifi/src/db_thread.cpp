@@ -296,22 +296,21 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
 bool dbThread::recovery(){
 
   struct tm dtstart = {0};
-  if (strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart) == NULL){
-    return false;
-  }
-  time_t start = mktime(&dtstart);       // 0 is for missed parameter
-  if (start < now()-SDRECOVERYTIME) {    // check if start datettime intercetpt archive
-    setEventArchiveRecovery();           // send an init event to the archive finite state machine
+  if (strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart) == NULL) return false;
+  time_t start = mktime(&dtstart);             // 0 is for missed parameter
+  if (start < now()-(SDRECOVERYTIME+180)) {    // check if start datettime intercetpt archive with tollerance
+    setEventArchiveRecovery();                 // send an init event to the archive finite state machine
   }
 
-  // send not sended messages only; is default for DB so it is a noop
-  if (start == 0) return true;
-  
-  // for the DB check if end datetine intercetpt DB
   struct tm dtend = {0};
   if (strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend) == NULL) return false;  
-  if (mktime(&dtend) > now()-SDRECOVERYTIME) {
-    setEventDbRecovery();
+  time_t end = mktime(&dtstart);               // 0 is for missed parameter
+
+  // send not sended messages only; is default for DB so it is a noop
+  if (start == 0 and end == 0) return true;
+  
+  if (end >= now()-(SDRECOVERYTIME-180)) {     // check if end datetine intercetpt DB with tollerance
+    setEventDbRecovery();                      // send an init event to the DB finite state machine
   }
   return true;
 }
@@ -320,6 +319,7 @@ bool dbThread::recovery(){
 // this event start the machine
 void dbThread::setEventArchiveRecovery(){
   if (archive_recovery_state == ARCHIVE_RECOVERY_NONE) archive_recovery_state = ARCHIVE_RECOVERY_INIT;
+  data->logger->notice(F("db set event archive recovery"));
 }
 
 archive_recovery_state_t dbThread::getArchiveRecoveryState(){
@@ -346,6 +346,7 @@ bool dbThread::archive_recovery(){
       archive_recovery_state=ARCHIVE_RECOVERY_END;
       break;
     }
+    data->logger->notice(F("db archive file opened for read"));
 
     // decode start and end datettime in UNIX time
     {
@@ -353,11 +354,11 @@ bool dbThread::archive_recovery(){
       strptime(rpcrecovery.dtstart, "%Y-%m-%dT%H:%M:%S", &dtstart);
       archive_recovery_start = mktime(&dtstart);       // 0 is for missed parameter
     }
-    
+
     {
       struct tm dtend = {0};
       strptime(rpcrecovery.dtend, "%Y-%m-%dT%H:%M:%S", &dtend);
-      archive_recovery_stop = mktime(&dtend);       // 0 is for missed parameter
+      archive_recovery_end = mktime(&dtend);          // 0 is for missed parameter
     }
     if (archiveRecoveryFile.available() >= sizeof(mqttMessage_t)/sizeof(uint8_t)){
       archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
@@ -371,22 +372,27 @@ bool dbThread::archive_recovery(){
 
     {
       bool endoffile=false;
+      bool skip=false;
       do {
 	uint8_t byteread=archiveRecoveryFile.read((uint8_t *)&archive_recovery_message,sizeof(mqttMessage_t)/sizeof(uint8_t));
 	
 	if (byteread == sizeof(mqttMessage_t)/sizeof(uint8_t)) {
 	  data->logger->trace(F("db read message from archive %T:%s:%s"),
-			       archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
+			      archive_recovery_message.sent,archive_recovery_message.topic,archive_recovery_message.payload);       
 	} else {
 	  if (byteread>0) {
 	    data->status->archive=error;
 	    data->logger->error(F("db read message from archive"));
-	}else{
+	  }else{
 	    data->logger->notice(F("db archive end of file"));
 	  }
 	  endoffile=true;	
-	}  
-      } while (archive_recovery_message.sent and archive_recovery_start == 0 and !endoffile);   // skip sended messages if requested by RPC
+	}
+
+	if (archive_recovery_start == 0 and archive_recovery_end == 0)
+	  skip= archive_recovery_message.sent; // skip sended messages if requested by RPC
+ 
+      } while (skip and !endoffile);
 
       if (endoffile){
 	archive_recovery_state=ARCHIVE_RECOVERY_END;
@@ -423,7 +429,8 @@ bool dbThread::archive_recovery(){
 	datetime = mktime(&dt);
       }
 
-      if (datetime > archive_recovery_stop) {
+      // we suppose the archive is ordered by datetime !
+      if (datetime > archive_recovery_end and archive_recovery_end != 0) {
 	archive_recovery_state=ARCHIVE_RECOVERY_END;
 	break;
       }
@@ -433,7 +440,7 @@ bool dbThread::archive_recovery(){
 	break;
       }
       
-      /*
+      /*           already skipped
       if (archive_recovery_message.sent and archive_recovery_start == 0){
 	data->logger->notice(F("db skip message from archive %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);   
 	archive_recovery_state=ARCHIVE_RECOVERY_READ_MESSAGE;
@@ -472,6 +479,7 @@ bool dbThread::archive_recovery(){
         
     archive_recovery_run=false;
     archiveRecoveryFile.close();
+    data->logger->notice(F("db archive file closed"));
     archive_recovery_state=ARCHIVE_RECOVERY_NONE;
     break;
   }
@@ -482,6 +490,7 @@ bool dbThread::archive_recovery(){
 // this event start the machine
 void dbThread::setEventDbRecovery(){
   if (db_recovery_state == DB_RECOVERY_NONE) db_recovery_state = DB_RECOVERY_INIT;
+  data->logger->notice(F("db set event DB recovery"));
 }
 
 db_recovery_state_t dbThread::getDbRecoveryState(){
@@ -517,19 +526,19 @@ bool dbThread::db_recovery(){
 	break;
       }
       
-      recovery_time_start = mktime(&dtstart);       // 0 is for missed parameter
-      recovery_time_end = mktime(&dtend);           // 0 is for missed parameter
+      db_recovery_start = mktime(&dtstart);       // 0 is for missed parameter
+      db_recovery_end = mktime(&dtend);           // 0 is for missed parameter
     }
-    recovery_time_step_start=recovery_time_start;
-    recovery_time_step_end=recovery_time_start+DB_RECOVERY_TIMESTEP;
+    db_recovery_step_start=db_recovery_start;
+    db_recovery_step_end=db_recovery_start+DB_RECOVERY_TIMESTEP;
     
     db_recovery_state=DB_RECOVERY_SET_MESSAGE;
     break;
     
   case DB_RECOVERY_STEP:
 
-    recovery_time_step_start=recovery_time_step_start+DB_RECOVERY_TIMESTEP;
-    recovery_time_step_end=recovery_time_step_end+DB_RECOVERY_TIMESTEP;
+    db_recovery_step_start=db_recovery_step_start+DB_RECOVERY_TIMESTEP;
+    db_recovery_step_end=db_recovery_step_end+DB_RECOVERY_TIMESTEP;
 
     db_recovery_run=true;
     db_recovery_state=DB_RECOVERY_SET_MESSAGE;
@@ -538,22 +547,27 @@ bool dbThread::db_recovery(){
     
   case DB_RECOVERY_SET_MESSAGE:
 
-    if (recovery_time_step_start > recovery_time_end) {
+    if (db_recovery_step_start > db_recovery_end and db_recovery_end != 0) {
       db_recovery_state=DB_RECOVERY_END;
       break;
     }
 
-    if (recovery_time_step_end > recovery_time_end) {
-      recovery_time_step_end = recovery_time_end;
+    if (db_recovery_step_start >= now() and db_recovery_start == 0) {
+      db_recovery_state=DB_RECOVERY_END;
+      break;
+    }
+
+    if (db_recovery_step_end > db_recovery_end and db_recovery_end != 0) {
+      db_recovery_step_end = db_recovery_end;
     }
     
     rpcRecovery_t rpcrecoverystep;     // step for recovery RPC on db
     snprintf(rpcrecoverystep.dtstart,sizeof(rpcrecoverystep.dtend),"%04u-%02u-%02uT%02u:%02u:%02u",
-	     year(recovery_time_step_start), month(recovery_time_step_start), day(recovery_time_step_start),
-	     hour(recovery_time_step_start), minute(recovery_time_step_start), second(recovery_time_step_start));
+	     year(db_recovery_step_start), month(db_recovery_step_start), day(db_recovery_step_start),
+	     hour(db_recovery_step_start), minute(db_recovery_step_start), second(db_recovery_step_start));
     snprintf(rpcrecoverystep.dtend,sizeof(rpcrecoverystep.dtend),"%04u-%02u-%02uT%02u:%02u:%02u",
-	     year(recovery_time_step_end), month(recovery_time_step_end), day(recovery_time_step_end),
-	     hour(recovery_time_step_end), minute(recovery_time_step_end), second(recovery_time_step_end));
+	     year(db_recovery_step_end), month(db_recovery_step_end), day(db_recovery_step_end),
+	     hour(db_recovery_step_end), minute(db_recovery_step_end), second(db_recovery_step_end));
 
     if (data_set_recovery(rpcrecoverystep)){
       db_recovery_state=DB_RECOVERY_STEP;       // done
@@ -1167,8 +1181,8 @@ void dbThread::Run() {
 
     uint8_t basePriority = GetPriority();
     SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
-    while (db_recovery());
-    while (archive_recovery());
+    while (db_recovery());                    // run one subquery (one time step) of the big recovery on DB
+    while (archive_recovery());               // run until the mqtt queue is full (less then MQTT_QUEUE_SPACELEFT_RECOVERY)
     SetPriority(basePriority);
  
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
@@ -1184,9 +1198,9 @@ void dbThread::Run() {
       // check semaphore for data recovey
       if(data->recoverysemaphore->Take(0)){
 	if (timeStatus() == timeSet) {
-	  if (!data_purge()) data->logger->error(F("db purge DB"));
+	  if (!data_purge()) data->logger->error(F("db purge DB"));    // migrate old data to archive
 	}
-	if(!data_recovery()) data->logger->error(F("db recovery DB"));
+	if(!data_recovery()) data->logger->error(F("db recovery DB")); // try to publish unsent messages
       }
     }
 

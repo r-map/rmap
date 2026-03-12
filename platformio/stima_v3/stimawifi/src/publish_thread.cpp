@@ -746,7 +746,7 @@ int recoveryDataRpc(JsonObject params, JsonObject result) {
 	    );
   }else{
     time_t dts=0;
-    sprintf(rpcrecovery.dtend,"%04u-%02u-%02uT%02u:%02u:%02u",
+    sprintf(rpcrecovery.dtstart,"%04u-%02u-%02uT%02u:%02u:%02u",
 	    year(dts), month(dts), day(dts),
 	    hour(dts), minute(dts), second(dts));
   }
@@ -758,10 +758,10 @@ int recoveryDataRpc(JsonObject params, JsonObject result) {
 	    dte[3].as<int>(),dte[4].as<int>(),dte[5].as<int>()
 	    );
   }else{
-      time_t dte=now();
-      sprintf(rpcrecovery.dtend,"%04u-%02u-%02uT%02u:%02u:%02u",
-	      year(dte), month(dte), day(dte),
-	      hour(dte), minute(dte), second(dte));
+    time_t dte=0;
+    sprintf(rpcrecovery.dtend,"%04u-%02u-%02uT%02u:%02u:%02u",
+            year(dte), month(dte), day(dte),
+	    hour(dte), minute(dte), second(dte));
   }
  
   //strcpy(rpcrecovery.dtstart,"2024-05-09T00:00:00") ;
