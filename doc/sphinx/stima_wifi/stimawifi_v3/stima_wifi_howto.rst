@@ -101,10 +101,10 @@ Elenco componenti elettroniche e sensori
 
 Datalogger
 ..........
-	  
-* C3 Mini V2.1.0 - LOLIN WIFI Bluetooth LE BLE Scheda IOT ESP32-C3FH4 ESP32-C3 4MB FLASH
-  https://it.aliexpress.com/item/1005006753245627.html
-  5,49€
+
+* S3 Mini V1.0.0 - LOLIN WiFi & Bluetooth 5 (LE) boards based ESP32-S3FH4R2
+  https://it.aliexpress.com/item/1005006646247867.html?gatewayAdapt=glo2ita
+  5.60€
 * DC Power Shield V1.1.0 per LOLIN (WEMOS) D1 mini
   https://it.aliexpress.com/item/32790327733.html
   2,63€
@@ -210,37 +210,26 @@ oppure:
   https://www.amazon.it/dp/B09YCBYLBR
   11,63€
   
-MCU - Espressif ESP32 C3
+MCU - Espressif ESP32 S3
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: c3_mini_v2.1.0_1_16x16.jpg
+.. image:: s3_mini_v1.0.0_1_16x16.jpg
    :width: 50%
 
-* based ESP32-C3 WIFI & Bluetooth LE RISC-V Single-Core CPU
-* Type-C USB
+* based ESP32-S3FH4R2
+* 2.4 GHz Wi-Fi
+* Bluetooth LE
 * 4MB Flash
-* 1x WS2812B RGB LED
-* Digital I/O Pins 12
-* ADC, I2C, SPI, UART
-* Compatible with LOLIN D1 mini shields
-* Compatible with MicroPython, Arduino, CircuitPython and ESP-IDF
-* Operating Voltage 3.3V
-* Clock Speed 160MHz
-* Flash 4M Bytes
-* Size 34.3*25.4mm
-* Weight 2.6g
+* 2MB PSRAM
+* 27x IO
+* 1x RGB LED (IO47)
+* ADC, DAC, I2C, SPI, UART, USB OTG
+* Compatible with MicroPython, Arduino and ESP-IDF
 
-La scheda di sviluppo, basata su esp32, è stata lanciata da Wemos,
-come alternativa alle schede Arduino. Nella versione mini misura
-35x26mm.
-
-.. image:: c3_mini_v2.webp
+.. image:: s3_mini_v1.0.0_4_16x9.jpg
    :width: 50%
+  
 
-Come con arduino, il modulo è espandibile con apposite schede di
-espansione dette shield.
-
-  - Schema elettrico :download:`pdf <sch_c3_mini_v2.1.0.pdf>`
 
 
 RTC and Microsd Data Logger Shield 
@@ -341,6 +330,43 @@ collegata, non riceve alimentazione.
 
 Hardware alternativo compatibile (sconsigliato o obsoleto)
 ----------------------------------------------------------
+
+MCU Shield
+^^^^^^^^^^
+
+C3 Mini V2.1.0 - LOLIN WIFI Bluetooth LE BLE Scheda IOT ESP32-C3FH4 ESP32-C3 4MB FLASH
+https://it.aliexpress.com/item/1005006753245627.html
+5,49€
+
+.. image:: c3_mini_v2.1.0_1_16x16.jpg
+   :width: 50%
+
+* based ESP32-C3 WIFI & Bluetooth LE RISC-V Single-Core CPU
+* Type-C USB
+* 4MB Flash
+* 1x WS2812B RGB LED
+* Digital I/O Pins 12
+* ADC, I2C, SPI, UART
+* Compatible with LOLIN D1 mini shields
+* Compatible with MicroPython, Arduino, CircuitPython and ESP-IDF
+* Operating Voltage 3.3V
+* Clock Speed 160MHz
+* Flash 4M Bytes
+* Size 34.3*25.4mm
+* Weight 2.6g
+
+La scheda di sviluppo, basata su esp32, è stata lanciata da Wemos,
+come alternativa alle schede Arduino. Nella versione mini misura
+35x26mm.
+
+.. image:: c3_mini_v2.webp
+   :width: 50%
+
+Come con arduino, il modulo è espandibile con apposite schede di
+espansione dette shield.
+
+  - Schema elettrico :download:`pdf <sch_c3_mini_v2.1.0.pdf>`
+
 
 Oled Shield
 ^^^^^^^^^^^
@@ -1263,6 +1289,9 @@ Appendice E I2C resistenze di pull up
 +-----------------------+---------+---------+
 | MCU - Espressif       |         |         |
 | ESP32 C3              | 10K     |  ---    |
++-----------------------+---------+---------+
+| MCU - Espressif       |         |         |
+| ESP32 S3              | ---     |  ---    |
 +-----------------------+---------+---------+
 | Totale                | 2.4K    | 3.2K    |
 +-----------------------+---------+---------+
