@@ -1,0 +1,153 @@
+[
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "airquality mobile",
+    "active": true,
+    "slug": "airquality-mobile",
+    "user": [
+      "rmap"
+    ],
+    "ident": "rmap",
+    "lat": null,
+    "lon": null,
+    "network": "mobile",
+    "mqttrootpath": "sample",
+    "mqttmaintpath": "maint",
+    "category": "template",
+    "type": "stimav3"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "default",
+    "active": true,
+    "slug": "default",
+    "category": "stimawifiv3",
+    "type": 101,
+    "sn": null,
+    "stationmetadata": [
+      "airquality-mobile",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Dust",
+    "driver": "I2C",
+    "type": [
+      "SPS"
+    ],
+    "i2cbus": null,
+    "address": 105,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature_Humidity",
+    "driver": "I2C",
+    "type": [
+      "SHT"
+    ],
+    "i2cbus": null,
+    "address": 68,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "CO2",
+    "driver": "I2C",
+    "type": [
+      "SCD"
+    ],
+    "i2cbus": null,
+    "address": 97,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 30,
+    "mqttserver": "test.rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "default",
+      [
+        "airquality-mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "default",
+      [
+        "airquality-mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+}
+]
+

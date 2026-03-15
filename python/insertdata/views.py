@@ -201,8 +201,9 @@ class NewStationForm(forms.Form):
     #coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     name= forms.CharField(required=True,label=_("New station name"),help_text=_("The name of the station to insert"))
     #coordinate = coordinateField(required=True,label=_("longitude,Latitude"),help_text=_("Longitude,Latitude"))
-    latitude = forms.DecimalField(required=True,label=_("Latitude"),help_text=_("Latitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
-    longitude = forms.DecimalField(required=True,label=_("Longitude"),help_text=_("Longitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    latitude = forms.DecimalField(required=False,label=_("Latitude"),help_text=_("Latitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
+    longitude = forms.DecimalField(required=False,label=_("Longitude"),help_text=_("Longitude in decimal degrees"),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    #ident= forms.CharField(required=False,label=_("Station identifier for mobile stations"),help_text=_("The Identifier of the station provided for mobile station to be equal to username"))
     height = forms.DecimalField(required=False,label=_("Station height (m.)"),help_text=_("Station height (m.)"),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
     template=forms.ChoiceField(choices=CHOICES,required=True,label=_("Station model"),help_text=_("The model of the station to insert"),initial="none")
 
@@ -706,6 +707,7 @@ def insertNewStation(request):
             lon=newstationform.cleaned_data['longitude']
             lat=newstationform.cleaned_data['latitude']
             name=newstationform.cleaned_data['name']
+            #ident=newstationform.cleaned_data['ident']
             constantdata={}
             constantdata["B01019"]=name
             if not newstationform.cleaned_data['height'] is None :
@@ -770,8 +772,9 @@ def insertNewStation(request):
                 mystation.name=name
                 user=User.objects.get(username=username)
                 mystation.user=user
-                mystation.lat=rmap.rmap_core.truncate(lat,5)
-                mystation.lon=rmap.rmap_core.truncate(lon,5)
+                mystation.lat=lat if lat is None else rmap.rmap_core.truncate(lat,5)
+                mystation.lon=lon if lon is None else rmap.rmap_core.truncate(lon,5)
+                mystation.ident=user.username
                 mystation.active=True
                 mystation.category="good"
                 mystation.slug=slug
@@ -781,7 +784,14 @@ def insertNewStation(request):
                 #    mystation.mqttrootpath="report"
                 #mystation.mqttrootpath="sample"
     
-                mystation.clean()
+                try:
+                    mystation.clean()
+                except Exception as e:
+                    print(e)
+                    print(traceback.format_exc())
+                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform
+                                                                             ,'stationonmapform':stationonmapform
+                                                                             ,'newstationform':newstationform,"invalid":True,"message":e})
 
                 obj=[]
                 obj.append(mystation)

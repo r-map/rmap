@@ -12,6 +12,7 @@
 
 {% if invalid  %}
 <div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
+<div class="alert alert-danger" role="alert">{{message}}</div>
 {% endif %}
 
 {% if duplicated  %}

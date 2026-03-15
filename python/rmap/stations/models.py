@@ -1033,6 +1033,8 @@ class StationMetadata(models.Model):
         if (self.network != "mobile" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
             raise ValidationError(_('Station network have inconsistent definition of coordinate (lat/lon).'))
 
+        if (self.network == "mobile" and self.ident ==""):
+            raise ValidationError(_('Station network mobile have no ident (inconsistent definition)'))
         
         if (self.ident == "" and self.lat is None):
             raise ValidationError(_('Station without ident need coordinate (lat/lon).'))
