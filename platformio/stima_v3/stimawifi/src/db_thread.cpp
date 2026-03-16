@@ -99,8 +99,7 @@ bool dbThread::db_obsolete(bool& obsolete) {
     obsolete=false;
     data->status->database=error;
   } else {
-    data->logger->notice(F("SQL time taken: %l"),millis()-start);
-    data->logger->notice(F("db SQL operation done successfully"));
+    data->logger->notice(F("db SQL operation done successfully, time taken: %l"),millis()-start);
   }
 
   //  if (obsolete){
@@ -1109,6 +1108,7 @@ void dbThread::Run() {
   // if DB file is big and do not contain unsent messages
   // migrate all old data from DB to archive and regenerate DB
   // this is done because we cannot or is too slow execute VACUUM sql
+  // here we lost the possibility to resent sent messages by recovery RPC in some cases
   File dbFile = SD.open("/stima.db", FILE_READ);
   uint32_t fsize=dbFile.size();
   dbFile.close();
@@ -1122,7 +1122,7 @@ void dbThread::Run() {
     } else {
       data->logger->notice(F("db messages in db to sent %l"),number);
       if (number == 0){
-	data->logger->notice(F("db flush data from big DB to archive"));
+	data->logger->notice(F("db flush sent data from big DB to archive"));
 	if (!data_purge(true)) data->logger->error(F("db purge DB"));
       }      
     }
@@ -1140,7 +1140,8 @@ void dbThread::Run() {
     //database file. This process frees all unused space and ensures
     //that all tables and indexes are stored contiguously.
 
-    // very slow!
+    // very slow!  take more than 30 minutes!
+    // the process is slow and we lost some messages in DB that we cannot insert in the mean time 
     # if portNUM_PROCESSORS > 1  
     uint8_t basePriority = GetPriority();
     SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
@@ -1148,9 +1149,23 @@ void dbThread::Run() {
     if(db_exec("VACUUM;") != SQLITE_OK) {
       data->logger->error(F("db vacuum"));       
       data->status->database=error;
+    }else{
+      data->logger->notice(F("db end vacuum"));       
     }
     SetPriority(basePriority);
-    # endif
+    # endif  
+  }
+
+  // last resource is migrate everythings to DB in any case
+  // here we lost from publish unsent messages
+  // here we lost the possibility to resend sent messages by recovery RPC in some cases  
+  dbFile = SD.open("/stima.db", FILE_READ);
+  fsize=dbFile.size();
+  dbFile.close();
+  data->logger->notice(F("db db file size %l bytes"),fsize);
+  if ( fsize > (DB_FILESIZE_FOR_VACCUM+(DB_FILESIZE_FOR_VACCUM/2))){
+    data->logger->notice(F("db flush any data from big DB to archive"));
+    if (!data_purge(true)) data->logger->error(F("db purge DB"));
   }
   
   data->status->database=ok;

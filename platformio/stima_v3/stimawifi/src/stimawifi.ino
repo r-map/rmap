@@ -1236,7 +1236,8 @@ void setup() {
   frtosLog.setSuffix(logSuffix); // Uncomment to get newline as suffix
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
-
+  frtosLog.notice(F("Total PSRAM: %d"), ESP.getPsramSize());
+  
   // two different display with different dimension are managed with two different I2C address
   // check return value of
   // the Write.endTransmisstion to see if

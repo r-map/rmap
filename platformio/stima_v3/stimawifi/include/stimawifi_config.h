@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-03-12T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260312"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-03-16T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260316"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -143,7 +143,7 @@
 
 #define SDMAXFILE 6
 
-// max file size to try to apply vacuum or other cleanup strategy
+// max file size to try to apply vacuum or other cleanup strategy (~250 byte for record)
 #define DB_FILESIZE_FOR_VACCUM 300000000
 
 // SD card file name for archive
