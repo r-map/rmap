@@ -35,7 +35,7 @@ def unload_fixture(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stations', '0041_auto_20250506_1348'),
+        ('stations', '0042_auto_20260312_0617'),
     ]
 
     operations = [
