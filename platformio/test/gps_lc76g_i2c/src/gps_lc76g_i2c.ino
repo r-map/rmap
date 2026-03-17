@@ -1,3 +1,11 @@
+/*
+  Documentation at
+  https://www.sigmaelectronica.net/wp-content/uploads/2024/07/quectel_lc26gablc76g_series_i2c_application_note_v1-0.pdf
+
+  or in local file
+  quectel_lc26gablc76g_series_i2c_application_note_v1-0.pdf
+*/
+
 #include <Wire.h>
 
 #define I2C_MASTER_FREQ_HZ 100000
@@ -126,12 +134,10 @@ void setup() {
   Serial.println("Started");
   Wire.begin();
   Wire.setClock(I2C_MASTER_FREQ_HZ);
-  //Wire.setTimeOut(50);
   Wire.setTimeout(50);
-  delay(1000);  
 }
 
 void loop() {
   lc76gReadData();
-  delay(1000);
+  delay(100);
 }
