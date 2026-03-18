@@ -1,14 +1,9 @@
 #include "common.h"
 
-#if defined(ARDUINO_LOLIN_C3_MINI)
-HardwareSerial Serial2(0);  //if using UART1
-#endif
-
-
 void gpsThread::GPS_SerialInit() {
   data->logger->notice(F("gps start GPS serial init"));  
-  Serial2.begin(GPS_SERIAL_SPEED);
-  Serial.setTimeout(100);
+  Serial0.begin(GPS_SERIAL_SPEED);
+  Serial0.setTimeout(100);
   data->logger->notice(F("gps end GPS serial init"));
 }
 
@@ -18,10 +13,10 @@ void gpsThread::doSerialNmea(){
 
   # define MESSAGELEN (100)
   char message[MESSAGELEN];
-  uint8_t len=Serial2.readBytesUntil(10, message, MESSAGELEN-1);
+  uint8_t len=Serial0.readBytesUntil(10, message, MESSAGELEN-1);
   message[len]=0;
   
-  //if (len > 0) data->logger->notice("gps message: %s", message);
+  if (len > 0) data->logger->trace("gps message: %s", message);
 
   for (uint8_t i = 0; i < len; i++) {
     uint8_t gpsflag;
@@ -114,7 +109,7 @@ void gpsThread::Run() {
   data->logger->notice(F("gps Listening on GPS serial port"));
   
   for(;;){
-    while (Serial2.available()){
+    while (Serial0.available()){
       doSerialNmea();
     }
     if ((now()-timestamp) > 30){
