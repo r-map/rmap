@@ -571,8 +571,8 @@ archivio, integrato in modalità append.
 Per poter utilizzare la stazione in modalità "mobile" ossia con
 posizione continuamente aggiornata ci sono due possibilità:
 
-* connettere un modulo GPS con Ublox neo6m
-* utilizzare l'app android GPSD_forwarder
+* connettere un modulo GPS Waveshare LC76G Multi-GNSS Module
+* utilizzare l'app android gpsdRelay
 
 La configurazione è gestita sul server e i thread sono attivati
 automaticamente. Quando la geolocalizzazione è possibile i dati
@@ -713,7 +713,7 @@ e ricreato vuoto per limiti di memoria e performance.
 threadUdp
 ^^^^^^^^^
 
-Legge i dati UDP inviati dalla app GPSD forwarder di uno smartphone
+Legge i dati UDP inviati dalla app gpsdRelay di uno smartphone
 riempiendo una struttura dati con la geolocalizzazione e un timestamp.
 
 threadGps
@@ -841,9 +841,9 @@ Dotazione Software
 Caricamento firmware
 --------------------
 
-Questa fase della messa in opera è facoltativa. La stazione arriva già
-con un firmware installato pronta per la configurazione iniziale ma,
-in caso si voglia modificare l’utilizzo della stazione,
+Questa fase della messa in opera è necessaria per il funzionamento
+della stazione.  Dopo la prima attivazione può rendersi nuovamente
+necessario in caso si voglia modificare l’utilizzo della stazione,
 personalizzarne le funzionalità o cogliere l’occasione di
 impratichirsi con questa operazione fondamentale nel ciclo di vita del
 software per microcontrollori,
@@ -887,10 +887,20 @@ Strumentazione necessaria
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
+Uso a linea di comando:
+
 * Ambiente di sviluppo Python versione >= 3.11
 * Platformio (Piattaforma per lo sviluppo embedded)
 
+Ambiente grafico con IDE:
 
+* VSCodium  https://vscodium.com/
+* Pioarduino https://github.com/pioarduino/platform-espressif32?tab=readme-ov-file
+
+
+TODO clone repository; compilazione e caricamento firmware
+
+  
 Collegamento dei sensori
 ------------------------
 
@@ -952,9 +962,8 @@ Dotazione Software
 Censimento stazione
 -------------------
 
-Prima di poter operare, a meno che non sia stata dotata di un firmware
-specifico, la stazione deve essere censita presso un server di
-raccolta dati.
+Prima di poter operare la stazione deve essere censita presso un
+server di raccolta dati.
 
 Esistono due punti di raccolta dati, test.rmap.cc ed rmap.cc. Il primo
 viene utilizzato per le procedure di collaudo, per controllare il
@@ -1127,6 +1136,170 @@ Installazione schermo solare e sensore temperatura
 
 TODO
 ^^^^
+
+Uso come stazione mobile
+------------------------
+
+Per poter utilizzare la stazione in modalità "mobile" ossia con
+posizione continuamente aggiornata ci sono due possibilità:
+
+* connettere un modulo GPS Waveshare LC76G Multi-GNSS Module
+* utilizzare l'app android gpsdRelay
+
+Durante il funzionamento è possibile monitorare lo stato di tutte le
+componenti tramite il LED e il display: se il LED è di colore verde
+e/o il diplay riporta "status: OK" allora tutte le funzioni sono
+attive, data e ora disponibili, coordinate disponibili, sensori
+funzionanti, pubblicazione e archiviazione dati funzionanti.  Il LED
+diventa per un breve periodo blu per segnalare che alcune funzioni
+periodiche sono attive e lo stato di funzionamento aggiornato.  Se il
+LED assume altri colori deve essere affettuata una verifica perchè è
+possibile che le misure non vengano effettuate/archiviate/pubblicate.
+  
+Configurazione
+^^^^^^^^^^^^^^
+
+Configurare la stazione come per stazione fissa con le seguenti eccezioni:
+
+* non inserire Latitudine e Longitudine
+* non inserire altezza stazione
+* selezionare un modello stazione esplicitamente di tipo mobile
+  (contenente "mobile" nel modello stazione)
+
+Uso del modulo GPS
+^^^^^^^^^^^^^^^^^^
+
+https://www.waveshare.com/lc76g-gnss-module.htm
+https://www.waveshare.com/wiki/LC76G_GNSS_Module
+
+LEDs POWER
+
+* Luminoso: Module is powered well.
+* Spento: Module is not powered.
+
+LED indicatore dello stato del GPS
+
+* Lampeggiante Frequenza: 1 Hz: Successful position fix.
+* Spento: No position fix.
+
+Uso dell'app Android gpsdRelay
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+gpsdRelay effettua un Relay delle informazioni NMEA da Android alla
+rete locale tramite pacchetti UDP .
+https://f-droid.org/packages/io.github.project_kaat.gpsdrelay/
+https://github.com/project-kaat/gpsdRelay
+
+Come installare F-Droid
+.......................
+
+Per installare F-Droid, è necessario utilizzare il browser web dello
+smartphone o del tablet e recarsi sulla pagina ufficiale
+https://f-droid.org/it/ . Da lì, bisogna cliccare su “Scarica
+F-Droid”.
+
+Una volta scaricato non sarà possibile installarlo immediatamente, in
+quanto Google previene l’installazione di app provenienti da fonti
+sconosciute (come sistema di sicurezza), ovvero tutte quelle scaricate
+al di fuori del Play Store. Per ovviare a ciò, bisogna:
+
+Dalla home screen, tenere premuto sull’icona del browser web usato per
+scaricare F-Droid e poi toccare su “Informazioni App” Scorrere
+l’elenco fino all’opzione “Installa da fonti sconosciute” e abilitarla
+
+A questo punto è sufficiente recarsi nella cartella download da un
+file manager (oppure scaricare nuovamente F-Droid con il browser
+web). Stavolta comparirà un pop-up che invita all’installazione.
+
+Una volta installato, è necessario seguire la stessa procedura di
+prima per abilitare F-Droid ad installare le app (nel mentre
+consigliamo di disabilitare questa funzione per il browser web).
+
+Da adesso è possibile scaricare qualsiasi app presente e ottenere
+aggiornamenti automatici delle stesse quando gli sviluppatori li
+rendono disponibili.
+
+Perché F-Droid richiede di abilitare “Origini sconosciute” per
+installare le app di default?
+Perché una normale app Android non può fungere da gestore di pacchetti
+autonomamente. Per farlo, avrebbe bisogno di privilegi di sistema
+(vedi sotto), proprio come fa Google Play.
+
+Posso evitare di abilitare “Origini sconosciute” installando F-Droid
+come app di sistema privilegiata?
+In passato era così, ma ora non lo è più. Ora è l'estensione
+Privileged che deve essere inserita nel sistema. Può essere inclusa in
+una ROM o installata tramite un file zip.
+
+Come Installare gpsdRelay
+.........................
+
+Dall'app F-Droid cercare gpsdRelay e installarlo.
+
+Come Usare gpsdRelay insieme a StimaWiFi
+........................................
+
+Settings:
+
+.. image:: gpsdRelay_settings.jpg
+   :width: 50%
+
+bottone +   -> UDP server
+ipv4     -> select broadcast
+port     -> 8888
+add
+
+.. image:: gpsdRelay_addudp.jpg
+   :width: 50%
+
+attivare la riga configurata
+
+premete il bottono con il triangolino
+
+.. image:: gpsdRelay_principale.jpg
+   :width: 50%
+
+
+Calibrazione sensore CO2
+------------------------
+
+Sensori come SCD30 sono delicati sistemi ottici.  Bisogna prestare
+particolare attenzione durante gestione dei sensori. Stress meccanici
+sulla cavità ottica potrebbero modificare le proprietà fisiche del sensore
+causando una precisione ridotta.  SCD30 dispone di due algoritmi di
+calibrazione per ripristinare completamente precisione, nei casi in
+cui lo stress meccanico vari le proprietà fisiche del sensore. Questa
+procedura spiega come utilizzare la calibrazione in campo FRC (forced
+re - calibrazione) per ripristinare la piena accuratezza del SCD30
+  
+Calibrate RPC
+^^^^^^^^^^^^^
+
+Portare la stazione in un ambiente con concentrazione nota di CO2 e
+attendere che le misure si stabilizzino (almeno 2 minuti).
+
+Dal sito rmap.cc ( o test.rmap.cc) autenticarsi con il proprio utente,
+dalla propria pagina personale selezionare la stazione con il sensore
+da calibrare e selezionare "Invia Remote Procedure Call"
+
+Nel modulo inserire::
+
+  Method: calibrate
+  
+  Params: {"type":"sdc30","value":430}
+
+dove 430 dovrà essere sostituito dal valore di calibrazione della CO2 in ppm.
+
+E' necessario monitorare lo stato di esecuzione delle RPC alla voce
+"Monitor Remote Procedure Call" dellla stazione dallla propria pagina
+personale sulla piattaforma RMAP.
+
+Se Status risulta "completed" il valore fornito viene utilizzato per
+aggiornare la calibrazione e ripristina la massima
+accuratezza. L'ultimo valore di riferimento viene salvato in una
+memoria non volatile sul sensore e persisterà fino a quando non viene
+sovrascritto da un nuovo valore di riferimento che è fornito tramite
+FRC.
 
 
 Configurazione // Firmware + Software // Python + Json // NodeRed
