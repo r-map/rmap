@@ -82,7 +82,7 @@ void stepTwo() {
 
   uint32_t dataBufferLen=DATABUFFERLEN;
   uint8_t dataBuffer[DATABUFFERLEN];
-  if (dataBufferLen > dataLength) {
+  if (dataBufferLen >= dataLength) {
     dataBufferLen=dataLength;
     dataLength=0; // terminate read loop
   } else {
