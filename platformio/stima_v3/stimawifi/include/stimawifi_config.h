@@ -37,6 +37,13 @@
 // udp port to use for communicate with androd gps_forwarder app
 #define UDP_PORT 8888
 
+// gps is connected by serial UART port
+#define GPS_SERIAL
+
+// gps is connected by serial I2C BUS
+// use as alternative to GPS_SERIAL
+//#define GPS_I2C
+
 // Serial speed of the GPS
 
 // default for UBLOX NEO-6M with two configuration pin not connected (NMEA messages too)

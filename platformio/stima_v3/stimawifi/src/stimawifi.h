@@ -91,8 +91,15 @@ station_t station;
 udp_data_t udp_data={1,&frtosLog,&stimawifiStatus.udp,&georef,&frtosRTC};
 udpThread threadUdp(&udp_data);
 
+#ifdef GPS_SERIAL
 gps_data_t gps_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC};
 gpsThread threadGps(&gps_data);
+#endif
+
+#ifdef GPS_I2C
+gps_i2c_data_t gps_i2c_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC,&i2cmutex};
+gpsI2cThread threadGpsI2c(&gps_i2c_data);
+#endif
 
 Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));       // ~ 1 minutes queue
 Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));   // ~ 1.5 minutes queue

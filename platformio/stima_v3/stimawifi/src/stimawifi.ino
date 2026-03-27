@@ -1741,7 +1741,12 @@ void setup() {
   // if mobile station start geolocation thread or if we need to acquire time
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
     threadUdp.Start();
+    #ifdef GPS_SERIAL
     threadGps.Start();
+    #endif
+    #ifdef GPS_I2C
+    threadGpsI2c.Start();
+    #endif
   }
 
   // start other thread

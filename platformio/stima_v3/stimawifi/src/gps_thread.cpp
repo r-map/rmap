@@ -16,7 +16,7 @@ void gpsThread::doSerialNmea(){
   uint8_t len=Serial0.readBytesUntil(10, message, MESSAGELEN-1);
   message[len]=0;
   
-  if (len > 0) data->logger->trace("gps message: %s", message);
+  if (len > 0) data->logger->trace(F("gps message: %s"), message);
 
   for (uint8_t i = 0; i < len; i++) {
     uint8_t gpsflag;
@@ -26,7 +26,7 @@ void gpsThread::doSerialNmea(){
     if(gps.valid){
       break;
       //}else{
-      //data->logger->notice("gps gps_error: %d", gpsflag);
+      //data->logger->notice(F("gps gps_error: %d"), gpsflag);
     }
   }
   
@@ -76,7 +76,7 @@ gpsThread::gpsThread(gps_data_t* gps_data)
           }
     ,data{gps_data}
 {
-  //data->logger->notice("gps Create Thread %s %d", GetName().c_str(), data->id);
+  //data->logger->notice(F("gps Create Thread %s %d"), GetName().c_str(), data->id);
   data->status->receive=unknown;
   data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
@@ -90,7 +90,7 @@ gpsThread::~gpsThread()
   
 void gpsThread::Cleanup()
 {
-  data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
+  data->logger->notice(F("Delete Thread %s %d"), GetName().c_str(), data->id);
   data->status->receive=unknown;
   data->status->memory_collision=unknown;
   data->status->no_heap_memory=unknown;
@@ -98,7 +98,7 @@ void gpsThread::Cleanup()
 }
 
 void gpsThread::Run() {
-  data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
+  data->logger->notice(F("Starting Thread %s %d"), GetName().c_str(), data->id);
 
   gps.init(&mgps);
   //gps.set_filter(0xE); // "RMC","GGA","GLL"
@@ -124,9 +124,9 @@ void gpsThread::Run() {
     //  data->status->no_heap_memory=error;
     //}
     
-    //data->logger->notice("stack gps: %d",uxTaskGetStackHighWaterMark(NULL));
+    //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
-      data->logger->error("gps stack");
+      data->logger->error(F("gps stack"));
       data->status->memory_collision=error;
     }
   }
