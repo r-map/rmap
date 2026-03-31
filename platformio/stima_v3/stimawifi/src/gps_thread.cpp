@@ -68,7 +68,7 @@ void gpsThread::doSerialNmea(){
     }
 	
     if (mgps.gll.dms.latitude != 0.0 and mgps.gll.dms.longitude != 0.0){
-      data->logger->notice(F("gps GLL latitude : %5 %5"), mgps.gll.dms.latitude, mgps.gll.dms.longitude);
+      data->logger->notice(F("gps GLL coordinate : %5 %5"), mgps.gll.dms.latitude, mgps.gll.dms.longitude);
       itoa(int(std::round(mgps.gll.dms.latitude*100000)),data->georef->lat,10);
       itoa(int(std::round(mgps.gll.dms.longitude*100000)),data->georef->lon,10);
       data->georef->timestamp=now();
@@ -77,7 +77,7 @@ void gpsThread::doSerialNmea(){
     }
     
     if (mgps.rmc.dms.latitude != 0.0 and mgps.rmc.dms.longitude != 0.0){
-      data->logger->notice(F("gps RMC latitude : %5 %5"), mgps.rmc.dms.latitude, mgps.rmc.dms.longitude);
+      data->logger->notice(F("gps RMC coordinate : %5 %5"), mgps.rmc.dms.latitude, mgps.rmc.dms.longitude);
       itoa(int(std::round(mgps.rmc.dms.latitude*100000)),data->georef->lat,10);
       itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data->georef->lon,10);
       data->georef->timestamp=now();           // TODO create datetime from RMC datetime
