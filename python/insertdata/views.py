@@ -774,7 +774,8 @@ def insertNewStation(request):
                 mystation.user=user
                 mystation.lat=lat if lat is None else rmap.rmap_core.truncate(lat,5)
                 mystation.lon=lon if lon is None else rmap.rmap_core.truncate(lon,5)
-                mystation.ident=user.username
+                if (mystation.network == "mobile"):
+                    mystation.ident=user.username
                 mystation.active=True
                 mystation.category="good"
                 mystation.slug=slug
