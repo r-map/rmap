@@ -456,7 +456,7 @@ bool dbThread::archive_recovery(){
     
   case ARCHIVE_RECOVERY_PUBLISH:
 	
-    if (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
+    if (data->recoveryqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_RECOVERY){
       data->logger->warning(F("db archive recovery no space in mqtt queue"));   
       archive_recovery_run=false;
       break;
@@ -464,7 +464,7 @@ bool dbThread::archive_recovery(){
     
     data->logger->notice(F("db archive recovery queuing message for publish %s:%s"),archive_recovery_message.topic,archive_recovery_message.payload);
     archive_recovery_message.sent=true;    // prevent publish task requeue for archive
-    if(!data->mqttqueue->Enqueue(&archive_recovery_message,pdMS_TO_TICKS(0))){
+    if(!data->recoveryqueue->Enqueue(&archive_recovery_message,pdMS_TO_TICKS(0))){
       data->logger->warning(F("db archive recovery message for publish not queued"));
       archive_recovery_run=false;
       break;
@@ -655,8 +655,8 @@ bool dbThread::data_recovery(void){
   //  return false;
   //}
 
-  if (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_RECOVERY){
-    data->logger->warning(F("db recovery no space in mqtt queue"));   
+  if (data->recoveryqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_RECOVERY){
+    data->logger->warning(F("db recovery no space in recovery queue"));   
     return true;
   }
 
@@ -705,7 +705,7 @@ bool dbThread::data_recovery(void){
 	strcpy(message.payload, (const char*)sqlite3_column_text(stmt, 2));
 	
 	data->logger->notice(F("db recovery queuing message for publish %s:%s"),message.topic,message.payload);       
-	if(!data->mqttqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
+	if(!data->recoveryqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
 	  data->logger->warning(F("db recovery message for publish not queued"));
 	}
       } else if(rc == SQLITE_DONE) {
@@ -833,8 +833,6 @@ bool dbThread::doDb(const mqttMessage_t& message) {
   int rc;
   char sql[] = "INSERT OR REPLACE INTO messages VALUES (?, strftime('%s',?), ?, ?)";
   sqlite3_stmt* stmt; // will point to prepared stamement object
-
-  data->logger->notice(F("db spaceleft in mqtt queue %d"),data->mqttqueue->NumSpacesLeft());   
   
   sqlite3_prepare_v2(
 		     db,             // the handle to your (opened and ready) database
@@ -901,9 +899,6 @@ bool dbThread::doDb(const mqttMessage_t& message) {
   sqlite_status=true;
   data->status->database=ok;  
   data->logger->notice(F("db Data saved on SD %s:%s"),message.topic,message.payload);       
-
-  mqttMessage_t tmpmsg;
-  data->dbqueue->Dequeue(&tmpmsg, pdMS_TO_TICKS( 0 ));  // all done: dequeue the message
     
   return true;
 }    
@@ -1176,12 +1171,15 @@ void dbThread::Run() {
   //  SetPriority(basePriority);
   
   for(;;){
-      
+
+
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
-      if (!doDb(message)) return;                                 // return and terminate task if fatal error
-      if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
+      if (doDb(message)){
+	data->dbqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));       // all done: dequeue the message
+      }
       //threadPublish.mqttDisconnect();
-      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT");
+      if (!sqlite_status) sqlite_status = db_restart();         // try to restart SD card and sqlite
+      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
     }
 
     
@@ -1192,32 +1190,27 @@ void dbThread::Run() {
     }
 
     // check queue for rpc recovey
-    if(data->recoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 )))recovery();
+    if(data->rpcRecoveryqueue->Dequeue(&rpcrecovery, pdMS_TO_TICKS( 0 )))recovery();
 
     uint8_t basePriority = GetPriority();
     SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
     while (db_recovery());                    // run one subquery (one time step) of the big recovery on DB
-    while (archive_recovery());               // run until the mqtt queue is full (less then MQTT_QUEUE_SPACELEFT_RECOVERY)
+    while (archive_recovery());               // run until the mqtt queue is full (less/equal then QUEUE_SPACELEFT_RECOVERY)
     SetPriority(basePriority);
  
-    while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
-      if (!doDb(message)) return;                                 // return and terminate task if fatal error
-      if (!sqlite_status) sqlite_status = db_restart();           // try to restart SD card and sqlite
-      //threadPublish.mqttDisconnect();
-      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT");
-    }
-
-
     if (getArchiveRecoveryState() == ARCHIVE_RECOVERY_NONE and
 	getDbRecoveryState() == DB_RECOVERY_NONE) {
       // check semaphore for data recovey
-      if(data->recoverysemaphore->Take(0)){
+      if(data->rpcRecoverysemaphore->Take(0)){
 	if (timeStatus() == timeSet) {
 	  if (!data_purge()) data->logger->error(F("db purge DB"));    // migrate old data to archive
 	}
 	if(!data_recovery()) data->logger->error(F("db recovery DB")); // try to publish unsent messages
       }
     }
+
+    data->logger->notice(F("db      db       queue space left %d"),data->dbqueue->NumSpacesLeft());   
+    data->logger->notice(F("db      recovery queue space left %d"),data->recoveryqueue->NumSpacesLeft());   
 
     // checks for heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

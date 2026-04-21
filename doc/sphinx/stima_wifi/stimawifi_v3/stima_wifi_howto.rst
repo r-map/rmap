@@ -544,9 +544,13 @@ Sensirion SHT85 (Sensore Umidità & Temperatura)
 Software
 --------
 
-FreeRtos viene utilizzato attraverso un wrapper C++.  Ogni thread ha
-una struttura dati utilizzata per comunicare trutture dati e dati.
-Nessun dato possibilmente è definito globalmente.
+FreeRtos viene utilizzato attraverso un wrapper C++:
+https://github.com/michaelbecker/freertos-addons
+https://michaelbecker.github.io/freertos-addons/cppdocs/html/namespacecpp__freertos.html
+con qualche adattamento per ESP32.
+
+Ogni thread ha una struttura dati utilizzata per comunicare trutture
+dati e dati.  Nessun dato possibilmente è definito globalmente.
 
 Il colore del led indica lo stato di funzionamento:
 
@@ -582,8 +586,8 @@ E' attivo un web server accessibile quando ci si connette allo stesso Wifi
 a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
 
 * http://<station slug>             Full main page
-* http://<station slug>/data.json   Data in json format
-* http://<station slug>/geo         Coordinate of the station
+* http://<station slug>/data.json   Data in formato json
+* http://<station slug>/geo         Coordinate della statione
 * http://<station slug>/archive.dat Dati dell'archivio da leggere con apposito tools
 * http://<station slug>/info.dat    Info file dell'archivio da leggere con apposito tools
 
@@ -610,11 +614,17 @@ pubblicazione sul broker MQTT; se non c'è spazio
 vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
 threadMeasure è attivato periodicamente.
 
-threadPublish prova la pubblicazione MQTT.
+threadPublish prova la pubblicazione MQTT attigendo da due code:
+mqttquque e recoveryqueue.  L prima ha priorità rispetto alla seconda,
+quindi i messaggi ricevuti da recoveryqueue saranno pubblicati solo
+quando non ci saranno messaggi nella coda mqttqueue.
 
-Dopo ogni tentativo di pubblicazione al broker MQTT
-i dati vengono accodati per l'archiviazione nella coda dbqueue
-etichettati relativamente al risultato della pubblicazione.
+Dopo ogni tentativo di pubblicazione al broker MQTT i dati vengono
+accodati per l'archiviazione nella coda dbqueue etichettati
+relativamente al risultato della pubblicazione, a meno che i messaggi
+non siano già stati etichettati come pubblicati e ci si può
+risparmiare il lavoro di riarchiviazione (sono quindi il risultato di
+una richiesta di recovery).
 
 Il thread threadDb gestisce due tipi di archiviazione dati.
 
@@ -695,8 +705,8 @@ e il secondo con i dati.
 
 Il thread threadDb viene attivato periodicamente
 per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
-inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
-sufficiente spazio nella coda di pubblicazione per altri thread.
+inviando un piccolo blocco di dati a recoveryqueue fino a quando avanzi
+sufficiente spazio nella coda di pubblicazione.
 
 Il thread threadDb esegue a priorità più alta degli altri per garantire
 l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
@@ -721,6 +731,15 @@ threadGps
 
 Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
 la geolocalizzazione e un timestamp.
+
+threadGpsI2c
+^^^^^^^^^^^^
+
+E' una alternativa a threadGps in cui la comunicazione con il modulo
+GPS avviene tramite BUS I2C.
+
+La scelta tra threadGpsI2c e threadGps avviene al momento della
+compilazione tramite il file di configurazione include/stimawifi_config.h
 
 
 Remote Procedure Call
@@ -754,7 +773,7 @@ casi le operazioni richieste dalla RPC sono eseguibili dallo stesso
 thread ma ad esempio l'RPC "recovery" deve essere eseguite da un
 thread differente (threadDb). In questo ultimo caso le informazioni
 per eseguire l'RPC vengono inviate tramite una apposita coda
-"recoveryqueue"; è una coda binaria, ossia in grado mi gestire un solo
+"rpcrecoveryqueue"; è una coda binaria, ossia in grado mi gestire un solo
 messaggio che sarà sempre l'ultimo. L'RPC recovery sarà quindi
 eseguita dal threadDb; Il recupero dei dati selezionati per limite di
 data e su richiesta tra quelli non ancora inviati viene gestito in
@@ -1254,7 +1273,7 @@ add
 
 attivare la riga configurata
 
-premete il bottono con il triangolino
+premete il bottone con il triangolino
 
 .. image:: gpsdRelay_principale.jpg
    :width: 50%
@@ -1291,7 +1310,7 @@ Nel modulo inserire::
 dove 430 dovrà essere sostituito dal valore di calibrazione della CO2 in ppm.
 
 E' necessario monitorare lo stato di esecuzione delle RPC alla voce
-"Monitor Remote Procedure Call" dellla stazione dallla propria pagina
+"Monitor Remote Procedure Call" della stazione dallla propria pagina
 personale sulla piattaforma RMAP.
 
 Se Status risulta "completed" il valore fornito viene utilizzato per
@@ -1466,5 +1485,11 @@ Appendice E I2C resistenze di pull up
 | MCU - Espressif       |         |         |
 | ESP32 S3              | ---     |  ---    |
 +-----------------------+---------+---------+
-| Totale                | 2.4K    | 3.2K    |
+
++-----------------------+---------+---------+
+|    Totale             | SDA     | SCL     |
++=======================+=========+=========+
+| con ESP32 C3          | 2.4K    | 3.2K    |
++-----------------------+---------+---------+
+| con ESP32 S3          | 3.2K    | 3.2K    |
 +-----------------------+---------+---------+

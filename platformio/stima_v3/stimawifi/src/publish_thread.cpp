@@ -79,7 +79,7 @@ void publishThread::Run() {
   for(;;){
     
     // if there are no enough space left on the mqtt queue send it to the DB
-    while (data->mqttqueue->NumSpacesLeft() < MQTT_QUEUE_SPACELEFT_PUBLISH){
+    while (data->mqttqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_PUBLISH){
       store();
       data->status->publish.publish=error;
     }
@@ -123,15 +123,24 @@ void publishThread::Run() {
     }
 
     if (status_connected){
-      mqttMessage_t mqttMessage;
-      // wait for message and peek it from the queue
-      while (data->mqttqueue->Peek(&mqttMessage, pdMS_TO_TICKS( 1000 ))){
-	// publish message
-	if (!doPublish()) break;
+      mqttMessage_t message;
+      data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 1000 ));     // wait for a new incoming message
+      while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+	if (!doPublish(message)) break;  	// publish message
+	data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+      }
+      while (data->recoveryqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+	if (!doPublish(message)) break; 	// publish message
+	data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+	  if (!doPublish(message)) break;  	// publish message
+	  data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	}
       }
     }
     
-    data->logger->notice(F("publish mqtt queue space left %d"),data->mqttqueue->NumSpacesLeft());
+    data->logger->notice(F("publish mqtt     queue space left %d"),data->mqttqueue->NumSpacesLeft());
+    data->logger->notice(F("publish recovery queue space left %d"),data->recoveryqueue->NumSpacesLeft());
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
@@ -604,13 +613,9 @@ void publishThread::store() {
 
 // try to send message to the broker
 // send the same message to the queue for DB with flag to describe if publish is completed with success
-bool publishThread::doPublish() {
+bool publishThread::doPublish(mqttMessage_t mqtt_message) {
 
   bool rc=false;
-  
-  mqttMessage_t mqtt_message;  
-  data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ));
-
   bool resend = mqtt_message.sent;
   
   if(mqttPublish(mqtt_message,false)){
@@ -710,7 +715,7 @@ int calibrateRpc(JsonObject params, JsonObject result) {
     strncpy(rpccalibrate.type,type,4);
     rpccalibrate.value = params["value"];
         
-    if(publishThread::global_data->calibratequeue->Enqueue(&rpccalibrate)){
+    if(publishThread::global_data->rpcCalibratequeue->Enqueue(&rpccalibrate)){
       publishThread::global_data->logger->notice(F("enqueue rpc calibrate : %s ; %d"), rpccalibrate.type, rpccalibrate.value);
       result[F("state")] = F("done");
       return 0;  
@@ -767,7 +772,7 @@ int recoveryDataRpc(JsonObject params, JsonObject result) {
   //strcpy(rpcrecovery.dtstart,"2024-05-09T00:00:00") ;
   //strcpy(rpcrecovery.dtend, "2024-05-09T01:00:00") ;
   
-  if(publishThread::global_data->recoveryqueue->Enqueue(&rpcrecovery)){
+  if(publishThread::global_data->rpcRecoveryqueue->Enqueue(&rpcrecovery)){
     publishThread::global_data->logger->notice(F("enqueue rpc recovery : %s ; %s"), rpcrecovery.dtstart, rpcrecovery.dtend);
     result[F("state")] = F("done");  
     return 0;  

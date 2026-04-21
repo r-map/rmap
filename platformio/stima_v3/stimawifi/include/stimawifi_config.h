@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-03-31T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260331"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-04-21T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260421"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -102,18 +102,19 @@
 // define parameter for queues len and communication
 //#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
 # if portNUM_PROCESSORS > 1
-#define DATA_BURST (150)
+#define DATA_BURST (SENSORS_MAX*6)
 #else
-#define DATA_BURST (15)
+#define DATA_BURST (SENSORS_MAX*6)
 #endif
 #define DATA_BURST_RECOVERY (DATA_BURST)
 
 #define DB_QUEUE_LEN (DATA_BURST)
-#define MQTT_QUEUE_LEN (DATA_BURST*3)
+#define MQTT_QUEUE_LEN (DATA_BURST)
+#define RECOVERY_QUEUE_LEN (DATA_BURST)
 
-#define MQTT_QUEUE_SPACELEFT_MEASURE (DATA_BURST)
-#define MQTT_QUEUE_SPACELEFT_PUBLISH (DATA_BURST/2)
-#define MQTT_QUEUE_SPACELEFT_RECOVERY (DATA_BURST*2)
+#define QUEUE_SPACELEFT_MEASURE (0)
+#define QUEUE_SPACELEFT_PUBLISH (0)
+#define QUEUE_SPACELEFT_RECOVERY (0)
 
 // SD card SPI PIN assignment
 // Micro SD Card Shield

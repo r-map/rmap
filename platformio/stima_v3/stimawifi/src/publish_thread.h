@@ -19,8 +19,9 @@ struct publish_data_t {
   frtosLogging* logger;
   Queue* mqttqueue;
   Queue* dbqueue;
-  BinaryQueue* recoveryqueue;
-  BinaryQueue* calibratequeue;
+  Queue* recoveryqueue;
+  BinaryQueue* rpcRecoveryqueue;
+  BinaryQueue* rpcCalibratequeue;
   stimawifiStatus_t* status;
   station_t* station;
 };
@@ -52,7 +53,7 @@ public:
   void reset_status_summary();
   bool publish_constantdata();
   void store();
-  bool doPublish();
+  bool doPublish(mqttMessage_t message);
   publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 > mqttclient;
