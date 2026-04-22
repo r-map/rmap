@@ -31,7 +31,7 @@ Max value here is 25 for stima atmega1284
 NOTE: used to define queue len
 */
 #if portNUM_PROCESSORS > 1
-#define SENSORS_MAX      (25)
+#define SENSORS_MAX      (10)
 #else
 #define SENSORS_MAX      (3)
 #endif
@@ -43,7 +43,7 @@ unique sensors are sensors that can have more driver but only one i2c address an
 Max value here is 10  for stima atmega1284
 */
 #if portNUM_PROCESSORS > 1
-#define SENSORS_UNIQUE_MAX      (10)
+#define SENSORS_UNIQUE_MAX      (5)
 #else
 #define SENSORS_UNIQUE_MAX      (3)
 #endif

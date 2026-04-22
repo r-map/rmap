@@ -2,8 +2,8 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-04-21T00:00"    // date and time iso format
-#define MAJOR_VERSION    "20260421"            // date  YYYYMMDD
+#define SOFTWARE_VERSION "2026-04-23T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20260423"            // date  YYYYMMDD
 #define MINOR_VERSION    "0"                   // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
@@ -100,21 +100,26 @@
 #define SENSORDRIVER_META_LEN 30
 
 // define parameter for queues len and communication
-//#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT)
+
 # if portNUM_PROCESSORS > 1
-#define DATA_BURST (SENSORS_MAX*6)
+#define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT) // max burst of messages
+#define DB_QUEUE_LEN (DATA_BURST*2)
+#define MQTT_QUEUE_LEN (DATA_BURST*3)
+#define RECOVERY_QUEUE_LEN (DATA_BURST*2)
 #else
-#define DATA_BURST (SENSORS_MAX*6)
-#endif
-#define DATA_BURST_RECOVERY (DATA_BURST)
-
+#define DATA_BURST (15)             // tipic burst of messages
 #define DB_QUEUE_LEN (DATA_BURST)
-#define MQTT_QUEUE_LEN (DATA_BURST)
+#define MQTT_QUEUE_LEN (DATA_BURST*2)
 #define RECOVERY_QUEUE_LEN (DATA_BURST)
+#endif
 
-#define QUEUE_SPACELEFT_MEASURE (0)
-#define QUEUE_SPACELEFT_PUBLISH (0)
-#define QUEUE_SPACELEFT_RECOVERY (0)
+#define DATA_BURST_RECOVERY (DATA_BURST)  // messages in recovery packet
+
+//This is mechanism that prevents a system from becoming overwhelmed
+//when data arrives faster than it can be processed (queue pressure)
+#define QUEUE_SPACELEFT_MEASURE  (0)            // limit for enqueue messages by measure thread
+#define QUEUE_SPACELEFT_PUBLISH  (DATA_BURST)   // limit for publish thread to ignore incoming message and send it to db
+#define QUEUE_SPACELEFT_RECOVERY (0)            // limit for enqueue recovered messages by db thread
 
 // SD card SPI PIN assignment
 // Micro SD Card Shield

@@ -2,7 +2,7 @@ from os.path import join
 Import("env", "projenv")
 
 # Dump global construction environment (for debug purpose)
-print(env.Dump())
+#print(env.Dump())
 
 # Custom BIN from ELF
 env.AddPostAction(
