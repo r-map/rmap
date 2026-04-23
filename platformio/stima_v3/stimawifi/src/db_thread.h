@@ -6,9 +6,9 @@ struct db_data_t {
   int id;
   frtosLogging* logger;
   Queue* dbqueue;
-  Queue* mqttqueue;
-  BinarySemaphore* recoverysemaphore;
-  BinaryQueue* recoveryqueue;
+  Queue* recoveryqueue;
+  BinarySemaphore* rpcRecoverysemaphore;
+  BinaryQueue* rpcRecoveryqueue;
   dbStatus_t* status;
   station_t* station;
   File* logFile;

@@ -101,23 +101,24 @@ gps_i2c_data_t gps_i2c_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC,
 gpsI2cThread threadGpsI2c(&gps_i2c_data);
 #endif
 
-Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));       // ~ 1 minutes queue
-Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));   // ~ 1.5 minutes queue
-BinaryQueue recoveryQueue(sizeof(rpcRecovery_t));
-BinaryQueue calibrateQueue(sizeof(rpcCalibrate_t));
-BinarySemaphore recoverySemaphore(false);
+Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));
+Queue recoveryQueue(RECOVERY_QUEUE_LEN,sizeof(mqttMessage_t));
+Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));
+BinaryQueue rpcRecoveryQueue(sizeof(rpcRecovery_t));
+BinaryQueue rpcCalibrateQueue(sizeof(rpcCalibrate_t));
+BinarySemaphore rpcRecoverySemaphore(false);
 #if (ENABLE_SDCARD_LOGGING)
-db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&recoveryQueue,&stimawifiStatus.db,&station,&logFile};
+db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&rpcRecoverySemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,&logFile};
 #else
-db_data_t db_data={1,&frtosLog,&dbQueue,&mqttQueue,&recoverySemaphore,&recoveryQueue,&stimawifiStatus.db,&station,NULL};
+db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&rpcRecoverySemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,NULL};
 #endif
 
 dbThread threadDb(&db_data);
 
-measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef,&calibrateQueue};
+measure_data_t measure_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.measure,&station,&summarydata,&i2cmutex,&georef,&rpcCalibrateQueue};
 measureThread threadMeasure(&measure_data);
 
-publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&calibrateQueue,&stimawifiStatus,&station};
+publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&rpcRecoveryQueue,&rpcCalibrateQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)

@@ -1039,7 +1039,7 @@ void displayStatus()
 
 // send signal to DB thread for recovery unsent data from DB on SD card
 void dataRecovery() {
-  recoverySemaphore.Give();
+  rpcRecoverySemaphore.Give();
 }
 
 // send signal to measure thread to start measuremets
@@ -1185,6 +1185,7 @@ void setup() {
 
     m_card->end();
 
+    //ESP32 supports three RF calibration methods during RF initialization
     //Full calibration takes 100 ms longer than the partial
     //calibration method. If boot duration is not of critical
     //importance to the application, the full calibration method is

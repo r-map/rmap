@@ -229,7 +229,10 @@ MCU - Espressif ESP32 S3
 .. image:: s3_mini_v1.0.0_4_16x9.jpg
    :width: 50%
   
+Questo lo schema elettrico:
 
+.. image:: sch_s3_mini_v1.0.0.png
+   :width: 50%
 
 
 RTC and Microsd Data Logger Shield 
@@ -391,7 +394,7 @@ Micro SD Card Shield
 Questo modulo può sostituire RTC and Microsd Data Logger Shield ma non
 fornisce le funzionalità relative all'RTC in quanto non è presente.
 Necessita anche di uno specifico firmware in quanto richiede una
-specifica configurazione tempo di compilazione.
+specifica configurazione a tempo di compilazione.
 
 .. image:: sd_v1.2.0_1_16x16.jpg
    :width: 50%
@@ -399,8 +402,8 @@ specifica configurazione tempo di compilazione.
 Micro SD(TF) card per D1 mini
 
 
-Assemblaggio componenti elettroniche e sensori
-----------------------------------------------
+Componenti elettroniche e sensori
+---------------------------------
 
 .. image:: stimawifi_out_of_box_mini.jpg
    :width: 50%
@@ -425,36 +428,6 @@ Scatola
 
 Serve a proteggere l’elettronica ed alloggiare parte dei sensori.
 
-Deve essere divisa in due sezioni principali, una ospita i componenti
-elettronici, l’altra (divisa a sua volta in due camere separate) il
-sensore per le polveri sottili e quello per la rilevazione della
-concentrazione di CO2
-
-.. image:: scatola_interno.png
-   :width: 50%
-
-Nella parte alta della foto si nota l’alloggiamento
-delle componenti elettroniche principali.
-
-.. image:: scatola_elettronica.png
-   :width: 50%
-
-La parte bassa è divisa in due sezioni e queste sezioni sono aperte
-verso l’esterno a differenza di quella superiore
-
-.. image:: scatola_inferiore.png
-   :width: 50%
-
-I cavi per i sensori passano attraverso piccole incisioni del
-polietilene per mantere il più possibile la camera superiore stagna
-
-
-La ﬁnestra per il monitor è ricavata incollando un riquadro di
-policarbonato con della colla a caldo.
-
-.. image:: scatola_display.png
-   :width: 30%
-
 
 Schermo solare
 --------------
@@ -471,21 +444,6 @@ umidità e temperatura
 * Può essere autocostruito https://e.pavlin.si/2019/02/04/low-cost-solar-radiation-shield/
 * Modelli molto economici già pronti	
 
-
-Connessione Device
-^^^^^^^^^^^^^^^^^^
-
-Connettere i device necessari è semplice
-
-- assicurarsi che la stazione non sia alimentata
-- selezionare appropriato voltaggio alimentazione
-- assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
-  
-NOTE
-
-- Alcuni device hanno più dei quattro pin necessari alla connessione
-  al bus I2C
-- VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
 
 Sensori
 -------
@@ -544,9 +502,13 @@ Sensirion SHT85 (Sensore Umidità & Temperatura)
 Software
 --------
 
-FreeRtos viene utilizzato attraverso un wrapper C++.  Ogni thread ha
-una struttura dati utilizzata per comunicare trutture dati e dati.
-Nessun dato possibilmente è definito globalmente.
+FreeRtos viene utilizzato attraverso un wrapper C++:
+https://github.com/michaelbecker/freertos-addons
+https://michaelbecker.github.io/freertos-addons/cppdocs/html/namespacecpp__freertos.html
+con qualche adattamento per ESP32.
+
+Ogni thread ha una struttura dati utilizzata per comunicare trutture
+dati e dati.  Nessun dato possibilmente è definito globalmente.
 
 Il colore del led indica lo stato di funzionamento:
 
@@ -582,8 +544,8 @@ E' attivo un web server accessibile quando ci si connette allo stesso Wifi
 a cui è connessa la stazione, Sono forniti le seguenti URL/servizi:
 
 * http://<station slug>             Full main page
-* http://<station slug>/data.json   Data in json format
-* http://<station slug>/geo         Coordinate of the station
+* http://<station slug>/data.json   Data in formato json
+* http://<station slug>/geo         Coordinate della statione
 * http://<station slug>/archive.dat Dati dell'archivio da leggere con apposito tools
 * http://<station slug>/info.dat    Info file dell'archivio da leggere con apposito tools
 
@@ -610,11 +572,17 @@ pubblicazione sul broker MQTT; se non c'è spazio
 vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
 threadMeasure è attivato periodicamente.
 
-threadPublish prova la pubblicazione MQTT.
+threadPublish prova la pubblicazione MQTT attigendo da due code:
+mqttquque e recoveryqueue.  L prima ha priorità rispetto alla seconda,
+quindi i messaggi ricevuti da recoveryqueue saranno pubblicati solo
+quando non ci saranno messaggi nella coda mqttqueue.
 
-Dopo ogni tentativo di pubblicazione al broker MQTT
-i dati vengono accodati per l'archiviazione nella coda dbqueue
-etichettati relativamente al risultato della pubblicazione.
+Dopo ogni tentativo di pubblicazione al broker MQTT i dati vengono
+accodati per l'archiviazione nella coda dbqueue etichettati
+relativamente al risultato della pubblicazione, a meno che i messaggi
+non siano già stati etichettati come pubblicati e ci si può
+risparmiare il lavoro di riarchiviazione (sono quindi il risultato di
+una richiesta di recovery).
 
 Il thread threadDb gestisce due tipi di archiviazione dati.
 
@@ -695,8 +663,8 @@ e il secondo con i dati.
 
 Il thread threadDb viene attivato periodicamente
 per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
-inviando un piccolo blocco di dati a mqttqueue fino a quando avanzi
-sufficiente spazio nella coda di pubblicazione per altri thread.
+inviando un piccolo blocco di dati a recoveryqueue fino a quando avanzi
+sufficiente spazio nella coda di pubblicazione.
 
 Il thread threadDb esegue a priorità più alta degli altri per garantire
 l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
@@ -721,6 +689,15 @@ threadGps
 
 Legge i dati dal GPS se presente (porta seriale) riempiendo una struttura dati con
 la geolocalizzazione e un timestamp.
+
+threadGpsI2c
+^^^^^^^^^^^^
+
+E' una alternativa a threadGps in cui la comunicazione con il modulo
+GPS avviene tramite BUS I2C.
+
+La scelta tra threadGpsI2c e threadGps avviene al momento della
+compilazione tramite il file di configurazione include/stimawifi_config.h
 
 
 Remote Procedure Call
@@ -754,7 +731,7 @@ casi le operazioni richieste dalla RPC sono eseguibili dallo stesso
 thread ma ad esempio l'RPC "recovery" deve essere eseguite da un
 thread differente (threadDb). In questo ultimo caso le informazioni
 per eseguire l'RPC vengono inviate tramite una apposita coda
-"recoveryqueue"; è una coda binaria, ossia in grado mi gestire un solo
+"rpcrecoveryqueue"; è una coda binaria, ossia in grado mi gestire un solo
 messaggio che sarà sempre l'ultimo. L'RPC recovery sarà quindi
 eseguita dal threadDb; Il recupero dei dati selezionati per limite di
 data e su richiesta tra quelli non ancora inviati viene gestito in
@@ -777,37 +754,18 @@ I dati per la ritrasmissione (vedi RPC recovery) quindi presenti in
 archivio vengono sempre inviati al thread per la pubblicazione con la
 flag di "inviato" attiva per evitare duplicati in archivio
 
-	   
-Messa in opera della stazione
------------------------------
 
-La messa in opera della stazione può essere affrontata in più fasi:
-dopo aver assemblato la scheda elettronica ed averla posizionata nel
-proprio guscio bisognerà configurare la stazione, registrarla presso
-il sito che raccoglierà i dati e installare la stazione nel sito
-prescelto.
-
-In queste pagine tratteremo sommariamente queste operazioni
-preoccupandoci di dare delle indicazioni di massima su cosa fare, sui
-materiali e strumenti necessari alla corretta esecuzione delle
-procedure necessarie alla messa in opera.
-
-
-Assemblaggio scheda elettronica
---------------------------------
+Assemblaggio datalogger
+-----------------------
 
 La prima fase della messa in opera presuppone l’assemblaggio del
 data logger, la parte della stazione che si occupa di consultare
 periodicamente i sensori installati e di inviare i campionamenti al
 server centrale.
 
-A seconda del kit utilizzato, potrebbe essere necessario utilizzare un
-saldatore a stagno per installare i connettori a pettine necessari a
-collegare tra loro i vari componenti ed assemblare i cavi di
-connessione (il progetto prevede che connettori e cavi siano
-preassemblati ma nulla vieta, per chi avesse tra gli obiettivi di
-migliorare la confidenza con la saldatura di componenti elettronici di
-utilizzare il kit senza il servizio di saldatura).
+E' necessario utilizzare un saldatore a stagno per installare i
+connettori a pettine necessari a collegare tra loro i vari componenti
+ed assemblare i cavi di connessione.
 
 I diversi moduli dovranno essere collegati tra di loro rispettando la
 polarità.  Prima di procedere alla connessione dei sensori, bisognerà
@@ -838,15 +796,8 @@ Dotazione Software
 
 * Nessuna
 
-Caricamento firmware
---------------------
-
-Questa fase della messa in opera è necessaria per il funzionamento
-della stazione.  Dopo la prima attivazione può rendersi nuovamente
-necessario in caso si voglia modificare l’utilizzo della stazione,
-personalizzarne le funzionalità o cogliere l’occasione di
-impratichirsi con questa operazione fondamentale nel ciclo di vita del
-software per microcontrollori,
+Compilazione firmware
+---------------------
 
 La stazione Stima WiFi è basata sul microcontrollore Esp32 prodotto
 da ExpressIf. Si tratta di una soluzione economica e affidabile che da
@@ -867,21 +818,23 @@ dotazioni software adottabili successivamente per lo sviluppo di
 programmi che interagiscano con la stazione di monitoraggio dopo la
 sua installazione.
 
-NOTA: Non tutti i cavi usb sono uguali, in special modo quelli forniti
-con gli smartphone. Alcuni sono adatti solo all’alimentazione ed alla
-ricarica dei dispositivi e non permettono lo scambio di dati. Se il
-computer non sembra riconoscere la stazione provare a sostituire il
-cavo di connessione. Se anche questa prova non sortisce effetti, ma la
-stazione si accende regolarmente, è probabile che il computer in uso
-non riconosca l’interfaccia seriale usb usata dalla stazione. In
-questo caso bisognerà caricare l’apposito driver prima di poter
-procedere.
+TODO clone repository; compilazione
 
+Upload del firmware
+^^^^^^^^^^^^^^^^^^^
+
+Questa fase della messa in opera è necessaria per il funzionamento
+della stazione.  Dopo la prima attivazione può rendersi nuovamente
+necessario in caso si voglia modificare l’utilizzo della stazione,
+personalizzarne le funzionalità o cogliere l’occasione di
+impratichirsi con questa operazione fondamentale nel ciclo di vita del
+software per microcontrollori,
+
+TODO
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* cavo usb C
 * computer
 
 Dotazione Software
@@ -898,15 +851,177 @@ Ambiente grafico con IDE:
 * Pioarduino https://github.com/pioarduino/platform-espressif32?tab=readme-ov-file
 
 
-TODO clone repository; compilazione e caricamento firmware
+Upload del firmware con esptool
+-------------------------------
 
+Questa fase della messa in opera è necessaria per il funzionamento
+della stazione.  Dopo la prima attivazione può rendersi nuovamente
+necessario in caso si voglia modificare l’utilizzo della stazione,
+personalizzarne le funzionalità o cogliere l’occasione di
+impratichirsi con questa operazione fondamentale nel ciclo di vita del
+software per microcontrollori,
+
+Salvare sul proprio COMPUTER tutti file contenuti in questa cartella
+git di github:
+
+https://github.com/r-map/rmap/tree/master/platformio/stima_v3/stimawifi/bin/lolin_s3_mini
+
+dopo aver collegato al PC il datalogger tramite cavo USB impartire il comando:
+
+::
+   
+   esptool --chip esp32s3 --port "/dev/ttyACM0" --baud 460800 --before default-reset --after hard-reset write-flash -z --flash-mode dio --flash-freq 80m --flash-size detect 0x0000 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 firmware.bin
+
+eventualmente sostituendo a ttyACM0 la porta seriale effettivamente in uso.
+
+Dotazione Software
+^^^^^^^^^^^^^^^^^^
+
+WINDOWS
+
+Provvedere innanzitutto al download del pacchetto di installazione di
+Python (scegliere solo tra le versioni superiori alla 3.4) presso
+questo link, dopodiché installare il pacchetto.  ATTENZIONE: è
+assolutamente necessario che l’installazione di Python includa la voce
+“Add Python to enviroment variables“. In caso non l’abbiate
+selezionato durante l’installazione, è possibile correggere
+rilanciando l’installer, selezionando “Modify” e, avanzando di uno
+step, selezionare la voce “Add Python to enviroment variables“. NON
+proseguire senza aver provveduto.
+
+Effettuata l’installazione, riavviare il computer. A riavvio
+completato, recarsi presso prompt dei comandi ed eseguire il seguente
+comando:
+
+::
+   
+   pip3 install esptool
+
+
+MAC
+
+Provvedere innanzitutto al download del pacchetto di installazione di
+Python presso questo link, dopodiché installare il pacchetto e
+riavviare al termine.
+
+Recarsi poi presso terminale ed eseguire il seguente comando:
+
+::
+   
+   python3 -m pip install esptool
+
+   
+Linux (Debian, Ubuntu)
+
+Eseguire, da terminale i seguenti comandi:
+
+::
+
+   sudo apt install python3-setuptools git -y
+   git clone https://github.com/themadinventor/esptool.git
+   cd esptool
+   sudo python3 setup.py install
+
+
+Linux (Fedora)
+
+Eseguire, da terminale i seguenti comandi:
+
+::
+
+   sudo dnf install python3-setuptools git -y
+   git clone https://github.com/themadinventor/esptool.git
+   cd esptool
+   sudo python3 setup.py install
+
+   
+Strumentazione necessaria
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* computer
+* cavo USB C
+
+   
+Upload del firmware da android
+------------------------------
+
+Questa fase della messa in opera è necessaria per il funzionamento
+della stazione. Dopo il primo caricamento i successivi aggiornamenti
+potranno essere fatti in automatico dal server RMAP tramite WiFi.
+
+Salvare sul proprio telefono tutti file contenuti in questa cartella
+git di github:
+
+https://github.com/r-map/rmap/tree/master/platformio/stima_v3/stimawifi/bin/lolin_s3_mini
+
+Eseguire dopo averla installata l'app ESP32_Flash
+
+e configurarla come indicato qui:
+
+.. image:: esp32_flash.png
+   :width: 50%
+
+collegare l'adattatore OTG al telefono e il cavo USB collegandolo al
+datalogger (modulo wemos ESP32-S3)
+
+Avviare il microcontrollore ESP32 in modalità programmazione con la seguente procedura:
+
+* premere e tenere premuto il pulsante O
+* premere e rilasciare il pulsante RST
+* rilasciare il pulsante O
+
+premere il pulsante Flash sull'app  ESP32_Flash sul telefono.
+attendere la conferma dell'avvenuta programmazione della MCU.
+Scollegare il tutto.
+
+
+Strumentazione necessaria
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* smartphone con android
+* cavo OTG usb C per smatphone
+
+NOTA: La tecnologia USB OTG (o on-the-go) permette di leggere dati da
+chiavette e altre memorie di massa USB anche da smartphone e tablet,
+collegandoli direttamente alla porta microUSB / USB di tipo C del
+dispositivo (per intenderci, quella che si utilizza per collegare il
+caricabatterie)
   
-Collegamento dei sensori
-------------------------
+NOTA: Non tutti i cavi usb sono uguali, in special modo quelli forniti
+con gli smartphone. Alcuni sono adatti solo all’alimentazione ed alla
+ricarica dei dispositivi e non permettono lo scambio di dati. Se il
+computer non sembra riconoscere la stazione provare a sostituire il
+cavo di connessione. Se anche questa prova non sortisce effetti, ma la
+stazione si accende regolarmente, è probabile che il computer in uso
+non riconosca l’interfaccia seriale usb usata dalla stazione. In
+questo caso bisognerà caricare l’apposito driver prima di poter
+procedere.
+
+Dotazione Software
+^^^^^^^^^^^^^^^^^^
+
+* android app ESP32_Flash https://play.google.com/store/apps/details?id=com.esp_flash.esp_flash_app
+  
+  
+Collegamento dei sensori e altri dispositivi
+--------------------------------------------
 
 .. video:: stimawifi_v3_board_e_pila.mp4
    :width: 100%
-	
+
+Connettere i device necessari è semplice se fatto con attenzione:
+
+- assicurarsi che la stazione non sia alimentata
+- selezionare appropriato voltaggio alimentazione
+- assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
+  
+NOTE
+
+- Alcuni device hanno più dei quattro pin necessari alla connessione
+  al bus I2C
+- VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
+
+	   
 Prima di procedere con questa fase, disalimentare la stazione di
 monitoraggio.
 
@@ -958,7 +1073,6 @@ Dotazione Software
 * Un qualunque browser web
 * Accesso alla rete Wi-Fi
 
-
 Censimento stazione
 -------------------
 
@@ -985,7 +1099,6 @@ Una volta effettuato l’accesso al sito con nome utente e password,
 sarà possibile censire una o più stazioni.
 
 Censire una stazione consiste nel dichiararne le caratteristiche:  
-
 
 * Coordinate
 * Identificativo di stazione 
@@ -1072,6 +1185,37 @@ protettivo. Il sensore di temperatura, per non essere influenzato
 nelle sue misurazioni dal funzionamento della stazione, viene
 installato in un involucro separato denominato schermo solare passivo.
 
+Deve essere divisa in due sezioni principali, una ospita i componenti
+elettronici, l’altra (divisa a sua volta in due camere separate) il
+sensore per le polveri sottili e quello per la rilevazione della
+concentrazione di CO2
+
+.. image:: scatola_interno.png
+   :width: 50%
+
+Nella parte alta della foto si nota l’alloggiamento
+delle componenti elettroniche principali.
+
+.. image:: scatola_elettronica.png
+   :width: 50%
+
+La parte bassa è divisa in due sezioni e queste sezioni sono aperte
+verso l’esterno a differenza di quella superiore
+
+.. image:: scatola_inferiore.png
+   :width: 50%
+
+I cavi per i sensori passano attraverso piccole incisioni del
+polietilene per mantere il più possibile la camera superiore stagna
+
+
+La ﬁnestra per il monitor è ricavata incollando un riquadro di
+policarbonato con della colla a caldo.
+
+.. image:: scatola_display.png
+   :width: 30%
+
+
 Con delle forbici o un taglierino, bisognerà tagliare da un foglio di
 schiuma per imballaggi, che può essere riciclato, dei riquadri che
 permettano separare l’interno della scatola di derivazione usata come
@@ -1113,6 +1257,7 @@ Dotazione Software
 
 * Nessuna
 
+  
 Installazione in loco
 ---------------------
 
@@ -1254,7 +1399,7 @@ add
 
 attivare la riga configurata
 
-premete il bottono con il triangolino
+premete il bottone con il triangolino
 
 .. image:: gpsdRelay_principale.jpg
    :width: 50%
@@ -1291,7 +1436,7 @@ Nel modulo inserire::
 dove 430 dovrà essere sostituito dal valore di calibrazione della CO2 in ppm.
 
 E' necessario monitorare lo stato di esecuzione delle RPC alla voce
-"Monitor Remote Procedure Call" dellla stazione dallla propria pagina
+"Monitor Remote Procedure Call" della stazione dallla propria pagina
 personale sulla piattaforma RMAP.
 
 Se Status risulta "completed" il valore fornito viene utilizzato per
@@ -1466,5 +1611,11 @@ Appendice E I2C resistenze di pull up
 | MCU - Espressif       |         |         |
 | ESP32 S3              | ---     |  ---    |
 +-----------------------+---------+---------+
-| Totale                | 2.4K    | 3.2K    |
+
++-----------------------+---------+---------+
+|    Totale             | SDA     | SCL     |
++=======================+=========+=========+
+| con ESP32 C3          | 2.4K    | 3.2K    |
++-----------------------+---------+---------+
+| con ESP32 S3          | 3.2K    | 3.2K    |
 +-----------------------+---------+---------+

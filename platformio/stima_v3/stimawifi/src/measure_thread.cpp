@@ -160,7 +160,7 @@ void measureThread::enqueueMqttMessage(uint8_t i ) {
 
 
     // if there are enough space left on the publish queue send it
-    if (data->mqttqueue->NumSpacesLeft() > MQTT_QUEUE_SPACELEFT_MEASURE){
+    if (data->mqttqueue->NumSpacesLeft() > QUEUE_SPACELEFT_MEASURE){
       data->logger->notice(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
       if(!data->mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
 	data->logger->error(F("measure enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
@@ -253,7 +253,7 @@ void measureThread::doMeasure() {
   
   // check queue for rpc calibrate
   rpcCalibrate_t rpccalibrate;
-  if(data->calibratequeue->Dequeue(&rpccalibrate, pdMS_TO_TICKS( 0 ))){
+  if(data->rpccalibratequeue->Dequeue(&rpccalibrate, pdMS_TO_TICKS( 0 ))){
     for (uint8_t i = 0; i < data->sensors_count; i++) {
       if ( strcmp(rpccalibrate.type,sensorm[i].getSensorDriver()->getType())==0) {
 	uint8_t rc = sensorm[i].sensor->setForcedRecalibrationFactor(rpccalibrate.value);
