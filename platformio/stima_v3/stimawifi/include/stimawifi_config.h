@@ -99,13 +99,27 @@
 #define SENSORDRIVER_TYPE_LEN 5
 #define SENSORDRIVER_META_LEN 30
 
-// define parameter for queues len and communication
+// Define parameter for queues len and communication.
+// Here we have some questions:
+//
+// * one message is in transit in the queue before it will be stored;
+// in this time the message is volatile and do not survive to a
+// powerdown and this cause a data loss
+//
+// * in the recovery procedure the message is queued and it wait some
+// time to be published and come back to the DB with the flag sent
+// changed. In the mean time a new recovery procedure can get from the
+// DB the same message unchanged and requeue it for publish. So in the
+// worst case we can have only one message to recover, the MQTT
+// connection cannot publish, no new measure from sensors queued: in
+// this case when the MQTT come back the message can be published more
+// times before message getting sent flag changed in the DB
 
 # if portNUM_PROCESSORS > 1
 #define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT) // max burst of messages
 #define DB_QUEUE_LEN (DATA_BURST*2)
 #define MQTT_QUEUE_LEN (DATA_BURST*3)
-#define RECOVERY_QUEUE_LEN (DATA_BURST*2)
+#define RECOVERY_QUEUE_LEN (DATA_BURST)
 #else
 #define DATA_BURST (15)             // tipic burst of messages
 #define DB_QUEUE_LEN (DATA_BURST)
