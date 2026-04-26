@@ -119,7 +119,7 @@ html_title = 'http://rmap.cc'
 
 # These are options specifically for the Wagtail Theme.
 html_theme_options = dict(
-    project_name = "RMAP documentation",
+    project_name = "RMAP Doc",
     logo="../../../../logo_stima.png",
     #logo = "img/wagtail-logo-circle.svg",
     logo_alt = "RMAP",
