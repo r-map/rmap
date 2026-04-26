@@ -24,6 +24,7 @@ Indice dei contenuti
    videotutorial/videotutorial
    dispense/index
    progetti/index
-   
+   laboratori/laboratori
+
 * :ref:`genindex`
 * :ref:`search`
