@@ -106,11 +106,11 @@ Queue recoveryQueue(RECOVERY_QUEUE_LEN,sizeof(mqttMessage_t));
 Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));
 BinaryQueue rpcRecoveryQueue(sizeof(rpcRecovery_t));
 BinaryQueue rpcCalibrateQueue(sizeof(rpcCalibrate_t));
-BinarySemaphore rpcRecoverySemaphore(false);
+BinarySemaphore recoverysemaphore(false);
 #if (ENABLE_SDCARD_LOGGING)
-db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&rpcRecoverySemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,&logFile};
+db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&recoverysemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,&logFile};
 #else
-db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&rpcRecoverySemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,NULL};
+db_data_t db_data={1,&frtosLog,&dbQueue,&recoveryQueue,&recoverysemaphore,&rpcRecoveryQueue,&stimawifiStatus.db,&station,NULL};
 #endif
 
 dbThread threadDb(&db_data);

@@ -1039,7 +1039,7 @@ void displayStatus()
 
 // send signal to DB thread for recovery unsent data from DB on SD card
 void dataRecovery() {
-  rpcRecoverySemaphore.Give();
+  recoverysemaphore.Give();
 }
 
 // send signal to measure thread to start measuremets

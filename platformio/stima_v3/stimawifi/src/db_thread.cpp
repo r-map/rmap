@@ -188,6 +188,11 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
 
   data->logger->notice(F("db Start purge"));       
 
+  if (timeStatus() != timeSet) {
+    data->logger->error(F("db purge time not set"));
+    return false;
+  }
+  
   //The values emitted by the RETURNING clause are the values as seen
   //by the top-level DELETE, INSERT, or UPDATE statement
 
@@ -648,18 +653,33 @@ bool dbThread::data_recovery(void){
   int rc;
   mqttMessage_t message;
 
+  // is time to run ?
+  if (!run_data_recovery) return true;
+  
   data->logger->notice(F("db recovery from DB started"));       
+  
+  // Retry to run the next time waiting to run for the queue go empty.
+  // We can have messages in transit (queued) so we can requeue
+  // messages for more than one time without this check.
+  // This does not fully solve the problem because there may be
+  // messages in transit in the dbqueue queue but with less probability.
+  if (!data->recoveryqueue->IsEmpty()){
+    data->logger->warning(F("db recovery skip: queue is not empty"));   
+    return true;
+  }
+  
+  //if (data->recoveryqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_RECOVERY){
+  //  data->logger->warning(F("db recovery no space in recovery queue"));   
+  //  return true;
+  //}
 
   //if(data->status->publish != ok)
   //  data->logger->warning(F("db recovery skip: publish task KO"));   
   //  return false;
   //}
 
-  if (data->recoveryqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_RECOVERY){
-    data->logger->warning(F("db recovery no space in recovery queue"));   
-    return true;
-  }
-
+  run_data_recovery=false;
+  
   char dtstart[20];
   time_t time=now()- SDRECOVERYTIME;
   snprintf(dtstart,20,"%04u-%02u-%02uT%02u:%02u:%02u",
@@ -920,7 +940,8 @@ dbThread::dbThread(db_data_t* db_data)
   data->status->no_heap_memory=ok;
   sqlite_status=false;
   archive_recovery_state = ARCHIVE_RECOVERY_NONE;  
-  db_recovery_state = DB_RECOVERY_NONE;  
+  db_recovery_state = DB_RECOVERY_NONE;
+  run_data_recovery=false;
   //Start();
 };
 
@@ -1181,7 +1202,6 @@ void dbThread::Run() {
       if (!sqlite_status) sqlite_status = db_restart();         // try to restart SD card and sqlite
       if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
     }
-
     
     // free memory
     //if(db_exec("PRAGMA shrink_memory;") != SQLITE_OK) {
@@ -1195,18 +1215,20 @@ void dbThread::Run() {
     uint8_t basePriority = GetPriority();
     SetPriority(TASK_BASE_PRIORITY);          // slow down task; this take a long time and we do not want to freeze everything 
     while (db_recovery());                    // run one subquery (one time step) of the big recovery on DB
-    while (archive_recovery());               // run until the mqtt queue is full (less/equal then QUEUE_SPACELEFT_RECOVERY)
+    while (archive_recovery());               // run until the recovery queue is full (less/equal then QUEUE_SPACELEFT_RECOVERY)
     SetPriority(basePriority);
- 
+
+    // we go in a critical state if MQTT publish do not work during a recovery RPC
+    // the recovery queue go full and RPC do not end any more that is not a problem
+    // but this stalls data purge and data recovery too
     if (getArchiveRecoveryState() == ARCHIVE_RECOVERY_NONE and
 	getDbRecoveryState() == DB_RECOVERY_NONE) {
       // check semaphore for data recovey
-      if(data->rpcRecoverysemaphore->Take(0)){
-	if (timeStatus() == timeSet) {
-	  if (!data_purge()) data->logger->error(F("db purge DB"));    // migrate old data to archive
-	}
-	if(!data_recovery()) data->logger->error(F("db recovery DB")); // try to publish unsent messages
+      if(data->recoverysemaphore->Take(0)){
+	if (!data_purge()) data->logger->error(F("db purge DB"));    // migrate old data to archive
+	run_data_recovery=true;
       }
+      if(!data_recovery()) data->logger->error(F("db recovery DB")); // try to publish unsent messages      
     }
 
     data->logger->notice(F("db      db       queue space left %d"),data->dbqueue->NumSpacesLeft());   

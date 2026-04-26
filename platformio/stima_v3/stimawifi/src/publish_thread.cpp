@@ -130,7 +130,7 @@ void publishThread::Run() {
 	data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
       }
       while (data->recoveryqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-	if (!doPublish(message)) break; 	// publish message
+	if (!doPublish(message,true)) break; 	// publish message
 	data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
 	while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
 	  if (!doPublish(message)) break;  	// publish message
@@ -591,7 +591,8 @@ bool publishThread::publish_constantdata() {
 }
 
 // get one message from publish queue and send it to the queue for DB
-// but if it is a resend message (sent == true) skip it; It's not a good thing but it's the lesser evil
+// but if it is a resend message (sent == true) skip it;
+// now we have a separate queue for recovery so the check is no more required
 void publishThread::store() {
 
   mqttMessage_t mqtt_message;
@@ -611,9 +612,10 @@ void publishThread::store() {
   }
 }
 
-// try to send message to the broker
-// send the same message to the queue for DB with flag to describe if publish is completed with success
-bool publishThread::doPublish(mqttMessage_t mqtt_message) {
+// try to send message to the broker and send the message to the DB queue
+// only if it is required
+// set recovery to true if the message come from recovery queue
+bool publishThread::doPublish(mqttMessage_t mqtt_message, const bool recovery) {
 
   bool rc=false;
   bool resend = mqtt_message.sent;
@@ -624,7 +626,8 @@ bool publishThread::doPublish(mqttMessage_t mqtt_message) {
   }
 
   // if it was already sendend skip it and do do not store
-  if (!resend) {
+  // if publish fail and come from recovery skip it and do do not store
+  if (not resend and not (rc == false and recovery)) {
     if(!data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
       data->logger->error(F("publish lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
     }

@@ -53,7 +53,7 @@ public:
   void reset_status_summary();
   bool publish_constantdata();
   void store();
-  bool doPublish(mqttMessage_t message);
+  bool doPublish(mqttMessage_t message, const bool recovery=false);
   publish_data_t* data;
   IPStack ipstack;
   MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 2 > mqttclient;

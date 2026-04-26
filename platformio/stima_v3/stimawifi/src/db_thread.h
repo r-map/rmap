@@ -7,7 +7,7 @@ struct db_data_t {
   frtosLogging* logger;
   Queue* dbqueue;
   Queue* recoveryqueue;
-  BinarySemaphore* rpcRecoverysemaphore;
+  BinarySemaphore* recoverysemaphore;
   BinaryQueue* rpcRecoveryqueue;
   dbStatus_t* status;
   station_t* station;
@@ -98,6 +98,7 @@ class dbThread : public Thread {
   bool archive_recovery_run;
   bool db_recovery_run;
   mqttMessage_t archive_recovery_message;
+  bool run_data_recovery;
 };
 
 // we need this global for SDcard restart
