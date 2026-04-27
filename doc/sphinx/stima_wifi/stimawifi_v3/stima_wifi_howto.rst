@@ -313,9 +313,12 @@ alimentatore esterno ( da 7 a 24 V ).
 Base Board
 ^^^^^^^^^^
 
-Esporta le connessioni al bus I2C.
+Permette la connessione di sensori, GPS e altri dispositivi,
+esportando tra l'altro le connessioni al bus I2C.
 
 Può essere popolata con diversi tipi di connettori (passo 2.54mm)
+
+Solo come esempio:
 
 .. image:: base1.jpg
    :width: 50%
@@ -323,14 +326,49 @@ Può essere popolata con diversi tipi di connettori (passo 2.54mm)
 Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
 gli altri componenti a 3.3v.
 
-La base board permette di selezionare il voltaggio adatto al sensore
-tramite un cavallotto.  Se il selettore non è popolato, la periferica
-collegata, non riceve alimentazione.
+La base board permette di selezionare il voltaggio adatto al sensore selezionando il pin di alimentazione.
 
 .. image:: base2.jpg
    :width: 50%
 
+Schema elettrico:
 
+.. image:: baseboard_schematic.png
+   :width: 50%
+
+
+GPS
+^^^
+
+Waveshare LC76G Multi-GNSS Module
+
+Il modulo GPS LC76G è un modulo Multi-GNSS (Global Navigation
+Satellite System) che supporta i sistemi GPS, BeiDou (BDS), GLONASS,
+Galileo e QZSS, consentendo il posizionamento combinato tra più
+sistemi o indipendente per singolo sistema. Supporta le funzioni EPO™
+(Extended Predictive Orbit) e EASY™ (Embedded Assist System), offrendo
+un'esperienza di posizionamento rapida, precisa e ad alte prestazioni.
+
+* Supporta sistemi Multi-GNSS: GPS, BeiDou (BDS), GLONASS, Galileo e QZSS
+* Supporta la comunicazione UART e I2C
+* Amplificatore a basso rumore (LNA) integrato per una migliore
+  sensibilità di ricezione
+* Supporta le funzioni EPO™ (Extended Predictive Orbit) e EASY™ (Embedded Assist System)
+* Supporta 1PPS Baud rate di comunicazione UART: 9600~921600 bps (115200 bps di
+  default)
+* Batteria al litio ricaricabile MS621FE integrata, per la
+  conservazione delle informazioni effemeridi e l'avvio a caldo
+* 2 LED per indicare lo stato di funzionamento del modulo
+
+.. image:: LC76G-GNSS-Module-details-intro.jpg
+   :width: 50%
+
+Questo lo schema elettrico:
+
+.. image:: LC76G_GNSS_Module_schematic.png
+   :width: 50%
+
+	   
 Hardware alternativo compatibile (sconsigliato o obsoleto)
 ----------------------------------------------------------
 
@@ -781,7 +819,7 @@ l'alto mantenendo i moduli posizionati in questo modo:
 * modulo Power con connettori in alto
 * modulo TFT&I2C con connettori in alto
 
-Procedere poi alla saldatura dei connettori sul modulo HUB secondo lo
+Procedere poi alla saldatura dei connettori sul modulo BASE secondo lo
 schema in fotografia:
 
 .. image:: hub_assemblata.jpg
@@ -794,7 +832,7 @@ l'alto riportato appena qui sopra.
 .. image:: pila.jpg
    :width: 50%
 
-Collegare la pila dei moduli all'HUB:
+Collegare la pila dei moduli al modulo BASE:
 
 .. image:: pila_hub.jpg
    :width: 50%
@@ -1047,24 +1085,25 @@ NOTE
 Prima di procedere con questa fase, disalimentare la stazione di
 monitoraggio.
 
-Per collegare i sensori al datalogger tramite l'HUB e verificarne il
-funzionamento bisogna assemblare i cavi di collegamento secondo gli schemi
-forniti dal produttore dei sensori facendo in modo che corrispondono
-alla piedinatura dei connettori presenti sulla stazione Stima WiFi.
+Per collegare i sensori al datalogger tramite la BASE BOARD e
+verificarne il funzionamento bisogna assemblare i cavi di collegamento
+secondo gli schemi forniti dal produttore dei sensori facendo in modo
+che corrispondono alla piedinatura dei connettori presenti sulla
+stazione Stima WiFi.
 
 Collegamento modulo Display:
 
 .. image:: cavo_display.jpg
    :width: 50%
 
-Collegamento HUB per SPS30:
+Collegamento BASE BOARD per SPS30:
 
 .. image:: cavo_sps30.jpg
    :width: 50%
 
 Per il sensore SHT85 utilizzare il cavo di prolunga per Ebike
 tagliandolo in modo asimmetrico a una lunghezza di 20 cm. dal lato
-della femmina collegando sempre la parte più corta all'HUB:
+della femmina collegando sempre la parte più corta alla BASE BOARD:
 	   
 .. image:: cavo_sht85.jpg
    :width: 50%
@@ -1222,11 +1261,11 @@ configurazioni tramite un apposito PIN.
 Attenzione che questa procedura cancella tutti i dati presenti su
 SDcard e ogni precedente configurazione.
 
-A stazione non alimentata collegare il pin C di J5 dell'HUB a massa
-(negativo) ad esempio con il pin di J8. poi alimentare la stazione.
-E' possibile anche procedere a stazione alimentata collegando il pin C
-di J5 dell'HUB a massa e procedendo a premere il pulsante RST del
-modulo MCU EPS32.
+A stazione non alimentata collegare il pin C di J5 della BASE BOARD a
+massa (negativo) ad esempio con il pin di J8. poi alimentare la
+stazione.  E' possibile anche procedere a stazione alimentata
+collegando il pin C di J5 della BASE BOARD a massa e procedendo a
+premere il pulsante RST del modulo MCU EPS32.
 
 Il display dovrebbe indicare le fasi del clear delle configurazione e
 la formattazione dei supporti di memoria permanente.
