@@ -767,28 +767,41 @@ E' necessario utilizzare un saldatore a stagno per installare i
 connettori a pettine necessari a collegare tra loro i vari componenti
 ed assemblare i cavi di connessione.
 
-I diversi moduli dovranno essere collegati tra di loro rispettando la
-polarità.  Prima di procedere alla connessione dei sensori, bisognerà
-controllare che il sistema funzioni attivandolo tramite l’alimentatore
-in dotazione oppure collegandolo via usb ad un computer.
+Sono disponibili due tipi di connettori a pettine per impilare i
+moduli: è consigliato l'uso di quelli di migliore qualità per i moduli
+MCU ESP32 S3 e RTC and Microsd Data Logger e gli altri connettori per
+gli altri moduli.
 
-L’apparizione sul piccolo schermo oled in dotazione della scritta
-Starting Up! seguito dal numero di versione del firmware e, nella
-schermata successiva dell’ESSID di configurazione della scheda,
-STIMA-Config, e della password indicano che l’assemblaggio è stato
-completato con successo.
+Una volta saldati i connettori su tutti i moduli facendo molta
+attenzione al verso : la parte femmina del connettore va sempre verso
+l'alto mantenendo i moduli posizionati in questo modo:
 
-Una volta completata con successo il primo avvio, visto che la scheda
-può essere alimentata in due modi diversi, tramite connettore micro
-usb e tramite alimentatore 12v, bisogna togliere l’alimentazione e
-provare il metodo ad alimentare la stazione verificando anche la
-modalità di alimentazione che non si è ancora utilizzata.
+* modulo ESP32 con lato  MCU e connettore in alto
+* modulo RTC and Microsd Data Logger con SDcard in alto e batteria in basso
+* modulo Power con connettori in alto
+* modulo TFT&I2C con connettori in alto
 
+Procedere poi alla saldatura dei connettori sul modulo HUB secondo lo
+schema in fotografia:
+
+.. image:: hub_assemblata.jpg
+   :width: 50%
+  
+I diversi moduli dovranno essere collegati impilati tra di loro
+rispettando la polarità e rispettando anche l'ordine dal basso verso
+l'alto riportato appena qui sopra.
+
+.. image:: pila.jpg
+   :width: 50%
+
+Collegare la pila dei moduli all'HUB:
+
+.. image:: pila_hub.jpg
+   :width: 50%
+	   
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* cavo micro usb
-* computer/Alimentatore per smartphone
 * saldatore a stagno*
 
 Dotazione Software
@@ -823,6 +836,11 @@ TODO clone repository; compilazione
 Upload del firmware
 ^^^^^^^^^^^^^^^^^^^
 
+Prima di procedere bisognerà controllare che tutti i collegamenti
+fatti siano corretti perchè da ora i moduli saranno alimentati e
+collegamenti errati possono cmportare oltre che a malfunzionamenti
+anche la rottura irreversibile dei componenti.
+
 Questa fase della messa in opera è necessaria per il funzionamento
 della stazione.  Dopo la prima attivazione può rendersi nuovamente
 necessario in caso si voglia modificare l’utilizzo della stazione,
@@ -830,7 +848,15 @@ personalizzarne le funzionalità o cogliere l’occasione di
 impratichirsi con questa operazione fondamentale nel ciclo di vita del
 software per microcontrollori,
 
+
 TODO
+
+
+L’apparizione sul piccolo schermo oled in dotazione della scritta
+Starting Up! seguito dal numero di versione del firmware e, nella
+schermata successiva dell’ESSID di configurazione della scheda,
+STIMA-Config, e della password indicano che l’assemblaggio è stato
+completato con successo.
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1006,13 +1032,10 @@ Dotazione Software
 Collegamento dei sensori e altri dispositivi
 --------------------------------------------
 
-.. video:: stimawifi_v3_board_e_pila.mp4
-   :width: 100%
-
 Connettere i device necessari è semplice se fatto con attenzione:
 
 - assicurarsi che la stazione non sia alimentata
-- selezionare appropriato voltaggio alimentazione
+- selezionare appropriato voltaggio alimentazione per ogni sensore
 - assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
   
 NOTE
@@ -1020,34 +1043,72 @@ NOTE
 - Alcuni device hanno più dei quattro pin necessari alla connessione
   al bus I2C
 - VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
-
 	   
 Prima di procedere con questa fase, disalimentare la stazione di
 monitoraggio.
 
-Una volta assemblata e configurata la scheda madre della stazione, è
-necessario collegare i sensori alla scheda e verificarne il
-funzionamento.
-
-Per farlo bisogna assemblare i cavi di collegamento secondo gli schemi
+Per collegare i sensori al datalogger tramite l'HUB e verificarne il
+funzionamento bisogna assemblare i cavi di collegamento secondo gli schemi
 forniti dal produttore dei sensori facendo in modo che corrispondono
 alla piedinatura dei connettori presenti sulla stazione Stima WiFi.
 
-.. image:: board.jpg
+Collegamento modulo Display:
 
+.. image:: cavo_display.jpg
+   :width: 50%
+
+Collegamento HUB per SPS30:
+
+.. image:: cavo_sps30.jpg
+   :width: 50%
+
+Per il sensore SHT85 utilizzare il cavo di prolunga per Ebike
+tagliandolo in modo asimmetrico a una lunghezza di 20 cm. dal lato
+della femmina collegando sempre la parte più corta all'HUB:
+	   
+.. image:: cavo_sht85.jpg
+   :width: 50%
+	   
+Complessivo collegamenti:
+
+.. image:: assemblata.jpg
+   :width: 50%
+
+	   
 Dopo aver messo a punto la cavetteria bisogna collegare i sensori
 ognuno secondo lo standard facendo attenzione alla polarità ed al
 voltaggio (il sensore di polveri sottili ha bisogno di essere
 alimentato a 5v mentre gli altri sensori a 3,3v)
 
+Collegamento SPS30: usare l'apposito cavo con connettore.
+
+Collegamento SCD30: è preferibile non andare a saldare direttamente i
+cavi sl PCB, ma utilizzare possibilmente una connessione con dupont
+connectors 2.54 mm rispettando ordine e colori.
+
+.. image:: collegamento_scd30.jpg
+   :width: 50%
+
+Per il collegamento dell'SHT85 usare l'apposito connettore a crimpare;
+pelare il cavo solo per la guaina esterna, aprire il connettore per
+l'accesso dei cavi rispettando con attenzione la colorazione e poi
+premere con molta attenzione a crimpare:
+
+.. image:: collegamento_sht85.jpg
+   :width: 50%
+
+Inserire il sensore nel connettore con il lato sensore come da
+fotografia.
+	   
 La prima installazione ed il collaudo dei sensori è una fase critica,
 errori possono rendere un sensore, la scheda o entrambi
 inutilizzabili. Prima di alimentare ancora una volta la stazione, è
 buona norma controllare la connessione con un multimetro che disponga
-della modalità test di continuità.  Dopo le opportune verifiche
-bisogna collegare l’alimentazione esterna, usando l’alimentatore
-esterno in dotazione, e verificare che la stazione si avvii
-regolarmente.
+della modalità test di continuità.
+
+Dopo le opportune verifiche bisogna collegare l’alimentazione esterna,
+usando l’alimentatore esterno in dotazione, e verificare che la
+stazione si avvii regolarmente.
 
 Dovrebbe comparire sullo schermo un messaggio che invita a collegarsi
 alla rete wireless attivata per le operazioni di configurazione
@@ -1059,7 +1120,6 @@ hanno, al netto di malfunzionamenti, una vita attesa non
 illimitata. Si stima che passino circa due anni prima che i sensori,
 in special modo quello per il particolato, comincino a perdere di
 precisione.
-
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1157,23 +1217,33 @@ Reset della configurazione
 
 Quando necessario, ad esempio per un cambio di configurazione
 dell'access point wifi, è possibile procedere al reset delle
-configurazioni effettuando un reset con l'apposito ponticello mentre il ponticello di riconfigurazione è cortocirduitato.
-Questo video mostra una modalità per procedere alla riconfigurazione.
+configurazioni tramite un apposito PIN.
 
-.. video:: stimawifi_v3_reset.mp4
-   :width: 100%
-	   
+Attenzione che questa procedura cancella tutti i dati presenti su
+SDcard e ogni precedente configurazione.
+
+A stazione non alimentata collegare il pin C di J5 dell'HUB a massa
+(negativo) ad esempio con il pin di J8. poi alimentare la stazione.
+E' possibile anche procedere a stazione alimentata collegando il pin C
+di J5 dell'HUB a massa e procedendo a premere il pulsante RST del
+modulo MCU EPS32.
+
+Il display dovrebbe indicare le fasi del clear delle configurazione e
+la formattazione dei supporti di memoria permanente.
+
+Quando richiesto da display procedere a rimuovere il ponticello e
+scollegare l'alimentazioen della stazione.
+
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Computer, tablet o smartphone con connettività Wi-Fi
+* cavetto dupont femmina femmina
 
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
-* Un qualunque browser web
-* Accesso alla rete Wi-Fi
+* nessuna
 
 Preparazione del guscio
 -----------------------
