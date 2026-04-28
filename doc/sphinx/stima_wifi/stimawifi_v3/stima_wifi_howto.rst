@@ -943,18 +943,14 @@ Dotazione Software
 
 WINDOWS
 
-Provvedere innanzitutto al download del pacchetto di installazione di
-Python (scegliere solo tra le versioni superiori alla 3.4) presso
-questo link, dopodiché installare il pacchetto.  ATTENZIONE: è
-assolutamente necessario che l’installazione di Python includa la voce
-“Add Python to enviroment variables“. In caso non l’abbiate
-selezionato durante l’installazione, è possibile correggere
-rilanciando l’installer, selezionando “Modify” e, avanzando di uno
-step, selezionare la voce “Add Python to enviroment variables“. NON
-proseguire senza aver provveduto.
+Per installare Python su Windows, scarica l'installer ufficiale dal
+sito https://python.org, avvialo e seleziona "Add Python to PATH" prima di
+cliccare su "Install Now". Questa procedura garantisce che Python sia
+accessibile dal prompt dei comandi. Al termine, verifica
+l'installazione digitando python --version nel prompt.
 
 Effettuata l’installazione, riavviare il computer. A riavvio
-completato, recarsi presso prompt dei comandi ed eseguire il seguente
+completato, aprire il prompt dei comandi ed eseguire il seguente
 comando:
 
 ::
@@ -965,10 +961,12 @@ comando:
 MAC
 
 Provvedere innanzitutto al download del pacchetto di installazione di
-Python presso questo link, dopodiché installare il pacchetto e
-riavviare al termine.
+Python da https://python.org, eseguendo il file .pkg e seguendo la procedura
+guidata. La versione 3 è raccomandata, poiché il Python preinstallato
+da Apple è obsoleto. In alternativa, si può usare Homebrew con il
+comando "brew install python".
 
-Recarsi poi presso terminale ed eseguire il seguente comando:
+Aprire poi il terminale ed eseguire il seguente comando:
 
 ::
    
