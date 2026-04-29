@@ -530,6 +530,64 @@ H = T + ( 0.5555 * ( e–10 ) )
 .. image:: tabellaHumidex.png
 
 
+
+Clima e salute in Europa
+------------------------
+
+CC BY SA Ambientenonsolo https://ambientenonsolo.com/
+
+Il Lancet Countdown Europe è una delle principali iniziative
+scientifiche internazionali che monitora il legame tra cambiamento
+climatico e salute umana. Nato nell’ambito della rivista scientifica
+The Lancet, coinvolge decine di ricercatori e istituzioni accademiche
+per analizzare, attraverso indicatori aggiornati, come la crisi
+climatica stia influenzando la vita delle persone e i sistemi
+sanitari.
+
+Il `nuovo rapporto europeo 2026
+<https://info.thelancet.com/hubfs/Press%20embargo/EuropeCountdown26.pdf>`_
+, elaborato da 65 ricercatori di 46 istituzioni, offre un quadro
+chiaro: il cambiamento climatico non è più una minaccia futura, ma una
+realtà che sta già aggravando i rischi sanitari e causando migliaia di
+morti ogni anno.  Il caldo estremo accelera: più allarmi e più vittime
+
+.. figure:: mortalità.jpg
+   :width: 50%
+	   
+   La variazione della mortalità legata al caldo espressa come l'aumento
+   delle morti annuali per milione di abitanti in Europa, confrontando il
+   1991–2000 con il 2015–24.
+	   
+Uno dei segnali più evidenti è l’aumento del caldo estremo. Negli
+ultimi decenni gli allarmi sanitari legati alle ondate di calore sono
+cresciuti del 318%, passando da una media di un episodio all’anno
+negli anni ’90 a oltre quattro nel periodo 2015-2024.
+
+Le conseguenze sono drammatiche: nel solo 2024 si stimano circa 62.000
+decessi attribuibili al caldo in Europa. E il fenomeno riguarda ormai
+quasi tutto il continente, con un aumento della mortalità registrato
+nel 99,6% delle aree monitorate.
+
+A pagare il prezzo più alto sono le fasce più fragili: anziani,
+bambini piccoli e lavoratori esposti all’aperto. Ma anche le
+disuguaglianze sociali giocano un ruolo decisivo, rendendo alcune
+comunità molto più vulnerabili di altre.  Non solo caldo: nuove
+minacce per la salute
+
+Il rapporto evidenzia come il cambiamento climatico stia trasformando
+il profilo sanitario europeo in modo più ampio.
+
+Tra i fenomeni più rilevanti:
+
+* il rischio di diffusione della dengue è quasi quadruplicato (+297%)
+* le aree costiere favorevoli ai batteri marini come il Vibrio sono aumentate del 32%
+* la stagione dei pollini si è allungata di 1-2 settimane
+* oltre un milione di persone in più è stato colpito da insicurezza alimentare nel 2023
+
+Si tratta di segnali che indicano un sistema climatico che incide
+direttamente sulla salute pubblica, modificando ecosistemi, cicli
+biologici e condizioni di vita.
+
 Indicatori di qualità dell'aria
 -------------------------------
 
