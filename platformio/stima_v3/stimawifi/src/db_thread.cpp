@@ -652,32 +652,24 @@ bool dbThread::data_set_recovery(rpcRecovery_t rpcrecoverystep){
 bool dbThread::data_recovery(void){
   int rc;
   mqttMessage_t message;
-
+  bool somedata = false;
+  
   // is time to run ?
   if (!run_data_recovery) return true;
   
-  data->logger->notice(F("db recovery from DB started"));       
-  
+  data->logger->notice(F("db recovery from DB started"));
+
   // Retry to run the next time waiting to run for the queue go empty.
   // We can have messages in transit (queued) so we can requeue
   // messages for more than one time without this check.
   // This does not fully solve the problem because there may be
   // messages in transit in the dbqueue queue but with less probability.
+  // We use this check in any case if the transaction management fail
   if (!data->recoveryqueue->IsEmpty()){
-    data->logger->warning(F("db recovery skip: queue is not empty"));   
+    data->logger->warning(F("db recovery skip: queue is not empty"));
     return true;
   }
   
-  //if (data->recoveryqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_RECOVERY){
-  //  data->logger->warning(F("db recovery no space in recovery queue"));   
-  //  return true;
-  //}
-
-  //if(data->status->publish != ok)
-  //  data->logger->warning(F("db recovery skip: publish task KO"));   
-  //  return false;
-  //}
-
   run_data_recovery=false;
   
   char dtstart[20];
@@ -727,6 +719,8 @@ bool dbThread::data_recovery(void){
 	data->logger->notice(F("db recovery queuing message for publish %s:%s"),message.topic,message.payload);       
 	if(!data->recoveryqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
 	  data->logger->warning(F("db recovery message for publish not queued"));
+	}else{
+	  somedata=true;
 	}
       } else if(rc == SQLITE_DONE) {
 	rc  = SQLITE_OK;
@@ -738,7 +732,22 @@ bool dbThread::data_recovery(void){
       }
     }
     sqlite3_finalize(stmt);
-  } 
+  }
+
+  if (somedata){
+    // to solve the problem of messages in transit in the dbqueue we use a special
+    // message  to close the recovery burst messages
+    message.sent=0;
+    message.topic[0]=NULL;
+    message.payload[0]=NULL;
+    if(!data->recoveryqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
+      data->logger->error(F("db recovery SYNC message for publish not queued"));
+    }else{
+      data->logger->notice(F("db recovery SYNC message for publish queued"));
+      status_data_recovery=true;     // the recovery transaction is started
+    }
+  }
+  
   data->logger->notice(F("db End recovery from DB"));        
   return rc == SQLITE_OK;
 }
@@ -942,6 +951,7 @@ dbThread::dbThread(db_data_t* db_data)
   archive_recovery_state = ARCHIVE_RECOVERY_NONE;  
   db_recovery_state = DB_RECOVERY_NONE;
   run_data_recovery=false;
+  status_data_recovery=false;
   //Start();
 };
 
@@ -1193,14 +1203,19 @@ void dbThread::Run() {
   
   for(;;){
 
-
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message
-      if (doDb(message)){
-	data->dbqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));       // all done: dequeue the message
-      }
+      if (message.sent==0 and message.topic[0] == NULL and message.payload[0] == NULL){ // if it is a SYNC recovery message
+	status_data_recovery=false;                                   // the recovery transactio is ended
+	data->dbqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));         // dequeue the message
+	data->logger->notice(F("db recovery SYNC message dequeued"));
+      }else{
+	if (doDb(message)){
+	  data->dbqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));       // all done: dequeue the message
+	}
       //threadPublish.mqttDisconnect();
-      if (!sqlite_status) sqlite_status = db_restart();         // try to restart SD card and sqlite
-      if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
+	if (!sqlite_status) sqlite_status = db_restart();         // try to restart SD card and sqlite
+	if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
+      }
     }
     
     // free memory
@@ -1226,7 +1241,7 @@ void dbThread::Run() {
       // check semaphore for data recovey
       if(data->recoverysemaphore->Take(0)){
 	if (!data_purge()) data->logger->error(F("db purge DB"));    // migrate old data to archive
-	run_data_recovery=true;
+	if (!status_data_recovery) run_data_recovery=true;           // enable recovery if transaction is not running
       }
       if(!data_recovery()) data->logger->error(F("db recovery DB")); // try to publish unsent messages      
     }

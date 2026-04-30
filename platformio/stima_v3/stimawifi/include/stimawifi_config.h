@@ -119,12 +119,12 @@
 #define DATA_BURST (SENSORS_MAX*VALUES_TO_READ_FROM_SENSOR_COUNT) // max burst of messages
 #define DB_QUEUE_LEN (DATA_BURST*2)
 #define MQTT_QUEUE_LEN (DATA_BURST*3)
-#define RECOVERY_QUEUE_LEN (DATA_BURST)
+#define RECOVERY_QUEUE_LEN (DATA_BURST+1)   // +1 for SYNC message at end of burst packet
 #else
 #define DATA_BURST (15)             // tipic burst of messages
 #define DB_QUEUE_LEN (DATA_BURST)
 #define MQTT_QUEUE_LEN (DATA_BURST*2)
-#define RECOVERY_QUEUE_LEN (DATA_BURST)
+#define RECOVERY_QUEUE_LEN (DATA_BURST+1)   // +1 for SYNC message at end of burst packet
 #endif
 
 #define DATA_BURST_RECOVERY (DATA_BURST)  // messages in recovery packet

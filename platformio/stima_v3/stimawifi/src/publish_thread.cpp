@@ -130,11 +130,20 @@ void publishThread::Run() {
 	data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
       }
       while (data->recoveryqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-	if (!doPublish(message,true)) break; 	// publish message
-	data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
-	while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-	  if (!doPublish(message)) break;  	// publish message
-	  data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	if (message.sent==0 and message.topic[0] == NULL and message.payload[0] == NULL){
+	  data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	  if(!data->dbqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
+	    data->logger->error(F("publish lost SYNC message for db: %s ; %s"),  message.topic, message.payload);
+	  }else{
+	    data->logger->notice(F("publish SYNC message queued for db"));
+	  }
+	}else{
+	  if (!doPublish(message,true)) break; 	// publish message
+	  data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	  while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+	    if (!doPublish(message)) break;  	// publish message
+	    data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+	  }
 	}
       }
     }

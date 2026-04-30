@@ -99,6 +99,7 @@ class dbThread : public Thread {
   bool db_recovery_run;
   mqttMessage_t archive_recovery_message;
   bool run_data_recovery;
+  bool status_data_recovery;
 };
 
 // we need this global for SDcard restart
