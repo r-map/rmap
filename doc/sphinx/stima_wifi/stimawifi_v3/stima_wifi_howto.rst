@@ -326,7 +326,8 @@ Solo come esempio:
 Dei sensori in dotazione, quello per il particolato è alimentato a 5V,
 gli altri componenti a 3.3v.
 
-La base board permette di selezionare il voltaggio adatto al sensore selezionando il pin di alimentazione.
+La base board permette di selezionare il voltaggio adatto al sensore
+selezionando il pin di alimentazione.
 
 .. image:: base2.jpg
    :width: 50%
@@ -336,6 +337,14 @@ Schema elettrico:
 .. image:: baseboard_schematic.png
    :width: 50%
 
+Questa scheda deve essere realizzata tramite uno dei servizi di stampa
+PCB.  Il progetto è stato realizzato tramite il software EDA open
+source KICAD ed è disponibile a
+https://github.com/r-map/rmap/tree/master/kicad/stima_v3/stimawifi_connect
+Per la stampa dei PCB sono disponibili direttamente i gerber file 
+https://github.com/r-map/rmap/tree/master/kicad/stima_v3/stimawifi_connect/gerber
+Per i nostri prototipi abbiamo utilizzato il servizio di 
+`JLCPCB <https://jlcpcb.com>`_.
 
 GPS
 ^^^
