@@ -620,7 +620,7 @@ vanno direttamente nella coda dbqueue per l'archiviazione su SD card.
 threadMeasure è attivato periodicamente.
 
 threadPublish prova la pubblicazione MQTT attigendo da due code:
-mqttquque e recoveryqueue.  L prima ha priorità rispetto alla seconda,
+mqttquque e recoveryqueue.  La prima ha priorità rispetto alla seconda,
 quindi i messaggi ricevuti da recoveryqueue saranno pubblicati solo
 quando non ci saranno messaggi nella coda mqttqueue.
 
@@ -712,6 +712,20 @@ Il thread threadDb viene attivato periodicamente
 per recuperare l'invio dei dati presenti nel DB e non ancora pubblicati
 inviando un piccolo blocco di dati a recoveryqueue fino a quando avanzi
 sufficiente spazio nella coda di pubblicazione.
+
+Il flusso dei dati relativi a una operazione di recupero dati dal DB
+(recovery) inizia con una estrazione di dati dal DB, invio nella coda
+recoveryqueue al thread publish, tentativo di pubblicazione MQTT,
+eventuale rinvio nella coda dbqueue per una nuova archiviazione deve
+essere eseguito in modo atomico (transazione). Questo perchè una
+successiva operazione di recovery dati dal DB con una transazione in
+corso potrebbe comportare una duplicazione anche inconsistente del
+recupero dati e dello loro stato in archivio.
+
+Per questo viene utilizzato un messaggio speciale (tutto a zero) che
+chiude il pacchetto dati di recovery e una nuova transazione di
+recovery potrà iniziare solo quando il messaggio speciale sarà tornato
+al thread DB.
 
 Il thread threadDb esegue a priorità più alta degli altri per garantire
 l'archiviazione senza perdita di dati in tempi utili e non riempire le code.
