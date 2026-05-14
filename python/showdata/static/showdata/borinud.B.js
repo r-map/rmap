@@ -141,19 +141,19 @@
             "unit": "NUMERIC"
         }, 
         "B15204": {
-            "description": "[SIM] PM06 Concentration (tot. aerosol < 0.6 ug)", 
+            "description": "[SIM] PM06 Concentration (tot. aerosol < 0.6 um)", 
             "unit": "KG/M**3"
         }, 
         "B15205": {
-            "description": "[SIM] PM03 Concentration (tot. aerosol < 0.3 ug)", 
+            "description": "[SIM] PM03 Concentration (tot. aerosol < 0.3 um)", 
             "unit": "KG/M**3"
         }, 
         "B15206": {
-            "description": "[SIM] PM015 Concentration (tot. aerosol < 0.15 ug)", 
+            "description": "[SIM] PM015 Concentration (tot. aerosol < 0.15 um)", 
             "unit": "KG/M**3"
         }, 
         "B15207": {
-            "description": "[SIM] PM008 Concentration (tot. aerosol < 0.08 ug)", 
+            "description": "[SIM] PM008 Concentration (tot. aerosol < 0.08 um)", 
             "unit": "KG/M**3"
         }, 
         "B15200": {
@@ -165,11 +165,11 @@
             "unit": "KG/M**3"
         }, 
         "B15202": {
-            "description": "[SIM] PM5 Concentration (tot. aerosol < 5 ug)", 
+            "description": "[SIM] PM5 Concentration (tot. aerosol < 5 um)", 
             "unit": "KG/M**3"
         }, 
         "B15203": {
-            "description": "[SIM] PM1 Concentration (tot. aerosol < 1.25 ug)", 
+            "description": "[SIM] PM1 Concentration (tot. aerosol < 1.25 um)", 
             "unit": "KG/M**3"
         }, 
         "B15208": {
