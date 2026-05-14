@@ -126,7 +126,7 @@ bool RF24Network::enqueue(void)
   IF_SERIAL_DEBUG(printf_P(PSTR("%lu: NET Enqueue @%x "),millis(),next_frame-frame_queue));
 
   // Copy the current frame into the frame queue
-  if ( next_frame < frame_queue + sizeof(frame_queue) )
+  if ( next_frame + frame_size <= frame_queue + sizeof(frame_queue) )
   {
     memcpy(next_frame,frame_buffer, frame_size );
     next_frame += frame_size; 
