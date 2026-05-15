@@ -515,6 +515,8 @@ sensore comunica con la modalità UART
 .. image:: sps30_pinout.png
    :width: 50%
 
+Ecco il sensore disassemblato:
+https://www.mistywest.com/posts/teardown-sensirion-particle-matter-sensor/
 
 Sensirion SCD30 (Sensore CO 2 )
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1288,11 +1290,13 @@ stazione.  E' possibile anche procedere a stazione alimentata
 collegando il pin C di J5 della BASE BOARD a massa e procedendo a
 premere il pulsante RST del modulo MCU EPS32.
 
-Il display dovrebbe indicare le fasi del clear delle configurazione e
-la formattazione dei supporti di memoria permanente.
+Il display (e i messaggi su porta seriale) dovrebbe indicare le fasi
+del clear delle configurazione e la formattazione dei supporti di
+memoria permanente.
 
-Quando richiesto da display procedere a rimuovere il ponticello e
-scollegare l'alimentazioen della stazione.
+Quando richiesto da display e quando il LED bianco lampeggia
+permanentemente procedere a rimuovere il ponticello e scollegare
+l'alimentazione della stazione.
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^

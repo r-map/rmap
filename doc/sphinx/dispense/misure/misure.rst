@@ -2260,7 +2260,11 @@ la precisione del sensore nel tempo.
 * Limite inferiore di rilevamento è di soli 0,3um
 * Durata superiore a otto anni pur funzionando ininterrottamente per
   24 ore al giorno senza necessità di pulizia e/o manutenzione
-
+* Certificato secondo gli standard MCERTS per le Performance for
+  Indicative Ambient Particulate Monitors, Environment Agency della
+  Gran Bretagna, Agosto 2017, versione 4
+  https://www.csagroup.org/wp-content/uploads/MC20035004.pdf
+  
 .. image:: sps30.jpg
 
 * Il raggio laser è focalizzato su una piccola area
