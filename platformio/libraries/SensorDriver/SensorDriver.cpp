@@ -4549,10 +4549,52 @@ void SensorDriverSps::setup() {
     }
 
     delay(10);
-
+    
     if(!_sps30.start()){
       _error_count++;
       LOGE(F("sps setup... [ %s ]"), ERROR_STRING);
+    }
+    
+    delay(10);
+
+    /*
+    When the module is in Measurement-Mode an automatic fan-cleaning
+    procedure will be triggered periodically following a defined
+    cleaning interval. This will accelerate the fan to maximum speed
+    for 10 seconds in order to blow out the dust accumulated inside
+    the fan.
+    
+    Measurement values are not updated while the fan-cleaning is running.
+ 
+    The default cleaning interval is set to 604’800 seconds (i.e., 168
+    hours or 1 week) with a tolerance of ±3%.
+
+    The interval can be configured using the Set Automatic Cleaning
+    Interval command.
+
+    Set the interval to 0 to disable the automatic cleaning. 
+
+    Once set, the interval is stored permanently in the non-volatile memory.
+
+    If the sensor is switched off, the time counter is reset to
+    0. Make sure to trigger a cleaning cycle at least every week if
+    the sensor is switched off and on periodically (e.g., once per
+    day).
+ 
+    The cleaning procedure can also be started manually with the Start
+    Cleaning command
+    */
+
+    if(!_sps30.SetAutoCleanInt(3600*24)){  // clean every day
+      _error_count++;
+      LOGE(F("sps set Auto Clean... [ %s ]"), ERROR_STRING);
+    }
+
+    delay(10);
+
+    if(!_sps30.clean()){  // clean now
+      _error_count++;
+      LOGE(F("sps Auto Clean... [ %s ]"), ERROR_STRING);
     }
 
     *_is_setted = true;
