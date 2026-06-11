@@ -1565,7 +1565,7 @@ Nel modulo inserire::
 
   Method: calibrate
   
-  Params: {"type":"sdc30","value":430}
+  Params: {"type":"SCD","value":430}
 
 dove 430 dovrà essere sostituito dal valore di calibrazione della CO2 in ppm.
 
@@ -1577,8 +1577,8 @@ Se Status risulta "completed" il valore fornito viene utilizzato per
 aggiornare la calibrazione e ripristina la massima
 accuratezza. L'ultimo valore di riferimento viene salvato in una
 memoria non volatile sul sensore e persisterà fino a quando non viene
-sovrascritto da un nuovo valore di riferimento che è fornito tramite
-FRC.
+sovrascritto da un nuovo valore di riferimento fornito tramite
+RPC.
 
 
 Configurazione // Firmware + Software // Python + Json // NodeRed
