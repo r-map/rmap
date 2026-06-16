@@ -102,6 +102,29 @@ Elenco componenti elettroniche e sensori
 Datalogger
 ..........
 
+JST XH2.54 4 Pin Terminals Plastic Shell Male Plug + Female Socket Wire Connector XH 2.54 4P
+Straight pin socket
+https://it.aliexpress.com/item/1005007080333485.html
+10 pezzi
+1,87€ 
+
+Dupont TO XH2.54
+Dupont Line to XH2.54 Cable 1P Female 4P 20CM 26AWG 28AWG Jumper Wire
+https://it.aliexpress.com/item/1005007135088110.html
+10 pezzi
+3,96€
+
+SH 1.0mm Wire Cable Connector DIY SH1.0 JST 4Pin Electronic Line Double Connect Terminal Plug 28AWG
+10cm, Reverse direction, 4P
+https://it.aliexpress.com/item/1005009993504784.html
+10 pezzi
+2,75€
+
+Micro SD D1 Mini Data Logger Shield + RTC DS1307 Clock For Arduino/Raspberry
+https://it.aliexpress.com/item/1005006761128654.html
+2 pezzi
+11,58€
+
 * S3 Mini V1.0.0 - LOLIN WiFi & Bluetooth 5 (LE) boards based ESP32-S3FH4R2
   https://it.aliexpress.com/item/1005006646247867.html?gatewayAdapt=glo2ita
   5.60€
@@ -117,6 +140,9 @@ Datalogger
 * Cavo I2C 100mm 10cm per cavo a doppia testa LOLIN (WEMOS) SH1.0 4P
   https://it.aliexpress.com/item/32867490848.html
   1,45€
+* OPPURE: 
+
+  
 * Connettori a pettine per moduli da impilare
   https://ie.farnell.com/samtec/esw-108-14-t-s/connector-rcpt-8pos-1row-2-54mm/dp/3699507
   2,3€ / unità
@@ -1151,17 +1177,29 @@ connectors 2.54 mm rispettando ordine e colori.
 .. image:: collegamento_scd30.jpg
    :width: 50%
 
+Usare la prolunga 4 4 poli per E-bike tagliando il cavo a una distanza
+di circa 25 cm. dal connettore femmina. Collegare quindi la parte di
+cavo collegato al connettore femmina alla morsettiera della board base.
+	   
 Per il collegamento dell'SHT85 usare l'apposito connettore a crimpare;
-pelare il cavo solo per la guaina esterna, aprire il connettore per
+pelare il cavo della parte restante della prolunga per E-bike portata
+a misura solo per la guaina esterna, aprire il connettore per
 l'accesso dei cavi rispettando con attenzione la colorazione e poi
-premere con molta attenzione a crimpare:
+premere con molta attenzione a crimpare aiutandosi eventualmente con
+una piccola pinza:
 
 .. image:: collegamento_sht85.jpg
    :width: 50%
 
 Inserire il sensore nel connettore con il lato sensore come da
 fotografia.
-	   
+
+Appena prima in installare la stazione nella sua destinazione finale
+ricordarsi di RIMUOVERE la PELLICOLA di protezione deò sensore SHT85;
+è una pellicola di plastica bianca che va rimossa con il delicato
+aiuto di una pinzetta o un cutter.
+
+
 La prima installazione ed il collaudo dei sensori è una fase critica,
 errori possono rendere un sensore, la scheda o entrambi
 inutilizzabili. Prima di alimentare ancora una volta la stazione, è
