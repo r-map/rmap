@@ -512,10 +512,14 @@ bool publishThread::publish_status_summary() {
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->user);
-  strcat(mqtt_message.topic,"//");
-  strcat(mqtt_message.topic,data->station->longitude);
-  strcat(mqtt_message.topic,",");
-  strcat(mqtt_message.topic,data->station->latitude);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->ident);
+  strcat(mqtt_message.topic,"/");
+  if (strcmp(data->station->ident,"") == 0){
+    strcat(mqtt_message.topic,data->station->longitude);
+    strcat(mqtt_message.topic,",");
+    strcat(mqtt_message.topic,data->station->latitude);
+  }
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,data->station->network);
   strcat(mqtt_message.topic,"/");
