@@ -204,6 +204,8 @@ void gpsI2cThread::doI2cNmea(){
 	  itoa(int(std::round(mgps.rmc.dms.latitude*100000)),data->georef->lat,10);
 	  itoa(int(std::round(mgps.rmc.dms.longitude*100000)),data->georef->lon,10);
 	  data->georef->timestamp=now();           // TODO create datetime from RMC datetime
+	  timestamp=now();
+	  data->status->receive=ok;
 	}
 
 	data->georef->mutex->Unlock();
