@@ -124,8 +124,8 @@ void gpsThread::Run() {
   data->logger->notice(F("Starting Thread %s %d"), GetName().c_str(), data->id);
 
   gps.init(&mgps);
-  //gps.set_filter(0xE); // filter "RMC","GGA","GLL" records
-  gps.set_filter(0x2);   // filter "RMC" record only
+  gps.set_filter(0xE); // filter "RMC","GGA","GLL" records
+  //gps.set_filter(0x2);   // filter "RMC" record only
 
   //Init GPS serial port
   GPS_SerialInit();
