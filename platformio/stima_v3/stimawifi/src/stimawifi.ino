@@ -49,7 +49,7 @@ void print_reset_reason() {
     case ESP_RST_SDIO: Serial.println(F("Reset over SDIO.")); break;
     case ESP_RST_USB: Serial.println(F("Reset by USB peripheral.")); break;
     case ESP_RST_JTAG: Serial.println(F("Reset by JTAG.")); break;
-    case ESP_RST_EFUSE: Serial.println(F("Reset due to efuse error.")); break;
+    case ESP_RST_EFUSE: Serial.println(F("Reset due to efuse errorg.")); break;
     case ESP_RST_PWR_GLITCH: Serial.println(F("Reset due to power glitch detected.")); break;
     case ESP_RST_CPU_LOCKUP: Serial.println(F("Reset due to CPU lock up (double exception)")); break;
 
@@ -186,10 +186,28 @@ void display_summary_data() {
   //u8g2->setDrawColor(0);
   //u8g2->drawBox( 0, 0*CH,64, CH);
   //u8g2->setDrawColor(1);
+
+  if (strcmp(station.ident,"") == 0){
+    u8g2->setCursor(0, (displaypos++)*CH); 
+    u8g2->print("RSSI:");
+    u8g2->print(rssi);
+  }else{
+    u8g2->setCursor(0, (displaypos++)*CH); 
+    u8g2->print("Mobi: ");
+    switch(status_mobile)
+      {
+      case unknown:
+	u8g2->print("--");
+	break;
+      case ok:
+	u8g2->print("OK");
+	break;	
+      case error:
+	u8g2->print("KO");
+	break;	
+      } 
+  }
   
-  u8g2->setCursor(0, (displaypos++)*CH); 
-  u8g2->print("RSSI:");
-  u8g2->print(rssi);
   u8g2->print(" ");
   u8g2->print(status);
 
@@ -589,7 +607,6 @@ void firmwareUpdate() {
 	u8g2->print(F("Failed"));
 	u8g2->sendBuffer();
       }
-
       pixels.setPixelColor(0, pixels.Color(255, 0, 0));
       pixels.show();
       delay(3000);
@@ -1004,7 +1021,7 @@ void displayStatus()
 		   )
 	       )
 	  ){
-    strcpy(status,"Stat: ok");
+    strcpy(status,"Stat: OK");
     color = pixels.Color(0,255,0);
     light=true;
   }
@@ -1042,7 +1059,7 @@ void displayStatus()
 	 || stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error
 	 || stimawifiStatus.rssi == error	    
 	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error && stimawifiStatus.udp.receive == error))){
-    strcpy(status,"Stat: error");
+    strcpy(status,"Stat: Error");
     color = pixels.Color(255,0,0);
     light = true;
   }
