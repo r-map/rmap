@@ -305,8 +305,10 @@ String Json(){
   str +="\","
     "\"RSSI\":\"";
   str +=rssi;
+  str +="\","
+    "\"MOBSTAT\":\"";
+  str +=String(status_mobile);
   str +="\"}";
-
   return str;
 }
 
@@ -974,6 +976,10 @@ void displayStatus()
     color = pixels.Color(0,0,255);
     light=true;
   }
+
+  // elaborate unknown for mobile status
+  status_mobile=unknown;
+  
   // if all OK then GREEN
   if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok && stimawifiStatus.measure.geodef  == ok
 	  &&  stimawifiStatus.publish.connect == ok && stimawifiStatus.publish.publish == ok
@@ -1002,6 +1008,22 @@ void displayStatus()
     color = pixels.Color(0,255,0);
     light=true;
   }
+
+  // elaborate OK for mobile status
+  if (    stimawifiStatus.measure.novalue == ok && stimawifiStatus.measure.sensor  == ok && stimawifiStatus.measure.geodef  == ok
+	  &&  stimawifiStatus.db.sdcard == ok && stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
+	  &&  stimawifiStatus.db.database == ok && stimawifiStatus.db.archive == ok
+	  &&  stimawifiStatus.db.memory_collision == ok && stimawifiStatus.db.no_heap_memory == ok
+          &&  stimawifiStatus.publish.memory_collision == ok && stimawifiStatus.publish.no_heap_memory == ok
+          &&  stimawifiStatus.measure.memory_collision == ok && stimawifiStatus.measure.no_heap_memory == ok
+	  &&  stimawifiStatus.memory_collision == ok && stimawifiStatus.no_heap_memory == ok
+	  &&  stimawifiStatus.udp.memory_collision == ok && stimawifiStatus.udp.no_heap_memory == ok
+	  &&  stimawifiStatus.gps.memory_collision == ok && stimawifiStatus.gps.no_heap_memory == ok
+	  &&  stimawifiStatus.gps.receive == ok || stimawifiStatus.udp.receive == ok
+	  ){
+    status_mobile=ok;
+  }
+  
   // if one is error then RED
   if (      stimawifiStatus.measure.novalue == error
 	 || stimawifiStatus.measure.sensor  == error
@@ -1023,6 +1045,22 @@ void displayStatus()
     strcpy(status,"Stat: error");
     color = pixels.Color(255,0,0);
     light = true;
+  }
+
+  // elaborate error for mobile status
+  if (      stimawifiStatus.measure.novalue == error
+	 || stimawifiStatus.measure.sensor  == error
+	 || stimawifiStatus.measure.geodef  == error
+	 || stimawifiStatus.db.sdcard == error
+	 || stimawifiStatus.db.database == error
+	 || stimawifiStatus.db.memory_collision == error || stimawifiStatus.db.no_heap_memory == error
+         || stimawifiStatus.publish.memory_collision == error || stimawifiStatus.publish.no_heap_memory == error
+         || stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error
+         || stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error
+	 || stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error
+	 || stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error
+	 || ((strcmp(station.ident,"") != 0) && (stimawifiStatus.gps.receive == error && stimawifiStatus.udp.receive == error))){
+    status_mobile=error;
   }
 
   if (oledpresent) { // message on display
