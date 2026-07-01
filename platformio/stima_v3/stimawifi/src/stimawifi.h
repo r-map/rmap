@@ -131,6 +131,7 @@ char status[15]="";     // status message for web and display
 int  rssi=0;            // WiFi RSSI for web and display
 
 bool loopinit=true;     // we need initialization of loop task
+bool periodic_work_setted=false; // some Alarm have to be executed when time is set only
 
 time_t rtc_set_time();
 

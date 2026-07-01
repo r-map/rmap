@@ -1214,7 +1214,12 @@ void dbThread::Run() {
 	}
       //threadPublish.mqttDisconnect();
 	if (!sqlite_status) sqlite_status = db_restart();         // try to restart SD card and sqlite
-	if (!sqlite_status) esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
+	if (!sqlite_status){
+	  data->logger->notice(F("db SD do not restart; REBOOT"));
+	  delay(5000);
+	  ESP.restart();
+	  //esp_system_abort("SD do not restart; REBOOT"); // return and terminate task if fatal error
+        }
       }
     }
     

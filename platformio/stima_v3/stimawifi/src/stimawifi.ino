@@ -1732,20 +1732,7 @@ void setup() {
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
   Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
-  time_t reboottime;                                    
-  if (pmspresent){
-    reboottime=3600*24;                                        // pms stall sometime, we reboot more
-  }else{
-    reboottime=3600*24*7;                                      // we reset everythings one time a week
-  }
-  frtosLog.notice(F("reboot every: %l"),reboottime);
-  Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
-
-  // update firmware
-  //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
-  Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
-  
-  // Add http service to MDNS-SD
+    // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
   // if mobile station start geolocation thread or if we need to acquire time
@@ -1781,6 +1768,25 @@ void loop() {
     //disableLoopWDT();
     loopinit=false;
   }
+
+  // set alarm for fixed station and when time is setted
+  if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
+    time_t reboottime;
+    periodic_work_setted=true;
+    
+    if (pmspresent){
+      reboottime=3600*24;                                        // pms stall sometime, we reboot more
+    }else{
+      reboottime=3600*24*7;                                      // we reset everythings one time a week
+    }
+    frtosLog.notice(F("reboot every: %l"),reboottime);
+    Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
+    
+    // update firmware
+    //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
+    Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
+  }
+  
   webserver.handleClient();
   //MDNS.update();
   Alarm.delay(0);       // check for alarms

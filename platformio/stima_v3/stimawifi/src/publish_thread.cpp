@@ -709,7 +709,7 @@ int rebootRpc(JsonObject params, JsonObject result) {
   //publishThread::mqttDisconnect(); // cannot be called here
   delay(5000);
   ESP.restart();
-  delay(5000);
+  delay(5000);  // never go here
   result[F("state")] = F("done");  
   return 0;  
 }
