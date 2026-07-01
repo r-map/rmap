@@ -1770,8 +1770,8 @@ msgid "Error on publish data; retry"
 msgstr "Errore pubblicando i dati; riprova"
 
 #: rmap/templates/profile_details.html:16
-msgid "Here your station details"
-msgstr "Questi i dettagli stazione"
+msgid "Here your station data"
+msgstr "Questi i dati stazione"
 
 #: rmap/templates/profile_details.html:20
 #: rmap/templates/profile_details.html:99
@@ -1815,8 +1815,8 @@ msgid "Locate"
 msgstr "Mappa"
 
 #: rmap/templates/profile_details.html:71
-msgid "Show station details"
-msgstr "Mostra i dettagli stazione"
+msgid "Show station data"
+msgstr "Mostra i dati stazione"
 
 #: rmap/templates/profile_details.html:77
 msgid "Comment"
@@ -1852,8 +1852,8 @@ msgid "Report period:"
 msgstr "Intervallo tra i report:"
 
 #: rmap/templates/stations/stationlocaldata.html:118
-msgid "Comunication status with server"
-msgstr "Stato comunicazione col server"
+msgid "Station information"
+msgstr "Informazioni stazione"
 
 #: rmap/templates/stations/stationlocaldata.html:148
 msgid "Last local station data"
