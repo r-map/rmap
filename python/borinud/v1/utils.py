@@ -28,5 +28,17 @@ def params2record(p):
         if k1 in p and p.get(k1) != "*" and p.get(k1) is not None
     }}
 
+    # https://github.com/ARPA-SIMC/dballe/issues/201
+    #Viene aggiunta la possibilità di specificare
+    #leveltype2=MISSING_INT-1 o leveltype2="-", per significare "il
+    #valore nel database deve essere "mancante" invece di "qualunque"
+
+    # solo per sistemi a 64 bit 
+    REQUIRED_MISSING_INT = 2147483646
+    
+    for tl2 in ("leveltype2","l2"):
+        if (tl2 in q):
+            if (q[tl2] is None):
+                q[tl2]= REQUIRED_MISSING_INT
 
     return q
