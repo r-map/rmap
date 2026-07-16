@@ -440,9 +440,32 @@ Teatro Dehon Via Libia, 59 - Bologna
 
 Programma :download:`pdf <programma_casadeirisvegli.pdf>`
 
+30/01/2026
+----------
+
+I.I.S. Aldini Valeriani
+
+Da gennaio a febbraio tutoraggio di 12 ore a professori dell'istituto
+sul sistema di monitoraggio RMAP e stazione StimaWifi V3 con
+assemblaggio e configurazione di una stazione.
+
+12/05/2026
+----------
+
+I.I.S. Aldini Valeriani
+
+Formazione Scuola Lavoro classe 3DIN con presentazione finale dal
+titolo "Stazione ambientale A.V." il 12 maggio 2026 presso il
+Dipartimento di Ingegneria dell'Energia Elettrica e dell'Informazione
+"Guglielmo Marconi",viale Risorgimento, 2 Bologna, Bertocchi Alessio,
+Cipressi Matilde, Masseurs Mattia Enrique, Tolomelli Ivan, Younas
+Athar, Zerbini Alessandro
+
 	   
 Stato dell'arte su GitHub
 -------------------------
+
+A primavera 2026
 
 * 8 contributori
 * 3700 commit

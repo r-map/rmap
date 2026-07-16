@@ -102,29 +102,6 @@ Elenco componenti elettroniche e sensori
 Datalogger
 ..........
 
-JST XH2.54 4 Pin Terminals Plastic Shell Male Plug + Female Socket Wire Connector XH 2.54 4P
-Straight pin socket
-https://it.aliexpress.com/item/1005007080333485.html
-10 pezzi
-1,87€ 
-
-Dupont TO XH2.54
-Dupont Line to XH2.54 Cable 1P Female 4P 20CM 26AWG 28AWG Jumper Wire
-https://it.aliexpress.com/item/1005007135088110.html
-10 pezzi
-3,96€
-
-SH 1.0mm Wire Cable Connector DIY SH1.0 JST 4Pin Electronic Line Double Connect Terminal Plug 28AWG
-10cm, Reverse direction, 4P
-https://it.aliexpress.com/item/1005009993504784.html
-10 pezzi
-2,75€
-
-Micro SD D1 Mini Data Logger Shield + RTC DS1307 Clock For Arduino/Raspberry
-https://it.aliexpress.com/item/1005006761128654.html
-2 pezzi
-11,58€
-
 * S3 Mini V1.0.0 - LOLIN WiFi & Bluetooth 5 (LE) boards based ESP32-S3FH4R2
   https://it.aliexpress.com/item/1005006646247867.html?gatewayAdapt=glo2ita
   5.60€
@@ -140,18 +117,31 @@ https://it.aliexpress.com/item/1005006761128654.html
 * Cavo I2C 100mm 10cm per cavo a doppia testa LOLIN (WEMOS) SH1.0 4P
   https://it.aliexpress.com/item/32867490848.html
   1,45€
-* OPPURE: 
-
-  
+  OPPURE:
+  SH 1.0mm Wire Cable Connector DIY SH1.0 JST 4Pin Electronic Line Double Connect Terminal Plug 28AWG
+  10cm, Reverse direction, 4P
+  https://it.aliexpress.com/item/1005009993504784.html
+  10 pezzi
+  2,75€
 * Connettori a pettine per moduli da impilare
   https://ie.farnell.com/samtec/esw-108-14-t-s/connector-rcpt-8pos-1row-2-54mm/dp/3699507
   2,3€ / unità
 * Data Logger Shield DS1307 slot microSD Wemos per estensione D1 Mini
   https://www.ebay.it/itm/255283310856
   EUR 5,75
+  OPPURE:
+  Micro SD D1 Mini Data Logger Shield + RTC DS1307 Clock For Arduino/Raspberry
+  https://it.aliexpress.com/item/1005006761128654.html
+  2 pezzi
+  11,58€
 * SanDisk 128 GB Ultra microSDXC UHS-I scheda, con adattatore SD, fino a 140 MB/s, prestazioni dell'app A1, Classe 10, U1. Twin Pack
   https://www.amazon.it/dp/B0B7NVV55M
   16,82€ / unità
+  OPPURE
+  SanDisk Ultra microSDXC UHS-I memory card 128 GB + adapter (A1, Class 10, U1, Full HD videos,
+  up to 120 MB/s read speed),, Speed-Mbps/10x
+  https://www.amazon.it/dp/B08GYKNCCP
+  37,17€
 * 7X Duracell 1220 (7 Blister Da 1 Batteria) 7 Pile (CR1220)
   https://www.amazon.it/dp/B0C86NRTXV
   2,82€ /unità
@@ -161,12 +151,28 @@ https://it.aliexpress.com/item/1005006761128654.html
 * Funmo 50 morsetti a vite PCB 2,54 mm 0,1" Pitch PCB Mount Screw Terminal Block, 2 pin/3 pin/4 pin, per cavi da 26-18AWG
   https://www.amazon.it/dp/B0CQ243JHC
   12,99€
+  OPPURE:
+  Funmo PCB Morsetti a Vite 2,54 mm Terminal Block, 2/3/4 Pin Mount Screw for 26-18AWG Cavi
+  https://www.amazon.it/dp/B0CQ243JHC
+  16,99€ 
 * Alimentatore switching 12V / 1,5A – 18W
   https://futuranet.it/prodotto/alimentatore-switching-12v-15a-18w/
   8,55€
+  OPPURE:
+  Topolenashop Alimentatore 12V 2A Stabilizzato
+  Trasformatore 220V per Telecamere CCTV LED e Monitor
+  Connettore DC 5.5×2.1 mm – Impermeabile da Esterno con Supporto a Parete | YN-K013
+  https://www.amazon.it/dp/B0GK55BM37
+  9,31€
 * Cavo prolunga DC maschio / DC femmina – 3 metri
   https://futuranet.it/prodotto/cavo-prolunga-dc-maschio-dc-femmina-3-metri/
   4,50€
+  OPPURE:
+  Confezione da 2 cavi di prolunga per alimentazione CC, da 10 m,
+  5,5 mm x 2,1 mm, DC 5 V, 6 V, 9 V, 12 V, 24 V, 
+  per telecamere di sicurezza, DVR, router, striscia LED, bianco
+  https://www.amazon.it/dp/B09VK7JMYD
+  18,90€
 * Scatola di derivazione Gewiss, Plastica Grigio, 150 x 110 x 70mm
   https://it.rs-online.com/web/p/scatole-di-derivazione/3038288
   13,97€
@@ -191,6 +197,18 @@ CO2
 * 10 set SH1.0  connettore femmina + maschio 4P spina con cavo 20 cm
   https://it.aliexpress.com/item/1005001649158434.html
   3,41€
+  OPPURE:
+  Dupont TO XH2.54
+  Dupont Line to XH2.54 Cable 1P Female 4P 20CM 26AWG 28AWG Jumper Wire
+  https://it.aliexpress.com/item/1005007135088110.html
+  10 pezzi
+  3,96€
+  JST XH2.54 4 Pin Terminals Plastic Shell Male Plug + Female Socket Wire Connector XH 2.54 4P
+  Straight pin socket
+  https://it.aliexpress.com/item/1005007080333485.html
+  10 pezzi
+  1,87€ 
+
 
 Temperatura e Umidità
 
@@ -204,10 +222,16 @@ Temperatura e Umidità
   https://www.igus.it/product/CF240?artnr=CF240.01.04
   https://it.rs-online.com/web/p/cavi-di-comando/2100551
   2,34-3.0 EUR / m
-  oppure
+  OPPURE
   Prolunga a 4 Pin Ebike,Cavo Spina Femmina e Maschio Connettore Impermeabile a 4 Pin per Luce Bicicletta Elettrica 1,5m
   https://www.amazon.it/dp/B0F4QWS1XJ
   11E una coppia
+  OPPURE
+  RUNCCI-YUN Cavo di prolunga a 2 Pin per Bicicletta elettrica, Cavo per Bicicletta elettrica da Maschio a Femmina, per 
+  Luce/acceleratore/Freno per Bicicletta elettrica 
+  https://www.amazon.it/dp/B0FHJZS9D5
+  4P Maschio-Femmina 150 cm
+  9,98€ 
 
 Schermo radiazioni per temperatura e umidità
 
@@ -229,8 +253,12 @@ GPS per stazione mobile
 * Waveshare LC76G Multi-GNSS Module Compatible with Raspberry PI, Supports GPS, BDS, GLONASS, Galileo, QZSS
   https://www.amazon.it/dp/B0C498QPS3
   24,99€
+  OPPURE
+  TUOPUONE LC76G Multi-GNSS Modulo I2C/UART Comunicazione Supporta GPS BDS GLONASS Galileo QZSS
+  https://www.amazon.it/dp/B0CD3T3KQ8
+  23,99€
 
-oppure:
+oppure con prestazioni inferiori e non compatibile con firmware standard:
   
 * Reland Sun Modulo GPS micro USB NEO-6M NEO-7M NEO-8M (8M-A)
   https://www.amazon.it/dp/B09YCBYLBR
