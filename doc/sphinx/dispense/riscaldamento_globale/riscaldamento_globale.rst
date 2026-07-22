@@ -23,7 +23,7 @@ Giustizia Climatica
 Report Oxfam "Climate Plunder": I Super-Ricchi e la Crisi Climatica
 ...................................................................
 
-Report Oxfam Climate Plunder :download:`pdf <Climate-Plunder-EN-Final-Paper.pdf>`
+Report Oxfam Climate Plunder :download:`documento pdf <Climate-Plunder-EN-Final-Paper.pdf>`
 `download Report Oxfam Climate Plunder <www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
 
 Il rapporto denuncia l'enorme e crescente impatto delle emissioni di
@@ -66,6 +66,49 @@ In sintesi, "Climate Plunder" è un'accusa forte contro la
 disuguaglianza climatica, dove una minuscola élite è la maggiore
 responsabile delle emissioni che minacciano il futuro del pianeta,
 mentre le comunità più povere ne subiscono le conseguenze più gravi.
+
+
+Rischio Climatico in Italia: Scenari, Costi e Opzioni di Risposta
+.................................................................
+
+Rischio Climatico in Italia :download:`documento pdf <RischioClimaticoItalia.pdf>`
+
+Messaggi chiave del rapporto
+
+Questo rapporto riassume lo stato della conoscenza scientifica sugli impatti economici
+del cambiamento climatico in Italia, oltre ad aver prodotto nuove evidenze
+scenaristiche dei rischi climatici futuri. I messaggi chiave possono essere riassunti in
+cinque punti:
+
+* Il cambiamento climatico in Italia è già qui e accelera entro l'orizzonte strategico
+  delle imprese. Nei prossimi venti anni il cambiamento del regime idro-climatico
+  italiano -già in atto- si intensificherà, con aumento di ondate di calore,
+  aridificazione, e al contempo aumento di eventi di precipitazioni estremi.
+* Il rischio climatico genera rilevanti perdite economiche, misurabili e diseguali tra
+  settori e territori. Gli impatti fisici si traducono in perdite per l’economia reale,
+  con una perdita della crescita economica annuale media 2025-2050 di circa il
+  15% nello scenario tendenziale SSP3-RCP7.0 (stima centrale con funzione di
+  danno mediana; fino al 41% al 95° percentile della funzione di danno nello
+  scenario di coda; cfr. Tabella 4.3), e impatti su una varietà di settori economici in
+  un territorio strutturalmente fragile.
+* Il rischio climatico è un rischio sovrano per l'Italia, in quanto moltiplicatore di
+  vulnerabilità preesistenti. Con un debito corrente di oltre 3000 miliardi di euro,
+  l’Italia è particolarmente sensibile a riduzioni di una crescita economica già
+  anemica. I rischi climatici macroeconomici si propagano alle finanze pubbliche,
+  agendo da moltiplicatore su una vulnerabilità preesistente.
+* Le tre dimensioni di trasmissione del clima al bilancio pubblico - debito, spread
+  climatico e compressione dello spazio fiscale - interagiscono in modo non
+  lineare e si amplificano reciprocamente. Lo spread climatico aumenta il servizio
+  del debito, potenzialmente innestando effetti retroattivi sulla crescita. Il policy
+  maker si trova davanti a un trade-off di fondo, ossia da un lato salvaguardare la
+  traiettoria del debito richiederebbe un taglio alla spesa pubblica discrezionale
+  fino a circa un quinto, con notevoli ripercussioni sociali e politiche, mentre
+  dall'altro preservare il livello della spesa lascerebbe invece deteriorare il
+  rapporto debito/PIL, gli interessi e lo spread sovrano, portando la probabilità di
+  sforamento della soglia del 200% al 39-44% nelle combinazioni più severe.
+* Il deficit di adattamento e il policy gap sono le principali leve su cui agire.
+  Mitigazione ed adattamento ai cambiamenti climatici non sono costi ma
+  investimenti per assicurare crescita e stabilità economiche.
 
 
 Il ciclo del carbonio
