@@ -23,8 +23,8 @@ Giustizia Climatica
 Report Oxfam "Climate Plunder": I Super-Ricchi e la Crisi Climatica
 ...................................................................
 
-Report Oxfam Climate Plunder :download:`documento pdf <Climate-Plunder-EN-Final-Paper.pdf>`
-`download Report Oxfam Climate Plunder <www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
+Report Oxfam Climate Plunder: :download:`documento pdf <Climate-Plunder-EN-Final-Paper.pdf>`
+`sito originale <https://www.oxfamitalia.org/wp-content/uploads/2025/10/Climate-Plunder-EN-Final-Paper.pdf>`_
 
 Il rapporto denuncia l'enorme e crescente impatto delle emissioni di
 carbonio dei super-ricchi sul clima globale e le forti disuguaglianze
@@ -71,7 +71,7 @@ mentre le comunità più povere ne subiscono le conseguenze più gravi.
 Rischio Climatico in Italia: Scenari, Costi e Opzioni di Risposta
 .................................................................
 
-Rischio Climatico in Italia :download:`documento pdf <RischioClimaticoItalia.pdf>`
+Rischio Climatico in Italia: :download:`documento pdf <RischioClimaticoItalia.pdf>`
 
 Messaggi chiave del rapporto
 
