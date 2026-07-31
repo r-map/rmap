@@ -34,20 +34,25 @@ typedef struct struct_message {
 } struct_message;
 
 // Callback when data is sent
-void OnDataSent(const uint8_t *mac, esp_now_send_status_t status) {
+void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   Serial.print("Last Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
   Serial.print("destination MAC:");
   for (int i = 0; i < 6; i++) {
-    Serial.printf("%02X:", mac[i]);
+    Serial.printf("%02X:", des_addr[i]);
   }
   Serial.println();
 }
 
 // Callback when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a struct_message to hold incoming sensor readings
   struct_message incomingReadings;
+  Serial.print("Pacchetto ricevuto da MAC: ");
+  for (int i = 0; i < 6; i++) {
+    Serial.printf("%02X:", esp_now_info->src_addr[i]);
+  }
+  Serial.println();
   
   memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
   Serial.println();
@@ -57,7 +62,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   if (incomingReadings.type == 0) {
     Serial.print("Richiesta di pairing ricevuta da MAC: ");
     for (int i = 0; i < 6; i++) {
-      Serial.printf("%02X:", mac[i]);
+      Serial.printf("%02X:", esp_now_info->src_addr[i]);
     }
     Serial.println();
         
@@ -72,14 +77,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         
     // Aggiunge il server come peer specifico
     esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, mac, 6);
+    memcpy(peerInfo.peer_addr, esp_now_info->src_addr, 6);
     peerInfo.channel = 0;  
     peerInfo.encrypt = false;
     
     if (esp_now_add_peer(&peerInfo) == ESP_OK) {
       Serial.println("Server registrato come peer fisso.");      
       Serial.println("TU Accoppiamento riuscito!");
-      memcpy(serverMac, mac, 6); // Salva il MAC reale del server
+      memcpy(serverMac, esp_now_info->src_addr, 6); // Salva il MAC reale del server
       ioaccoppiato=true;      
     }
   } else if (incomingReadings.type == 99) {
@@ -148,9 +153,9 @@ void loop() {
 
     outgoingReadings.type=99;
     // Set values to send
-    outgoingReadings.temp = 273;
-    outgoingReadings.hum = 50;
-    outgoingReadings.pres = 1013;
+    outgoingReadings.temp = random(250,300);
+    outgoingReadings.hum = random(1,100);
+    outgoingReadings.pres = random(990,1030);
 
     // Send message via ESP-NOW
     esp_err_t result = esp_now_send(serverMac, (uint8_t *) &outgoingReadings, sizeof(outgoingReadings));
