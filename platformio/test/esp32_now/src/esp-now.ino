@@ -55,7 +55,7 @@ void add_broadcast_peer(){
   // Register peer
   esp_now_peer_info_t peerInfo = {};
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
+  //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;
   
@@ -155,6 +155,16 @@ void setup() {
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
+  
+  // ESP-Now Range Test: Real-World Results for ESP32 Devices
+  // https://youtu.be/oz0a7Ur7nko?si=aUMBJ4SpeXTSMMPg
+  esp_err_t err = esp_wifi_set_protocol(WIFI_IF_STA,WIFI_PROTOCOL_LR);
+  if (err == ESP_OK) {
+    Serial.println("Protocol successfully restricted to Long Range (LR) Mode successfully enabled!");
+  } else {
+    Serial.printf("Failed to set protocol. Error code: %d\n", err);
+  }
+  
   WiFi.STA.begin();
   Serial.print("[DEFAULT] ESP32 Board MAC Address: ");
   readMacAddress();
