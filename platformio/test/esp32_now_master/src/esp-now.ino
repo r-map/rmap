@@ -298,6 +298,10 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       frtosLog.error("CRC mismatch");
       return;
     }
+    char dt[DATE_TIME_STRING_LENGTH];
+    snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+
+    frtosLog.notice(F("datetime received: %s"),dt);
     frtosLog.notice(F("Values received: %D %D %D"),incomingMessage.message.temp
 		    ,incomingMessage.message.hum
 		    ,incomingMessage.message.pres);
@@ -318,6 +322,8 @@ void setup() {
     LittleFS.begin();
     LittleFS.format();
   }
+
+  setTime(12,30,15,24,8,2026);
   
   // Init Serial Monitor
   Serial.begin(115200);

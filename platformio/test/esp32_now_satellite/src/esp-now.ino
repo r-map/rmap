@@ -388,7 +388,8 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       return;
     }
     // Sblocca il ciclo principale consentendo il deep sleep
-    transmissionCompleted = true;    
+    transmissionCompleted = true;
+    setTime(incomingMessage.message.datetime);
   }
 }
 
@@ -596,7 +597,12 @@ void loop() {
     transmissionCompleted = false;    
     outgoingMessage.type=99;
     // Set values to send
-    outgoingMessage.message.datetime = now();
+
+    if(timeStatus() == timeSet){
+      outgoingMessage.message.datetime = now();
+    }else{
+      outgoingMessage.message.datetime = 0;
+    }
     outgoingMessage.message.temp = random(250,300);
     outgoingMessage.message.hum = random(1,100);
     outgoingMessage.message.pres = random(990,1030);
