@@ -70,6 +70,11 @@
 #define SD_TASK_GENERIC_RETRY_DELAY_MS   (5000)
 #define SD_TASK_GENERIC_RETRY            (3)
 
+/// @brief Backoff between SD begin attempts when card missing / not responding
+#define SD_TASK_NO_CARD_RETRY_DELAY_MS   (10000)
+/// @brief Extra WDT budget while formatting SD (ms)
+#define SD_TASK_FORMAT_WDT_MS            (60000)
+
 #define SD_FW_BLOCK_SIZE                 (256)
 
 #define FILE_NAME_MAX_LENGHT             (128)
@@ -104,7 +109,6 @@ typedef struct {
   cpp_freertos::Queue *dataRmapGetRequestQueue;       //!< Queue for access data RMAP Set Request
   cpp_freertos::Queue *dataRmapGetResponseQueue;      //!< Queue for access data RMAP Get Response
   cpp_freertos::Queue *dataRmapPutQueue;              //!< Queue for access data RMAP access Put Get Queue
-  cpp_freertos::Queue *dataRmapPutBackupQueue;        //!< Queue for access data RMAP Put backup data
   cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
   cpp_freertos::Queue *dataFilePutRequestQueue;       //!< Queue for Data Put File (firmware) Set request
   cpp_freertos::Queue *dataFilePutResponseQueue;      //!< Queue for Data Put File (firmware) Get response
@@ -151,6 +155,12 @@ private:
   bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
 
   void namingFileData(uint32_t time, char *dirPrefix, char* nameFile);
+
+  bool sdCardBegin(bool volume = true);
+  void sdCardEnd();
+  void sdCloseAllFiles(File &logFile, File &rmapWrFile, File &rmapRdFile,
+                       File &putFile, File *getFile, uint8_t getFileCount,
+                       File &dir, File &entry, File &tmpFile);
 
   SdState_t state;
   SdParam_t param;

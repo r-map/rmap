@@ -226,7 +226,6 @@ typedef struct
   cpp_freertos::Queue *dataRmapGetRequestQueue;       //!< Queue for access data RMAP Set Request
   cpp_freertos::Queue *dataRmapGetResponseQueue;      //!< Queue for access data RMAP Get Response
   cpp_freertos::Queue *dataRmapPutQueue;              //!< Queue for access data RMAP access Put Get Queue
-  cpp_freertos::Queue *dataRmapPutBackupQueue;        //!< Queue for access data RMAP Put backup data
   cpp_freertos::Queue *dataLogPutQueue;               //!< Queue for system logging put data
   cpp_freertos::Queue *connectionRequestQueue;        //!< Queue for connection Set request
   cpp_freertos::Queue *connectionResponseQueue;       //!< Queue for connection Get response

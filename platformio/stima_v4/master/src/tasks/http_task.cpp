@@ -529,6 +529,7 @@ void HttpTask::Run() {
         }
         else if (is_get_firmware)
         {
+          TaskWatchDog(HTTP_CLIENT_TIMEOUT_MS);
           error = httpClientReadBody(&httpClientContext, http_buffer, sizeof(http_buffer), &http_buffer_length, 0);
 
           if (!error)
@@ -540,11 +541,14 @@ void HttpTask::Run() {
 
             totBytesRead += http_buffer_length;
 
-            // Read all entire buffer lenght without filter of CR/LF
-            TRACE_INFO_F(F("Recived block of [ %d ] bytes, total downloaded [ %d ] bytes\r\n"), http_buffer_length, totBytesRead);
+            // Log every ~8KB (or short/last block): less spam, less PPP delay
+            if (((totBytesRead & 0x1FFFu) < http_buffer_length) ||
+                (http_buffer_length < HTTP_BUFFER_SIZE)) {
+              TRACE_VERBOSE_F(F("Recived block of [ %d ] bytes, total downloaded [ %d ] bytes\r\n"), http_buffer_length, totBytesRead);
+            }
 
             // AddBlock Firmware to Queue -> and Put do SD
-            bErrorFirmwareDownload |= do_firmware_add_block((uint8_t*)http_buffer, http_buffer_length);
+            bErrorFirmwareDownload |= do_firmware_add_block((uint8_t*)http_buffer, (uint16_t)http_buffer_length);
 
           }
         }
@@ -863,7 +867,7 @@ bool HttpTask::do_firmware_add_block(uint8_t *block_addr, uint16_t block_len) {
   }
 
   // Add Data Chunck...
-  // Next block is data_chunk + Lenght to SET (in this all 512 bytes)
+  // Next block is data_chunk + length (up to FILE_PUT_DATA_BLOCK_SIZE / HTTP_BUFFER_SIZE)
   firmwareDownloadChunck.block_type = file_block_type::data_chunck;
   memcpy((char*)firmwareDownloadChunck.block, (char*)block_addr, block_len);
   firmwareDownloadChunck.block_lenght = block_len;

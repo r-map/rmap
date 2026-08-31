@@ -114,6 +114,8 @@ void ModemTask::Run() {
   sim7600_status_t status;
   Ipv4Addr ipv4Addr;
   bool try_connection = false;
+  bool test_connect = false;
+  bool update_status = false;
 
   connection_request_t connection_request;
   connection_response_t connection_response;
@@ -213,6 +215,8 @@ void ModemTask::Run() {
           strSafeCopy(password, param.configuration->gsm_password, GSM_PASSWORD_LENGTH);
           param.configurationLock->Give();
 
+          test_connect = connection_request.do_test;
+
           param.connectionRequestQueue->Dequeue(&connection_request);
           TRACE_VERBOSE_F(F("MODEM_STATE_WAIT_NET_EVENT -> MODEM_STATE_SWITCH_ON\r\n"));
           state = MODEM_STATE_SWITCH_ON;
@@ -258,15 +262,30 @@ void ModemTask::Run() {
 
       // Suspend TASK Controller for external Delay controller
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-      // network_order in conformity to [sim7600_connection_network_type_t],[sim7600_connection_network_type_t],..
-      // Example : 9=LTE, 3=GSM, 5=WDCMA -> 4G/2G/3G
+      // network_order: AT+CNAOP list (existing CFG). CNMP from network_type.
+      update_status = false;
       status = sim7600.setup((sim7600_connection_network_mode_t) param.configuration->network_type,
                              (sim7600_type_network_registration_t) param.configuration->network_regver,
-                             param.configuration->network_order);
+                             param.configuration->network_order,
+                             test_connect, &update_status);
       // Wait...
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
       // Resume
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);
+
+      if (update_status) {
+        param.systemStatusLock->Take();
+        param.system_status->modem.ber = sim7600.getBer();
+        param.system_status->modem.rssi = sim7600.getRssi();
+        param.system_status->modem.creg_n = sim7600.getCregN();
+        param.system_status->modem.creg_stat = sim7600.getCregStat();
+        param.system_status->modem.cgreg_n = sim7600.getCgregN();
+        param.system_status->modem.cgreg_stat = sim7600.getCgregStat();
+        param.system_status->modem.cereg_n = sim7600.getCeregN();
+        param.system_status->modem.cereg_stat = sim7600.getCeregStat();
+        param.system_status->modem.cnsmod = sim7600.getCnsmod();
+        param.systemStatusLock->Give();
+      }
 
       if (status == SIM7600_OK)
       {
@@ -350,6 +369,7 @@ void ModemTask::Run() {
       param.system_status->modem.cgreg_stat = sim7600.getCgregStat();
       param.system_status->modem.cereg_n = sim7600.getCeregN();
       param.system_status->modem.cereg_stat = sim7600.getCeregStat();
+      param.system_status->modem.cnsmod = sim7600.getCnsmod();
       param.systemStatusLock->Give();
 
       // Any error to report?
@@ -407,7 +427,8 @@ void ModemTask::Run() {
 
       // Suspend TASK Controller for external Delay controller
       TaskState(state, UNUSED_SUB_POSITION, task_flag::suspended);
-      status = sim7600.disconnect();
+      /* PPP già chiuso: disconnect(false) = wait + AT + ATH (no +++). */
+      status = sim7600.disconnect(false);
       Delay(Ticks::MsToTicks(sim7600.getDelayMs()));
       // Resume
       TaskState(state, UNUSED_SUB_POSITION, task_flag::normal);

@@ -210,7 +210,7 @@ void SolarRadiationSensorTask::Run() {
         if (param.configuration->sensors[adc_channel].adc_type == Adc_Mode::Volt) value *= 1000.0;
         TRACE_DEBUG_F(F("Sensor analog value %d (mV)\r\n"), (uint16_t)round(value));
         // Read value into U.M. Real Solar Radiation (Sample value)
-        value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
+        value = getSolarRadiation(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow, param.configuration->sensors[adc_channel].offset, param.configuration->sensors[adc_channel].gain);
       }
 
       // Inform system state if ADC error event ( reading measure % error < MIN_VALID_PERCENTAGE )
@@ -432,7 +432,7 @@ float SolarRadiationSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_
 /// @param adc_voltage_max VMAX Ref range of sensor
 /// @param adc_overflow bool if ADC get an overflow range value (setted to true)
 /// @return Real scaled data Solar Radiation from analog adc calibrated value
-float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow)
+float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow, float offset, float gain)
 {
   float value = adc_value;
   *adc_overflow = false;
@@ -448,6 +448,7 @@ float SolarRadiationSensorTask::getSolarRadiation(float adc_value, float adc_vol
 
     if (value <= SOLAR_RADIATION_ERROR_MIN) value = SOLAR_RADIATION_MIN;
     if (value >= SOLAR_RADIATION_ERROR_MAX) value = SOLAR_RADIATION_MAX;
+    value = (value * gain) + offset;
   }
 
   if((value >= SOLAR_RADIATION_MIN)&&(value <= SOLAR_RADIATION_SENSIBILITY)) {

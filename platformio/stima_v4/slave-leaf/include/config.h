@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MODULE_MAIN_VERSION (4)
 
 /// @brief Module minor version.
-#define MODULE_MINOR_VERSION (0)
+#define MODULE_MINOR_VERSION (1)
 
 /// @brief rmap protocol version
 #define RMAP_PROCOTOL_VERSION (1)
@@ -187,6 +187,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define WAIT_QUEUE_REQUEST_PUSHDATA_MS (500)
 /// @brief Time to wait pushing command queue
 #define WAIT_QUEUE_REQUEST_COMMAND_MS (500)
+/// @brief Ignore PH0 factory-reset button until this many ms after boot
+#define BTN_FACTORY_RESET_ARM_MS          (5000)
+
 
 /*********************************************************************
  * Parameter of buffer data dimension and acquire

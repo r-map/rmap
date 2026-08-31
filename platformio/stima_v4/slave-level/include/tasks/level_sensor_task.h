@@ -129,7 +129,7 @@ private:
   
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
-  float getLevel(float adc_value, float adc_current_min, float adc_current_max, bool *adc_overflow);
+  float getLevel(float adc_value, float adc_current_min, float adc_current_max, bool *adc_overflow, float offset, float gain);
 
   // Global flag powered
   bool is_power_on;

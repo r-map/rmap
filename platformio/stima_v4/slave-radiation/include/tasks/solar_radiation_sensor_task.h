@@ -129,7 +129,7 @@ private:
   
   float getAdcCalibratedValue(float adc_value, float offset, float gain);
   float getAdcAnalogValue(float adc_value, Adc_Mode adc_type);
-  float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow);
+  float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max, bool *adc_overflow, float offset, float gain);
 
   // Global flag powered
   bool is_power_on;

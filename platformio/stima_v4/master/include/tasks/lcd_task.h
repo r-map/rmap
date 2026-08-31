@@ -101,7 +101,7 @@ typedef enum {
   MASTER_COMMAND_FORCE_CONNECTION,      ///< force gsm connection
   MASTER_COMMAND_DOWNLOAD_CFG,          ///< download configuration
   MASTER_COMMAND_DOWNLOAD_FW,           ///< download firmware
-  MASTER_COMMAND_TRUNCATE_DATA,         ///< init sd card
+  MASTER_COMMAND_TRUNCATE_DATA,         ///< erase/format sd card
   MASTER_COMMAND_UPDATE_STATION_SLUG,   ///< update station slug
   #if(ENABLE_MENU_BOARD_SLUG)
   MASTER_COMMAND_UPDATE_BOARD_SLUG,     ///< update board slug
@@ -112,9 +112,29 @@ typedef enum {
   MASTER_COMMAND_UPDATE_GSM_NUMBER,     ///< update gsm number
   #endif
   MASTER_COMMAND_UPDATE_PSK_KEY,        ///< update PSK key
+  MASTER_COMMAND_UPDATE_GSM_NETWORK,    ///< update GSM CNMP 2G/4G
   MASTER_COMMAND_FIRMWARE_UPGRADE,      ///< firmware upgrade
   MASTER_COMMAND_EXIT                   ///< exit from menu. Always the latest element
 } stima4_master_commands_t;
+
+/// @brief LCD Master GSM NETWORK MODE (AT+CNMP via existing network_type)
+typedef enum {
+  GSM_COMMAND_AUTO_MODE,   ///< Auto / default
+  GSM_COMMAND_2G_MODE,     ///< 2G only
+  GSM_COMMAND_4G_MODE,     ///< 4G only
+  GSM_COMMAND_EXIT         ///< Exit
+} stima4_master_gsm_commands_t;
+
+/// @brief LCD Master APN presets
+typedef enum {
+  APN_COMMAND_TIM,
+  APN_COMMAND_WIND,
+  APN_COMMAND_VODAFONE,
+  APN_COMMAND_FASTWEB,
+  APN_COMMAND_IOT_WIND,
+  APN_COMMAND_SIMWEB_M2M,
+  APN_COMMAND_EXIT
+} stima4_master_apn_commands_t;
 
 /// @brief LCD Slave commands names
 typedef enum {
@@ -138,7 +158,8 @@ typedef enum {
   #if (ENABLE_MENU_GSM_NUMBER)
   UPDATE_GSM_NUMBER,                  ///< update gsm number
   #endif
-  UPDATE_PSK_KEY                      ///< update PSK key
+  UPDATE_PSK_KEY,                     ///< update PSK key
+  UPDATE_GSM_NETWORK                  ///< update GSM CNMP
 } stima4_menu_ui_t;
 
 /// @brief Decoding function for Encoder 
@@ -194,6 +215,8 @@ private:
   bool ASCIIHexToDecimal(char **str, uint8_t *value_out);
   bool saveConfiguration(void);
   const char *get_master_command_name_from_enum(stima4_master_commands_t command);
+  const char *get_master_apn_command_name_from_enum(stima4_master_apn_commands_t command);
+  const char *get_master_gsm_command_name_from_enum(stima4_master_gsm_commands_t command);
   const char *get_slave_command_name_from_enum(stima4_slave_commands_t command);
   static void encoder_process(uint8_t new_value, uint8_t old_value);
   static void ISR_input_pression_pin_encoder(void);
@@ -206,6 +229,7 @@ private:
   void display_print_main_interface(void);
   void display_print_update_board_slug_interface(void);
   void display_print_update_gsm_apn_interface(void);
+  void display_print_update_gsm_network_interface(void);
   #if (ENABLE_MENU_GSM_NUMBER)
   void display_print_update_gsm_number_interface(void);
   #endif
@@ -214,6 +238,8 @@ private:
   void display_print_update_station_slug_interface(void);
   void display_setup(void);
   void elaborate_master_command(stima4_master_commands_t command);
+  void elaborate_master_apn_command(stima4_master_apn_commands_t command);
+  void elaborate_master_gsm_command(stima4_master_gsm_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
   void switch_interface(void);
 
@@ -283,6 +309,8 @@ private:
 
   /// @brief Used for master configuration menu management of commands
   stima4_master_commands_t stima4_master_command;
+  stima4_master_gsm_commands_t stima4_master_gsm_command;
+  stima4_master_apn_commands_t stima4_master_apn_command;
 
   /// @brief Used for slave configuration menu management of commands
   stima4_slave_commands_t stima4_slave_command;
@@ -307,9 +335,11 @@ private:
 
   /// @brief Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
-
-  /// @brief Contains the number of commands available for master board
+  uint8_t command_apn_selector_pos;
+  uint8_t command_gsm_selector_pos;
   uint8_t commands_master_number;
+  uint8_t commands_apn_master_number;
+  uint8_t commands_gsm_master_number;
 
   /// @brief Contains the number of commands available for each slave board
   uint8_t commands_slave_number;

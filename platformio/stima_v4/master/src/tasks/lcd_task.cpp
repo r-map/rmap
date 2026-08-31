@@ -178,6 +178,10 @@ void LCDTask::Run() {
     // ************************* DISPLAY OFF HANDLER ****************************
     // **************************************************************************
 
+    if (param.system_status->connection.is_test_connection && !display_is_off) {
+      last_display_timeout = read_millis;
+    }
+
     if ((read_millis < last_display_timeout) || (read_millis - last_display_timeout) >= DISPLAY_OFF_TIMEOUT && !display_is_off) {
       display_off();
     }
@@ -207,12 +211,16 @@ void LCDTask::Run() {
 
         board_count = 0;
         channel = -1;
+        command_apn_selector_pos = 0;
+        command_gsm_selector_pos = 0;
         command_selector_pos = 0;
         cursor_pos = 0;
         data_printed = false;
         encoder_state = DIR_NONE;
         selected_char_index = 0;
+        stima4_master_apn_command = APN_COMMAND_TIM;
         stima4_master_command = MASTER_COMMAND_RESET_FLAGS;
+        stima4_master_gsm_command = GSM_COMMAND_AUTO_MODE;
         stima4_menu_ui = MAIN;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
 
@@ -286,6 +294,8 @@ void LCDTask::Run() {
               // Calculate number of commands for master/each slave board
               if (stima4_menu_ui_last == MAIN) {
                 commands_master_number = param.system_status->data_master.fw_upgradable == true ? (stima4_master_commands_t)MASTER_COMMAND_EXIT + 1 : (stima4_master_commands_t)MASTER_COMMAND_EXIT;
+                commands_apn_master_number = (stima4_master_apn_commands_t)APN_COMMAND_EXIT + 1;
+                commands_gsm_master_number = (stima4_master_gsm_commands_t)GSM_COMMAND_EXIT + 1;
               } else {
                 if (param.configuration->board_slave[channel].module_type == Module_Type::rain) {
                   commands_slave_number = param.system_status->data_slave[channel].fw_upgradable == true ? (stima4_slave_commands_t)SLAVE_COMMAND_EXIT + 1 : (stima4_slave_commands_t)SLAVE_COMMAND_EXIT;
@@ -353,6 +363,12 @@ void LCDTask::Run() {
               // Display CONFIGURATION MENU interface for UPDATE_PSK_KEY
               display_print_update_psk_key_interface();
 
+              break;
+            }
+
+            case UPDATE_GSM_NETWORK: {
+              TRACE_INFO_F(F("LCD: UPDATE GSM NETWORK\r\n"));
+              display_print_update_gsm_network_interface();
               break;
             }
           }
@@ -707,36 +723,63 @@ void LCDTask::display_print_main_interface(void) {
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
   display.print(firmware_version);
 
-  // Print signal status
+  // Print signal status (type + RSSI + bars from modem.cnsmod / modem.rssi)
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
-  display.print(F("Signal status: "));
-  display.drawFrame(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  display.drawFrame(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-  // With regular signal (>0)
-  if (param.system_status->flags.gsm_rssi > 0) {
-    if (param.system_status->flags.gsm_rssi <= 5) {
-      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    } else if (param.system_status->flags.gsm_rssi <= 10) {
-      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-    } else if (param.system_status->flags.gsm_rssi <= 15) {
-      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.print(F("Signal "));
+
+  char tRegisterNetwork[5];
+  switch (param.system_status->modem.cnsmod) {
+    case 0: strcpy(tRegisterNetwork, "!OFF"); break;
+    case 1: strcpy(tRegisterNetwork, "!GSM"); break;
+    case 2: strcpy(tRegisterNetwork, "GPRS"); break;
+    case 3: strcpy(tRegisterNetwork, "EDGE"); break;
+    case 4: strcpy(tRegisterNetwork, "WCMA"); break;
+    case 5: strcpy(tRegisterNetwork, "HSDP"); break;
+    case 6: strcpy(tRegisterNetwork, "HSUP"); break;
+    case 7: strcpy(tRegisterNetwork, "HSPA"); break;
+    case 8: strcpy(tRegisterNetwork, "LTE4"); break;
+    default: strcpy(tRegisterNetwork, "!UNK"); break;
+  }
+  display.print(tRegisterNetwork);
+
+  char tSignal[10];
+  sprintf(tSignal, " [%02d/31]", param.system_status->modem.rssi);
+  display.print(tSignal);
+
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  display.drawFrame(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 100, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+  if ((param.system_status->modem.rssi > 0) && (param.system_status->modem.rssi < 99)) {
+    if (param.system_status->modem.rssi <= 5) {
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->modem.rssi <= 10) {
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->modem.rssi <= 15) {
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
     } else if (param.system_status->modem.rssi <= 20) {
-      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+    } else if (param.system_status->modem.rssi <= 25) {
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
     } else {
-      display.drawBox(X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
-      display.drawBox(X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 65, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 72, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 79, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 86, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 93, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
+      display.drawBox(X_OFFSET_QUAD_SIGNAL + X_TEXT_FROM_RECT + 100, Y_TEXT_FIRST_LINE + 2.4 * LINE_BREAK, 6, 6);
     }
   }
 
@@ -765,7 +808,11 @@ void LCDTask::display_print_main_interface(void) {
       display.print(F("Conn: PPP connected OK"));
     }
     else if(param.system_status->connection.is_connecting) {
-      display.print(F("Conn: ppp connection..."));
+      if (param.system_status->connection.is_test_connection) {
+        display.print(F("Conn: antenna test..."));
+      } else {
+        display.print(F("Conn: ppp connection..."));
+      }
     }
   } else {
     // SD/Publish alternate Message without connection running
@@ -892,7 +939,11 @@ void LCDTask::display_print_main_interface(void) {
   // Security Remove flag config wait... Start success connection MQTT 
   if(param.system_status->flags.mqtt_wait_link) {    
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + (row_pos++ + 7.5) * LINE_BREAK);
-    display.print(F("Waiting server connection..."));
+    if (param.system_status->connection.is_test_connection) {
+      display.print(F("Antenna test (~60s)..."));
+    } else {
+      display.print(F("Waiting server connection..."));
+    }
   }
 
   // Print Wait configuration information
@@ -987,63 +1038,56 @@ void LCDTask::display_print_update_board_slug_interface(void) {
   display.clearBuffer();
 }
 
-/// @brief Display the interface for update the GSM APN
+/// @brief Display the interface for update the GSM APN (preset list)
 void LCDTask::display_print_update_gsm_apn_interface(void) {
-  char buffer[sizeof(new_gsm_apn)] = {0};
+  uint8_t row_printed = 0;
+
+  display.drawTriangle(X_TEXT_FROM_RECT, Y_TOP_TRIANGLE + command_apn_selector_pos * LINE_BREAK_MENU, X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + LINE_BREAK_MENU * command_apn_selector_pos, X_PEAK_TRIANGLE, Y_PEAK_TRIANGLE + LINE_BREAK_MENU * command_apn_selector_pos);
+
+  for (uint8_t i = 0; i < (stima4_master_apn_commands_t)APN_COMMAND_EXIT + 1; i++) {
+    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + row_printed * LINE_BREAK_MENU);
+    display.print(get_master_apn_command_name_from_enum((stima4_master_apn_commands_t)i));
+    row_printed++;
+  }
+
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+  display.print(F("APN: "));
+  display.print(param.configuration->gsm_apn);
+
+  display.sendBuffer();
+  display.clearBuffer();
+}
+
+/// @brief Display GSM CNMP mode (2G/4G) using existing configuration.network_type
+void LCDTask::display_print_update_gsm_network_interface(void) {
+  uint8_t row_printed = 0;
   char status_message[20] = {0};
 
-  // Get parameter
-  snprintf(buffer, sizeof(buffer), "%s", new_gsm_apn);
+  display.drawTriangle(X_TEXT_FROM_RECT, Y_TOP_TRIANGLE + command_gsm_selector_pos * LINE_BREAK_MENU, X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + LINE_BREAK_MENU * command_gsm_selector_pos, X_PEAK_TRIANGLE, Y_PEAK_TRIANGLE + LINE_BREAK_MENU * command_gsm_selector_pos);
 
-  // Print Title
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE);
-  display.print(F("Enter GSM APN"));
-
-  // Print the buffer of parameter
-  display.setFont(u8g2_font_helvR10_tf);
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 4 * LINE_BREAK);
-  for (uint8_t i = 0; i < 16; i++) {
-    display.print(buffer[i]);
-  }
-  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 6 * LINE_BREAK);
-  for (uint8_t i = 16; i < sizeof(new_gsm_apn); i++) {
-    display.print(buffer[i]);
+  for (uint8_t i = 0; i < (stima4_master_gsm_commands_t)GSM_COMMAND_EXIT + 1; i++) {
+    display.setCursor(X_TEXT_FROM_RECT_DESCRIPTION_COMMAND, Y_TEXT_FIRST_LINE + row_printed * LINE_BREAK_MENU);
+    display.print(get_master_gsm_command_name_from_enum((stima4_master_gsm_commands_t)i));
+    row_printed++;
   }
 
-  // Print char selected
-  switch (alphabet[selected_char_index]) {
-    case '<': {
-      strcpy(status_message, "Undo changes");
-      display.setFont(u8g2_font_open_iconic_gui_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_UNDO);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+  display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+  switch (param.configuration->network_type) {
+    case 0:
+      strcpy(status_message, "Mode: Auto");
       break;
-    }
-    case '>': {
-      strcpy(status_message, "Apply changes");
-      display.setFont(u8g2_font_open_iconic_gui_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_APPLY);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+    case 13:
+      strcpy(status_message, "Mode: 2G");
       break;
-    }
-    case '!': {
-      strcpy(status_message, "Return to main");
-      display.setFont(u8g2_font_open_iconic_arrow_2x_t);
-      display.drawGlyph(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 9.75 * LINE_BREAK, U8G2_SYMBOL_EXIT);
-      display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+    case 38:
+      strcpy(status_message, "Mode: 4G");
       break;
-    }
-    default: {
-      status_message[0] = alphabet[selected_char_index];
-      display.drawFrame(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 8 * LINE_BREAK, 16, 16);
-      display.setCursor(11, Y_TEXT_FIRST_LINE + 9.25 * LINE_BREAK);
+    default:
+      strcpy(status_message, "Mode: Unknown");
       break;
-    }
   }
-  display.setFont(u8g2_font_helvR08_tf);
   display.print(status_message);
 
-  // Apply the updates to display
   display.sendBuffer();
   display.clearBuffer();
 }
@@ -1331,6 +1375,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       param.systemStatusLock->Take();
       param.system_status->command.do_ntp_synchronization = true;
       param.system_status->command.do_mqtt_connect = true;
+      param.system_status->command.do_test_connection = true;
       param.system_status->flags.mqtt_wait_link = true;
       param.systemStatusLock->Give();
       break;
@@ -1352,7 +1397,7 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       break;
     }
     case MASTER_COMMAND_TRUNCATE_DATA: {
-      // Set the queue to send
+      // Format volume (not file-delete); SD task rebuilds /data /firmware /log
       system_message.task_dest = SD_TASK_ID;
       system_message.command.do_trunc_sd = true;
       param.systemMessageQueue->Enqueue(&system_message, 0);
@@ -1388,12 +1433,6 @@ void LCDTask::elaborate_master_command(stima4_master_commands_t command) {
       break;
     }
     case MASTER_COMMAND_UPDATE_GSM_APN: {
-      // Update the mqtt password of the station
-      param.configurationLock->Take();
-      strcpy(param.configuration->gsm_apn, new_gsm_apn);
-      param.configurationLock->Give();
-      // Apply the updates to eeprom
-      saveConfiguration();
       break;
     }
     #if (ENABLE_MENU_GSM_NUMBER)
@@ -1571,7 +1610,7 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
       break;
     }
     case MASTER_COMMAND_TRUNCATE_DATA: {
-      command_name = "Init SD Card data";
+      command_name = "Erase SD Card";
       break;
     }
     case MASTER_COMMAND_UPDATE_STATION_SLUG: {
@@ -1602,6 +1641,10 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
       command_name = "Update PSK key";
       break;
     }
+    case MASTER_COMMAND_UPDATE_GSM_NETWORK: {
+      command_name = "Update GSM network";
+      break;
+    }
     case MASTER_COMMAND_FIRMWARE_UPGRADE: {
       command_name = "Upgrade firmware";
       break;
@@ -1612,6 +1655,101 @@ const char* LCDTask::get_master_command_name_from_enum(stima4_master_commands_t 
     }
   }
   return command_name;
+}
+
+const char* LCDTask::get_master_apn_command_name_from_enum(stima4_master_apn_commands_t command) {
+  const char* command_name = "";
+  switch (command) {
+    case APN_COMMAND_TIM: command_name = "TIM"; break;
+    case APN_COMMAND_WIND: command_name = "WIND"; break;
+    case APN_COMMAND_VODAFONE: command_name = "VODAFONE"; break;
+    case APN_COMMAND_FASTWEB: command_name = "FASTWEB"; break;
+    case APN_COMMAND_IOT_WIND: command_name = "IOT WIND"; break;
+    case APN_COMMAND_SIMWEB_M2M: command_name = "SIMWEB MULTIOP."; break;
+    case APN_COMMAND_EXIT: command_name = "Exit"; break;
+  }
+  return command_name;
+}
+
+const char* LCDTask::get_master_gsm_command_name_from_enum(stima4_master_gsm_commands_t command) {
+  const char* command_name = "";
+  switch (command) {
+    case GSM_COMMAND_AUTO_MODE: command_name = "Auto"; break;
+    case GSM_COMMAND_2G_MODE: command_name = "2G only"; break;
+    case GSM_COMMAND_4G_MODE: command_name = "4G only"; break;
+    case GSM_COMMAND_EXIT: command_name = "Exit"; break;
+  }
+  return command_name;
+}
+
+void LCDTask::elaborate_master_apn_command(stima4_master_apn_commands_t command) {
+  TRACE_INFO_F(F("LCD: APN [ %s ]\r\n"), get_master_apn_command_name_from_enum(command));
+  switch (command) {
+    case APN_COMMAND_TIM:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_TIM);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_WIND:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_WIND);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_VODAFONE:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_VODAFONE);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_FASTWEB:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_FASTWEB);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_IOT_WIND:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_IOT_WIND);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_SIMWEB_M2M:
+      param.configurationLock->Take();
+      strcpy(param.configuration->gsm_apn, GSM_APN_SIMWEB_M2M);
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case APN_COMMAND_EXIT:
+      break;
+  }
+}
+
+void LCDTask::elaborate_master_gsm_command(stima4_master_gsm_commands_t command) {
+  TRACE_INFO_F(F("LCD: GSM net [ %s ]\r\n"), get_master_gsm_command_name_from_enum(command));
+  switch (command) {
+    case GSM_COMMAND_AUTO_MODE:
+      param.configurationLock->Take();
+      param.configuration->network_type = 0;
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case GSM_COMMAND_2G_MODE:
+      param.configurationLock->Take();
+      param.configuration->network_type = 13;
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case GSM_COMMAND_4G_MODE:
+      param.configurationLock->Take();
+      param.configuration->network_type = 38;
+      param.configurationLock->Give();
+      saveConfiguration();
+      break;
+    case GSM_COMMAND_EXIT:
+      break;
+  }
 }
 
 /// @brief Get the slave command name from enumeration
@@ -1765,7 +1903,8 @@ void LCDTask::switch_interface(void) {
         }
 
         case UPDATE_GSM_APN: {
-          selected_char_index = selected_char_index == ALPHABET_LENGTH - 1 ? 0 : selected_char_index + 1;
+          command_apn_selector_pos = stima4_master_apn_command == APN_COMMAND_EXIT ? commands_apn_master_number - 1 : command_apn_selector_pos + 1;
+          stima4_master_apn_command = stima4_master_apn_command == APN_COMMAND_EXIT ? APN_COMMAND_EXIT : (stima4_master_apn_commands_t)(stima4_master_apn_command + 1);
           break;
         }
 
@@ -1778,6 +1917,12 @@ void LCDTask::switch_interface(void) {
 
         case UPDATE_PSK_KEY: {
           selected_char_index = selected_char_index == ALPHABET_PSK_KEY_LENGTH - 1 ? 0 : selected_char_index + 1;
+          break;
+        }
+
+        case UPDATE_GSM_NETWORK: {
+          command_gsm_selector_pos = stima4_master_gsm_command == GSM_COMMAND_EXIT ? commands_gsm_master_number - 1 : command_gsm_selector_pos + 1;
+          stima4_master_gsm_command = stima4_master_gsm_command == GSM_COMMAND_EXIT ? GSM_COMMAND_EXIT : (stima4_master_gsm_commands_t)(stima4_master_gsm_command + 1);
           break;
         }
           // **************************************************************************
@@ -1847,7 +1992,8 @@ void LCDTask::switch_interface(void) {
         }
 
         case UPDATE_GSM_APN: {
-          selected_char_index = selected_char_index == 0 ? ALPHABET_LENGTH - 1 : selected_char_index - 1;
+          command_apn_selector_pos = stima4_master_apn_command == APN_COMMAND_TIM ? 0 : command_apn_selector_pos - 1;
+          stima4_master_apn_command = stima4_master_apn_command == APN_COMMAND_TIM ? APN_COMMAND_TIM : (stima4_master_apn_commands_t)(stima4_master_apn_command - 1);
           break;
         }
         #if (ENABLE_MENU_GSM_NUMBER)
@@ -1858,6 +2004,12 @@ void LCDTask::switch_interface(void) {
         #endif
         case UPDATE_PSK_KEY: {
           selected_char_index = selected_char_index == 0 ? ALPHABET_PSK_KEY_LENGTH - 1 : selected_char_index - 1;
+          break;
+        }
+
+        case UPDATE_GSM_NETWORK: {
+          command_gsm_selector_pos = stima4_master_gsm_command == GSM_COMMAND_AUTO_MODE ? 0 : command_gsm_selector_pos - 1;
+          stima4_master_gsm_command = stima4_master_gsm_command == GSM_COMMAND_AUTO_MODE ? GSM_COMMAND_AUTO_MODE : (stima4_master_gsm_commands_t)(stima4_master_gsm_command - 1);
           break;
         }
 
@@ -1937,17 +2089,6 @@ void LCDTask::switch_interface(void) {
             // Update current menu state
             stima4_menu_ui = UPDATE_MQTT_USERNAME;
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_APN) {
-            // ************************************************************************
-            // *************************** GSM APN INIT *******************************
-            // ************************************************************************
-
-            // Reset input buffer
-            memset(new_gsm_apn, 0, sizeof(new_gsm_apn));
-            // Set input buffer
-            strcpy(new_gsm_apn, param.configuration->gsm_apn);
-            // Cursor position to last character of parameter
-            cursor_pos = strlen(param.configuration->gsm_apn);
-            // Update current menu state
             stima4_menu_ui = UPDATE_GSM_APN;
           #if (ENABLE_MENU_GSM_NUMBER)
           } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_NUMBER) {
@@ -1980,6 +2121,8 @@ void LCDTask::switch_interface(void) {
             cursor_pos = (CLIENT_PSK_KEY_LENGTH * 2);
             // Update current menu state
             stima4_menu_ui = UPDATE_PSK_KEY;
+          } else if (stima4_master_command == MASTER_COMMAND_UPDATE_GSM_NETWORK) {
+            stima4_menu_ui = UPDATE_GSM_NETWORK;
           } else {
             // ************************************************************************
             // ************************* ELABORATE COMMAND ****************************
@@ -1998,7 +2141,11 @@ void LCDTask::switch_interface(void) {
 
         // Updating flags and states
         command_selector_pos = 0;
+        command_apn_selector_pos = 0;
+        command_gsm_selector_pos = 0;
         stima4_master_command = MASTER_COMMAND_RESET_FLAGS;
+        stima4_master_apn_command = APN_COMMAND_TIM;
+        stima4_master_gsm_command = GSM_COMMAND_AUTO_MODE;
         stima4_slave_command = SLAVE_COMMAND_MAINTENANCE;
         break;
       }
@@ -2111,37 +2258,8 @@ void LCDTask::switch_interface(void) {
       }
 
       case UPDATE_GSM_APN: {
-        // ************************************************************************
-        // ************************* ELABORATE COMMAND ****************************
-        // ************************************************************************
-
-        switch (alphabet[selected_char_index]) {
-          case '<': {
-            cursor_pos = cursor_pos == 0 ? 0 : cursor_pos - 1;
-            new_gsm_apn[cursor_pos] = 0;
-            break;
-          }
-          case '>': {
-            elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
-
-            stima4_menu_ui = stima4_menu_ui_last;
-            break;
-          }
-          case '!': {
-            stima4_menu_ui = stima4_menu_ui_last;
-            break;
-          }
-          default: {
-            new_gsm_apn[cursor_pos++] = alphabet[selected_char_index];
-
-            if (cursor_pos == GSM_APN_LENGTH - 1) {
-              elaborate_master_command(MASTER_COMMAND_UPDATE_GSM_APN);
-
-              stima4_menu_ui = stima4_menu_ui_last;
-            }
-            break;
-          }
-        }
+        elaborate_master_apn_command((stima4_master_apn_commands_t)command_apn_selector_pos);
+        stima4_menu_ui = CONFIGURATION;
         break;
       }
 
@@ -2214,6 +2332,12 @@ void LCDTask::switch_interface(void) {
             break;
           }
         }
+        break;
+      }
+
+      case UPDATE_GSM_NETWORK: {
+        elaborate_master_gsm_command((stima4_master_gsm_commands_t)command_gsm_selector_pos);
+        stima4_menu_ui = CONFIGURATION;
         break;
       }
 

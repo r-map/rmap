@@ -47,7 +47,7 @@
 #define MODULE_MAIN_VERSION   (4)
 
 /// @brief Module minor version.
-#define MODULE_MINOR_VERSION  (7)
+#define MODULE_MINOR_VERSION  (8)
 
 /// @brief Module minor version.
 #define CONFIGURATION_VERSION (1)
@@ -192,6 +192,9 @@
 /// @brief Enable HTTP interface
 #define USE_HTTP  (true)
 
+/// @brief Disable unsolicited +CREG/+CGREG/+CEREG/+CNSMOD (query CSQ/CNSMOD? remain).
+#define STIMA_MODEM_DISABLE_URC   (true)
+
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 /// @brief Max length of I2C data
 #define I2C_MAX_DATA_LENGTH (32)
@@ -244,10 +247,10 @@
 /*********************************************************************
 * Queue Size block MAX
 *********************************************************************/
-/// @brief FIle get data block size. SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
+/// @brief File get data block size. SET TO -> uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_
 #define FILE_GET_DATA_BLOCK_SIZE    (256U) 
-/// @brief FIle put data block size
-#define FILE_PUT_DATA_BLOCK_SIZE    (256U)
+/// @brief File put data block size (aligned to HTTP_BUFFER_SIZE for HTTP FW download)
+#define FILE_PUT_DATA_BLOCK_SIZE    (1024U)
 /// @brief FIle get data block size, MAX LEN WIND = 144 Bytes
 #define RMAP_DATA_MAX_ELEMENT_SIZE  (152U) 
 /// @brief Log put data element size 
@@ -263,8 +266,15 @@
 /// @brief RMAP backup data max element size 
 #define RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE   (RMAP_BACKUP_DATA_LEN_TOPIC_SIZE + RMAP_BACKUP_DATA_LEN_MESSAGE_SIZE)
 
+/// @brief Field-test override: report + MQTT connection interval in seconds (0 = use EEPROM/RPC)
+#define TEST_FORCE_REPORT_S               (0)
+
 /// @brief Min time to wait after connection error before retry
-#define MIN_INIBITH_CONNECT_RETRY_S (600) 
+#if (TEST_FORCE_REPORT_S > 0)
+#define MIN_INIBITH_CONNECT_RETRY_S       (TEST_FORCE_REPORT_S)
+#else
+#define MIN_INIBITH_CONNECT_RETRY_S       (600)
+#endif 
 
 // Queue timeOut on FILE SD ACCESS
 /// @brief Time out before error to R/W operartion with queue File data

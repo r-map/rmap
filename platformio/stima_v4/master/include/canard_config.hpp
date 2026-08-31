@@ -101,8 +101,8 @@
 // #define USE_MODULE_FIXED_RADIATION
 // #define USE_MODULE_FIXED_VWC
 // #define USE_MODULE_FIXED_LEVEL
-#define USE_MODULE_FIXED_LEAF
-#define USE_MODULE_FIXED_POWER
+// #define USE_MODULE_FIXED_LEAF
+// #define USE_MODULE_FIXED_POWER
 #endif
 
 /// @brief Utilizzo della modalità full power per la rete UAVCAN (non permette sleep. Da usare Per test e/o debug)

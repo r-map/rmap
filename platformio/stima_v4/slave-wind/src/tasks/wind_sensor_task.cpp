@@ -216,8 +216,8 @@ void WindSensorTask::Run() {
       */
       // Disable Sleep Mode while request response is done
       LowPower.idleHookDisable();
-      // Starting request polling
-      SerialWindSonic.print("?Q!\n");
+      // Starting request polling (? OBLIGATORY TO TALK WITH SENSOR IN POLLING)
+      SerialWindSonic.print("?Q\n");
       // Flush and Rest Buffer IN before Reading Messag response
       SerialWindSonic.flush();
       serialReset();

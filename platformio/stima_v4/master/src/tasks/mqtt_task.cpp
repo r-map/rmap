@@ -37,6 +37,28 @@
 
 using namespace cpp_freertos;
 
+/// @brief Persist RMAP read pointer on SD after all publishSensor* for one archive record succeed.
+static bool rmapSdSavePointer(MqttParam_t *p, bool confirmed)
+{
+  rmap_get_request_t req = {0};
+  req.command.do_save_ptr = true;
+  req.param = confirmed ? 1u : 0u;
+  p->dataRmapGetRequestQueue->Enqueue(&req);
+  rmap_get_response_t resp = {0};
+  return p->dataRmapGetResponseQueue->Dequeue(&resp, FILE_IO_DATA_QUEUE_TIMEOUT) &&
+         resp.result.done_synch;
+}
+
+/// @brief Roll back RMAP pointer to last committed position (SD read/MQTT failure).
+static void rmapSdRestorePointer(MqttParam_t *p)
+{
+  rmap_get_request_t req = {0};
+  req.command.do_previous_ptr = true;
+  p->dataRmapGetRequestQueue->Enqueue(&req);
+  rmap_get_response_t resp = {0};
+  p->dataRmapGetResponseQueue->Dequeue(&resp, FILE_IO_DATA_QUEUE_TIMEOUT);
+}
+
 /// @brief Construct a new Mqtt Task:: Mqtt Task object
 /// @param taskName name of the task
 /// @param stackSize size of the stack
@@ -926,6 +948,17 @@ void MqttTask::Run()
 
                 break;
             }
+
+            // One SD pointer commit per archive record (after all publishSensor* for this block)
+            if (param.system_status->flags.sd_card_ready && !error &&
+                state != MQTT_STATE_DISCONNECT_LOST_DATA) {
+              TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+              if (!rmapSdSavePointer(&param, true)) {
+                TRACE_ERROR_F(F("MQTT: RMAP save pointer fail/timeout after record publish OK\r\n"));
+              } else {
+                TRACE_DEBUG_F(F("MQTT: RMAP save ptr confirmed=1 ok\r\n"));
+              }
+            }
           }
 
           // ? Connection to MQTT server lost data or update data Error, exit immediatly!
@@ -946,6 +979,11 @@ void MqttTask::Run()
         // TRACE END Data response
         if(countData) {
           TRACE_INFO_F(F("Uploading data from RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+        }
+        if (param.system_status->flags.sd_card_ready && rmap_data_error) {
+          TRACE_DEBUG_F(F("MQTT: RMAP restore pointer after read error\r\n"));
+          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmapSdRestorePointer(&param);
         }
       }
       // *****************************************
@@ -970,15 +1008,9 @@ void MqttTask::Run()
     case MQTT_STATE_DISCONNECT_LOST_DATA:
       // The operation state is performed only with ready SD Card
       if(param.system_status->flags.sd_card_ready) {
-        // Normal mode, get data from queue on SD CARD
-        memset(&rmap_get_request, 0, sizeof(rmap_get_request));
-        // Restore previous Data Pointer
-        rmap_get_request.command.do_previous_ptr = true;
-        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
-        // Waiting response from SD with TimeOUT
-        memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+        TRACE_DEBUG_F(F("MQTT: RMAP restore pointer after publish error\r\n"));
         TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-        param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);      
+        rmapSdRestorePointer(&param);
       }
       // ? Enabled to save MQTT Server responding Error state
       if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
@@ -1037,17 +1069,10 @@ void MqttTask::Run()
       }
 
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Softly disconnect to MQTT Server
-      mqttClientDisconnect(&mqttClientContext);
-      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
-
-      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Close connection
+      // Skip mqttClientDisconnect(): graceful TLS/TCP shutdown can hang forever on PPP
       mqttClientClose(&mqttClientContext);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-
-      TRACE_INFO_F(F("%s Close connection\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+      TRACE_INFO_F(F("%s Closed mqtt connection %s:%d (hard close)\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
       state = MQTT_STATE_END;
       TRACE_VERBOSE_F(F("MQTT_STATE_DISCONNECT -> MQTT_STATE_END\r\n"));
@@ -1251,16 +1276,9 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
 /// @param localMessage 
 void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, char *localMessage)
 {
-  rmap_backup_data_t archive_backup_data_line = {0};
-  size_t lenTopic = strlen(localTopic);
-  size_t lenMessage = strlen(localMessage);
-  // Prepare message
-  archive_backup_data_line.date_time = convertDateToUnixTime(&dateTime);
-  // Check security Len Message before push queue message data
-  strcpy((char*)archive_backup_data_line.block, localTopic);
-  strcpy((char*)(archive_backup_data_line.block + RMAP_BACKUP_DATA_LEN_TOPIC_SIZE), localMessage);
-  // Send to queue with waiting Queue empty from SD Task if Full
-  param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
+  (void)dateTime;
+  (void)localTopic;
+  (void)localMessage;
 }
 
 /// @brief Publish th sensor

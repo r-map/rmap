@@ -395,6 +395,8 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   report.class_4 = RMAPDATA_MAX;
   report.class_5 = RMAPDATA_MAX;
   report.class_6 = RMAPDATA_MAX;
+  report.peak_gust_direction = RMAPDATA_MAX;
+  report.long_gust_direction = RMAPDATA_MAX;
   report.quality = RMAPDATA_MAX;
 
   // Ptr for maintenance
@@ -425,10 +427,7 @@ void ElaborateDataTask::make_report(bool is_init, uint16_t report_time_s, uint8_
   if (report_time_s == 0) {
     // Make last data value to Get Istant show value
     speed = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_speed_samples, SAMPLES_COUNT_MAX);
-    if(speed >= RMAPDATA_MAX) speed = 0;
     direction = (float)bufferReadBack<sample_t, uint16_t, rmapdata_t>(&wind_direction_samples, SAMPLES_COUNT_MAX);
-    if (direction >= RMAPDATA_MAX) direction = 0;
-    // Used as sample for istant value (Only LCD for show value)
     report.vavg10_speed = speed;
     report.vavg10_direction = direction;
   }

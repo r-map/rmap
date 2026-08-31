@@ -341,12 +341,13 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
   } else if (strstr(file_name, STIMA_MODULE_NAME_RAIN)) {
     *type = STIMA_MODULE_TYPE_RAIN;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_RAIN);
+  } else if (strstr(file_name, STIMA_MODULE_NAME_THR)) {
+    // Must precede STIMA_MODULE_NAME_TH ("stima4.module_th" is a prefix of "..._thr")
+    *type = STIMA_MODULE_TYPE_THR;
+    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_THR);
   } else if (strstr(file_name, STIMA_MODULE_NAME_TH)) {
     *type = STIMA_MODULE_TYPE_TH;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_TH);
-  } else if (strstr(file_name, STIMA_MODULE_NAME_THR)) {
-    *type = STIMA_MODULE_TYPE_THR;
-    ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_THR);
   } else if (strstr(file_name, STIMA_MODULE_NAME_OPC)) {
     *type = STIMA_MODULE_TYPE_OPC;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_OPC);
@@ -354,7 +355,7 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
     *type = STIMA_MODULE_TYPE_LEAF;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEAF);
   } else if (strstr(file_name, STIMA_MODULE_NAME_LEVEL)) {
-    *type = STIMA_MODULE_TYPE_LEAF;
+    *type = STIMA_MODULE_TYPE_LEVEL;
     ptrcheck = file_name + sizeof(STIMA_MODULE_NAME_LEVEL);
   } else if (strstr(file_name, STIMA_MODULE_NAME_WIND)) {
     *type = STIMA_MODULE_TYPE_WIND;

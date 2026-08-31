@@ -747,6 +747,19 @@ uavcan_register_Access_Response_1_0 CanTask::processRequestRegisterAccess(const 
         if (!uavcan_register_Value_1_0_is_empty_(&resp.value) && localRegister->assign(&resp.value, &req->value)) {
             localRegisterAccessLock->Take();
             localRegister->write(&name[0], &resp.value);
+            if (strcmp(name, "rmap.module.sensor.gain") == 0) {
+                localConfigurationAccessLock->Take();
+                for (uint8_t i = 0; (i < MAX_ADC_CHANELS) && (i < resp.value.real32.value.count); i++) {
+                  localConfiguration->sensors[i].gain = resp.value.real32.value.elements[i];
+                }
+                localConfigurationAccessLock->Give();
+            } else if (strcmp(name, "rmap.module.sensor.offs") == 0) {
+                localConfigurationAccessLock->Take();
+                for (uint8_t i = 0; (i < MAX_ADC_CHANELS) && (i < resp.value.real32.value.count); i++) {
+                  localConfiguration->sensors[i].offset = resp.value.real32.value.elements[i];
+                }
+                localConfigurationAccessLock->Give();
+            }
             localRegisterAccessLock->Give();
         }
     }
@@ -1099,6 +1112,8 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
   localSystemMessageQueue = param.systemMessageQueue;
   localQspiLock = param.qspiLock;
   localRegisterAccessLock = param.registerAccessLock;
+  localConfiguration = param.configuration;
+  localConfigurationAccessLock = param.configurationLock;
 
   boot_state = param.boot_request;
   localEeprom = param.eeprom;

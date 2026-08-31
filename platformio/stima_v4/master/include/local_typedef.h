@@ -219,6 +219,7 @@ typedef struct
       bool is_disconnected;            ///< Modem is disconnected
       bool is_disconnecting;           ///< Modem is in disconnection sequence
       bool is_ppp_estabilished;        ///< PPP Connection ready
+      bool is_test_connection;         ///< LCD force: antenna positioning test before PPP
 
       bool is_dns_failed_resolve;      ///< DNS Resolve error
 
@@ -249,6 +250,7 @@ typedef struct
       bool do_http_configuration_update;     ///< Request a HTTP configuration download
       bool do_http_firmware_download;        ///< Request a HTTP firmware download
       bool do_mqtt_connect;                  ///< Request a MQTT Connection for publish data or system state
+      bool do_test_connection;               ///< LCD force: antenna/signal test before PPP
    } command;
 
    ///< GSM Flag
@@ -263,6 +265,7 @@ typedef struct
       uint8_t cgreg_stat;    ///< State Registration for GPRS
       uint8_t cereg_n;       ///< Registration for EUTRAN
       uint8_t cereg_stat;    ///< State Registration for EUTRAN
+      uint8_t cnsmod;        ///< Current network system mode (AT+CNSMOD?)
       // Indicator state connection sequence (Ok/err)
       uint8_t perc_modem_connection_valid;   ///< Number of valid percentage connection
       uint16_t connection_attempted;         ///< Modem connection started
@@ -343,6 +346,7 @@ typedef struct
 {
    bool do_connect;        ///< need connection begin
    bool do_disconnect;     ///< need disconnection
+   bool do_test;           ///< testing connection (antenna / signal, no PPP if used as test)
 
    bool do_ntp_sync;       ///< require syncronization with NTP Server
 
@@ -418,8 +422,8 @@ typedef struct
       uint8_t do_reinit_fw    : 1;  ///< Request reinit firmware really upgradable from SD file (destroy all file struct)
       uint8_t done_reinit_fw  : 1;  ///< Response reinit firmware really upgradable from SD file (destroy all file struct)
       uint8_t do_update_all   : 1;  ///< Request starting update all system (all firmware upgradable) and Reboot any boards
-      uint8_t do_trunc_sd     : 1;  ///< Request truncate and reinit data into SD Card
-      uint8_t done_trunc_sd   : 1;  ///< Response truncate and reinit data into SD Card
+      uint8_t do_trunc_sd     : 1;  ///< Request erase/format SD Card and rebuild structure
+      uint8_t done_trunc_sd   : 1;  ///< Response erase/format SD Card and rebuild structure
       uint8_t do_inibith      : 1;  ///< Request inibith sleep
       uint8_t undo_inibith    : 1;  ///< Remove inibith sleep
       uint8_t do_maint        : 1;  ///< Request maintenance

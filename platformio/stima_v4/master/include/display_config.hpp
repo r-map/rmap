@@ -5,11 +5,13 @@
 // ************************************************************************************
 #define HEIGHT_RECT_SERIAL_NUMBER 12
 #define LINE_BREAK                10
+#define LINE_BREAK_MENU           9.75
 #define WIDTH_RECT_HEADER         15
 #define X_PEAK_TRIANGLE           13
 #define X_RECT                    0
 #define X_RECT_SERIAL_NUMBER      3
 #define X_TEXT_FROM_RECT          5
+#define X_OFFSET_QUAD_SIGNAL      35
 #define Y_PEAK_TRIANGLE           24
 #define Y_RECT                    0
 #define Y_RECT_SERIAL_NUMBER      113
